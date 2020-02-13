@@ -4,17 +4,20 @@ import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { mainTabs } from '@/global';
+import {SecurityServer} from '@/types';
 
 export interface UserState {
   authenticated: boolean;
   permissions: string[];
   username: string;
+  currentSecurityServer: SecurityServer | {};
 }
 
 export const userState: UserState = {
   authenticated: false,
   permissions: [],
   username: '',
+  currentSecurityServer: {},
 };
 
 export const userGetters: GetterTree<UserState, RootState> = {
@@ -63,6 +66,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
   username(state) {
     return state.username;
   },
+  currentSecurityServer(state) {
+    return state.currentSecurityServer;
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
@@ -75,12 +81,16 @@ export const mutations: MutationTree<UserState> = {
     // Clear the permissions
     state.permissions = [];
     state.username = '';
+    state.currentSecurityServer = {};
   },
   setPermissions: (state, permissions: string[]) => {
     state.permissions = permissions;
   },
   setUsername: (state, username: string) => {
     state.username = username;
+  },
+  setCurrentSecurityServer: (state, securityServer: SecurityServer) => {
+    state.currentSecurityServer = securityServer;
   },
 };
 
@@ -117,6 +127,20 @@ export const actions: ActionTree<UserState, RootState> = {
       })
       .catch((error) => {
         console.log(error);
+        throw error;
+      });
+  },
+
+  async fetchCurrentSecurityServer({ commit }) {
+    return axios.get<SecurityServer[]>('/security-servers?current_server=true')
+      .then((resp) => {
+        if (resp.data?.length !== 1) {
+          throw new Error(`Failed to set current security server. Expected the response to contain 1 item, actual was ${resp.data?.length}`);
+        }
+        commit('setCurrentSecurityServer', resp.data[0]);
+      })
+      .catch((error) => {
+        console.error(error);
         throw error;
       });
   },

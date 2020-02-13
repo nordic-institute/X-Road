@@ -639,6 +639,12 @@ export interface SecurityServer {
    * server123
    */
   server_code?: string; // text
+  /**
+   * security server address (ip or name)
+   * example:
+   * 192.168.1.100
+   */
+  server_address?: string; // text
 }
 /**
  * service for the service description
