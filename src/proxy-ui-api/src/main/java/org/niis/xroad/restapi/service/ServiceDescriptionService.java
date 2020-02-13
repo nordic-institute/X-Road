@@ -301,8 +301,8 @@ public class ServiceDescriptionService {
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
      * @throws MissingParameterException         if given ServiceCode is null
      */
-    public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url,
-            String serviceCode, boolean ignoreWarnings)
+    public ServiceDescriptionType addOpenApi3ServiceDescription(ClientId clientId, String url,
+                                                                String serviceCode, boolean ignoreWarnings)
             throws OpenApiParser.ParsingException, ClientNotFoundException,
             UnhandledWarningsException,
             UrlAlreadyExistsException,

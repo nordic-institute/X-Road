@@ -353,7 +353,7 @@ public class ClientsApiController implements ClientsApi {
             }
         } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             try {
-                addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
+                addedServiceDescriptionType = serviceDescriptionService.addOpenApi3ServiceDescription(clientId, url,
                         restServiceCode, ignoreWarnings);
             } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException e) {
                 throw new BadRequestException(e);
