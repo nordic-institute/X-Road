@@ -848,13 +848,8 @@ public final class TokenManager {
 
         return forCertRequest((k, c) -> c.getId().equals(certReqId),
                 (k, c) -> {
-                    if (k.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-                        // Authentication keys can only have one certificate request
-                        k.getCertRequests().clear();
-                    } else {
-                        if (!k.getCertRequests().remove(c)) {
-                            return null;
-                        }
+                    if (!k.getCertRequests().remove(c)) {
+                        return null;
                     }
 
                     return k.getId();
