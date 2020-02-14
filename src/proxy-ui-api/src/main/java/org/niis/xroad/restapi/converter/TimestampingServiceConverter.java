@@ -25,8 +25,8 @@
 package org.niis.xroad.restapi.converter;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,20 +39,21 @@ import java.util.stream.Collectors;
 @Component
 public class TimestampingServiceConverter {
 
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
 
     /**
      * constructor
      */
     @Autowired
-    public TimestampingServiceConverter(GlobalConfService globalConfService) {
-        this.globalConfService = globalConfService;
+    public TimestampingServiceConverter(GlobalConfFacade globalConfFacade) {
+        this.globalConfFacade = globalConfFacade;
     }
 
     public TimestampingService convert(String url)  {
         TimestampingService timestampingService = new TimestampingService();
         timestampingService.setUrl(url);
-        timestampingService.setName(globalConfService.getApprovedTspName(url));
+        timestampingService.setName(globalConfFacade.getApprovedTspName(
+                globalConfFacade.getInstanceIdentifier(), url));
         return timestampingService;
     }
 

@@ -28,8 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 public class TimestampingServiceConverterTest {
 
     @MockBean
-    GlobalConfService globalConfService;
+    GlobalConfFacade globalConfFacade;
 
     private TimestampingServiceConverter timestampingServiceConverter;
 
@@ -58,12 +58,16 @@ public class TimestampingServiceConverterTest {
 
     private static final String TSA_NAME = "Test TSA";
 
+    private static final String INSTANCE_IDENTIFIER = "TEST";
+
     @Before
     public void setup() {
-        when(globalConfService.getApprovedTspName(TSA_URL)).thenReturn(TSA_NAME);
-        when(globalConfService.getApprovedTspName(AdditionalMatchers.not(eq(TSA_URL)))).thenReturn(null);
+        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(globalConfFacade.getApprovedTspName(INSTANCE_IDENTIFIER, TSA_URL)).thenReturn(TSA_NAME);
+        when(globalConfFacade.getApprovedTspName(eq(INSTANCE_IDENTIFIER), AdditionalMatchers.not(eq(TSA_URL))))
+                .thenReturn(null);
 
-        timestampingServiceConverter = new TimestampingServiceConverter(globalConfService);
+        timestampingServiceConverter = new TimestampingServiceConverter(globalConfFacade);
     }
 
     @Test

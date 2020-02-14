@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,9 @@ public class TimestampingServiceApiControllerTest {
     @MockBean
     GlobalConfService globalConfService;
 
+    @MockBean
+    GlobalConfFacade globalConfFacade;
+
     @Autowired
     private TimestampingServicesApiController timestampingServicesApiController;
 
@@ -82,6 +86,7 @@ public class TimestampingServiceApiControllerTest {
         TIMESTAMPING_SERVICES.put(TSA_1_URL, TSA_1_NAME);
         TIMESTAMPING_SERVICES.put(TSA_2_URL, TSA_2_NAME);
 
+        when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
                 new ArrayList<String>(TIMESTAMPING_SERVICES.keySet()));
         when(globalConfService.getApprovedTspName(TSA_1_URL)).thenReturn(TIMESTAMPING_SERVICES.get(TSA_1_NAME));
