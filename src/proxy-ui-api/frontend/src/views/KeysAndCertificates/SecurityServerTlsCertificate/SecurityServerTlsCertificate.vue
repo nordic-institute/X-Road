@@ -5,6 +5,7 @@
         v-if="generateKeyVisible"
         class="button-spacing"
         outlined
+        @click="generateDialog = true"
       >{{$t('ssTlsCertificate.generateKey')}}</large-button>
       <large-button
         v-if="importCertificateVisible"
@@ -17,6 +18,11 @@
         outlined
       >{{$t('ssTlsCertificate.exportCertificate')}}</large-button>
     </div>
+
+    <generate-tls-and-certificate-dialog
+      :dialog="generateDialog"
+      @cancel="generateDialog = false"
+      @saved="newCertificateGenerated"/>
 
     <div class="content-title">{{$t('ssTlsCertificate.keyCertTitle')}}</div>
     <div class="horizontal-line-dark"></div>
@@ -57,15 +63,18 @@ import { Key, CertificateDetails } from '@/types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
+import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 
 export default Vue.extend({
   components: {
     LargeButton,
     SmallButton,
+    GenerateTlsAndCertificateDialog,
   },
   data() {
     return {
       certificate: undefined as CertificateDetails | undefined,
+      generateDialog: false,
     };
   },
   computed: {
@@ -108,6 +117,10 @@ export default Vue.extend({
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
+    },
+    newCertificateGenerated(): void {
+      this.fetchData();
+      this.generateDialog = false;
     },
   },
   created() {
