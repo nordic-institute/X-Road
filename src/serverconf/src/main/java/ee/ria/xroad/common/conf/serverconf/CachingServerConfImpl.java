@@ -26,6 +26,7 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -60,11 +61,13 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public static final String TSP_URL = "tsp_url";
 
     private final int expireSeconds;
+    private final int internalKeyExpireSeconds;
     private volatile SecurityServerId serverId;
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
     private final Cache<ClientId, Optional<ClientType>> clientCache;
+    private final Cache<String, InternalSSLKey> internalKeyCache;
 
     /**
      * Constructor, creates time based object cache with expireSeconds paramter
@@ -73,6 +76,12 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public CachingServerConfImpl() {
         super();
         expireSeconds = SystemProperties.getServerConfCachePeriod();
+        internalKeyExpireSeconds = SystemProperties.getInternalKeyCachePeriod();
+
+        internalKeyCache = CacheBuilder.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(internalKeyExpireSeconds, TimeUnit.SECONDS)
+                .build();
 
         tspCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
@@ -98,6 +107,19 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .recordStats()
                 .build();
 
+    }
+
+    @Override
+    public InternalSSLKey getSSLKey() {
+        try {
+            return internalKeyCache.get(InternalSSLKey.KEY_ALIAS, super::getSSLKey);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof CodedException) {
+                throw (CodedException) e.getCause();
+            }
+            log.debug("Failed to get InternalSSLKey", e);
+            return null;
+        }
     }
 
     @Override
