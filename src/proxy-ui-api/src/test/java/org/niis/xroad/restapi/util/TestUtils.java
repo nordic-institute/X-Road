@@ -202,5 +202,5 @@ public final class TestUtils {
                                     API_KEY_HEADER_PREFIX + apiKeyToken);
                     return execution.execute(request, body);
                 }));
-   }
+    }
 }
