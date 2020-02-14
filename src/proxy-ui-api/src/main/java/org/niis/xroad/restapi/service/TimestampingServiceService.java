@@ -24,44 +24,38 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 
 /**
- * Root class for all checked service layer exceptions
+ * Service that handles timestamping services
  */
-public abstract class ServiceException extends DeviationAwareException {
+@Slf4j
+@Service
+@Transactional
+@PreAuthorize("isAuthenticated()")
+public class TimestampingServiceService {
 
-    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        super(msg, t, errorDeviation);
+    private final GlobalConfService globalConfService;
+
+    /**
+     * constructor
+     */
+    @Autowired
+    public TimestampingServiceService(GlobalConfService globalConfService) {
+        this.globalConfService = globalConfService;
     }
 
-    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
-        super(msg, t, errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
-    public ServiceException(Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
-        super(t, errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public ServiceException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    /**
+     * Return timestamping authorities
+     * @return
+     */
+    public Collection<String> getTimestampingServices() {
+        return globalConfService.getApprovedTspsForThisInstance();
     }
 }

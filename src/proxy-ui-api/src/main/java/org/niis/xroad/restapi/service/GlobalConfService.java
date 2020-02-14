@@ -142,4 +142,19 @@ public class GlobalConfService {
         return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
     }
 
+    /**
+     * @return approved timestamping services for current instance
+     */
+    public List<String> getApprovedTspsForThisInstance() {
+        return globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
+    }
+
+    /**
+     *
+     * @param url
+     * @return name of the timestamping service with the given url
+     */
+    public String getApprovedTspName(String url) {
+        return globalConfFacade.getApprovedTspName(globalConfFacade.getInstanceIdentifier(), url);
+    }
 }

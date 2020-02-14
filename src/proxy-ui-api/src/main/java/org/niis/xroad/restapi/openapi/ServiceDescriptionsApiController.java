@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -64,6 +65,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @PreAuthorize("denyAll")
 public class ServiceDescriptionsApiController implements ServiceDescriptionsApi {
+    public static final String WSDL_VALIDATOR_INTERRUPTED = "wsdl_validator_interrupted";
 
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
@@ -173,6 +175,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
         }
 
         ServiceDescription serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
@@ -198,6 +202,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }

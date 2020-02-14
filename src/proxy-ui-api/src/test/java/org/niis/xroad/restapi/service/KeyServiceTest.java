@@ -50,8 +50,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -60,6 +63,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -164,6 +168,10 @@ public class KeyServiceTest {
                 throw new KeyNotFoundException(keyId + " not supported");
             }
         }).when(tokenService).getTokenForKeyId(any());
+
+        // by default all actions are possible
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
+                .getPossibleKeyActions(any(), any());
     }
 
     @Test
@@ -285,4 +293,13 @@ public class KeyServiceTest {
         } catch (ActionNotPossibleException expected) {
         }
     }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getPossibleActionsForKey() throws Exception {
+        EnumSet<PossibleActionEnum> possibleActions = keyService.getPossibleActionsForKey(SIGN_KEY_ID);
+        Set<PossibleActionEnum> allActions = new HashSet(Arrays.asList(PossibleActionEnum.values()));
+        assertEquals(allActions, new HashSet<>(possibleActions));
+    }
+
 }

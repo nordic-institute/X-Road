@@ -22,46 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Root class for all checked service layer exceptions
+ * Converter for timestamping services related data between openapi and service domain classes
  */
-public abstract class ServiceException extends DeviationAwareException {
+@Component
+public class TimestampingServiceConverter {
 
-    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        super(msg, t, errorDeviation);
+    private final GlobalConfFacade globalConfFacade;
+
+    /**
+     * constructor
+     */
+    @Autowired
+    public TimestampingServiceConverter(GlobalConfFacade globalConfFacade) {
+        this.globalConfFacade = globalConfFacade;
     }
 
-    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
-        super(msg, t, errorDeviation, warningDeviations);
+    public TimestampingService convert(String url)  {
+        TimestampingService timestampingService = new TimestampingService();
+        timestampingService.setUrl(url);
+        timestampingService.setName(globalConfFacade.getApprovedTspName(
+                globalConfFacade.getInstanceIdentifier(), url));
+        return timestampingService;
     }
 
-    public ServiceException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
-    public ServiceException(Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
-        super(t, errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public ServiceException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public List<TimestampingService> convert(Iterable<String> urls)  {
+        return Streams.stream(urls).map(this::convert).collect(Collectors.toList());
     }
 }

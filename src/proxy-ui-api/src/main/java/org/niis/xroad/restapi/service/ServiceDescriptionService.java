@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -220,6 +220,7 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException              if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
      * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
+     * @throws InterruptedException             if the thread running the WSDL validator is interrupted
      */
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
@@ -228,7 +229,7 @@ public class ServiceDescriptionService {
             UnhandledWarningsException,
             ServiceAlreadyExistsException,
             InvalidUrlException,
-            WsdlUrlAlreadyExistsException {
+            WsdlUrlAlreadyExistsException, InterruptedException {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
@@ -494,6 +495,7 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException                  if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
+     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted
      */
     public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -502,7 +504,7 @@ public class ServiceDescriptionService {
             UnhandledWarningsException,
             InvalidUrlException,
             ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException {
+            WsdlUrlAlreadyExistsException, InterruptedException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString());
@@ -530,7 +532,7 @@ public class ServiceDescriptionService {
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
             ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException {
+            WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException, InterruptedException {
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
@@ -563,13 +565,14 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException                  if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
+     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted
      */
     private ServiceDescriptionType refreshWSDLServiceDescription(ServiceDescriptionType serviceDescriptionType,
             boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
             WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException {
+            WsdlUrlAlreadyExistsException, InterruptedException {
         verifyAuthority("REFRESH_WSDL");
 
         if (!serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
@@ -890,7 +893,7 @@ public class ServiceDescriptionService {
             boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
             WrongServiceDescriptionTypeException, UnhandledWarningsException,
-            ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
+            ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
 
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
@@ -1045,11 +1048,9 @@ public class ServiceDescriptionService {
      * @return list of validation warnings that can be ignored by choice
      * @throws WsdlValidator.WsdlValidationFailedException
      * @throws WsdlValidator.WsdlValidatorNotExecutableException
-     * @throws InvalidUrlException
      */
-    private List<String> validateWsdl(String url)
-            throws WsdlValidator.WsdlValidationFailedException,
-            WsdlValidator.WsdlValidatorNotExecutableException, InvalidUrlException {
+    private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
+            WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
         return wsdlValidator.executeValidator(url);
     }
 
@@ -1126,7 +1127,7 @@ public class ServiceDescriptionService {
             InvalidWsdlException,
             InvalidUrlException,
             WsdlUrlAlreadyExistsException,
-            ServiceAlreadyExistsException {
+            ServiceAlreadyExistsException, InterruptedException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
 
