@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.util;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
@@ -202,5 +203,18 @@ public final class TestUtils {
                                     API_KEY_HEADER_PREFIX + apiKeyToken);
                     return execution.execute(request, body);
                 }));
+    }
+
+    /**
+     * Creates a new TspType using the given url and name
+     * @param url
+     * @param name
+     * @return
+     */
+    public static TspType createTspType(String url, String name) {
+        TspType tsp = new TspType();
+        tsp.setUrl(url);
+        tsp.setName(name);
+        return tsp;
     }
 }

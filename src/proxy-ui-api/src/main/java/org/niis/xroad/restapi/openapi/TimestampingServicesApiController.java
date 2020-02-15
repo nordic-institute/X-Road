@@ -24,9 +24,12 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TimestampingServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,22 +52,32 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
 
     private final TimestampingServiceService timestampingServiceService;
     private final TimestampingServiceConverter timestampingServiceConverter;
+    private final ServerConfService serverConfService;
 
     /**
      * Constructor
      */
     @Autowired
     public TimestampingServicesApiController(TimestampingServiceService timestampingServiceService,
-            TimestampingServiceConverter timestampingServiceConverter) {
+            TimestampingServiceConverter timestampingServiceConverter, ServerConfService serverConfService) {
         this.timestampingServiceService = timestampingServiceService;
         this.timestampingServiceConverter = timestampingServiceConverter;
+        this.serverConfService = serverConfService;
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
-    public ResponseEntity<List<TimestampingService>> getTimestampingServices() {
-        Collection<String> urls = timestampingServiceService.getTimestampingServices();
-        List<TimestampingService> timestampingServices = timestampingServiceConverter.convert(urls);
+    public ResponseEntity<List<TimestampingService>> getTimestampingServices(Boolean showConfigured) {
+        List<TimestampingService> timestampingServices;
+        // If show configured is true, return configured timestamping services from serverconf db.
+        // Otherwise return approved timestamping services from global conf.
+        if (showConfigured) {
+            List<TspType> tsps = serverConfService.getConfiguredTimestampingServices();
+            timestampingServices = timestampingServiceConverter.convert(tsps);
+        } else {
+            Collection<String> urls = timestampingServiceService.getTimestampingServices();
+            timestampingServices = timestampingServiceConverter.convert(urls);
+        }
         return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
     }
 }

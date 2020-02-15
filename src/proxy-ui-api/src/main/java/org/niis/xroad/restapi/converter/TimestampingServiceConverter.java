@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
@@ -57,7 +59,15 @@ public class TimestampingServiceConverter {
         return timestampingService;
     }
 
-    public List<TimestampingService> convert(Iterable<String> urls)  {
-        return Streams.stream(urls).map(this::convert).collect(Collectors.toList());
+    public TimestampingService convert(TspType tsp)  {
+        TimestampingService timestampingService = new TimestampingService();
+        timestampingService.setUrl(tsp.getUrl());
+        timestampingService.setName(tsp.getName());
+        return timestampingService;
+    }
+
+    public List<TimestampingService> convert(Iterable<?> list)  {
+        return Streams.stream(list).map(n -> n instanceof String ? convert((String)n) : convert((TspType)n))
+                .collect(Collectors.toList());
     }
 }

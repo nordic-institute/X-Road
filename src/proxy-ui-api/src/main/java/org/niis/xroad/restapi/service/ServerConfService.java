@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -34,6 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * service class for handling serverconf
@@ -75,5 +79,19 @@ public class ServerConfService {
     public ClientId getSecurityServerOwnerId() {
         ServerConfType serverConfType = serverConfRepository.getServerConf();
         return serverConfType.getOwner().getIdentifier();
+    }
+
+    /**
+     * Return a list of configured timestamping services
+     * @return
+     */
+    public List<TspType> getConfiguredTimestampingServices() {
+        ServerConfType serverConfType = serverConfRepository.getServerConf(true);
+        List<TspType> tsp = serverConfType.getTsp();
+        // Reverse the order so that items are returned in the order that proxy uses them for timestamping.
+        // By default, the items are returned in reversed order - the timestamping service that proxy tries first
+        // is ordered last, and the service that proxy tries last is ordered first.
+        Collections.reverse(tsp);
+        return tsp;
     }
 }

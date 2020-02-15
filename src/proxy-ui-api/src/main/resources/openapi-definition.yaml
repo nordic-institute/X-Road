@@ -3179,6 +3179,14 @@ paths:
       summary: view the timestamping services
       operationId: getTimestampingServices
       description: Administrator views the timestamping services.
+      parameters:
+        - in: query
+          name: show_configured
+          description: show only configured timestamping services
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: list of timestamping services
