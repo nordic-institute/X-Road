@@ -61,8 +61,16 @@ public class TimestampingServiceService {
      * Return approved timestamping authorities
      * @return
      */
-    public Collection<String> getTimestampingServices() {
+    public Collection<String> getApprovedTimestampingServices() {
         return globalConfService.getApprovedTspsForThisInstance();
+    }
+
+    /**
+     * Return a list of configured timestamping services
+     * @return
+     */
+    public List<TspType> getConfiguredTimestampingServices() {
+        return serverConfService.getConfiguredTimestampingServices();
     }
 
     /**
