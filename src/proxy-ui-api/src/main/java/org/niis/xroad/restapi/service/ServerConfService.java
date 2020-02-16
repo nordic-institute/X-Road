@@ -30,13 +30,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -86,12 +86,9 @@ public class ServerConfService {
      * @return
      */
     public List<TspType> getConfiguredTimestampingServices() {
-        ServerConfType serverConfType = serverConfRepository.getServerConf(true);
+        ServerConfType serverConfType = serverConfRepository.getServerConf();
         List<TspType> tsp = serverConfType.getTsp();
-        // Reverse the order so that items are returned in the order that proxy uses them for timestamping.
-        // By default, the items are returned in reversed order - the timestamping service that proxy tries first
-        // is ordered last, and the service that proxy tries last is ordered first.
-        Collections.reverse(tsp);
+        Hibernate.initialize(tsp);
         return tsp;
     }
 }

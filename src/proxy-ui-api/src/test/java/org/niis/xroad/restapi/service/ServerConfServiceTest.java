@@ -100,14 +100,14 @@ public class ServerConfServiceTest {
         configuredTimestampingServices.add(TestUtils.createTspType("https://tsa2.com", "TSA 2"));
         configuredTimestampingServices.add(TestUtils.createTspType("https://tsa1.com", "TSA 1"));
 
-        when(serverConfRepository.getServerConf(true)).thenReturn(serverConfType);
+        when(serverConfRepository.getServerConf()).thenReturn(serverConfType);
         when(serverConfType.getTsp()).thenReturn(configuredTimestampingServices);
 
         List<TspType> tsp = serverConfService.getConfiguredTimestampingServices();
 
         assertEquals(configuredTimestampingServices.size(), tsp.size());
-        assertEquals("TSA 1", tsp.get(0).getName());
+        assertEquals("TSA 1", tsp.get(2).getName());
         assertEquals("TSA 2", tsp.get(1).getName());
-        assertEquals("TSA 3", tsp.get(2).getName());
+        assertEquals("TSA 3", tsp.get(0).getName());
     }
 }

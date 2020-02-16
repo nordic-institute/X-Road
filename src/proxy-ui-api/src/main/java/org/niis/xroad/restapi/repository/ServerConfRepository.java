@@ -53,16 +53,7 @@ public class ServerConfRepository {
      * @return
      */
     public ServerConfType getServerConf() {
-        return getServerConf(false);
-    }
-
-    /**
-     * Return ServerConfType
-     * @param eagerLoading configured timestamping services are loaded if true, otherwise they're not loaded
-     * @return
-     */
-    public ServerConfType getServerConf(boolean eagerLoading) {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession(), eagerLoading);
+        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
 }

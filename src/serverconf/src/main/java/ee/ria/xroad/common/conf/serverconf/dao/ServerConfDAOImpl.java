@@ -30,8 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import org.hibernate.Session;
 
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
@@ -69,14 +67,7 @@ public class ServerConfDAOImpl {
      * @return the server conf
      */
     public ServerConfType getConf(Session session) {
-        return getConf(session, false);
-    }
-
-    /**
-     * @return the server conf
-     */
-    public ServerConfType getConf(Session session, boolean eagerLoading) {
-        ServerConfType confType = getFirst(session, ServerConfType.class, eagerLoading);
+        ServerConfType confType = getFirst(session, ServerConfType.class);
         if (confType == null) {
             throw new CodedException(X_MALFORMED_SERVERCONF,
                     "Server conf is not initialized!");
@@ -85,16 +76,9 @@ public class ServerConfDAOImpl {
         return confType;
     }
 
-    private <T> T getFirst(Session session, final Class<T> clazz, boolean eagerLoading) {
+    private <T> T getFirst(Session session, final Class<T> clazz) {
         final CriteriaQuery<T> q = session.getCriteriaBuilder().createQuery(clazz);
-
-        if (eagerLoading) {
-            final Root<T> root = q.from(clazz);
-            root.fetch("tsp", JoinType.LEFT);
-            q.select(root);
-        } else {
-            q.select(q.from(clazz));
-        }
+        q.select(q.from(clazz));
 
         return session.createQuery(q)
                 .setFirstResult(0)
@@ -109,7 +93,7 @@ public class ServerConfDAOImpl {
     @Deprecated
     private <T> T getFirst(final Class<T> clazz) {
         Session session = get().getSession();
-        return getFirst(session, clazz, false);
+        return getFirst(session, clazz);
     }
 
 }
