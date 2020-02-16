@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,6 +74,39 @@ public class TimestampingServiceService {
         return serverConfService.getConfiguredTimestampingServices();
     }
 
+    public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
+            throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
+        // Check that the timestamping service is an approved timestamping service
+        boolean match = false;
+        for (String url: getApprovedTimestampingServices()) {
+            if (timestampingServiceToAdd.getName().equals(globalConfService.getApprovedTspName(url))
+                    && timestampingServiceToAdd.getUrl().equals(url)) {
+                match = true;
+                break;
+            }
+        }
+        if (!match) {
+            throw new TimestampingServiceNotFoundException("Timestamping service with name "
+                    + timestampingServiceToAdd.getName() + " and url " + timestampingServiceToAdd.getUrl()
+                    + " not found");
+        }
+
+        // Check that the timestamping service is not already configured
+        for (TspType tsp: getConfiguredTimestampingServices()) {
+            if (timestampingServiceToAdd.getName().equals(tsp.getName())
+                    && timestampingServiceToAdd.getUrl().equals(tsp.getUrl())) {
+                throw new DuplicateConfiguredTimestampingServiceException("Timestamping service with name "
+                        + timestampingServiceToAdd.getName() + " and url " + timestampingServiceToAdd.getUrl()
+                        + " is already configured");
+            }
+        }
+        TspType tspType = new TspType();
+        tspType.setName(timestampingServiceToAdd.getName());
+        tspType.setUrl(timestampingServiceToAdd.getUrl());
+
+        serverConfService.getConfiguredTimestampingServices().add(tspType);
+    }
+
     /**
      * Deletes a configured timestamping service from serverconf
      * @param timestampingService
@@ -83,7 +117,7 @@ public class TimestampingServiceService {
         List<TspType> configuredTimestampingServices = serverConfService.getConfiguredTimestampingServices();
         TspType delete = null;
 
-        for (TspType tsp: configuredTimestampingServices) {
+        for (TspType tsp: getConfiguredTimestampingServices()) {
             if (timestampingService.getName().equals(tsp.getName())
                     && timestampingService.getUrl().equals(tsp.getUrl())) {
                 delete = tsp;
@@ -94,5 +128,16 @@ public class TimestampingServiceService {
                     + timestampingService.getName() + " and url " + timestampingService.getUrl() + " not found");
         }
         configuredTimestampingServices.remove(delete);
+    }
+
+    /**
+     * Thrown when attempt to add timestamping service that is already configured
+     */
+    public static class DuplicateConfiguredTimestampingServiceException extends ServiceException {
+        public static final String ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE
+                = "timestamping_service_already_configured";
+        public DuplicateConfiguredTimestampingServiceException(String s) {
+            super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
+        }
     }
 }

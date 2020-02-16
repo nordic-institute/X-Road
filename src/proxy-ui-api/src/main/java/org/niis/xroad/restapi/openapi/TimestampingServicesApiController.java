@@ -80,6 +80,19 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADD_TSP')")
+    public ResponseEntity<TimestampingService> addTimestampingService(TimestampingService timestampingServiceToAdd) {
+        try {
+            timestampingServiceService.addConfiguredTimestampingService(timestampingServiceToAdd);
+        } catch (TimestampingServiceService.DuplicateConfiguredTimestampingServiceException e) {
+            throw new ConflictException(e);
+        } catch (TimestampingServiceNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(timestampingServiceToAdd, HttpStatus.CREATED);
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('DELETE_TSP')")
     public ResponseEntity<Void> deleteTimestampingService(TimestampingService timestampingService) {
         try {

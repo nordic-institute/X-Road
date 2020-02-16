@@ -106,9 +106,9 @@ public class TimestampingServiceApiControllerTest {
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
                 new ArrayList<String>(APPROVED_TIMESTAMPING_SERVICES.keySet()));
         when(globalConfService.getApprovedTspName(TSA_1_URL))
-                .thenReturn(APPROVED_TIMESTAMPING_SERVICES.get(TSA_1_NAME));
+                .thenReturn(APPROVED_TIMESTAMPING_SERVICES.get(TSA_1_URL));
         when(globalConfService.getApprovedTspName(TSA_2_URL))
-                .thenReturn(APPROVED_TIMESTAMPING_SERVICES.get(TSA_2_NAME));
+                .thenReturn(APPROVED_TIMESTAMPING_SERVICES.get(TSA_2_URL));
         when(serverConfService.getConfiguredTimestampingServices()).thenReturn(CONFIGURED_TIMESTAMPING_SERVICES);
     }
 
@@ -163,6 +163,57 @@ public class TimestampingServiceApiControllerTest {
         List<TimestampingService> timestampingServices = response.getBody();
 
         assertEquals(0, timestampingServices.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_TSP" })
+    public void addConfiguredTimestampingService() {
+        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
+                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
+        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
+
+        ResponseEntity<TimestampingService> response = timestampingServicesApiController
+                .addTimestampingService(timestampingService);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(2, serverConfService.getConfiguredTimestampingServices().size());
+        assertEquals(serverConfService.getConfiguredTimestampingServices().get(1).getName(),
+                timestampingService.getName());
+        assertEquals(serverConfService.getConfiguredTimestampingServices().get(1).getUrl(),
+                timestampingService.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_TSP" })
+    public void addDuplicateConfiguredTimestampingService() {
+        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
+                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
+        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+
+        try {
+            ResponseEntity<TimestampingService> response = timestampingServicesApiController
+                    .addTimestampingService(timestampingService);
+            fail("should throw ConflictException");
+        } catch (ConflictException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_TSP" })
+    public void addNonExistingConfiguredTimestampingService() {
+        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
+                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
+        TimestampingService timestampingService = TestUtils
+                .createTimestampingService("http://dummy.com", "Dummy");
+
+        try {
+            ResponseEntity<TimestampingService> response = timestampingServicesApiController
+                    .addTimestampingService(timestampingService);
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
+            // success
+        }
     }
 
     @Test
