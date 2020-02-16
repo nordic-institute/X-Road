@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.service.ServerConfService;
+import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.TimestampingServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -79,5 +80,17 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
             timestampingServices = timestampingServiceConverter.convert(urls);
         }
         return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_TSP')")
+    public ResponseEntity<Void> deleteTimestampingService(TimestampingService timestampingService) {
+        try {
+            timestampingServiceService.deleteConfiguredTimestampingService(timestampingService);
+        } catch (TimestampingServiceNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

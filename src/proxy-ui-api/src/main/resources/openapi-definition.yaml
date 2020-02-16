@@ -3243,23 +3243,18 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /timestamping-services/{url}:
     delete: # ok
       tags:
         - security server
       summary: delete timestamping service
       operationId: deleteTimestampingService
       description: Administrator removes timestamping service.
-      parameters:
-        - in: path
-          name: url
-          description: url of the timestamping service
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: Timestamping service to delete
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingService'
       responses:
         '204':
           description: timestamping service deletion was successful

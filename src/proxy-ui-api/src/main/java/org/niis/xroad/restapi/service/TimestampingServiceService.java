@@ -24,13 +24,17 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Service that handles timestamping services
@@ -42,20 +46,45 @@ import java.util.Collection;
 public class TimestampingServiceService {
 
     private final GlobalConfService globalConfService;
+    private final ServerConfService serverConfService;
 
     /**
      * constructor
      */
     @Autowired
-    public TimestampingServiceService(GlobalConfService globalConfService) {
+    public TimestampingServiceService(GlobalConfService globalConfService, ServerConfService serverConfService) {
         this.globalConfService = globalConfService;
+        this.serverConfService = serverConfService;
     }
 
     /**
-     * Return timestamping authorities
+     * Return approved timestamping authorities
      * @return
      */
     public Collection<String> getTimestampingServices() {
         return globalConfService.getApprovedTspsForThisInstance();
+    }
+
+    /**
+     * Deletes a configured timestamping service from serverconf
+     * @param timestampingService
+     * @throws TimestampingServiceNotFoundException
+     */
+    public void deleteConfiguredTimestampingService(TimestampingService timestampingService)
+            throws TimestampingServiceNotFoundException {
+        List<TspType> configuredTimestampingServices = serverConfService.getConfiguredTimestampingServices();
+        TspType delete = null;
+
+        for (TspType tsp: configuredTimestampingServices) {
+            if (timestampingService.getName().equals(tsp.getName())
+                    && timestampingService.getUrl().equals(tsp.getUrl())) {
+                delete = tsp;
+            }
+        }
+        if (delete == null) {
+            throw new TimestampingServiceNotFoundException("Timestamping service with name "
+                    + timestampingService.getName() + " and url " + timestampingService.getUrl() + " not found");
+        }
+        configuredTimestampingServices.remove(delete);
     }
 }

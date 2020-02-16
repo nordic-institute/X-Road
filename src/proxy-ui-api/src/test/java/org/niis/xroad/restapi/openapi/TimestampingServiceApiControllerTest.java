@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -162,5 +163,31 @@ public class TimestampingServiceApiControllerTest {
         List<TimestampingService> timestampingServices = response.getBody();
 
         assertEquals(0, timestampingServices.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_TSP" })
+    public void deleteConfiguredTimestampingService() {
+        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
+                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
+
+        ResponseEntity<Void> response = timestampingServicesApiController
+                .deleteTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME));
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(0, serverConfService.getConfiguredTimestampingServices().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_TSP" })
+    public void deleteNonExistingConfiguredTimestampingService() {
+        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
+
+        try {
+            ResponseEntity<Void> response = timestampingServicesApiController
+                    .deleteTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME));
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
+            // success
+        }
     }
 }
