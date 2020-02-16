@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Service that handles timestamping services
@@ -42,20 +45,30 @@ import java.util.Collection;
 public class TimestampingServiceService {
 
     private final GlobalConfService globalConfService;
+    private final ServerConfService serverConfService;
 
     /**
      * constructor
      */
     @Autowired
-    public TimestampingServiceService(GlobalConfService globalConfService) {
+    public TimestampingServiceService(GlobalConfService globalConfService, ServerConfService serverConfService) {
         this.globalConfService = globalConfService;
+        this.serverConfService = serverConfService;
     }
 
     /**
-     * Return timestamping authorities
+     * Return approved timestamping authorities
      * @return
      */
-    public Collection<String> getTimestampingServices() {
+    public Collection<String> getApprovedTimestampingServices() {
         return globalConfService.getApprovedTspsForThisInstance();
+    }
+
+    /**
+     * Return a list of configured timestamping services
+     * @return
+     */
+    public List<TspType> getConfiguredTimestampingServices() {
+        return serverConfService.getConfiguredTimestampingServices();
     }
 }
