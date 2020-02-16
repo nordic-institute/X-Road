@@ -114,10 +114,10 @@ public class TimestampingServiceService {
      */
     public void deleteConfiguredTimestampingService(TimestampingService timestampingService)
             throws TimestampingServiceNotFoundException {
-        List<TspType> configuredTimestampingServices = serverConfService.getConfiguredTimestampingServices();
+        List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
         TspType delete = null;
 
-        for (TspType tsp: getConfiguredTimestampingServices()) {
+        for (TspType tsp: configuredTimestampingServices) {
             if (timestampingService.getName().equals(tsp.getName())
                     && timestampingService.getUrl().equals(tsp.getUrl())) {
                 delete = tsp;
