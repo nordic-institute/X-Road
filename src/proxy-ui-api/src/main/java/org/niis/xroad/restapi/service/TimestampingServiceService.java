@@ -86,18 +86,18 @@ public class TimestampingServiceService {
             }
         }
         if (!match) {
-            throw new TimestampingServiceNotFoundException("Timestamping service with name "
-                    + timestampingServiceToAdd.getName() + " and url " + timestampingServiceToAdd.getUrl()
-                    + " not found");
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToAdd.getName(),
+                    timestampingServiceToAdd.getUrl(), "not found"));
         }
 
         // Check that the timestamping service is not already configured
         for (TspType tsp: getConfiguredTimestampingServices()) {
             if (timestampingServiceToAdd.getName().equals(tsp.getName())
                     && timestampingServiceToAdd.getUrl().equals(tsp.getUrl())) {
-                throw new DuplicateConfiguredTimestampingServiceException("Timestamping service with name "
-                        + timestampingServiceToAdd.getName() + " and url " + timestampingServiceToAdd.getUrl()
-                        + " is already configured");
+                throw new DuplicateConfiguredTimestampingServiceException(
+                        getExceptionMessage(timestampingServiceToAdd.getName(), timestampingServiceToAdd.getUrl(),
+                                "is already configured")
+                );
             }
         }
         TspType tspType = new TspType();
@@ -124,8 +124,9 @@ public class TimestampingServiceService {
             }
         }
         if (delete == null) {
-            throw new TimestampingServiceNotFoundException("Timestamping service with name "
-                    + timestampingService.getName() + " and url " + timestampingService.getUrl() + " not found");
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingService.getName(),
+                    timestampingService.getUrl(), "not found")
+            );
         }
         configuredTimestampingServices.remove(delete);
     }
@@ -139,5 +140,12 @@ public class TimestampingServiceService {
         public DuplicateConfiguredTimestampingServiceException(String s) {
             super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
         }
+    }
+
+    private String getExceptionMessage(String name, String url, String message) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Timestamping service with name ").append(name).append(" and url ").append(url);
+        sb.append(" ").append(message);
+        return sb.toString();
     }
 }
