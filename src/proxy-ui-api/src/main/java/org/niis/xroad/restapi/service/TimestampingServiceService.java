@@ -121,6 +121,7 @@ public class TimestampingServiceService {
             if (timestampingService.getName().equals(tsp.getName())
                     && timestampingService.getUrl().equals(tsp.getUrl())) {
                 delete = tsp;
+                break;
             }
         }
         if (delete == null) {
