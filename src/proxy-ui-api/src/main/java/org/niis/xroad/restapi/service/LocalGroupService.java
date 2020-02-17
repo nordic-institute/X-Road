@@ -180,13 +180,13 @@ public class LocalGroupService {
 
     /**
      * deletes a member from given local group
-     * @param detachedGroup a DETACHED local group type TO DO: refactor, use ID instead
+     * @param groupId local group id
      * @param items
      * @throws LocalGroupMemberNotFoundException if local group member was not found in the group
      */
-    public void deleteGroupMember(LocalGroupType detachedGroup, List<ClientId> items)
+    public void deleteGroupMember(long groupId, List<ClientId> items)
             throws LocalGroupMemberNotFoundException {
-        LocalGroupType managedLocalGroup = getLocalGroup(detachedGroup.getId());
+        LocalGroupType managedLocalGroup = getLocalGroup(groupId);
         List<GroupMemberType> membersToBeRemoved = managedLocalGroup.getGroupMember().stream()
                 .filter(member -> items.stream()
                         .anyMatch(item -> item.toShortString().trim()

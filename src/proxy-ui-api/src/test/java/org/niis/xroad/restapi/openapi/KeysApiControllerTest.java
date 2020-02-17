@@ -113,6 +113,9 @@ public class KeysApiControllerTest {
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(tokenCertificateService)
                 .getPossibleActionsForCsr(any());
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(keyService)
+                .getPossibleActionsForKey(any());
+
     }
 
     private Object returnKeyInfoOrThrow(String keyId) throws KeyNotFoundException {
@@ -156,11 +159,22 @@ public class KeysApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getPossibleActionsForCsr() throws Exception {
+    public void getPossibleActionsForCsr() {
         ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getPossibleActionsForKey() {
+        ResponseEntity<List<PossibleAction>> response = keysApiController
+                .getPossibleActionsForKey(GOOD_SIGN_KEY_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
+        assertEquals(allActions, new HashSet<>(response.getBody()));
+    }
+
 }

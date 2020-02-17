@@ -64,7 +64,4 @@ public abstract class ServiceException extends DeviationAwareException {
     public ServiceException(String msg, ErrorDeviation errorDeviation) {
         super(msg, errorDeviation);
     }
-
-
-
 }

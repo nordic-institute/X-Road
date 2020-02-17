@@ -88,7 +88,9 @@ public class PossibleActionsRuleEngine {
         boolean keyNotSupported = isKeyUnsupported(tokenInfo, keyInfo);
 
         // key.js#L26
-        if (!keyNotSupported
+        // original logic pieces preserved, could be simplified
+        if (tokenInfo.isActive()
+                && !keyNotSupported
                 && !(tokenInfo.isReadOnly() && !keyInfo.isSavedToConfiguration())
                 && (keyInfo.isSavedToConfiguration() || tokenInfo.isActive())) {
             actions.add(PossibleActionEnum.DELETE);

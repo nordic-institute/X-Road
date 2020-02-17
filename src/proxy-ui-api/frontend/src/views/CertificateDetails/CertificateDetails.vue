@@ -233,9 +233,9 @@ export default Vue.extend({
     },
     deactivateCertificate(hash: string): void {
       api
-        .put(`token-certificates/${hash}/deactivate`, hash)
+        .put(`token-certificates/${hash}/disable`, hash)
         .then((res) => {
-          this.$bus.$emit('show-success', 'cert.deactivateSuccess');
+          this.$bus.$emit('show-success', 'cert.disableSuccess');
           this.fetchData(this.hash);
         })
         .catch((error) => this.$bus.$emit('show-error', error.message));

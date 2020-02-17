@@ -26,15 +26,16 @@ package org.niis.xroad.restapi.wsdl;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.ExternalProcessRunner;
+import org.niis.xroad.restapi.service.ProcessFailedException;
+import org.niis.xroad.restapi.service.ProcessNotExecutableException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,13 +45,14 @@ import java.util.List;
 @Slf4j
 @Component
 public class WsdlValidator {
-    // errors
+    private final ExternalProcessRunner externalProcessRunner;
+    @Getter
+    private final String wsdlValidatorCommand;
 
-    private String wsdlValidatorCommand;
-    private List<String> args;
-
-    public WsdlValidator() {
-        wsdlValidatorCommand = SystemProperties.getWsdlValidatorCommand();
+    @Autowired
+    public WsdlValidator(ExternalProcessRunner externalProcessRunner) {
+        this.externalProcessRunner = externalProcessRunner;
+        this.wsdlValidatorCommand = SystemProperties.getWsdlValidatorCommand();
     }
 
     /**
@@ -59,83 +61,28 @@ public class WsdlValidator {
      * @return List of validation warnings that could be ignored by choice
      * @throws WsdlValidatorNotExecutableException when validator is not found or
      * there are errors (not warnings, cant be ignored) when trying to execute the validator
-     * @throws InvalidUrlException when wsdl url is missing
      * @throws WsdlValidationFailedException when validation itself fails.
+     * @throws InterruptedException if the thread running the validator is interrupted
      */
-    public List<String> executeValidator(String wsdlUrl)
-            throws WsdlValidatorNotExecutableException, WsdlValidationFailedException, InvalidUrlException {
+    public List<String> executeValidator(String wsdlUrl) throws WsdlValidatorNotExecutableException,
+            WsdlValidationFailedException, InterruptedException {
         List<String> warnings = new ArrayList<>();
         // validator not set - this is ok since validator is optional
         if (StringUtils.isEmpty(getWsdlValidatorCommand())) {
             return warnings;
         }
+
         if (StringUtils.isEmpty(wsdlUrl)) {
-            // this is currently a programming error, could just be illegalargumentException
-            throw new InvalidUrlException();
+            throw new IllegalArgumentException("wsdl url cannot be null or empty");
         }
-
-        List<String> command = new ArrayList<>();
-        command.add(getWsdlValidatorCommand());
-        if (args != null && args.size() > 0) {
-            command.addAll(args);
-        }
-        command.add(wsdlUrl);
-        Process process;
-        ProcessBuilder pb = new ProcessBuilder(command);
-        // redirect process errors into process's input stream
-        pb.redirectErrorStream(true);
-        try {
-            process = pb.start();
-        } catch (IOException e) {
-            throw new WsdlValidatorNotExecutableException(e);
-        }
-
-        // gather output into a list of string - needed when returning warnings to the end user
-        List<String> processOutput = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            br.lines().forEach(processOutput::add);
-        } catch (IOException e) {
-            process.destroy();
-            throw new WsdlValidatorNotExecutableException(e);
-        }
-
-        int exitCode;
 
         try {
-            exitCode = process.waitFor();
-        } catch (InterruptedException e) {
-            // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
-            Thread.currentThread().interrupt();
+            return externalProcessRunner.execute(getWsdlValidatorCommand(), wsdlUrl);
+        } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
-        } finally {
-            // always destroy the process
-            process.destroy();
+        } catch (ProcessFailedException e) {
+            throw new WsdlValidationFailedException(e.getErrorDeviation().getMetadata());
         }
-
-        // if the validator program fails we attach the validator's output into the exception
-        if (exitCode != 0) {
-            throw new WsdlValidationFailedException(processOutput);
-        } else if (processOutput != null && processOutput.size() > 0) {
-            // exitCode was 0 but there were some warnings in the output
-            warnings.addAll(processOutput);
-        }
-        return warnings;
-    }
-
-    public String getWsdlValidatorCommand() {
-        return wsdlValidatorCommand;
-    }
-
-    public void setWsdlValidatorCommand(String wsdlValidatorCommand) {
-        this.wsdlValidatorCommand = wsdlValidatorCommand;
-    }
-
-    public List<String> getArgs() {
-        return args;
-    }
-
-    public void setArgs(List<String> args) {
-        this.args = args;
     }
 
     /**

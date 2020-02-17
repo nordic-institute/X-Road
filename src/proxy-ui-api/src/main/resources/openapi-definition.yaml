@@ -5,10 +5,12 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.21"
+  version: "1.0.22"
   title: X-Road UI Based API
   contact:
-    email: lauri.koutaniemi@gofore.com
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -350,12 +352,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /token-certificates/{hash}/deactivate:
+  /token-certificates/{hash}/disable:
     put: # ok
       tags:
         - security server
       summary: deactivate certificate
-      operationId: deactivateCertificate
+      operationId: disableCertificate
       description: Administrator deactivates selected certificate.
       parameters:
         - in: path
@@ -1925,6 +1927,41 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /keys/{id}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one key
+      operationId: getPossibleActionsForKey
+      description: UI needs to know which actions can be done on one key
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /member-classes:
     get: # ok
       tags:
@@ -2051,7 +2088,7 @@ paths:
       tags:
         - security server
       summary: get user data for the logged user
-      operationId: user
+      operationId: getUser
       description: Administrator gets user data from backend.
       responses:
         '200':
@@ -2900,6 +2937,27 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: generate a new internal TLS key and cert
+      operationId: generateSystemTlsKeyAndCertificate
+      description: Administrator generates new internal TLS key and certificate
+      responses:
+        '204':
+          description: tls key generated
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system/certificate/export:
     get: # ok
       tags:
@@ -2916,28 +2974,6 @@ paths:
                 type: string
                 format: binary
                 description: certificate file
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /system/certificate/tls-key:
-    post: # ok
-      tags:
-        - security server
-      summary: generate new TLS key
-      operationId: generateSystemCertificateTlsKey
-      description: Administrator generates new tls key.
-      responses:
-        '204':
-          description: tls key generated
         '400':
           description: request was invalid
         '401':
@@ -3109,7 +3145,34 @@ paths:
         '500':
           description: internal server error
 
-  /system/timestamping-services:
+  /system/version:
+    get: # ok
+      tags:
+        - security server
+      summary: get information for the system version
+      operationId: systemVersion
+      description: Administrator views key details.
+      responses:
+        '200':
+          description: system version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
+  /timestamping-services:
     get: # ok
       tags:
         - security server
@@ -3172,7 +3235,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /system/timestamping-services/{url}:
+  /timestamping-services/{url}:
     delete: # ok
       tags:
         - security server
@@ -3202,32 +3265,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /system/version:
-    get: # ok
-      tags:
-        - security server
-      summary: get information for the system version
-      operationId: systemVersion
-      description: Administrator views key details.
-      responses:
-        '200':
-          description: system version information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Version'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
+
   /tokens:
     get: # ok
       tags:
@@ -3978,6 +4016,11 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+        owner:
+          type: boolean
+          description: if this client is the owner member of this security server
+          example: false
+          readOnly: true
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
         status:
@@ -4832,9 +4875,6 @@ components:
       required:
         - name
         - url
-        - status
-        - message
-        - updated_at
       properties:
         name:
           type: string

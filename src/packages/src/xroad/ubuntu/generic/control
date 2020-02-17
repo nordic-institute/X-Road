@@ -140,6 +140,13 @@ Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=$
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
+Package: xroad-securityserver-is
+Conflicts: xroad-centralserver
+Architecture: all
+Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Description: X-Road security server with Icelandic settings
+ This is meta-package of X-Road security server with Icelandic settings.
+
 Package: xroad-securityserver-ee
 Conflicts: xroad-centralserver
 Architecture: all
