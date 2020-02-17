@@ -34,17 +34,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Service that handles timestamping services
+ * Service that handles system services
  */
 @Slf4j
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-public class TimestampingServiceService {
+public class SystemService {
 
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
@@ -53,17 +53,9 @@ public class TimestampingServiceService {
      * constructor
      */
     @Autowired
-    public TimestampingServiceService(GlobalConfService globalConfService, ServerConfService serverConfService) {
+    public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
-    }
-
-    /**
-     * Return approved timestamping authorities
-     * @return
-     */
-    public Collection<String> getApprovedTimestampingServices() {
-        return globalConfService.getApprovedTspsForThisInstance();
     }
 
     /**
@@ -77,29 +69,29 @@ public class TimestampingServiceService {
     public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
             throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
         // Check that the timestamping service is an approved timestamping service
-        boolean match = false;
-        for (String url: getApprovedTimestampingServices()) {
-            if (timestampingServiceToAdd.getName().equals(globalConfService.getApprovedTspName(url))
-                    && timestampingServiceToAdd.getUrl().equals(url)) {
-                match = true;
-                break;
-            }
-        }
-        if (!match) {
+        Optional<String> match = globalConfService.getApprovedTspsForThisInstance().stream()
+                .filter(url -> timestampingServiceToAdd.getName().equals(globalConfService.getApprovedTspName(url))
+                        && timestampingServiceToAdd.getUrl().equals(url))
+                .findFirst();
+
+        if (!match.isPresent()) {
             throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToAdd.getName(),
                     timestampingServiceToAdd.getUrl(), "not found"));
         }
 
         // Check that the timestamping service is not already configured
-        for (TspType tsp: getConfiguredTimestampingServices()) {
-            if (timestampingServiceToAdd.getName().equals(tsp.getName())
-                    && timestampingServiceToAdd.getUrl().equals(tsp.getUrl())) {
-                throw new DuplicateConfiguredTimestampingServiceException(
-                        getExceptionMessage(timestampingServiceToAdd.getName(), timestampingServiceToAdd.getUrl(),
-                                "is already configured")
-                );
-            }
+        Optional<TspType> existingTsp = getConfiguredTimestampingServices().stream()
+                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
+                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
+                .findFirst();
+
+        if (existingTsp.isPresent()) {
+            throw new DuplicateConfiguredTimestampingServiceException(
+                    getExceptionMessage(timestampingServiceToAdd.getName(), timestampingServiceToAdd.getUrl(),
+                            "is already configured")
+            );
         }
+
         TspType tspType = new TspType();
         tspType.setName(timestampingServiceToAdd.getName());
         tspType.setUrl(timestampingServiceToAdd.getUrl());
@@ -115,21 +107,19 @@ public class TimestampingServiceService {
     public void deleteConfiguredTimestampingService(TimestampingService timestampingService)
             throws TimestampingServiceNotFoundException {
         List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
-        TspType delete = null;
 
-        for (TspType tsp: configuredTimestampingServices) {
-            if (timestampingService.getName().equals(tsp.getName())
-                    && timestampingService.getUrl().equals(tsp.getUrl())) {
-                delete = tsp;
-                break;
-            }
-        }
-        if (delete == null) {
+        Optional<TspType> delete = configuredTimestampingServices.stream()
+                .filter(tsp -> timestampingService.getName().equals(tsp.getName())
+                        && timestampingService.getUrl().equals(tsp.getUrl()))
+                .findFirst();
+
+        if (!delete.isPresent()) {
             throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingService.getName(),
                     timestampingService.getUrl(), "not found")
             );
         }
-        configuredTimestampingServices.remove(delete);
+
+        configuredTimestampingServices.remove(delete.get());
     }
 
     /**
