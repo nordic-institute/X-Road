@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -137,7 +136,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void addSubsystemToExistingClient() throws Exception {
 
         long startMembers = countMembers();
@@ -161,7 +159,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void addSecondMember() throws Exception {
 
         long startMembers = countMembers();
@@ -185,7 +182,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void addExistingClientFails() throws Exception {
         // try member, FI:GOV:M1
         try {
@@ -205,7 +201,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void addUnregisteredMemberClients() throws Exception {
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
@@ -246,6 +241,13 @@ public class ClientServiceIntegrationTest {
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems + 2, countSubsystems());
         assertEquals(startIdentifiers + 3, countIdentifiers());
+    }
+
+    @Test
+    public void getAllLocalMembers() {
+        List<ClientType> localMembers = clientService.getAllLocalMembers();
+        assertEquals(1, localMembers.size());
+        assertEquals(1, (long)localMembers.iterator().next().getId());
     }
 
     @Test

@@ -88,6 +88,17 @@ public class ClientService {
     }
 
     /**
+     * return all members that exist on this security server.
+     * There can only be 0, 1 or 2 members
+     * @return
+     */
+    public List<ClientType> getAllLocalMembers() {
+        return getAllLocalClients().stream()
+                .filter(ct -> ct.getIdentifier().getSubsystemCode() == null)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Return ClientId for all members who have clients on this instance.
      * For example if following clients exist:
      * - XRD:GOV:123 (owner member)
@@ -445,6 +456,11 @@ public class ClientService {
             IsAuthentication isAuthentication,
             boolean ignoreWarnings) throws ClientAlreadyExistsException,
             AdditionalMemberAlreadyExistsException, UnhandledWarningsException {
+
+        ClientType existingLocalClient = getLocalClient(clientId);
+        if (existingLocalClient != null) {
+            throw new ClientAlreadyExistsException("client " + clientId + " already exists");
+        }
         return new ClientType();
     }
 
