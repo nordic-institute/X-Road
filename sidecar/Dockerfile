@@ -38,8 +38,11 @@ RUN pg_ctlcluster 10 main start \
 && rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
 && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
 
+RUN crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0 \
+&& crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
+
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 80 443 4000 5500 5577
+EXPOSE 80 443 4000 5500 5577 5588
