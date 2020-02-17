@@ -70,7 +70,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
     private final Cache<String, InternalSSLKey> internalKeyCache;
 
     /**
-     * Constructor, creates time based object cache with expireSeconds paramter
+     * Constructor, creates time based object cache with expireSeconds (or internalKeyExpireSeconds
+     * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl() {

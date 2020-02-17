@@ -1291,10 +1291,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the update interval in seconds at which the internal TLS key in cached, '300' by default
+     * @return the update interval in seconds at which the internal TLS key in cached, '180' by default
      */
     public static int getInternalKeyCachePeriod() {
-        return Integer.parseInt(System.getProperty(INTERNAL_KEY_CACHE_PERIOD, "300"));
+        return Integer.parseInt(System.getProperty(INTERNAL_KEY_CACHE_PERIOD, "180"));
     }
 
     /**
