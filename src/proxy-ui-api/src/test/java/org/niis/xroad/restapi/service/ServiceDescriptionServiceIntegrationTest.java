@@ -36,6 +36,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -51,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,22 +103,29 @@ public class ServiceDescriptionServiceIntegrationTest {
     @Autowired
     private ClientService clientService;
 
+    @Autowired
+    private ClientRepository clientRepository;
+
     @MockBean
     private WsdlValidator wsdlValidator;
 
+    @Autowired
+    private ServiceDescriptionRepository serviceDescriptionRepository;
+
     @MockBean
-    private WsdlUrlValidator wsdlUrlValidator;
+    private UrlValidator urlValidator;
 
     @SpyBean
     private OpenApiParser openApiParser;
 
     @Before
     public void setup() {
-        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(openApiParser.allowProtocol(any())).thenReturn(true);
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsAddedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -148,6 +158,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsRemovedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -182,6 +193,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsAllWarnings() throws Exception {
         // show warningDeviations about
         // - add service
@@ -441,6 +453,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
 
@@ -475,6 +488,62 @@ public class ServiceDescriptionServiceIntegrationTest {
                         BMI_SERVICE)));
     }
 
+    @Test
+    @WithMockUser(authorities = { "REFRESH_REST" })
+    public void refreshRestServiceDescription() throws Exception {
+        Date initialDate = serviceDescriptionService.getServiceDescriptiontype(5L).getRefreshedDate();
+        Date refreshedDate = serviceDescriptionService.refreshServiceDescription(5L, true).getRefreshedDate();
+        assertTrue(initialDate.compareTo(refreshedDate) < 0);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
+    public void refreshOpenapi3ServiceDescription() throws Exception {
+        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+
+        ClientType client = serviceDescriptiontype.getClient();
+
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(4, client.getAcl().size());
+        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+
+        serviceDescriptiontype.setUrl("file:src/test/resources/openapiparser/valid_modified.yaml");
+        serviceDescriptionRepository.saveOrUpdate(serviceDescriptiontype);
+        serviceDescriptionService.refreshServiceDescription(6L, false);
+
+        List<EndpointType> endpoints = client.getEndpoint();
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(3, client.getAcl().size());
+        assertFalse(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("POST")));
+        assertTrue(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("PATCH")));
+
+        // Assert that the pre-existing, manually added, endpoint is transformed to generated during update
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("GET")
+                        && ep.getPath().equals("/foo")
+                        && ep.isGenerated()));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("*")
+                        && ep.getPath().equals("**")));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("PUT")
+                        && ep.getPath().equals("/foo")));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
+    public void refreshOpenApi3ServiceDescriptionUpdatesDate() throws Exception {
+        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+        Date originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
+        serviceDescriptionService.refreshServiceDescription(6L, false);
+        assertTrue(originalRefreshedDate.compareTo(serviceDescriptiontype.getRefreshedDate()) < 0);
+    }
+
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpointServiceDescriptionSuccess() throws Exception {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
@@ -490,11 +559,11 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
-    public void addOpenapi3ServiceDescriptionSuccess() throws Exception {
+    public void addOpenApi3ServiceDescriptionSuccess() throws Exception {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(6, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/valid.yaml");
-        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
 
         client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(9, client.getEndpoint().size());
@@ -506,20 +575,20 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
-    public void addOpenapi3ServiceDescriptionWithWarnings() throws Exception {
+    public void addOpenApi3ServiceDescriptionWithWarnings() throws Exception {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(6, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/warnings.yml");
         boolean foundWarnings = false;
         try {
-            serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+            serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
         } catch (UnhandledWarningsException e) {
             foundWarnings = true;
         }
         assertTrue(foundWarnings);
 
         try {
-            serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", true);
+            serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", true);
         } catch (UnhandledWarningsException e) {
             fail("Shouldn't throw warnings exception when ignorewarning is true");
         }
@@ -530,23 +599,23 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @Test(expected = ServiceDescriptionService.ServiceCodeAlreadyExistsException.class)
     @WithMockUser(authorities = "ADD_OPENAPI3")
-    public void addOpenapi3ServiceDescriptionWithDuplicateServiceCode() throws Exception {
+    public void addOpenApi3ServiceDescriptionWithDuplicateServiceCode() throws Exception {
         URL url1 = getClass().getResource("/openapiparser/valid.yaml");
-        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url1.toString(), "testcode", false);
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url1.toString(), "testcode", false);
 
         // Should throw ServiceCodeAlreadyExistsException
         URL url2 = getClass().getResource("/openapiparser/warnings.yml");
-        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url2.toString(), "testcode", true);
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url2.toString(), "testcode", true);
     }
 
     @Test(expected = ServiceDescriptionService.UrlAlreadyExistsException.class)
     @WithMockUser(authorities = "ADD_OPENAPI3")
-    public void addOpenapi3ServiceDescriptionWithDuplicateUrl() throws Exception {
+    public void addOpenApi3ServiceDescriptionWithDuplicateUrl() throws Exception {
         URL url = getClass().getResource("/openapiparser/valid.yaml");
-        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode1", false);
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode1", false);
 
         // should throw UrlAlreadyExistsException
-        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false);
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false);
     }
 
     @Test
@@ -589,7 +658,7 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "EDIT_OPENAPI3")
-    public void updateOpenapi3ServiceDescriptionSuccess() throws Exception {
+    public void updateOpenApi3ServiceDescriptionSuccess() throws Exception {
         URL url = getClass().getResource("/openapiparser/valid_modified.yaml");
 
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS6);

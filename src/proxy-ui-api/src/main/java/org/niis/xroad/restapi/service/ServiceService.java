@@ -55,14 +55,14 @@ public class ServiceService {
 
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
-    private final WsdlUrlValidator wsdlUrlValidator;
+    private final UrlValidator urlValidator;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            WsdlUrlValidator wsdlUrlValidator) {
+            UrlValidator urlValidator) {
         this.clientRepository = clientRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
-        this.wsdlUrlValidator = wsdlUrlValidator;
+        this.urlValidator = urlValidator;
     }
 
     /**
@@ -125,7 +125,7 @@ public class ServiceService {
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             boolean sslAuth, boolean sslAuthAll) throws InvalidUrlException, ServiceNotFoundException,
             ClientNotFoundException {
-        if (!wsdlUrlValidator.isValidWsdlUrl(url)) {
+        if (!urlValidator.isValidUrl(url)) {
             throw new InvalidUrlException("URL is not valid: " + url);
         }
 

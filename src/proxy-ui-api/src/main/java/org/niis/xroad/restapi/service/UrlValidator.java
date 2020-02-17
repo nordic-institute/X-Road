@@ -28,11 +28,11 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * WSDL URL validator for better testability
+ * URL validator for better testability
  */
 @Component
-public class WsdlUrlValidator {
-    public boolean isValidWsdlUrl(String url) {
+public class UrlValidator {
+    public boolean isValidUrl(String url) {
         return FormatUtils.isValidUrl(url);
     }
 }
