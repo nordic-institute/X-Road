@@ -2261,6 +2261,50 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /services/{id}/endpoints:
+    post:
+      tags:
+        - security server
+      summary: create endpoint
+      operationId: addEndpoint
+      description: Administrator creates a new endpoint.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            example: CS:ORG:Client:myService.v1
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Endpoint'
+      responses:
+        '201':
+          description: endpoint added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endpoint'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
   /services/{id}/access-rights:
     get: # ok
       tags:
@@ -4573,11 +4617,33 @@ components:
           description: list of endpoints linked to this service
           items:
             $ref: '#/components/schemas/Endpoint'
+    ServiceUpdate: # ok
+      type: object
+      description: object for updating a service or all services within service description
+      required:
+        - service
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+        url_all:
+          description: url is applied for all services
+          type: boolean
+          example: false
+          default: false
+        timeout_all:
+          description: timeout value is applied for all services
+          type: boolean
+          example: false
+          default: false
+        ssl_auth_all:
+          description: ssl authentication is applied for all services
+          type: boolean
+          example: false
+          default: false
     Endpoint:
       type: object
       description: Endpoint for a service
       required:
-        - id
         - service_code
         - method
         - path
@@ -4603,29 +4669,7 @@ components:
           type: boolean
           description: has endpoint been generated from openapi3 description
           example: true
-    ServiceUpdate: # ok
-      type: object
-      description: object for updating a service or all services within service description
-      required:
-        - service
-      properties:
-        service:
-          $ref: '#/components/schemas/Service'
-        url_all:
-          description: url is applied for all services
-          type: boolean
-          example: false
-          default: false
-        timeout_all:
-          description: timeout value is applied for all services
-          type: boolean
-          example: false
-          default: false
-        ssl_auth_all:
-          description: ssl authentication is applied for all services
-          type: boolean
-          example: false
-          default: false
+          readOnly: true
     ServiceClient: # ok
       type: object
       description: service client

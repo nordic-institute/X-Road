@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
@@ -465,5 +466,41 @@ public class ServicesApiControllerIntegrationTest {
                 .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2 + "foo").subjectType(SubjectType.SUBSYSTEM));
 
         servicesApiController.addServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjectsToAdd);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "ADD_OPENAPI3_ENDPOINT" })
+    public void addDuplicateEndpoint() {
+        Endpoint endpoint = new Endpoint();
+        endpoint.setMethod("GET");
+        endpoint.setPath("/foo");
+        endpoint.setServiceCode("openapi3-test");
+        servicesApiController.addEndpoint(TestUtils.SS6_OPENAPI_TEST, endpoint);
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities =  { "ADD_OPENAPI3_ENDPOINT" })
+    public void addEndpointWithId() {
+        Endpoint endpoint = new Endpoint();
+        endpoint.setId("thereshouldntbeid");
+        endpoint.setMethod("GET");
+        endpoint.setPath("/foo2");
+        endpoint.setServiceCode("openapi3-test");
+        servicesApiController.addEndpoint(TestUtils.SS6_OPENAPI_TEST, endpoint);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_OPENAPI3_ENDPOINT", "VIEW_CLIENT_SERVICES" })
+    public void addEndpoint() {
+        Endpoint endpoint = new Endpoint();
+        endpoint.setMethod("GET");
+        endpoint.setPath("/foo2");
+        endpoint.setServiceCode("openapi3-test");
+        servicesApiController.addEndpoint(TestUtils.SS6_OPENAPI_TEST, endpoint);
+
+        Service service = servicesApiController.getService(TestUtils.SS6_OPENAPI_TEST).getBody();
+        assertTrue(service.getEndpoints().stream().anyMatch(ep -> ep.getPath().equals(endpoint.getPath())
+                && ep.getMethod().equals(endpoint.getMethod())
+                && ep.getServiceCode().equals(endpoint.getServiceCode())));
     }
 }

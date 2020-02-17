@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -41,6 +42,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * service class for handling services
@@ -157,6 +160,21 @@ public class ServiceService {
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceType;
+    }
+
+    public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
+            throws EndpointAlreadyExistsException {
+        verifyAuthority("ADD_OPENAPI3_ENDPOINT");
+
+        EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), method, path, false);
+        ClientType client = serviceType.getServiceDescription().getClient();
+        if (client.getEndpoint().stream().anyMatch(existingEp -> existingEp.isEquivalent(endpointType))) {
+            throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
+                    + "exists for this client");
+        }
+        client.getEndpoint().add(endpointType);
+        clientRepository.saveOrUpdate(client);
+        return endpointType;
     }
 
 }
