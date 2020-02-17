@@ -5,6 +5,7 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { mainTabs } from '@/global';
 import {SecurityServer} from '@/types';
+import i18n from '@/i18n';
 
 export interface UserState {
   authenticated: boolean;
@@ -135,7 +136,7 @@ export const actions: ActionTree<UserState, RootState> = {
     return axios.get<SecurityServer[]>('/security-servers?current_server=true')
       .then((resp) => {
         if (resp.data?.length !== 1) {
-          throw new Error(`Failed to set current security server. Expected the response to contain 1 item, actual was ${resp.data?.length}`);
+          throw new Error(i18n.t('stores.user.currentSecurityServerNotFound') as string);
         }
         commit('setCurrentSecurityServer', resp.data[0]);
       })
