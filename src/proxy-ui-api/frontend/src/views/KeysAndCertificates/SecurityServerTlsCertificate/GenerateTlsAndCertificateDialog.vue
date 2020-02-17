@@ -9,10 +9,10 @@
     :loading="loading"
   >
     <div slot="content">
-      <p>
+      <p data-test="generate-tls-and-certificate-dialog-explanation-text">
         {{ $t('ssTlsCertificate.generateTlsAndCertificateDialog.explanation') }}
       </p>
-      <p>
+      <p data-test="generate-tls-and-certificate-dialog-confirmation-text">
         {{
           $t('ssTlsCertificate.generateTlsAndCertificateDialog.confirmation')
         }}

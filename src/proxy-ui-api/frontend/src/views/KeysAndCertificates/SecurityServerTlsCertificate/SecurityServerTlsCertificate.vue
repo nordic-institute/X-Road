@@ -6,6 +6,7 @@
         class="button-spacing"
         outlined
         @click="generateDialog = true"
+        data-test="security-server-tls-certificate-generate-key-button"
       >{{$t('ssTlsCertificate.generateKey')}}</large-button>
       <large-button
         v-if="importCertificateVisible"
