@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
+import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +65,7 @@ public final class TestUtils {
     public static final String MEMBER_CLASS_PRO = "PRO";
     public static final String MEMBER_CODE_M1 = "M1";
     public static final String MEMBER_CODE_M2 = "M2";
+    public static final String MEMBER_CODE_M3 = "M3";
     public static final String SUBSYSTEM = "SUBSYSTEM";
     public static final String SUBSYSTEM1 = "SS1";
     public static final String SUBSYSTEM2 = "SS2";
@@ -114,6 +116,16 @@ public final class TestUtils {
      */
     public static ClientId getM1Ss1ClientId() {
         return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1);
+    }
+
+    /**
+     * Returns a new ClientId which has been built from encoded client id string,
+     * such as "FI:GOV:M1:SS1"
+     * @param encodedId
+     * @return
+     */
+    public static ClientId getClientId(String encodedId) {
+        return new ClientConverter(null, null).convertId(encodedId);
     }
 
     /**

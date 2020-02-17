@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -439,4 +440,33 @@ public class ClientService {
         }
         return clientTypePredicate;
     }
+
+    public ClientType addLocalClient(ClientId clientId,
+            IsAuthentication isAuthentication,
+            boolean ignoreWarnings) throws ClientAlreadyExistsException,
+            AdditionalMemberAlreadyExistsException, UnhandledWarningsException {
+        return new ClientType();
+    }
+
+    /**
+     * Thrown when client that already exists in server conf was tried to add
+     */
+    public static class ClientAlreadyExistsException extends ServiceException {
+        public static final String ERROR_CLIENT_ALREADY_EXISTS = "client_already_exists";
+        public ClientAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ERROR_CLIENT_ALREADY_EXISTS));
+        }
+    }
+
+    /**
+     * Thrown when someone tries to add another member, and an additional member besides
+     * the owner member already exists (there can only be owner member + one additional member)
+     */
+    public static class AdditionalMemberAlreadyExistsException extends ServiceException {
+        public static final String ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS = "additional_member_already_exists";
+        public AdditionalMemberAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS));
+        }
+    }
+
 }
