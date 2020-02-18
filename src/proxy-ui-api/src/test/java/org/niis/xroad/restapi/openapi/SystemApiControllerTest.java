@@ -87,7 +87,7 @@ public class SystemApiControllerTest {
     @MockBean
     GlobalConfFacade globalConfFacade;
 
-    private static final Map<String, String> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
+    private static final Map<String, TspType> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
 
     private static final List<TspType> CONFIGURED_TIMESTAMPING_SERVICES = new ArrayList<>();
 
@@ -102,18 +102,20 @@ public class SystemApiControllerTest {
     @Before
     public void setup() {
 
-        APPROVED_TIMESTAMPING_SERVICES.put(TSA_1_URL, TSA_1_NAME);
-        APPROVED_TIMESTAMPING_SERVICES.put(TSA_2_URL, TSA_2_NAME);
+        TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
+        TspType tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
+        APPROVED_TIMESTAMPING_SERVICES.put(tsa1.getName(), tsa1);
+        APPROVED_TIMESTAMPING_SERVICES.put(tsa2.getName(), tsa2);
 
-        CONFIGURED_TIMESTAMPING_SERVICES.addAll(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME)));
+        CONFIGURED_TIMESTAMPING_SERVICES.addAll(Arrays.asList(tsa1));
 
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
-                new ArrayList<String>(APPROVED_TIMESTAMPING_SERVICES.keySet()));
+                Arrays.asList(tsa1, tsa2));
         when(globalConfService.getApprovedTspName(TSA_1_URL))
-                .thenReturn(APPROVED_TIMESTAMPING_SERVICES.get(TSA_1_URL));
+                .thenReturn(tsa1.getName());
         when(globalConfService.getApprovedTspName(TSA_2_URL))
-                .thenReturn(APPROVED_TIMESTAMPING_SERVICES.get(TSA_2_URL));
+                .thenReturn(tsa2.getName());
         when(serverConfService.getConfiguredTimestampingServices()).thenReturn(CONFIGURED_TIMESTAMPING_SERVICES);
     }
 

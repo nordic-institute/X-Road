@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
@@ -64,8 +66,8 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
     public ResponseEntity<List<TimestampingService>> getApprovedTimestampingServices() {
         List<TimestampingService> timestampingServices;
-        Collection<String> urls = globalConfService.getApprovedTspsForThisInstance();
-        timestampingServices = timestampingServiceConverter.convert(urls);
+        Collection<TspType> tsps = globalConfService.getApprovedTspsForThisInstance();
+        timestampingServices = timestampingServiceConverter.convert(tsps);
 
         return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
     }

@@ -28,6 +28,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -143,10 +144,25 @@ public class GlobalConfService {
     }
 
     /**
-     * @return approved timestamping services for current instance
+     * @return approved timestamping services for current instance.
+     * {@link TspType#getId()} is null for all returned items
      */
-    public List<String> getApprovedTspsForThisInstance() {
-        return globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
+    public List<TspType> getApprovedTspsForThisInstance() {
+        List<String> urls = globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
+        List<TspType> tsps = urls.stream()
+                .map(this::createTspType)
+                .collect(Collectors.toList());
+        return tsps;
+    }
+
+    /**
+     * init TspType DTO with name and url. id will be null
+     */
+    private TspType createTspType(String url) {
+        TspType tsp = new TspType();
+        tsp.setUrl(url);
+        tsp.setName(globalConfFacade.getApprovedTspName(globalConfFacade.getInstanceIdentifier(), url));
+        return tsp;
     }
 
     /**

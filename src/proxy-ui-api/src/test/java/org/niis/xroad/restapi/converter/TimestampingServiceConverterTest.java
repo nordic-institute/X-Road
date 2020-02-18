@@ -29,12 +29,9 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.AdditionalMatchers;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
@@ -42,8 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 /**
  * Test TimestampingServiceConverter
@@ -51,9 +46,6 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class TimestampingServiceConverterTest {
-
-    @MockBean
-    GlobalConfFacade globalConfFacade;
 
     private TimestampingServiceConverter timestampingServiceConverter;
 
@@ -69,47 +61,7 @@ public class TimestampingServiceConverterTest {
 
     @Before
     public void setup() {
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfFacade.getApprovedTspName(INSTANCE_IDENTIFIER, TSA_1_URL)).thenReturn(TSA_1_NAME);
-        when(globalConfFacade.getApprovedTspName(eq(INSTANCE_IDENTIFIER), AdditionalMatchers.not(eq(TSA_1_URL))))
-                .thenReturn(null);
-
-        timestampingServiceConverter = new TimestampingServiceConverter(globalConfFacade);
-    }
-
-    @Test
-    public void convertWithCorrectUrl() {
-        TimestampingService timestampingService = timestampingServiceConverter.convert(TSA_1_URL);
-
-        assertEquals(TSA_1_URL, timestampingService.getUrl());
-        assertEquals(TSA_1_NAME, timestampingService.getName());
-    }
-
-    @Test
-    public void convertWithIncorrectUrl() {
-        String url = "https://example.com";
-        TimestampingService timestampingService = timestampingServiceConverter.convert(url);
-
-        assertEquals(url, timestampingService.getUrl());
-        assertEquals(null, timestampingService.getName());
-    }
-
-    @Test
-    public void convertEmptyUrlList() {
-        List<String> urls = new ArrayList<>();
-
-        List<TimestampingService> timestampingService = timestampingServiceConverter.convert(urls);
-
-        assertEquals(0, timestampingService.size());
-    }
-
-    @Test
-    public void convertMultipleUrls() {
-        List<String> urls = new ArrayList<>(Arrays.asList(TSA_1_URL, "https://example.com"));
-
-        List<TimestampingService> timestampingServices = timestampingServiceConverter.convert(urls);
-
-        assertEquals(2, timestampingServices.size());
+        timestampingServiceConverter = new TimestampingServiceConverter();
     }
 
     @Test

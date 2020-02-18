@@ -27,9 +27,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -41,24 +39,6 @@ import java.util.stream.Collectors;
 @Component
 public class TimestampingServiceConverter {
 
-    private final GlobalConfFacade globalConfFacade;
-
-    /**
-     * constructor
-     */
-    @Autowired
-    public TimestampingServiceConverter(GlobalConfFacade globalConfFacade) {
-        this.globalConfFacade = globalConfFacade;
-    }
-
-    public TimestampingService convert(String url)  {
-        TimestampingService timestampingService = new TimestampingService();
-        timestampingService.setUrl(url);
-        timestampingService.setName(globalConfFacade.getApprovedTspName(
-                globalConfFacade.getInstanceIdentifier(), url));
-        return timestampingService;
-    }
-
     public TimestampingService convert(TspType tsp)  {
         TimestampingService timestampingService = new TimestampingService();
         timestampingService.setUrl(tsp.getUrl());
@@ -66,8 +46,9 @@ public class TimestampingServiceConverter {
         return timestampingService;
     }
 
-    public List<TimestampingService> convert(Iterable<?> list)  {
-        return Streams.stream(list).map(n -> n instanceof String ? convert((String)n) : convert((TspType)n))
+    public List<TimestampingService> convert(Iterable<TspType> tsps)  {
+        return Streams.stream(tsps)
+                .map(this::convert)
                 .collect(Collectors.toList());
     }
 }

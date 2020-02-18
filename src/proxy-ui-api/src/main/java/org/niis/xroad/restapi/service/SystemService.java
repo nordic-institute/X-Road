@@ -69,9 +69,9 @@ public class SystemService {
     public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
             throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
         // Check that the timestamping service is an approved timestamping service
-        Optional<String> match = globalConfService.getApprovedTspsForThisInstance().stream()
-                .filter(url -> timestampingServiceToAdd.getName().equals(globalConfService.getApprovedTspName(url))
-                        && timestampingServiceToAdd.getUrl().equals(url))
+        Optional<TspType> match = globalConfService.getApprovedTspsForThisInstance().stream()
+                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
+                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (!match.isPresent()) {
