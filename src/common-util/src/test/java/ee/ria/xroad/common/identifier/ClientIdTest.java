@@ -22,27 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package ee.ria.xroad.common.identifier;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Collections;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 
 /**
- * If warnings were detected and they were not ignored
+ * Test some ClientId features
  */
-public class UnhandledWarningsException extends ServiceException {
+public class ClientIdTest {
+    @Test
+    public void getMemberId() throws Exception {
+        ClientId subsystemId = ClientId.create("instance",
+                "memberclass",
+                "membercode",
+                "subsystemcode");
+        ClientId memberId = subsystemId.getMemberId();
+        assertTrue(subsystemId != memberId);
+        assertEquals(SUBSYSTEM, subsystemId.getObjectType());
+        assertEquals(MEMBER, memberId.getObjectType());
+        assertEquals(subsystemId.getXRoadInstance(), memberId.getXRoadInstance());
+        assertEquals(subsystemId.getMemberClass(), memberId.getMemberClass());
+        assertEquals(subsystemId.getMemberCode(), memberId.getMemberCode());
+        assertNull(memberId.getSubsystemCode());
 
-    public static final String ERROR_WARNINGS_DETECTED = "warnings_detected";
-
-    public UnhandledWarningsException(Collection<WarningDeviation> warningDeviations) {
-        super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), warningDeviations);
+        ClientId memberId2 = memberId.getMemberId();
+        assertTrue(memberId == memberId2);
     }
-
-    public UnhandledWarningsException(WarningDeviation warningDeviation) {
-        super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), Collections.singletonList(warningDeviation));
-    }
-
 }

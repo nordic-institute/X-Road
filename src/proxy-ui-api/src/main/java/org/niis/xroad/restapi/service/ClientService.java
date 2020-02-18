@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -35,8 +36,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -65,18 +68,25 @@ import java.util.stream.Collectors;
 @PreAuthorize("isAuthenticated()")
 public class ClientService {
 
+    public static final String WARNING_UNREGISTERED_MEMBER = "unregistered_member";
+
     private final ClientRepository clientRepository;
+    private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
+    private final ServerConfService serverConfService;
 
     /**
      * ClientService constructor
-     * @param clientRepository
-     * @param globalConfFacade
      */
     @Autowired
-    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade) {
+    public ClientService(ClientRepository clientRepository,
+            GlobalConfFacade globalConfFacade,
+            ServerConfService serverConfService,
+            GlobalConfService globalConfService) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
+        this.serverConfService = serverConfService;
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -452,17 +462,76 @@ public class ClientService {
         return clientTypePredicate;
     }
 
+    /**
+     * Add a new client to this security server. Can add a new member or a subsystem.
+     * Member (added client, or member associated with the client subsystem) can either
+     * be one already registered to global conf, or an unregistered one. Unregistered one
+     * can only be added with ignoreWarnings = true.
+     * @param clientId id of client to add
+     * @param isAuthentication {@code IsAuthentication} value to set for the new client
+     * @param ignoreWarnings if warning about unregistered member should be ignored
+     * @return
+     * @throws ClientAlreadyExistsException if client has already been added to security server
+     * @throws AdditionalMemberAlreadyExistsException if tried to add a new member, and
+     * security server already has owner member + one additional member
+     * @throws UnhandledWarningsException if tried to add client associated with a member which
+     * does not exist in global conf yet, and ignoreWarnings was false
+     */
     public ClientType addLocalClient(ClientId clientId,
             IsAuthentication isAuthentication,
             boolean ignoreWarnings) throws ClientAlreadyExistsException,
             AdditionalMemberAlreadyExistsException, UnhandledWarningsException {
 
         ClientType existingLocalClient = getLocalClient(clientId);
+        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
         if (existingLocalClient != null) {
             throw new ClientAlreadyExistsException("client " + clientId + " already exists");
         }
-        return new ClientType();
+        if (clientId.getSubsystemCode() == null) {
+            // adding member - check that we dont already have owner + one additional member
+            List<ClientType> existingMembers = getAllLocalMembers();
+            Optional<ClientType> additionalMember = existingMembers.stream()
+                    .filter(m -> !ownerId.equals(m.getIdentifier()))
+                    .findFirst();
+            if (additionalMember.isPresent()) {
+                throw new AdditionalMemberAlreadyExistsException("additional member "
+                        + additionalMember.get().getIdentifier() + " already exists");
+            }
+        }
+
+        // check if the member associated with clientId exists in global conf
+        ClientId memberId = clientId.getMemberId();
+        if (globalConfFacade.getMemberName(memberId) == null) {
+            // unregistered member
+            if (!ignoreWarnings) {
+                WarningDeviation warning = new WarningDeviation(WARNING_UNREGISTERED_MEMBER, memberId.toShortString());
+                throw new UnhandledWarningsException(warning);
+            }
+        }
+
+        boolean clientRegistered = globalConfService.isSecurityServerClientForThisInstance(clientId);
+        ClientType client = new ClientType();
+        client.setIdentifier(clientId);
+        if (clientRegistered) {
+            client.setClientStatus(ClientType.STATUS_REGISTERED);
+        } else {
+            client.setClientStatus(ClientType.STATUS_SAVED);
+        }
+        client.setIsAuthentication(isAuthentication.name());
+        ServerConfType serverConfType = serverConfService.getServerConf();
+        client.setConf(serverConfType);
+        serverConfType.getClient().add(client);
+
+        clientRepository.saveOrUpdate(client);
+        // TO DO: why does this not work?
+//        serverConfRepository.saveOrUpdate(serverConfType);
+
+        return client;
     }
+
+    // TO DO: remove
+    @Autowired
+    private ServerConfRepository serverConfRepository;
 
     /**
      * Thrown when client that already exists in server conf was tried to add

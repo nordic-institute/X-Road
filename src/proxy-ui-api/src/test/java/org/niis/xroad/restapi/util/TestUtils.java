@@ -138,7 +138,7 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? NAME_FOR + subsystem : null);
+                subsystem != null ? NAME_FOR + subsystem : NAME_FOR + memberCode);
     }
 
     /**

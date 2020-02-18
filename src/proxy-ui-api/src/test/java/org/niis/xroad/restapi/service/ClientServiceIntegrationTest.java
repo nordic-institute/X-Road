@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -37,7 +38,6 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,13 +46,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -64,7 +69,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureTestDatabase
 @Slf4j
 @Transactional
 @WithMockUser
@@ -83,9 +87,12 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @Before
     public void setup() throws Exception {
-        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                         TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -101,13 +108,29 @@ public class ClientServiceIntegrationTest {
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
                         null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3,
-                        null))
-        ));
+                        null)));
+        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
         when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
-            return clientId.getSubsystemCode() != null ? TestUtils.NAME_FOR + clientId.getSubsystemCode()
-                    : TestUtils.NAME_FOR + "test-member";
+            Optional<MemberInfo> m = globalMemberInfos.stream()
+                    .filter(g -> g.getId().equals(clientId))
+                    .findFirst();
+            if (m.isPresent()) {
+                return m.get().getName();
+            } else {
+                return null;
+            }
         });
+        when(globalConfFacade.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
+            // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
+            ClientId clientId = (ClientId) invocation.getArguments()[0];
+            Optional<ClientType> match = clientService.getAllLocalClients()
+                    .stream()
+                    .filter(ct -> ct.getIdentifier().equals(clientId))
+                    .findFirst();
+            return match.isPresent();
+        });
+
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -126,55 +149,59 @@ public class ClientServiceIntegrationTest {
         return countByType(false);
     }
     private long countSubsystems() {
-        return countByType(false);
+        return countByType(true);
     }
-    private long countByType(boolean subsystem) {
+    private long countByType(boolean subsystems) {
         List<ClientType> localClients = clientService.getAllLocalClients();
         return localClients.stream()
-                .filter(client -> (client.getIdentifier().getSubsystemCode() == null) == subsystem)
+                .filter(client -> (client.getIdentifier().getSubsystemCode() != null) == subsystems)
                 .count();
     }
 
     @Test
-    public void addSubsystemToExistingClient() throws Exception {
+    public void addLocalClientSubsystemToExistingClient() throws Exception {
 
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
+        ClientType added;
 
         // add local subsystem: add SS-NEW to M1
-        clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M1:SS-NEW"),
+        added = clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M1:SS-NEW"),
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 1, countSubsystems());
         assertEquals(startIdentifiers + 1, countIdentifiers());
+        assertEquals(STATUS_SAVED, added.getClientStatus());
 
-        // add global subsystem: add FI:GOV:M2:SS3, which exists in global conf but not serverconf
-        clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M2:SS3"),
+        // add global subsystem: add EE:PRO:M2:SS3, which exists in global conf but not serverconf
+        added = clientService.addLocalClient(TestUtils.getClientId("EE:PRO:M2:SS3"),
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers, countMembers());
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 2, countSubsystems());
         assertEquals(startIdentifiers + 2, countIdentifiers());
+        assertEquals(STATUS_SAVED, added.getClientStatus());
     }
 
     @Test
-    public void addSecondMember() throws Exception {
+    public void addLocalClientSecondMember() throws Exception {
 
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
 
-        // add second member FI:GOV:M2
-        clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M2"),
+        // add second member EE:PRO:M2
+        ClientType added = clientService.addLocalClient(TestUtils.getClientId("EE:PRO:M2"),
                 IsAuthentication.SSLAUTH, false);
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems, countSubsystems());
         assertEquals(startIdentifiers + 1, countIdentifiers());
+        assertEquals(STATUS_SAVED, added.getClientStatus());
 
-        // add third member FI:GOV:M3 fails
+        // add third member EE:PRO:M3 fails
         try {
-            clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M3"),
+            clientService.addLocalClient(TestUtils.getClientId("EE:PRO:M3"),
                     IsAuthentication.SSLAUTH, false);
             fail("should have thrown ClientService.AdditionalMemberAlreadyExistsException");
         } catch (ClientService.AdditionalMemberAlreadyExistsException expected) {
@@ -182,7 +209,7 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    public void addExistingClientFails() throws Exception {
+    public void addLocalClientDuplicateFails() throws Exception {
         // try member, FI:GOV:M1
         try {
             clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M1"),
@@ -201,19 +228,44 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    public void addUnregisteredMemberClients() throws Exception {
+    public void addLocalClientAlreadyLinkedToThisSecurityServer() throws Exception {
+        // add clients who global conf says are already linked to this security server
+        // this can occur (at least) if admin deletes a client from serverconf, but does not send
+        // unregistration request to remove clients from globalconf
+        when(globalConfFacade.isSecurityServerClient(any(), any())).thenReturn(true);
+        long startMembers = countMembers();
+        long startSubsystems = countSubsystems();
+        int startIdentifiers = countIdentifiers();
+        ClientType added = clientService.addLocalClient(TestUtils.getClientId("EE:PRO:M3"),
+                    IsAuthentication.SSLAUTH, false);
+        // these should have status "REGISTERED"
+        assertEquals(STATUS_REGISTERED, added.getClientStatus());
+        assertEquals(startMembers + 1, countMembers());
+        assertEquals(startSubsystems, countSubsystems());
+        assertEquals(startIdentifiers + 1, countIdentifiers());
+
+        added = clientService.addLocalClient(TestUtils.getClientId("EE:PRO:M2:SS3"),
+                IsAuthentication.SSLAUTH, false);
+        assertEquals(STATUS_REGISTERED, added.getClientStatus());
+        assertEquals(startMembers + 1, countMembers());
+        assertEquals(startSubsystems + 1, countSubsystems());
+        assertEquals(startIdentifiers + 2, countIdentifiers());
+    }
+
+    @Test
+    public void addLocalClientUnregisteredMember() throws Exception {
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
 
         // unregistered member without skip warnings
-        // add third member FI:GOV:M3 fails
         try {
             clientService.addLocalClient(TestUtils.getClientId("FI:GOV:UNREGISTERED-MX"),
                     IsAuthentication.SSLAUTH, false);
             fail("should have thrown UnhandledWarningsException");
         } catch (UnhandledWarningsException expected) {
         }
+
         // unregistered member + subsystem without skip warnings
         try {
             clientService.addLocalClient(TestUtils.getClientId("FI:GOV:UNREGISTERED-MX:SS1"),
@@ -221,9 +273,11 @@ public class ClientServiceIntegrationTest {
             fail("should have thrown UnhandledWarningsException");
         } catch (UnhandledWarningsException expected) {
         }
+
         // unregistered member with skip warnings
         clientService.addLocalClient(TestUtils.getClientId("FI:GOV:UNREGISTERED-MX"),
                 IsAuthentication.SSLAUTH, true);
+
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems, countSubsystems());
         assertEquals(startIdentifiers + 1, countIdentifiers());
@@ -243,12 +297,83 @@ public class ClientServiceIntegrationTest {
         assertEquals(startIdentifiers + 3, countIdentifiers());
     }
 
+    /**
+     * TO DO: remove
+     * this fails if ClientService saveOrUpdates serverconf instead of client
+     * @throws Exception
+     */
+    @Test
+    public void addLocalClientTestPersistenceProblem() throws Exception {
+        int startIdentifiers = countIdentifiers();
+
+        // unregistered member with skip warnings
+        ClientType added = clientService.addLocalClient(TestUtils.getClientId("FI:GOV:UNREGISTERED-MX"),
+                IsAuthentication.SSLAUTH, true);
+        entityManager.flush();
+        int endIdentifiers = countIdentifiers();
+    }
+
     @Test
     public void getAllLocalMembers() {
         List<ClientType> localMembers = clientService.getAllLocalMembers();
         assertEquals(1, localMembers.size());
         assertEquals(1, (long)localMembers.iterator().next().getId());
     }
+
+    /**
+     * Test how IsAuthentication and also other properties behave when adding a new client,
+     * and compare returned ClientType to one fetched separately so that they match
+     * @throws Exception
+     */
+    @Test
+    public void addSubsystemIsAuthenticationAndOtherProperties() throws Exception {
+
+        long startMembers = countMembers();
+        long startSubsystems = countSubsystems();
+        int startIdentifiers = countIdentifiers();
+        ClientType added;
+        ClientType loadedAdded;
+
+        // add local subsystem
+        added = clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M1:SS-NEW-SSLAUTH"),
+                IsAuthentication.SSLAUTH, false);
+        assertEquals(startMembers, countMembers());
+        assertEquals(startSubsystems + 1, countSubsystems());
+        assertEquals(startIdentifiers + 1, countIdentifiers());
+
+        assertEquals(IsAuthentication.SSLAUTH.name(), added.getIsAuthentication());
+        assertEquals(STATUS_SAVED, added.getClientStatus());
+        loadedAdded = clientService.getLocalClient(TestUtils.getClientId(
+                "FI:GOV:M1:SS-NEW-SSLAUTH"));
+        assertEquals(IsAuthentication.SSLAUTH.name(), loadedAdded.getIsAuthentication());
+        assertEquals(STATUS_SAVED, loadedAdded.getClientStatus());
+
+        // add local subsystem
+        added = clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M1:SS-NEW-NOSSL"),
+                IsAuthentication.NOSSL, false);
+        assertEquals(startMembers, countMembers());
+        assertEquals(startSubsystems + 2, countSubsystems());
+        assertEquals(startIdentifiers + 2, countIdentifiers());
+
+        assertEquals(IsAuthentication.NOSSL.name(), added.getIsAuthentication());
+        loadedAdded = clientService.getLocalClient(TestUtils.getClientId(
+                "FI:GOV:M1:SS-NEW-NOSSL"));
+        assertEquals(IsAuthentication.NOSSL.name(), loadedAdded.getIsAuthentication());
+
+        // add local subsystem
+        added = clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M1:SS-NEW-SSLNOAUTH"),
+                IsAuthentication.SSLNOAUTH, false);
+        assertEquals(startMembers, countMembers());
+        assertEquals(startSubsystems + 3, countSubsystems());
+        assertEquals(startIdentifiers + 3, countIdentifiers());
+
+        assertEquals(IsAuthentication.SSLNOAUTH.name(), added.getIsAuthentication());
+        loadedAdded = clientService.getLocalClient(TestUtils.getClientId(
+                "FI:GOV:M1:SS-NEW-SSLNOAUTH"));
+        assertEquals(IsAuthentication.SSLNOAUTH.name(), loadedAdded.getIsAuthentication());
+
+    }
+
 
     @Test
     public void updateConnectionType() throws Exception {

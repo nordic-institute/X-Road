@@ -182,4 +182,13 @@ public class GlobalConfFacade {
     public String getApprovedTspName(String instanceIdentifier, String url) {
         return GlobalConf.getApprovedTspName(instanceIdentifier, url);
     }
+
+    /**
+     * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}
+     */
+    public boolean isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer) {
+        return GlobalConf.isSecurityServerClient(client, securityServer);
+    }
+
 }
