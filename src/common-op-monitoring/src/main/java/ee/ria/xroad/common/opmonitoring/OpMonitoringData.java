@@ -103,8 +103,8 @@ public class OpMonitoringData {
     private static final String SUCCEEDED = "succeeded";
     private static final String REST_RESPONSE_STATUS_CODE = "statusCode";
 
-    private static final String SOAP_FAULT_CODE = "soapFaultCode";
-    private static final String SOAP_FAULT_STRING = "soapFaultString";
+    private static final String SOAP_FAULT_CODE = "faultCode";
+    private static final String SOAP_FAULT_STRING = "faultString";
     private static final String SERVICE_TYPE = "serviceType";
 
     /**
@@ -387,7 +387,7 @@ public class OpMonitoringData {
      * Sets a fault code and string from given CodedException.
      * @param e CodedException
      */
-    public void setSoapFault(CodedException e) {
+    public void setFaultCodeAndString(CodedException e) {
         if (e != null) {
             data.put(SOAP_FAULT_CODE, e.getFaultCode());
             data.put(SOAP_FAULT_STRING, e.getFaultString());
