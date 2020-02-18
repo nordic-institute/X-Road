@@ -56,32 +56,29 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
                 // Instance Identifier
                 new EnumLocalizedFieldDescriptionImpl(
                         "O",
-                        DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
-                        params.getClientId().getXRoadInstance()
+                        DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O,
+                        params.getServerId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Member Class Identifier
                 new EnumLocalizedFieldDescriptionImpl(
                         "OU",
-                        DnFieldLabelLocalizationKey.MEMBER_CLASS,
-                        params.getClientId().getMemberClass()
+                        DnFieldLabelLocalizationKey.MEMBER_CLASS_OU,
+                        params.getServerId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
                 new EnumLocalizedFieldDescriptionImpl(
                         "CN",
                         DnFieldLabelLocalizationKey.MEMBER_CODE,
-                        params.getClientId().getMemberCode()
+                        params.getServerId().getMemberCode()
                 ).setReadOnly(true),
 
                 // Serialnumber
                 new EnumLocalizedFieldDescriptionImpl(
                         "serialNumber",
                         DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getClientId().getXRoadInstance() + "/"
-                        + params.getClientId().getMemberClass() + "/"
-                        + params.getClientId().getMemberCode()  + "/"
-                        + params.getServerId().getServerCode()
+                        params.getServerId().toShortString()
                 ).setReadOnly(true)
 
         });
