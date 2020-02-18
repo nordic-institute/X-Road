@@ -46,16 +46,23 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
     public IsSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
 
-                // Instance identifier
+                // Country Identifier
                 new EnumLocalizedFieldDescriptionImpl(
                         "C",
+                        DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "IS"
+                ).setReadOnly(true),
+
+                // Instance Identifier
+                new EnumLocalizedFieldDescriptionImpl(
+                        "O",
                         DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
                         params.getClientId().getXRoadInstance()
                 ).setReadOnly(true),
 
-                // Member class
+                // Member Class Identifier
                 new EnumLocalizedFieldDescriptionImpl(
-                        "O",
+                        "OU",
                         DnFieldLabelLocalizationKey.MEMBER_CLASS,
                         params.getClientId().getMemberClass()
                 ).setReadOnly(true),
@@ -71,9 +78,10 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
                 new EnumLocalizedFieldDescriptionImpl(
                         "serialNumber",
                         DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getClientId().getXRoadInstance()
-                        + "/" + params.getServerId().getServerCode()
-                        + "/" + params.getClientId().getMemberClass()
+                        params.getClientId().getXRoadInstance() + "/"
+                        + params.getClientId().getMemberClass() + "/"
+                        + params.getClientId().getMemberCode()  + "/"
+                        + params.getServerId().getServerCode()
                 ).setReadOnly(true)
 
         });

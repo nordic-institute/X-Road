@@ -39,27 +39,42 @@ public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
      */
     public IsAuthCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
-                // Instance identifier
+                // Country Code
                 new EnumLocalizedFieldDescriptionImpl(
                         "C",
+                        DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "IS"
+                ).setReadOnly(true),
+
+                // Instance Identifier
+                new EnumLocalizedFieldDescriptionImpl(
+                        "O",
                         DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
                         params.getServerId().getXRoadInstance()
+                ).setReadOnly(true),
+
+                // Member Class Identifier
+                new EnumLocalizedFieldDescriptionImpl(
+                        "OU",
+                        DnFieldLabelLocalizationKey.MEMBER_CLASS,
+                        params.getServerId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Server code
                 new EnumLocalizedFieldDescriptionImpl(
                         "CN",
-                        DnFieldLabelLocalizationKey.SERVER_CODE,
-                        params.getServerId().getServerCode()
-                ).setReadOnly(true),
+                        DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
+                        ""
+                ).setReadOnly(false),
 
                 // Serialnumber
                 new EnumLocalizedFieldDescriptionImpl(
                         "serialNumber",
                         DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getServerId().getXRoadInstance()
-                        + "/" + params.getServerId().getServerCode()
-                        + "/" + params.getServerId().getMemberClass()
+                        params.getServerId().getXRoadInstance() + "/"
+                        + params.getServerId().getMemberClass() + "/"
+                        + params.getServerId().getMemberCode()  + "/"
+                        + params.getServerId().getServerCode()
                 ).setReadOnly(true)
         });
     }
