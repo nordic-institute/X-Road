@@ -65,7 +65,7 @@
             </tbody>
         </table>
 
-        <addEndpointDialog @test="test" :dialog="isAddEndpointDialogVisible" @save="addEndpoint" @cancel="cancelAddEndpoint" />
+        <addEndpointDialog :dialog="isAddEndpointDialogVisible" @save="addEndpoint" @cancel="cancelAddEndpoint" />
 
     </div>
 </template>

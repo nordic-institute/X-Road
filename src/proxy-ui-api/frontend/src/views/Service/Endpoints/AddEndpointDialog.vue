@@ -12,7 +12,7 @@
 
         <div class="dlg-edit-row">
           <div class="dlg-row-title long-row-title">{{$t('endpoints.httpRequestMethod')}}</div>
-            <v-select v-model="method" :items="methods" />
+            <v-select data-test="endpoint-method" v-model="method" :items="methods" />
         </div>
 
         <div class="dlg-edit-row">
@@ -28,6 +28,7 @@
               single-line
               :error-messages="errors"
               name="path"
+              data-test="endpoint-path"
             ></v-text-field>
           </ValidationProvider>
         </div>
