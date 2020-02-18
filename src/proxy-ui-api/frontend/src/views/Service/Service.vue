@@ -20,7 +20,7 @@
                    :to="tab.to" data-test="service-tab">{{ $t(tab.name) }}</v-tab>
         </v-tabs>
 
-        <router-view service="service" class="sub-view-spacing" />
+        <router-view v-on:updateService="fetchData" service="service" class="sub-view-spacing" />
 
     </div>
 </template>

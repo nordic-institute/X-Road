@@ -4,7 +4,7 @@
         <div class="wrap-right">
             <v-btn
                 color="primary"
-                @click="addEndpoint"
+                @click="isAddEndpointDialogVisible = true"
                 outlined
                 rounded
                 class="rounded-button elevation-0 rest-button"
@@ -23,16 +23,9 @@
             </thead>
             <tbody>
                 <template v-for="endpoint in service.endpoints">
-                    <template v-if="isBaseEndpoint(endpoint)">
-                        <tr class="generated">
-                            <td class="path-wrapper">{{service.service_code}}</td>
-                            <td class="url-wrapper">{{service.url}}</td>
-                            <td></td>
-                        </tr>
-                    </template>
-                    <template v-else>
+                    <template v-if="!isBaseEndpoint(endpoint)">
                         <tr v-bind:class="{generated: endpoint.generated}">
-                            <td>{{endpoint.method}}</td>
+                            <td><span v-if="endpoint.method === '*'">{{$t('endpoints.all')}}</span><span v-else>{{endpoint.method}}</span></td>
                             <td>{{endpoint.path}}</td>
                             <td class="wrap-right">
                                 <v-btn
@@ -72,6 +65,8 @@
             </tbody>
         </table>
 
+        <addEndpointDialog @test="test" :dialog="isAddEndpointDialogVisible" @save="addEndpoint" @cancel="cancelAddEndpoint" />
+
     </div>
 </template>
 
@@ -79,14 +74,38 @@
 import Vue from 'vue';
 import {mapGetters} from 'vuex';
 import {Endpoint} from '@/types';
+import * as api from '@/util/api';
+import addEndpointDialog from './AddEndpointDialog.vue';
 
 export default Vue.extend({
+  components: {
+    addEndpointDialog,
+  },
   computed: {
     ...mapGetters(['service']),
   },
+  data(): any {
+    return {
+      isAddEndpointDialogVisible: false,
+    };
+  },
   methods: {
-    addEndpoint(): void {
-        // NOOP
+    addEndpoint(method: string, path: string): void {
+      api.post(`/services/${this.service.id}/endpoints`, {
+        method,
+        path,
+        service_code: this.service.service_code,
+      })
+      .then( (res: any) => {
+        this.$bus.$emit('show-success', 'endpoints.saveNewEndpointSuccess');
+      })
+      .catch( (error) => {
+        this.$bus.$emit('show-error', error.message);
+      })
+      .finally( () => {
+        this.isAddEndpointDialogVisible = false;
+        this.$emit('updateService', this.service.id);
+      });
     },
     isBaseEndpoint(endpoint: Endpoint): boolean {
       return endpoint.method === '*' && endpoint.path === '**';
@@ -99,6 +118,9 @@ export default Vue.extend({
     },
     editAccessRights(endpoint: Endpoint): void {
       // NOOP
+    },
+    cancelAddEndpoint(): void {
+      this.isAddEndpointDialogVisible = false;
     },
   },
 
@@ -126,6 +148,5 @@ export default Vue.extend({
     .generated {
         color: $XRoad-Grey40;
     }
-
 
 </style>
