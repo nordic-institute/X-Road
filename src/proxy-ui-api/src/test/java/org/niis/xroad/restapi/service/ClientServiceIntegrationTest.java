@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -312,6 +313,17 @@ public class ClientServiceIntegrationTest {
         entityManager.flush();
         int endIdentifiers = countIdentifiers();
     }
+
+    @Test
+    @Ignore
+    public void addLocalClientWhenIdentifierExists() throws Exception {
+        // client identifier may already exists, even though client does
+        // not exist in this security server
+        // this can happen (at least) when client is deleted and then
+        // added again. Identifier is kept when client is deleted
+        fail("not implemented yet");
+    }
+
 
     @Test
     public void getAllLocalMembers() {

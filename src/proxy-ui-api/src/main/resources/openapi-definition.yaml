@@ -3976,9 +3976,9 @@ components:
       type: object
       description: x-road client
       required:
+        - instance_id
         - member_class
         - member_code
-        - subsystem_code
       properties:
         id:
           type: string
@@ -3988,11 +3988,19 @@ components:
           minLength: 1
           maxLength: 1023
           readOnly: true
+        instance_id:
+          type: string
+          format: text
+          description: xroad instance id
+          example: FI
+          minLength: 1
+          maxLength: 255
         member_name:
           type: string
           format: text
           description: member name
           example: FI
+          readOnly: true
           minLength: 1
           maxLength: 255
         member_class:

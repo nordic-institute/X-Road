@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -46,6 +47,7 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
@@ -219,7 +221,7 @@ public class ClientsApiController implements ClientsApi {
         }
         ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
-        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
+        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get().name();
         ClientType changed = null;
         try {
             changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -402,5 +404,32 @@ public class ClientsApiController implements ClientsApi {
         }
         List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADD_CLIENT')")
+    public ResponseEntity<Client> addClient(ClientAdd clientAdd) {
+        ClientId clientId = ClientId.create(clientAdd.getClient().getInstanceId(),
+                clientAdd.getClient().getMemberClass(),
+                clientAdd.getClient().getMemberCode(),
+                clientAdd.getClient().getSubsystemCode());
+        boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
+        IsAuthentication isAuthentication = null;
+        try {
+            isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
+        } catch (Exception e) {
+            throw new BadRequestException("bad connection type parameter", e);
+        }
+        ClientType added = null;
+        try {
+            added = clientService.addLocalClient(clientId, isAuthentication, ignoreWarnings);
+        } catch (ClientService.ClientAlreadyExistsException
+                | ClientService.AdditionalMemberAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (UnhandledWarningsException e) {
+            throw new BadRequestException(e);
+        }
+        Client result = clientConverter.convert(added);
+        return createCreatedResponse("/api/clients/{id}", result, result.getId());
     }
 }
