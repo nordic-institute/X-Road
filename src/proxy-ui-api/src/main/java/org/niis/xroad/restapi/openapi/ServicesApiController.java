@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -63,8 +62,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * services api
@@ -234,7 +231,6 @@ public class ServicesApiController implements ServicesApi {
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
         }
-
-        return new ResponseEntity<>(ep, HttpStatus.OK);
+        return new ResponseEntity<>(ep, HttpStatus.CREATED);
     }
 }
