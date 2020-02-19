@@ -24,38 +24,15 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Service that handles timestamping services
+ * If timestamping service was not found
  */
-@Slf4j
-@Service
-@Transactional
-@PreAuthorize("isAuthenticated()")
-public class TimestampingServiceService {
+public class TimestampingServiceNotFoundException extends NotFoundException {
+    public static final String ERROR_TIMESTAMPING_SERVICE_NOT_FOUND = "timestamping_service_not_found";
 
-    private final GlobalConfService globalConfService;
-
-    /**
-     * constructor
-     */
-    @Autowired
-    public TimestampingServiceService(GlobalConfService globalConfService) {
-        this.globalConfService = globalConfService;
-    }
-
-    /**
-     * Return timestamping authorities
-     * @return
-     */
-    public Collection<String> getTimestampingServices() {
-        return globalConfService.getApprovedTspsForThisInstance();
+    public TimestampingServiceNotFoundException(String s)  {
+        super(s, new ErrorDeviation(ERROR_TIMESTAMPING_SERVICE_NOT_FOUND));
     }
 }
