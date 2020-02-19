@@ -46,8 +46,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,9 +84,6 @@ public class ClientServiceIntegrationTest {
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
-
-    @Autowired
-    private EntityManager entityManager;
 
     @Before
     public void setup() throws Exception {
