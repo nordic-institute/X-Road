@@ -406,9 +406,13 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 
+    /**
+     * This method is synchronized (like client add in old Ruby implementation)
+     * to prevent a problem with two threads both creating "first" additional members.
+     */
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT')")
-    public ResponseEntity<Client> addClient(ClientAdd clientAdd) {
+    public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
         ClientId clientId = ClientId.create(clientAdd.getClient().getInstanceId(),
                 clientAdd.getClient().getMemberClass(),
                 clientAdd.getClient().getMemberCode(),
