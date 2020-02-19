@@ -40,25 +40,30 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
 
     /**
      * Constructor.
-     * 
      * @param params the parameters
      */
     public IsSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
-                // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)", "IS").setReadOnly(true),
 
-                // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)", "").setReadOnly(false),
+                // Country Identifier
+                new DnFieldDescriptionImpl("C", "Country Code (C)", "IS").setReadOnly(true),
 
-                // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
-                        params.getClientId().getXRoadInstance() + "/" + params.getServerId().getServerCode() + "/"
-                                + params.getClientId().getMemberClass()).setReadOnly(true),
+                // Instance Identifier
+                new DnFieldDescriptionImpl("O", "Instance identifier (O)",
+                        params.getServerId().getXRoadInstance()).setReadOnly(true),
+
+                // Member Class Identifier
+                new DnFieldDescriptionImpl("OU", "Member class (OU)",
+                        params.getServerId().getMemberClass()).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member code", params.getClientId().getMemberCode())
-                        .setReadOnly(true) });
+                new DnFieldDescriptionImpl("CN", "Member code (CN)",
+                        params.getServerId().getMemberCode()).setReadOnly(true),
+
+                // Serialnumber
+                new DnFieldDescriptionImpl("serialNumber", "Server identifier",
+                        params.getServerId().toShortString()).setReadOnly(true)
+        });
         this.params = params;
     }
 
