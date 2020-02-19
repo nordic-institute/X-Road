@@ -24,11 +24,17 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
+import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
+import org.niis.xroad.restapi.service.SystemService;
+import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -38,6 +44,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
  * system api controller
@@ -51,15 +58,20 @@ public class SystemApiController implements SystemApi {
 
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
+    private final TimestampingServiceConverter timestampingServiceConverter;
+    private final SystemService systemService;
 
     /**
      * Constructor
      */
     @Autowired
     public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
-            CertificateDetailsConverter certificateDetailsConverter) {
+            CertificateDetailsConverter certificateDetailsConverter, SystemService systemService,
+                               TimestampingServiceConverter timestampingServiceConverter) {
         this.internalTlsCertificateService = internalTlsCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;
+        this.systemService = systemService;
+        this.timestampingServiceConverter = timestampingServiceConverter;
     }
 
     @Override
@@ -87,5 +99,41 @@ public class SystemApiController implements SystemApi {
             throw new InternalServerErrorException(new ErrorDeviation(INTERNAL_KEY_CERT_INTERRUPTED));
         }
         return ApiUtil.createCreatedResponse("/api/system/certificate", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_TSPS')")
+    public ResponseEntity<List<TimestampingService>> getConfiguredTimestampingServices() {
+        List<TimestampingService> timestampingServices;
+        List<TspType> tsps = systemService.getConfiguredTimestampingServices();
+        timestampingServices = timestampingServiceConverter.convert(tsps);
+
+        return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADD_TSP')")
+    public ResponseEntity<TimestampingService> addConfiguredTimestampingService(
+            TimestampingService timestampingServiceToAdd) {
+        try {
+            systemService.addConfiguredTimestampingService(timestampingServiceToAdd);
+        } catch (SystemService.DuplicateConfiguredTimestampingServiceException e) {
+            throw new ConflictException(e);
+        } catch (TimestampingServiceNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(timestampingServiceToAdd, HttpStatus.CREATED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_TSP')")
+    public ResponseEntity<Void> deleteConfiguredTimestampingService(TimestampingService timestampingService) {
+        try {
+            systemService.deleteConfiguredTimestampingService(timestampingService);
+        } catch (TimestampingServiceNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

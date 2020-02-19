@@ -24,10 +24,12 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.service.TimestampingServiceService;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,24 +49,27 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class TimestampingServicesApiController implements TimestampingServicesApi {
 
-    private final TimestampingServiceService timestampingServiceService;
+    private final GlobalConfService globalConfService;
     private final TimestampingServiceConverter timestampingServiceConverter;
 
     /**
      * Constructor
      */
     @Autowired
-    public TimestampingServicesApiController(TimestampingServiceService timestampingServiceService,
+    public TimestampingServicesApiController(GlobalConfService globalConfService,
             TimestampingServiceConverter timestampingServiceConverter) {
-        this.timestampingServiceService = timestampingServiceService;
+        this.globalConfService = globalConfService;
         this.timestampingServiceConverter = timestampingServiceConverter;
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
-    public ResponseEntity<List<TimestampingService>> getTimestampingServices() {
-        Collection<String> urls = timestampingServiceService.getTimestampingServices();
-        List<TimestampingService> timestampingServices = timestampingServiceConverter.convert(urls);
+    public ResponseEntity<List<TimestampingService>> getApprovedTimestampingServices() {
+        List<TimestampingService> timestampingServices;
+        Collection<TspType> tsps = globalConfService.getApprovedTspsForThisInstance();
+        timestampingServices = timestampingServiceConverter.convert(tsps);
+
         return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
     }
+
 }

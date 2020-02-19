@@ -24,14 +24,14 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.AdditionalMatchers;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
@@ -39,8 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 /**
  * Test TimestampingServiceConverter
@@ -49,59 +47,48 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 public class TimestampingServiceConverterTest {
 
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-
     private TimestampingServiceConverter timestampingServiceConverter;
 
-    private static final String TSA_URL = "https://tsa.example.com";
+    private static final String TSA_1_URL = "https://tsa.example.com";
 
-    private static final String TSA_NAME = "Test TSA";
+    private static final String TSA_1_NAME = "Test TSA";
+
+    private static final String TSA_2_URL = "https://tsa.com";
+
+    private static final String TSA_2_NAME = "TSA 2";
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
 
     @Before
     public void setup() {
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfFacade.getApprovedTspName(INSTANCE_IDENTIFIER, TSA_URL)).thenReturn(TSA_NAME);
-        when(globalConfFacade.getApprovedTspName(eq(INSTANCE_IDENTIFIER), AdditionalMatchers.not(eq(TSA_URL))))
-                .thenReturn(null);
-
-        timestampingServiceConverter = new TimestampingServiceConverter(globalConfFacade);
+        timestampingServiceConverter = new TimestampingServiceConverter();
     }
 
     @Test
-    public void convertWithCorrectUrl() {
-        TimestampingService timestampingService = timestampingServiceConverter.convert(TSA_URL);
+    public void convertSingleTspType() {
+        TimestampingService timestampingService = timestampingServiceConverter.convert(
+                TestUtils.createTspType(TSA_1_URL, TSA_1_NAME));
 
-        assertEquals(TSA_URL, timestampingService.getUrl());
-        assertEquals(TSA_NAME, timestampingService.getName());
+        assertEquals(TSA_1_URL, timestampingService.getUrl());
+        assertEquals(TSA_1_NAME, timestampingService.getName());
     }
 
     @Test
-    public void convertWithIncorrectUrl() {
-        String url = "https://example.com";
-        TimestampingService timestampingService = timestampingServiceConverter.convert(url);
+    public void convertEmptyTspTypeList() {
+        List<TspType> tspTypes = new ArrayList<>();
 
-        assertEquals(url, timestampingService.getUrl());
-        assertEquals(null, timestampingService.getName());
-    }
-
-    @Test
-    public void convertEmptyList() {
-        List<String> urls = new ArrayList<>();
-
-        List<TimestampingService> timestampingService = timestampingServiceConverter.convert(urls);
+        List<TimestampingService> timestampingService = timestampingServiceConverter.convert(tspTypes);
 
         assertEquals(0, timestampingService.size());
     }
 
     @Test
-    public void convertMultiple() {
-        List<String> urls = new ArrayList<>(Arrays.asList(TSA_URL, "https://example.com"));
+    public void convertMultipleTspTypes() {
+        List<TspType> tspTypes = new ArrayList<>(Arrays.asList(TestUtils.createTspType(
+                TSA_1_URL, TSA_1_NAME), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME)));
 
-        List<TimestampingService> timestampingService = timestampingServiceConverter.convert(urls);
+        List<TimestampingService> timestampingServices = timestampingServiceConverter.convert(tspTypes);
 
-        assertEquals(2, timestampingService.size());
+        assertEquals(2, timestampingServices.size());
     }
 }
