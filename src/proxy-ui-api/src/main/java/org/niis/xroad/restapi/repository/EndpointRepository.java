@@ -22,42 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.repository;
+
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.niis.xroad.restapi.service.EndpointService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Endpoints api
- */
-@Controller
-@RequestMapping("/api")
+
 @Slf4j
-@PreAuthorize("denyAll")
-public class EndpointsApiController implements EndpointsApi {
+@Repository
+@Transactional
+public class EndpointRepository {
 
-    private final EndpointService endpointService;
+    private final PersistenceUtils persistenceUtils;
 
-    @Autowired
-    public EndpointsApiController(EndpointService endpointService) {
-        this.endpointService = endpointService;
+    public EndpointRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
-    public ResponseEntity<Void> deleteEndpoint(String id) {
+    public void delete(String id) throws EndpointService.EndpointNotFoundException {
+        Session session = this.persistenceUtils.getCurrentSession();
+        EndpointType endpointType = (EndpointType) session.get(EndpointType.class, Long.valueOf(id));
 
-        try {
-            endpointService.deleteEndpoint(id);
-        } catch (EndpointService.EndpointNotFoundException e) {
-            throw new BadRequestException("Endpoint not found with id " + id);
+        if (endpointType == null) {
+            throw new EndpointService.EndpointNotFoundException(id);
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        session.delete(endpointType);
+        session.flush();
     }
 }

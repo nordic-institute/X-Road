@@ -111,7 +111,18 @@ export default Vue.extend({
       return endpoint.method === '*' && endpoint.path === '**';
     },
     deleteEndpoint(endpoint: Endpoint): void {
-      // NOOP
+      api
+        .remove(`/endpoints/${endpoint.id}`)
+        .then( () => {
+          this.$bus.$emit('show-success', 'endpoints.deleteSuccess');
+        })
+        .catch( (error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally( () => {
+          this.$emit('updateService', this.service.id);
+        });
+
     },
     editEndpoint(endpoint: Endpoint): void {
       // NOOP
