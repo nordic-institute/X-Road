@@ -22,42 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.service.EndpointService;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Service;
 
-/**
- * Endpoints api
- */
-@Controller
-@RequestMapping("/api")
-@Slf4j
-@PreAuthorize("denyAll")
-public class EndpointsApiController implements EndpointsApi {
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
-    private final EndpointService endpointService;
+@Service
+public class EndpointService {
+
+    private final EndpointRepository endpointRepository;
 
     @Autowired
-    public EndpointsApiController(EndpointService endpointService) {
-        this.endpointService = endpointService;
+    public EndpointService(EndpointRepository endpointRepository) {
+        this.endpointRepository = endpointRepository;
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
-    public ResponseEntity<Void> deleteEndpoint(String id) {
+    public void deleteEndpoint(String id) throws EndpointNotFoundException {
+        verifyAuthority("DELETE_ENDPOINT");
+        endpointRepository.delete(id);
+    }
 
-        try {
-            endpointService.deleteEndpoint(id);
-        } catch (EndpointService.EndpointNotFoundException e) {
-            throw new BadRequestException("Endpoint not found with id " + id);
+
+    public static class EndpointNotFoundException extends NotFoundException {
+        public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
+        private static final String MESSAGE = "Endpoint not found with id: %s";
+
+        public EndpointNotFoundException(String id) {
+            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
     }
+
 }

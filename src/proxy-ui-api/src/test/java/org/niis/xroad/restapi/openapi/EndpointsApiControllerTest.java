@@ -24,40 +24,47 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.service.EndpointService;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Endpoints api
- */
-@Controller
-@RequestMapping("/api")
-@Slf4j
-@PreAuthorize("denyAll")
-public class EndpointsApiController implements EndpointsApi {
+import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
-    private final EndpointService endpointService;
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Transactional
+public class EndpointsApiControllerTest {
 
     @Autowired
-    public EndpointsApiController(EndpointService endpointService) {
-        this.endpointService = endpointService;
+    private EndpointsApiController endpointsApiController;
+
+    @Autowired
+    private ClientService clientService;
+
+    private final String NO_SUCH_ENDPOINT_ID = "1294379018";
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
+    public void deleteEndpointNotExist() {
+        endpointsApiController.deleteEndpoint(NO_SUCH_ENDPOINT_ID);
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
-    public ResponseEntity<Void> deleteEndpoint(String id) {
-
-        try {
-            endpointService.deleteEndpoint(id);
-        } catch (EndpointService.EndpointNotFoundException e) {
-            throw new BadRequestException("Endpoint not found with id " + id);
-        }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @Test
+    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
+    public void deleteEndpoint() {
+        endpointsApiController.deleteEndpoint("12");
+        ClientType client = clientService.getClient(getClientId("FI", "GOV", "M2", "SS6"));
+        assertTrue(!client.getEndpoint().stream().anyMatch(ep -> ep.getId().equals("12")));
     }
+
 }
