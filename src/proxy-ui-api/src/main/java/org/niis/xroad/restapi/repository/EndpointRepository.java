@@ -45,9 +45,25 @@ public class EndpointRepository {
         this.persistenceUtils = persistenceUtils;
     }
 
+    /**
+     * Get Endpoint by id
+     *
+     * @param id
+     * @return
+     */
+    public EndpointType getEndpoint(String id) {
+        return this.persistenceUtils.getCurrentSession().get(EndpointType.class, Long.valueOf(id));
+    }
+
+    /**
+     * Delete endpoint
+     *
+     * @param id
+     * @throws EndpointService.EndpointNotFoundException
+     */
     public void delete(String id) throws EndpointService.EndpointNotFoundException {
         Session session = this.persistenceUtils.getCurrentSession();
-        EndpointType endpointType = (EndpointType) session.get(EndpointType.class, Long.valueOf(id));
+        EndpointType endpointType = session.get(EndpointType.class, Long.valueOf(id));
 
         if (endpointType == null) {
             throw new EndpointService.EndpointNotFoundException(id);
@@ -55,4 +71,15 @@ public class EndpointRepository {
         session.delete(endpointType);
         session.flush();
     }
+
+    /**
+     * Executes a Hibernate saveOrUpdate({@Link EndpointType})
+     *
+     * @param endpointType
+     */
+    public void saveOrUpdate(EndpointType endpointType) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(endpointType);
+    }
+
+
 }

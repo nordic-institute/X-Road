@@ -25,6 +25,8 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.EndpointConverter;
+import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,10 +45,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class EndpointsApiController implements EndpointsApi {
 
     private final EndpointService endpointService;
+    private final EndpointConverter endpointConverter;
 
     @Autowired
-    public EndpointsApiController(EndpointService endpointService) {
+    public EndpointsApiController(
+            EndpointService endpointService,
+            EndpointConverter endpointConverter) {
         this.endpointService = endpointService;
+        this.endpointConverter = endpointConverter;
     }
 
     @Override
@@ -56,8 +62,24 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             endpointService.deleteEndpoint(id);
         } catch (EndpointService.EndpointNotFoundException e) {
-            throw new BadRequestException("Endpoint not found with id " + id);
+            throw new ResourceNotFoundException("Endpoint not found with id " + id);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_OPENAPI3_ENDPOINT')")
+    public ResponseEntity<Endpoint> updateEndpoint(String id, Endpoint endpoint) {
+        Endpoint ep;
+        try {
+            ep = endpointConverter.convert(endpointService.updateEndpoint(id, endpoint));
+        } catch (EndpointService.EndpointNotFoundException e) {
+            throw new ResourceNotFoundException("Endpoint not found with id " + id);
+        } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
+            throw new ConflictException("Updating is not allowed for generated endpoint " + id);
+        }
+
+        return new ResponseEntity<>(ep, HttpStatus.ACCEPTED);
+    }
+
 }

@@ -24,7 +24,10 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +49,28 @@ public class EndpointService {
         endpointRepository.delete(id);
     }
 
+    public EndpointType updateEndpoint(String id, Endpoint endpointUpdate)
+            throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
+        verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
+
+        EndpointType endpoint = endpointRepository.getEndpoint(id);
+        if (endpoint == null) {
+            throw new EndpointService.EndpointNotFoundException(id);
+        }
+
+        if (endpoint.isGenerated()) {
+            throw new IllegalGeneratedEndpointUpdateException(id);
+        }
+
+        endpoint.setServiceCode(endpointUpdate.getServiceCode());
+        endpoint.setMethod(endpointUpdate.getMethod());
+        endpoint.setPath(endpointUpdate.getPath());
+
+        endpointRepository.saveOrUpdate(endpoint);
+
+        return endpoint;
+    }
+
 
     public static class EndpointNotFoundException extends NotFoundException {
         public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
@@ -53,6 +78,16 @@ public class EndpointService {
 
         public EndpointNotFoundException(String id) {
             super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
+        }
+    }
+
+    public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
+        public static final String ILLEGAL_GENERATED_ENDPOINT_UPDATE = "illegal_generated_endpoint_update";
+
+        private static final String MESSAGE = "Updating generated endpoint is not allowed: %s";
+
+        public IllegalGeneratedEndpointUpdateException(String id) {
+            super(String.format(MESSAGE, id), new ErrorDeviation(ILLEGAL_GENERATED_ENDPOINT_UPDATE, id));
         }
 
     }
