@@ -41,19 +41,24 @@ public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
         super(new DnFieldDescription[] {
                 // Country Code
                 new EnumLocalizedFieldDescriptionImpl(
-                        "C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "IS").setReadOnly(true),
-
-                // Organization name
-                new EnumLocalizedFieldDescriptionImpl(
-                        "O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "").setReadOnly(false),
-
-                // Serialnumber
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getServerId().getXRoadInstance() + "/" + params.getServerId().getServerCode()
-                                + "/" + params.getServerId().getMemberClass()).setReadOnly(true),
+                        "C",
+                        DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "IS"
+                ).setReadOnly(true),
 
                 // Server code
                 new EnumLocalizedFieldDescriptionImpl(
-                        "CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME, "").setReadOnly(false) });
+                        "CN",
+                        DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
+                        ""
+                ).setReadOnly(false),
+
+                // Serialnumber
+                new EnumLocalizedFieldDescriptionImpl(
+                        "serialNumber",
+                        DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        params.getServerId().toShortString()
+                ).setReadOnly(true)
+        });
     }
 }
