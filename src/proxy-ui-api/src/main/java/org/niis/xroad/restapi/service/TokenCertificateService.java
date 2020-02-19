@@ -140,8 +140,6 @@ public class TokenCertificateService {
             KeyNotFoundException,
             DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
 
-        // CertificateProfileInstantiationException
-
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo key = keyService.getKey(tokenInfo, keyId);

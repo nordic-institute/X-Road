@@ -75,6 +75,7 @@ public class ClientService {
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;
     private final IdentifierRepository identifierRepository;
+    private final OrphanRemovalService orphanRemovalService;
 
     /**
      * ClientService constructor
@@ -84,12 +85,14 @@ public class ClientService {
             GlobalConfFacade globalConfFacade,
             ServerConfService serverConfService,
             GlobalConfService globalConfService,
-            IdentifierRepository identifierRepository) {
+            IdentifierRepository identifierRepository,
+            OrphanRemovalService orphanRemovalService) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.globalConfService = globalConfService;
         this.identifierRepository = identifierRepository;
+        this.orphanRemovalService = orphanRemovalService;
     }
 
     /**
@@ -549,6 +552,29 @@ public class ClientService {
     }
 
     /**
+     * @param clientId
+     * @return true = orphan certs or csrs were left behind
+     * @throws ActionNotPossibleException if client status did not allow delete
+     * @throws CannotDeleteOwnerException if attempted to delete the owner
+     */
+    public boolean deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
+            CannotDeleteOwnerException {
+        return orphanRemovalService.orphanCertsOrCsrsExist(clientId);
+    }
+
+
+    /**
+     * Thrown when someone attempted to delete client who is this security
+     * server's owner member
+     */
+    public static class CannotDeleteOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_DELETE_OWNER = "cannot_delete_owner";
+        public CannotDeleteOwnerException(String s) {
+            super(s, new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
+        }
+    }
+
+    /**
      * Thrown when client that already exists in server conf was tried to add
      */
     public static class ClientAlreadyExistsException extends ServiceException {
@@ -568,5 +594,4 @@ public class ClientService {
             super(s, new ErrorDeviation(ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS));
         }
     }
-
 }
