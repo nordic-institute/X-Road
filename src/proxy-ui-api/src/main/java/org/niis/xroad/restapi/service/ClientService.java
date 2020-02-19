@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
-import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -527,9 +526,6 @@ public class ClientService {
         serverConfType.getClient().add(client);
 
         clientRepository.saveOrUpdate(client);
-        // TO DO: why does this not work?
-//        serverConfRepository.saveOrUpdate(serverConfType);
-
         return client;
     }
 
@@ -545,10 +541,6 @@ public class ClientService {
             return transientClientId;
         }
     }
-
-    // TO DO: remove
-    @Autowired
-    private ServerConfRepository serverConfRepository;
 
     /**
      * Thrown when client that already exists in server conf was tried to add

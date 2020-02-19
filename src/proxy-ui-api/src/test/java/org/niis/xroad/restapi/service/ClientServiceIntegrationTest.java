@@ -297,22 +297,6 @@ public class ClientServiceIntegrationTest {
         assertEquals(startIdentifiers + 3, countIdentifiers());
     }
 
-    /**
-     * TO DO: remove
-     * this fails if ClientService saveOrUpdates serverconf instead of client
-     * @throws Exception
-     */
-    @Test
-    public void addLocalClientTestPersistenceProblem() throws Exception {
-        int startIdentifiers = countIdentifiers();
-
-        // unregistered member with skip warnings
-        ClientType added = clientService.addLocalClient(TestUtils.getClientId("FI:GOV:UNREGISTERED-MX"),
-                IsAuthentication.SSLAUTH, true);
-        entityManager.flush();
-        int endIdentifiers = countIdentifiers();
-    }
-
     @Test
     public void addLocalClientWhenIdentifierExists() throws Exception {
         // client identifier may already exists in DB, even though client does
