@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -315,13 +314,38 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void addLocalClientWhenIdentifierExists() throws Exception {
-        // client identifier may already exists, even though client does
-        // not exist in this security server
-        // this can happen (at least) when client is deleted and then
+        // client identifier may already exists in DB, even though client does
+        // not exist in this security server.
+        // this can happen (at least) when a client is deleted and then
         // added again. Identifier is kept when client is deleted
-        fail("not implemented yet");
+        int dataSqlIdentifiers = countIdentifiers();
+        jdbcTemplate.execute("INSERT INTO IDENTIFIER"
+                + "(id, discriminator, type, x_road_instance, member_class, member_code, subsystem_code)"
+                + " values (1000, 'C', 'MEMBER', 'FI', 'GOV', 'M-DELETED', null)");
+        jdbcTemplate.execute("INSERT INTO IDENTIFIER"
+                + "(id, discriminator, type, x_road_instance, member_class, member_code, subsystem_code)"
+                + " values (1001, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M-DELETED2', 'SS-DELETED')");
+        long startMembers = countMembers();
+        long startSubsystems = countSubsystems();
+        int startIdentifiers = countIdentifiers();
+        assertEquals(dataSqlIdentifiers + 2, startIdentifiers);
+
+        // unregistered member with skip warnings
+        clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M-DELETED"),
+                IsAuthentication.SSLAUTH, true);
+
+        assertEquals(startMembers + 1, countMembers());
+        assertEquals(startSubsystems, countSubsystems());
+        assertEquals(startIdentifiers, countIdentifiers());
+
+        // unregistered member's subsystem with skip warnings
+        clientService.addLocalClient(TestUtils.getClientId("FI:GOV:M-DELETED2:SS-DELETED"),
+                IsAuthentication.SSLAUTH, true);
+
+        assertEquals(startMembers + 1, countMembers());
+        assertEquals(startSubsystems + 1, countSubsystems());
+        assertEquals(startIdentifiers, countIdentifiers());
     }
 
 

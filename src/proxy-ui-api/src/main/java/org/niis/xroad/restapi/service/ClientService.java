@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -74,6 +75,7 @@ public class ClientService {
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;
+    private final IdentifierRepository identifierRepository;
 
     /**
      * ClientService constructor
@@ -82,11 +84,13 @@ public class ClientService {
     public ClientService(ClientRepository clientRepository,
             GlobalConfFacade globalConfFacade,
             ServerConfService serverConfService,
-            GlobalConfService globalConfService) {
+            GlobalConfService globalConfService,
+            IdentifierRepository identifierRepository) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.globalConfService = globalConfService;
+        this.identifierRepository = identifierRepository;
     }
 
     /**
@@ -511,7 +515,7 @@ public class ClientService {
 
         boolean clientRegistered = globalConfService.isSecurityServerClientForThisInstance(clientId);
         ClientType client = new ClientType();
-        client.setIdentifier(clientId);
+        client.setIdentifier(getPossiblyManagedEntity(clientId));
         if (clientRegistered) {
             client.setClientStatus(ClientType.STATUS_REGISTERED);
         } else {
@@ -527,6 +531,19 @@ public class ClientService {
 //        serverConfRepository.saveOrUpdate(serverConfType);
 
         return client;
+    }
+
+    /**
+     * If ClientId already exists in DB, return the managed instance.
+     * Otherwise return transient instance that was given as parameter
+     */
+    private ClientId getPossiblyManagedEntity(ClientId transientClientId) {
+        ClientId managedEntity = identifierRepository.getClientId(transientClientId);
+        if (managedEntity != null) {
+            return managedEntity;
+        } else {
+            return transientClientId;
+        }
     }
 
     // TO DO: remove
