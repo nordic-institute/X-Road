@@ -56,13 +56,4 @@ public class ServerConfRepository {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(serverConfType)
-     * @param serverConfType
-     */
-    public void saveOrUpdate(ServerConfType serverConfType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
-    }
-
 }
