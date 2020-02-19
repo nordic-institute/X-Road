@@ -1,6 +1,6 @@
 # Change Log
 
-## 6.23.0 - UNRELEASED
+## 6.23.0 - 2020-02-19
 - XRDDEV-730: Validate security server addresses on security server.
 - XRDDEV-732: Validate security server addresses on cental server.
 - XRDDEV-734: Fix operational monitoring data retrieval.
@@ -14,6 +14,9 @@
 - XRDDEV-853: Fix environmental monitoring does not list X-Road processes on Ubuntu.
 - XRDDEV-856: Update dependencies with known vulnerabilities.
 - XRDDEV-871: Fix can't setup Central Server remote database.
+- XRDDEV-820: Update metaspace memory parameters.
+- XRDDEV-916: Add security server metapackage for Iceland.
+- XRDDEV-917: Update Iceland certificate profile.
 
 ## 6.22.1 - 2019-11-07
 - XRDDEV-730: Validate security server addresses.
