@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -161,7 +160,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void deleteLocalClient() throws Exception {
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
@@ -224,8 +222,18 @@ public class ClientServiceIntegrationTest {
         clientService.deleteLocalClient(clientId);
     }
 
+    /**
+     * Change status to SAVED and then delete
+     */
+    private void forceDelete(ClientId clientId) throws ActionNotPossibleException,
+            ClientService.CannotDeleteOwnerException, ClientNotFoundException {
+        ClientType client = clientService.getLocalClient(clientId);
+        client.setClientStatus(STATUS_SAVED);
+        clientService.deleteLocalClient(clientId);
+    }
+
+
     @Test
-    @Ignore
     public void deleteLocalClientNotPossible() throws Exception {
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
@@ -241,11 +249,10 @@ public class ClientServiceIntegrationTest {
          */
         // -> delete not possible with statuses STATUS_REGINPROG and STATUS_REGISTERED
 
-        // test create + delete for all client statuses
+        // iterate all client statuses and test create + delete
         List<String> allStatuses = Arrays.asList(STATUS_SAVED, STATUS_REGINPROG, STATUS_REGISTERED,
                 STATUS_DELINPROG, STATUS_GLOBALERR);
         int created = 0;
-        int deleted = 0;
         for (String status: allStatuses) {
             created++;
             ClientId memberId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status);
@@ -264,24 +271,25 @@ public class ClientServiceIntegrationTest {
                     fail("delete should not be been possible");
                 } catch (ActionNotPossibleException expected) {
                 }
-                assertNull(clientService.getLocalClient(memberId));
-                assertNull(clientService.getLocalClient(subsystemId));
-            } else {
-                // delete is possible
-                deleted++;
-                addAndDeleteLocalClient(memberId, status);
-                addAndDeleteLocalClient(subsystemId, status);
                 assertNotNull(clientService.getLocalClient(memberId));
                 assertNotNull(clientService.getLocalClient(subsystemId));
+                // clean up so that we can continue adding members
+                forceDelete(memberId);
+                forceDelete(subsystemId);
+            } else {
+                // delete is possible
+                addAndDeleteLocalClient(memberId, status);
+                addAndDeleteLocalClient(subsystemId, status);
+                assertNull(clientService.getLocalClient(memberId));
+                assertNull(clientService.getLocalClient(subsystemId));
             }
-            assertEquals(startMembers + (created - deleted), countMembers());
-            assertEquals(startSubsystems + (created - deleted), countSubsystems());
-            assertEquals(startIdentifiers + created, countIdentifiers());
+            assertEquals(startMembers, countMembers());
+            assertEquals(startSubsystems, countSubsystems());
+            assertEquals(startIdentifiers + (created * 2), countIdentifiers());
         }
     }
 
     @Test(expected = ClientService.CannotDeleteOwnerException.class)
-    @Ignore
     public void deleteOwnerNotPossible() throws Exception {
         clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:M1"));
     }

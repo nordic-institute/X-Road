@@ -50,6 +50,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +59,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 
 /**
  * client service
@@ -552,12 +557,29 @@ public class ClientService {
     }
 
     /**
+     * Delete a local client.
      * @param clientId
      * @throws ActionNotPossibleException if client status did not allow delete
      * @throws CannotDeleteOwnerException if attempted to delete the owner
      */
     public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
             CannotDeleteOwnerException, ClientNotFoundException {
+        ClientType clientType = getLocalClientOrThrowNotFound(clientId);
+        // cant delete owner
+        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        if (ownerId.equals(clientType.getIdentifier())) {
+            throw new CannotDeleteOwnerException();
+        }
+        // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
+        List allowedStatuses = Arrays.asList(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
+        if (!allowedStatuses.contains(clientType.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
+        }
+
+        ServerConfType serverConfType = serverConfService.getServerConf();
+        if (!serverConfType.getClient().remove(clientType)) {
+            throw new RuntimeException("client to be deleted was somehow missing from serverconf");
+        }
     }
 
     /**
@@ -566,8 +588,8 @@ public class ClientService {
      */
     public static class CannotDeleteOwnerException extends ServiceException {
         public static final String ERROR_CANNOT_DELETE_OWNER = "cannot_delete_owner";
-        public CannotDeleteOwnerException(String s) {
-            super(s, new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
+        public CannotDeleteOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
         }
     }
 
