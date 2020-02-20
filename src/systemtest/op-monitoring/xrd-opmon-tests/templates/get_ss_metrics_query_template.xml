@@ -1,0 +1,31 @@
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers"
+    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:m="http://x-road.eu/xsd/monitoring">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>{params[client_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[client_class]}</id:memberClass>
+            <id:memberCode>{params[client_code]}</id:memberCode>
+            <id:subsystemCode>{params[client_monitor_system]}</id:subsystemCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>{params[producer_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[producer_class]}</id:memberClass>
+            <id:memberCode>{params[producer_code]}</id:memberCode>
+            <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>{params[producer_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[producer_class]}</id:memberClass>
+            <id:memberCode>{params[producer_code]}</id:memberCode>
+            <id:serverCode>{params[producer_server_code]}</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>{message_id_placeholder}</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <m:getSecurityServerMetrics/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

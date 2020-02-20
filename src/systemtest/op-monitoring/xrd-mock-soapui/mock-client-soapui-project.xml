@@ -1,0 +1,1449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="7b5f3068-8663-41c0-8cc2-5fcc285326fd" activeEnvironment="Default" name="xrd-mock-client" resourceRoot="${projectDir}" soapui-version="5.3.0" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="ProjectSettings@hermesConfig">${#System#user.home}\.hermes</con:setting></con:settings><con:interface xsi:type="con:WsdlInterface" id="27b1f8cd-449c-4d7a-82f5-d90af1064374" wsaVersion="NONE" name="mockPortSoap11" type="wsdl" bindingName="{http://producer.x-road.eu}mockPortSoap11" soapVersion="1_1" anonymous="optional" definition="mock.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="file:/C:/_data/GIT/xm/testing/common/xrd-mock-soapui/mock.wsdl"><con:part><con:url>file:/C:/_data/GIT/xm/testing/common/xrd-mock-soapui/mock.wsdl</con:url><con:content><![CDATA[<wsdl:definitions targetNamespace="http://producer.x-road.eu" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://producer.x-road.eu" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:ref="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xs:schema targetNamespace="http://producer.x-road.eu">
+      <xs:import namespace="http://x-road.eu/xsd/xroad.xsd" schemaLocation="http://x-road.eu/xsd/xroad.xsd"/>
+      <xs:import namespace="http://ws-i.org/profiles/basic/1.1/xsd" schemaLocation="http://ws-i.org/profiles/basic/1.1/swaref.xsd"/>
+      <xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="http://www.w3.org/2005/05/xmlmime"/>
+      <xs:element name="mock">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="desiredResponse" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Requests a specific
+                                            response</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="data" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any data</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="xml" type="xs:anyType" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any XML content</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="mockResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="data" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any data</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="xml" type="xs:anyType" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any XML content</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="mockSwaRef">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="desiredResponse" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Requests a specific
+                                            response</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="data" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any data</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="xml" type="xs:anyType" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any XML content</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="mockAttachment" type="ref:swaRef" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Attachment (with swaRef
+                                            description)</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="mockSwaRefResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="data" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any data</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="xml" type="xs:anyType" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any XML content</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="mockAttachment" type="ref:swaRef" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Attachment (with swaRef
+                                            description)</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="mockMtom">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="desiredResponse" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Requests a specific
+                                            response</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="data" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any data</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="xml" type="xs:anyType" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any XML content</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="mockAttachment" type="xs:base64Binary" xmime:expectedContentTypes="application/octet-stream" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>MTOM Attachment</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="mockMtomResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="data" type="xs:string" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any data</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="xml" type="xs:anyType" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>Any XML content</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="mockAttachment" type="xs:base64Binary" xmime:expectedContentTypes="application/octet-stream" minOccurs="0">
+              <xs:annotation>
+                <xs:appinfo>
+                  <xrd:title>MTOM Attachment</xrd:title>
+                </xs:appinfo>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="mock">
+    <wsdl:part name="mock" element="tns:mock"/>
+  </wsdl:message>
+  <wsdl:message name="mockResponse">
+    <wsdl:part name="mockResponse" element="tns:mockResponse"/>
+  </wsdl:message>
+  <wsdl:message name="mockSwaRef">
+    <wsdl:part name="mockSwaRef" element="tns:mockSwaRef"/>
+  </wsdl:message>
+  <wsdl:message name="mockSwaRefResponse">
+    <wsdl:part name="mockSwaRefResponse" element="tns:mockSwaRefResponse"/>
+  </wsdl:message>
+  <wsdl:message name="mockMtom">
+    <wsdl:part name="mockMtom" element="tns:mockMtom"/>
+  </wsdl:message>
+  <wsdl:message name="mockMtomResponse">
+    <wsdl:part name="mockMtomResponse" element="tns:mockMtomResponse"/>
+  </wsdl:message>
+  <wsdl:message name="requestHeader">
+    <wsdl:part name="client" element="xrd:client"/>
+    <wsdl:part name="service" element="xrd:service"/>
+    <wsdl:part name="id" element="xrd:id"/>
+    <wsdl:part name="userId" element="xrd:userId"/>
+    <wsdl:part name="issue" element="xrd:issue"/>
+    <wsdl:part name="protocolVersion" element="xrd:protocolVersion"/>
+  </wsdl:message>
+  <wsdl:portType name="mockPort">
+    <wsdl:operation name="mock">
+      <wsdl:documentation>
+        <xrd:title>Title of exampleService</xrd:title>
+        <xrd:notes>Technical notes for exampleService:
+                        This is a simple SOAP service.</xrd:notes>
+      </wsdl:documentation>
+      <wsdl:input name="mock" message="tns:mock"/>
+      <wsdl:output name="mockResponse" message="tns:mockResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="mockSwaRef">
+      <wsdl:documentation>
+        <xrd:title>Title of mockSwaRef</xrd:title>
+        <xrd:notes>Technical notes for exampleServiceSwaRef:
+                        This is a SOAP service with
+                        swaRef attachment.</xrd:notes>
+      </wsdl:documentation>
+      <wsdl:input name="mockSwaRef" message="tns:mockSwaRef"/>
+      <wsdl:output name="mockSwaRefResponse" message="tns:mockSwaRefResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="mockMtom">
+      <wsdl:documentation>
+        <xrd:title>Title of exampleServiceMtom</xrd:title>
+        <xrd:notes>Technical notes for exampleServiceMtom:
+                        This is a SOAP service with
+                        MTOM attachment.</xrd:notes>
+      </wsdl:documentation>
+      <wsdl:input name="mockMtom" message="tns:mockMtom"/>
+      <wsdl:output name="mockMtomResponse" message="tns:mockMtomResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="mockPortSoap11" type="tns:mockPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="mock">
+      <soap:operation soapAction="" style="document"/>
+      <xrd:version>v1</xrd:version>
+      <wsdl:input name="mock">
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestHeader" part="client" use="literal"/>
+        <soap:header message="tns:requestHeader" part="service" use="literal"/>
+        <soap:header message="tns:requestHeader" part="id" use="literal"/>
+        <soap:header message="tns:requestHeader" part="userId" use="literal"/>
+        <soap:header message="tns:requestHeader" part="issue" use="literal"/>
+        <soap:header message="tns:requestHeader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="mockResponse">
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestHeader" part="client" use="literal"/>
+        <soap:header message="tns:requestHeader" part="service" use="literal"/>
+        <soap:header message="tns:requestHeader" part="id" use="literal"/>
+        <soap:header message="tns:requestHeader" part="userId" use="literal"/>
+        <soap:header message="tns:requestHeader" part="issue" use="literal"/>
+        <soap:header message="tns:requestHeader" part="protocolVersion" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="mockSwaRef">
+      <soap:operation soapAction="" style="document"/>
+      <xrd:version>v1</xrd:version>
+      <wsdl:input>
+        <mime:multipartRelated>
+          <mime:part>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestHeader" part="client" use="literal"/>
+            <soap:header message="tns:requestHeader" part="service" use="literal"/>
+            <soap:header message="tns:requestHeader" part="id" use="literal"/>
+            <soap:header message="tns:requestHeader" part="userId" use="literal"/>
+            <soap:header message="tns:requestHeader" part="issue" use="literal"/>
+            <soap:header message="tns:requestHeader" part="protocolVersion" use="literal"/>
+          </mime:part>
+        </mime:multipartRelated>
+      </wsdl:input>
+      <wsdl:output>
+        <mime:multipartRelated>
+          <mime:part>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestHeader" part="client" use="literal"/>
+            <soap:header message="tns:requestHeader" part="service" use="literal"/>
+            <soap:header message="tns:requestHeader" part="id" use="literal"/>
+            <soap:header message="tns:requestHeader" part="userId" use="literal"/>
+            <soap:header message="tns:requestHeader" part="issue" use="literal"/>
+            <soap:header message="tns:requestHeader" part="protocolVersion" use="literal"/>
+          </mime:part>
+        </mime:multipartRelated>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="mockMtom">
+      <soap:operation soapAction="" style="document"/>
+      <xrd:version>v1</xrd:version>
+      <wsdl:input>
+        <!--MTOM does not require MIME description-->
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestHeader" part="client" use="literal"/>
+        <soap:header message="tns:requestHeader" part="service" use="literal"/>
+        <soap:header message="tns:requestHeader" part="id" use="literal"/>
+        <soap:header message="tns:requestHeader" part="userId" use="literal"/>
+        <soap:header message="tns:requestHeader" part="issue" use="literal"/>
+        <soap:header message="tns:requestHeader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <!--MTOM does not require MIME description-->
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestHeader" part="client" use="literal"/>
+        <soap:header message="tns:requestHeader" part="service" use="literal"/>
+        <soap:header message="tns:requestHeader" part="id" use="literal"/>
+        <soap:header message="tns:requestHeader" part="userId" use="literal"/>
+        <soap:header message="tns:requestHeader" part="issue" use="literal"/>
+        <soap:header message="tns:requestHeader" part="protocolVersion" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="mockService">
+    <wsdl:port name="mockPortSoap11" binding="tns:mockPortSoap11">
+      <soap:address location="http://xtee2.ci.kit:8086/xrd-mock/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>http://x-road.eu/xsd/xroad.xsd</con:url><con:content><![CDATA[<xs:schema elementFormDefault="qualified" targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2009/01/xml.xsd"/>
+  <xs:import id="id" namespace="http://x-road.eu/xsd/identifiers" schemaLocation="http://x-road.eu/xsd/identifiers.xsd"/>
+  <!--Header elements-->
+  <xs:element name="client" type="id:XRoadClientIdentifierType">
+    <xs:annotation>
+      <xs:documentation>Identies service client</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="service" type="id:XRoadServiceIdentifierType">
+    <xs:annotation>
+      <xs:documentation>Identies the service
+                that is invoked by the request</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="centralService" type="id:XRoadCentralServiceIdentifierType">
+    <xs:annotation>
+      <xs:documentation>Identies the central service
+                that is invoked by the request.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="id" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Unique identier
+                for this message</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="userId" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>User whose action initiated
+                the request</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="requestHash">
+    <xs:annotation>
+      <xs:documentation>Base64 encoded hash of
+                the SOAP request message</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="algorithmId" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Identies hash algorithm
+                                that was used to calculate the value
+                                of the requestHash field.</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="issue" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Identies received application, issue or document
+                that was the cause of the service request.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="protocolVersion" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>X-Road message protocol version</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Elements describing other elements and operations-->
+  <xs:element name="version" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Version of the service</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="title">
+    <xs:annotation>
+      <xs:documentation>Title of the service</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute default="en" ref="xml:lang"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="notes">
+    <xs:annotation>
+      <xs:documentation>Notes for user</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute ref="xml:lang" default="en"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="techNotes">
+    <xs:annotation>
+      <xs:documentation>Notes for technical stuff</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute ref="xml:lang" default="en"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://www.w3.org/2009/01/xml.xsd</con:url><con:content><![CDATA[<?xml-stylesheet href="../../2008/09/xsd.xsl" type="text/xsl"?>
+<xs:schema targetNamespace="http://www.w3.org/XML/1998/namespace" xml:lang="en" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.w3.org/1999/xhtml">
+  <xs:annotation>
+    <xs:documentation>
+      <div>
+        <h1>About the XML namespace</h1>
+        <div class="bodytext">
+          <p>This schema document describes the XML namespace, in a form
+      suitable for import by other schema documents.</p>
+          <p>
+            See
+            <a href="http://www.w3.org/XML/1998/namespace.html">http://www.w3.org/XML/1998/namespace.html</a>
+            and
+            <a href="http://www.w3.org/TR/REC-xml">http://www.w3.org/TR/REC-xml</a>
+            for information 
+      about this namespace.
+          </p>
+          <p>Note that local names in this namespace are intended to be
+      defined only by the World Wide Web Consortium or its subgroups.
+      The names currently defined in this namespace are listed below.
+      They should not be used with conflicting semantics by any Working
+      Group, specification, or document instance.</p>
+          <p>
+            See further below in this document for more information about
+            <a href="#usage">how to refer to this schema document from your own
+      XSD schema documents</a>
+            and about
+            <a href="#nsversioning">the
+      namespace-versioning policy governing this schema document</a>
+            .
+          </p>
+        </div>
+      </div>
+    </xs:documentation>
+  </xs:annotation>
+  <xs:attribute name="lang">
+    <xs:annotation>
+      <xs:documentation>
+        <div>
+          <h3>lang (as an attribute name)</h3>
+          <p>denotes an attribute whose value
+       is a language code for the natural language of the content of
+       any element; its value is inherited.  This name is reserved
+       by virtue of its definition in the XML specification.</p>
+        </div>
+        <div>
+          <h4>Notes</h4>
+          <p>Attempting to install the relevant ISO 2- and 3-letter
+      codes as the enumerated possible values is probably never
+      going to be a realistic possibility.</p>
+          <p>
+            See BCP 47 at
+            <a href="http://www.rfc-editor.org/rfc/bcp/bcp47.txt">http://www.rfc-editor.org/rfc/bcp/bcp47.txt</a>
+            and the IANA language subtag registry at
+            <a href="http://www.iana.org/assignments/language-subtag-registry">http://www.iana.org/assignments/language-subtag-registry</a>
+            for further information.
+          </p>
+          <p>The union allows for the 'un-declaration' of xml:lang with
+      the empty string.</p>
+        </div>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:union memberTypes="xs:language">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value=""/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:union>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="space">
+    <xs:annotation>
+      <xs:documentation>
+        <div>
+          <h3>space (as an attribute name)</h3>
+          <p>denotes an attribute whose
+       value is a keyword indicating what whitespace processing
+       discipline is intended for the content of the element; its
+       value is inherited.  This name is reserved by virtue of its
+       definition in the XML specification.</p>
+        </div>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:NCName">
+        <xs:enumeration value="default"/>
+        <xs:enumeration value="preserve"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="base" type="xs:anyURI">
+    <xs:annotation>
+      <xs:documentation>
+        <div>
+          <h3>base (as an attribute name)</h3>
+          <p>denotes an attribute whose value
+       provides a URI to be used as the base for interpreting any
+       relative URIs in the scope of the element on which it
+       appears; its value is inherited.  This name is reserved
+       by virtue of its definition in the XML Base specification.</p>
+          <p>
+            See
+            <a href="http://www.w3.org/TR/xmlbase/">http://www.w3.org/TR/xmlbase/</a>
+            for information about this attribute.
+          </p>
+        </div>
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="id" type="xs:ID">
+    <xs:annotation>
+      <xs:documentation>
+        <div>
+          <h3>id (as an attribute name)</h3>
+          <p>denotes an attribute whose value
+       should be interpreted as if declared to be of type ID.
+       This name is reserved by virtue of its definition in the
+       xml:id specification.</p>
+          <p>
+            See
+            <a href="http://www.w3.org/TR/xml-id/">http://www.w3.org/TR/xml-id/</a>
+            for information about this attribute.
+          </p>
+        </div>
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attributeGroup name="specialAttrs">
+    <xs:attribute ref="xml:base"/>
+    <xs:attribute ref="xml:lang"/>
+    <xs:attribute ref="xml:space"/>
+    <xs:attribute ref="xml:id"/>
+  </xs:attributeGroup>
+  <xs:annotation>
+    <xs:documentation>
+      <div>
+        <h3>Father (in any context at all)</h3>
+        <div class="bodytext">
+          <p>denotes Jon Bosak, the chair of 
+      the original XML Working Group.  This name is reserved by 
+      the following decision of the W3C XML Plenary and 
+      XML Coordination groups:</p>
+          <blockquote>
+            <p>In appreciation for his vision, leadership and
+	dedication the W3C XML Plenary on this 10th day of
+	February, 2000, reserves for Jon Bosak in perpetuity
+	the XML name "xml:Father".</p>
+          </blockquote>
+        </div>
+      </div>
+    </xs:documentation>
+  </xs:annotation>
+  <xs:annotation>
+    <xs:documentation>
+      <div xml:id="usage" id="usage">
+        <h2>
+          <a name="usage">About this schema document</a>
+        </h2>
+        <div class="bodytext">
+          <p>
+            This schema defines attributes and an attribute group suitable
+      for use by schemas wishing to allow
+            <code>xml:base</code>
+            ,
+            <code>xml:lang</code>
+            ,
+            <code>xml:space</code>
+            or
+            <code>xml:id</code>
+            attributes on elements they define.
+          </p>
+          <p>To enable this, such a schema must import this schema for
+      the XML namespace, e.g. as follows:</p>
+          <pre>&lt;schema . . .>
+           . . .
+           &lt;import namespace="http://www.w3.org/XML/1998/namespace"
+                      schemaLocation="http://www.w3.org/2001/xml.xsd"/></pre>
+          <p>or</p>
+          <pre>&lt;import namespace="http://www.w3.org/XML/1998/namespace"
+                      schemaLocation="http://www.w3.org/2009/01/xml.xsd"/></pre>
+          <p>Subsequently, qualified reference to any of the attributes or the
+      group defined below will have the desired effect, e.g.</p>
+          <pre>&lt;type . . .>
+           . . .
+           &lt;attributeGroup ref="xml:specialAttrs"/></pre>
+          <p>will define a type which will schema-validate an instance element
+      with any of those attributes.</p>
+        </div>
+      </div>
+    </xs:documentation>
+  </xs:annotation>
+  <xs:annotation>
+    <xs:documentation>
+      <div id="nsversioning" xml:id="nsversioning">
+        <h2>
+          <a name="nsversioning">Versioning policy for this schema document</a>
+        </h2>
+        <div class="bodytext">
+          <p>
+            In keeping with the XML Schema WG's standard versioning
+      policy, this schema document will persist at
+            <a href="http://www.w3.org/2009/01/xml.xsd">http://www.w3.org/2009/01/xml.xsd</a>
+            .
+          </p>
+          <p>
+            At the date of issue it can also be found at
+            <a href="http://www.w3.org/2001/xml.xsd">http://www.w3.org/2001/xml.xsd</a>
+            .
+          </p>
+          <p>
+            The schema document at that URI may however change in the future,
+      in order to remain compatible with the latest version of XML
+      Schema itself, or with the XML namespace itself.  In other words,
+      if the XML Schema or XML namespaces change, the version of this
+      document at
+            <a href="http://www.w3.org/2001/xml.xsd">http://www.w3.org/2001/xml.xsd</a>
+            will change accordingly; the version at
+            <a href="http://www.w3.org/2009/01/xml.xsd">http://www.w3.org/2009/01/xml.xsd</a>
+            will not change.
+          </p>
+          <p>Previous dated (and unchanging) versions of this schema 
+      document are at:</p>
+          <ul>
+            <li>
+              <a href="http://www.w3.org/2009/01/xml.xsd">http://www.w3.org/2009/01/xml.xsd</a>
+            </li>
+            <li>
+              <a href="http://www.w3.org/2007/08/xml.xsd">http://www.w3.org/2007/08/xml.xsd</a>
+            </li>
+            <li>
+              <a href="http://www.w3.org/2004/10/xml.xsd">http://www.w3.org/2004/10/xml.xsd</a>
+            </li>
+            <li>
+              <a href="http://www.w3.org/2001/03/xml.xsd">http://www.w3.org/2001/03/xml.xsd</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </xs:documentation>
+  </xs:annotation>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://x-road.eu/xsd/identifiers.xsd</con:url><con:content><![CDATA[<xs:schema elementFormDefault="qualified" targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="XRoadIdentifierType">
+    <xs:annotation>
+      <xs:documentation>Globally unique identifier in the X-Road system.
+                Identifier consists of object type specifier and list of
+                hierarchical codes (starting with code that identifiers
+                the X-Road instance).</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="xRoadInstance"/>
+      <xs:element minOccurs="0" ref="memberClass"/>
+      <xs:element minOccurs="0" ref="memberCode"/>
+      <xs:element minOccurs="0" ref="subsystemCode"/>
+      <xs:element minOccurs="0" ref="groupCode"/>
+      <xs:element minOccurs="0" ref="serviceCode"/>
+      <xs:element minOccurs="0" ref="serviceVersion"/>
+      <xs:element minOccurs="0" ref="securityCategoryCode"/>
+      <xs:element minOccurs="0" ref="serverCode"/>
+    </xs:sequence>
+    <xs:attribute ref="objectType" use="required"/>
+  </xs:complexType>
+  <xs:simpleType name="XRoadObjectType">
+    <xs:annotation>
+      <xs:documentation>Enumeration for X-Road identifier
+                types.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="MEMBER"/>
+      <xs:enumeration value="SUBSYSTEM"/>
+      <xs:enumeration value="SERVER"/>
+      <xs:enumeration value="GLOBALGROUP"/>
+      <xs:enumeration value="LOCALGROUP"/>
+      <xs:enumeration value="SECURITYCATEGORY"/>
+      <xs:enumeration value="SERVICE"/>
+      <xs:enumeration value="CENTRALSERVICE"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="xRoadInstance" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Identifies the X-Road instance. This field is
+                applicable to all identifier types.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="memberClass" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Type of the member (company, government
+                institution, private person, etc.)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="memberCode" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Code that uniquely identifies a member of given
+                member type.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="subsystemCode" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Code that uniquely identifies a subsystem of
+                given X-Road member.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="groupCode" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Code that uniquely identifies a global group in
+                given X-Road instance.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="serviceCode" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Code that uniquely identifies a service offered by
+                given X-Road member or subsystem.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="serviceVersion" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Version of the service.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="securityCategoryCode" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Code that uniquely identifies security category in
+                a given X-Road instance.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="serverCode" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>Code that uniquely identifies security server
+                offered by a given X-Road member or
+                subsystem.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:attribute name="objectType" type="XRoadObjectType"/>
+  <xs:complexType name="XRoadClientIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="xRoadInstance"/>
+          <xs:element ref="memberClass"/>
+          <xs:element ref="memberCode"/>
+          <xs:element minOccurs="0" ref="subsystemCode"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="XRoadServiceIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="xRoadInstance"/>
+          <xs:element ref="memberClass"/>
+          <xs:element ref="memberCode"/>
+          <xs:element minOccurs="0" ref="subsystemCode"/>
+          <xs:element ref="serviceCode"/>
+          <xs:element minOccurs="0" ref="serviceVersion"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required" fixed="SERVICE"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="XRoadSecurityCategoryIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="xRoadInstance"/>
+          <xs:element ref="securityCategoryCode"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required" fixed="SECURITYCATEGORY"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="XRoadCentralServiceIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="xRoadInstance"/>
+          <xs:element ref="serviceCode"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required" fixed="CENTRALSERVICE"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="XRoadSecurityServerIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="xRoadInstance"/>
+          <xs:element ref="memberClass"/>
+          <xs:element ref="memberCode"/>
+          <xs:element ref="serverCode"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required" fixed="SERVER"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="XRoadGlobalGroupIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="xRoadInstance"/>
+          <xs:element ref="groupCode"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required" fixed="GLOBALGROUP"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="XRoadLocalGroupIdentifierType">
+    <xs:complexContent>
+      <xs:restriction base="XRoadIdentifierType">
+        <xs:sequence>
+          <xs:element ref="groupCode"/>
+        </xs:sequence>
+        <xs:attribute ref="objectType" use="required" fixed="LOCALGROUP"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://ws-i.org/profiles/basic/1.1/swaref.xsd</con:url><con:content><![CDATA[<!--Copyright (c) 2002-2004 by The Web Services-Interoperability Organization (WS-I) and 
+  Certain of its Members. All Rights Reserved.
+	
+  Notice
+  The material contained herein is not a license, either expressly or impliedly, to any 
+  intellectual property owned or controlled by any of the authors or developers of this 
+  material or WS-I. The material contained herein is provided on an "AS IS" basis and to 
+  the maximum extent permitted by applicable law, this material is provided AS IS AND WITH 
+  ALL FAULTS, and the authors and developers of this material and WS-I hereby disclaim all 
+  other warranties and conditions, either express, implied or statutory, including, but not 
+  limited to, any (if any) implied warranties, duties or conditions of  merchantability, 
+  of fitness for a particular purpose, of accuracy or completeness of responses, of results, 
+  of workmanlike effort, of lack of viruses, and of lack of negligence. ALSO, THERE IS NO 
+  WARRANTY OR CONDITION OF TITLE, QUIET ENJOYMENT, QUIET POSSESSION, CORRESPONDENCE TO 
+  DESCRIPTION OR NON-INFRINGEMENT WITH REGARD TO THIS MATERIAL.
+	
+  IN NO EVENT WILL ANY AUTHOR OR DEVELOPER OF THIS MATERIAL OR WS-I BE LIABLE TO ANY OTHER 
+  PARTY FOR THE COST OF PROCURING SUBSTITUTE GOODS OR SERVICES, LOST PROFITS, LOSS OF USE, 
+  LOSS OF DATA, OR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT, INDIRECT, OR SPECIAL DAMAGES 
+  WHETHER UNDER CONTRACT, TORT, WARRANTY, OR OTHERWISE, ARISING IN ANY WAY OUT OF THIS OR 
+  ANY OTHER AGREEMENT RELATING TO THIS MATERIAL, WHETHER OR NOT SUCH PARTY HAD ADVANCE 
+  NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
+	
+  WS-I License Information
+  Use of this WS-I Material is governed by the WS-I Test License and other licenses.  Information on these 
+  licenses are contained in the README.txt and ReleaseNotes.txt files.  By downloading this file, you agree 
+  to the terms of these licenses.
+	
+  How To Provide Feedback
+  The Web Services-Interoperability Organization (WS-I) would like to receive input, 
+  suggestions and other feedback ("Feedback") on this work from a wide variety of 
+  industry participants to improve its quality over time. 
+	
+  By sending email, or otherwise communicating with WS-I, you (on behalf of yourself if 
+  you are an individual, and your company if you are providing Feedback on behalf of the 
+  company) will be deemed to have granted to WS-I, the members of WS-I, and other parties 
+  that have access to your Feedback, a non-exclusive, non-transferable, worldwide, perpetual, 
+  irrevocable, royalty-free license to use, disclose, copy, license, modify, sublicense or 
+  otherwise distribute and exploit in any manner whatsoever the Feedback you provide regarding 
+  the work. You acknowledge that you have no expectation of confidentiality with respect to 
+  any Feedback you provide. You represent and warrant that you have rights to provide this 
+  Feedback, and if you are providing Feedback on behalf of a company, you represent and warrant 
+  that you have the rights to provide Feedback on behalf of your company. You also acknowledge 
+  that WS-I is not required to review, discuss, use, consider or in any way incorporate your 
+  Feedback into future versions of its work. If WS-I does incorporate some or all of your 
+  Feedback in a future version of the work, it may, but is not obligated to include your name 
+  (or, if you are identified as acting on behalf of your company, the name of your company) on 
+  a list of contributors to the work. If the foregoing is not acceptable to you and any company 
+  on whose behalf you are acting, please do not provide any Feedback.
+	
+  Feedback on this document should be directed to wsi-test-comments@ws-i.org.-->
+<xsd:schema targetNamespace="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:simpleType name="swaRef">
+    <xsd:restriction base="xsd:anyURI"/>
+  </xsd:simpleType>
+</xsd:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://www.w3.org/2005/05/xmlmime</con:url><con:content><![CDATA[<!--W3C XML Schema defined in the Describing Media Content of Binary Data in XML
+   specification
+     http://www.w3.org/TR/xml-media-types
+
+   Copyright © 2005 World Wide Web Consortium,
+  
+   (Massachusetts Institute of Technology, European Research Consortium for
+   Informatics and Mathematics, Keio University). All Rights Reserved. This
+   work is distributed under the W3C® Software License [1] in the hope that
+   it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  
+   [1] http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+
+   $Id: xmlmime.xsd,v 1.1 2005/04/25 17:08:35 hugo Exp $-->
+<xs:schema targetNamespace="http://www.w3.org/2005/05/xmlmime" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime">
+  <xs:attribute name="contentType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:minLength value="3"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="expectedContentTypes" type="xs:string"/>
+  <xs:complexType name="base64Binary">
+    <xs:simpleContent>
+      <xs:extension base="xs:base64Binary">
+        <xs:attribute ref="xmime:contentType"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="hexBinary">
+    <xs:simpleContent>
+      <xs:extension base="xs:hexBinary">
+        <xs:attribute ref="xmime:contentType"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://xtee2.ci.kit:8086/xrd-mock</con:endpoint><con:endpoint>https://localhost:8086/xrd-mock</con:endpoint></con:endpoints><con:operation id="5d72896f-db3d-4c3b-84b4-f440efa2a464" isOneWay="false" action="" name="mock" bindingOperationName="mock" type="Request-Response" outputName="mockResponse" inputName="mock" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="95802aa3-e405-4320-8b0e-9fecccade7db" name="local_http"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8086/xrd-mock</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>XTEE-CI</id:xRoadInstance>
+      <id:memberClass>COM</id:memberClass>
+      <id:memberCode>00000001</id:memberCode>
+      <id:subsystemCode>MockSystem</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>XTEE-CI</id:xRoadInstance>
+      <id:memberClass>COM</id:memberClass>
+      <id:memberCode>00000001</id:memberCode>
+      <id:subsystemCode>MockSystemTLS</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyData_10KB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:call><con:call id="24215b3f-4efe-42c9-9d4e-a702ec69f079" name="local_https"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://localhost:8443/xrd-mock</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>XTEE-CI</id:xRoadInstance>
+      <id:memberClass>COM</id:memberClass>
+      <id:memberCode>00000001</id:memberCode>
+      <id:subsystemCode>MockSystem</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>XTEE-CI</id:xRoadInstance>
+      <id:memberClass>COM</id:memberClass>
+      <id:memberCode>00000001</id:memberCode>
+      <id:subsystemCode>MockSystemTLS</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyData_10KB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="096f63f4-9668-4acc-99cd-16db2478b1fc" isOneWay="false" action="" name="mockMtom" bindingOperationName="mockMtom" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="62597f2d-de11-473a-8df5-015896010265" name="local_http"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="WsdlSettings@enable-mtom">false</con:setting><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@expand-mtom-attachments">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8086/xrd-mock</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>VS</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>20000001</id:memberCode>
+      <id:subsystemCode>testSystem</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>VS</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>20000001</id:memberCode>
+      <id:subsystemCode>testSystem</id:subsystemCode>
+      <id:serviceCode>mockMtom</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mockMtom>
+      <desiredResponse>mtom_2KB</desiredResponse>
+    </ns1:mockMtom>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mockMtomRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="2642fe87-6bd9-48cb-a25d-7b72c2827fdc" isOneWay="false" action="" name="mockSwaRef" bindingOperationName="mockSwaRef" type="Request-Response" inputName="" receivesAttachments="true" sendsAttachments="true" anonymous="optional"><con:settings/><con:call id="2fff773a-389f-4860-93fd-73e90b780099" name="local_http"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost:8086/xrd-mock</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>VS</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>20000001</id:memberCode>
+      <id:subsystemCode>testSystem</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>VS</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>20000001</id:memberCode>
+      <id:subsystemCode>testSystem</id:subsystemCode>
+      <id:serviceCode>mockSwaRef</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mockSwaRef>
+      <desiredResponse>swa_2KB</desiredResponse>
+    </ns1:mockSwaRef>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mockSwaRefRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:testSuite id="fe6acb7d-d033-4108-a930-4c4424a8ebe6" name="TestSuite"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase id="d01dcae3-4b10-4b38-86d7-678aac04847d" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="TestCase" searchProperties="true"><con:settings/><con:testStep type="request" id="bf2bc356-3106-456a-8797-0e363265a2dc" name="mock_empty_http_warmup"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_empty_http_warmup" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttp}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCode}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCode}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock/>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>60000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="00598958-be6a-453c-80c3-38024bccab5c" name="mock_empty_https_warmup"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_empty_https_warmup" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttps}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCodeTLS}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCodeTLS}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock/>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>60000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="f04d5121-e582-495f-a52b-b93ffb1ed19d" name="mock_bodyData_10KB_http"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_bodyData_10KB_http" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttp}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCode}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCode}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyData_10KB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>5000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="afb6912d-e95e-4c99-b064-0b229e29b481" name="mock_bodyData_10KB_https"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_bodyData_10KB_https" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttps}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCodeTLS}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCodeTLS}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyData_10KB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>5000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="a6b233fd-be34-45b7-898b-3128ad27a84c" name="mock_bodyData_1MB_http"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_bodyData_1MB_http" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttp}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCode}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCode}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyData_1MB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="0cf9a618-6acd-4b55-97ec-b9256714669f" name="mock_bodyData_1MB_https"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_bodyData_1MB_https" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttps}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCodeTLS}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCodeTLS}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyData_1MB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="77526456-a51d-47ee-afa6-8c4f2179aad6" name="mock_bodyXML_1MB_http"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_bodyXML_1MB_http" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttp}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCode}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCode}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyXML_1MB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="7f60731b-705c-4a95-bb27-9c20f2fa4ae4" name="mock_bodyXML_1MB_https"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mock_bodyXML_1MB_https" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttps}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCodeTLS}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCodeTLS}</id:subsystemCode>
+      <id:serviceCode>mock</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mock>
+      <desiredResponse>bodyXML_1MB</desiredResponse>
+    </ns1:mock>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="eb5c0c6d-a3eb-411c-a22c-3cf8b415e84b" name="mockMtom_1MB_http"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mockMtom_1MB_http" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttp}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCode}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCode}</id:subsystemCode>
+      <id:serviceCode>mockMtom</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mockMtom>
+      <desiredResponse>mtom_1MB</desiredResponse>
+    </ns1:mockMtom>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="3d171cd8-8103-448d-846c-0506c4db458f" name="mockMtom_1MB_https"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mockMtom_1MB_https" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttps}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCodeTLS}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCodeTLS}</id:subsystemCode>
+      <id:serviceCode>mockMtom</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mockMtom>
+      <desiredResponse>mtom_1MB</desiredResponse>
+    </ns1:mockMtom>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="70d158d7-0ca2-44de-90b0-b0b03613cd71" name="mockSwaRef_1MB_http"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mockSwaRef_1MB_http" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttp}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCode}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCode}</id:subsystemCode>
+      <id:serviceCode>mockSwaRef</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mockSwaRef>
+      <desiredResponse>swa_1MB</desiredResponse>
+    </ns1:mockSwaRef>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" id="6c1e1ee3-f3ea-462e-a863-b7562c04d433" name="mockSwaRef_1MB_https"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>mockPortSoap11</con:interface><con:operation>mock</con:operation><con:request name="mockSwaRef_1MB_https" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="" id="ddec693f-0561-4ae3-8cc8-88c09eed7273"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting><con:setting id="discardResponse">false</con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>${#Project#ServerUrlHttps}</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns1="http://producer.x-road.eu"
+    xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+  <SOAP-ENV:Header>
+    <xrd:client id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>${#Project#ClientXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ClientMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ClientMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ClientSubsystemCodeTLS}</id:subsystemCode>
+    </xrd:client>
+    <xrd:service id:objectType="SERVICE">
+      <id:xRoadInstance>${#Project#ServiceXRoadInstance}</id:xRoadInstance>
+      <id:memberClass>${#Project#ServiceMemberClass}</id:memberClass>
+      <id:memberCode>${#Project#ServiceMemberCode}</id:memberCode>
+      <id:subsystemCode>${#Project#ServiceSubsystemCodeTLS}</id:subsystemCode>
+      <id:serviceCode>mockSwaRef</id:serviceCode>
+      <id:serviceVersion>v1</id:serviceVersion>
+    </xrd:service>
+    <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+    <xrd:userId>EE12345678901</xrd:userId>
+    <xrd:issue>12345</xrd:issue>
+    <xrd:protocolVersion>4.0</xrd:protocolVersion>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ns1:mockSwaRef>
+      <desiredResponse>swa_1MB</desiredResponse>
+    </ns1:mockSwaRef>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+]]></con:request><con:assertion type="SOAP Fault Assertion" id="02ced39f-45e7-4f2a-8747-d4b0b5cbd80f" name="Not SOAP Fault"/><con:assertion type="SOAP Response" id="5f47bf9b-80dc-441c-88a1-fa53f8731270" name="SOAP Response"/><con:assertion type="Response SLA Assertion" id="1be465d6-0e95-4d36-b540-4e3b92818104" name="Response SLA"><con:configuration><SLA>10000</SLA></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://producer.x-road.eu/mockPort/mock"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties><con:property><con:name>ServerUrlHttp</con:name><con:value>http://localhost:8086/xrd-mock</con:value></con:property><con:property><con:name>ServerUrlHttps</con:name><con:value>https://localhost:8443/xrd-mock</con:value></con:property><con:property><con:name>ClientXRoadInstance</con:name><con:value>XTEE-CI</con:value></con:property><con:property><con:name>ClientMemberClass</con:name><con:value>COM</con:value></con:property><con:property><con:name>ClientMemberCode</con:name><con:value>00000002</con:value></con:property><con:property><con:name>ClientSubsystemCode</con:name><con:value>MockSystem</con:value></con:property><con:property><con:name>ClientSubsystemCodeTLS</con:name><con:value>MockSystemTLS</con:value></con:property><con:property><con:name>ServiceXRoadInstance</con:name><con:value>XTEE-CI</con:value></con:property><con:property><con:name>ServiceMemberClass</con:name><con:value>COM</con:value></con:property><con:property><con:name>ServiceMemberCode</con:name><con:value>00000002</con:value></con:property><con:property><con:name>ServiceSubsystemCode</con:name><con:value>MockSystem</con:value></con:property><con:property><con:name>ServiceSubsystemCodeTLS</con:name><con:value>MockSystemTLS</con:value></con:property></con:properties><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/><con:sensitiveInformation/></con:soapui-project>

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.cache.SecurityServerOwner;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -53,7 +54,9 @@ public class ClientConverterTest {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfFacade);
+        ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
+
+        clientConverter = new ClientConverter(globalConfFacade, new SecurityServerOwner(ownerId));
     }
 
     @Test

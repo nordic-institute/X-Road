@@ -21,7 +21,7 @@
                     <th></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody v-if="service.endpoints">
                 <template v-for="endpoint in service.endpoints">
                     <template v-if="isBaseEndpoint(endpoint)">
                         <tr class="generated">

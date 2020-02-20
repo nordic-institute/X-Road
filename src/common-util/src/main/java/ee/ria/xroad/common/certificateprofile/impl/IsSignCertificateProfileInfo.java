@@ -45,23 +45,43 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
      */
     public IsSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
-                // Country Code
-                new EnumLocalizedFieldDescriptionImpl(
-                        "C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "IS").setReadOnly(true),
 
-                // Organization name
+                // Country Identifier
                 new EnumLocalizedFieldDescriptionImpl(
-                        "O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "").setReadOnly(false),
+                        "C",
+                        DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "IS"
+                ).setReadOnly(true),
 
-                // Serialnumber
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getClientId().getXRoadInstance() + "/" + params.getServerId().getServerCode()
-                                + "/" + params.getClientId().getMemberClass()).setReadOnly(true),
+                // Instance Identifier
+                new EnumLocalizedFieldDescriptionImpl(
+                        "O",
+                        DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O,
+                        params.getServerId().getXRoadInstance()
+                ).setReadOnly(true),
+
+                // Member Class Identifier
+                new EnumLocalizedFieldDescriptionImpl(
+                        "OU",
+                        DnFieldLabelLocalizationKey.MEMBER_CLASS_OU,
+                        params.getServerId().getMemberClass()
+                ).setReadOnly(true),
 
                 // Member code
                 new EnumLocalizedFieldDescriptionImpl(
-                        "CN", DnFieldLabelLocalizationKey.MEMBER_CODE, params.getClientId().getMemberCode())
-                        .setReadOnly(true) });
+                        "CN",
+                        DnFieldLabelLocalizationKey.MEMBER_CODE,
+                        params.getServerId().getMemberCode()
+                ).setReadOnly(true),
+
+                // Serialnumber
+                new EnumLocalizedFieldDescriptionImpl(
+                        "serialNumber",
+                        DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        params.getServerId().toShortString()
+                ).setReadOnly(true)
+
+        });
         this.params = params;
     }
 

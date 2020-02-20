@@ -1,16 +1,3 @@
-
-/**
- * The following content is copied from a file generated with dtsgenerator(https://github.com/horiuchi/dtsgenerator)
- * That tool creates TypeScript typings out of openapi definition.
- *
- * Example of running dtsgenerator at the frontend directory:
- * dtsgen - o output.ts../ src / main / resources / openapi - definition.yaml
- * Only the content of Schemas namespace should be copied. The rest is not needed and the TypeScript linter rules of
- * the project doesn't allow napespaces.
- *
- * This method is not optimal and should be improved at some point.
- */
-
 /**
  * access right for clients and services
  */
@@ -205,13 +192,24 @@ export interface CertificateDetails {
  * example:
  * IN_USE
  */
-export type CertificateOcspStatus = 'DISABLED' | 'EXPIRED' | 'OCSP_RESPONSE_UNKNOWN' | 'OCSP_RESPONSE_GOOD' | 'OCSP_RESPONSE_SUSPENDED' | 'OCSP_RESPONSE_REVOKED'; // enum
+export type CertificateOcspStatus =
+  | 'DISABLED'
+  | 'EXPIRED'
+  | 'OCSP_RESPONSE_UNKNOWN'
+  | 'OCSP_RESPONSE_GOOD'
+  | 'OCSP_RESPONSE_SUSPENDED'
+  | 'OCSP_RESPONSE_REVOKED'; // enum
 /**
  * certificate status
  * example:
  * IN_USE
  */
-export type CertificateStatus = 'SAVED' | 'REGISTRATION_IN_PROGRESS' | 'REGISTERED' | 'DELETION_IN_PROGRESS' | 'GLOBAL_ERROR'; // enum
+export type CertificateStatus =
+  | 'SAVED'
+  | 'REGISTRATION_IN_PROGRESS'
+  | 'REGISTERED'
+  | 'DELETION_IN_PROGRESS'
+  | 'GLOBAL_ERROR'; // enum
 /**
  * x-road client
  */
@@ -264,7 +262,12 @@ export interface ClientAdd {
  * example:
  * REGISTERED
  */
-export type ClientStatus = 'REGISTERED' | 'SAVED' | 'GLOBAL_ERROR' | 'REGISTRATION_IN_PROGRESS' | 'DELETION_IN_PROGRESS'; // enum
+export type ClientStatus =
+  | 'REGISTERED'
+  | 'SAVED'
+  | 'GLOBAL_ERROR'
+  | 'REGISTRATION_IN_PROGRESS'
+  | 'DELETION_IN_PROGRESS'; // enum
 /**
  * object that contains a code identifier and possibly collection of associated metadata. Used to relay error and warning information.
  */
@@ -285,7 +288,14 @@ export interface CodeWithMetadata {
  * example:
  * SUCCESS
  */
-export type ConfigurationStatus = 'SUCCESS' | 'CONFCLIENT_STATUS_FAILED' | 'ERROR_CODE_INTERNAL' | 'ERROR_CODE_INVALID_SIGNATURE_VALUE' | 'ERROR_CODE_EXPIRED_CONF' | 'ERROR_CODE_CANNOT_DOWNLOAD_CONF' | 'ERROR_CODE_MISSING_PRIVATE_PARAM'; // enum
+export type ConfigurationStatus =
+  | 'SUCCESS'
+  | 'CONFCLIENT_STATUS_FAILED'
+  | 'ERROR_CODE_INTERNAL'
+  | 'ERROR_CODE_INVALID_SIGNATURE_VALUE'
+  | 'ERROR_CODE_EXPIRED_CONF'
+  | 'ERROR_CODE_CANNOT_DOWNLOAD_CONF'
+  | 'ERROR_CODE_MISSING_PRIVATE_PARAM'; // enum
 /**
  * connection type
  * example:
@@ -375,6 +385,40 @@ export interface CsrSubjectFieldDescription {
    * true
    */
   readonly localized: boolean;
+}
+/**
+ * Endpoint for a service
+ */
+export interface Endpoint {
+  /**
+   * unique identifier
+   * example:
+   * 15
+   */
+  id: string;
+  /**
+   * example:
+   * example_service_code
+   */
+  service_code: string;
+  /**
+   * http method mapeed to this endpoint
+   * example:
+   * GET
+   */
+  method: string;
+  /**
+   * relative path where this endpoint is mapped to
+   * example:
+   * /foo
+   */
+  path: string;
+  /**
+   * has endpoint been generated from openapi3 description
+   * example:
+   * true
+   */
+  generated?: boolean;
 }
 /**
  * object returned in error cases
@@ -486,7 +530,16 @@ export interface Key {
  * example:
  * NON_REPUDIATION
  */
-export type KeyUsage = 'DIGITAL_SIGNATURE' | 'NON_REPUDIATION' | 'KEY_ENCIPHERMENT' | 'DATA_ENCIPHERMENT' | 'KEY_AGREEMENT' | 'KEY_CERT_SIGN' | 'CRL_SIGN' | 'ENCIPHER_ONLY' | 'DECIPHER_ONLY'; // enum
+export type KeyUsage =
+  | 'DIGITAL_SIGNATURE'
+  | 'NON_REPUDIATION'
+  | 'KEY_ENCIPHERMENT'
+  | 'DATA_ENCIPHERMENT'
+  | 'KEY_AGREEMENT'
+  | 'KEY_CERT_SIGN'
+  | 'CRL_SIGN'
+  | 'ENCIPHER_ONLY'
+  | 'DECIPHER_ONLY'; // enum
 /**
  * intended usage for the key
  * example:
@@ -505,6 +558,18 @@ export interface KeyValuePair {
    * value
    */
   value: string;
+}
+/**
+ * Key and TokenCertificateSigningRequest id
+ */
+export interface KeyWithCertificateSigningRequestId {
+  key: Key;
+  /**
+   * CSR id
+   * example:
+   * 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+   */
+  csr_id: string; // text
 }
 /**
  * language
@@ -594,13 +659,30 @@ export interface OcspResponders {
  * example:
  * SUCCESS
  */
-export type OcspStatus = 'SUCCESS' | 'ERROR_CODE_OCSP_CONNECTION_ERROR' | 'ERROR_CODE_OCSP_FAILED' | 'ERROR_CODE_OCSP_RESPONSE_INVALID' | 'ERROR_CODE_OCSP_UNINITIALIZED'; // enum
+export type OcspStatus =
+  | 'SUCCESS'
+  | 'ERROR_CODE_OCSP_CONNECTION_ERROR'
+  | 'ERROR_CODE_OCSP_FAILED'
+  | 'ERROR_CODE_OCSP_RESPONSE_INVALID'
+  | 'ERROR_CODE_OCSP_UNINITIALIZED'; // enum
 /**
  * an action to change state or edit token, key, cert or csr
  * example:
  * DELETE
  */
-export type PossibleAction = 'DELETE' | 'ACTIVATE' | 'DISABLE' | 'LOGIN' | 'LOGOUT' | 'REGISTER' | 'UNREGISTER' | 'IMPORT_FROM_TOKEN' | 'GENERATE_KEY' | 'EDIT_FRIENDLY_NAME' | 'GENERATE_AUTH_CSR' | 'GENERATE_SIGN_CSR'; // enum
+export type PossibleAction =
+  | 'DELETE'
+  | 'ACTIVATE'
+  | 'DISABLE'
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'REGISTER'
+  | 'UNREGISTER'
+  | 'IMPORT_FROM_TOKEN'
+  | 'GENERATE_KEY'
+  | 'EDIT_FRIENDLY_NAME'
+  | 'GENERATE_AUTH_CSR'
+  | 'GENERATE_SIGN_CSR'; // enum
 /**
  * array containing the possible actions that can be done for this item
  */
@@ -639,6 +721,12 @@ export interface SecurityServer {
    * server123
    */
   server_code?: string; // text
+  /**
+   * security server address (ip or name)
+   * example:
+   * 192.168.1.100
+   */
+  server_address?: string; // text
 }
 /**
  * service for the service description
@@ -680,7 +768,10 @@ export interface Service {
    * https://domain.com/service
    */
   url: string; // url
-  endpoints: Endpoint[];
+  /**
+   * list of endpoints linked to this service
+   */
+  endpoints?: Endpoint[];
 }
 /**
  * service client
@@ -775,7 +866,7 @@ export interface ServiceDescriptionUpdate {
    * example:
    * https://domain.com/service
    */
-  url?: string; // text
+  url: string; // text
   /**
    * service code for REST service
    * example:
@@ -783,10 +874,16 @@ export interface ServiceDescriptionUpdate {
    */
   rest_service_code?: string; // text
   /**
+   * new service code for REST service
+   * example:
+   * newExampleServiceCode
+   */
+  new_rest_service_code?: string; // test
+  /**
    * if true, any ignorable warnings are ignored. if false (or missing), any warnings cause request to fail
    */
   ignore_warnings?: boolean;
-  type?: ServiceType; // text
+  type: ServiceType; // text
 }
 /**
  * service type
@@ -907,7 +1004,14 @@ export interface TimestampingService {
  * example:
  * SUCCESS
  */
-export type TimestampingStatus = 'SUCCESS' | 'ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT' | 'ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL' | 'ERROR_CODE_UNKNOWN' | 'ERROR_CODE_UNINITIALIZED' | 'ERROR_CODE_TIMESTAMP_UNINITIALIZED' | 'ERROR_CODE_CONNECTION_FAILED'; // enum
+export type TimestampingStatus =
+  | 'SUCCESS'
+  | 'ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT'
+  | 'ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL'
+  | 'ERROR_CODE_UNKNOWN'
+  | 'ERROR_CODE_UNINITIALIZED'
+  | 'ERROR_CODE_TIMESTAMP_UNINITIALIZED'
+  | 'ERROR_CODE_CONNECTION_FAILED'; // enum
 /**
  * token
  */
@@ -1025,7 +1129,15 @@ export interface TokenCertificateSigningRequest {
  * example:
  * OK
  */
-export type TokenStatus = 'OK' | 'USER_PIN_LOCKED' | 'USER_PIN_INCORRECT' | 'USER_PIN_INVALID' | 'USER_PIN_EXPIRED' | 'USER_PIN_COUNT_LOW' | 'USER_PIN_FINAL_TRY' | 'NOT_INITIALIZED'; // text
+export type TokenStatus =
+  | 'OK'
+  | 'USER_PIN_LOCKED'
+  | 'USER_PIN_INCORRECT'
+  | 'USER_PIN_INVALID'
+  | 'USER_PIN_EXPIRED'
+  | 'USER_PIN_COUNT_LOW'
+  | 'USER_PIN_FINAL_TRY'
+  | 'NOT_INITIALIZED'; // text
 /**
  * token type
  * example:
@@ -1061,11 +1173,4 @@ export interface Version {
    * Security Server version 6.21.0-SNAPSHOT-20190411git32add470
    */
   info: string; // text
-}
-
-export interface Endpoint {
-  readonly id: string;
-  method: string;
-  path: string;
-  generated: boolean;
 }
