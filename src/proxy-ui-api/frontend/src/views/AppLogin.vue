@@ -126,8 +126,9 @@ export default (Vue as VueConstructor<
         .dispatch('login', loginData)
         .then(
           (response) => {
-            // Auth ok. Start phase 2 (fetch user data).
+            // Auth ok. Start phase 2 (fetch user data and current security server info).
             this.fetchUserData();
+            this.fetchCurrentSecurityServer();
           },
           (error) => {
             // Display invalid username/password error in inputs
@@ -173,6 +174,14 @@ export default (Vue as VueConstructor<
         .finally(() => {
           // Clear loading state
           this.loading = false;
+        });
+    },
+    async fetchCurrentSecurityServer() {
+      this.$store
+        .dispatch('fetchCurrentSecurityServer')
+        .catch((error) => {
+          console.error(error);
+          this.$bus.$emit('show-error', error.message);
         });
     },
   },
