@@ -409,7 +409,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             } else {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
-            opMonitoringData.setSoapFault(exception);
+            opMonitoringData.setFaultCodeAndString(exception);
             monitorAgentNotifyFailure(exception);
             encoder.fault(SoapFault.createFaultXml(exception));
             encoder.close();

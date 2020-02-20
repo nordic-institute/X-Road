@@ -164,7 +164,7 @@ public class InternalTlsCertificateService {
             InterruptedException {
         log.warn("restarting xroad-proxy");
         String bash = "/bin/bash";
-        String[] bashRestartXroadProxyArgs = new String[] { "-c", "sudo service xroad-proxy restart 2>&1" };
+        String[] bashRestartXroadProxyArgs = new String[] {"-c", "sudo service xroad-proxy restart 2>&1"};
         externalProcessRunner.execute(bash, bashRestartXroadProxyArgs);
         log.warn("restarted xroad-proxy");
     }
