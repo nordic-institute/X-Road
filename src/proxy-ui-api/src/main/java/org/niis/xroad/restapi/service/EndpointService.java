@@ -44,7 +44,7 @@ public class EndpointService {
         this.endpointRepository = endpointRepository;
     }
 
-    public void deleteEndpoint(String id) throws EndpointNotFoundException {
+    public void deleteEndpoint(String id) throws EndpointNotFoundException, ClientNotFoundException {
         verifyAuthority("DELETE_ENDPOINT");
         endpointRepository.delete(id);
     }

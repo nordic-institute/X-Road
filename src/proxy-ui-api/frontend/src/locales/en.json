@@ -178,7 +178,8 @@
     "endpoint_help_4": "Path parameters must be replaced with an asterisk, e.g. '/pets/{id}/images' => '/pets/*/images'.",
     "saveNewEndpointError": "Error saving new endpoint",
     "saveNewEndpointSuccess": "New endpoint created successfully",
-    "all": "ALL"
+    "all": "ALL",
+    "deleteSuccess": "Endpoint removed successfully"
   },
   "access": {
     "accessRights": "Access Rights",

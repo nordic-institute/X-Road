@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -58,11 +59,12 @@ public class EndpointsApiController implements EndpointsApi {
     @Override
     @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
     public ResponseEntity<Void> deleteEndpoint(String id) {
-
         try {
             endpointService.deleteEndpoint(id);
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException("Endpoint not found with id " + id);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

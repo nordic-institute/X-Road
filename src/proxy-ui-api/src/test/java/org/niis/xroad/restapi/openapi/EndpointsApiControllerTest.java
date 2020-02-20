@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.EndpointService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,10 +38,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
 @RunWith(SpringRunner.class)
@@ -57,7 +53,7 @@ public class EndpointsApiControllerTest {
     @Autowired
     private ClientService clientService;
 
-    private final String NO_SUCH_ENDPOINT_ID = "1294379018";
+    private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
     @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
@@ -68,9 +64,11 @@ public class EndpointsApiControllerTest {
     @Test
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpoint() {
-        endpointsApiController.deleteEndpoint("12");
         ClientType client = clientService.getClient(getClientId("FI", "GOV", "M2", "SS6"));
-        assertTrue(!client.getEndpoint().stream().anyMatch(ep -> ep.getId().equals("12")));
+        int aclCount = client.getAcl().size();
+        endpointsApiController.deleteEndpoint("11");
+        assertTrue(!client.getEndpoint().stream().anyMatch(ep -> ep.getId().equals("11")));
+        assertTrue(client.getAcl().size() < aclCount);
     }
 
     @Test(expected = ConflictException.class)

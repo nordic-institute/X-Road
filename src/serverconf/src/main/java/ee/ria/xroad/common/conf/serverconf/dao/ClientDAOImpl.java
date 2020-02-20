@@ -26,9 +26,12 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import javassist.NotFoundException;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -116,5 +119,20 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
             return client.getIsCert();
         }
         return emptyList();
+    }
+
+    /**
+     * Returns ClientType containing endpoint with id given as parameter
+     *
+     * @param session       the session
+     * @param endpointType  endpointType entity
+     * @return the client, or null if matching client was not found for the endpoint id
+     */
+    public ClientType getClientByEndpointId(Session session, EndpointType endpointType) {
+        StringBuilder qb = new StringBuilder();
+        qb.append("select c from ClientType as c where :endpoint member of c.endpoint");
+        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        query.setParameter("endpoint", endpointType);
+        return findOne(query);
     }
 }
