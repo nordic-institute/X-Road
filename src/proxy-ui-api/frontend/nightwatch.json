@@ -18,6 +18,17 @@
         "login_wrong_pwd" : "bar",
         "logout_timeout_ms" : 60000
       }
+    },
+    "chrome": {
+      "desiredCapabilities" : {
+        "browserName" : "chrome",
+        "javascriptEnabled" : true,
+        "acceptSslCerts" : true,
+        "acceptInsecureCerts": true,
+        "chromeOptions" : {
+          "w3c": false
+        }
+      }
     }
   }
 }
