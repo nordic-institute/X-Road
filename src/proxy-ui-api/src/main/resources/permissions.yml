@@ -33,6 +33,7 @@
 -       edit_openapi3_endpoint: [XROAD_SERVICE_ADMINISTRATOR]
 -       refresh_wsdl: [XROAD_SERVICE_ADMINISTRATOR]
 -       refresh_openapi3: [XROAD_SERVICE_ADMINISTRATOR]
+        refresh_rest: [XROAD_SERVICE_ADMINISTRATOR]
 -       delete_wsdl: [XROAD_SERVICE_ADMINISTRATOR]
 -       delete_endpoint: [XROAD_SERVICE_ADMINISTRATOR]
 -       edit_service_params: [XROAD_SERVICE_ADMINISTRATOR]

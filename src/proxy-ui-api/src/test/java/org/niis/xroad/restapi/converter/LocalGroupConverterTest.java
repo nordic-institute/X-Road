@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.cache.SecurityServerOwner;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,7 +61,9 @@ public class LocalGroupConverterTest {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfFacade);
+        ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
+
+        clientConverter = new ClientConverter(globalConfFacade, new SecurityServerOwner(ownerId));
         localGroupConverter = new LocalGroupConverter(clientConverter, globalConfFacade);
     }
 
