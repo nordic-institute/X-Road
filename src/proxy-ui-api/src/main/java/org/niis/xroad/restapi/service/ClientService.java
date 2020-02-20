@@ -553,15 +553,12 @@ public class ClientService {
 
     /**
      * @param clientId
-     * @return true = orphan certs or csrs were left behind
      * @throws ActionNotPossibleException if client status did not allow delete
      * @throws CannotDeleteOwnerException if attempted to delete the owner
      */
-    public boolean deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
-            CannotDeleteOwnerException {
-        return orphanRemovalService.orphanCertsOrCsrsExist(clientId);
+    public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
+            CannotDeleteOwnerException, ClientNotFoundException {
     }
-
 
     /**
      * Thrown when someone attempted to delete client who is this security
