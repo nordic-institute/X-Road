@@ -46,6 +46,7 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
+import org.niis.xroad.restapi.service.InvalidCertificateException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
@@ -229,7 +230,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(TokenCertificateService.InvalidCertificateException.INVALID_CERT, error.getCode());
+            assertEquals(InvalidCertificateException.INVALID_CERT, error.getCode());
         }
     }
 
@@ -282,12 +283,12 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importInvalidSignCertificate() throws Exception {
-        Resource body = CertificateTestUtils.getResource(new byte[] {0, 0, 0, 0});
+        Resource body = CertificateTestUtils.getResource(new byte[] { 0, 0, 0, 0 });
         try {
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(TokenCertificateService.InvalidCertificateException.INVALID_CERT, error.getCode());
+            assertEquals(InvalidCertificateException.INVALID_CERT, error.getCode());
         }
     }
 
@@ -336,7 +337,6 @@ public class TokenCertificatesApiControllerIntegrationTest {
 
         tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
     }
-
 
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")

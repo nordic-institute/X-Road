@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Setter;
@@ -56,6 +59,7 @@ import java.security.cert.X509Certificate;
 public class InternalTlsCertificateService {
 
     public static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
+    public static final String IMPORT_INTERNAL_CERT_FAILED = "import_internal_cert_failed";
 
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
@@ -67,6 +71,12 @@ public class InternalTlsCertificateService {
     private String generateCertScriptPath;
     @Setter
     private InternalTlsCertificateRepository internalTlsCertificateRepository;
+    @Setter
+    private String internalCertPath = SystemProperties.getConfPath() + InternalSSLKey.CRT_FILE_NAME;
+    @Setter
+    private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
+    @Setter
+    private String internalKeystorePath = SystemProperties.getConfPath() + InternalSSLKey.KEY_FILE_NAME;
 
     @Autowired
     public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
@@ -146,16 +156,40 @@ public class InternalTlsCertificateService {
      * NOTE: This method should be replaced with a proper way to load the newly generated TLS cert on the fly!
      * This method is for restarting the xroad-proxy process in order to force load the newly created internal TLS cert.
      * The functionality is the same as in sysparams_controller.rb#restart_service
-     * @see <a href="https://jira.niis.org/browse/XRDDEV-873">XRDDEV-873</a>
      * @throws ProcessFailedException
      * @throws ProcessNotExecutableException
+     * @see <a href="https://jira.niis.org/browse/XRDDEV-873">XRDDEV-873</a>
      */
     private void restartXroadProxy() throws ProcessFailedException, ProcessNotExecutableException,
             InterruptedException {
         log.warn("restarting xroad-proxy");
         String bash = "/bin/bash";
-        String[] bashRestartXroadProxyArgs = new String[] {"-c", "sudo service xroad-proxy restart 2>&1"};
+        String[] bashRestartXroadProxyArgs = new String[] { "-c", "sudo service xroad-proxy restart 2>&1" };
         externalProcessRunner.execute(bash, bashRestartXroadProxyArgs);
         log.warn("restarted xroad-proxy");
+    }
+
+    /**
+     * Imports a new internal TLS certificate.
+     * @param certificateBytes
+     * @return X509Certificate
+     * @throws InvalidCertificateException
+     */
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException {
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+        try {
+            CertUtils.writePemToFile(certificateBytes, internalCertPath);
+            CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
+            restartXroadProxy(); // NOTE: this call will be removed after XRDDEV-873 is merged
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException("cannot import internal tls cert", e,
+                    new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));
+        }
+        return x509Certificate;
     }
 }

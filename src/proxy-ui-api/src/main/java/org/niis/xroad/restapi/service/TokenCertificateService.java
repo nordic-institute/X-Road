@@ -198,7 +198,6 @@ public class TokenCertificateService {
      *
      * Permissions and possible actions use the values for generate csr,
      * there are no separate values for this operation.
-     *
      * @param keyId
      * @param csrId
      * @param format
@@ -247,7 +246,6 @@ public class TokenCertificateService {
             throw new DeviationAwareRuntimeException(e);
         }
     }
-
 
     private static String signerFaultCode(String detail) {
         return SIGNER_X + "." + detail;
@@ -854,21 +852,6 @@ public class TokenCertificateService {
             throw new CsrNotFoundException("csr with id " + csrId + " " + NOT_FOUND);
         }
         return csr.get();
-    }
-
-    /**
-     * General error that happens when importing a cert. Usually a wrong file type
-     */
-    public static class InvalidCertificateException extends ServiceException {
-        public static final String INVALID_CERT = "invalid_cert";
-
-        public InvalidCertificateException(Throwable t) {
-            super(t, new ErrorDeviation(INVALID_CERT));
-        }
-
-        public InvalidCertificateException(String msg, Throwable t) {
-            super(msg, t, new ErrorDeviation(INVALID_CERT));
-        }
     }
 
     /**

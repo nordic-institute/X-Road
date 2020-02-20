@@ -39,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,8 +129,8 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsAddedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
-        File threeServicesWsdl = getTestResouceFile("wsdl/valid.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid-getrandom.wsdl");
+        File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
@@ -161,8 +162,8 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsRemovedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
-        File threeServicesWsdl = getTestResouceFile("wsdl/valid.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid-getrandom.wsdl");
+        File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -204,8 +205,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         // then switch to one with smallattachment
         // and mock some warningDeviations
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
-        File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid-getrandom.wsdl");
+        File smallWsdl = TestUtils.getTestResourceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -247,7 +248,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void addWsdlServiceDescription() throws Exception {
         // check that validation warningDeviations work for adding, too
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid-getrandom.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         // start mocking validation failures, when ignoreFailures = false
@@ -283,8 +284,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         // and mock some warningDeviations
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
-        File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid-getrandom.wsdl");
+        File smallWsdl = TestUtils.getTestResourceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, oldTestServiceWsdl);
         FileUtils.copyFile(smallWsdl, newTestServiceWsdl);
         String oldUrl = oldTestServiceWsdl.toURI().toURL().toString();
@@ -328,8 +329,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         // and mock some warningDeviations
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
-        File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid-getrandom.wsdl");
+        File smallWsdl = TestUtils.getTestResourceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, oldTestServiceWsdl);
         FileUtils.copyFile(smallWsdl, newTestServiceWsdl);
         String oldUrl = oldTestServiceWsdl.toURI().toURL().toString();
@@ -355,7 +356,6 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     /**
      * Assert servicedescription contains the given codes. Checks codes only, no versions
-     *
      * @param serviceDescriptionType
      */
     private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType, String... expectedCodes) {
@@ -371,11 +371,6 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .stream()
                 .filter(sd -> sd.getUrl().equals(url))
                 .findFirst().get();
-    }
-
-    private File getTestResouceFile(String fileName) {
-        return new File(this.getClass().getClassLoader().getResource(fileName)
-                .getFile());
     }
 
     @Test
@@ -465,8 +460,8 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("wsdl/valid.wsdl");
-        File threeServicesWsdl = getTestResouceFile("wsdl/testservice.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
+        File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/testservice.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, true);
@@ -641,7 +636,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
-                                                                     String serviceCode) {
+            String serviceCode) {
         return serviceDescription.getService().stream()
                 .map(s -> s.getServiceCode())
                 .collect(Collectors.toList())
@@ -678,9 +673,9 @@ public class ServiceDescriptionServiceIntegrationTest {
         // Assert that the pre-existing, manually added, endpoint is transformed to generated during update
         assertTrue(endpoints.stream()
                 .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
-                    && ep.getMethod().equals("GET")
-                    && ep.getPath().equals("/foo")
-                    && ep.isGenerated()));
+                        && ep.getMethod().equals("GET")
+                        && ep.getPath().equals("/foo")
+                        && ep.isGenerated()));
 
         assertTrue(endpoints.stream()
                 .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
@@ -691,7 +686,6 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
                         && ep.getMethod().equals("PUT")
                         && ep.getPath().equals("/foo")));
-
 
     }
 

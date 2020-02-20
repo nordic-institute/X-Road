@@ -29,6 +29,8 @@ import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
+import org.niis.xroad.restapi.service.InvalidCertificateException;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.validation.Valid;
 
 import java.security.cert.X509Certificate;
 
@@ -87,5 +91,19 @@ public class SystemApiController implements SystemApi {
             throw new InternalServerErrorException(new ErrorDeviation(INTERNAL_KEY_CERT_INTERRUPTED));
         }
         return ApiUtil.createCreatedResponse("/api/system/certificate", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('IMPORT_PROXY_INTERNAL_CERT')")
+    public ResponseEntity<CertificateDetails> importSystemCertificate(Resource certificateResource) {
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = internalTlsCertificateService.importInternalTlsCertificate(certificateBytes);
+        } catch (InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        }
+        CertificateDetails certificateDetails = certificateDetailsConverter.convert(x509Certificate);
+        return null;
     }
 }

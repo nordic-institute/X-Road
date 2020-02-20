@@ -24,18 +24,25 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.TestUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
@@ -63,6 +70,9 @@ public class InternalTlsCertificateServiceTest {
     public static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
     public static final String NON_EXISTING_SCRIPT = "/path/to/non/existing/script.sh";
     public static final String SCRIPT_ARGS = "args";
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private InternalTlsCertificateService internalTlsCertificateService = new InternalTlsCertificateService(
             new InternalTlsCertificateRepository(),
@@ -169,5 +179,41 @@ public class InternalTlsCertificateServiceTest {
         } catch (DeviationAwareRuntimeException e) {
             assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
         }
+    }
+
+    @Test
+    public void importInternalTlsCertificate() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] certFileData = CertificateTestUtils.getMockCertificateBytes();
+        try {
+            internalTlsCertificateService.importInternalTlsCertificate(certFileData);
+        } catch (Exception e) {
+            fail("should not throw exceptions");
+        }
+    }
+
+    @Test(expected = InvalidCertificateException.class)
+    public void importInternalTlsInvalidCertificate() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] certFileData = CertificateTestUtils.getInvalidCertBytes();
+        internalTlsCertificateService.importInternalTlsCertificate(certFileData);
+    }
+
+    /**
+     * Creates a random temp folder structure to mimic the real xroad conf path
+     * @throws Exception
+     */
+    private void prepareTlsImportForTesting() throws Exception {
+        File tempSslFolder = tempFolder.newFolder("ssl");
+        File tempKeyFile = tempFolder.newFile(InternalSSLKey.PK_FILE_NAME);
+        File tempCertFile = tempFolder.newFile(InternalSSLKey.CRT_FILE_NAME);
+        String confPath = tempSslFolder.getParent() + "/";
+        internalTlsCertificateService.setInternalCertPath(confPath + InternalSSLKey.CRT_FILE_NAME);
+        internalTlsCertificateService.setInternalKeyPath(confPath + InternalSSLKey.PK_FILE_NAME);
+        internalTlsCertificateService.setInternalKeystorePath(confPath + InternalSSLKey.KEY_FILE_NAME);
+        File internalKeyFile = TestUtils.getTestResourceFile("internal.key");
+        File internalCertFile = TestUtils.getTestResourceFile("internal.crt");
+        FileUtils.copyFile(internalKeyFile, tempKeyFile);
+        FileUtils.copyFile(internalCertFile, tempCertFile);
     }
 }
