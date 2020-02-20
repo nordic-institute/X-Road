@@ -3024,7 +3024,7 @@ paths:
               format: binary
               description: certificate file
       responses:
-        '201':
+        '200':
           description: tls certificate imported
           content:
             application/json:

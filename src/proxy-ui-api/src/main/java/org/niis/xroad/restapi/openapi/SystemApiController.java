@@ -150,6 +150,6 @@ public class SystemApiController implements SystemApi {
             throw new BadRequestException(e);
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(x509Certificate);
-        return null;
+        return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
     }
 }
