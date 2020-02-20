@@ -51,7 +51,7 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.TokenService;
-import org.niis.xroad.restapi.service.WsdlUrlValidator;
+import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -74,6 +74,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -123,7 +124,7 @@ public class ClientsApiControllerIntegrationTest {
     private WsdlValidator wsdlValidator;
 
     @MockBean
-    private WsdlUrlValidator wsdlUrlValidator;
+    private UrlValidator urlValidator;
 
     @Before
     public void setup() throws Exception {
@@ -156,7 +157,7 @@ public class ClientsApiControllerIntegrationTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         // mock for URL validator - FormatUtils is tested independently
-        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
     }
 
     @Autowired
@@ -169,6 +170,19 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.findClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(9, response.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void ownerMemberFlag() {
+        ResponseEntity<List<Client>> response =
+                clientsApiController.findClients(null, null, null, null, null, true, false);
+        assertEquals(9, response.getBody().size());
+        List<Client> owners = response.getBody().stream()
+                .filter(Client::getOwner)
+                .collect(Collectors.toList());
+        assertEquals(1, owners.size());
+        assertEquals("FI:GOV:M1", owners.iterator().next().getId());
     }
 
     @Test

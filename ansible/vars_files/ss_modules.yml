@@ -39,4 +39,4 @@ ss_modules:
     dir: proxy-ui-api
     build: build
     lib: proxy-ui-api-1.0.jar
-    target: /usr/share/xroad/jlib/webapps
+    target: /usr/share/xroad/jlib

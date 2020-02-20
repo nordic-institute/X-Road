@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -42,6 +43,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -63,15 +67,18 @@ public class ServerConfServiceTest {
     @MockBean
     ServerConfRepository serverConfRepository;
 
+    @MockBean
+    ServerConfType serverConfType;
+
     @Before
     public void setup() {
-        ServerConfType serverConfType = new ServerConfType();
+        ServerConfType sct = new ServerConfType();
         ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
         ClientType owner = new ClientType();
         owner.setIdentifier(clientId);
-        serverConfType.setOwner(owner);
-        serverConfType.setServerCode("some-servercode");
-        when(serverConfRepository.getServerConf()).thenReturn(serverConfType);
+        sct.setOwner(owner);
+        sct.setServerCode("some-servercode");
+        when(serverConfRepository.getServerConf()).thenReturn(sct);
     }
 
     @Test
@@ -84,5 +91,23 @@ public class ServerConfServiceTest {
     public void getSecurityServerOwnerId() {
         ClientId expected = TestUtils.getClientId("FI", "GOV", "M1", null);
         assertEquals(expected, serverConfService.getSecurityServerOwnerId());
+    }
+
+    @Test
+    public void getConfiguredTimestampingServices() {
+        List<TspType> configuredTimestampingServices = new ArrayList<>();
+        configuredTimestampingServices.add(TestUtils.createTspType("https://tsa3.com", "TSA 3"));
+        configuredTimestampingServices.add(TestUtils.createTspType("https://tsa2.com", "TSA 2"));
+        configuredTimestampingServices.add(TestUtils.createTspType("https://tsa1.com", "TSA 1"));
+
+        when(serverConfRepository.getServerConf()).thenReturn(serverConfType);
+        when(serverConfType.getTsp()).thenReturn(configuredTimestampingServices);
+
+        List<TspType> tsp = serverConfService.getConfiguredTimestampingServices();
+
+        assertEquals(configuredTimestampingServices.size(), tsp.size());
+        assertEquals("TSA 1", tsp.get(2).getName());
+        assertEquals("TSA 2", tsp.get(1).getName());
+        assertEquals("TSA 3", tsp.get(0).getName());
     }
 }

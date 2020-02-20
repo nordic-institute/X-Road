@@ -3259,17 +3259,16 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-
   /system/timestamping-services:
     get: # ok
       tags:
         - security server
-      summary: view the timestamping services
-      operationId: getTimestampingServices
-      description: Administrator views the timestamping services.
+      summary: view the configured timestamping services
+      operationId: getConfiguredTimestampingServices
+      description: Administrator views the configured timestamping services.
       responses:
         '200':
-          description: list of timestamping services
+          description: list of configured timestamping services
           content:
             application/json:
               schema:
@@ -3293,8 +3292,8 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add a timestamping service
-      operationId: addTimestampingService
+      summary: add a configured timestamping service
+      operationId: addConfiguredTimestampingService
       description: Administrator selects new timestamping service
       requestBody:
         description: Timestamping service to add
@@ -3323,23 +3322,19 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /system/timestamping-services/{url}:
-    delete: # ok
+  /system/timestamping-services/delete:
+    post: # ok
       tags:
         - security server
-      summary: delete timestamping service
-      operationId: deleteTimestampingService
-      description: Administrator removes timestamping service.
-      parameters:
-        - in: path
-          name: url
-          description: url of the timestamping service
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      summary: delete configured timestamping service
+      operationId: deleteConfiguredTimestampingService
+      description: Administrator removes configured timestamping service.
+      requestBody:
+        description: Timestamping service to delete
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingService'
       responses:
         '204':
           description: timestamping service deletion was successful
@@ -3379,6 +3374,37 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /timestamping-services:
+    get: # ok
+      tags:
+        - security server
+      summary: view the approved timestamping services
+      operationId: getApprovedTimestampingServices
+      description: Administrator views the approved timestamping services.
+      responses:
+        '200':
+          description: list of approved timestamping services
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of timestamping service objects
+                items:
+                  $ref: '#/components/schemas/TimestampingService'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
   /tokens:
     get: # ok
       tags:
@@ -4129,6 +4155,11 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+        owner:
+          type: boolean
+          description: if this client is the owner member of this security server
+          example: false
+          readOnly: true
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
         status:
@@ -4983,9 +5014,6 @@ components:
       required:
         - name
         - url
-        - status
-        - message
-        - updated_at
       properties:
         name:
           type: string
@@ -5001,6 +5029,32 @@ components:
           example: http://dev.xroad.rocks:123
           minLength: 1
           maxLength: 255
+    TimestampingServiceDiagnostics: # ok
+      type: object
+      description: timestamping services
+      required:
+        - name
+        - url
+        - updated_at
+        - message
+        - status
+      properties:
+        name:
+          type: string
+          format: text
+          description: name of the time stamping service
+          example: X-Road Test TSA CN
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        url:
+          type: string
+          format: url
+          description: url of the time stamping service
+          example: http://dev.xroad.rocks:123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         updated_at:
           type: string
           format: date-time
@@ -5008,6 +5062,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+          readOnly: true
         message:
           type: string
           format: text
@@ -5015,8 +5070,10 @@ components:
           example: ok
           minLength: 1
           maxLength: 255
+          readOnly: true
         status:
           $ref: '#/components/schemas/TimestampingStatus'
+          readOnly: true
     TimestampingStatus: # ok
       type: string
       format: enum

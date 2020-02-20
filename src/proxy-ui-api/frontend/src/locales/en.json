@@ -151,7 +151,7 @@
     "deleted": "Service description deleted",
     "restDetails": "REST details",
     "wsdlDetails": "WSDL details",
-    "wsdlRefreshed": "WSDL refreshed",
+    "refreshed": "Refreshed",
     "lastRefreshed": "Last refreshed: ",
     "editUrl": "Edit URL",
     "serviceUrl": "Service URL",
@@ -206,6 +206,7 @@
     "register": "Register",
     "unregister": "Unregister",
     "save": "Save",
+    "confirm": "Confirm",
     "continue": "Continue",
     "activate": "Activate",
     "deactivate": "Disable",
@@ -290,6 +291,12 @@
   },
   "ssTlsCertificate": {
     "generateKey": "Generate key",
+    "generateTlsAndCertificateDialog": {
+      "title": "Security Server TLS Key",
+      "explanation": "The system will generate a new Security Server TLS key and a self-signed certificate, replacing the existing key and certificate.",
+      "confirmation": "Generate a new Security Server TLS key and certificate?",
+      "success": "New Security Server TLS key and certificate generated successfully"
+    },
     "importCertificate": "Import cert.",
     "exportCertificate": "Export cert.",
     "keyCertTitle": "TLS Key and Certificate",
@@ -336,6 +343,11 @@
   "instance": "Instance",
   "type": "Type",
   "warning": "Warning",
+  "stores": {
+    "user": {
+      "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
+    }
+  },
   "fields": {
     "password": "Password",
     "username": "Username",
