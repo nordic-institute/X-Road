@@ -1876,7 +1876,7 @@ paths:
           required: true
           schema:
             type: string
-            format: texttai sitten 
+            format: text
             minLength: 1
         - in: path
           name: csr_id
