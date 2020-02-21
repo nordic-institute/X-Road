@@ -266,14 +266,25 @@ public final class CertificateTestUtils {
      * - subjectName = "subject-name"
      */
     public static class CertRequestInfoBuilder {
-
+        private ClientId clientId = ClientId.create("a", "b", "c");
+        private String id = "id";
         public CertRequestInfoBuilder() {
+        }
+
+        public CertRequestInfoBuilder clientId(ClientId clientIdParam) {
+            clientId = clientIdParam;
+            return this;
+        }
+
+        public CertRequestInfoBuilder id(String idParam) {
+            this.id = idParam;
+            return this;
         }
 
         public CertRequestInfo build() {
             return new CertRequestInfo(
-                    "id",
-                    ClientId.create("a", "b", "c"),
+                    id,
+                    clientId,
                     "subject-name");
         }
     }
@@ -297,6 +308,8 @@ public final class CertificateTestUtils {
         private boolean savedToConfiguration = true;
         private boolean active = true;
         private String id = "1";
+        private ClientId clientId = ClientId.create("a", "b", "c");
+
 
         public CertificateInfoBuilder() {
         }
@@ -331,13 +344,18 @@ public final class CertificateTestUtils {
             return this;
         }
 
+        public CertificateInfoBuilder clientId(ClientId clientIdParam) {
+            clientId = clientIdParam;
+            return this;
+        }
+
         public CertificateInfo build() {
             try {
                 List<OCSPResp> ocsp = generateOcspResponses(
                         Arrays.asList(certificate),
                         ocspStatus);
                 CertificateInfo certificateInfo = new CertificateInfo(
-                        ClientId.create("a", "b", "c"),
+                        clientId,
                         active,
                         savedToConfiguration,
                         certificateStatus,
