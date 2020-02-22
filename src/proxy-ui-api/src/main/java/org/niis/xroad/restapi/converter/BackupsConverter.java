@@ -22,41 +22,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.converter;
 
-import lombok.extern.slf4j.Slf4j;
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Backup;
-import org.niis.xroad.restapi.service.BackupsService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Backups controller
+ * Converter for backups related data between openapi and service domain classes
  */
-@Controller
-@RequestMapping("/api")
-@Slf4j
-@PreAuthorize("denyAll")
-public class BackupsApiController implements BackupsApi {
+@Component
+public class BackupsConverter {
 
-    private final BackupsService backupsService;
-    @Autowired
-    public BackupsApiController(BackupsService backupsService) {
-        this.backupsService = backupsService;
+    public Backup convert(File file) {
+        Backup backup = new Backup();
+        backup.setFilename(file.getName());
+
+        return backup;
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<List<Backup>> getBackups() {
-        List<Backup> backups = backupsService.getBackupFiles();
-
-        return new ResponseEntity<>(backups, HttpStatus.OK);
+    public List<Backup> convert(Iterable<File> files)  {
+        return Streams.stream(files)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
-
 }

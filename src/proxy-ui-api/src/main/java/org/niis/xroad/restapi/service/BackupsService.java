@@ -22,41 +22,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.BackupsConverter;
 import org.niis.xroad.restapi.openapi.model.Backup;
-import org.niis.xroad.restapi.service.BackupsService;
+import org.niis.xroad.restapi.repository.BackupsRepository;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 /**
- * Backups controller
+ * Backups service.
  */
-@Controller
-@RequestMapping("/api")
 @Slf4j
-@PreAuthorize("denyAll")
-public class BackupsApiController implements BackupsApi {
+@Service
+@PreAuthorize("isAuthenticated()")
+public class BackupsService {
 
-    private final BackupsService backupsService;
+    private final BackupsRepository backupsRepository;
+    private final BackupsConverter backupsConverter;
+
+    /**
+     * BackupsService constructor
+     * @param backupsRepository
+     */
     @Autowired
-    public BackupsApiController(BackupsService backupsService) {
-        this.backupsService = backupsService;
+    public BackupsService(BackupsRepository backupsRepository, BackupsConverter backupsConverter) {
+        this.backupsRepository = backupsRepository;
+        this.backupsConverter = backupsConverter;
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<List<Backup>> getBackups() {
-        List<Backup> backups = backupsService.getBackupFiles();
-
-        return new ResponseEntity<>(backups, HttpStatus.OK);
+    /**
+     * Returns a list of available backup files
+     * @return
+     */
+    public List<Backup> getBackupFiles() {
+        List<File> backupFiles = backupsRepository.getBackupFiles();
+        List<Backup> backups = backupsConverter.convert(backupFiles);
+        setCreatedAt(backups);
+        return backups;
     }
 
+    /**
+     * Sets the "createdAt" property to a list of backups
+     * @param backups
+     */
+    private void setCreatedAt(List<Backup> backups) {
+        backups.stream().forEach(b -> {
+            Date createdAt = backupsRepository.getCreatedAt(b.getFilename());
+            b.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(createdAt));
+        });
+    }
 }
