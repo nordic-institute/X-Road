@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.Backup;
+import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,6 +58,18 @@ public class BackupsApiController implements BackupsApi {
         List<Backup> backups = backupsService.getBackupFiles();
 
         return new ResponseEntity<>(backups, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Void> deleteBackup(String filename) {
+        try {
+            backupsService.deleteBackup(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

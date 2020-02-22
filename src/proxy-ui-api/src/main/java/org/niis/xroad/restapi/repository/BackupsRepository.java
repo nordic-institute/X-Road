@@ -80,8 +80,20 @@ public class BackupsRepository {
             FileTime creationTime = (FileTime) Files.getAttribute(path, "creationTime");
             return new Date(creationTime.toMillis());
         } catch (IOException ioe) {
-            log.warn("can't read backup file's creation time (" + path.toString() + ")");
+            log.error("can't read backup file's creation time (" + path.toString() + ")");
             throw new RuntimeException(ioe);
+        }
+    }
+
+    /**
+     * Delete a backup file
+     * @param filename
+     */
+    public void deleteBackupFile(String filename) {
+        File file = new File(CONFIGURATION_BACKUP_PATH + "/" + filename);
+        if (!file.delete()) {
+            log.error("can't delete backup file (" + file.getAbsolutePath() + ")");
+            throw new RuntimeException("deleting backup file failed");
         }
     }
 }

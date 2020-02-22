@@ -125,4 +125,31 @@ public class BackupsApiControllerTest {
             // success
         }
     }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void deleteBackup() {
+        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
+        when(backupsRepository.getBackupFiles()).thenReturn(files);
+        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
+
+        ResponseEntity<Void> response = backupsApiController.deleteBackup(BACKUP_FILE_1_NAME);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void deleteNonExistingBackup() {
+        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
+        when(backupsRepository.getBackupFiles()).thenReturn(files);
+        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
+
+        try {
+            ResponseEntity<Void> response = backupsApiController.deleteBackup("test_file.tar");
+            fail("should throw ResourceNotFoundException");
+        } catch (BadRequestException expected) {
+            // success
+        }
+    }
 }

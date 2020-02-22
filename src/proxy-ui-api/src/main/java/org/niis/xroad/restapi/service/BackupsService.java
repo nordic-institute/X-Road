@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Backups service.
@@ -69,6 +70,22 @@ public class BackupsService {
         return backups;
     }
 
+    /**
+     * Deletes a backup file or throws an exception if the file does not exist
+     * @param filename
+     * @throws BackupFileNotFoundException
+     */
+    public void deleteBackup(String filename) throws BackupFileNotFoundException {
+        Optional<Backup> backup = getBackupFiles().stream()
+                .filter(b -> b.getFilename().equals(filename))
+                .findFirst();
+
+        if (!backup.isPresent()) {
+            throw new BackupFileNotFoundException("Backup file with name" + filename +  " not found");
+        }
+
+        backupsRepository.deleteBackupFile(backup.get().getFilename());
+    }
     /**
      * Sets the "createdAt" property to a list of backups
      * @param backups
