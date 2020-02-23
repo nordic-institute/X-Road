@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Backup;
@@ -83,21 +84,24 @@ public class BackupsApiControllerTest {
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
-    @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
-    public void getBackups() throws Exception {
+    @Before
+    public void setup() {
         List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME),
                 new File(BASE_DIR + BACKUP_FILE_2_NAME)));
 
         when(backupsRepository.getBackupFiles()).thenReturn(files);
         when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
         when(backupsRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS));
+    }
 
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void getBackups() throws Exception {
         ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<Backup> backups = response.getBody();
-        assertEquals(files.size(), backups.size());
+        assertEquals(2, backups.size());
         assertEquals(BACKUP_FILE_1_NAME, backups.get(0).getFilename());
         assertEquals(BACKUP_FILE_1_CREATED_AT, backups.get(0).getCreatedAt().toString());
         assertEquals(BACKUP_FILE_2_NAME, backups.get(1).getFilename());
@@ -133,10 +137,6 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void deleteBackup() {
-        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
-        when(backupsRepository.getBackupFiles()).thenReturn(files);
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
-
         ResponseEntity<Void> response = backupsApiController.deleteBackup(BACKUP_FILE_1_NAME);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
@@ -145,10 +145,6 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void deleteNonExistingBackup() {
-        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
-        when(backupsRepository.getBackupFiles()).thenReturn(files);
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
-
         try {
             ResponseEntity<Void> response = backupsApiController.deleteBackup("test_file.tar");
             fail("should throw ResourceNotFoundException");
@@ -166,10 +162,6 @@ public class BackupsApiControllerTest {
         }
         when(backupsRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
 
-        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
-        when(backupsRepository.getBackupFiles()).thenReturn(files);
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
-
         ResponseEntity<Resource> response = backupsApiController.downloadBackup(BACKUP_FILE_1_NAME);
         Resource backup = response.getBody();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -179,10 +171,6 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void downloadNonExistingBackup() {
-        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
-        when(backupsRepository.getBackupFiles()).thenReturn(files);
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
-
         try {
             ResponseEntity<Resource> response = backupsApiController.downloadBackup("test_file.tar");
             fail("should throw ResourceNotFoundException");
