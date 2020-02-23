@@ -29,8 +29,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.repository.BackupsRepository;
+import org.niis.xroad.restapi.service.BackupsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +46,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,6 +177,32 @@ public class BackupsApiControllerTest {
             ResponseEntity<Resource> response = backupsApiController.downloadBackup("test_file.tar");
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void addBackup() throws Exception {
+        BackupsService backupsService = Mockito.mock(BackupsService.class);
+        Backup backup = new Backup();
+        backup.setFilename(BACKUP_FILE_1_NAME);
+        when(backupsService.generateBackup()).thenReturn(backup);
+
+        BackupsApiController bac = new BackupsApiController(backupsService);
+
+        ResponseEntity<Backup> response = bac.addBackup();
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertEquals(BACKUP_FILE_1_NAME, response.getBody().getFilename());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void addBackupFails() throws Exception {
+        try {
+            ResponseEntity<Backup> response = backupsApiController.addBackup();
+            fail("should throw DeviationAwareRuntimeException");
+        } catch (DeviationAwareRuntimeException expected) {
             // success
         }
     }
