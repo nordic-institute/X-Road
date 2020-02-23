@@ -60,7 +60,7 @@ public class BackupsService {
     }
 
     /**
-     * Returns a list of available backup files
+     * Return a list of available backup files
      * @return
      */
     public List<Backup> getBackupFiles() {
@@ -71,23 +71,44 @@ public class BackupsService {
     }
 
     /**
-     * Deletes a backup file or throws an exception if the file does not exist
+     * Delete a backup file or throws an exception if the file does not exist
      * @param filename
      * @throws BackupFileNotFoundException
      */
     public void deleteBackup(String filename) throws BackupFileNotFoundException {
+        if (!backupExists(filename)) {
+            throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
+        }
+        backupsRepository.deleteBackupFile(filename);
+    }
+
+    /**
+     * Read backup file's content
+     * @param filename
+     * @return
+     * @throws BackupFileNotFoundException
+     */
+    public byte[] readBackupFile(String filename) throws BackupFileNotFoundException {
+        if (!backupExists(filename)) {
+            throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
+        }
+        return backupsRepository.readBackupFile(filename);
+    }
+
+    /**
+     * Check if a backup file with the given filename exists
+     * @param filename
+     * @return
+     */
+    private boolean backupExists(String filename) {
         Optional<Backup> backup = getBackupFiles().stream()
                 .filter(b -> b.getFilename().equals(filename))
                 .findFirst();
-
-        if (!backup.isPresent()) {
-            throw new BackupFileNotFoundException("Backup file with name" + filename +  " not found");
-        }
-
-        backupsRepository.deleteBackupFile(backup.get().getFilename());
+        return backup.isPresent();
     }
+
     /**
-     * Sets the "createdAt" property to a list of backups
+     * Set the "createdAt" property to a list of backups
      * @param backups
      */
     private void setCreatedAt(List<Backup> backups) {
@@ -95,5 +116,11 @@ public class BackupsService {
             Date createdAt = backupsRepository.getCreatedAt(b.getFilename());
             b.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(createdAt));
         });
+    }
+
+    private String getFileNotFoundExceptionMessage(String filename) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Backup file with name ").append(filename).append(" not found");
+        return sb.toString();
     }
 }

@@ -75,7 +75,7 @@ public class BackupsRepository {
      * @return
      */
     public Date getCreatedAt(String filename) {
-        Path path = Paths.get(CONFIGURATION_BACKUP_PATH + "/" + filename);
+        Path path = getFilePath(filename);
         try {
             FileTime creationTime = (FileTime) Files.getAttribute(path, "creationTime");
             return new Date(creationTime.toMillis());
@@ -90,10 +90,33 @@ public class BackupsRepository {
      * @param filename
      */
     public void deleteBackupFile(String filename) {
-        File file = new File(CONFIGURATION_BACKUP_PATH + "/" + filename);
+        File file = getFile(filename);
         if (!file.delete()) {
             log.error("can't delete backup file (" + file.getAbsolutePath() + ")");
             throw new RuntimeException("deleting backup file failed");
         }
+    }
+
+    /**
+     * Read backup file's content
+     * @param filename
+     * @return
+     */
+    public byte[] readBackupFile(String filename) {
+        Path path = getFilePath(filename);
+        try {
+            return Files.readAllBytes(path);
+        } catch (IOException ioe) {
+            log.error("can't read backup file's content (" + path.toString() + ")");
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    private File getFile(String filename) {
+        return new File(CONFIGURATION_BACKUP_PATH + "/" + filename);
+    }
+
+    private Path getFilePath(String filename) {
+        return Paths.get(CONFIGURATION_BACKUP_PATH + "/" + filename);
     }
 }

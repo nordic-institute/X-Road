@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Backup;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -40,6 +42,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -147,6 +151,40 @@ public class BackupsApiControllerTest {
 
         try {
             ResponseEntity<Void> response = backupsApiController.deleteBackup("test_file.tar");
+            fail("should throw ResourceNotFoundException");
+        } catch (BadRequestException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void downloadBackup() throws IOException {
+        byte[] bytes = null;
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(BACKUP_FILE_1_NAME)) {
+            bytes = IOUtils.toByteArray(is);
+        }
+        when(backupsRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
+
+        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
+        when(backupsRepository.getBackupFiles()).thenReturn(files);
+        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
+
+        ResponseEntity<Resource> response = backupsApiController.downloadBackup(BACKUP_FILE_1_NAME);
+        Resource backup = response.getBody();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(bytes.length, backup.contentLength());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void downloadNonExistingBackup() {
+        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME)));
+        when(backupsRepository.getBackupFiles()).thenReturn(files);
+        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
+
+        try {
+            ResponseEntity<Resource> response = backupsApiController.downloadBackup("test_file.tar");
             fail("should throw ResourceNotFoundException");
         } catch (BadRequestException expected) {
             // success

@@ -29,6 +29,7 @@ import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,4 +73,14 @@ public class BackupsApiController implements BackupsApi {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Resource> downloadBackup(String filename) {
+        try {
+            byte[] backupFile = backupsService.readBackupFile(filename);
+            return ApiUtil.createAttachmentResourceResponse(backupFile, filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+    }
 }
