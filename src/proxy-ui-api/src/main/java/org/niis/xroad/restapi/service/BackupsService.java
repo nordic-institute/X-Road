@@ -24,16 +24,25 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.BackupsConverter;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.repository.BackupsRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -46,17 +55,30 @@ import java.util.Optional;
 @PreAuthorize("isAuthenticated()")
 public class BackupsService {
 
+    private static final String BACKUP_GENERATION_FAILED = "backup_generation_failed";
+
     private final BackupsRepository backupsRepository;
     private final BackupsConverter backupsConverter;
+    private final ServerConfService serverConfService;
+    private final ExternalProcessRunner externalProcessRunner;
+
+    @Setter
+    private String generateBackupScriptPath;
+    private static final String BACKUP_FILENAME_DATE_TIME_FORMAT = "yyyyMMdd-HHmmss";
 
     /**
      * BackupsService constructor
      * @param backupsRepository
      */
     @Autowired
-    public BackupsService(BackupsRepository backupsRepository, BackupsConverter backupsConverter) {
+    public BackupsService(BackupsRepository backupsRepository, BackupsConverter backupsConverter,
+                          ServerConfService serverConfService, ExternalProcessRunner externalProcessRunner,
+                          @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
         this.backupsRepository = backupsRepository;
         this.backupsConverter = backupsConverter;
+        this.serverConfService = serverConfService;
+        this.externalProcessRunner = externalProcessRunner;
+        this.generateBackupScriptPath = generateBackupScriptPath;
     }
 
     /**
@@ -76,7 +98,7 @@ public class BackupsService {
      * @throws BackupFileNotFoundException
      */
     public void deleteBackup(String filename) throws BackupFileNotFoundException {
-        if (!backupExists(filename)) {
+        if (!backupExists(filename).isPresent()) {
             throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
         }
         backupsRepository.deleteBackupFile(filename);
@@ -89,10 +111,37 @@ public class BackupsService {
      * @throws BackupFileNotFoundException
      */
     public byte[] readBackupFile(String filename) throws BackupFileNotFoundException {
-        if (!backupExists(filename)) {
+        if (!backupExists(filename).isPresent()) {
             throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
         }
         return backupsRepository.readBackupFile(filename);
+    }
+
+    /**
+     * Generate a new backup file
+     * @throws ProcessFailedException
+     * @throws ProcessNotExecutableException
+     * @throws InterruptedException
+     * @return
+     */
+    public Backup generateBackup() throws InterruptedException, BackupFileNotFoundException {
+        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
+        String filename = generateBackupFileName();
+        String fullPath =  SystemProperties.getConfBackupPath() + "/" + filename;
+        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
+
+        try {
+            externalProcessRunner.execute(generateBackupScriptPath, args);
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            log.error("Failed to generate backup", e);
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(BACKUP_GENERATION_FAILED));
+        }
+
+        Optional<Backup> backup = backupExists(filename);
+        if (!backup.isPresent()) {
+            throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
+        }
+        return backup.get();
     }
 
     /**
@@ -100,11 +149,11 @@ public class BackupsService {
      * @param filename
      * @return
      */
-    private boolean backupExists(String filename) {
+    private Optional<Backup> backupExists(String filename) {
         Optional<Backup> backup = getBackupFiles().stream()
                 .filter(b -> b.getFilename().equals(filename))
                 .findFirst();
-        return backup.isPresent();
+        return backup;
     }
 
     /**
@@ -116,6 +165,16 @@ public class BackupsService {
             Date createdAt = backupsRepository.getCreatedAt(b.getFilename());
             b.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(createdAt));
         });
+    }
+
+    /**
+     * Generate name for a new backup file, e.g.,"conf_backup_20200223-081227.tar"
+     * @return
+     */
+    public String generateBackupFileName() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
+        String date = LocalDateTime.now().format(dtf);
+        return "conf_backup_" + LocalDateTime.now().format(dtf) + ".tar";
     }
 
     private String getFileNotFoundExceptionMessage(String filename) {

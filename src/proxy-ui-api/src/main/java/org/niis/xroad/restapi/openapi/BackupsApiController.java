@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupsService;
@@ -47,6 +48,8 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {
 
+    public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
+
     private final BackupsService backupsService;
     @Autowired
     public BackupsApiController(BackupsService backupsService) {
@@ -67,7 +70,7 @@ public class BackupsApiController implements BackupsApi {
         try {
             backupsService.deleteBackup(filename);
         } catch (BackupFileNotFoundException e) {
-            throw new BadRequestException(e);
+            throw new ResourceNotFoundException(e);
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -76,11 +79,23 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Resource> downloadBackup(String filename) {
+        byte[] backupFile = null;
         try {
-            byte[] backupFile = backupsService.readBackupFile(filename);
-            return ApiUtil.createAttachmentResourceResponse(backupFile, filename);
+            backupFile = backupsService.readBackupFile(filename);
         } catch (BackupFileNotFoundException e) {
-            throw new BadRequestException(e);
+            throw new ResourceNotFoundException(e);
+        }
+        return ApiUtil.createAttachmentResourceResponse(backupFile, filename);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Backup> addBackup() {
+        try {
+            Backup backup = backupsService.generateBackup();
+            return new ResponseEntity<>(backup, HttpStatus.ACCEPTED);
+        } catch (InterruptedException | BackupFileNotFoundException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(GENERATE_BACKUP_INTERRUPTED));
         }
     }
 }

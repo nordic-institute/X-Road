@@ -148,14 +148,14 @@ public class BackupsApiControllerTest {
         try {
             ResponseEntity<Void> response = backupsApiController.deleteBackup("test_file.tar");
             fail("should throw ResourceNotFoundException");
-        } catch (BadRequestException expected) {
+        } catch (ResourceNotFoundException expected) {
             // success
         }
     }
 
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
-    public void downloadBackup() throws IOException {
+    public void downloadBackup() throws Exception {
         byte[] bytes = null;
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(BACKUP_FILE_1_NAME)) {
             bytes = IOUtils.toByteArray(is);
@@ -174,7 +174,7 @@ public class BackupsApiControllerTest {
         try {
             ResponseEntity<Resource> response = backupsApiController.downloadBackup("test_file.tar");
             fail("should throw ResourceNotFoundException");
-        } catch (BadRequestException expected) {
+        } catch (ResourceNotFoundException expected) {
             // success
         }
     }
