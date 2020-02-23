@@ -150,10 +150,9 @@ public class BackupsService {
      * @return
      */
     private Optional<Backup> backupExists(String filename) {
-        Optional<Backup> backup = getBackupFiles().stream()
+        return getBackupFiles().stream()
                 .filter(b -> b.getFilename().equals(filename))
                 .findFirst();
-        return backup;
     }
 
     /**
@@ -173,7 +172,6 @@ public class BackupsService {
      */
     public String generateBackupFileName() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-        String date = LocalDateTime.now().format(dtf);
         return "conf_backup_" + LocalDateTime.now().format(dtf) + ".tar";
     }
 

@@ -58,11 +58,9 @@ public class BackupsRepository {
      */
     public List<File> getBackupFiles() {
         try (Stream<Path> walk = Files.walk(Paths.get(CONFIGURATION_BACKUP_PATH), DIR_MAX_DEPTH)) {
-            List<File> files = walk.map(x -> x.toString())
+            return walk.map(Path::toString)
                     .filter(f -> f.endsWith(BACKUP_FILE_EXTENSION))
-                    .map(p -> new File(p)).collect(Collectors.toList());
-
-            return files;
+                    .map(this::getFile).collect(Collectors.toList());
         } catch (IOException ioe) {
             log.error("can't read backup files from configuration path (" + CONFIGURATION_BACKUP_PATH + ")");
             throw new RuntimeException(ioe);
@@ -90,9 +88,11 @@ public class BackupsRepository {
      * @param filename
      */
     public void deleteBackupFile(String filename) {
-        File file = getFile(filename);
-        if (!file.delete()) {
-            log.error("can't delete backup file (" + file.getAbsolutePath() + ")");
+        Path path = getFilePath(filename);
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ioe) {
+            log.error("can't delete backup file (" + path.toString() + ")");
             throw new RuntimeException("deleting backup file failed");
         }
     }
@@ -112,8 +112,8 @@ public class BackupsRepository {
         }
     }
 
-    private File getFile(String filename) {
-        return new File(CONFIGURATION_BACKUP_PATH + "/" + filename);
+    private File getFile(String filepath) {
+        return new File(filepath);
     }
 
     private Path getFilePath(String filename) {
