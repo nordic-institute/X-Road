@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
@@ -127,7 +126,7 @@ public class BackupsService {
     public Backup generateBackup() throws InterruptedException, BackupFileNotFoundException {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         String filename = generateBackupFileName();
-        String fullPath =  SystemProperties.getConfBackupPath() + "/" + filename;
+        String fullPath =  backupsRepository.getConfigurationBackupPath() + filename;
         String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
 
         try {

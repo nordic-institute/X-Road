@@ -112,11 +112,19 @@ public class BackupsRepository {
         }
     }
 
-    private File getFile(String filepath) {
-        return new File(filepath);
+    /**
+     * Return configuration backup path with a trailing slash
+     * @return
+     */
+    public String getConfigurationBackupPath() {
+        return CONFIGURATION_BACKUP_PATH  + (CONFIGURATION_BACKUP_PATH.endsWith("/") ? "" : "/");
+    }
+
+    private File getFile(String absoluteFilepath) {
+        return new File(absoluteFilepath);
     }
 
     private Path getFilePath(String filename) {
-        return Paths.get(CONFIGURATION_BACKUP_PATH + "/" + filename);
+        return Paths.get(getConfigurationBackupPath() + filename);
     }
 }
