@@ -69,6 +69,7 @@ Doc. ID: UG-SS
  04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
  05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
+ 24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1350,7 +1351,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that importing a new TLS certificate will restart the xroad-proxy and thus affects providing services from the security server.
+   Note that the Internal TLS Key and Certificate are cached by default for 180 seconds so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 

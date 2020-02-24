@@ -60,6 +60,7 @@ Doc. ID: UG-SYSPAR
 | 26.11.2019 | 2.48     | Add proxy serverconf caching parameters | Jarkko Hyöty |
 | 05.12.2019 | 2.49     | Fix broken link in Table of Contents | Tapio Jaakkola | 
 | 11.12.2019 | 2.50     | Added new Central Server parameter *ha-node-name* | Jarkko Hyöty |
+| 24.02.2020 | 2.51     | Added a new proxy parameter *internal-key-cache-period* | Caro Hautamäki |
 
 ## Table of Contents
 
