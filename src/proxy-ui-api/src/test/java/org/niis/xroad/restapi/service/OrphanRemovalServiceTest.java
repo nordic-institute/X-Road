@@ -65,6 +65,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -88,17 +89,11 @@ public class OrphanRemovalServiceTest {
     @MockBean
     private SignerProxyFacade signerProxyFacade;
 
-//    @SpyBean
-//    private KeyService keyService;
-
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
     private ClientService clientService;
-
-    @MockBean
-    private TokenService tokenService;
 
     private static final ClientId NON_DELETED_CLIENT_ID_O1 =
             TestUtils.getClientId("FI:GOV:O_1:SS1");
@@ -246,8 +241,7 @@ public class OrphanRemovalServiceTest {
                     certCsrIdentifierToKey.put(csr.getId(), key);
                 }));
 
-        // TO DO: switch to mocking signerFacade instead of services?
-        doReturn(Collections.singletonList(tokenInfo)).when(tokenService).getAllTokens();
+        doReturn(Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
         Map<ClientId, ClientType> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
                     ClientType clientType = new ClientType();
@@ -259,20 +253,17 @@ public class OrphanRemovalServiceTest {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             return localClients.get(clientId);
         }).when(clientService).getLocalClient(any());
-        doReturn(tokenInfo).when(tokenService).getTokenForKeyId(any());
+        doReturn(tokenInfo).when(signerProxyFacade).getTokenForKeyId(any());
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             return new TokenInfoAndKeyId(tokenInfo,
                     certCsrIdentifierToKey.get(certHash).getId());
-        }).when(tokenService).getTokenAndKeyIdForCertificateHash(any());
+        }).when(signerProxyFacade).getTokenAndKeyIdForCertHash(any());
         doAnswer(invocation -> {
             String csrId = (String) invocation.getArguments()[0];
             return new TokenInfoAndKeyId(tokenInfo,
                     certCsrIdentifierToKey.get(csrId).getId());
-        }).when(tokenService).getTokenAndKeyIdForCertificateRequestId(any());
-
-        // getTokenAndKeyIdForCertificateRequestId
-        // TokenInfoAndKeyId
+        }).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
     }
 
     @Test
@@ -423,10 +414,15 @@ public class OrphanRemovalServiceTest {
     public void deleteOrphanCsrKey() throws Exception {
         // single orphan csr -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5);
+        // allow some needed getters
+        verify(signerProxyFacade, atLeast(0)).getTokens();
+        verify(signerProxyFacade, atLeast(0)).getTokenForKeyId(any());
+        // updates: delete key (twice)
         verify(signerProxyFacade, times(1))
                 .deleteKey(KEY_05_ID, true);
         verify(signerProxyFacade, times(1))
                 .deleteKey(KEY_05_ID, false);
+        // no more interactions
         verifyNoMoreInteractions(signerProxyFacade);
     }
 
@@ -435,10 +431,15 @@ public class OrphanRemovalServiceTest {
     public void deleteOrphanCertKey() throws Exception {
         // single orphan cert -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6);
+        // allow some needed getters
+        verify(signerProxyFacade, atLeast(0)).getTokens();
+        verify(signerProxyFacade, atLeast(0)).getTokenForKeyId(any());
+        // updates: delete key (twice)
         verify(signerProxyFacade, times(1))
                 .deleteKey(KEY_06_ID, true);
         verify(signerProxyFacade, times(1))
                 .deleteKey(KEY_06_ID, false);
+        // no more interactions
         verifyNoMoreInteractions(signerProxyFacade);
     }
 
@@ -447,6 +448,12 @@ public class OrphanRemovalServiceTest {
     public void deleteComplexOrphanSetup() throws Exception {
         // combination of orphan keys and shared keys
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07);
+        // allow some needed getters
+        verify(signerProxyFacade, atLeast(0)).getTokens();
+        verify(signerProxyFacade, atLeast(0)).getTokenForKeyId(any());
+        verify(signerProxyFacade, atLeast(0)).getTokenAndKeyIdForCertRequestId(any());
+
+        // verify updates (deletes)
         // keys KEY_07_SIGN_ORPHAN_1_ID and KEY_07_SIGN_ORPHAN_2_ID only contain this
         // client's orphans, so the full keys will be deleted
         verify(signerProxyFacade, times(1))
