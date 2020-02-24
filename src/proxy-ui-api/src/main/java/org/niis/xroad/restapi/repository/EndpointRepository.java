@@ -24,15 +24,11 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.niis.xroad.restapi.service.ClientNotFoundException;
-import org.niis.xroad.restapi.service.EndpointService;
-import org.niis.xroad.restapi.service.NotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,33 +54,11 @@ public class EndpointRepository {
         return this.persistenceUtils.getCurrentSession().get(EndpointType.class, Long.valueOf(id));
     }
 
-    /**
-     * Delete endpoint
-     *
-     * @param id
-     * @throws EndpointService.EndpointNotFoundException
-     */
-    public void delete(String id) throws ClientNotFoundException, EndpointService.EndpointNotFoundException {
+    public void deleteEndpoint(Long clientTypeId, Long endpointId) {
         Session session = this.persistenceUtils.getCurrentSession();
-        EndpointType endpointType = session.get(EndpointType.class, Long.valueOf(id));
-
-        if (endpointType == null) {
-            throw new EndpointService.EndpointNotFoundException(id);
-        }
-
-        ClientDAOImpl clientDAO = new ClientDAOImpl();
-        ClientType clientType = clientDAO.getClientByEndpointId(session, endpointType);
-
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for the given endpoint id: " + id);
-        }
-
-//        clientType.getAcl().forEach(acl -> {
-//            if (acl.getEndpoint().getId().equals(id)) {
-//                session.delete(acl);
-//            }
-//        });
-        session.delete(endpointType);
+        ClientType clientType = session.get(ClientType.class, clientTypeId);
+        clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(Long.valueOf(endpointId)));
+        clientType.getEndpoint().removeIf(endpoint -> endpoint.getId().equals(endpointId));
     }
 
     /**

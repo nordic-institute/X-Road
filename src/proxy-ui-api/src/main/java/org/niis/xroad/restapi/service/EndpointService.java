@@ -24,10 +24,12 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,16 +39,33 @@ import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 @Service
 public class EndpointService {
 
+    private final ClientRepository clientRepository;
     private final EndpointRepository endpointRepository;
 
     @Autowired
-    public EndpointService(EndpointRepository endpointRepository) {
+    public EndpointService(ClientRepository clientRepository, EndpointRepository endpointRepository) {
+        this.clientRepository = clientRepository;
         this.endpointRepository = endpointRepository;
+    }
+
+    public EndpointType getEndpoint(String id) throws EndpointNotFoundException {
+        verifyAuthority("VIEW_ENDPOINT");
+        EndpointType endpoint = endpointRepository.getEndpoint(id);
+        if (endpoint == null) {
+            throw new EndpointNotFoundException(id);
+        }
+        return endpoint;
     }
 
     public void deleteEndpoint(String id) throws EndpointNotFoundException, ClientNotFoundException {
         verifyAuthority("DELETE_ENDPOINT");
-        endpointRepository.delete(id);
+        ClientType clientType = clientRepository.getClientByEndpointId(id);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + id);
+        }
+        Long idL = Long.valueOf(id);
+        endpointRepository.deleteEndpoint(clientType.getId(), idL);
+        clientRepository.saveOrUpdate(clientType);
     }
 
     public EndpointType updateEndpoint(String id, Endpoint endpointUpdate)
@@ -70,7 +89,6 @@ public class EndpointService {
 
         return endpoint;
     }
-
 
     public static class EndpointNotFoundException extends NotFoundException {
         public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";

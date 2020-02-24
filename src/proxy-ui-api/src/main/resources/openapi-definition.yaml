@@ -2428,6 +2428,40 @@ paths:
         '500':
           description: internal server error
   /endpoints/{id}:
+    get:
+      tags:
+        - security server
+      operationId: getEndpoint
+      description: Administrator fetches an endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          schema:
+            type: string
+            example: 102
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: endpoint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endpoint'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     put:
       tags:
         - security server

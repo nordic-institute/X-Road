@@ -16,8 +16,8 @@
         <table class="xrd-table">
             <thead>
                 <tr>
-                    <th>{{$t('endpoints.path')}}</th>
                     <th>{{$t('endpoints.httpRequestMethod')}}</th>
+                    <th>{{$t('endpoints.path')}}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -28,16 +28,6 @@
                             <td><span v-if="endpoint.method === '*'">{{$t('endpoints.all')}}</span><span v-else>{{endpoint.method}}</span></td>
                             <td>{{endpoint.path}}</td>
                             <td class="wrap-right">
-                                <v-btn
-                                    v-if="!endpoint.generated"
-                                    small
-                                    outlined
-                                    rounded
-                                    color="primary"
-                                    class="xrd-small-button xrd-table-button"
-                                    data-test="endpoint-delete"
-                                    @click="deleteEndpoint(endpoint)">{{$t('action.remove')}}
-                                </v-btn>
                                 <v-btn
                                     v-if="!endpoint.generated"
                                     small
@@ -76,6 +66,7 @@ import {mapGetters} from 'vuex';
 import {Endpoint} from '@/types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
+import {RouteName} from '@/global';
 
 export default Vue.extend({
   components: {
@@ -110,22 +101,8 @@ export default Vue.extend({
     isBaseEndpoint(endpoint: Endpoint): boolean {
       return endpoint.method === '*' && endpoint.path === '**';
     },
-    deleteEndpoint(endpoint: Endpoint): void {
-      api
-        .remove(`/endpoints/${endpoint.id}`)
-        .then( () => {
-          this.$bus.$emit('show-success', 'endpoints.deleteSuccess');
-        })
-        .catch( (error) => {
-          this.$bus.$emit('show-error', error.message);
-        })
-        .finally( () => {
-          this.$emit('updateService', this.service.id);
-        });
-
-    },
     editEndpoint(endpoint: Endpoint): void {
-      // NOOP
+      this.$router.push({ name: RouteName.EndpointDetails, params: { id: endpoint.id } });
     },
     editAccessRights(endpoint: Endpoint): void {
       // NOOP

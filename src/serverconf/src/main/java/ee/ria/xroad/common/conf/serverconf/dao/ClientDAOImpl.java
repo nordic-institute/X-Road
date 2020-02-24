@@ -29,7 +29,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import javassist.NotFoundException;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 

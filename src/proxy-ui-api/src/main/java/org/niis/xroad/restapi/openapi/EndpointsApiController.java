@@ -48,6 +48,8 @@ public class EndpointsApiController implements EndpointsApi {
     private final EndpointService endpointService;
     private final EndpointConverter endpointConverter;
 
+    private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
+
     @Autowired
     public EndpointsApiController(
             EndpointService endpointService,
@@ -57,12 +59,24 @@ public class EndpointsApiController implements EndpointsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_ENDPOINT')")
+    public ResponseEntity<Endpoint> getEndpoint(String id) {
+        Endpoint endpoint;
+        try {
+            endpoint = endpointConverter.convert(endpointService.getEndpoint(id));
+        } catch (EndpointService.EndpointNotFoundException e) {
+            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
+        }
+        return new ResponseEntity(endpoint, HttpStatus.ACCEPTED);
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
     public ResponseEntity<Void> deleteEndpoint(String id) {
         try {
             endpointService.deleteEndpoint(id);
         } catch (EndpointService.EndpointNotFoundException e) {
-            throw new ResourceNotFoundException("Endpoint not found with id " + id);
+            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
             throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
@@ -76,7 +90,7 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             ep = endpointConverter.convert(endpointService.updateEndpoint(id, endpoint));
         } catch (EndpointService.EndpointNotFoundException e) {
-            throw new ResourceNotFoundException("Endpoint not found with id " + id);
+            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new ConflictException("Updating is not allowed for generated endpoint " + id);
         }

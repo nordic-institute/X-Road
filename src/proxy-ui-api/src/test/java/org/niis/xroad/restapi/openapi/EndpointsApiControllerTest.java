@@ -67,7 +67,7 @@ public class EndpointsApiControllerTest {
         ClientType client = clientService.getClient(getClientId("FI", "GOV", "M2", "SS6"));
         int aclCount = client.getAcl().size();
         endpointsApiController.deleteEndpoint("11");
-        assertTrue(!client.getEndpoint().stream().anyMatch(ep -> ep.getId().equals("11")));
+        assertTrue(client.getEndpoint().stream().noneMatch(ep -> ep.getId().equals(11L)));
         assertTrue(client.getAcl().size() < aclCount);
     }
 
