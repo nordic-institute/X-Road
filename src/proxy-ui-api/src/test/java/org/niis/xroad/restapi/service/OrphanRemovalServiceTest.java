@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -57,7 +58,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -170,11 +174,79 @@ public class OrphanRemovalServiceTest {
                         .build())
                 .build();
 
+        KeyInfo key071 = new TokenTestUtils.KeyInfoBuilder()
+                .id(KEY_07_SIGN_ORPHAN_1_ID)
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .cert(new CertificateInfoBuilder()
+                        .clientId(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07)
+                        .id(ORPHAN_CERT_07_1_HASH)
+                        .build())
+                .build();
+        KeyInfo key072 = new TokenTestUtils.KeyInfoBuilder()
+                .id(KEY_07_SIGN_ORPHAN_2_ID)
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .cert(new CertificateInfoBuilder()
+                        .clientId(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07)
+                        .id(ORPHAN_CERT_07_2_HASH)
+                        .build())
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07)
+                        .id(ORPHAN_CSR_07_2_ID)
+                        .build())
+                .build();
+        KeyInfo key073 = new TokenTestUtils.KeyInfoBuilder()
+                .id(KEY_07_SIGN_SHARED_ID)
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .cert(new CertificateInfoBuilder()
+                        .clientId(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07)
+                        .id(SHARED_KEY_CERT_07_1_HASH)
+                        .build())
+                .cert(new CertificateInfoBuilder()
+                        .clientId(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07)
+                        .id(SHARED_KEY_CERT_07_2_HASH)
+                        .build())
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07)
+                        .id(SHARED_KEY_CSR_07_ID)
+                        .build())
+                // this is the only item stopping whole key from being deleted
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(KEY_SHARING_CLIENT_07_08)
+                        .id(SHARED_KEY_CSR_08_ID)
+                        .build())
+                .build();
+        KeyInfo key074 = new TokenTestUtils.KeyInfoBuilder()
+                .id(KEY_07_AUTH_ID)
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .cert(new CertificateInfoBuilder()
+                        .id(AUTH_CERT_07_HASH)
+                        .build())
+                .build();
+
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .friendlyName("fubar")
+                .key(key01)
                 .key(key05)
                 .key(key06)
+                .key(key071)
+                .key(key072)
+                .key(key073)
+                .key(key074)
                 .build();
+        Map<String, KeyInfo> certCsrIdentifierToKey = new HashMap<>();
+        // certs and csrs should not have duplicate ids/hashes
+        tokenInfo.getKeyInfo().forEach(key -> key.getCerts().forEach(
+                cert -> {
+                    if (certCsrIdentifierToKey.containsKey(cert.getId())) throw new RuntimeException("duplicate");
+                    certCsrIdentifierToKey.put(cert.getId(), key);
+                }));
+        tokenInfo.getKeyInfo().forEach(key -> key.getCertRequests().forEach(
+                csr -> {
+                    if (certCsrIdentifierToKey.containsKey(csr.getId())) throw new RuntimeException("duplicate");
+                    certCsrIdentifierToKey.put(csr.getId(), key);
+                }));
+
+        // TO DO: switch to mocking signerFacade instead of services?
         doReturn(Collections.singletonList(tokenInfo)).when(tokenService).getAllTokens();
         Map<ClientId, ClientType> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
@@ -184,10 +256,23 @@ public class OrphanRemovalServiceTest {
                 });
         doReturn(new ArrayList(localClients.values())).when(clientService).getAllLocalClients();
         doAnswer(invocation -> {
-            Object[] args = invocation.getArguments();
-            ClientId clientId = (ClientId) args[0];
+            ClientId clientId = (ClientId) invocation.getArguments()[0];
             return localClients.get(clientId);
         }).when(clientService).getLocalClient(any());
+        doReturn(tokenInfo).when(tokenService).getTokenForKeyId(any());
+        doAnswer(invocation -> {
+            String certHash = (String) invocation.getArguments()[0];
+            return new TokenInfoAndKeyId(tokenInfo,
+                    certCsrIdentifierToKey.get(certHash).getId());
+        }).when(tokenService).getTokenAndKeyIdForCertificateHash(any());
+        doAnswer(invocation -> {
+            String csrId = (String) invocation.getArguments()[0];
+            return new TokenInfoAndKeyId(tokenInfo,
+                    certCsrIdentifierToKey.get(csrId).getId());
+        }).when(tokenService).getTokenAndKeyIdForCertificateRequestId(any());
+
+        // getTokenAndKeyIdForCertificateRequestId
+        // TokenInfoAndKeyId
     }
 
     @Test
@@ -267,12 +352,54 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
+    public void orphansForClientWithMultipleKeys() throws Exception {
+        // client 7 has:
+        // KEY_07_SIGN_ORPHAN_1_ID has only orphans for this client
+        // KEY_07_SIGN_ORPHAN_2_ID has only orphans for this client
+        // KEY_07_SIGN_SHARED_ID has items for this client and another
+        // -> key is not orphan, but contains orphan items
+        // KEY_07_AUTH_ID is auth key and items are not linked to any clients
+        assertTrue(orphanRemovalService.orphansExist(DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6));
+        assertFalse(orphanRemovalService.orphansExist(KEY_SHARING_CLIENT_07_08));
+        OrphanRemovalService.Orphans orphans = orphanRemovalService
+                .findOrphans(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07);
+        KeyInfo orphanKey1 = findKey(KEY_07_SIGN_ORPHAN_1_ID, orphans.getKeys());
+        KeyInfo orphanKey2 = findKey(KEY_07_SIGN_ORPHAN_2_ID, orphans.getKeys());
+        KeyInfo orphanKey3 = findKey(KEY_07_SIGN_SHARED_ID, orphans.getKeys());
+        KeyInfo orphanKey4 = findKey(KEY_07_AUTH_ID, orphans.getKeys());
+        assertNotNull(orphanKey1);
+        assertNotNull(orphanKey2);
+        assertNull(orphanKey3);
+        assertNull(orphanKey4);
+        assertNotNull(findCert(SHARED_KEY_CERT_07_1_HASH, orphans.getCerts()));
+        assertNotNull(findCert(SHARED_KEY_CERT_07_2_HASH, orphans.getCerts()));
+        assertNotNull(findCsr(SHARED_KEY_CSR_07_ID, orphans.getCsrs()));
+        assertEquals(2, orphans.getKeys().size());
+        assertEquals(2, orphans.getCerts().size());
+        assertEquals(1, orphans.getCsrs().size());
+    }
+
+    private KeyInfo findKey(String id, List<KeyInfo> keys) {
+        return keys.stream().filter(key -> key.getId().equals(id))
+                .findFirst().orElse(null);
+    }
+    private CertificateInfo findCert(String id, List<CertificateInfo> certs) {
+        return certs.stream().filter(cert -> cert.getId().equals(id))
+                .findFirst().orElse(null);
+    }
+    private CertRequestInfo findCsr(String id, List<CertRequestInfo> csrs) {
+        return csrs.stream().filter(csr -> csr.getId().equals(id))
+                .findFirst().orElse(null);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void cantDeleteOrphansForDifferentReasons() throws Exception {
         // client exists
         try {
             orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1);
             fail("should throw exception");
-        } catch (OrphanRemovalService.ClientNotDeletedException expected) {
+        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
         }
 
         // siblings exist
@@ -292,6 +419,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void deleteOrphanCsrKey() throws Exception {
         // single orphan csr -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5);
@@ -303,6 +431,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void deleteOrphanCertKey() throws Exception {
         // single orphan cert -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6);
@@ -314,6 +443,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "DELETE_SIGN_CERT"})
     public void deleteComplexOrphanSetup() throws Exception {
         // combination of orphan keys and shared keys
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07);

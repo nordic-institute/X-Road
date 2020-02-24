@@ -35,7 +35,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,14 +56,17 @@ public class OrphanRemovalService {
     private final TokenService tokenService;
     private final TokenCertificateService tokenCertificateService;
     private final ClientService clientService;
+    private final KeyService keyService;
 
     @Autowired
-    public OrphanRemovalService(@Lazy TokenService tokenService,
-            @Lazy TokenCertificateService tokenCertificateService,
-            @Lazy ClientService clientService) {
+    public OrphanRemovalService(TokenService tokenService,
+            TokenCertificateService tokenCertificateService,
+            ClientService clientService,
+            KeyService keyService) {
         this.tokenService = tokenService;
         this.tokenCertificateService = tokenCertificateService;
         this.clientService = clientService;
+        this.keyService = keyService;
     }
 
     /**
@@ -78,25 +80,39 @@ public class OrphanRemovalService {
      * @return
      */
     public boolean orphansExist(ClientId clientId) {
-        ClientType clientType = clientService.getLocalClient(clientId);
-        if (clientType != null) {
-            // cant have orphans if still alive
+        if (isAlive(clientId) || hasAliveSiblings(clientId)) {
             return false;
         }
 
+        Orphans orphans = findOrphans(clientId);
+        return !orphans.isEmpty();
+    }
+
+    private boolean hasAliveSiblings(ClientId clientId) {
         // find out if siblings
         Optional<ClientType> sibling = clientService.getAllLocalClients().stream()
                 .filter(c -> c.getIdentifier().memberEquals(clientId))
                 .findFirst();
         if (sibling.isPresent()) {
-            return false;
+            return true;
         }
-        // no siblings. find out which orphan keys, certs and csrs exist
-        Orphans orphans = findOrphans(clientId);
-        return !orphans.isEmpty();
+        return false;
     }
 
-    private Orphans findOrphans(ClientId clientId) {
+    private boolean isAlive(ClientId clientId) {
+        ClientType clientType = clientService.getLocalClient(clientId);
+        if (clientType != null) {
+            // cant have orphans if still alive
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Finds Orphans for a deleted client. Assumes that client
+     * is indeed deleted, and does not have alive siblings.
+     */
+    Orphans findOrphans(ClientId clientId) {
         // find out which orphan keys, certs and csrs exist
         List<TokenInfo> tokens = tokenService.getAllTokens();
         List<KeyInfo> orphanKeys = findOrphanKeys(clientId, tokens);
@@ -125,7 +141,7 @@ public class OrphanRemovalService {
      * Orphans by type
      */
     @Data
-    private class Orphans {
+    class Orphans {
         private List<KeyInfo> keys;
         private List<CertificateInfo> certs;
         private List<CertRequestInfo> csrs;
@@ -146,7 +162,7 @@ public class OrphanRemovalService {
      * Check if this key is this client's orphan (some certs / csrs exist,
      * and all of the belong to this client's member)
      */
-    public boolean isOrphanKey(KeyInfo keyInfo, ClientId clientId) {
+    boolean isOrphanKey(KeyInfo keyInfo, ClientId clientId) {
         List<CertificateInfo> orphanCerts = getCerts(keyInfo, clientId);
         List<CertRequestInfo> orphanCsrs = getCsrs(keyInfo, clientId);
         if (!orphanCerts.isEmpty() || !orphanCsrs.isEmpty()) {
@@ -183,17 +199,34 @@ public class OrphanRemovalService {
     /**
      * Deletes orphan keys, certs and csrs for given clientId
      * @param clientId
-     * @throws OrphansNotFoundException if orphans dont exist for this client
+     * @throws OrphansNotFoundException if orphans dont exist for this client. Possible reasons
+     * include also that this client is still alive (not deleted).
      * @throws ActionNotPossibleException if delete-cert or delete-csr was not possible action
-     * @throws ClientNotDeletedException if attempted to delete orphans for client which has not been deleted
+     * @throws org.niis.xroad.restapi.service.GlobalConfService.GlobalConfOutdatedException
+     * if global conf is outdated. This prevents key deletion.
      */
     public void deleteOrphans(ClientId clientId) throws OrphansNotFoundException,
-            ActionNotPossibleException, ClientNotDeletedException {
+            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException {
+
+        if (isAlive(clientId) || hasAliveSiblings(clientId)) {
+            throw new OrphansNotFoundException();
+        }
+
+        Orphans orphans = findOrphans(clientId);
+        if (orphans.isEmpty()) {
+            throw new OrphansNotFoundException();
+        }
         try {
-            tokenCertificateService.deleteCertificate(null);
-            tokenCertificateService.deleteCsr(null);
-        } catch (CsrNotFoundException | CertificateNotFoundException | KeyNotFoundException e) {
-            // we searched for csrs, certs and keys ourselves, so they should not be lost
+            // delete the orphans
+            for (KeyInfo keyInfo : orphans.getKeys()) {
+                keyService.deleteKey(keyInfo.getId());
+            }
+            tokenCertificateService.deleteCertificates(orphans.getCerts());
+            for (CertRequestInfo certRequestInfo : orphans.getCsrs()) {
+                tokenCertificateService.deleteCsr(certRequestInfo.getId());
+            }
+        } catch (KeyNotFoundException | CsrNotFoundException | CertificateNotFoundException e) {
+            // we just internally looked up these items, so them not being found is an internal error
             throw new RuntimeException(e);
         }
     }
@@ -203,8 +236,8 @@ public class OrphanRemovalService {
      */
     public static class OrphansNotFoundException extends NotFoundException {
         public static final String ERROR_ORPHANS_NOT_FOUND = "orphans_not_found";
-        public OrphansNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_ORPHANS_NOT_FOUND));
+        public OrphansNotFoundException() {
+            super(new ErrorDeviation(ERROR_ORPHANS_NOT_FOUND));
         }
     }
 

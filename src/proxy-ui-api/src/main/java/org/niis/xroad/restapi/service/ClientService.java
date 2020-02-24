@@ -80,7 +80,6 @@ public class ClientService {
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;
     private final IdentifierRepository identifierRepository;
-    private final OrphanRemovalService orphanRemovalService;
 
     /**
      * ClientService constructor
@@ -90,14 +89,12 @@ public class ClientService {
             GlobalConfFacade globalConfFacade,
             ServerConfService serverConfService,
             GlobalConfService globalConfService,
-            IdentifierRepository identifierRepository,
-            OrphanRemovalService orphanRemovalService) {
+            IdentifierRepository identifierRepository) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.globalConfService = globalConfService;
         this.identifierRepository = identifierRepository;
-        this.orphanRemovalService = orphanRemovalService;
     }
 
     /**
