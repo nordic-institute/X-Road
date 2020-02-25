@@ -259,8 +259,6 @@ export default Vue.extend({
         return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
       } else if (serviceDescriptionType === 'OPENAPI3') {
         return this.$store.getters.hasPermission(Permissions.REFRESH_OPENAPI3);
-      } else if (serviceDescriptionType === 'REST') {
-        return this.$store.getters.hasPermission(Permissions.REFRESH_REST);
       }
       return false;
     },
