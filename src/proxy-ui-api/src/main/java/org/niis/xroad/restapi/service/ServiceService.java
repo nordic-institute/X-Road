@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
@@ -163,8 +164,13 @@ public class ServiceService {
     }
 
     public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
-            throws EndpointAlreadyExistsException {
+            throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException {
         verifyAuthority("ADD_OPENAPI3_ENDPOINT");
+
+        if (serviceType.getServiceDescription().getType().equals(DescriptionType.WSDL)) {
+            throw new ServiceDescriptionService.WrongServiceDescriptionTypeException("Endpoint can't be added to a "
+                    + "WSDL type of Service Description");
+        }
 
         EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), method, path, false);
         ClientType client = serviceType.getServiceDescription().getClient();

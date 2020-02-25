@@ -48,6 +48,7 @@ import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,6 +231,8 @@ public class ServicesApiController implements ServicesApi {
                     endpoint.getMethod(), endpoint.getPath()));
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
+        } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(ep, HttpStatus.CREATED);
     }

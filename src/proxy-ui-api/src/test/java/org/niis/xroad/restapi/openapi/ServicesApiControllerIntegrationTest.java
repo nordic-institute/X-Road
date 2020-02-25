@@ -479,6 +479,16 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "ADD_OPENAPI3_ENDPOINT" })
+    public void addEndpointToWSDL() {
+        Endpoint endpoint = new Endpoint();
+        endpoint.setMethod("GET");
+        endpoint.setPath("/foo");
+        endpoint.setServiceCode("add-endpoint-to-wsdl-test");
+        servicesApiController.addEndpoint(TestUtils.SS1_GET_RANDOM_V1, endpoint);
+    }
+
+    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities =  { "ADD_OPENAPI3_ENDPOINT" })
     public void addEndpointWithId() {
         Endpoint endpoint = new Endpoint();
