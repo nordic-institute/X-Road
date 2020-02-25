@@ -59,7 +59,7 @@ public class EndpointsApiControllerTest {
     @WithMockUser(authorities = {"VIEW_ENDPOINT"})
     public void getEndpoint() {
         Endpoint endpoint = endpointsApiController.getEndpoint("12").getBody();
-        assertTrue(endpoint.getId().equals(12L));
+        assertTrue(endpoint.getId().equals("12"));
         assertTrue(endpoint.getMethod().equals("PUT"));
         assertTrue(endpoint.getPath().equals("/foo"));
     }

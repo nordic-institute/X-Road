@@ -50,15 +50,8 @@ public class EndpointRepository {
      * @param id
      * @return
      */
-    public EndpointType getEndpoint(String id) {
-        return this.persistenceUtils.getCurrentSession().get(EndpointType.class, Long.valueOf(id));
-    }
-
-    public void deleteEndpoint(Long clientTypeId, Long endpointId) {
-        Session session = this.persistenceUtils.getCurrentSession();
-        ClientType clientType = session.get(ClientType.class, clientTypeId);
-        clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(Long.valueOf(endpointId)));
-        clientType.getEndpoint().removeIf(endpoint -> endpoint.getId().equals(endpointId));
+    public EndpointType getEndpoint(Long id) {
+        return this.persistenceUtils.getCurrentSession().get(EndpointType.class, id);
     }
 
     /**
