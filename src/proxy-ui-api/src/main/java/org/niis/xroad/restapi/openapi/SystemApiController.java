@@ -32,9 +32,11 @@ import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.converter.VersionConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
+import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.VersionService;
@@ -65,6 +67,7 @@ public class SystemApiController implements SystemApi {
     private final SystemService systemService;
     private final VersionService versionService;
     private final VersionConverter versionConverter;
+    private final CsrFilenameCreator csrFilenameCreator;
 
     /**
      * Constructor
@@ -73,13 +76,14 @@ public class SystemApiController implements SystemApi {
     public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
             CertificateDetailsConverter certificateDetailsConverter, SystemService systemService,
             TimestampingServiceConverter timestampingServiceConverter, VersionService versionService,
-            VersionConverter versionConverter) {
+            VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator) {
         this.internalTlsCertificateService = internalTlsCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.systemService = systemService;
         this.timestampingServiceConverter = timestampingServiceConverter;
         this.versionService = versionService;
         this.versionConverter = versionConverter;
+        this.csrFilenameCreator = csrFilenameCreator;
     }
 
     @Override
@@ -151,5 +155,17 @@ public class SystemApiController implements SystemApi {
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_CERT_REQ')")
+    public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedName distinguishedName) {
+        byte[] csrBytes = null;
+        try {
+            csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
+        } catch (InvalidDistinguishedNameException e) {
+            throw new BadRequestException(e);
+        }
+        return ApiUtil.createAttachmentResourceResponse(csrBytes, csrFilenameCreator.createInternalCsrFilename());
     }
 }

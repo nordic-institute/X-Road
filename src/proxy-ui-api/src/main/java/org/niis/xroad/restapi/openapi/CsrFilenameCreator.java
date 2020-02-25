@@ -30,10 +30,12 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * helper for creating csr filenames
@@ -41,6 +43,8 @@ import java.time.format.DateTimeFormatter;
 @Component
 @Slf4j
 public class CsrFilenameCreator {
+    public static final String INTERNAL_CSR_FILE_PREFIX = "internal_tls_cert_request_";
+    public static final String INTERNAL_CSR_FILE_EXTENSION = ".p10";
 
     /**
      * Create a filename for CSR
@@ -95,5 +99,7 @@ public class CsrFilenameCreator {
         return builder.toString();
     }
 
-
+    public String createInternalCsrFilename() {
+        return INTERNAL_CSR_FILE_PREFIX + new DateTime().toString("YYYYMMdd") + INTERNAL_CSR_FILE_EXTENSION;
+    }
 }
