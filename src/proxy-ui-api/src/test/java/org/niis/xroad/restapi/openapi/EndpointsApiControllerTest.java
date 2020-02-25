@@ -55,6 +55,15 @@ public class EndpointsApiControllerTest {
 
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
+    @Test
+    @WithMockUser(authorities = {"VIEW_ENDPOINT"})
+    public void getEndpoint() {
+        Endpoint endpoint = endpointsApiController.getEndpoint("12").getBody();
+        assertTrue(endpoint.getId().equals(12L));
+        assertTrue(endpoint.getMethod().equals("PUT"));
+        assertTrue(endpoint.getPath().equals("/foo"));
+    }
+
     @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpointNotExist() {
