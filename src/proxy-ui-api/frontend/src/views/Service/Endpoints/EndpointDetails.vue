@@ -10,6 +10,7 @@
           v-if="showDelete"
           @click="showDeletePopup()"
           outlined
+          data-test="delete-endpoint"
         >{{$t('action.delete')}}
         </large-button>
       </div>

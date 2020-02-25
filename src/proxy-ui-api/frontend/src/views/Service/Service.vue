@@ -2,18 +2,6 @@
     <div class="xrd-tab-max-width">
         <subViewTitle :title="service.service_code" @close="close" class="sub-view-title-spacing" />
 
-        <div class="wrap-right delete-button-spacing">
-            <v-btn
-                color="primary"
-                @click="removeService"
-                outlined
-                rounded
-                class="rounded-button elevation-0 rest-button"
-                data-test="service-delete"
-            >{{$t('action.delete')}}
-            </v-btn>
-        </div>
-
         <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4" >
             <v-tabs-slider color="secondary"></v-tabs-slider>
             <v-tab v-for="tab in tabs" v-bind:key="tab.key"
@@ -102,10 +90,6 @@ export default Vue.extend({
       this.$router.push({ name: RouteName.SubsystemServices, params: { id: this.clientId }} );
     },
 
-    removeService(): void {
-      // NOOP
-    },
-
   },
 
   created() {
@@ -124,10 +108,6 @@ export default Vue.extend({
 
     .sub-view-spacing {
         margin-top: 20px;
-    }
-
-    .delete-button-spacing {
-        margin-bottom: 20px;
     }
 
 </style>
