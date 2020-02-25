@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -130,7 +131,14 @@ public class BackupsService {
         String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
 
         try {
-            externalProcessRunner.execute(generateBackupScriptPath, args);
+            log.info("Run configuration backup with command '"
+                    + generateBackupScriptPath + " " + Arrays.toString(args) + "'");
+
+            List<String> output = externalProcessRunner.execute(generateBackupScriptPath, args);
+
+            log.info(" --- Backup script console output - START --- ");
+            log.info(String.join("\n", output));
+            log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate backup", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(BACKUP_GENERATION_FAILED));
