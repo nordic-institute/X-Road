@@ -2,8 +2,6 @@ FROM ubuntu:bionic
 ENV DEBIAN_FRONTEND=noninteractive
 ARG XROAD_ADMIN_USER
 ARG XROAD_ADMIN_PASSWORD
-ARG XROAD_DB_USER
-ARG XROAD_DB_PASSWD
 
 RUN apt-get -qq update \
 && apt-get -qq upgrade \
@@ -33,16 +31,15 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 RUN pg_ctlcluster 10 main start \
 && apt-get -qq update \
 && apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin \
+&& su - postgres -c "psql postgres -tAc \"DROP DATABASE serverconf;\"" \
+&& su - postgres -c "psql postgres -tAc \"DROP USER serverconf;\"" \
 && apt-get -qq clean \
-&& su - postgres -c "psql postgres -tAc \"ALTER USER serverconf RENAME TO ${XROAD_DB_USER};\"" \
-&& su - postgres -c "psql postgres -tAc \"ALTER USER ${XROAD_DB_USER} WITH PASSWORD '"${XROAD_DB_PASSWD}"';\"" \
 && pg_ctlcluster 10 main stop \
 && nginx -s stop \
 && rm -f /var/run/nginx.pid \
+&& rm -f /etc/xroad/db.properties \
 && rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
-&& sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf \
-&& sed -i 's:\(serverconf.hibernate.connection.username = \)\(.*\):\1'"${XROAD_DB_USER}"':' /etc/xroad/db.properties \
-&& sed -i 's:\(serverconf.hibernate.connection.password = \)\(.*\):\1'"${XROAD_DB_PASSWD}"':' /etc/xroad/db.properties
+&& sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
 
 RUN crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0 \
 && crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
