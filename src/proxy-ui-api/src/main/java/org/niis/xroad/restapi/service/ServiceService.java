@@ -163,6 +163,17 @@ public class ServiceService {
         return serviceType;
     }
 
+    /**
+     * Add new endpoint to a service
+     *
+     * @param serviceType                                                       service where endpoint is added
+     * @param method                                                            method
+     * @param path                                                              path
+     * @return
+     * @throws EndpointAlreadyExistsException                                   equivalent endpoint already exists for
+     *                                                                          this client
+     * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException   if trying to add endpoint to a WSDL
+     */
     public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
             throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException {
         verifyAuthority("ADD_OPENAPI3_ENDPOINT");

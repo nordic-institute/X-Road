@@ -53,6 +53,13 @@ public class EndpointService {
         this.endpointRepository = endpointRepository;
     }
 
+    /**
+     * Get endpoint by endpoint id
+     *
+     * @param id                            endpoint id
+     * @return
+     * @throws EndpointNotFoundException    endpoint not found with given id
+     */
     public EndpointType getEndpoint(String id) throws EndpointNotFoundException {
         verifyAuthority("VIEW_ENDPOINT");
         Long endpointId = parseLongIdOrThrowNotFound(id);
@@ -63,6 +70,13 @@ public class EndpointService {
         return endpoint;
     }
 
+    /**
+     * Delete endpoint
+     *
+     * @param id                            endpoint id
+     * @throws EndpointNotFoundException    endpoint not found with given id
+     * @throws ClientNotFoundException      client for the endpoint not found
+     */
     public void deleteEndpoint(String id) throws EndpointNotFoundException, ClientNotFoundException {
         verifyAuthority("DELETE_ENDPOINT");
         Long endpointId = parseLongIdOrThrowNotFound(id);
@@ -75,6 +89,15 @@ public class EndpointService {
         clientRepository.saveOrUpdate(clientType);
     }
 
+    /**
+     * Update endpoint details
+     *
+     * @param id                                        endpoint id
+     * @param endpointUpdate                            endpoint object to use for updating
+     * @return
+     * @throws EndpointNotFoundException                endpoint not found with given id
+     * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
+     */
     public EndpointType updateEndpoint(String id, Endpoint endpointUpdate)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
         verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
