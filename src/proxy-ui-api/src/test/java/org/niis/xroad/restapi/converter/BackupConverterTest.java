@@ -26,12 +26,9 @@ package org.niis.xroad.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.openapi.model.Backup;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,13 +38,9 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test BackupsConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class BackupsConverterTest {
+public class BackupConverterTest {
 
-    private BackupsConverter backupsConverter;
-
-    private static final String BASE_DIR = "/tmp/backups/";
+    private BackupConverter backupConverter;
 
     private static final String BACKUP_FILE_1 = "ss-automatic-backup-2020_02_19_031502.tar";
 
@@ -57,30 +50,30 @@ public class BackupsConverterTest {
 
     @Before
     public void setup() {
-        backupsConverter = new BackupsConverter();
+        backupConverter = new BackupConverter();
     }
 
     @Test
     public void convertSingleBackup() {
-        Backup backup = backupsConverter.convert(new File(BASE_DIR + BACKUP_FILE_1));
+        Backup backup = backupConverter.convert(new BackupFile(BACKUP_FILE_1));
 
         assertEquals(BACKUP_FILE_1, backup.getFilename());
     }
 
     @Test
     public void convertMultipleBackups() {
-        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1),
-                new File(BASE_DIR + BACKUP_FILE_2),
-                new File(BASE_DIR + BACKUP_FILE_3)));
-        List<Backup> backups = backupsConverter.convert(files);
+        List<BackupFile> files = new ArrayList<>(Arrays.asList(new BackupFile(BACKUP_FILE_1),
+                new BackupFile(BACKUP_FILE_2),
+                new BackupFile(BACKUP_FILE_3)));
+        List<Backup> backups = backupConverter.convert(files);
 
         assertEquals(3, backups.size());
     }
 
     @Test
     public void convertMEmptyList() {
-        List<File> files = new ArrayList<>();
-        List<Backup> backups = backupsConverter.convert(files);
+        List<BackupFile> files = new ArrayList<>();
+        List<Backup> backups = backupConverter.convert(files);
 
         assertEquals(0, backups.size());
     }

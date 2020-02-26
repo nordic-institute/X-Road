@@ -28,12 +28,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.BackupsConverter;
+import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.repository.BackupsRepository;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,8 +40,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +56,6 @@ public class BackupsService {
     private static final String BACKUP_GENERATION_FAILED = "backup_generation_failed";
 
     private final BackupsRepository backupsRepository;
-    private final BackupsConverter backupsConverter;
     private final ServerConfService serverConfService;
     private final ExternalProcessRunner externalProcessRunner;
 
@@ -71,11 +68,10 @@ public class BackupsService {
      * @param backupsRepository
      */
     @Autowired
-    public BackupsService(BackupsRepository backupsRepository, BackupsConverter backupsConverter,
-                          ServerConfService serverConfService, ExternalProcessRunner externalProcessRunner,
+    public BackupsService(BackupsRepository backupsRepository, ServerConfService serverConfService,
+                          ExternalProcessRunner externalProcessRunner,
                           @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
         this.backupsRepository = backupsRepository;
-        this.backupsConverter = backupsConverter;
         this.serverConfService = serverConfService;
         this.externalProcessRunner = externalProcessRunner;
         this.generateBackupScriptPath = generateBackupScriptPath;
@@ -85,20 +81,23 @@ public class BackupsService {
      * Return a list of available backup files
      * @return
      */
-    public List<Backup> getBackupFiles() {
-        List<File> backupFiles = backupsRepository.getBackupFiles();
-        List<Backup> backups = backupsConverter.convert(backupFiles);
-        setCreatedAt(backups);
-        return backups;
+    public List<BackupFile> getBackupFiles() {
+        List<File> files = backupsRepository.getBackupFiles();
+        List<BackupFile> backupFiles = new ArrayList<>();
+        files.stream().forEach(b -> {
+            backupFiles.add(new BackupFile(b.getName()));
+        });
+        setCreatedAt(backupFiles);
+        return backupFiles;
     }
 
     /**
      * Delete a backup file or throws an exception if the file does not exist
      * @param filename
-     * @throws BackupFileNotFoundException
+     * @throws BackupFileNotFoundException if backup file is not found
      */
     public void deleteBackup(String filename) throws BackupFileNotFoundException {
-        if (!backupExists(filename).isPresent()) {
+        if (!getBackup(filename).isPresent()) {
             throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
         }
         backupsRepository.deleteBackupFile(filename);
@@ -108,10 +107,10 @@ public class BackupsService {
      * Read backup file's content
      * @param filename
      * @return
-     * @throws BackupFileNotFoundException
+     * @throws BackupFileNotFoundException if backup file is not found
      */
     public byte[] readBackupFile(String filename) throws BackupFileNotFoundException {
-        if (!backupExists(filename).isPresent()) {
+        if (!getBackup(filename).isPresent()) {
             throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
         }
         return backupsRepository.readBackupFile(filename);
@@ -119,12 +118,10 @@ public class BackupsService {
 
     /**
      * Generate a new backup file
-     * @throws ProcessFailedException
-     * @throws ProcessNotExecutableException
-     * @throws InterruptedException
      * @return
+     * @throws InterruptedException if the thread the backup process is interrupted and the backup fails
      */
-    public Backup generateBackup() throws InterruptedException, BackupFileNotFoundException {
+    public BackupFile generateBackup() throws InterruptedException {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         String filename = generateBackupFileName();
         String fullPath =  backupsRepository.getConfigurationBackupPath() + filename;
@@ -144,19 +141,20 @@ public class BackupsService {
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(BACKUP_GENERATION_FAILED));
         }
 
-        Optional<Backup> backup = backupExists(filename);
-        if (!backup.isPresent()) {
-            throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
+        Optional<BackupFile> backupFile = getBackup(filename);
+        if (!backupFile.isPresent()) {
+            throw new DeviationAwareRuntimeException(getFileNotFoundExceptionMessage(filename),
+                    new ErrorDeviation(BACKUP_GENERATION_FAILED));
         }
-        return backup.get();
+        return backupFile.get();
     }
 
     /**
-     * Check if a backup file with the given filename exists
+     * Get a backup file with the given filename
      * @param filename
      * @return
      */
-    private Optional<Backup> backupExists(String filename) {
+    private Optional<BackupFile> getBackup(String filename) {
         return getBackupFiles().stream()
                 .filter(b -> b.getFilename().equals(filename))
                 .findFirst();
@@ -164,12 +162,11 @@ public class BackupsService {
 
     /**
      * Set the "createdAt" property to a list of backups
-     * @param backups
+     * @param backupFiles
      */
-    private void setCreatedAt(List<Backup> backups) {
-        backups.stream().forEach(b -> {
-            Date createdAt = backupsRepository.getCreatedAt(b.getFilename());
-            b.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(createdAt));
+    private void setCreatedAt(List<BackupFile> backupFiles) {
+        backupFiles.stream().forEach(b -> {
+            b.setCreatedAt(backupsRepository.getCreatedAt(b.getFilename()));
         });
     }
 

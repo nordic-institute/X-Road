@@ -25,6 +25,8 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.BackupConverter;
+import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
@@ -51,17 +53,20 @@ public class BackupsApiController implements BackupsApi {
     public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
 
     private final BackupsService backupsService;
+    private final BackupConverter backupConverter;
+
     @Autowired
-    public BackupsApiController(BackupsService backupsService) {
+    public BackupsApiController(BackupsService backupsService, BackupConverter backupConverter) {
         this.backupsService = backupsService;
+        this.backupConverter = backupConverter;
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<List<Backup>> getBackups() {
-        List<Backup> backups = backupsService.getBackupFiles();
+        List<BackupFile> backupFiles = backupsService.getBackupFiles();
 
-        return new ResponseEntity<>(backups, HttpStatus.OK);
+        return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);
     }
 
     @Override
@@ -92,9 +97,9 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Backup> addBackup() {
         try {
-            Backup backup = backupsService.generateBackup();
-            return new ResponseEntity<>(backup, HttpStatus.ACCEPTED);
-        } catch (InterruptedException | BackupFileNotFoundException e) {
+            BackupFile backupFile = backupsService.generateBackup();
+            return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
+        } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(GENERATE_BACKUP_INTERRUPTED));
         }
     }

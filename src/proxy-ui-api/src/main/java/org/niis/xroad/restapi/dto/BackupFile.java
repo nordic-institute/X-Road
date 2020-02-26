@@ -22,32 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.dto;
 
-import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.Backup;
-import org.springframework.stereotype.Component;
+import lombok.Data;
 
-import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.OffsetDateTime;
 
 /**
- * Converter for backups related data between openapi and service domain classes
+ * DTO for backup files
  */
-@Component
-public class BackupsConverter {
+@Data
+public class BackupFile {
+    private String filename;
+    private OffsetDateTime createdAt;
 
-    public Backup convert(File file) {
-        Backup backup = new Backup();
-        backup.setFilename(file.getName());
-
-        return backup;
-    }
-
-    public List<Backup> convert(Iterable<File> files)  {
-        return Streams.stream(files)
-                .map(this::convert)
-                .collect(Collectors.toList());
+    public BackupFile(String filename) {
+        this.filename = filename;
     }
 }

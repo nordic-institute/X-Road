@@ -34,9 +34,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
-import java.util.Date;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +50,9 @@ import java.util.stream.Stream;
 public class BackupsRepository {
 
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
-    private static final String BACKUP_FILE_EXTENSION = ".tar";
+    // Criteria: cannot start with ".", must contain one or more word characters ([a-zA-Z_0-9]),
+    // must end with ".tar"
+    private static final String BACKUP_FILENAME_PATTERN = "^(?!\\.)[\\w\\.\\-]+\\.tar$";;
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
 
@@ -58,9 +62,7 @@ public class BackupsRepository {
      */
     public List<File> getBackupFiles() {
         try (Stream<Path> walk = Files.walk(Paths.get(CONFIGURATION_BACKUP_PATH), DIR_MAX_DEPTH)) {
-            return walk.map(Path::toString)
-                    .filter(f -> f.endsWith(BACKUP_FILE_EXTENSION))
-                    .map(this::getFile).collect(Collectors.toList());
+            return walk.filter(this::isFilenameValid).map(this::getFile).collect(Collectors.toList());
         } catch (IOException ioe) {
             log.error("can't read backup files from configuration path (" + CONFIGURATION_BACKUP_PATH + ")");
             throw new RuntimeException(ioe);
@@ -72,11 +74,11 @@ public class BackupsRepository {
      * @param filename
      * @return
      */
-    public Date getCreatedAt(String filename) {
+    public OffsetDateTime getCreatedAt(String filename) {
         Path path = getFilePath(filename);
         try {
-            FileTime creationTime = (FileTime) Files.getAttribute(path, "creationTime");
-            return new Date(creationTime.toMillis());
+            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+            return attr.creationTime().toInstant().atOffset(ZoneOffset.UTC);
         } catch (IOException ioe) {
             log.error("can't read backup file's creation time (" + path.toString() + ")");
             throw new RuntimeException(ioe);
@@ -117,14 +119,23 @@ public class BackupsRepository {
      * @return
      */
     public String getConfigurationBackupPath() {
-        return CONFIGURATION_BACKUP_PATH  + (CONFIGURATION_BACKUP_PATH.endsWith("/") ? "" : "/");
+        return CONFIGURATION_BACKUP_PATH  + (CONFIGURATION_BACKUP_PATH.endsWith(File.separator) ? "" : File.separator);
     }
 
-    private File getFile(String absoluteFilepath) {
-        return new File(absoluteFilepath);
+    private File getFile(Path path) {
+        return new File(path.toString());
     }
 
     private Path getFilePath(String filename) {
         return Paths.get(getConfigurationBackupPath() + filename);
+    }
+
+    /**
+     * Check if the given filename is valid and meets the defined criteria
+     * @param path
+     * @return
+     */
+    private boolean isFilenameValid(Path path) {
+        return Pattern.compile(BACKUP_FILENAME_PATTERN).matcher(path.getFileName().toString()).matches();
     }
 }

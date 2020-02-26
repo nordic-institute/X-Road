@@ -25,11 +25,12 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.niis.xroad.restapi.converter.BackupConverter;
+import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.repository.BackupsRepository;
@@ -46,7 +47,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -92,8 +94,10 @@ public class BackupsApiControllerTest {
                 new File(BASE_DIR + BACKUP_FILE_2_NAME)));
 
         when(backupsRepository.getBackupFiles()).thenReturn(files);
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS));
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS));
+        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(
+                new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        when(backupsRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(
+                new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
     }
 
     @Test
@@ -158,10 +162,7 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void downloadBackup() throws Exception {
-        byte[] bytes = null;
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(BACKUP_FILE_1_NAME)) {
-            bytes = IOUtils.toByteArray(is);
-        }
+        byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(backupsRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
 
         ResponseEntity<Resource> response = backupsApiController.downloadBackup(BACKUP_FILE_1_NAME);
@@ -185,14 +186,13 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void addBackup() throws Exception {
         BackupsService backupsService = Mockito.mock(BackupsService.class);
-        Backup backup = new Backup();
-        backup.setFilename(BACKUP_FILE_1_NAME);
-        when(backupsService.generateBackup()).thenReturn(backup);
+        BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
+        when(backupsService.generateBackup()).thenReturn(backupFile);
 
-        BackupsApiController bac = new BackupsApiController(backupsService);
+        BackupsApiController bac = new BackupsApiController(backupsService, new BackupConverter());
 
         ResponseEntity<Backup> response = bac.addBackup();
-        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(BACKUP_FILE_1_NAME, response.getBody().getFilename());
     }
 
