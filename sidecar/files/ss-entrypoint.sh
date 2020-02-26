@@ -39,6 +39,12 @@ then
     unset XROAD_TOKEN_PIN
 fi
 
+# Configure admin user with user-supplied username and password
+echo "Creating admin user with user-supplied credentials"
+useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
+echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
+echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
+
 # Recreate serverconf database and properties file with user-supplied username and password
 echo "Creating serverconf database with user-supplied credentials"
 pg_ctlcluster 10 main start

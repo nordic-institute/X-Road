@@ -1,7 +1,5 @@
 FROM ubuntu:bionic
 ENV DEBIAN_FRONTEND=noninteractive
-ARG XROAD_ADMIN_USER
-ARG XROAD_ADMIN_PASSWORD
 
 RUN apt-get -qq update \
 && apt-get -qq upgrade \
@@ -11,9 +9,6 @@ RUN apt-get -qq update \
 && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
 && adduser --quiet --system --uid 999 --home /var/lib/xroad --no-create-home --shell /bin/bash --group xroad \
 && adduser xroad sudo \
-&& useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin \
-&& echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd \
-&& echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections \
 && apt-get -qq install postgresql postgresql-contrib \
 && apt-get -qq clean
 
