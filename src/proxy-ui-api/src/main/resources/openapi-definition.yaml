@@ -3432,7 +3432,6 @@ paths:
               title: KeyLabelWithCsrGenerate
               type: object
               required:
-                - key_label
                 - csr_generate_request
               properties:
                 key_label:
