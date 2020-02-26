@@ -17,7 +17,9 @@ var navigateCommands = {
     return this;
   },
   logout: function() {
-    this.click('@userMenuButton').click('@userMenuitemLogout');
+    this.click('@userMenuButton');
+    this.pause(1000);
+    this.click('@userMenuitemLogout');
     return this;
   },
   acceptLogout: function() {
