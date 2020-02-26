@@ -24,11 +24,9 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
