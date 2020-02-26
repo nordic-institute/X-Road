@@ -27,7 +27,7 @@
                         <tr v-bind:class="{generated: endpoint.generated}">
                             <td><span v-if="endpoint.method === '*'">{{$t('endpoints.all')}}</span><span v-else>{{endpoint.method}}</span></td>
                             <td>{{endpoint.path}}</td>
-                            <td class="wrap-right">
+                            <td class="wrap-right-tight">
                                 <v-btn
                                     v-if="!endpoint.generated"
                                     small
@@ -135,6 +135,12 @@ export default Vue.extend({
 
     .generated {
         color: $XRoad-Grey40;
+    }
+
+    .wrap-right-tight {
+      display: flex;
+      width: 100%;
+      justify-content: flex-end;
     }
 
 </style>
