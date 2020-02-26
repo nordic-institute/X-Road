@@ -30,12 +30,10 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 /**
  * helper for creating csr filenames
@@ -99,7 +97,11 @@ public class CsrFilenameCreator {
         return builder.toString();
     }
 
+    /**
+     * Create a simple filename with the current date for internal cert CSR
+     * @return
+     */
     public String createInternalCsrFilename() {
-        return INTERNAL_CSR_FILE_PREFIX + new DateTime().toString("YYYYMMdd") + INTERNAL_CSR_FILE_EXTENSION;
+        return INTERNAL_CSR_FILE_PREFIX + createDateString() + INTERNAL_CSR_FILE_EXTENSION;
     }
 }

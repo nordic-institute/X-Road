@@ -24,15 +24,43 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Thrown when given DistinguishedName is invalid
- */
-public class InvalidDistinguishedNameException extends ServiceException {
-    public static final String INVALID_DISTINGUISHED_NAME = "invalid_distinguished_name";
+import static org.junit.Assert.assertTrue;
 
-    public InvalidDistinguishedNameException(Throwable t) {
-        super(t, new ErrorDeviation(INVALID_DISTINGUISHED_NAME));
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Slf4j
+@Transactional
+@WithMockUser
+public class SystemServiceTest {
+
+    @Autowired
+    private SystemService systemService;
+
+    @Before
+    public void setup() {
+        systemService.setInternalKeyPath("src/test/resources/internal.key");
+    }
+
+    @Test
+    public void generateInternalCsr() throws Exception {
+        byte[] csrBytes = systemService.generateInternalCsr("C=FI, serialNumber=123");
+        assertTrue(csrBytes.length > 0);
+    }
+
+    @Test(expected = InvalidDistinguishedNameException.class)
+    public void generateInternalCsrFail() throws Exception {
+        systemService.generateInternalCsr("this is wrong");
     }
 }
