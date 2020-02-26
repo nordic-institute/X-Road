@@ -2,7 +2,7 @@
     <div class="xrd-tab-max-width">
         <subViewTitle :title="service.service_code" @close="close" class="sub-view-title-spacing" />
 
-        <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4" >
+        <v-tabs v-if="$route.query.descriptionType !== 'WSDL'" v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4" >
             <v-tabs-slider color="secondary"></v-tabs-slider>
             <v-tab v-for="tab in tabs" v-bind:key="tab.key"
                    :to="tab.to" data-test="service-tab">{{ $t(tab.name) }}</v-tab>
