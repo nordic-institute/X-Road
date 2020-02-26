@@ -34,9 +34,10 @@ Run the following script:
 The script setup_security_server_sidecar.sh will:
 
 - Create a bridge-type network called xroad-network to provide container-to-container communication in a local development environment.
-- Create a new security server sidecar image and start a new security server sidecar container with the given arguments.
-- Generate internal and admin UI TLS keys and certificates on the first run.
+- Build a new security server sidecar image and start a new security server sidecar container with the given arguments.
 - Configure xroad-autologin software token PIN code.
 - Configure admin username and password.
 - Update X-Road configuration on startup if the installed version on image has been updated.
 - Configure serverconf username and password.
+- Generate serverconf database with user-supplied username and password.
+- Generate internal and admin UI TLS keys and certificates.
