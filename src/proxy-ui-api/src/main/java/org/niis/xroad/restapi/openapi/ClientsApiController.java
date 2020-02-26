@@ -413,10 +413,6 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT')")
     public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
-        ClientId clientId = ClientId.create(clientAdd.getClient().getInstanceId(),
-                clientAdd.getClient().getMemberClass(),
-                clientAdd.getClient().getMemberCode(),
-                clientAdd.getClient().getSubsystemCode());
         boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
         IsAuthentication isAuthentication = null;
         try {
@@ -426,7 +422,10 @@ public class ClientsApiController implements ClientsApi {
         }
         ClientType added = null;
         try {
-            added = clientService.addLocalClient(clientId, isAuthentication, ignoreWarnings);
+            added = clientService.addLocalClient(clientAdd.getClient().getMemberClass(),
+                    clientAdd.getClient().getMemberCode(),
+                    clientAdd.getClient().getSubsystemCode(),
+                    isAuthentication, ignoreWarnings);
         } catch (ClientService.ClientAlreadyExistsException
                 | ClientService.AdditionalMemberAlreadyExistsException e) {
             throw new ConflictException(e);

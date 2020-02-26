@@ -4000,7 +4000,6 @@ components:
       type: object
       description: x-road client
       required:
-        - instance_id
         - member_class
         - member_code
       properties:
@@ -4019,6 +4018,7 @@ components:
           example: FI
           minLength: 1
           maxLength: 255
+          readOnly: true
         member_name:
           type: string
           format: text
