@@ -202,7 +202,9 @@
     "activate": "Activate",
     "deactivate": "Disable",
     "previous": "Previous",
-    "done": "Done"
+    "done": "Done",
+    "next": "Next",
+    "submit": "Submit"
   },
   "keys": {
     "token": "Token:",
@@ -299,6 +301,27 @@
     "helpClient": "X-Road member the certificate will be issued for.",
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
+  },
+  "wizard": {
+    "clientDetails": "Client details",
+    "finish": "Finish",
+    "clientInfo1": "Specify the details of the Client you want to add.",
+    "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
+    "memberName": "Member Name",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
+    "subsystemCode": "Subsystem Code",
+    "selectClient": "Select Client",
+    "token": {
+      "title": "Token",
+      "info": "Select to which token you want to add the new Client. Note: the token must be in Log-in state.",
+      "tokenName": "Token name"
+    },
+    "signKey": {
+      "title": "Sign Key",
+      "info": "You can define a label for the newly created Key (not mandatory)",
+      "keyLabel": "Key Label"
+    }
   },
   "login": {
     "logIn": "Log in",
