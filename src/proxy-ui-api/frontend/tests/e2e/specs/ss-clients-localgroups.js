@@ -29,7 +29,6 @@ module.exports = {
     browser.waitForElementVisible(clientLocalGroups);
     // Verify default sorting
     browser
-      .useXpath()
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[2]//span[contains(text(),"1122")]')
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[3]//span[contains(text(),"1212")]')
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[4]//span[contains(text(),"2233")]')
@@ -40,7 +39,6 @@ module.exports = {
     // Change filtering and verify
     clientLocalGroups.filterBy('bb');
     browser
-      .useXpath()
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[2]//span[contains(text(),"1212")]')
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[3]//span[contains(text(),"abb")]')
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[4]//span[contains(text(),"cbb")]')
@@ -48,7 +46,6 @@ module.exports = {
     // Change filtering and verify
     clientLocalGroups.filterBy('Desc');
     browser
-      .useXpath()
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[2]//span[contains(text(),"1122")]')
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[3]//span[contains(text(),"bac")]');
 
@@ -142,6 +139,224 @@ module.exports = {
       .waitForElementNotPresent('(//table[contains(@class, "details-certificates")]/tr)[9]');;
 
     browser.end();
+
+  },
+  'Security server add local group member': browser => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientLocalGroups = clientInfo.section.localGroups;
+    const localGroupPopup = mainPage.section.localGroupPopup;
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword(browser.globals.login_pwd)
+      .signin();
+
+    // Open TestGov Internal Servers and local group details view
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openLocalGroupsTab();
+    browser.waitForElementVisible(clientLocalGroups);
+    clientLocalGroups.openAbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+
+    // Add new member to local group
+    localGroupPopup.openAddMembers();
+    localGroupPopup.searchMembers();
+    localGroupPopup.selectNewTestComMember();
+    localGroupPopup.cancelAddMembersDialog();
+
+    //localGroupPopup.addSelectedMembers();
+    browser.waitForElementNotVisible('//span[contains(@class, "headline") and contains(text(), "Add Members")]');
+    browser.waitForElementVisible(localGroupPopup);
+    browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]')
+
+    localGroupPopup.openAddMembers();
+    localGroupPopup.searchMembers();
+    localGroupPopup.selectNewTestComMember();
+    localGroupPopup.addSelectedMembers();
+
+    browser.waitForElementNotVisible('//span[contains(@class, "headline") and contains(text(), "Add Members")]');
+    browser.waitForElementVisible(localGroupPopup);
+    browser.assert.elementPresent('//*[contains(text(),"TestCom")]')
+
+    browser.end();
+
+  },
+  'Security server delete local group members': browser => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientLocalGroups = clientInfo.section.localGroups;
+    const localGroupPopup = mainPage.section.localGroupPopup;
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword(browser.globals.login_pwd)
+      .signin();
+
+    // Open TestGov Internal Servers and local group details view
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openLocalGroupsTab();
+    browser.waitForElementVisible(clientLocalGroups);
+    clientLocalGroups.openBacDetails();
+    browser.waitForElementVisible(localGroupPopup);
+
+
+    // Remove single 
+    localGroupPopup.clickRemoveTestComMember();
+    localGroupPopup.cancelMemberRemove();
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove member?")]');
+    browser.assert.elementPresent('//*[contains(text(),"TestCom")]');
+
+    localGroupPopup.clickRemoveTestComMember();
+    localGroupPopup.confirmMemberRemove();
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove member?")]');
+    browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]');
+    localGroupPopup.close();
+
+    // Remove All
+
+    clientLocalGroups.openBacDetails();
+    browser.waitForElementVisible(localGroupPopup);
+    browser.assert.elementPresent('//*[contains(text(),"TestGov")]');
+    browser.assert.elementPresent('//*[contains(text(),"TestOrg")]');
+
+    localGroupPopup.clickRemoveAll();
+    localGroupPopup.cancelMemberRemove();
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]');
+    browser.assert.elementPresent('//*[contains(text(),"TestGov")]');
+    browser.assert.elementPresent('//*[contains(text(),"TestOrg")]');
+
+
+    localGroupPopup.clickRemoveAll();
+    localGroupPopup.confirmMemberRemove();
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]');
+    browser.assert.not.elementPresent('//*[contains(text(),"TestGov")]');
+    browser.assert.not.elementPresent('//*[contains(text(),"TestOrg")]');
+
+    browser.end();
+
+  },
+  'Security server edit local group': browser => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientLocalGroups = clientInfo.section.localGroups;
+    const localGroupPopup = mainPage.section.localGroupPopup;
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword(browser.globals.login_pwd)
+      .signin();
+
+    // Open TestGov Internal Servers and local group details view
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openLocalGroupsTab();
+    browser.waitForElementVisible(clientLocalGroups);
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+
+    // Change description
+    localGroupPopup.changeDescription('');
+    localGroupPopup.clickHeader();
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');
+    mainPage.closeSnackbar();
+    localGroupPopup.close();
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]')
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,256));
+    localGroupPopup.clickHeader();
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');;
+    localGroupPopup.close();
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]')
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.changeDescription('GroupChanged');
+    localGroupPopup.clickHeader();
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
+    localGroupPopup.close();
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "GroupChanged")]]')
+    browser.end();
+
+  },
+  'Security server delete local group': browser => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientLocalGroups = clientInfo.section.localGroups;
+    const localGroupPopup = mainPage.section.localGroupPopup;
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword(browser.globals.login_pwd)
+      .signin();
+
+    // Open TestGov Internal Servers and local group details view
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openLocalGroupsTab();
+    browser.waitForElementVisible(clientLocalGroups);
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+
+    // Delete and cancel
+    localGroupPopup.deleteThisGroup();
+    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
+    localGroupPopup.cancelMemberRemove();
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');   
+    localGroupPopup.close();
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
+
+    // Delete and confirm
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+
+    localGroupPopup.deleteThisGroup();
+    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
+    localGroupPopup.confirmMemberRemove();  
+    browser.waitForElementVisible(clientLocalGroups); 
+
 
   }
 };
