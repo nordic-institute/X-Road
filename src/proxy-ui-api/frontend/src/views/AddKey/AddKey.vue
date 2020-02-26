@@ -4,43 +4,25 @@
     <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.clientDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('wizard.token.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.csrDetails')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('wizard.signKey.title')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 4" step="4">{{$t('csr.csrDetails')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('csr.generateCsr')}}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <ClientDetailsPage @cancel="cancel" @done="clientDetailsReady" />
+          <WizardPageKeyLabel @cancel="cancel" @done="currentStep = 2" />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <TokenPage @cancel="cancel" @done="tokenReady" />
+          <WizardPageCsrDetails @cancel="cancel" @done="save" />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content step="3">
-          <SignKeyPage @cancel="cancel" @done="signKeyReady" />
-        </v-stepper-content>
-        <!-- Step 4 -->
-        <v-stepper-content step="4">
-          <WizardPageCsrDetails @cancel="cancel" @done="csrDetailsReady" />
-        </v-stepper-content>
-        <!-- Step 5 -->
-        <v-stepper-content step="5">
-          <WizardPageGenerateCsr @cancel="cancel" @done="generatecsrReady" />
-        </v-stepper-content>
-        <!-- Step 6 -->
-        <v-stepper-content step="6">
-          <FinishPage @cancel="cancel" @done="done" />
+          <WizardPageGenerateCsr @cancel="cancel" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -53,10 +35,7 @@ import { mapGetters } from 'vuex';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import ClientDetailsPage from './ClientDetailsPage.vue';
-import TokenPage from './TokenPage.vue';
-import SignKeyPage from './SignKeyPage.vue';
-import FinishPage from './FinishPage.vue';
+import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 
@@ -69,14 +48,16 @@ export default Vue.extend({
     HelpIcon,
     LargeButton,
     SubViewTitle,
-    ClientDetailsPage,
-    TokenPage,
-    SignKeyPage,
-    FinishPage,
+    WizardPageKeyLabel,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
   },
-  props: {},
+  props: {
+    tokenId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       currentStep: 1,
@@ -89,7 +70,7 @@ export default Vue.extend({
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
         (response) => {
-          this.currentStep = 2;
+          this.currentStep = 3;
         },
         (error) => {
           this.$bus.$emit('show-error', error.message);
@@ -98,47 +79,11 @@ export default Vue.extend({
     },
     cancel(): void {
       this.$store.dispatch('resetState');
-      this.$store.dispatch('resetAddClientState');
-      this.$router.replace({ name: RouteName.Clients });
+      this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
-
-    clientDetailsReady(): void {
-      this.currentStep = 2;
-    },
-
-    tokenReady(): void {
-      this.currentStep = 3;
-
-      this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
-      });
-
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
-      });
-    },
-
-    signKeyReady(): void {
-      this.currentStep = 4;
-    },
-    csrDetailsReady(): void {
-      this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
-          this.currentStep = 5;
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
-    },
-    generatecsrReady(): void {
-      this.currentStep = 6;
-    },
-
     done(): void {
       this.$store.dispatch('resetState');
-      this.$store.dispatch('resetAddClientState');
-      this.$router.replace({ name: RouteName.Clients });
+      this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
 
     fetchKeyData(id: string): void {
@@ -160,13 +105,9 @@ export default Vue.extend({
     },
   },
   created() {
-    this.$store.dispatch('setupSignKey');
-    /*
-    this.$store.commit('storeKeyId', this.keyId);
-    this.fetchKeyData(this.keyId);
+    this.$store.dispatch('setCsrTokenId', this.tokenId);
     this.fetchLocalMembers();
     this.fetchCertificateAuthorities();
-    */
   },
 });
 </script>

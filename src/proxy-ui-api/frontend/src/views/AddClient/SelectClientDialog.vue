@@ -1,0 +1,112 @@
+<template>
+  <v-dialog :value="dialog" width="750" scrollable persistent>
+    <v-card class="xrd-card">
+      <v-card-title>
+        <span class="headline">{{$t("title")}}</span>
+        <v-spacer />
+        <i @click="cancel()" id="close-x"></i>
+      </v-card-title>
+
+      <v-card-text style="height: 500px;" class="elevation-0">
+        <!-- Table -->
+        <v-radio-group v-model="selectedMember">
+          <table class="xrd-table members-table fixed_header">
+            <thead>
+              <tr>
+                <th class="checkbox-column"></th>
+                <th>{{$t('name')}}</th>
+                <th>{{$t('localGroup.id')}}</th>
+              </tr>
+            </thead>
+            <tbody v-if="members && members.length > 0">
+              <tr v-for="member in members" v-bind:key="member.id">
+                <td class="checkbox-column">
+                  <div class="checkbox-wrap">
+                    <!-- <v-checkbox @change="checkboxChange(member.id, $event)" color="primary"></v-checkbox>  -->
+
+                    <v-radio :key="member.id" :value="member"></v-radio>
+                  </div>
+                </td>
+
+                <td>{{member.member_name}}</td>
+                <td>{{member.id}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </v-radio-group>
+        <div v-if="members.length < 1 && !noResults" class="empty-row"></div>
+
+        <div v-if="noResults" class="empty-row">
+          <p>{{$t('localGroup.noResults')}}</p>
+        </div>
+      </v-card-text>
+      <v-card-actions class="xrd-card-actions">
+        <v-spacer></v-spacer>
+
+        <large-button class="button-margin" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+
+        <large-button :disabled="!canSave" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script lang="ts">
+import Vue from 'vue';
+import { mapGetters } from 'vuex';
+import LargeButton from '@/components/ui/LargeButton.vue';
+
+export default Vue.extend({
+  components: {
+    LargeButton,
+  },
+  props: {
+    dialog: {
+      type: Boolean,
+      required: true,
+    },
+  },
+
+  data() {
+    return {
+      search: undefined,
+      selectedMember: undefined,
+    };
+  },
+  computed: {
+    ...mapGetters(['members', 'memberClasses']),
+    canSave(): boolean {
+      if (this.selectedMember) {
+        return true;
+      }
+      return false;
+    },
+  },
+
+  methods: {
+    cancel(): void {
+      this.clearForm();
+      this.$emit('cancel');
+    },
+    save(): void {
+      this.$store.dispatch('setSelectedMember', this.selectedMember);
+      this.cancel();
+    },
+
+    clearForm(): void {
+      // Reset initial state
+      this.selectedMember = undefined;
+    },
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+@import '../../assets/tables';
+@import '../../assets/add-dialogs';
+
+.checkbox-column {
+  width: 50px;
+}
+</style>
+
