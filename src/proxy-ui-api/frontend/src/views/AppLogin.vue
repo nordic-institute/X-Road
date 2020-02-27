@@ -188,10 +188,7 @@ export default (Vue as VueConstructor<
     async fetchSecurityServerVersion() {
       this.$store
         .dispatch('fetchSecurityServerVersion')
-        .catch((error) => {
-          console.error(error);
-          this.$bus.$emit('show-error', error.message);
-        });
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
   },
 });
