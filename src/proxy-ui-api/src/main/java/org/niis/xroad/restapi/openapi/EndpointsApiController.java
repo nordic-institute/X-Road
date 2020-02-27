@@ -36,6 +36,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
+
 /**
  * Endpoints api
  */
@@ -61,20 +63,22 @@ public class EndpointsApiController implements EndpointsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT')")
     public ResponseEntity<Endpoint> getEndpoint(String id) {
+        Long endpointId = parseLongIdOrThrowNotFound(id);
         Endpoint endpoint;
         try {
-            endpoint = endpointConverter.convert(endpointService.getEndpoint(id));
+            endpoint = endpointConverter.convert(endpointService.getEndpoint(endpointId));
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         }
-        return new ResponseEntity(endpoint, HttpStatus.ACCEPTED);
+        return new ResponseEntity(endpoint, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
     public ResponseEntity<Void> deleteEndpoint(String id) {
+        Long endpointId = parseLongIdOrThrowNotFound(id);
         try {
-            endpointService.deleteEndpoint(id);
+            endpointService.deleteEndpoint(endpointId);
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
@@ -86,16 +90,17 @@ public class EndpointsApiController implements EndpointsApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3_ENDPOINT')")
     public ResponseEntity<Endpoint> updateEndpoint(String id, Endpoint endpoint) {
+        Long endpointId = parseLongIdOrThrowNotFound(id);
         Endpoint ep;
         try {
-            ep = endpointConverter.convert(endpointService.updateEndpoint(id, endpoint));
+            ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId, endpoint));
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
-            throw new ConflictException("Updating is not allowed for generated endpoint " + id);
+            throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
         }
 
-        return new ResponseEntity<>(ep, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(ep, HttpStatus.OK);
     }
 
 }

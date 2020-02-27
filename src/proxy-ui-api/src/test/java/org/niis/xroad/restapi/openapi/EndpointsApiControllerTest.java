@@ -60,7 +60,7 @@ public class EndpointsApiControllerTest {
     public void getEndpoint() {
         Endpoint endpoint = endpointsApiController.getEndpoint("12").getBody();
         assertTrue(endpoint.getId().equals("12"));
-        assertTrue(endpoint.getMethod().equals("PUT"));
+        assertTrue(endpoint.getMethod().equals(Endpoint.MethodEnum.PUT));
         assertTrue(endpoint.getPath().equals("/foo"));
     }
 
@@ -80,13 +80,13 @@ public class EndpointsApiControllerTest {
         assertTrue(client.getAcl().size() < aclCount);
     }
 
-    @Test(expected = ConflictException.class)
+    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
         Endpoint endpointUpdate = new Endpoint();
         endpointUpdate.setId("10");
         endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod("*");
+        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
         endpointUpdate.setPath("/test");
         endpointUpdate.setGenerated(false);
         endpointsApiController.updateEndpoint("10", endpointUpdate);
@@ -98,7 +98,7 @@ public class EndpointsApiControllerTest {
         Endpoint endpointUpdate = new Endpoint();
         endpointUpdate.setId("12");
         endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod("*");
+        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
         endpointUpdate.setPath("/test");
         endpointUpdate.setGenerated(false);
         endpointsApiController.updateEndpoint("12", endpointUpdate);

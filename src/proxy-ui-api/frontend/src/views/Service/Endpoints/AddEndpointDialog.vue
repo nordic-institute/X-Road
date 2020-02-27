@@ -12,7 +12,7 @@
 
         <div class="dlg-edit-row">
           <div class="dlg-row-title long-row-title">{{$t('endpoints.httpRequestMethod')}}</div>
-            <v-select data-test="endpoint-method" v-model="method" :items="methods" />
+          <v-select class="ml-2" data-test="endpoint-method" v-model="method" :items="methods" />
         </div>
 
         <div class="dlg-edit-row">
@@ -21,9 +21,10 @@
             rules="required"
             ref="path"
             name="path"
-            class="validation-provider dlg-row-input"
+            class="validation-provider"
             v-slot="{ errors }">
             <v-text-field
+              class="ml-2"
               v-model="path"
               single-line
               :error-messages="errors"
@@ -34,12 +35,12 @@
         </div>
 
         <div class="dlg-edit-row">
-          <div class="dlg-row-title long-row-title"></div>
+          <div class="dlg-row-title long-row-title ml-2"></div>
           <div>
-            <div>{{$t('endpoints.endpoint_help_1')}}</div>
-            <div>{{$t('endpoints.endpoint_help_2')}}</div>
-            <div>{{$t('endpoints.endpoint_help_3')}}</div>
-            <div>{{$t('endpoints.endpoint_help_4')}}</div>
+            <div>{{$t('endpoints.endpointHelp1')}}</div>
+            <div>{{$t('endpoints.endpointHelp2')}}</div>
+            <div>{{$t('endpoints.endpointHelp3')}}</div>
+            <div>{{$t('endpoints.endpointHelp4')}}</div>
           </div>
         </div>
 
@@ -110,10 +111,6 @@
 
 .long-row-title {
   min-width: 170px !important;
-}
-
-.dlg-row-input {
-  margin-left: 0px !important;
 }
 
 </style>

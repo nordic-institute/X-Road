@@ -272,7 +272,7 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id, clientId: this.id },
-        query: { descriptionType: serviceDescription.type }
+        query: { descriptionType: serviceDescription.type },
       });
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {

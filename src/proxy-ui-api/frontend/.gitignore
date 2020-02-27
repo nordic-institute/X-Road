@@ -22,3 +22,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
+scripts/dtsgen-wrapper.js

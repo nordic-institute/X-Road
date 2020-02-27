@@ -228,12 +228,12 @@ public class ServicesApiController implements ServicesApi {
         Endpoint ep;
         try {
             ep = endpointConverter.convert(serviceService.addEndpoint(serviceType,
-                    endpoint.getMethod(), endpoint.getPath()));
+                    endpoint.getMethod().toString(), endpoint.getPath()));
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
             throw new BadRequestException(e);
         }
-        return new ResponseEntity<>(ep, HttpStatus.CREATED);
+        return ApiUtil.createCreatedResponse("/api/endpoints/{id}", ep, ep.getId());
     }
 }

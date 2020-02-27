@@ -37,7 +37,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
-import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
 
 @Service
 @Transactional
@@ -60,12 +59,11 @@ public class EndpointService {
      * @return
      * @throws EndpointNotFoundException    endpoint not found with given id
      */
-    public EndpointType getEndpoint(String id) throws EndpointNotFoundException {
+    public EndpointType getEndpoint(Long id) throws EndpointNotFoundException {
         verifyAuthority("VIEW_ENDPOINT");
-        Long endpointId = parseLongIdOrThrowNotFound(id);
-        EndpointType endpoint = endpointRepository.getEndpoint(endpointId);
+        EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
-            throw new EndpointNotFoundException(endpointId.toString());
+            throw new EndpointNotFoundException(id.toString());
         }
         return endpoint;
     }
@@ -77,15 +75,15 @@ public class EndpointService {
      * @throws EndpointNotFoundException    endpoint not found with given id
      * @throws ClientNotFoundException      client for the endpoint not found
      */
-    public void deleteEndpoint(String id) throws EndpointNotFoundException, ClientNotFoundException {
+    public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException {
         verifyAuthority("DELETE_ENDPOINT");
-        Long endpointId = parseLongIdOrThrowNotFound(id);
-        ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
+
+        ClientType clientType = clientRepository.getClientByEndpointId(id);
         if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
         }
-        clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(Long.valueOf(endpointId)));
-        clientType.getEndpoint().removeIf(endpoint -> endpoint.getId().equals(endpointId));
+        clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(id));
+        clientType.getEndpoint().removeIf(endpoint -> endpoint.getId().equals(id));
         clientRepository.saveOrUpdate(clientType);
     }
 
@@ -98,22 +96,21 @@ public class EndpointService {
      * @throws EndpointNotFoundException                endpoint not found with given id
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
      */
-    public EndpointType updateEndpoint(String id, Endpoint endpointUpdate)
+    public EndpointType updateEndpoint(Long id, Endpoint endpointUpdate)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
         verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
-        Long endpointId = parseLongIdOrThrowNotFound(id);
 
-        EndpointType endpoint = endpointRepository.getEndpoint(endpointId);
+        EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
-            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
+            throw new EndpointService.EndpointNotFoundException(id.toString());
         }
 
         if (endpoint.isGenerated()) {
-            throw new IllegalGeneratedEndpointUpdateException(endpointId.toString());
+            throw new IllegalGeneratedEndpointUpdateException(id.toString());
         }
 
         endpoint.setServiceCode(endpointUpdate.getServiceCode());
-        endpoint.setMethod(endpointUpdate.getMethod());
+        endpoint.setMethod(endpointUpdate.getMethod().toString());
         endpoint.setPath(endpointUpdate.getPath());
 
         endpointRepository.saveOrUpdate(endpoint);

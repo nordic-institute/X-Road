@@ -40,7 +40,7 @@ public class EndpointConverter {
 
         endpoint.setId(String.valueOf(endpointType.getId()));
         endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(endpointType.getMethod());
+        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
         endpoint.setPath(endpointType.getPath());
         endpoint.setGenerated(endpointType.isGenerated());
         return endpoint;

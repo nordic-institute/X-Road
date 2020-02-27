@@ -45,10 +45,10 @@
       <div class="dlg-edit-row helper-text">
         <div class="dlg-row-title long-row-title"></div>
         <div>
-          <div>{{$t('endpoints.endpoint_help_1')}}</div>
-          <div>{{$t('endpoints.endpoint_help_2')}}</div>
-          <div>{{$t('endpoints.endpoint_help_3')}}</div>
-          <div>{{$t('endpoints.endpoint_help_4')}}</div>
+          <div>{{$t('endpoints.endpointHelp1')}}</div>
+          <div>{{$t('endpoints.endpointHelp2')}}</div>
+          <div>{{$t('endpoints.endpointHelp3')}}</div>
+          <div>{{$t('endpoints.endpointHelp4')}}</div>
         </div>
       </div>
 
@@ -58,7 +58,7 @@
           <large-button
             class="save-button"
             :loading="saveBusy"
-            @click="save()"
+            @click="saveEndpoint()"
             :disabled="!touched || invalid"
           >{{$t('action.save')}}
           </large-button>
@@ -143,6 +143,17 @@
           .catch((error) => {
             this.$bus.$emit('show-error', error.message);
             this.confirmDelete = false;
+          });
+      },
+      saveEndpoint(): void {
+        api
+          .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
+          .then( () => {
+            this.$bus.$emit('show-success', 'endpoints.editSuccess');
+            this.$router.go(-1);
+          })
+          .catch( (error) => {
+            this.$bus.$emit('show-error', error.message);
           });
       },
       fetchData(id: string): void {
