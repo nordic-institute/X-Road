@@ -84,9 +84,7 @@ public class BackupsService {
     public List<BackupFile> getBackupFiles() {
         List<File> files = backupsRepository.getBackupFiles();
         List<BackupFile> backupFiles = new ArrayList<>();
-        files.stream().forEach(b -> {
-            backupFiles.add(new BackupFile(b.getName()));
-        });
+        files.stream().forEach(b -> backupFiles.add(new BackupFile(b.getName())));
         setCreatedAt(backupFiles);
         return backupFiles;
     }
@@ -165,9 +163,7 @@ public class BackupsService {
      * @param backupFiles
      */
     private void setCreatedAt(List<BackupFile> backupFiles) {
-        backupFiles.stream().forEach(b -> {
-            b.setCreatedAt(backupsRepository.getCreatedAt(b.getFilename()));
-        });
+        backupFiles.stream().forEach(b -> b.setCreatedAt(backupsRepository.getCreatedAt(b.getFilename())));
     }
 
     /**
