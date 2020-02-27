@@ -9,6 +9,8 @@ RUN apt-get -qq update \
 && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
 && adduser --quiet --system --uid 999 --home /var/lib/xroad --no-create-home --shell /bin/bash --group xroad \
 && adduser xroad sudo \
+&& useradd -m xrd -s /usr/sbin/nologin -p '$6$JeOzaeWnLAQSUVuO$GOJ0wUKSVQnOR4I2JgZxdKr.kMO.YGS21SGaAshaYhayv8kSV9WuIFCZHTGAX8WRRTB/2ojuLnJg4kMoyzpcu1' \
+&& echo "xroad-proxy xroad-common/username string xrd" | debconf-set-selections \
 && apt-get -qq install postgresql postgresql-contrib \
 && apt-get -qq clean
 
