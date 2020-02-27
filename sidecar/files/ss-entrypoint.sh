@@ -33,7 +33,7 @@ else
 fi
 
 # Set xroad-autologin software token PIN code
-if [  -n "$XROAD_TOKEN_PIN" ]
+if [[ ! -f /etc/xroad/autologin && -n "$XROAD_TOKEN_PIN" ]]
 then
     echo "XROAD_TOKEN_PIN variable set, writing to /etc/xroad/autologin"
     su xroad -c 'echo $XROAD_TOKEN_PIN >/etc/xroad/autologin'
@@ -41,44 +41,47 @@ then
 fi
 
 # Configure admin user with user-supplied username and password
-echo "Creating admin user with user-supplied credentials"
-useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
-echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
-echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
+user_exists=$(id -u ${XROAD_ADMIN_USER} > /dev/null 2>&1)
+if [ $? != 0 ]
+then
+    echo "Creating admin user with user-supplied credentials"
+    useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
+    echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
+    echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
 
-echo "Configuring groups"
-usergroups=" $(id -Gn "${XROAD_ADMIN_USER}") "
+    echo "Configuring groups"
+    usergroups=" $(id -Gn "${XROAD_ADMIN_USER}") "
 
-for groupname in ${GROUPNAMES}; do
-    if ! getent group "$groupname" > /dev/null; then
-        echo "$groupname"
-        groupadd --system "$groupname" || true
-    fi
-    if [[ $usergroups != *" $groupname "* ]]; then
-        echo "$groupname"
-        usermod -a -G "$groupname" "${XROAD_ADMIN_USER}" || true
-    fi
-done
+    for groupname in ${GROUPNAMES}; do
+        if [[ $usergroups != *" $groupname "* ]]; then
+            echo "$groupname"
+            usermod -a -G "$groupname" "${XROAD_ADMIN_USER}" || true
+        fi
+    done
+fi
 
 # Recreate serverconf database and properties file with user-supplied username and password
-echo "Creating serverconf database with user-supplied credentials"
-pg_ctlcluster 10 main start
-su - postgres -c "psql postgres -tAc \"CREATE ROLE ${XROAD_DB_USER} LOGIN PASSWORD '${XROAD_DB_PASSWD}';\""
-su - postgres -c "createdb ${DB_NAME} -O ${XROAD_DB_USER} -E UTF-8"
-su - postgres -c "psql ${DB_NAME} -tAc \"CREATE EXTENSION IF NOT EXISTS hstore\""
-cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${DB_URL}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${DB_NAME}-changelog.xml --password=${XROAD_DB_PASSWD} --username=${XROAD_DB_USER}  update || die "Connection to database has failed, please check database availability and configuration in ${DB_PROPERTIES} file"
-pg_ctlcluster 10 main stop
+if [ ! -f ${DB_PROPERTIES} ]
+then
+    echo "Creating serverconf database with user-supplied credentials"
+    pg_ctlcluster 10 main start
+    su - postgres -c "psql postgres -tAc \"CREATE ROLE ${XROAD_DB_USER} LOGIN PASSWORD '${XROAD_DB_PASSWD}';\""
+    su - postgres -c "createdb ${DB_NAME} -O ${XROAD_DB_USER} -E UTF-8"
+    su - postgres -c "psql ${DB_NAME} -tAc \"CREATE EXTENSION IF NOT EXISTS hstore\""
+    cd /usr/share/xroad/db/
+    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${DB_URL}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${DB_NAME}-changelog.xml --password=${XROAD_DB_PASSWD} --username=${XROAD_DB_USER}  update || die "Connection to database has failed, please check database availability and configuration in ${DB_PROPERTIES} file"
+    pg_ctlcluster 10 main stop
 
-touch $DB_PROPERTIES
-crudini --set $DB_PROPERTIES '' serverconf.hibernate.jdbc.use_streams_for_binary true
-crudini --set $DB_PROPERTIES '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-crudini --set $DB_PROPERTIES '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
-crudini --set $DB_PROPERTIES '' serverconf.hibernate.connection.url $DB_URL
-crudini --set $DB_PROPERTIES '' serverconf.hibernate.connection.username  $XROAD_DB_USER
-crudini --set $DB_PROPERTIES '' serverconf.hibernate.connection.password $XROAD_DB_PASSWD
-chown xroad:xroad $DB_PROPERTIES
-chmod 640 $DB_PROPERTIES
+    touch ${DB_PROPERTIES}
+    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.jdbc.use_streams_for_binary true
+    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
+    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.url ${DB_URL}
+    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.username  ${XROAD_DB_USER}
+    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.password ${XROAD_DB_PASSWD}
+    chown xroad:xroad ${DB_PROPERTIES}
+    chmod 640 ${DB_PROPERTIES}
+fi
 
 # Generate internal and admin UI TLS keys and certificates on the first run
 if [ ! -f /etc/xroad/ssl/internal.crt ];
