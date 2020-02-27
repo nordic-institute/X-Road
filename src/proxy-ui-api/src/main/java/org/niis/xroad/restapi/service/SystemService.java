@@ -135,18 +135,6 @@ public class SystemService {
         configuredTimestampingServices.remove(delete.get());
     }
 
-    /**
-     * Thrown when attempt to add timestamping service that is already configured
-     */
-    public static class DuplicateConfiguredTimestampingServiceException extends ServiceException {
-        public static final String ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE
-                = "timestamping_service_already_configured";
-
-        public DuplicateConfiguredTimestampingServiceException(String s) {
-            super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
-        }
-    }
-
     private String getExceptionMessage(String name, String url, String message) {
         StringBuilder sb = new StringBuilder();
         sb.append("Timestamping service with name ").append(name).append(" and url ").append(url);
@@ -158,7 +146,9 @@ public class SystemService {
      * Generate internal auth cert CSR
      * @param distinguishedName
      * @return
-     * @throws InvalidDistinguishedNameException
+     * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to
+     * <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
+     * <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
      */
     public byte[] generateInternalCsr(String distinguishedName) throws InvalidDistinguishedNameException {
         byte[] csrBytes = null;
@@ -171,5 +161,17 @@ public class SystemService {
             throw new DeviationAwareRuntimeException(e);
         }
         return csrBytes;
+    }
+
+    /**
+     * Thrown when attempt to add timestamping service that is already configured
+     */
+    public static class DuplicateConfiguredTimestampingServiceException extends ServiceException {
+        public static final String ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE
+                = "timestamping_service_already_configured";
+
+        public DuplicateConfiguredTimestampingServiceException(String s) {
+            super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
+        }
     }
 }
