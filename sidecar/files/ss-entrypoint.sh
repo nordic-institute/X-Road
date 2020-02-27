@@ -4,6 +4,7 @@ XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
 DB_URL=jdbc:postgresql://127.0.0.1:5432/serverconf
 DB_NAME=serverconf
+GROUPNAMES="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
@@ -44,6 +45,20 @@ echo "Creating admin user with user-supplied credentials"
 useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
 echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
 echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
+
+echo "Configuring groups"
+usergroups=" $(id -Gn "${XROAD_ADMIN_USER}") "
+
+for groupname in ${GROUPNAMES}; do
+    if ! getent group "$groupname" > /dev/null; then
+        echo "$groupname"
+        groupadd --system "$groupname" || true
+    fi
+    if [[ $usergroups != *" $groupname "* ]]; then
+        echo "$groupname"
+        usermod -a -G "$groupname" "${XROAD_ADMIN_USER}" || true
+    fi
+done
 
 # Recreate serverconf database and properties file with user-supplied username and password
 echo "Creating serverconf database with user-supplied credentials"

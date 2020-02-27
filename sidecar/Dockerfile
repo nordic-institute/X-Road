@@ -33,6 +33,7 @@ RUN pg_ctlcluster 10 main start \
 && apt-get -qq clean \
 && pg_ctlcluster 10 main stop \
 && nginx -s stop \
+&& userdel -r xrd \
 && rm -f /var/run/nginx.pid \
 && rm -f /etc/xroad/db.properties \
 && rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
