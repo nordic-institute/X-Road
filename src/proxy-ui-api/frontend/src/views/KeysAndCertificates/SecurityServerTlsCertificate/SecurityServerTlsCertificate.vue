@@ -17,6 +17,9 @@
         v-if="exportCertificateVisible"
         class="button-spacing"
         outlined
+        :loading="exportPending"
+        @click="exportCertificate()"
+        data-test="security-server-tls-certificate-export-certificate-button"
       >{{$t('ssTlsCertificate.exportCertificate')}}</large-button>
     </div>
 
@@ -76,6 +79,7 @@ export default Vue.extend({
     return {
       certificate: undefined as CertificateDetails | undefined,
       generateDialog: false,
+      exportPending: false,
     };
   },
   computed: {
@@ -122,6 +126,22 @@ export default Vue.extend({
     newCertificateGenerated(): void {
       this.fetchData();
       this.generateDialog = false;
+    },
+    exportCertificate(): void {
+      this.exportPending = true;
+      api
+        .get('/system/certificate/export', {responseType: 'blob'})
+        .then((res) => {
+          const tempLink = document.createElement('a');
+          tempLink.href = window.URL.createObjectURL(new Blob([res.data]));
+          tempLink.setAttribute('download', 'certs.tar.gz');
+          tempLink.setAttribute('data-test', 'security-server-tls-certificate-export-certificate-link');
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink); // cleanup
+        })
+        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .finally(() => this.exportPending = false);
     },
   },
   created() {
