@@ -36,10 +36,12 @@ import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
+import org.niis.xroad.restapi.service.InvalidCertificateException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.VersionService;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -167,5 +169,19 @@ public class SystemApiController implements SystemApi {
             throw new BadRequestException(e);
         }
         return ApiUtil.createAttachmentResourceResponse(csrBytes, csrFilenameCreator.createInternalCsrFilename());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('IMPORT_PROXY_INTERNAL_CERT')")
+    public ResponseEntity<CertificateDetails> importSystemCertificate(Resource certificateResource) {
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = internalTlsCertificateService.importInternalTlsCertificate(certificateBytes);
+        } catch (InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        }
+        CertificateDetails certificateDetails = certificateDetailsConverter.convert(x509Certificate);
+        return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
     }
 }
