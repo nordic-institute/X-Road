@@ -171,7 +171,19 @@
   "endpoints": {
     "addEndpoint": "Add Endpoint",
     "path": "Path",
-    "httpRequestMethod": "HTTP Request Method"
+    "httpRequestMethod": "HTTP Request Method",
+    "endpointHelp1": "Paths is relative to the API base path, e.g. '/pets'. The asterisk (*) can be used as a wildcard",
+    "endpointHelp2": "* = match one path segment.",
+    "endpointHelp3": "** = match zero or more segments, e.g. '/pets/**'.",
+    "endpointHelp4": "Path parameters must be replaced with an asterisk, e.g. '/pets/{id}/images' => '/pets/*/images'.",
+    "saveNewEndpointError": "Error saving new endpoint",
+    "saveNewEndpointSuccess": "New endpoint created successfully",
+    "all": "ALL",
+    "deleteSuccess": "Endpoint removed successfully",
+    "details": "Endpoint details",
+    "deleteTitle": "Delete endpoint",
+    "deleteEndpointText": "Are you sure that you want to delete this endpoint",
+    "editSuccess": "Changes to endpoint saved successfully"
   },
   "access": {
     "accessRights": "Access Rights",
@@ -350,6 +362,7 @@
     "url": "URL",
     "tokenPin": "Token PIN",
     "dns": "DNS",
+    "path": "path",
     "keys": {
       "friendlyName": "Friendly name"
     }

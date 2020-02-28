@@ -58,6 +58,7 @@ public final class TestUtils {
     public static final String SS1_GET_RANDOM_V1 = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
+    public static final String SS6_OPENAPI_TEST = "FI:GOV:M2:SS6:openapi3-test.v1";
     public static final String URL_HTTPS = "https://foo.bar";
     public static final String URL_HTTP = "http://foo.bar";
     public static final String INSTANCE_FI = "FI";
@@ -74,6 +75,8 @@ public final class TestUtils {
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";
     public static final String CLIENT_ID_SS4 = "FI:GOV:M1:SS4";
+    public static final String CLIENT_ID_SS5 = "FI:GOV:M1:SS5";
+    public static final String CLIENT_ID_SS6 = "FI:GOV:M1:SS6";
     public static final String NEW_GROUPCODE = "NEW_GROUPCODE";
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NEW_GROUP_DESC = "NEW_GROUP_DESC";

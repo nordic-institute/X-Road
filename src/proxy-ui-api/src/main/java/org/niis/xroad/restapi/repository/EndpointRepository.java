@@ -22,32 +22,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.repository;
 
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+@Slf4j
+@Repository
+@Transactional
+public class EndpointRepository {
 
-@Component
-public class EndpointConverter {
+    private final PersistenceUtils persistenceUtils;
 
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
-
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    public EndpointRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
     }
 
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
+    /**
+     * Get Endpoint by id
+     *
+     * @param id
+     * @return
+     */
+    public EndpointType getEndpoint(Long id) {
+        return this.persistenceUtils.getCurrentSession().get(EndpointType.class, id);
     }
+
+    /**
+     * Executes a Hibernate saveOrUpdate({@Link EndpointType})
+     *
+     * @param endpointType
+     */
+    public void saveOrUpdate(EndpointType endpointType) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(endpointType);
+    }
+
 
 }
