@@ -244,6 +244,12 @@ export interface Client {
    * ABC
    */
   subsystem_code: string; // text
+  /**
+   * if this client is the owner member of this security server
+   * example:
+   * false
+   */
+  readonly owner?: boolean;
   connection_type?: ConnectionType; // enum
   status?: ClientStatus; // enum
 }
@@ -395,7 +401,7 @@ export interface Endpoint {
    * example:
    * 15
    */
-  id: string;
+  id?: string;
   /**
    * example:
    * example_service_code
@@ -418,7 +424,7 @@ export interface Endpoint {
    * example:
    * true
    */
-  generated?: boolean;
+  readonly generated?: boolean;
 }
 /**
  * object returned in error cases
@@ -985,19 +991,36 @@ export interface TimestampingService {
    * http://dev.xroad.rocks:123
    */
   url: string; // url
+}
+/**
+ * timestamping services
+ */
+export interface TimestampingServiceDiagnostics {
+  /**
+   * name of the time stamping service
+   * example:
+   * X-Road Test TSA CN
+   */
+  readonly name: string; // text
+  /**
+   * url of the time stamping service
+   * example:
+   * http://dev.xroad.rocks:123
+   */
+  readonly url: string; // url
   /**
    * last time updated
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  updated_at: string; // date-time
+  readonly updated_at: string; // date-time
   /**
    * timestamping service message
    * example:
    * ok
    */
-  message: string; // text
-  status: TimestampingStatus; // enum
+  readonly message: string; // text
+  readonly status: TimestampingStatus; // enum
 }
 /**
  * timestamping status

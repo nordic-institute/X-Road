@@ -35,8 +35,9 @@ configure() {
   root_properties=/etc/xroad.properties
 
   RET=
-  db_get xroad-common/database-host
-  db_host="$RET"
+  db_get xroad-common/database-host || true
+  db_host="${RET:-127.0.0.1:5432}"
+  db_stop
   db_url=jdbc:postgresql://${db_host}/${db_name}
   db_addr=${db_host%%:*}
   db_port=${db_host##*:}

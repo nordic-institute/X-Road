@@ -28,6 +28,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <app-footer/>
   </div>
 </template>
 
@@ -37,9 +38,11 @@ import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import Toolbar from '../components/layout/AppToolbar.vue';
+import AppFooter from '@/components/layout/AppFooter.vue';
 export default Vue.extend({
   components: {
     Toolbar,
+    AppFooter,
   },
   data() {
     return {

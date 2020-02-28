@@ -108,7 +108,7 @@ class ServerProxyHandler extends HandlerBase {
 
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
-            opMonitoringData.setSoapFault(cex);
+            opMonitoringData.setFaultCodeAndString(cex);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             failure(request, response, cex);
