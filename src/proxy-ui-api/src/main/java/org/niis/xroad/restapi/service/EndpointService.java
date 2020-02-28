@@ -71,19 +71,32 @@ public class EndpointService {
     /**
      * Delete endpoint
      *
-     * @param id                            endpoint id
-     * @throws EndpointNotFoundException    endpoint not found with given id
-     * @throws ClientNotFoundException      client for the endpoint not found
+     * @param id                                        endpoint id
+     * @throws EndpointNotFoundException                endpoint not found with given id
+     * @throws ClientNotFoundException                  client for the endpoint not found
+     * @throws IllegalGeneratedEndpointRemoveException  deleting generated endpoint is not allowed
      */
-    public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException {
+    public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException,
+            IllegalGeneratedEndpointRemoveException {
         verifyAuthority("DELETE_ENDPOINT");
 
+        EndpointType endpoint = endpointRepository.getEndpoint(id);
+
+        if (endpoint == null) {
+            throw new EndpointService.EndpointNotFoundException(id.toString());
+        }
+
+        if (endpoint.getId().equals(id) && endpoint.isGenerated()) {
+            throw new IllegalGeneratedEndpointRemoveException(id.toString());
+        }
+
         ClientType clientType = clientRepository.getClientByEndpointId(id);
+
         if (clientType == null) {
             throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
         }
         clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(id));
-        clientType.getEndpoint().removeIf(endpoint -> endpoint.getId().equals(id));
+        clientType.getEndpoint().removeIf(ep -> ep.getId().equals(id));
         clientRepository.saveOrUpdate(clientType);
     }
 
@@ -135,7 +148,16 @@ public class EndpointService {
         public IllegalGeneratedEndpointUpdateException(String id) {
             super(String.format(MESSAGE, id), new ErrorDeviation(ILLEGAL_GENERATED_ENDPOINT_UPDATE, id));
         }
+    }
 
+    public static class IllegalGeneratedEndpointRemoveException extends ServiceException {
+        public static final String ILLEGAL_GENERATED_ENDPOINT_REMOVE = "illegal_generated_endpoint_remove";
+
+        private static final String MESSAGE = "Removing generated endpoint is not allowed: %s";
+
+        public IllegalGeneratedEndpointRemoveException(String id) {
+            super(String.format(MESSAGE, id), new ErrorDeviation(ILLEGAL_GENERATED_ENDPOINT_REMOVE, id));
+        }
     }
 
 }

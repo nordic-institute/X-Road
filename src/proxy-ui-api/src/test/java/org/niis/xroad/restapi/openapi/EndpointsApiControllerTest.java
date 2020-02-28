@@ -70,6 +70,12 @@ public class EndpointsApiControllerTest {
         endpointsApiController.deleteEndpoint(NO_SUCH_ENDPOINT_ID);
     }
 
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
+    public void deleteGeneratedEndpoint() {
+        endpointsApiController.deleteEndpoint("10");
+    }
+
     @Test
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpoint() {

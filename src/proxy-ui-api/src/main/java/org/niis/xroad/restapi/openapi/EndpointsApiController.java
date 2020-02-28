@@ -83,6 +83,8 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
             throw new ConflictException("Client not found for the given endpoint with id: " + id);
+        } catch (EndpointService.IllegalGeneratedEndpointRemoveException e) {
+            throw new BadRequestException("Removing is not allowed for generated endpoint " + id);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
