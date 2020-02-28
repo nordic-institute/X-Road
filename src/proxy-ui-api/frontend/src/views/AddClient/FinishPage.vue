@@ -76,31 +76,6 @@ export default Vue.extend({
 @import '../../assets/colors';
 @import '../../assets/shared';
 
-.generate-row {
-  margin-top: 40px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.label {
-  width: 230px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.form-input {
-  width: 300px;
-}
-
 .button-footer {
   display: flex;
   flex-direction: row;

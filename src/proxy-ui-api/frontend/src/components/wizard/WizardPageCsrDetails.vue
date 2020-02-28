@@ -171,12 +171,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/colors';
 
-.view-wrap {
-  width: 100%;
-  max-width: 850px;
-  margin: 10px;
-}
-
 .row-wrap {
   display: flex;
   flex-direction: row;

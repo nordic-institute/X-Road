@@ -161,12 +161,6 @@ export default Vue.extend({
   },
   created() {
     this.$store.dispatch('setupSignKey');
-    /*
-    this.$store.commit('storeKeyId', this.keyId);
-    this.fetchKeyData(this.keyId);
-    this.fetchLocalMembers();
-    this.fetchCertificateAuthorities();
-    */
   },
 });
 </script>

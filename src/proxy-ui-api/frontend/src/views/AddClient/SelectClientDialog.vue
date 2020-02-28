@@ -103,8 +103,6 @@ export default Vue.extend({
         return this.members;
       }
 
-      console.log('HEP!');
-
       return this.members.filter(function(member: Client) {
         if (
           member.member_name &&

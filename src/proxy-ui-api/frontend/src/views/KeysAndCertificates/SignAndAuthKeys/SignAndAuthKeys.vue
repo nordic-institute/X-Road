@@ -171,29 +171,6 @@ export default Vue.extend({
         name: RouteName.AddKey,
         params: { tokenId: this.$store.getters.selectedToken.id },
       });
-
-      /*
-      // Send add new key request to backend
-      const request = label.length > 0 ? { label } : {};
-      const token: Token = this.$store.getters.selectedToken;
-
-      if (!token) {
-        return;
-      }
-
-      api
-        .post(`/tokens/${token.id}/keys`, request)
-        .then((res) => {
-          this.fetchData();
-          this.$bus.$emit('show-success', 'keys.keyAdded');
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      this.addKeyDialog = false;
-
-      */
     },
   },
   created() {
