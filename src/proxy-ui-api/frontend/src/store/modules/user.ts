@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { mainTabs } from '@/global';
-import {SecurityServer} from '@/types';
+import { SecurityServer, Version } from '@/types';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -12,6 +12,7 @@ export interface UserState {
   permissions: string[];
   username: string;
   currentSecurityServer: SecurityServer | {};
+  securityServerVersion: Version | {};
 }
 
 export const userState: UserState = {
@@ -19,6 +20,7 @@ export const userState: UserState = {
   permissions: [],
   username: '',
   currentSecurityServer: {},
+  securityServerVersion: {},
 };
 
 export const userGetters: GetterTree<UserState, RootState> = {
@@ -70,6 +72,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
   currentSecurityServer(state) {
     return state.currentSecurityServer;
   },
+  securityServerVersion(state) {
+    return state.securityServerVersion;
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
@@ -92,6 +97,9 @@ export const mutations: MutationTree<UserState> = {
   },
   setCurrentSecurityServer: (state, securityServer: SecurityServer) => {
     state.currentSecurityServer = securityServer;
+  },
+  setSecurityServerVersion: (state, version: Version) => {
+    state.securityServerVersion = version;
   },
 };
 
@@ -140,6 +148,15 @@ export const actions: ActionTree<UserState, RootState> = {
         }
         commit('setCurrentSecurityServer', resp.data[0]);
       })
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
+  },
+
+  async fetchSecurityServerVersion({ commit }) {
+    return axios.get<Version>('/system/version')
+      .then((resp) => commit('setSecurityServerVersion', resp.data))
       .catch((error) => {
         console.error(error);
         throw error;

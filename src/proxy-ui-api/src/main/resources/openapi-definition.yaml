@@ -3142,9 +3142,31 @@ paths:
       summary: generate new certificate request
       operationId: generateSystemCertificateRequest
       description: Administrator generates new certificate request.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - distinguished_name
+              title: DistinguishedName
+              type: object
+              properties:
+                name:
+                  type: string
+                  format: text
+                  description: distinguished name
+                  example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+                  minLength: 1
+                  maxLength: 255
       responses:
-        '204':
-          description: certificate request generated
+        '201':
+          description: created CSR
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
         '400':
           description: request was invalid
         '401':
@@ -4079,7 +4101,7 @@ components:
           type: string
           format: text
           description: distinguished name
-          example: /C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
           maxLength: 255
         response:

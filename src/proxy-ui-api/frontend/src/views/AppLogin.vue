@@ -129,6 +129,7 @@ export default (Vue as VueConstructor<
             // Auth ok. Start phase 2 (fetch user data and current security server info).
             this.fetchUserData();
             this.fetchCurrentSecurityServer();
+            this.fetchSecurityServerVersion();
           },
           (error) => {
             // Display invalid username/password error in inputs
@@ -183,6 +184,11 @@ export default (Vue as VueConstructor<
           console.error(error);
           this.$bus.$emit('show-error', error.message);
         });
+    },
+    async fetchSecurityServerVersion() {
+      this.$store
+        .dispatch('fetchSecurityServerVersion')
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
   },
 });
