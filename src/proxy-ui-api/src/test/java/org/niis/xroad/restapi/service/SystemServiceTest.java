@@ -22,32 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.springframework.stereotype.Component;
+import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-import java.util.stream.Collectors;
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Slf4j
+@Transactional
+@WithMockUser
+public class SystemServiceTest {
 
-@Component
-public class EndpointConverter {
+    @Autowired
+    private SystemService systemService;
 
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
-
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    @Before
+    public void setup() {
+        systemService.setInternalKeyPath("src/test/resources/internal.key");
     }
 
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
+    @Test
+    public void generateInternalCsr() throws Exception {
+        byte[] csrBytes = systemService.generateInternalCsr("C=FI, serialNumber=123");
+        assertTrue(csrBytes.length > 0);
     }
 
+    @Test(expected = InvalidDistinguishedNameException.class)
+    public void generateInternalCsrFail() throws Exception {
+        systemService.generateInternalCsr("this is wrong");
+    }
 }

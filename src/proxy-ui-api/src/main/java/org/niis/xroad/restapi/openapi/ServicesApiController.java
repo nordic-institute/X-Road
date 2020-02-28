@@ -30,10 +30,12 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
@@ -42,9 +44,11 @@ import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,18 +75,21 @@ public class ServicesApiController implements ServicesApi {
 
     private final ServiceConverter serviceConverter;
     private final ServiceClientConverter serviceClientConverter;
+    private final EndpointConverter endpointConverter;
     private final ServiceService serviceService;
     private final SubjectConverter subjectConverter;
     private final AccessRightService accessRightService;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
-            ServiceService serviceService, SubjectConverter subjectConverter, AccessRightService accessRightService) {
+            ServiceService serviceService, SubjectConverter subjectConverter, AccessRightService accessRightService,
+            EndpointConverter endpointConverter) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
         this.subjectConverter = subjectConverter;
         this.accessRightService = accessRightService;
+        this.endpointConverter = endpointConverter;
     }
 
     @Override
@@ -209,4 +216,24 @@ public class ServicesApiController implements ServicesApi {
         }
         return hasNumericId && isLocalGroup;
     };
+
+    @Override
+    @PreAuthorize("hasAuthority('ADD_OPENAPI3_ENDPOINT')")
+    public ResponseEntity<Endpoint> addEndpoint(String id, Endpoint endpoint) {
+        ServiceType serviceType = getServiceType(id);
+
+        if (endpoint.getId() != null) {
+            throw new BadRequestException("Passing id for endpoint while creating it is not allowed");
+        }
+        Endpoint ep;
+        try {
+            ep = endpointConverter.convert(serviceService.addEndpoint(serviceType,
+                    endpoint.getMethod().toString(), endpoint.getPath()));
+        } catch (EndpointAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+            throw new BadRequestException(e);
+        }
+        return ApiUtil.createCreatedResponse("/api/endpoints/{id}", ep, ep.getId());
+    }
 }

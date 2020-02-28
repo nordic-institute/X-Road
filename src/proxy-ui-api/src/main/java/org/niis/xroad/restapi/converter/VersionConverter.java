@@ -24,30 +24,24 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.Version;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+/**
+ * Helper to convert Versions
+ */
 @Component
-public class EndpointConverter {
+public class VersionConverter {
 
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
-
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    /**
+     * Converts a version String to Version object
+     * @param softwareVersion
+     * @return
+     */
+    public Version convert(String softwareVersion) {
+        Version version = new Version();
+        version.setInfo(softwareVersion);
+        return version;
     }
-
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
-    }
-
 }

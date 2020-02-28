@@ -5,6 +5,8 @@
         v-if="generateKeyVisible"
         class="button-spacing"
         outlined
+        @click="generateDialog = true"
+        data-test="security-server-tls-certificate-generate-key-button"
       >{{$t('ssTlsCertificate.generateKey')}}</large-button>
       <large-button
         v-if="importCertificateVisible"
@@ -15,8 +17,16 @@
         v-if="exportCertificateVisible"
         class="button-spacing"
         outlined
+        :loading="exportPending"
+        @click="exportCertificate()"
+        data-test="security-server-tls-certificate-export-certificate-button"
       >{{$t('ssTlsCertificate.exportCertificate')}}</large-button>
     </div>
+
+    <generate-tls-and-certificate-dialog
+      :dialog="generateDialog"
+      @cancel="generateDialog = false"
+      @saved="newCertificateGenerated"/>
 
     <div class="content-title">{{$t('ssTlsCertificate.keyCertTitle')}}</div>
     <div class="horizontal-line-dark"></div>
@@ -57,15 +67,19 @@ import { Key, CertificateDetails } from '@/types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
+import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 
 export default Vue.extend({
   components: {
     LargeButton,
     SmallButton,
+    GenerateTlsAndCertificateDialog,
   },
   data() {
     return {
       certificate: undefined as CertificateDetails | undefined,
+      generateDialog: false,
+      exportPending: false,
     };
   },
   computed: {
@@ -108,6 +122,26 @@ export default Vue.extend({
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
+    },
+    newCertificateGenerated(): void {
+      this.fetchData();
+      this.generateDialog = false;
+    },
+    exportCertificate(): void {
+      this.exportPending = true;
+      api
+        .get('/system/certificate/export', {responseType: 'blob'})
+        .then((res) => {
+          const tempLink = document.createElement('a');
+          tempLink.href = window.URL.createObjectURL(new Blob([res.data]));
+          tempLink.setAttribute('download', 'certs.tar.gz');
+          tempLink.setAttribute('data-test', 'security-server-tls-certificate-export-certificate-link');
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink); // cleanup
+        })
+        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .finally(() => this.exportPending = false);
     },
   },
   created() {

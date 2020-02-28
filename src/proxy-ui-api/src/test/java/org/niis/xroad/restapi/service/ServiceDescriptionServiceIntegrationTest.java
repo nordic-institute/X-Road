@@ -484,14 +484,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "REFRESH_REST" })
-    public void refreshRestServiceDescription() throws Exception {
-        Date initialDate = serviceDescriptionService.getServiceDescriptiontype(5L).getRefreshedDate();
-        Date refreshedDate = serviceDescriptionService.refreshServiceDescription(5L, true).getRefreshedDate();
-        assertTrue(initialDate.compareTo(refreshedDate) < 0);
-    }
-
-    @Test
     @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
     public void refreshOpenapi3ServiceDescription() throws Exception {
         ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);

@@ -27,10 +27,13 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -112,5 +115,29 @@ public class ClientRepository {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
         return clientDAO.clientExists(persistenceUtils.getCurrentSession(), id, includeSubsystems);
     }
+
+    /**
+     * Return ClientType containing the id matching endpoint
+     *
+     * @param id                                         id for endpoint
+     * @return ClientType                                client containing id matching endpoint
+     * @throws EndpointService.EndpointNotFoundException if endpoint is not found with given id
+     */
+    public ClientType getClientByEndpointId(Long id)
+            throws EndpointService.EndpointNotFoundException {
+        Session session = this.persistenceUtils.getCurrentSession();
+        EndpointType endpointType = session.get(EndpointType.class, id);
+
+        if (endpointType == null) {
+            throw new EndpointService.EndpointNotFoundException(id.toString());
+        }
+
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        ClientType clientType = clientDAO.getClientByEndpointId(session, endpointType);
+
+        session.refresh(clientType);
+        return clientType;
+    }
+
 }
 

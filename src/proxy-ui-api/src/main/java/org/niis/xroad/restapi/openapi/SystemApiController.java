@@ -29,13 +29,18 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
+import org.niis.xroad.restapi.converter.VersionConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.restapi.service.InvalidCertificateException;
+import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
+import org.niis.xroad.restapi.service.VersionService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -62,6 +67,9 @@ public class SystemApiController implements SystemApi {
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
     private final SystemService systemService;
+    private final VersionService versionService;
+    private final VersionConverter versionConverter;
+    private final CsrFilenameCreator csrFilenameCreator;
 
     /**
      * Constructor
@@ -69,11 +77,15 @@ public class SystemApiController implements SystemApi {
     @Autowired
     public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
             CertificateDetailsConverter certificateDetailsConverter, SystemService systemService,
-            TimestampingServiceConverter timestampingServiceConverter) {
+            TimestampingServiceConverter timestampingServiceConverter, VersionService versionService,
+            VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator) {
         this.internalTlsCertificateService = internalTlsCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.systemService = systemService;
         this.timestampingServiceConverter = timestampingServiceConverter;
+        this.versionService = versionService;
+        this.versionConverter = versionConverter;
+        this.csrFilenameCreator = csrFilenameCreator;
     }
 
     @Override
@@ -90,6 +102,14 @@ public class SystemApiController implements SystemApi {
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
         CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_VERSION')")
+    public ResponseEntity<Version> systemVersion() {
+        String softwareVersion = versionService.getVersion();
+        Version version = versionConverter.convert(softwareVersion);
+        return new ResponseEntity<>(version, HttpStatus.OK);
     }
 
     @Override
@@ -137,6 +157,18 @@ public class SystemApiController implements SystemApi {
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_CERT_REQ')")
+    public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedName distinguishedName) {
+        byte[] csrBytes = null;
+        try {
+            csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
+        } catch (InvalidDistinguishedNameException e) {
+            throw new BadRequestException(e);
+        }
+        return ApiUtil.createAttachmentResourceResponse(csrBytes, csrFilenameCreator.createInternalCsrFilename());
     }
 
     @Override
