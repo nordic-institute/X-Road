@@ -66,7 +66,9 @@ export default Vue.extend({
       this.$emit('done');
     },
     generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
+      const tokenId = this.$store.getters.csrTokenId;
+
+      this.$store.dispatch('generateKeyAndCsr', tokenId).then(
         (response) => {
           this.disableDone = false;
         },

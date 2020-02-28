@@ -1,7 +1,7 @@
 
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
+    <subViewTitle class="view-title" :title="$t('wizard.addClientTitle')" :showClose="false" />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <v-stepper-header class="noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.clientDetails')}}</v-stepper-step>
@@ -14,7 +14,7 @@
         <v-divider></v-divider>
         <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">

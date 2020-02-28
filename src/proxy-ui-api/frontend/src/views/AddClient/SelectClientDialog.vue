@@ -2,12 +2,22 @@
   <v-dialog :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t("title")}}</span>
+        <span class="headline">{{$t("wizard.client.addClient")}}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px;" class="elevation-0">
+        <v-text-field
+          v-model="search"
+          :label="$t('wizard.client.member')"
+          single-line
+          hide-details
+          class="search-input"
+        >
+          <v-icon slot="append">mdi-magnify</v-icon>
+        </v-text-field>
+
         <!-- Table -->
         <v-radio-group v-model="selectedMember">
           <table class="xrd-table members-table fixed_header">
@@ -19,7 +29,7 @@
               </tr>
             </thead>
             <tbody v-if="members && members.length > 0">
-              <tr v-for="member in members" v-bind:key="member.id">
+              <tr v-for="member in filteredMembers()" v-bind:key="member.id">
                 <td class="checkbox-column">
                   <div class="checkbox-wrap">
                     <!-- <v-checkbox @change="checkboxChange(member.id, $event)" color="primary"></v-checkbox>  -->
@@ -34,9 +44,8 @@
             </tbody>
           </table>
         </v-radio-group>
-        <div v-if="members.length < 1 && !noResults" class="empty-row"></div>
 
-        <div v-if="noResults" class="empty-row">
+        <div v-if="filteredMembers().length < 1" class="empty-row">
           <p>{{$t('localGroup.noResults')}}</p>
         </div>
       </v-card-text>
@@ -45,7 +54,7 @@
 
         <large-button class="button-margin" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
 
-        <large-button :disabled="!canSave" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
+        <large-button :disabled="!selectedMember" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -55,6 +64,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { Client } from '@/types';
 
 export default Vue.extend({
   components: {
@@ -69,21 +79,45 @@ export default Vue.extend({
 
   data() {
     return {
-      search: undefined,
+      search: '',
       selectedMember: undefined,
     };
   },
   computed: {
-    ...mapGetters(['members', 'memberClasses']),
-    canSave(): boolean {
-      if (this.selectedMember) {
-        return true;
-      }
-      return false;
-    },
+    ...mapGetters(['members']),
   },
 
   methods: {
+    filteredMembers() {
+      // Override for the default filter function.
+      // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
+      if (!this.search) {
+        return this.members;
+      }
+
+      let tempSearch = this.search
+        .toString()
+        .toLowerCase()
+        .trim();
+      if (tempSearch === '') {
+        return this.members;
+      }
+
+      console.log('HEP!');
+
+      return this.members.filter(function(member: Client) {
+        if (
+          member.member_name &&
+          member.member_name.toLowerCase().includes(tempSearch)
+        ) {
+          return true;
+        } else if (member.id && member.id.toLowerCase().includes(tempSearch)) {
+          return true;
+        }
+
+        return false;
+      });
+    },
     cancel(): void {
       this.clearForm();
       this.$emit('cancel');
@@ -96,6 +130,7 @@ export default Vue.extend({
     clearForm(): void {
       // Reset initial state
       this.selectedMember = undefined;
+      this.search = '';
     },
   },
 });
@@ -107,6 +142,10 @@ export default Vue.extend({
 
 .checkbox-column {
   width: 50px;
+}
+
+.search-input {
+  width: 300px;
 }
 </style>
 

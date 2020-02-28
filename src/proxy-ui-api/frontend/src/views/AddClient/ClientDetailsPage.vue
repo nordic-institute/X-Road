@@ -14,40 +14,14 @@
 
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
-        <!--
-        <div class="label">
-          {{$t('csr.certificationService')}}
-          <helpIcon :text="$t('csr.helpCertificationService')" />
-        </div>
-
-
-
-
-            "memberName": "Member Name",
-    "memberClass": "Member Class",
-    "memberCode": "Member Code",
-    "subsystemCode": "Subsystem Code"
-
-        -->
-
-        <FormLabel labelText="wizard.memberName" helpText="csr.helpCertificationService" />
+        <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
         <div v-if="selectedMember">{{selectedMember.member_name}}</div>
-        <!--
-        <ValidationProvider name="crs.certService" rules="required" v-slot="{ errors }">
-          <v-select
-            :items="filteredServiceList"
-            item-text="name"
-            item-value="name"
-            class="form-input"
-            v-model="certificationService"
-          ></v-select>
-        </ValidationProvider>-->
       </div>
 
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberClass" helpText="csr.helpCertificationService" />
+        <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
 
-        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{ errors }">
+        <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
           <v-text-field
             class="form-input"
             type="text"
@@ -57,9 +31,9 @@
         </ValidationProvider>
       </div>
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberCode" helpText="csr.helpCertificationService" />
+        <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
 
-        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{ errors }">
+        <ValidationProvider name="addClient.memberCode" rules="required" v-slot="{ errors }">
           <v-text-field
             class="form-input"
             type="text"
@@ -70,9 +44,9 @@
       </div>
 
       <div class="row-wrap">
-        <FormLabel labelText="wizard.subsystemCode" helpText="csr.helpCertificationService" />
+        <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
 
-        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{ errors }">
+        <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
           <v-text-field
             class="form-input"
             type="text"
@@ -81,12 +55,12 @@
           ></v-text-field>
         </ValidationProvider>
       </div>
-      <div v-if="duplicateClient">Member already exists</div>
+      <div v-if="duplicateClient" class="duplicate-warning">Member already exists</div>
       <div class="button-footer">
         <div class="button-group">
           <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
         </div>
-        <large-button @click="done" :disabled="errors || duplicateClient">{{$t('action.next')}}</large-button>
+        <large-button @click="done" :disabled="invalid || duplicateClient">{{$t('action.next')}}</large-button>
       </div>
     </ValidationObserver>
 
@@ -169,7 +143,6 @@ export default Vue.extend({
           if (e.subsystem_code !== this.subsystemCode) {
             return false;
           }
-
           return true;
         })
       ) {
@@ -207,6 +180,7 @@ export default Vue.extend({
   },
   created() {
     this.$store.dispatch('fetchMembers');
+    this.$store.dispatch('fetchLocalMembers');
   },
 });
 </script>
@@ -227,22 +201,7 @@ export default Vue.extend({
   }
 }
 
-.generate-row {
-  margin-top: 40px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
 .row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.label {
-  width: 230px;
   display: flex;
   flex-direction: row;
   align-items: baseline;
@@ -270,6 +229,13 @@ export default Vue.extend({
   :not(:last-child) {
     margin-right: 20px;
   }
+}
+
+.duplicate-warning {
+  margin-left: 230px;
+  margin-top: 10px;
+  color: #ff5252;
+  font-size: 12px;
 }
 </style>
 

@@ -21,7 +21,7 @@
         @refreshList="fetchData"
         @tokenLogout="logoutDialog = true"
         @tokenLogin="loginDialog = true"
-        @addKey="addKeyDialog = true"
+        @addKey="addKey"
         :token="token"
       />
     </template>
@@ -167,6 +167,12 @@ export default Vue.extend({
       this.loginDialog = false;
     },
     addKey(label: string) {
+      this.$router.push({
+        name: RouteName.AddKey,
+        params: { tokenId: this.$store.getters.selectedToken.id },
+      });
+
+      /*
       // Send add new key request to backend
       const request = label.length > 0 ? { label } : {};
       const token: Token = this.$store.getters.selectedToken;
@@ -186,6 +192,8 @@ export default Vue.extend({
         });
 
       this.addKeyDialog = false;
+
+      */
     },
   },
   created() {

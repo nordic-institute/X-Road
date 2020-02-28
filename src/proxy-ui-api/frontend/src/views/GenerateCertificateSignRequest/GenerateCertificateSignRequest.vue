@@ -29,8 +29,8 @@ import { mapGetters } from 'vuex';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import WizardPageCsrDetails from './WizardPageCsrDetails.vue';
-import WizardPageGenerateCsr from './WizardPageGenerateCsr.vue';
+import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
+import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
@@ -52,7 +52,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentStep: 0,
+      currentStep: 1,
     };
   },
   computed: {
