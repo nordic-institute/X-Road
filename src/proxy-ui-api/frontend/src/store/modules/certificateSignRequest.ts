@@ -39,7 +39,7 @@ const getDefaultState = () => {
 const csrState = getDefaultState();
 
 
-export const getters: GetterTree<CsrState, RootState> = {
+export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
     return state.csrClient;
   },
@@ -251,7 +251,7 @@ export const actions: ActionTree<CsrState, RootState> = {
 export const csrModule: Module<CsrState, RootState> = {
   namespaced: false,
   state: csrState,
-  getters,
+  getters: crsGetters,
   actions,
   mutations,
 };

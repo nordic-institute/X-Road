@@ -95,7 +95,7 @@ export default Vue.extend({
         return this.members;
       }
 
-      let tempSearch = this.search
+      const tempSearch = this.search
         .toString()
         .toLowerCase()
         .trim();
@@ -103,7 +103,7 @@ export default Vue.extend({
         return this.members;
       }
 
-      return this.members.filter(function(member: Client) {
+      return this.members.filter((member: Client) => {
         if (
           member.member_name &&
           member.member_name.toLowerCase().includes(tempSearch)
