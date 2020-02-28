@@ -6,19 +6,19 @@ import _ from 'lodash';
 import * as api from '@/util/api';
 
 
-export interface KeysState {
+export interface TokensState {
   expandedTokens: string[];
   tokens: Token[];
   selectedToken: Token | undefined;
 }
 
-export const tokensState: KeysState = {
+export const tokensState: TokensState = {
   expandedTokens: [],
   tokens: [],
   selectedToken: undefined,
 };
 
-export const tokensGetters: GetterTree<KeysState, RootState> = {
+export const tokensGetters: GetterTree<TokensState, RootState> = {
   tokenExpanded: (state) => (id: string) => {
     return state.expandedTokens.includes(id);
   },
@@ -119,7 +119,7 @@ export const tokensGetters: GetterTree<KeysState, RootState> = {
 
 };
 
-export const mutations: MutationTree<KeysState> = {
+export const mutations: MutationTree<TokensState> = {
 
   setTokenHidden(state, id: string) {
     const index = state.expandedTokens.findIndex((element: any) => {
@@ -151,7 +151,7 @@ export const mutations: MutationTree<KeysState> = {
 
 };
 
-export const actions: ActionTree<KeysState, RootState> = {
+export const actions: ActionTree<TokensState, RootState> = {
   expandToken({ commit, rootGetters }, id: string) {
     commit('setTokenExpanded', id);
   },
@@ -194,7 +194,7 @@ export const actions: ActionTree<KeysState, RootState> = {
   },
 };
 
-export const keysModule: Module<KeysState, RootState> = {
+export const tokensModule: Module<TokensState, RootState> = {
   namespaced: false,
   state: tokensState,
   getters: tokensGetters,
