@@ -27,10 +27,13 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.AnchorConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.converter.VersionConverter;
+import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
@@ -66,6 +69,7 @@ public class SystemApiController implements SystemApi {
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
+    private final AnchorConverter anchorConverter;
     private final SystemService systemService;
     private final VersionService versionService;
     private final VersionConverter versionConverter;
@@ -77,12 +81,13 @@ public class SystemApiController implements SystemApi {
     @Autowired
     public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
             CertificateDetailsConverter certificateDetailsConverter, SystemService systemService,
-            TimestampingServiceConverter timestampingServiceConverter, VersionService versionService,
-            VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator) {
+            TimestampingServiceConverter timestampingServiceConverter, AnchorConverter anchorConverter,
+            VersionService versionService, VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator) {
         this.internalTlsCertificateService = internalTlsCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.systemService = systemService;
         this.timestampingServiceConverter = timestampingServiceConverter;
+        this.anchorConverter = anchorConverter;
         this.versionService = versionService;
         this.versionConverter = versionConverter;
         this.csrFilenameCreator = csrFilenameCreator;
@@ -183,5 +188,12 @@ public class SystemApiController implements SystemApi {
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_ANCHOR')")
+    public ResponseEntity<Anchor> getAnchor() {
+        AnchorFile anchorFile = systemService.getAnchorFile();
+        return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
     }
 }

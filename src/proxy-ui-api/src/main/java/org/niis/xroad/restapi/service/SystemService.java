@@ -26,15 +26,21 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.repository.AnchorRepository;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -58,6 +64,7 @@ public class SystemService {
 
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
+    private final AnchorRepository anchorRepository;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -66,9 +73,11 @@ public class SystemService {
      * constructor
      */
     @Autowired
-    public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService) {
+    public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
+                         AnchorRepository anchorRepository) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
+        this.anchorRepository = anchorRepository;
     }
 
     /**
@@ -163,6 +172,30 @@ public class SystemService {
         return csrBytes;
     }
 
+    /**
+     * Read configuration anchor file
+     * @return
+     */
+    public AnchorFile getAnchorFile() {
+        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorRepository.readAnchorFile()));
+        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
+        anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
+        return anchorFile;
+    }
+
+    /**
+     * Return anchor file's hash as a colon delimited hex string
+     * @return
+     */
+    private String calculateAnchorHexHash(byte[] anchor) {
+        try {
+            String hash = CryptoUtils.hexDigest(CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor);
+            return StringUtils.join(hash.toUpperCase().split("(?<=\\G.{2})"), ':');
+        } catch (Exception e) {
+            log.error("can't create hex digest for anchor file");
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * Thrown when attempt to add timestamping service that is already configured
      */
