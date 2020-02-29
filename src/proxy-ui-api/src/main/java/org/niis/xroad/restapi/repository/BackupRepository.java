@@ -43,11 +43,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Backups repository
+ * Backup repository
  */
 @Slf4j
 @Repository
-public class BackupsRepository {
+public class BackupRepository {
 
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
     // Criteria for valid backup file names:

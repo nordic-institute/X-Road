@@ -36,7 +36,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test BackupsConverter
+ * Test BackupConverter
  */
 public class BackupConverterTest {
 

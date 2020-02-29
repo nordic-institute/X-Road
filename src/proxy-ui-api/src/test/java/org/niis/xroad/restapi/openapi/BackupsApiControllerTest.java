@@ -33,7 +33,7 @@ import org.niis.xroad.restapi.converter.BackupConverter;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.openapi.model.Backup;
-import org.niis.xroad.restapi.repository.BackupsRepository;
+import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.service.BackupsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -69,7 +69,7 @@ import static org.mockito.Mockito.when;
 public class BackupsApiControllerTest {
 
     @MockBean
-    BackupsRepository backupsRepository;
+    BackupRepository backupRepository;
 
     @Autowired
     private BackupsApiController backupsApiController;
@@ -93,10 +93,10 @@ public class BackupsApiControllerTest {
         List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME),
                 new File(BASE_DIR + BACKUP_FILE_2_NAME)));
 
-        when(backupsRepository.getBackupFiles()).thenReturn(files);
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(
+        when(backupRepository.getBackupFiles()).thenReturn(files);
+        when(backupRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(
                 new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
-        when(backupsRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(
+        when(backupRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(
                 new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
     }
 
@@ -118,7 +118,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void getBackupsEmptyList() {
         List<File> files = new ArrayList<>();
-        when(backupsRepository.getBackupFiles()).thenReturn(files);
+        when(backupRepository.getBackupFiles()).thenReturn(files);
 
         ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -130,7 +130,7 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void getBackupsException() {
-        when(backupsRepository.getBackupFiles()).thenThrow(new RuntimeException());
+        when(backupRepository.getBackupFiles()).thenThrow(new RuntimeException());
 
         try {
             ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
@@ -163,7 +163,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void downloadBackup() throws Exception {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
-        when(backupsRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
+        when(backupRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
 
         ResponseEntity<Resource> response = backupsApiController.downloadBackup(BACKUP_FILE_1_NAME);
         Resource backup = response.getBody();
