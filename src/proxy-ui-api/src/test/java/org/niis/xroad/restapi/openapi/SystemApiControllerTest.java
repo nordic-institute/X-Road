@@ -39,7 +39,6 @@ import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.VersionService;
@@ -63,9 +62,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -93,17 +90,10 @@ public class SystemApiControllerTest {
     private SystemApiController systemApiController;
 
     @MockBean
-    GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @MockBean
-    GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    SystemService systemService;
-
-    private static final Map<String, TspType> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
-
-    private static final List<TspType> CONFIGURED_TIMESTAMPING_SERVICES = new ArrayList<>();
+    private  SystemService systemService;
 
     private static final String TSA_1_URL = "https://tsa.com";
 
@@ -122,22 +112,7 @@ public class SystemApiControllerTest {
 
     @Before
     public void setup() {
-
-        TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
-        TspType tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
-        APPROVED_TIMESTAMPING_SERVICES.put(tsa1.getName(), tsa1);
-        APPROVED_TIMESTAMPING_SERVICES.put(tsa2.getName(), tsa2);
-
-        CONFIGURED_TIMESTAMPING_SERVICES.addAll(Arrays.asList(tsa1));
-
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
-        when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
-                Arrays.asList(tsa1, tsa2));
-        when(globalConfService.getApprovedTspName(TSA_1_URL))
-                .thenReturn(tsa1.getName());
-        when(globalConfService.getApprovedTspName(TSA_2_URL))
-                .thenReturn(tsa2.getName());
-        when(systemService.getConfiguredTimestampingServices()).thenReturn(CONFIGURED_TIMESTAMPING_SERVICES);
     }
 
     @Test
@@ -178,13 +153,17 @@ public class SystemApiControllerTest {
     @Test
     @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getConfiguredTimestampingServices() {
+        when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(
+                Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME),
+                        TestUtils.createTspType(TSA_2_URL, TSA_2_NAME))));
+
         ResponseEntity<List<TimestampingService>> response =
                 systemApiController.getConfiguredTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<TimestampingService> timestampingServices = response.getBody();
 
-        assertEquals(CONFIGURED_TIMESTAMPING_SERVICES.size(), timestampingServices.size());
+        assertEquals(2, timestampingServices.size());
     }
 
     @Test
