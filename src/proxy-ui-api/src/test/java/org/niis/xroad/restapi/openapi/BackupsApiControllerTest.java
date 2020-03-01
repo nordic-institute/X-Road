@@ -28,12 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.niis.xroad.restapi.converter.BackupConverter;
 import org.niis.xroad.restapi.dto.BackupFile;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.openapi.model.Backup;
-import org.niis.xroad.restapi.repository.BackupRepository;
+import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -46,7 +43,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -56,6 +52,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 /**
@@ -69,12 +66,10 @@ import static org.mockito.Mockito.when;
 public class BackupsApiControllerTest {
 
     @MockBean
-    BackupRepository backupRepository;
+    BackupsService backupsService;
 
     @Autowired
     private BackupsApiController backupsApiController;
-
-    private static final String BASE_DIR = "/tmp/backups/";
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";
 
@@ -90,14 +85,12 @@ public class BackupsApiControllerTest {
 
     @Before
     public void setup() {
-        List<File> files = new ArrayList<>(Arrays.asList(new File(BASE_DIR + BACKUP_FILE_1_NAME),
-                new File(BASE_DIR + BACKUP_FILE_2_NAME)));
+        BackupFile bf1 = new BackupFile(BACKUP_FILE_1_NAME);
+        bf1.setCreatedAt(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        BackupFile bf2 = new BackupFile(BACKUP_FILE_2_NAME);
+        bf2.setCreatedAt(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
-        when(backupRepository.getBackupFiles()).thenReturn(files);
-        when(backupRepository.getCreatedAt(BACKUP_FILE_1_NAME)).thenReturn(
-                new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
-        when(backupRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(
-                new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        when(backupsService.getBackupFiles()).thenReturn(new ArrayList<>(Arrays.asList(bf1, bf2)));
     }
 
     @Test
@@ -117,20 +110,19 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void getBackupsEmptyList() {
-        List<File> files = new ArrayList<>();
-        when(backupRepository.getBackupFiles()).thenReturn(files);
+        when(backupsService.getBackupFiles()).thenReturn(new ArrayList<>());
 
         ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<Backup> backups = response.getBody();
-        assertEquals(files.size(), backups.size());
+        assertEquals(0, backups.size());
     }
 
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void getBackupsException() {
-        when(backupRepository.getBackupFiles()).thenThrow(new RuntimeException());
+        when(backupsService.getBackupFiles()).thenThrow(new RuntimeException());
 
         try {
             ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
@@ -150,9 +142,13 @@ public class BackupsApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
-    public void deleteNonExistingBackup() {
+    public void deleteNonExistingBackup() throws BackupFileNotFoundException {
+        String filename = "test_file.tar";
+
+        doThrow(new BackupFileNotFoundException("")).when(backupsService).deleteBackup(filename);
+
         try {
-            ResponseEntity<Void> response = backupsApiController.deleteBackup("test_file.tar");
+            ResponseEntity<Void> response = backupsApiController.deleteBackup(filename);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
@@ -163,7 +159,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void downloadBackup() throws Exception {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
-        when(backupRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
+        when(backupsService.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
 
         ResponseEntity<Resource> response = backupsApiController.downloadBackup(BACKUP_FILE_1_NAME);
         Resource backup = response.getBody();
@@ -173,9 +169,13 @@ public class BackupsApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
-    public void downloadNonExistingBackup() {
+    public void downloadNonExistingBackup() throws BackupFileNotFoundException {
+        String filename = "test_file.tar";
+
+        doThrow(new BackupFileNotFoundException("")).when(backupsService).readBackupFile(filename);
+
         try {
-            ResponseEntity<Resource> response = backupsApiController.downloadBackup("test_file.tar");
+            ResponseEntity<Resource> response = backupsApiController.downloadBackup(filename);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
@@ -185,13 +185,10 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void addBackup() throws Exception {
-        BackupsService backupsService = Mockito.mock(BackupsService.class);
         BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
         when(backupsService.generateBackup()).thenReturn(backupFile);
 
-        BackupsApiController bac = new BackupsApiController(backupsService, new BackupConverter());
-
-        ResponseEntity<Backup> response = bac.addBackup();
+        ResponseEntity<Backup> response = backupsApiController.addBackup();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(BACKUP_FILE_1_NAME, response.getBody().getFilename());
     }
@@ -199,10 +196,12 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void addBackupFails() throws Exception {
+        doThrow(new InterruptedException("")).when(backupsService).generateBackup();
+
         try {
             ResponseEntity<Backup> response = backupsApiController.addBackup();
-            fail("should throw DeviationAwareRuntimeException");
-        } catch (DeviationAwareRuntimeException expected) {
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException expected) {
             // success
         }
     }
