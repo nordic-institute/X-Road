@@ -32,6 +32,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -46,11 +47,15 @@ public class AnchorRepository {
     /**
      * Read anchor file's content
      * @return
+     * @throws NoSuchFileException if anchor file does not exist
      */
-    public byte[] readAnchorFile() {
+    public byte[] readAnchorFile() throws NoSuchFileException {
         Path path = Paths.get(CONFIGURATION_ANCHOR_FILENAME);
         try {
             return Files.readAllBytes(path);
+        } catch (NoSuchFileException nsfe) {
+            log.error("anchor file does not exist (" + path.toString() + ")");
+            throw new NoSuchFileException(nsfe.getMessage());
         } catch (IOException ioe) {
             log.error("can't read anchor file's content (" + path.toString() + ")");
             throw new RuntimeException(ioe);

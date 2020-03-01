@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.restapi.service.InvalidCertificateException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
@@ -65,6 +66,7 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {
     public static final String INTERNAL_KEY_CERT_INTERRUPTED = "internal_key_cert_interrupted";
+    public static final String ANCHOR_FILE_NOT_FOUND = "anchor_file_not_found";
 
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -193,7 +195,22 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_ANCHOR')")
     public ResponseEntity<Anchor> getAnchor() {
-        AnchorFile anchorFile = systemService.getAnchorFile();
-        return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
+        try {
+            AnchorFile anchorFile = systemService.getAnchorFile();
+            return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
+        } catch (AnchorNotFoundException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ANCHOR_FILE_NOT_FOUND));
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DOWNLOAD_ANCHOR')")
+    public ResponseEntity<Resource> downloadAnchor() {
+        try {
+            return ApiUtil.createAttachmentResourceResponse(systemService.readAnchorFile(),
+                    systemService.getAnchorFilenameForDownload());
+        } catch (AnchorNotFoundException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ANCHOR_FILE_NOT_FOUND));
+        }
     }
 }

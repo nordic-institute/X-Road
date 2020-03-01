@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
@@ -47,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -55,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -276,7 +279,7 @@ public class SystemApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_ANCHOR" })
-    public void getAnchor() {
+    public void getAnchor() throws AnchorNotFoundException {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFile()).thenReturn(anchorFile);
@@ -287,5 +290,44 @@ public class SystemApiControllerTest {
         Anchor anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
         assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_ANCHOR" })
+    public void getAnchorNotFound() throws AnchorNotFoundException {
+        doThrow(new AnchorNotFoundException("")).when(systemService).getAnchorFile();
+
+        try {
+            ResponseEntity<Anchor> response = systemApiController.getAnchor();
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
+    public void downoadAnchor() throws AnchorNotFoundException, IOException {
+        byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
+        when(systemService.readAnchorFile()).thenReturn(bytes);
+        when(systemService.getAnchorFilenameForDownload())
+                .thenReturn("configuration_anchor_UTC_2019-04-28_09_03_31.xml");
+
+        ResponseEntity<Resource> response = systemApiController.downloadAnchor();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(bytes.length, response.getBody().contentLength());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
+    public void downoadAnchorNotFound() throws AnchorNotFoundException, IOException {
+        doThrow(new AnchorNotFoundException("")).when(systemService).readAnchorFile();
+
+        try {
+            ResponseEntity<Resource> response = systemApiController.downloadAnchor();
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException expected) {
+            // success
+        }
     }
 }

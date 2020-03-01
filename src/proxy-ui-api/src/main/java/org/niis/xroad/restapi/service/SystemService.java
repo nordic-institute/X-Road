@@ -47,9 +47,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,6 +71,10 @@ public class SystemService {
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
+
+    private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
+    private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
+    private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
 
     /**
      * constructor
@@ -173,14 +180,39 @@ public class SystemService {
     }
 
     /**
-     * Read configuration anchor file
+     * Get configuration anchor file
      * @return
+     * @throws AnchorNotFoundException if anchor file is not found
      */
-    public AnchorFile getAnchorFile() {
-        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorRepository.readAnchorFile()));
+    public AnchorFile getAnchorFile() throws AnchorNotFoundException {
+        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(readAnchorFile()));
         ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
         return anchorFile;
+    }
+
+    /**
+     * Read anchor file's content
+     * @return
+     * @throws AnchorNotFoundException if anchor file is not found
+     */
+    public byte[] readAnchorFile() throws AnchorNotFoundException {
+        try {
+            return anchorRepository.readAnchorFile();
+        } catch (NoSuchFileException e) {
+            throw new AnchorNotFoundException("Anchor file not found");
+        }
+    }
+
+    /**
+     * Generate anchor file download name with the anchor file created at date/time. The name format is:
+     * "configuration_anchor_UTC_yyyy-MM-dd_HH_mm_ss.xml".
+     * @return
+     */
+    public String getAnchorFilenameForDownload() {
+        DateFormat df = new SimpleDateFormat(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT);
+        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
+        return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 
     /**
