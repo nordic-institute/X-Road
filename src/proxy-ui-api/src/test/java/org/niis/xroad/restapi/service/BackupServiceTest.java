@@ -50,6 +50,7 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 /**
@@ -96,6 +97,10 @@ public class BackupServiceTest {
                 new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(backupRepository.getCreatedAt(BACKUP_FILE_2_NAME)).thenReturn(
                 new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        doAnswer(invocation -> {
+            files.remove(0);
+            return null;
+        }).when(backupRepository).deleteBackupFile(BACKUP_FILE_1_NAME);
     }
 
     @Test
@@ -132,7 +137,8 @@ public class BackupServiceTest {
 
     @Test
     public void deleteBackup() throws BackupFileNotFoundException {
-        backupService.deleteBackup(BACKUP_FILE_1_NAME);
+            backupService.deleteBackup(BACKUP_FILE_1_NAME);
+            assertEquals(1, backupService.getBackupFiles().size());
     }
 
     @Test
