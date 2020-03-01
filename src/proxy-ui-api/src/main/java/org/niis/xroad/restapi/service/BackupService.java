@@ -51,7 +51,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
-public class BackupsService {
+public class BackupService {
 
     private static final String BACKUP_GENERATION_FAILED = "backup_generation_failed";
 
@@ -68,9 +68,9 @@ public class BackupsService {
      * @param backupRepository
      */
     @Autowired
-    public BackupsService(BackupRepository backupRepository, ServerConfService serverConfService,
-                          ExternalProcessRunner externalProcessRunner,
-                          @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
+    public BackupService(BackupRepository backupRepository, ServerConfService serverConfService,
+                         ExternalProcessRunner externalProcessRunner,
+                         @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
         this.backupRepository = backupRepository;
         this.serverConfService = serverConfService;
         this.externalProcessRunner = externalProcessRunner;

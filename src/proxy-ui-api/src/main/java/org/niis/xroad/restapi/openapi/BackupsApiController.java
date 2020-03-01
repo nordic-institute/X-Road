@@ -30,7 +30,7 @@ import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
-import org.niis.xroad.restapi.service.BackupsService;
+import org.niis.xroad.restapi.service.BackupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -52,19 +52,19 @@ public class BackupsApiController implements BackupsApi {
 
     public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
 
-    private final BackupsService backupsService;
+    private final BackupService backupService;
     private final BackupConverter backupConverter;
 
     @Autowired
-    public BackupsApiController(BackupsService backupsService, BackupConverter backupConverter) {
-        this.backupsService = backupsService;
+    public BackupsApiController(BackupService backupService, BackupConverter backupConverter) {
+        this.backupService = backupService;
         this.backupConverter = backupConverter;
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<List<Backup>> getBackups() {
-        List<BackupFile> backupFiles = backupsService.getBackupFiles();
+        List<BackupFile> backupFiles = backupService.getBackupFiles();
 
         return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);
     }
@@ -73,7 +73,7 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Void> deleteBackup(String filename) {
         try {
-            backupsService.deleteBackup(filename);
+            backupService.deleteBackup(filename);
         } catch (BackupFileNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
@@ -86,7 +86,7 @@ public class BackupsApiController implements BackupsApi {
     public ResponseEntity<Resource> downloadBackup(String filename) {
         byte[] backupFile = null;
         try {
-            backupFile = backupsService.readBackupFile(filename);
+            backupFile = backupService.readBackupFile(filename);
         } catch (BackupFileNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
@@ -97,7 +97,7 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Backup> addBackup() {
         try {
-            BackupFile backupFile = backupsService.generateBackup();
+            BackupFile backupFile = backupService.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(GENERATE_BACKUP_INTERRUPTED));
