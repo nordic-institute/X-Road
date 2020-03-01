@@ -286,7 +286,7 @@ public class SystemApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
-    public void downoadAnchor() throws AnchorNotFoundException, IOException {
+    public void downloadAnchor() throws AnchorNotFoundException, IOException {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(systemService.readAnchorFile()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -299,7 +299,7 @@ public class SystemApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
-    public void downoadAnchorNotFound() throws AnchorNotFoundException, IOException {
+    public void downloadAnchorNotFound() throws AnchorNotFoundException {
         doThrow(new AnchorNotFoundException("")).when(systemService).readAnchorFile();
 
         try {
