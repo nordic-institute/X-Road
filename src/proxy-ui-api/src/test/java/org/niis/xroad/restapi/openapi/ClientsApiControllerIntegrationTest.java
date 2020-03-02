@@ -913,4 +913,33 @@ public class ClientsApiControllerIntegrationTest {
         subjects = subjectsResponse.getBody();
         assertEquals(0, subjects.size());
     }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_CLIENT", "ADD_CLIENT", "VIEW_CLIENT_DETAILS" })
+    public void deleteClient() {
+        try {
+            clientsApiController.deleteClient("FI:GOV:M1");
+            fail("should have thrown exception (cant delete owner, or registered)");
+        } catch (ConflictException expected) {
+        }
+        try {
+            clientsApiController.deleteClient("FI:GOV:NOT-EXISTING");
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+        // create a new client, and then delete it
+        Client clientToAdd = createTestClient("EE", "PRO", "M2", null);
+        ResponseEntity<Client> addResponse = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+        assertEquals(HttpStatus.CREATED, addResponse.getStatusCode());
+
+        ResponseEntity<Void> deleteResponse =
+                clientsApiController.deleteClient("EE:PRO:M2");
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
+        try {
+            clientsApiController.getClient("EE:PRO:M2");
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+    }
 }

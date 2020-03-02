@@ -58,6 +58,7 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.AccessRightService;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -435,5 +436,19 @@ public class ClientsApiController implements ClientsApi {
         }
         Client result = clientConverter.convert(added);
         return createCreatedResponse("/api/clients/{id}", result, result.getId());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.deleteLocalClient(clientId);
+        } catch (ActionNotPossibleException | ClientService.CannotDeleteOwnerException e) {
+            throw new ConflictException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
