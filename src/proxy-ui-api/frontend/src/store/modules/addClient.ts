@@ -130,8 +130,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
 
     const body = {
       client: {
-        // "member_name": "CS",
-        instance_id: 'CS',
         member_class: state.memberClass,
         member_code: state.memberCode,
         subsystem_code: state.subsystemCode,
@@ -140,9 +138,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
     };
 
     return api.post('/clients', body)
-      .then((res) => {
-        console.log('yay!');
-      })
       .catch((error) => {
         throw error;
       });
