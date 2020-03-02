@@ -97,8 +97,6 @@ public class OrphanRemovalServiceTest {
 
     private static final ClientId NON_DELETED_CLIENT_ID_O1 =
             TestUtils.getClientId("FI:GOV:O_1:SS1");
-    private static final ClientId DELETED_CLIENT_ID_WITHOUT_SIBLINGS_O2 =
-            TestUtils.getClientId("FI:GOV:O_2:SS1");
     private static final ClientId DELETED_CLIENT_ID_WITH_SIBLINGS_O3 =
             TestUtils.getClientId("FI:GOV:O_3:SS1");
     private static final ClientId SIBLING_CLIENT_ID_O3 =
@@ -120,9 +118,6 @@ public class OrphanRemovalServiceTest {
 
     private static final String KEY_01_ID = "key1";
     private static final String ORPHAN_CSR_01_ID = "csr01-orphan";
-    private static final String KEY_02_ID = "key2";
-    private static final String KEY_03_ID = "key3";
-    private static final String ORPHAN_CERT_03_HASH = "cert03-orphan";
     private static final String KEY_05_ID = "key5";
     private static final String ORPHAN_CSR_05_ID = "csr05-orphan";
     private static final String KEY_06_ID = "key6";

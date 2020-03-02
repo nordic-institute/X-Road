@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
@@ -44,6 +46,7 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -54,7 +57,10 @@ import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.niis.xroad.restapi.wsdl.WsdlValidatorTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +91,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
@@ -118,6 +127,9 @@ public class ClientsApiControllerIntegrationTest {
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
+
+    @MockBean
+    private SignerProxyFacade signerProxyFacade;
 
     @MockBean
     private TokenService tokenService;
@@ -942,4 +954,65 @@ public class ClientsApiControllerIntegrationTest {
         } catch (ResourceNotFoundException expected) {
         }
     }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_CLIENT" })
+    public void getOrphans() {
+        ClientId orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(orphanClient)
+                        .build())
+                .build();
+        TokenInfo tokenInfo = new TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
+        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        ResponseEntity<OrphanInformation> orphanResponse = clientsApiController
+                .getClientOrphans("FI:GOV:ORPHAN:SS1");
+        assertEquals(HttpStatus.OK, orphanResponse.getStatusCode());
+        assertEquals(true, orphanResponse.getBody().getOrphansExist());
+
+        try {
+            clientsApiController.getClientOrphans("FI:GOV:M1:SS777");
+            fail("should not find orphans");
+        } catch (ResourceNotFoundException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_CLIENT", "DELETE_SIGN_KEY" })
+    public void deleteOrphans() throws Exception {
+        ClientId orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
+        String orphanKeyId = "orphan-key";
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .id(orphanKeyId)
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(orphanClient)
+                        .build())
+                .build();
+        TokenInfo tokenInfo = new TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
+        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        when(tokenService.getTokenForKeyId(any())).thenReturn(tokenInfo);
+        ResponseEntity<Void> orphanResponse = clientsApiController
+                .deleteOrphans("FI:GOV:ORPHAN:SS1");
+        assertEquals(HttpStatus.NO_CONTENT, orphanResponse.getStatusCode());
+
+        verify(signerProxyFacade, times(1))
+                .deleteKey(orphanKeyId, true);
+        verify(signerProxyFacade, times(1))
+                .deleteKey(orphanKeyId, false);
+        verifyNoMoreInteractions(signerProxyFacade);
+
+        try {
+            clientsApiController.deleteOrphans("FI:GOV:M1:SS777");
+            fail("should not find orphans");
+        } catch (ResourceNotFoundException expected) {
+        }
+    }
+
 }
