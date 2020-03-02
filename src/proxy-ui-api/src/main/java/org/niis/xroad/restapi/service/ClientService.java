@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,7 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final GlobalConfFacade globalConfFacade;
+    private final ManagementRequestSenderService managementRequestSenderService;
 
     /**
      * ClientService constructor
@@ -73,9 +75,11 @@ public class ClientService {
      * @param globalConfFacade
      */
     @Autowired
-    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade) {
+    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
+            ManagementRequestSenderService managementRequestSenderService) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
+        this.managementRequestSenderService = managementRequestSenderService;
     }
 
     /**
@@ -137,7 +141,6 @@ public class ClientService {
 
     /**
      * Returns clientType.getIsCert() that has been fetched with Hibernate.init.
-     *
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
      */
@@ -153,14 +156,13 @@ public class ClientService {
     /**
      * Returns clientType.getServiceDescription() that has been fetched with Hibernate.init.
      * Also serviceDescription.services and serviceDescription.client.endpoints have been fetched.
-     *
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
      */
     public List<ServiceDescriptionType> getClientServiceDescriptions(ClientId id) {
         ClientType clientType = getClient(id);
         if (clientType != null) {
-            for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
+            for (ServiceDescriptionType serviceDescriptionType : clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
             }
             Hibernate.initialize(clientType.getEndpoint());
@@ -172,14 +174,13 @@ public class ClientService {
     /**
      * Returns clientType.getLocalGroup() that has been fetched with Hibernate.init.
      * Also localGroup.groupMembers have been fetched.
-     *
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
      */
     public List<LocalGroupType> getClientLocalGroups(ClientId id) {
         ClientType clientType = getClient(id);
         if (clientType != null) {
-            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
+            for (LocalGroupType localGroupType : clientType.getLocalGroup()) {
                 Hibernate.initialize(localGroupType.getGroupMember());
             }
             return clientType.getLocalGroup();
@@ -391,6 +392,23 @@ public class ClientService {
         List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers);
         return mergeClientListsDistinctively(globalClients, localClients);
+    }
+
+    /**
+     * Registers a client
+     * @param clientId client to register
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     */
+    public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException {
+        ClientType client = getClientType(clientId); // throws if client doesn't exist
+        try {
+            managementRequestSenderService.sendClientRegisterRequest(clientId);
+            client.setClientStatus(ClientType.STATUS_REGINPROG);
+            clientRepository.saveOrUpdate(client);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
     }
 
     /**

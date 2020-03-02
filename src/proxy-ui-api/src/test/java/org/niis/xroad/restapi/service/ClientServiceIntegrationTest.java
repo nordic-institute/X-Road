@@ -79,6 +79,9 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
+
     @Before
     public void setup() throws Exception {
         when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
@@ -102,7 +105,7 @@ public class ClientServiceIntegrationTest {
             return clientId.getSubsystemCode() != null ? TestUtils.NAME_FOR + clientId.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-        clientService = new ClientService(clientRepository, globalConfFacade);
+        clientService = new ClientService(clientRepository, globalConfFacade, managementRequestSenderService);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().

@@ -60,6 +60,7 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
@@ -111,7 +112,6 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * ClientsApiController constructor
-     *
      * @param clientService
      * @param tokenService
      * @param clientConverter
@@ -148,7 +148,6 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Finds clients matching search terms
-     *
      * @param name
      * @param instance
      * @param memberClass
@@ -179,7 +178,6 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Read one client from DB
-     *
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
      * @return
@@ -206,7 +204,6 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Update a client's connection type
-     *
      * @param encodedId
      * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
@@ -402,5 +399,19 @@ public class ClientsApiController implements ClientsApi {
         }
         List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_CLIENT_REG_REQ')")
+    public ResponseEntity<Void> registerClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.registerClient(clientId);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

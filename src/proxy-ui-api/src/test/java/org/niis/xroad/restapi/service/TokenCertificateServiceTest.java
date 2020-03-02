@@ -620,13 +620,13 @@ public class TokenCertificateServiceTest {
     public void unregisterAuthCertNoValid() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
         when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
-                .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
+                .thenThrow(new ManagementRequestSendingFailedException(
                         new CodedException(X_SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
                                 .withPrefix(SERVER_CLIENTPROXY_X)));
         try {
             tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
             fail("Should have thrown ManagementRequestSendingFailedException");
-        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+        } catch (ManagementRequestSendingFailedException e) {
             assertTrue(e.getErrorDeviation().getMetadata().get(0).contains(SSL_AUTH_ERROR_MESSAGE));
         }
     }
@@ -635,12 +635,12 @@ public class TokenCertificateServiceTest {
     public void unregisterAuthCertAssertExceptionMessage() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
         when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
-                .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
+                .thenThrow(new ManagementRequestSendingFailedException(
                         new IOException(IO_EXCEPTION_MSG)));
         try {
             tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
             fail("Should have thrown ManagementRequestSendingFailedException");
-        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+        } catch (ManagementRequestSendingFailedException e) {
             assertTrue(e.getErrorDeviation().getMetadata().contains(IO_EXCEPTION_MSG));
         }
     }
