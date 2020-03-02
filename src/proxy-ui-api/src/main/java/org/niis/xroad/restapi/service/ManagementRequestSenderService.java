@@ -65,6 +65,7 @@ public class ManagementRequestSenderService {
      * @param address the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
+     * @throws GlobalConfOutdatedException
      */
     Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
             throws GlobalConfOutdatedException {
@@ -87,6 +88,8 @@ public class ManagementRequestSenderService {
      * call's SecurityServerId = this security server's id)
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
     Integer sendAuthCertDeletionRequest(byte[] authCert) throws
             GlobalConfOutdatedException, ManagementRequestSendingFailedException {
@@ -103,6 +106,8 @@ public class ManagementRequestSenderService {
      * @param securityServer the security server id
      * @param clientId the client id that will be registered
      * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
     Integer sendClientRegisterRequest(ClientId clientId)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
