@@ -1,5 +1,5 @@
 <template>
-  <v-footer absolute color="grey lighten-3">
+  <v-footer color="grey lighten-3">
     <v-layout align-center justify-center>
       <v-row class="xrd-tab-max-width">
         <v-col cols="6" sm="3" class="pt-2">
