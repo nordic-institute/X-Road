@@ -307,6 +307,19 @@
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
+  "apiKey": {
+    "createApiKey": "CREATE API KEY",
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "actions": {
+        "edit": "Edit",
+        "revoke": "Revoke key"
+      }
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
