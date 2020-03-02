@@ -61,7 +61,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 
 export default Vue.extend({
-  name: 'footer',
+  name: 'app-footer',
   computed: {
     ...mapGetters(['securityServerVersion']),
   },
