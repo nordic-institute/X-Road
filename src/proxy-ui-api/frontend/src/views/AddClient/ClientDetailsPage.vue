@@ -55,7 +55,7 @@
           ></v-text-field>
         </ValidationProvider>
       </div>
-      <div v-if="duplicateClient" class="duplicate-warning">Member already exists</div>
+      <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
       <div class="button-footer">
         <div class="button-group">
           <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
