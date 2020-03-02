@@ -99,7 +99,7 @@
               </thead>
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
-                  <td class="service-code" @click="serviceClick(service)" data-test="service-link">{{service.service_code}}</td>
+                  <td class="service-code" @click="serviceClick(serviceDesc, service)" data-test="service-link">{{service.service_code}}</td>
                   <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
                     {{service.url}}
@@ -152,7 +152,7 @@ import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import _ from 'lodash';
-import {ServiceDescription} from '@/types';
+import {Service, ServiceDescription} from '@/types';
 
 export default Vue.extend({
   components: {
@@ -259,8 +259,6 @@ export default Vue.extend({
         return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
       } else if (serviceDescriptionType === 'OPENAPI3') {
         return this.$store.getters.hasPermission(Permissions.REFRESH_OPENAPI3);
-      } else if (serviceDescriptionType === 'REST') {
-        return this.$store.getters.hasPermission(Permissions.REFRESH_REST);
       }
       return false;
     },
@@ -270,10 +268,11 @@ export default Vue.extend({
         params: { id: desc.id },
       });
     },
-    serviceClick(service: any): void {
+    serviceClick(serviceDescription: ServiceDescription, service: Service): void {
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id, clientId: this.id },
+        query: { descriptionType: serviceDescription.type },
       });
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {

@@ -34,9 +34,11 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.ServerConfService;
+import org.niis.xroad.restapi.service.VersionService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -74,6 +76,9 @@ public class SystemApiControllerTest {
 
     @MockBean
     private InternalTlsCertificateRepository mockRepository;
+
+    @MockBean
+    private VersionService versionService;
 
     @Autowired
     private SystemApiController systemApiController;
@@ -131,6 +136,17 @@ public class SystemApiControllerTest {
         getSystemCertificate();
     }
 
+    @Test
+    @WithMockUser(authorities = { "VIEW_VERSION" })
+    public void getVersion() throws Exception {
+        String versionNumber = "6.24.0";
+        given(versionService.getVersion()).willReturn(versionNumber);
+        ResponseEntity<Version> response = systemApiController.systemVersion();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(versionNumber, response.getBody().getInfo());
+    }
+
     private void getSystemCertificate() throws IOException {
         X509Certificate x509Certificate = null;
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
@@ -142,7 +158,6 @@ public class SystemApiControllerTest {
                 systemApiController.getSystemCertificate().getBody();
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
-
 
     @Test
     @WithMockUser(authorities = { "VIEW_TSPS" })

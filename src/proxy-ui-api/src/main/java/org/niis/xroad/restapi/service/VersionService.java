@@ -22,32 +22,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.Version;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+/**
+ * service class for handling X-Road version information
+ */
+@Slf4j
+@Service
+@Transactional
+@PreAuthorize("isAuthenticated()")
+public class VersionService {
 
-@Component
-public class EndpointConverter {
-
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
-
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    /**
+     * Returns X-Road software version number
+     * @return
+     */
+    public String  getVersion() {
+        return Version.XROAD_VERSION;
     }
-
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
-    }
-
 }

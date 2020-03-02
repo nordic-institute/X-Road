@@ -11,7 +11,9 @@
     ></v-img>
     <div class="separator"></div>
     <div class="server-type">Security Server</div>
-    <div class="white--text server-name">name of the server</div>
+    <div class="white--text server-name" data-test="app-toolbar-server-name" v-show="currentSecurityServer.id" :title="currentSecurityServer.server_address">
+        {{`${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`}}
+    </div>
     <v-spacer></v-spacer>
     {{username}}
     <v-menu bottom left>
@@ -38,7 +40,7 @@ import { RouteName } from '@/global';
 export default Vue.extend({
   name: 'toolbar',
   computed: {
-    ...mapGetters(['username']),
+    ...mapGetters(['username', 'currentSecurityServer']),
   },
   methods: {
     home(): void {

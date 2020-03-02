@@ -2261,6 +2261,50 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /services/{id}/endpoints:
+    post:
+      tags:
+        - security server
+      summary: create endpoint
+      operationId: addEndpoint
+      description: Administrator creates a new endpoint.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            example: CS:ORG:Client:myService.v1
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Endpoint'
+      responses:
+        '201':
+          description: endpoint added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endpoint'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
   /services/{id}/access-rights:
     get: # ok
       tags:
@@ -2381,6 +2425,111 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+        '500':
+          description: internal server error
+  /endpoints/{id}:
+    get:
+      tags:
+        - security server
+      operationId: getEndpoint
+      description: Administrator fetches an endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          schema:
+            type: string
+            example: 102
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: endpoint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endpoint'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    put:
+      tags:
+        - security server
+      operationId: updateEndpoint
+      description: Administrator updates an endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          schema:
+            type: string
+            example: 102
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Endpoint'
+      responses:
+        '200':
+          description: endpoint updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endpoint'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete:
+      tags:
+        - security server
+      summary: delete endpoint
+      operationId: deleteEndpoint
+      description: Administrator removes an endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          schema:
+            type: string
+            example: 102
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: endpoint deleted
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
         '500':
           description: internal server error
   /service-clients/{id}/access-rights:
@@ -2993,9 +3142,31 @@ paths:
       summary: generate new certificate request
       operationId: generateSystemCertificateRequest
       description: Administrator generates new certificate request.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - distinguished_name
+              title: DistinguishedName
+              type: object
+              properties:
+                name:
+                  type: string
+                  format: text
+                  description: distinguished name
+                  example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+                  minLength: 1
+                  maxLength: 255
       responses:
-        '204':
-          description: certificate request generated
+        '201':
+          description: created CSR
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
         '400':
           description: request was invalid
         '401':
@@ -3024,7 +3195,7 @@ paths:
               format: binary
               description: certificate file
       responses:
-        '201':
+        '200':
           description: tls certificate imported
           content:
             application/json:
@@ -3929,7 +4100,7 @@ components:
           type: string
           format: text
           description: distinguished name
-          example: /C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
           maxLength: 255
         response:
@@ -4612,36 +4783,6 @@ components:
           description: list of endpoints linked to this service
           items:
             $ref: '#/components/schemas/Endpoint'
-    Endpoint:
-      type: object
-      description: Endpoint for a service
-      required:
-        - id
-        - service_code
-        - method
-        - path
-      properties:
-        id:
-          type: string
-          description: unique identifier
-          example: 15
-        service_code:
-          type: string
-          example: example_service_code
-        method:
-          type: string
-          description: http method mapeed to this endpoint
-          example: 'GET'
-          default: '*'
-        path:
-          type: string
-          description: relative path where this endpoint is mapped to
-          example: '/foo'
-          default: '**'
-        generated:
-          type: boolean
-          description: has endpoint been generated from openapi3 description
-          example: true
     ServiceUpdate: # ok
       type: object
       description: object for updating a service or all services within service description
@@ -4665,6 +4806,37 @@ components:
           type: boolean
           example: false
           default: false
+    Endpoint:
+      type: object
+      description: Endpoint for a service
+      required:
+        - service_code
+        - method
+        - path
+      properties:
+        id:
+          type: string
+          description: unique identifier
+          example: 15
+        service_code:
+          type: string
+          example: example_service_code
+        method:
+          type: string
+          description: http method mapeed to this endpoint
+          example: 'GET'
+          default: '*'
+          enum: [ '*', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE' ]
+        path:
+          type: string
+          description: relative path where this endpoint is mapped to
+          example: '/foo'
+          default: '**'
+        generated:
+          type: boolean
+          description: has endpoint been generated from openapi3 description
+          example: true
+          readOnly: true
     ServiceClient: # ok
       type: object
       description: service client

@@ -2,25 +2,13 @@
     <div class="xrd-tab-max-width">
         <subViewTitle :title="service.service_code" @close="close" class="sub-view-title-spacing" />
 
-        <div class="wrap-right delete-button-spacing">
-            <v-btn
-                color="primary"
-                @click="removeService"
-                outlined
-                rounded
-                class="rounded-button elevation-0 rest-button"
-                data-test="service-delete"
-            >{{$t('action.delete')}}
-            </v-btn>
-        </div>
-
-        <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4" >
+        <v-tabs v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL" v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4" >
             <v-tabs-slider color="secondary"></v-tabs-slider>
             <v-tab v-for="tab in tabs" v-bind:key="tab.key"
                    :to="tab.to" data-test="service-tab">{{ $t(tab.name) }}</v-tab>
         </v-tabs>
 
-        <router-view service="service" class="sub-view-spacing" />
+        <router-view v-on:updateService="fetchData" service="service" class="sub-view-spacing" />
 
     </div>
 </template>
@@ -31,6 +19,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import {RouteName} from '@/global';
+import {ServiceTypeEnum} from '@/domain';
 
 export default Vue.extend({
   components: {
@@ -51,6 +40,7 @@ export default Vue.extend({
     return {
       tab: null,
       service: {},
+      serviceTypeEnum: ServiceTypeEnum,
     };
   },
   computed: {
@@ -102,10 +92,6 @@ export default Vue.extend({
       this.$router.push({ name: RouteName.SubsystemServices, params: { id: this.clientId }} );
     },
 
-    removeService(): void {
-      // NOOP
-    },
-
   },
 
   created() {
@@ -124,10 +110,6 @@ export default Vue.extend({
 
     .sub-view-spacing {
         margin-top: 20px;
-    }
-
-    .delete-button-spacing {
-        margin-bottom: 20px;
     }
 
 </style>

@@ -22,32 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.springframework.stereotype.Component;
+/**
+ * General error that happens when importing a cert. Usually a wrong file type
+ */
+public class InvalidCertificateException extends ServiceException {
+    public static final String INVALID_CERT = "invalid_cert";
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Component
-public class EndpointConverter {
-
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
-
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    public InvalidCertificateException(Throwable t) {
+        super(t, new ErrorDeviation(INVALID_CERT));
     }
 
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
+    public InvalidCertificateException(String msg, Throwable t) {
+        super(msg, t, new ErrorDeviation(INVALID_CERT));
     }
-
 }
