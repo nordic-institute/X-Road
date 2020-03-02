@@ -69,7 +69,7 @@
 
       <div class="button-footer">
         <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
-        <large-button :disabled="invalid" @click="done">{{$t('action.continue')}}</large-button>
+        <large-button :disabled="invalid" @click="done">{{$t(saveButtonText)}}</large-button>
       </div>
     </ValidationObserver>
   </div>
@@ -94,7 +94,12 @@ export default Vue.extend({
     ValidationObserver,
     ValidationProvider,
   },
-  props: {},
+  props: {
+    saveButtonText: {
+      type: String,
+      default: 'action.continue',
+    },
+  },
   data() {
     return {
       usageTypes: UsageTypes,

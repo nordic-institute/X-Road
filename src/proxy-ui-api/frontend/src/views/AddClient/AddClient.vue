@@ -32,11 +32,19 @@
         </v-stepper-content>
         <!-- Step 4 -->
         <v-stepper-content step="4">
-          <WizardPageCsrDetails @cancel="cancel" @done="csrDetailsReady" />
+          <WizardPageCsrDetails
+            @cancel="cancel"
+            @done="csrDetailsReady"
+            saveButtonText="action.next"
+          />
         </v-stepper-content>
         <!-- Step 5 -->
         <v-stepper-content step="5">
-          <WizardPageGenerateCsr @cancel="cancel" @done="generatecsrReady" />
+          <WizardPageGenerateCsr
+            @cancel="cancel"
+            @done="generatecsrReady"
+            saveButtonText="action.next"
+          />
         </v-stepper-content>
         <!-- Step 6 -->
         <v-stepper-content step="6">

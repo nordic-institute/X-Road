@@ -32,8 +32,6 @@
               <tr v-for="member in filteredMembers()" v-bind:key="member.id">
                 <td class="checkbox-column">
                   <div class="checkbox-wrap">
-                    <!-- <v-checkbox @change="checkboxChange(member.id, $event)" color="primary"></v-checkbox>  -->
-
                     <v-radio :key="member.id" :value="member"></v-radio>
                   </div>
                 </td>
@@ -89,8 +87,6 @@ export default Vue.extend({
 
   methods: {
     filteredMembers() {
-      // Override for the default filter function.
-      // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
       if (!this.search) {
         return this.members;
       }

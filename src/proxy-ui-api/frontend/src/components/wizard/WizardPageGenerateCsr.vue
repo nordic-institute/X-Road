@@ -32,7 +32,7 @@
         <div class="button-group">
           <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
         </div>
-        <large-button @click="done" :disabled="disableDone">{{$t('action.done')}}</large-button>
+        <large-button @click="done" :disabled="disableDone">{{$t(saveButtonText)}}</large-button>
       </div>
     </ValidationObserver>
   </div>
@@ -49,6 +49,12 @@ export default Vue.extend({
     LargeButton,
     ValidationObserver,
     ValidationProvider,
+  },
+  props: {
+    saveButtonText: {
+      type: String,
+      default: 'action.done',
+    },
   },
   computed: {
     ...mapGetters(['csrForm']),
