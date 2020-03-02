@@ -175,7 +175,7 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '../../../assets/dialogs';
+  @import 'src/assets/dialogs';
 
   .delete-wrap {
     margin-top: 50px;

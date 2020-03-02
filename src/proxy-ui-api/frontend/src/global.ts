@@ -34,6 +34,7 @@ export enum RouteName {
   GenerateCertificateSignRequest = 'generate-csr',
   InternalTlsCertificate = 'internal-tls-certificate',
   EndpointDetails = 'endpoint-details',
+  EndpointAccessRights = 'endpoint-access-rights'
 }
 
 // A "single source of truth" for permission strings

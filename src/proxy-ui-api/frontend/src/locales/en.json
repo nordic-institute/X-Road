@@ -188,7 +188,10 @@
   "access": {
     "accessRights": "Access Rights",
     "addSubjects": "Add subjects",
-    "addSubjectsTitle": "Add Subjects"
+    "addSubjectsTitle": "Add Subjects",
+    "memberName": "Member Name / Group Description",
+    "id": "ID",
+    "rightsGiven": "Access Rights given"
   },
   "action": {
     "addSubsystem": "add subsystem",

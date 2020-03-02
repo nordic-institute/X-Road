@@ -43,7 +43,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
+
 /**
  * service class for handling access rights
  */
@@ -76,17 +80,19 @@ public class AccessRightService {
     private final ServiceService serviceService;
     private final IdentifierService identifierService;
     private final GlobalConfService globalConfService;
+    private final EndpointRepository endpointRepository;
 
     @Autowired
     public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService) {
+            GlobalConfService globalConfService, EndpointRepository endpointRepository) {
         this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.identifierService = identifierService;
         this.globalConfService = globalConfService;
+        this.endpointRepository = endpointRepository;
     }
 
     /**
@@ -146,6 +152,30 @@ public class AccessRightService {
 
         return accessRightHolderDtos;
     }
+
+    public List<AccessRightHolderDto> getAccessRightHoldersByEndpoint(Long id)
+            throws EndpointService.EndpointNotFoundException, ClientNotFoundException {
+        verifyAuthority("VIEW_SERVICE_ACL");
+
+        ClientType clientType = clientRepository.getClientByEndpointId(id);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
+        }
+
+        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+                localGroupType));
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getId().equals(id)) {
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
+                accessRightHolderDtos.add(accessRightHolderDto);
+            }
+        });
+
+        return accessRightHolderDtos;
+    }
+
 
     /**
      * Remove AccessRights from a Service

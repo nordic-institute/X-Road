@@ -1,5 +1,5 @@
-import Router, { Route, NavigationGuard } from 'vue-router';
-import { sync } from 'vuex-router-sync';
+import Router, {NavigationGuard, Route} from 'vue-router';
+import {sync} from 'vuex-router-sync';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AppLogin from '@/views/AppLogin.vue';
 import AppBase from '@/views/AppBase.vue';
@@ -7,7 +7,8 @@ import Clients from '@/views/Clients/Clients.vue';
 import Client from '@/views/Clients/Client.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
-import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
+import SSTlsCertificate
+  from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters.vue';
@@ -31,11 +32,12 @@ import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vu
 import Service from '@/views/Service/Service.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
-import { Permissions, RouteName } from '@/global';
+import {Permissions, RouteName} from '@/global';
 import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
-import EndpointDetails from '@/views/Service/Endpoints/EndpointDetails.vue';
+import EndpointDetails from '@/views/Endpoint/EndpointDetails.vue';
+import EndpointAccessRights from "@/views/Endpoint/EndpointAccessRights.vue";
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -289,6 +291,14 @@ const router = new Router({
           path: '/endpoint/:id',
           components: {
             default: EndpointDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.EndpointAccessRights,
+          path: '/endpoint/:id/accessrights',
+          components: {
+            default: EndpointAccessRights,
           },
           props: { default: true },
         },

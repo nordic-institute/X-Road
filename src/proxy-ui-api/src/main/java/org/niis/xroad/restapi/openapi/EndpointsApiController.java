@@ -26,7 +26,12 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.EndpointConverter;
+import org.niis.xroad.restapi.converter.ServiceClientConverter;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.openapi.model.AccessRight;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +40,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
 
@@ -49,15 +56,22 @@ public class EndpointsApiController implements EndpointsApi {
 
     private final EndpointService endpointService;
     private final EndpointConverter endpointConverter;
+    private final AccessRightService accessRightService;
+    private final ServiceClientConverter serviceClientConverter;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
+
 
     @Autowired
     public EndpointsApiController(
             EndpointService endpointService,
-            EndpointConverter endpointConverter) {
+            EndpointConverter endpointConverter,
+            AccessRightService accessRightService,
+            ServiceClientConverter serviceClientConverter) {
         this.endpointService = endpointService;
         this.endpointConverter = endpointConverter;
+        this.accessRightService = accessRightService;
+        this.serviceClientConverter = serviceClientConverter;
     }
 
     @Override
@@ -104,5 +118,24 @@ public class EndpointsApiController implements EndpointsApi {
 
         return new ResponseEntity<>(ep, HttpStatus.OK);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
+    public ResponseEntity<List<ServiceClient>> getEndpointAccessRights(String id) {
+        Long endpointId = parseLongIdOrThrowNotFound(id);
+        List<AccessRightHolderDto> accessRightHoldersByEndpoint;
+        try {
+            accessRightHoldersByEndpoint = accessRightService.getAccessRightHoldersByEndpoint(endpointId);
+        } catch (EndpointService.EndpointNotFoundException e) {
+            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given endpoint with id: " + id);
+        }
+        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
+
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+
+    }
+
 
 }

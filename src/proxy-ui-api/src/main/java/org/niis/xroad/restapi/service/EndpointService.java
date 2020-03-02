@@ -24,17 +24,23 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
@@ -130,6 +136,8 @@ public class EndpointService {
 
         return endpoint;
     }
+
+
 
     public static class EndpointNotFoundException extends NotFoundException {
         public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
