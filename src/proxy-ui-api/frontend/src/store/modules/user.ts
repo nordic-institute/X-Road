@@ -4,17 +4,23 @@ import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { mainTabs } from '@/global';
+import { SecurityServer, Version } from '@/types';
+import i18n from '@/i18n';
 
 export interface UserState {
   authenticated: boolean;
   permissions: string[];
   username: string;
+  currentSecurityServer: SecurityServer | {};
+  securityServerVersion: Version | {};
 }
 
 export const userState: UserState = {
   authenticated: false,
   permissions: [],
   username: '',
+  currentSecurityServer: {},
+  securityServerVersion: {},
 };
 
 export const userGetters: GetterTree<UserState, RootState> = {
@@ -63,6 +69,12 @@ export const userGetters: GetterTree<UserState, RootState> = {
   username(state) {
     return state.username;
   },
+  currentSecurityServer(state) {
+    return state.currentSecurityServer;
+  },
+  securityServerVersion(state) {
+    return state.securityServerVersion;
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
@@ -75,12 +87,19 @@ export const mutations: MutationTree<UserState> = {
     // Clear the permissions
     state.permissions = [];
     state.username = '';
+    state.currentSecurityServer = {};
   },
   setPermissions: (state, permissions: string[]) => {
     state.permissions = permissions;
   },
   setUsername: (state, username: string) => {
     state.username = username;
+  },
+  setCurrentSecurityServer: (state, securityServer: SecurityServer) => {
+    state.currentSecurityServer = securityServer;
+  },
+  setSecurityServerVersion: (state, version: Version) => {
+    state.securityServerVersion = version;
   },
 };
 
@@ -117,6 +136,29 @@ export const actions: ActionTree<UserState, RootState> = {
       })
       .catch((error) => {
         console.log(error);
+        throw error;
+      });
+  },
+
+  async fetchCurrentSecurityServer({ commit }) {
+    return axios.get<SecurityServer[]>('/security-servers?current_server=true')
+      .then((resp) => {
+        if (resp.data?.length !== 1) {
+          throw new Error(i18n.t('stores.user.currentSecurityServerNotFound') as string);
+        }
+        commit('setCurrentSecurityServer', resp.data[0]);
+      })
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
+  },
+
+  async fetchSecurityServerVersion({ commit }) {
+    return axios.get<Version>('/system/version')
+      .then((resp) => commit('setSecurityServerVersion', resp.data))
+      .catch((error) => {
+        console.error(error);
         throw error;
       });
   },

@@ -22,32 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import java.util.List;
-import java.util.stream.Collectors;
+public class EndpointAlreadyExistsException extends ServiceException {
+    public static final String ERROR_EXISTING_ENDPOINT = "endpoint_already_exists";
 
-@Component
-public class EndpointConverter {
-
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
-
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    public EndpointAlreadyExistsException(String msg) {
+        super(new ErrorDeviation(ERROR_EXISTING_ENDPOINT, msg));
     }
-
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
-    }
-
 }

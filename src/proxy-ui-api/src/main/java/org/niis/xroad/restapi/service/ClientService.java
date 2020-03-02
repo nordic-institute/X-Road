@@ -471,17 +471,22 @@ public class ClientService {
     }
 
     /**
-     * Add a new client to this security server. Can add a new member or a subsystem.
+     * Add a new client to this security server. Can add either a member or a subsystem.
      * Member (added client, or member associated with the client subsystem) can either
      * be one already registered to global conf, or an unregistered one. Unregistered one
      * can only be added with ignoreWarnings = true.
+     *
+     * Client is added to this instance, it is not possible to add clients who would have
+     * different instance_id from this security server's instance.
      *
      * To prevent against two threads both creating "first" additional members,
      * synchronize access to this method on controller layer
      * (synchronizing this method does not help since transaction start & commit
      * are outside of this method).
      *
-     * @param clientId id of client to add
+     * @param memberClass member class of added client
+     * @param memberCode member code of added client
+     * @param subsystemCode subsystem code of added client (null if adding a member)
      * @param isAuthentication {@code IsAuthentication} value to set for the new client
      * @param ignoreWarnings if warning about unregistered member should be ignored
      * @return
@@ -491,10 +496,17 @@ public class ClientService {
      * @throws UnhandledWarningsException if tried to add client associated with a member which
      * does not exist in global conf yet, and ignoreWarnings was false
      */
-    public ClientType addLocalClient(ClientId clientId,
+    public ClientType addLocalClient(String memberClass,
+            String memberCode,
+            String subsystemCode,
             IsAuthentication isAuthentication,
             boolean ignoreWarnings) throws ClientAlreadyExistsException,
             AdditionalMemberAlreadyExistsException, UnhandledWarningsException {
+
+        ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(),
+                memberClass,
+                memberCode,
+                subsystemCode);
 
         ClientType existingLocalClient = getLocalClient(clientId);
         ClientId ownerId = serverConfService.getSecurityServerOwnerId();

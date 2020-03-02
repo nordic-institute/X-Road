@@ -33,6 +33,7 @@ export enum RouteName {
   AddKey = 'add-key',
   GenerateCertificateSignRequest = 'generate-csr',
   InternalTlsCertificate = 'internal-tls-certificate',
+  EndpointDetails = 'endpoint-details',
 }
 
 // A "single source of truth" for permission strings
@@ -56,6 +57,7 @@ export enum Permissions {
   DELETE_SIGN_KEY = 'DELETE_SIGN_KEY',
   DELETE_TSP = 'DELETE_TSP',
   DELETE_WSDL = 'DELETE_WSDL',  // can delete WSDL or REST
+  DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR',
   EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES',

@@ -24,30 +24,42 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.service.VersionService;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.springframework.stereotype.Component;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.stream.Collectors;
+/**
+ * Test VersionConverter
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class VersionConverterTest {
 
-@Component
-public class EndpointConverter {
+    @MockBean
+    private VersionService versionService;
 
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
+    private VersionConverter versionConverter;
 
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+    private static final String SOFTWARE_VERSION = "6.24.0";
+
+    @Before
+    public void setup() {
+        versionConverter = new VersionConverter();
+        when(versionService.getVersion()).thenReturn(SOFTWARE_VERSION);
     }
 
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
-    }
+    @Test
+    public void convertVersion() {
+        Version version = versionConverter.convert(SOFTWARE_VERSION);
 
+        assertEquals(SOFTWARE_VERSION, version.getInfo());
+    }
 }

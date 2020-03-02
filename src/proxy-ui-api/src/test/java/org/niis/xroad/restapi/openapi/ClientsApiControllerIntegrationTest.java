@@ -163,7 +163,8 @@ public class ClientsApiControllerIntegrationTest {
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
                         TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        null))
+                        null)
+                )
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenService.getAllTokens()).thenReturn(mockTokens);
@@ -608,9 +609,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(1, clientsResponse.getBody().size());
     }
 
-    private Client createTestClient(String instanceId, String memberClass, String memberCode, String subsystemCode) {
+    private Client createTestClient(String memberClass, String memberCode, String subsystemCode) {
         Client client = new Client();
-        client.setInstanceId(instanceId);
         client.setMemberClass(memberClass);
         client.setMemberCode(memberCode);
         client.setSubsystemCode(subsystemCode);
@@ -620,15 +620,16 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_CLIENT" })
     public void addClient() {
-        Client clientToAdd = createTestClient("EE", "PRO", "M2", null);
+        Client clientToAdd = createTestClient("GOV", "M2", null);
         ResponseEntity<Client> response = clientsApiController.addClient(
                 new ClientAdd().client(clientToAdd).ignoreWarnings(false));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("FI", response.getBody().getInstanceId());
         assertEquals("M2", response.getBody().getMemberCode());
         assertEquals(ClientStatus.SAVED, response.getBody().getStatus());
         assertEquals(ConnectionType.HTTPS, response.getBody().getConnectionType());
         assertFalse(response.getBody().getOwner());
-        assertLocationHeader("/api/clients/EE:PRO:M2", response);
+        assertLocationHeader("/api/clients/FI:GOV:M2", response);
 
         response = clientsApiController.addClient(
                 new ClientAdd().client(clientToAdd
@@ -638,14 +639,14 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SUBSYSTEM1", response.getBody().getSubsystemCode());
         assertEquals(ClientStatus.SAVED, response.getBody().getStatus());
         assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
-        assertLocationHeader("/api/clients/EE:PRO:M2:SUBSYSTEM1", response);
+        assertLocationHeader("/api/clients/FI:GOV:M2:SUBSYSTEM1", response);
     }
 
     @Test
     @WithMockUser(authorities = { "ADD_CLIENT" })
     public void addClientConflicts() {
         // conflict: client already exists
-        Client clientToAdd = createTestClient("FI", "GOV", "M1", null);
+        Client clientToAdd = createTestClient("GOV", "M1", null);
         try {
             clientsApiController.addClient(
                     new ClientAdd().client(clientToAdd).ignoreWarnings(false));
@@ -654,7 +655,7 @@ public class ClientsApiControllerIntegrationTest {
         }
 
         // conflict: two additional members
-        clientToAdd = createTestClient("FI", "GOV", "ADDITIONAL1", null);
+        clientToAdd = createTestClient("GOV", "ADDITIONAL1", null);
         ResponseEntity<Client> response = clientsApiController.addClient(
                 new ClientAdd().client(clientToAdd).ignoreWarnings(true));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -672,7 +673,7 @@ public class ClientsApiControllerIntegrationTest {
     public void addClientBadRequestFromWarnings() {
         // warning about unregistered client
         doReturn(null).when(globalConfFacade).getMemberName(any());
-        Client clientToAdd = createTestClient("UNREGISTERED", "A", "B", "C");
+        Client clientToAdd = createTestClient("UNREGISTEREDA", "B", "C");
         try {
             clientsApiController.addClient(
                     new ClientAdd().client(clientToAdd).ignoreWarnings(false));
@@ -940,16 +941,16 @@ public class ClientsApiControllerIntegrationTest {
         } catch (ResourceNotFoundException expected) {
         }
         // create a new client, and then delete it
-        Client clientToAdd = createTestClient("EE", "PRO", "M2", null);
+        Client clientToAdd = createTestClient("GOV", "M3", null);
         ResponseEntity<Client> addResponse = clientsApiController.addClient(
                 new ClientAdd().client(clientToAdd).ignoreWarnings(false));
         assertEquals(HttpStatus.CREATED, addResponse.getStatusCode());
 
         ResponseEntity<Void> deleteResponse =
-                clientsApiController.deleteClient("EE:PRO:M2");
+                clientsApiController.deleteClient("FI:GOV:M3");
         assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
         try {
-            clientsApiController.getClient("EE:PRO:M2");
+            clientsApiController.getClient("FI:GOV:M3");
             fail("should have thrown exception");
         } catch (ResourceNotFoundException expected) {
         }
