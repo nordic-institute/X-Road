@@ -137,36 +137,17 @@ public class InternalTlsCertificateService {
     }
 
     /**
-     * Generates a new TLS key and certificate for internal use for the current Security Server and restarts
-     * <code>xroad-proxy</code> process in order to forcefully load the newly created TLS certificate. A runtime
-     * exception will be thrown if the generation is interrupted or otherwise unable to be executed or if the
-     * restarting fails.
+     * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
+     * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
+     * @throws InterruptedException if the thread running the key generator is interrupted
      */
     public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
         try {
             externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
-            restartXroadProxy();
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate internal TLS key and cert", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));
         }
-    }
-
-    /**
-     * NOTE: This method should be replaced with a proper way to load the newly generated TLS cert on the fly!
-     * This method is for restarting the xroad-proxy process in order to force load the newly created internal TLS cert.
-     * The functionality is the same as in sysparams_controller.rb#restart_service
-     * @throws ProcessFailedException
-     * @throws ProcessNotExecutableException
-     * @see <a href="https://jira.niis.org/browse/XRDDEV-873">XRDDEV-873</a>
-     */
-    private void restartXroadProxy() throws ProcessFailedException, ProcessNotExecutableException,
-            InterruptedException {
-        log.warn("restarting xroad-proxy");
-        String bash = "/bin/bash";
-        String[] bashRestartXroadProxyArgs = new String[] {"-c", "sudo service xroad-proxy restart 2>&1"};
-        externalProcessRunner.execute(bash, bashRestartXroadProxyArgs);
-        log.warn("restarted xroad-proxy");
     }
 
     /**
@@ -185,7 +166,6 @@ public class InternalTlsCertificateService {
         try {
             CertUtils.writePemToFile(certificateBytes, internalCertPath);
             CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
-            restartXroadProxy(); // NOTE: this call will be removed after XRDDEV-873 is merged
         } catch (Exception e) {
             throw new DeviationAwareRuntimeException("cannot import internal tls cert", e,
                     new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));

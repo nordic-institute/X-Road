@@ -22,43 +22,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.converter;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.openapi.model.Backup;
+import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Thrown if there was a conflict, for example tried to add an item which already exists.
- * Results in http 409 CONFLICT
+ * Converter for backups related data between openapi and service domain classes
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends OpenApiException {
-    public ConflictException() {
+@Component
+public class BackupConverter {
+
+    public Backup convert(BackupFile backupFile) {
+        Backup backup = new Backup();
+        backup.setFilename(backupFile.getFilename());
+        backup.setCreatedAt(backupFile.getCreatedAt());
+        return backup;
     }
 
-    public ConflictException(DeviationAwareException e) {
-        super(e, e.getErrorDeviation(), e.getWarningDeviations());
+    public List<Backup> convert(Iterable<BackupFile> files)  {
+        return Streams.stream(files)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
-
-    public ConflictException(String msg) {
-        super(msg);
-    }
-
-    public ConflictException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ConflictException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
-    }
-
-    public ConflictException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
 }

@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +85,7 @@ public class ClientRepository {
     }
 
     /**
-     * return one client
+     * return one local client
      * @param id
      * @return the client, or null if matching client was not found
      */
@@ -94,12 +95,13 @@ public class ClientRepository {
     }
 
     /**
-     * return all clients
+     * return all local clients
      * @return
      */
     public List<ClientType> getAllLocalClients() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
+        ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
+        ServerConfType serverConfType = serverConfDao.getConf(persistenceUtils.getCurrentSession());
+        List<ClientType> clientTypes = serverConfType.getClient();
         Hibernate.initialize(clientTypes);
         return clientTypes;
     }

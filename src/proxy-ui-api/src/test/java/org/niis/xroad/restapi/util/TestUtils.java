@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
+import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -72,6 +73,7 @@ public final class TestUtils {
     public static final String MEMBER_CLASS_PRO = "PRO";
     public static final String MEMBER_CODE_M1 = "M1";
     public static final String MEMBER_CODE_M2 = "M2";
+    public static final String MEMBER_CODE_M3 = "M3";
     public static final String SUBSYSTEM = "SUBSYSTEM";
     public static final String SUBSYSTEM1 = "SS1";
     public static final String SUBSYSTEM2 = "SS2";
@@ -127,6 +129,16 @@ public final class TestUtils {
     }
 
     /**
+     * Returns a new ClientId which has been built from encoded client id string,
+     * such as "FI:GOV:M1:SS1"
+     * @param encodedId
+     * @return
+     */
+    public static ClientId getClientId(String encodedId) {
+        return new ClientConverter(null, null).convertId(encodedId);
+    }
+
+    /**
      * Returns a new MemberInfo with given parameters
      * @param instance
      * @param memberClass
@@ -136,7 +148,7 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? NAME_FOR + subsystem : null);
+                subsystem != null ? NAME_FOR + subsystem : NAME_FOR + memberCode);
     }
 
     /**
