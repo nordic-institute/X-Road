@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -57,10 +58,13 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 public class GlobalConfService {
 
     private final GlobalConfFacade globalConfFacade;
+    private final ServerConfService serverConfService;
 
     @Autowired
-    public GlobalConfService(GlobalConfFacade globalConfFacade) {
+    public GlobalConfService(GlobalConfFacade globalConfFacade,
+            ServerConfService serverConfService) {
         this.globalConfFacade = globalConfFacade;
+        this.serverConfService = serverConfService;
     }
 
     /**
@@ -173,4 +177,13 @@ public class GlobalConfService {
     public String getApprovedTspName(String url) {
         return globalConfFacade.getApprovedTspName(globalConfFacade.getInstanceIdentifier(), url);
     }
+
+    /**
+     * Checks if given client is one of this security server's clients
+     */
+    public boolean isSecurityServerClientForThisInstance(ClientId client) {
+        return globalConfFacade.isSecurityServerClient(client,
+                serverConfService.getSecurityServerId());
+    }
+
 }
