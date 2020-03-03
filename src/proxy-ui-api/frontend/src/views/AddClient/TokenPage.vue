@@ -7,6 +7,7 @@
       single-line
       hide-details
       class="search-input"
+      data-test="token-search-input"
     >
       <v-icon slot="append">mdi-magnify</v-icon>
     </v-text-field>
@@ -22,9 +23,18 @@
 
     <div class="button-footer">
       <div class="button-group">
-        <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
+        <large-button
+          outlined
+          @click="cancel"
+          :disabled="!disableDone"
+          data-test="cancel-button"
+        >{{$t('action.cancel')}}</large-button>
       </div>
-      <large-button @click="done" :disabled="disableNext">{{$t('action.next')}}</large-button>
+      <large-button
+        @click="done"
+        :disabled="disableNext"
+        data-test="next-button"
+      >{{$t('action.next')}}</large-button>
     </div>
   </div>
 </template>

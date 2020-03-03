@@ -4,7 +4,7 @@
       <v-card-title>
         <span class="headline">{{$t("wizard.client.addClient")}}</span>
         <v-spacer />
-        <i @click="cancel()" id="close-x"></i>
+        <i @click="cancel()" data-test="x-close-button"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px;" class="elevation-0">
@@ -14,6 +14,7 @@
           single-line
           hide-details
           class="search-input"
+          data-test="client-search-input"
         >
           <v-icon slot="append">mdi-magnify</v-icon>
         </v-text-field>
@@ -50,9 +51,18 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button class="button-margin" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+        <large-button
+          class="button-margin"
+          outlined
+          @click="cancel()"
+          data-test="cancel-button"
+        >{{$t('action.cancel')}}</large-button>
 
-        <large-button :disabled="!selectedMember" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
+        <large-button
+          :disabled="!selectedMember"
+          @click="save()"
+          data-test="save-button"
+        >{{$t('localGroup.addSelected')}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>

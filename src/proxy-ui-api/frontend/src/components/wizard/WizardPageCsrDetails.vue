@@ -13,6 +13,7 @@
             class="form-input"
             v-model="usage"
             :disabled="isUsageReadOnly"
+            data-test="csr-usage-select"
           ></v-select>
         </ValidationProvider>
       </div>
@@ -30,6 +31,7 @@
             item-value="id"
             class="form-input"
             v-model="client"
+            data-test="csr-client-select"
           ></v-select>
         </ValidationProvider>
       </div>
@@ -47,6 +49,7 @@
             item-value="name"
             class="form-input"
             v-model="certificationService"
+            data-test="csr-certification-service-select"
           ></v-select>
         </ValidationProvider>
       </div>
@@ -63,13 +66,18 @@
             name="crs.crsFormat"
             class="form-input"
             v-model="csrFormat"
+            data-test="csr-format-select"
           ></v-select>
         </ValidationProvider>
       </div>
 
       <div class="button-footer">
-        <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
-        <large-button :disabled="invalid" @click="done">{{$t(saveButtonText)}}</large-button>
+        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+        <large-button
+          :disabled="invalid"
+          @click="done"
+          data-test="save-button"
+        >{{$t(saveButtonText)}}</large-button>
       </div>
     </ValidationObserver>
   </div>
