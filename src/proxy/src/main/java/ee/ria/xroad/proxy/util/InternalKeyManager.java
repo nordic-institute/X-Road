@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.util;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 
-import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,6 @@ import java.security.cert.X509Certificate;
 /**
  * a KeyManager that holds the internal SSL Key
  */
-@NoArgsConstructor
 public class InternalKeyManager extends X509ExtendedKeyManager {
 
     private static final Logger LOG =
