@@ -1,7 +1,12 @@
 
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('wizard.addClientTitle')" :showClose="false" />
+    <subViewTitle
+      class="view-title"
+      :title="$t('wizard.addClientTitle')"
+      :showClose="false"
+      data-test="wizard-title"
+    />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <v-stepper-header class="noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.clientDetails')}}</v-stepper-step>

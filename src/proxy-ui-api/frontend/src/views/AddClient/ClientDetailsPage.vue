@@ -8,14 +8,18 @@
         {{$t('wizard.clientInfo2')}}
       </div>
       <div class="action-block">
-        <large-button @click="showSelectClient = true" outlined>{{$t('wizard.selectClient')}}</large-button>
+        <large-button
+          @click="showSelectClient = true"
+          outlined
+          data-test="select-client-button"
+        >{{$t('wizard.selectClient')}}</large-button>
       </div>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="selectedMember">{{selectedMember.member_name}}</div>
+        <div v-if="selectedMember" data-test="selected-member-name">{{selectedMember.member_name}}</div>
       </div>
 
       <div class="row-wrap">
@@ -27,6 +31,7 @@
             type="text"
             :error-messages="errors"
             v-model="memberClass"
+            data-test="member-class-input"
           ></v-text-field>
         </ValidationProvider>
       </div>
@@ -39,6 +44,7 @@
             type="text"
             :error-messages="errors"
             v-model="memberCode"
+            data-test="member-code-input"
           ></v-text-field>
         </ValidationProvider>
       </div>
@@ -52,15 +58,20 @@
             type="text"
             :error-messages="errors"
             v-model="subsystemCode"
+            data-test="subsystem-code-input"
           ></v-text-field>
         </ValidationProvider>
       </div>
       <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
+          <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
         </div>
-        <large-button @click="done" :disabled="invalid || duplicateClient">{{$t('action.next')}}</large-button>
+        <large-button
+          @click="done"
+          :disabled="invalid || duplicateClient"
+          data-test="next-button"
+        >{{$t('action.next')}}</large-button>
       </div>
     </ValidationObserver>
 

@@ -3,13 +3,18 @@
     {{$t('wizard.signKey.info')}}
     <div class="row-wrap">
       <FormLabel labelText="wizard.signKey.keyLabel" />
-      <v-text-field class="form-input" type="text" v-model="keyLabel"></v-text-field>
+      <v-text-field class="form-input" type="text" v-model="keyLabel" data-test="key-label-input"></v-text-field>
     </div>
     <div class="button-footer">
       <div class="button-group">
-        <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
+        <large-button
+          outlined
+          @click="cancel"
+          :disabled="!disableDone"
+          data-test="cancel-button"
+        >{{$t('action.cancel')}}</large-button>
       </div>
-      <large-button @click="done">{{$t('action.next')}}</large-button>
+      <large-button @click="done" data-test="next-button">{{$t('action.next')}}</large-button>
     </div>
   </div>
 </template>

@@ -26,13 +26,23 @@
         <large-button
           @click="generateCsr"
           :disabled="invalid || !disableDone"
+          data-test="generate-csr-button"
         >{{$t('csr.generateCsr')}}</large-button>
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
+          <large-button
+            outlined
+            @click="cancel"
+            :disabled="!disableDone"
+            data-test="cancel-button"
+          >{{$t('action.cancel')}}</large-button>
         </div>
-        <large-button @click="done" :disabled="disableDone">{{$t(saveButtonText)}}</large-button>
+        <large-button
+          @click="done"
+          :disabled="disableDone"
+          data-test="save-button"
+        >{{$t(saveButtonText)}}</large-button>
       </div>
     </ValidationObserver>
   </div>

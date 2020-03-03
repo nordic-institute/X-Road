@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div class="content" data-test="finish-content">
     <p>
       {{$t('wizard.finish.infoLine1')}}
       <br />
@@ -16,9 +16,18 @@
 
     <div class="button-footer">
       <div class="button-group">
-        <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
+        <large-button
+          outlined
+          @click="cancel"
+          :disabled="!disableDone"
+          data-test="cancel-button"
+        >{{$t('action.cancel')}}</large-button>
       </div>
-      <large-button @click="done" :disabled="disableDone">{{$t('action.submit')}}</large-button>
+      <large-button
+        @click="done"
+        :disabled="disableDone"
+        data-test="submit-button"
+      >{{$t('action.submit')}}</large-button>
     </div>
   </div>
 </template>
