@@ -52,7 +52,8 @@
           v-if="generateCsrVisible"
           class="table-button-fix"
           @click="generateCsr()"
-        >{{$t('keys.generateCsr')}}</SmallButton>
+          data-test="security-server-tls-certificate-generate-csr-button"
+        >{{$t('ssTlsCertificate.generateCsr')}}</SmallButton>
       </div>
     </div>
 
@@ -111,7 +112,9 @@ export default Vue.extend({
       });
     },
     generateCsr(): void {
-      // TODO: will be implemented in another task
+      this.$router.push({
+        name: RouteName.GenerateInternalCSR,
+      });
     },
     fetchData(): void {
       api
