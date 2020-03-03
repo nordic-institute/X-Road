@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.springframework.http.HttpStatus;
@@ -41,8 +41,8 @@ public class ConflictException extends OpenApiException {
     public ConflictException() {
     }
 
-    public ConflictException(DeviationAware deviations) {
-        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
+    public ConflictException(DeviationAwareException e) {
+        super(e, e.getErrorDeviation(), e.getWarningDeviations());
     }
 
     public ConflictException(String msg) {

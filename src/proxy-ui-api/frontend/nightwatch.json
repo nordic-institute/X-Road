@@ -9,12 +9,23 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
-    "default": {
+    "default": { 
       "globals" : {
         "login_usr" : "xrd",
         "login_pwd" : "secret",
         "login_wrong_usr" : "foo",
         "login_wrong_pwd" : "bar"
+      }
+    },
+    "chrome": {
+      "desiredCapabilities" : {
+        "browserName" : "chrome",
+        "javascriptEnabled" : true,
+        "acceptSslCerts" : true,
+        "acceptInsecureCerts": true,
+        "chromeOptions" : {
+          "w3c": false
+        }
       }
     }
   }

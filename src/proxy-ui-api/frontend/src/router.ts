@@ -35,6 +35,7 @@ import { Permissions, RouteName } from '@/global';
 import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
+import EndpointDetails from '@/views/Service/Endpoints/EndpointDetails.vue';
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -282,6 +283,14 @@ const router = new Router({
               },
             },
           ],
+        },
+        {
+          name: RouteName.EndpointDetails,
+          path: '/endpoint/:id',
+          components: {
+            default: EndpointDetails,
+          },
+          props: { default: true },
         },
         {
           name: RouteName.GenerateCertificateSignRequest,

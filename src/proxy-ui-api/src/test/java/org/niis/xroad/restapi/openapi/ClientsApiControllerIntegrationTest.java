@@ -39,6 +39,7 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
@@ -51,7 +52,7 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.TokenService;
-import org.niis.xroad.restapi.service.WsdlUrlValidator;
+import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -78,10 +79,12 @@ import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
@@ -124,7 +127,7 @@ public class ClientsApiControllerIntegrationTest {
     private WsdlValidator wsdlValidator;
 
     @MockBean
-    private WsdlUrlValidator wsdlUrlValidator;
+    private UrlValidator urlValidator;
 
     @Before
     public void setup() throws Exception {
@@ -157,7 +160,7 @@ public class ClientsApiControllerIntegrationTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         // mock for URL validator - FormatUtils is tested independently
-        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
     }
 
     @Autowired
@@ -591,6 +594,84 @@ public class ClientsApiControllerIntegrationTest {
                 "OV", "1", "1", false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
+    }
+
+    private Client createTestClient(String memberClass, String memberCode, String subsystemCode) {
+        Client client = new Client();
+        client.setMemberClass(memberClass);
+        client.setMemberCode(memberCode);
+        client.setSubsystemCode(subsystemCode);
+        return client;
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClient() {
+        Client clientToAdd = createTestClient("GOV", "M2", null);
+        ResponseEntity<Client> response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("FI", response.getBody().getInstanceId());
+        assertEquals("M2", response.getBody().getMemberCode());
+        assertEquals(ClientStatus.SAVED, response.getBody().getStatus());
+        assertEquals(ConnectionType.HTTPS, response.getBody().getConnectionType());
+        assertFalse(response.getBody().getOwner());
+        assertLocationHeader("/api/clients/FI:GOV:M2", response);
+
+        response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd
+                        .connectionType(ConnectionType.HTTPS_NO_AUTH)
+                        .subsystemCode("SUBSYSTEM1"))
+                        .ignoreWarnings(false));
+        assertEquals("SUBSYSTEM1", response.getBody().getSubsystemCode());
+        assertEquals(ClientStatus.SAVED, response.getBody().getStatus());
+        assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
+        assertLocationHeader("/api/clients/FI:GOV:M2:SUBSYSTEM1", response);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClientConflicts() {
+        // conflict: client already exists
+        Client clientToAdd = createTestClient("GOV", "M1", null);
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+        }
+
+        // conflict: two additional members
+        clientToAdd = createTestClient("GOV", "ADDITIONAL1", null);
+        ResponseEntity<Client> response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(true));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd.memberCode("ADDITIONAL2")).ignoreWarnings(true));
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClientBadRequestFromWarnings() {
+        // warning about unregistered client
+        doReturn(null).when(globalConfFacade).getMemberName(any());
+        Client clientToAdd = createTestClient("UNREGISTEREDA", "B", "C");
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_WARNINGS_DETECTED, expected.getErrorDeviation().getCode());
+        }
+
+        ResponseEntity<Client> response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(true));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test

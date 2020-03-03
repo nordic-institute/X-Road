@@ -25,15 +25,19 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * service class for handling serverconf
@@ -75,5 +79,16 @@ public class ServerConfService {
     public ClientId getSecurityServerOwnerId() {
         ServerConfType serverConfType = serverConfRepository.getServerConf();
         return serverConfType.getOwner().getIdentifier();
+    }
+
+    /**
+     * Return a list of configured timestamping services
+     * @return
+     */
+    public List<TspType> getConfiguredTimestampingServices() {
+        ServerConfType serverConfType = serverConfRepository.getServerConf();
+        List<TspType> tsp = serverConfType.getTsp();
+        Hibernate.initialize(tsp);
+        return tsp;
     }
 }

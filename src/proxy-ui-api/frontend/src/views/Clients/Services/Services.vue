@@ -6,6 +6,7 @@
         :label="$t('services.service')"
         single-line
         hide-details
+        data-test="search-service"
         class="search-input"
       >
         <v-icon slot="append">mdi-magnify</v-icon>
@@ -18,16 +19,18 @@
           @click="showAddRestDialog"
           outlined
           rounded
+          data-test="add-rest-button"
           class="rounded-button elevation-0 rest-button"
         >{{$t('services.addRest')}}</v-btn>
 
         <v-btn
           v-if="showAddButton"
           color="primary"
-          :loading="addWsdlBusy"
+          :loading="addBusy"
           @click="showAddWsdlDialog"
           outlined
           rounded
+          data-test="add-wsdl-button"
           class="ma-0 rounded-button elevation-0"
         >{{$t('services.addWsdl')}}</v-btn>
       </div>
@@ -43,6 +46,7 @@
         @open="descOpen(serviceDesc.id)"
         @close="descClose(serviceDesc.id)"
         :isOpen="isExpanded(serviceDesc.id)"
+        data-test="service-description-accordion"
       >
         <template v-slot:action>
           <v-switch
@@ -51,6 +55,7 @@
             @change="switchChanged($event, serviceDesc, index)"
             :key="componentKey"
             :disabled="!canDisable"
+            data-test="service-description-enable-disable"
           ></v-switch>
         </template>
 
@@ -66,19 +71,21 @@
 
         <template v-slot:content>
           <div>
-            <div v-if="serviceDesc.type.toLowerCase() === 'wsdl'" class="refresh-row">
+            <div class="refresh-row">
               <div
                 class="refresh-time"
               >{{$t('services.lastRefreshed')}} {{serviceDesc.refreshed_at | formatDateTime}}</div>
               <v-btn
-                v-if="showRefreshButton"
+                v-if="showRefreshButton(serviceDesc.type)"
+                :key="refreshButtonComponentKey"
                 small
                 outlined
                 rounded
-                :loading="refreshWsdlBusy"
+                :loading="refreshBusy[serviceDesc.id]"
                 color="primary"
-                class="xrd-small-button xrd-table-button refresh-button"
-                @click="refreshWsdl(serviceDesc)"
+                class="xrd-small-button xrd-table-button"
+                @click="refresh(serviceDesc)"
+                data-test="refresh-button"
               >{{$t('action.refresh')}}</v-btn>
             </div>
 
@@ -92,7 +99,7 @@
               </thead>
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
-                  <td class="service-code" @click="serviceClick(service)" data-test="service-link">{{service.service_code}}</td>
+                  <td class="service-code" @click="serviceClick(serviceDesc, service)" data-test="service-link">{{service.service_code}}</td>
                   <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
                     {{service.url}}
@@ -145,6 +152,7 @@ import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import _ from 'lodash';
+import {Service, ServiceDescription} from '@/types';
 
 export default Vue.extend({
   components: {
@@ -175,18 +183,16 @@ export default Vue.extend({
       warningInfo: undefined,
       saveWarningDialog: false,
       refreshWarningDialog: false,
-      wsdlUrl: '',
-      wsdlRefreshId: '',
-      addWsdlBusy: false,
-      refreshWsdlBusy: false,
+      url: '',
+      refreshId: '',
+      addBusy: false,
+      refreshBusy: {} as any,
+      refreshButtonComponentKey: 0,
     };
   },
   computed: {
     showAddButton(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_WSDL);
-    },
-    showRefreshButton(): boolean {
-      return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
     },
     canEditServiceDesc(): boolean {
       return this.$store.getters.hasPermission(Permissions.EDIT_WSDL);
@@ -248,16 +254,25 @@ export default Vue.extend({
     },
   },
   methods: {
+    showRefreshButton(serviceDescriptionType: string): boolean {
+      if (serviceDescriptionType === 'WSDL') {
+        return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
+      } else if (serviceDescriptionType === 'OPENAPI3') {
+        return this.$store.getters.hasPermission(Permissions.REFRESH_OPENAPI3);
+      }
+      return false;
+    },
     descriptionClick(desc: any): void {
       this.$router.push({
         name: RouteName.ServiceDescriptionDetails,
         params: { id: desc.id },
       });
     },
-    serviceClick(service: any): void {
+    serviceClick(serviceDescription: ServiceDescription, service: Service): void {
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id, clientId: this.id },
+        query: { descriptionType: serviceDescription.type },
       });
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {
@@ -326,8 +341,8 @@ export default Vue.extend({
     },
 
     wsdlSave(url: string): void {
-      this.wsdlUrl = url;
-      this.addWsdlBusy = true;
+      this.url = url;
+      this.addBusy = true;
       api
         .post(`/clients/${this.id}/service-descriptions`, {
           url,
@@ -335,7 +350,7 @@ export default Vue.extend({
         })
         .then((res) => {
           this.$bus.$emit('show-success', 'services.wsdlAdded');
-          this.addWsdlBusy = false;
+          this.addBusy = false;
           this.fetchData();
         })
         .catch((error) => {
@@ -346,10 +361,10 @@ export default Vue.extend({
             error.response.data.error.code === 'service_already_exists'
           ) {
             this.$bus.$emit('show-error', 'service already exists');
-            this.addWsdlBusy = false;
+            this.addBusy = false;
           } else {
             this.$bus.$emit('show-error', error.message);
-            this.addWsdlBusy = false;
+            this.addBusy = false;
           }
         });
 
@@ -359,7 +374,7 @@ export default Vue.extend({
     acceptSaveWarning(): void {
       api
         .post(`/clients/${this.id}/service-descriptions`, {
-          url: this.wsdlUrl,
+          url: this.url,
           type: 'WSDL',
           ignore_warnings: true,
         })
@@ -371,14 +386,14 @@ export default Vue.extend({
         })
         .finally(() => {
           this.fetchData();
-          this.addWsdlBusy = false;
+          this.addBusy = false;
         });
 
       this.saveWarningDialog = false;
     },
 
     cancelSaveWarning(): void {
-      this.addWsdlBusy = false;
+      this.addBusy = false;
       this.saveWarningDialog = false;
     },
 
@@ -395,41 +410,42 @@ export default Vue.extend({
       this.addRestDialog = false;
     },
 
-    refreshWsdl(wsdl: any): void {
-      this.refreshWsdlBusy = true;
+    refresh(serviceDescription: ServiceDescription): void {
+      this.refreshBusy[serviceDescription.id] = true;
+      this.refreshButtonComponentKey += 1; // update component key to make spinner work
+
       api
-        .put(`/service-descriptions/${wsdl.id}/refresh`, wsdl)
+        .put(`/service-descriptions/${serviceDescription.id}/refresh`, {ignore_warnings: false})
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.wsdlRefreshed');
+          this.$bus.$emit('show-success', 'services.refreshed');
           this.fetchData();
-          this.refreshWsdlBusy = false;
         })
         .catch((error) => {
           if (error.response.data.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.refreshWarningDialog = true;
-            this.wsdlRefreshId = wsdl.id;
+            this.refreshId = serviceDescription.id;
           } else {
             this.$bus.$emit('show-error', error.message);
-            this.refreshWsdlBusy = false;
             this.fetchData();
           }
+        }).finally( () => {
+          this.refreshBusy[serviceDescription.id] = false;
         });
     },
 
     acceptRefreshWarning(): void {
       api
-        .put(`/service-descriptions/${this.wsdlRefreshId}/refresh`, {
+        .put(`/service-descriptions/${this.refreshId}/refresh`, {
           ignore_warnings: true,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.wsdlRefreshed');
+          this.$bus.$emit('show-success', 'services.refreshed');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         })
         .finally(() => {
-          this.refreshWsdlBusy = false;
           this.fetchData();
         });
 
@@ -437,7 +453,6 @@ export default Vue.extend({
     },
 
     cancelRefresh(): void {
-      this.refreshWsdlBusy = false;
       this.refreshWarningDialog = false;
     },
 

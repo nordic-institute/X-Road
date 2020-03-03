@@ -169,4 +169,26 @@ public class GlobalConfFacade {
         return GlobalConf.getSecurityServerAddress(securityServerId);
     }
 
+    /**
+     * {@link GlobalConf#getApprovedTsps(String)}}
+     */
+    public List<String> getApprovedTsps(String instanceIdentifier) {
+        return GlobalConf.getApprovedTsps(instanceIdentifier);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedTspName(String, String)}}
+     */
+    public String getApprovedTspName(String instanceIdentifier, String url) {
+        return GlobalConf.getApprovedTspName(instanceIdentifier, url);
+    }
+
+    /**
+     * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}
+     */
+    public boolean isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer) {
+        return GlobalConf.isSecurityServerClient(client, securityServer);
+    }
+
 }
