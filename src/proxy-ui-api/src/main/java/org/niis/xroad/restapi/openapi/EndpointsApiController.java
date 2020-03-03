@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,16 +24,23 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.XRoadId;
+
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
+import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
-import org.niis.xroad.restapi.openapi.model.AccessRight;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +48,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
 
@@ -58,6 +69,7 @@ public class EndpointsApiController implements EndpointsApi {
     private final EndpointConverter endpointConverter;
     private final AccessRightService accessRightService;
     private final ServiceClientConverter serviceClientConverter;
+    private final SubjectConverter subjectConverter;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 
@@ -67,11 +79,13 @@ public class EndpointsApiController implements EndpointsApi {
             EndpointService endpointService,
             EndpointConverter endpointConverter,
             AccessRightService accessRightService,
-            ServiceClientConverter serviceClientConverter) {
+            ServiceClientConverter serviceClientConverter,
+            SubjectConverter subjectConverter) {
         this.endpointService = endpointService;
         this.endpointConverter = endpointConverter;
         this.accessRightService = accessRightService;
         this.serviceClientConverter = serviceClientConverter;
+        this.subjectConverter = subjectConverter;
     }
 
     @Override
@@ -131,11 +145,55 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (ClientNotFoundException e) {
             throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
-        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
-
+        List<ServiceClient> serviceClients = serviceClientConverter
+                .convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
-
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public ResponseEntity<Void> deleteEndpointAccessRights(String id, Subjects subjects) {
+        Long endpointId = parseLongIdOrThrowNotFound(id);
+        Set<Long> localGroupIds = getLocalGroupIds(subjects);
+        HashSet<XRoadId> xRoadIds = new HashSet<>(getXRoadIdsButSkipLocalGroups(subjects));
+        try {
+            accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds, localGroupIds);
+        } catch (LocalGroupNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (EndpointService.EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given endpoint with id: " + id);
+        }
 
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    private List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
+        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
+        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
+        return subjectConverter.convertId(subjects.getItems());
+    }
+
+    private Set<Long> getLocalGroupIds(Subjects subjects) {
+        return subjects.getItems()
+                .stream()
+                .filter(hasNumericIdAndIsLocalGroup)
+                .map(subject -> Long.parseLong(subject.getId()))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * The client-provided Subjects only contain id and subjectType when adding or deleting access rights.
+     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
+     * Therefore LocalGroups need to be handled separately from other types of subjects.
+     */
+    private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
+        boolean hasNumericId = StringUtils.isNumeric(subject.getId());
+        boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
+        if (!hasNumericId && isLocalGroup) {
+            throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
+        }
+        return hasNumericId && isLocalGroup;
+    };
 }

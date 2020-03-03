@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
@@ -153,9 +152,17 @@ public class AccessRightService {
         return accessRightHolderDtos;
     }
 
+    /**
+     * Get access right holders be Endpoint
+     *
+     * @param id
+     * @return
+     * @throws EndpointService.EndpointNotFoundException    if no endpoint is found with given id
+     * @throws ClientNotFoundException                      if client attached to endpoint is not found
+     */
     public List<AccessRightHolderDto> getAccessRightHoldersByEndpoint(Long id)
             throws EndpointService.EndpointNotFoundException, ClientNotFoundException {
-        verifyAuthority("VIEW_SERVICE_ACL");
+        verifyAuthority("VIEW_ENDPOINT_ACL");
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
         if (clientType == null) {
@@ -238,6 +245,44 @@ public class AccessRightService {
             idsToDelete.addAll(subjectIds);
         }
         deleteSoapServiceAccessRights(clientId, fullServiceCode, idsToDelete);
+    }
+
+    /**
+     * Remove access rights from endpoint
+     *
+     * @param endpointId
+     * @param subjectIds
+     * @param localGroupIds
+     * @throws LocalGroupNotFoundException                  if localgroups is not found
+     * @throws EndpointService.EndpointNotFoundException    if endpoint by given id is not found
+     * @throws ClientNotFoundException                      if client attached to endpoint is not found
+     * @throws AccessRightNotFoundException                 if at least one access right expected is not found
+     */
+    public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds, Set<Long> localGroupIds)
+        throws LocalGroupNotFoundException, EndpointService.EndpointNotFoundException,
+            ClientNotFoundException, AccessRightNotFoundException {
+        verifyAuthority("EDIT_ENDPOINT_ACL");
+
+        ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
+        }
+        Set<XRoadId> idsToDelete = new HashSet<>();
+        if (localGroupIds != null) {
+            idsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+        }
+        if (subjectIds != null) {
+            idsToDelete.addAll(subjectIds);
+        }
+
+        List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
+                .filter(acl -> acl.getEndpoint().getId().equals(endpointId) && idsToDelete.contains(acl.getSubjectId()))
+                .collect(Collectors.toList());
+        if (accessRightsToBeRemoved.size() != subjectIds.size()) {
+            throw new AccessRightNotFoundException();
+        }
+        clientType.getAcl().removeAll(accessRightsToBeRemoved);
+        clientRepository.saveOrUpdate(clientType);
     }
 
     /**

@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.23"
+  version: "1.0.24"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -2560,6 +2560,43 @@ paths:
                 description: array of access right objects
                 items:
                   $ref: '#/components/schemas/ServiceClient'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - security server
+      summary: remove access rights from the selected endpoint
+      operationId: deleteEndpointAccessRights
+      description: Administrator removes access rights from an endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        description: list of access rights to be deleted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subjects'
+      responses:
+        '204':
+          description: access right(s) deleted
         '400':
           description: request was invalid
         '401':

@@ -191,7 +191,10 @@
     "addSubjectsTitle": "Add Subjects",
     "memberName": "Member Name / Group Description",
     "id": "ID",
-    "rightsGiven": "Access Rights given"
+    "rightsGiven": "Access Rights given",
+    "removeSuccess": "Access right removed successfully",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure that you want to remove this member?"
   },
   "action": {
     "addSubsystem": "add subsystem",

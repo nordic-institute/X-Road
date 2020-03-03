@@ -1,5 +1,5 @@
 <template>
-  <div class="xrd-tab-max-width">
+  <div class="xrd-tab-max-width xrd-view-common">
     <div>
       <subViewTitle
         :title="`${endpoint.method}${endpoint.path}`"
@@ -13,7 +13,7 @@
         <large-button
           @click="removeAll()"
           outlined
-          data-test="remove-all"
+          data-test="remove-all-access-rights"
         >{{$t('action.removeAll')}}
         </large-button>
         <large-button
@@ -24,7 +24,6 @@
         </large-button>
       </div>
     </div>
-
 
     <table class="xrd-table">
       <thead>
@@ -48,13 +47,23 @@
               rounded
               color="primary"
               class="xrd-small-button xrd-table-button"
-              @click="remove(sc)">{{$t('action.remove')}}
+              @click="remove(sc)" data-test="remove-access-right">{{$t('action.remove')}}
             </v-btn>
           </td>
         </tr>
       </template>
       </tbody>
     </table>
+
+    <!-- Confirm dialog remove Access Right subject -->
+    <confirmDialog
+      :dialog="confirmDelete"
+      title="access.removeTitle"
+      text="access.removeText"
+      @cancel="resetDeletionSettings()"
+      @accept="doRemoveSelectedSubjects()"
+    />
+
   </div>
 </template>
 
@@ -62,14 +71,16 @@
   import Vue from "vue";
   import * as api from '@/util/api';
   import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-  import {Endpoint, ServiceClient} from "@/types";
+  import {Endpoint, ServiceClient, Subject} from "@/types";
   import LargeButton from "@/components/ui/LargeButton.vue";
+  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
   export default Vue.extend({
     name: "EndpointAccessRights",
     components: {
       SubViewTitle,
-      LargeButton
+      LargeButton,
+      ConfirmDialog,
     },
     props: {
       id: {
@@ -80,21 +91,29 @@
     data: () => {
       return {
         endpoint: {} as Endpoint | {},
-        serviceClients: [] as ServiceClient[]
+        serviceClients: [] as ServiceClient[],
+        confirmDelete: false as boolean,
+        subjectsToDelete: [] as Subject[]
       }
     },
     methods: {
       close(): void {
         this.$router.go(-1);
       },
-      removeAll(): void {
-        // NOOP
-      },
       addSubjects(): void {
         // NOOP
       },
+      removeAll(): void {
+        this.confirmDelete = true;
+        this.subjectsToDelete = this.serviceClients.map( (sc: ServiceClient) => sc.subject) as Subject[];
+      },
       remove(serviceClient: ServiceClient): void {
-        // NOOP
+        this.confirmDelete = true;
+        this.subjectsToDelete = [serviceClient.subject];
+      },
+      resetDeletionSettings(): void {
+        this.confirmDelete = false;
+        this.subjectsToDelete = [];
       },
       fetchData(): void {
         api
@@ -105,7 +124,6 @@
           .catch((error) => {
             this.$bus.$emit('show-error', error.message);
           });
-
         api
           .get(`/endpoints/${this.id}/access-rights`)
           .then((accessRights: any) => {
@@ -113,6 +131,20 @@
           })
           .catch((error) => {
             this.$bus.$emit('show-error', error.message);
+          });
+      },
+      doRemoveSelectedSubjects(): void {
+        api
+          .post(`/endpoints/${this.id}/access-rights`, { items: this.subjectsToDelete })
+          .then( () => {
+            this.$bus.$emit('show-success', 'endpoints.editSuccess');
+            this.fetchData();
+          })
+          .catch( (error) => {
+            this.$bus.$emit('show-error', error.message);
+          }).finally( () => {
+            this.confirmDelete = false;
+            this.subjectsToDelete = [];
           });
       },
     },
@@ -124,6 +156,7 @@
 </script>
 
 <style lang="scss" scoped>
+  @import '../../assets/colors';
   @import '../../assets/tables';
   @import '../../assets/global-style';
 
