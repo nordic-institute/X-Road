@@ -60,7 +60,6 @@ Doc. ID: UG-SYSPAR
 | 26.11.2019 | 2.48     | Add proxy serverconf caching parameters | Jarkko Hyöty |
 | 05.12.2019 | 2.49     | Fix broken link in Table of Contents | Tapio Jaakkola | 
 | 11.12.2019 | 2.50     | Added new Central Server parameter *ha-node-name* | Jarkko Hyöty |
-| 24.02.2020 | 2.51     | Added a new proxy parameter *internal-key-cache-period* | Caro Hautamäki |
 
 ## Table of Contents
 
@@ -261,7 +260,6 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-client-cache-size                    | 100                                        |   |   | Maximum number of local clients to keep cached |
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
-| internal-key-cache-period                        | 180                                        |   |   | Number of seconds to keep the internal TLS key in memory |
 
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but

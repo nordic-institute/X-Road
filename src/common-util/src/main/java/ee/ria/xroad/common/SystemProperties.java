@@ -174,9 +174,6 @@ public final class SystemProperties {
     public static final String SERVER_CONF_CACHE_PERIOD =
             PREFIX + "proxy.server-conf-cache-period";
 
-    public static final String INTERNAL_KEY_CACHE_PERIOD =
-            PREFIX + "proxy.internal-key-cache-period";
-
     public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PREFIX + "proxy.server-conf-client-cache-size";
 
     public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PREFIX + "proxy.server-conf-service-cache-size";
@@ -1288,13 +1285,6 @@ public final class SystemProperties {
      */
     public static int getServerConfCachePeriod() {
         return Integer.parseInt(System.getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
-    }
-
-    /**
-     * @return the update interval in seconds at which the internal TLS key in cached, '180' by default
-     */
-    public static int getInternalKeyCachePeriod() {
-        return Integer.parseInt(System.getProperty(INTERNAL_KEY_CACHE_PERIOD, "180"));
     }
 
     /**

@@ -1351,7 +1351,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that the Internal TLS Key and Certificate are cached by default for 180 seconds so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
+   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 

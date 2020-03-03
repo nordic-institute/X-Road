@@ -61,7 +61,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public static final String TSP_URL = "tsp_url";
 
     private final int expireSeconds;
-    private final int internalKeyExpireSeconds;
     private volatile SecurityServerId serverId;
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
@@ -77,11 +76,10 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public CachingServerConfImpl() {
         super();
         expireSeconds = SystemProperties.getServerConfCachePeriod();
-        internalKeyExpireSeconds = SystemProperties.getInternalKeyCachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
-                .expireAfterWrite(internalKeyExpireSeconds, TimeUnit.SECONDS)
+                .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .build();
 
         tspCache = CacheBuilder.newBuilder()
@@ -153,7 +151,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
             return tspCache.get(TSP_URL, super::getTspUrl);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed to resolve tsp url", e);
             return Collections.emptyList();
@@ -226,7 +224,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
             return aclCache.get(key, () -> tx(s -> super.getEndpoints(s, client, service)));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed get list of endpoints", e);
             return Collections.emptyList();
@@ -239,7 +237,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     .get(serviceId, () -> tx(session -> Optional.ofNullable(super.getService(session, serviceId))));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed to get service", e);
             return Optional.empty();
@@ -252,7 +250,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     () -> tx(session -> Optional.ofNullable(super.getClient(session, clientId))));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed to get client", e);
             return Optional.empty();
