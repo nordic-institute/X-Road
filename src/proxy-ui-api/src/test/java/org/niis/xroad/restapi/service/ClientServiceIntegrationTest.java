@@ -746,4 +746,9 @@ public class ClientServiceIntegrationTest {
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.registerClient(existingRegisteredClientId);
     }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void unregisterNonExistingClient() throws Exception {
+        clientService.unregisterClient(ClientId.create("non","existing","client",null));
+    }
 }

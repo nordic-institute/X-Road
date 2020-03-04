@@ -432,7 +432,7 @@ public class ClientService {
      * @throws ClientNotFoundException
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException {
-        ClientType client = getLocalClient(clientId);
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
         try {
             managementRequestSenderService.sendClientRegisterRequest(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
@@ -452,7 +452,7 @@ public class ClientService {
      */
     public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
-        ClientType client = getLocalClient(clientId);
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
         List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
         if (!allowedStatuses.contains(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
