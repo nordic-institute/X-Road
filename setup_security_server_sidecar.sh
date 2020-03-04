@@ -26,9 +26,9 @@ httpport=$(($2 + 1))
 docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d bridge xroad-network
 
 echo "=====> Build sidecar image"
-docker build -f sidecar/Dockerfile --build-arg XROAD_ADMIN_USER=$4 --build-arg XROAD_ADMIN_PASSWORD=$5 -t xroad-sidecar-security-server-image sidecar/
+docker build -f sidecar/Dockerfile --build-arg XROAD_TOKEN_PIN=$3 --build-arg XROAD_ADMIN_USER=$4 --build-arg XROAD_ADMIN_PASSWORD=$5 -t xroad-sidecar-security-server-image sidecar/
 echo "=====> Run container"
-docker run --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 --name $1 xroad-sidecar-security-server-image
+docker run --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network --name $1 xroad-sidecar-security-server-image
 
 printf "\n
 Sidecar security server software token PIN is set to $3
