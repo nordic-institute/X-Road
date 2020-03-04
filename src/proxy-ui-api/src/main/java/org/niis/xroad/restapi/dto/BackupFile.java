@@ -22,43 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.dto;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Data;
 
-import java.util.Collection;
+import java.time.OffsetDateTime;
 
 /**
- * Thrown if there was a conflict, for example tried to add an item which already exists.
- * Results in http 409 CONFLICT
+ * DTO for backup files
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends OpenApiException {
-    public ConflictException() {
-    }
+@Data
+public class BackupFile {
+    private String filename;
+    private OffsetDateTime createdAt;
 
-    public ConflictException(DeviationAwareException e) {
-        super(e, e.getErrorDeviation(), e.getWarningDeviations());
+    public BackupFile(String filename) {
+        this.filename = filename;
     }
-
-    public ConflictException(String msg) {
-        super(msg);
-    }
-
-    public ConflictException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ConflictException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
-    }
-
-    public ConflictException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
 }

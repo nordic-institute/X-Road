@@ -109,7 +109,7 @@ public class CertificateAuthorityServiceTest {
                 securityServerId.getMemberCode());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(ownerId);
         when(serverConfService.getSecurityServerId()).thenReturn(securityServerId);
-        when(clientService.getClient(any())).thenReturn(new ClientType());
+        when(clientService.getLocalClient(any())).thenReturn(new ClientType());
         when(globalConfFacade.getMemberName(any())).thenReturn("mock-member-name");
     }
 
