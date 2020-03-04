@@ -17,7 +17,7 @@
         >{{$t('action.removeAll')}}
         </large-button>
         <large-button
-          @click="addSubjects()"
+          @click="toggleAddSubjectsDialog()"
           outlined
           data-test="add-subjects-dialog"
         >{{$t('access.addSubjects')}}
@@ -64,26 +64,43 @@
       @accept="doRemoveSelectedSubjects()"
     />
 
+    <!-- Add access right subjects dialog -->
+    <accessRightsDialog
+      :dialog="addSubjectsDialogVisible"
+      :filtered="serviceClients"
+      :clientId="clientId"
+      title="access.addSubjectsTitle"
+      @cancel="toggleAddSubjectsDialog"
+      @subjectsAdded="doAddSubjects"
+    />
+
+
   </div>
 </template>
 
 <script lang="ts">
-  import Vue from "vue";
+  import Vue from 'vue';
   import * as api from '@/util/api';
   import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-  import {Endpoint, ServiceClient, Subject} from "@/types";
-  import LargeButton from "@/components/ui/LargeButton.vue";
+  import {Endpoint, ServiceClient, Subject} from '@/types';
+  import LargeButton from '@/components/ui/LargeButton.vue';
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+  import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 
   export default Vue.extend({
-    name: "EndpointAccessRights",
+    name: 'EndpointAccessRights',
     components: {
       SubViewTitle,
       LargeButton,
       ConfirmDialog,
+      AccessRightsDialog,
     },
     props: {
       id: {
+        type: String,
+        required: true,
+      },
+      clientId: {
         type: String,
         required: true,
       },
@@ -93,27 +110,32 @@
         endpoint: {} as Endpoint | {},
         serviceClients: [] as ServiceClient[],
         confirmDelete: false as boolean,
-        subjectsToDelete: [] as Subject[]
-      }
+        subjectsToDelete: [] as Subject[],
+        addSubjectsDialogVisible: false as boolean,
+        subjectsToAdd: [] as Subject[],
+      };
     },
     methods: {
       close(): void {
         this.$router.go(-1);
       },
-      addSubjects(): void {
-        // NOOP
-      },
       removeAll(): void {
-        this.confirmDelete = true;
+        this.toggleConfirmDeleteDialog();
         this.subjectsToDelete = this.serviceClients.map( (sc: ServiceClient) => sc.subject) as Subject[];
       },
       remove(serviceClient: ServiceClient): void {
-        this.confirmDelete = true;
+        this.toggleConfirmDeleteDialog();
         this.subjectsToDelete = [serviceClient.subject];
       },
       resetDeletionSettings(): void {
-        this.confirmDelete = false;
+        this.toggleConfirmDeleteDialog();
         this.subjectsToDelete = [];
+      },
+      toggleConfirmDeleteDialog(): void {
+        this.confirmDelete = !this.confirmDelete;
+      },
+      toggleAddSubjectsDialog(): void {
+        this.addSubjectsDialogVisible = !this.addSubjectsDialogVisible;
       },
       fetchData(): void {
         api
@@ -126,7 +148,7 @@
           });
         api
           .get(`/endpoints/${this.id}/access-rights`)
-          .then((accessRights: any) => {
+          .then((accessRights) => {
             this.serviceClients = accessRights.data;
           })
           .catch((error) => {
@@ -135,7 +157,7 @@
       },
       doRemoveSelectedSubjects(): void {
         api
-          .post(`/endpoints/${this.id}/access-rights`, { items: this.subjectsToDelete })
+          .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.subjectsToDelete })
           .then( () => {
             this.$bus.$emit('show-success', 'endpoints.editSuccess');
             this.fetchData();
@@ -143,22 +165,36 @@
           .catch( (error) => {
             this.$bus.$emit('show-error', error.message);
           }).finally( () => {
-            this.confirmDelete = false;
+            this.toggleConfirmDeleteDialog();
             this.subjectsToDelete = [];
+          });
+      },
+      doAddSubjects(subjects: Subject[]): void {
+        api
+          .post(`/endpoints/${this.id}/access-rights`, { items: subjects})
+          .then( (accessRights) => {
+            this.$bus.$emit('show-success', 'endpoints.editSuccess');
+            this.serviceClients = accessRights.data;
+          })
+          .catch( (error) => {
+            this.$bus.$emit('show-error', error.message);
+          })
+          .finally( () => {
+            this.toggleAddSubjectsDialog();
           });
       },
     },
     created(): void {
       this.fetchData();
-    }
+    },
   });
 
 </script>
 
 <style lang="scss" scoped>
-  @import '../../assets/colors';
-  @import '../../assets/tables';
-  @import '../../assets/global-style';
+  @import 'src/assets/colors';
+  @import 'src/assets/tables';
+  @import 'src/assets/global-style';
 
   .group-members-row {
     width: 100%;

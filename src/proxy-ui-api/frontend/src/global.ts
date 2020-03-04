@@ -22,7 +22,7 @@ export enum RouteName {
   ServiceDescriptionDetails = 'service-description-details',
   Service = 'service',
   ServiceParameters = 'service-parameters',
-  ServiceEndpoints = 'service-endpoints',
+  Endpoints = 'service-endpoints',
   SignAndAuthKeys = 'sign-and-auth-keys',
   ApiKey = 'api-key',
   SSTlsCertificate = 'ss-tls-certificate',
@@ -34,7 +34,7 @@ export enum RouteName {
   GenerateCertificateSignRequest = 'generate-csr',
   InternalTlsCertificate = 'internal-tls-certificate',
   EndpointDetails = 'endpoint-details',
-  EndpointAccessRights = 'endpoint-access-rights'
+  EndpointAccessRights = 'endpoint-access-rights',
 }
 
 // A "single source of truth" for permission strings

@@ -153,7 +153,7 @@ public class AccessRightService {
     }
 
     /**
-     * Get access right holders be Endpoint
+     * Get access right holders for Endpoint
      *
      * @param id
      * @return
@@ -208,12 +208,7 @@ public class AccessRightService {
                         .equals(serviceType.getServiceCode()) && subjectIds.contains(accessRightType.getSubjectId()))
                 .collect(Collectors.toList());
 
-        List<XRoadId> subjectsToBeRemoved = accessRightsToBeRemoved
-                .stream()
-                .map(AccessRightType::getSubjectId)
-                .collect(Collectors.toList());
-
-        if (!subjectsToBeRemoved.containsAll(subjectIds)) {
+        if (accessRightsToBeRemoved.size() != subjectIds.size()) {
             throw new AccessRightNotFoundException();
         }
 
@@ -308,6 +303,40 @@ public class AccessRightService {
         EndpointType endpoint = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
                 .orElseThrow(() -> new EndpointNotFoundException(fullServiceCode));
 
+        addAccessRights(subjectIds, clientType, endpoint);
+
+        return getAccessRightHolderDtosForEndpoint(clientType, endpoint);
+    }
+
+    private List<AccessRightHolderDto> getAccessRightHolderDtosForEndpoint(ClientType clientType,
+            EndpointType endpoint) {
+        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
+
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+                localGroupType));
+
+        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getServiceCode().equals(endpoint.getServiceCode())) {
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
+                accessRightHolderDtos.add(accessRightHolderDto);
+            }
+        });
+
+        return accessRightHolderDtos;
+    }
+
+    /**
+     * Add access rights to given endpoint
+     *
+     * @param subjectIds
+     * @param clientType
+     * @param endpoint
+     * @throws DuplicateAccessRightException    if trying to add existing access right
+     */
+    private void addAccessRights(Set<XRoadId> subjectIds, ClientType clientType, EndpointType endpoint)
+            throws DuplicateAccessRightException {
         Date now = new Date();
 
         for (XRoadId subjectId : subjectIds) {
@@ -317,7 +346,7 @@ public class AccessRightService {
 
             if (existingAccessRight.isPresent() && existingAccessRight.get().getEndpoint().equals(endpoint)) {
                 throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
-                        + " already has an access right for service " + serviceType.getServiceCode());
+                        + " already has an access right for endpoint " + endpoint.getId());
             }
             AccessRightType newAccessRight = new AccessRightType();
             newAccessRight.setEndpoint(endpoint);
@@ -327,22 +356,6 @@ public class AccessRightService {
         }
 
         clientRepository.saveOrUpdate(clientType);
-
-        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
-
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
-
-        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
-
-        clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
-                accessRightHolderDtos.add(accessRightHolderDto);
-            }
-        });
-
-        return accessRightHolderDtos;
     }
 
     /**
@@ -380,6 +393,12 @@ public class AccessRightService {
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
             ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException {
+        Set<XRoadId> txSubjects = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
+        return addSoapServiceAccessRights(clientId, fullServiceCode, txSubjects);
+    }
+
+    private Set<XRoadId> mergeSubjectIdsWithLocalgroups(Set<XRoadId> subjectIds, Set<Long> localGroupIds)
+            throws IdentifierNotFoundException, LocalGroupNotFoundException {
         // Get persistent entities in order to change relations
         Set<XRoadId> txSubjects = new HashSet<>();
         if (subjectIds != null) {
@@ -396,7 +415,27 @@ public class AccessRightService {
             Set<XRoadId> txLocalGroupXroadIds = identifierService.getOrPersistXroadIds(localGroupXroadIds);
             txSubjects.addAll(txLocalGroupXroadIds);
         }
-        return addSoapServiceAccessRights(clientId, fullServiceCode, txSubjects);
+        return txSubjects;
+    }
+
+    public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
+            Set<Long> localGroupIds) throws EndpointService.EndpointNotFoundException, ClientNotFoundException,
+            IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
+        verifyAuthority("EDIT_SERVICE_ACL");
+
+        EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
+        if (endpointType == null) {
+            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
+        }
+
+        ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
+        }
+
+        Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
+        addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
+        return getAccessRightHolderDtosForEndpoint(clientType, endpointType);
     }
 
     /**

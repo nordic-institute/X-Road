@@ -7,8 +7,7 @@ import Clients from '@/views/Clients/Clients.vue';
 import Client from '@/views/Clients/Client.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
-import SSTlsCertificate
-  from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
+import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters.vue';
@@ -33,11 +32,11 @@ import Service from '@/views/Service/Service.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
 import {Permissions, RouteName} from '@/global';
-import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
-import EndpointDetails from '@/views/Endpoint/EndpointDetails.vue';
-import EndpointAccessRights from "@/views/Endpoint/EndpointAccessRights.vue";
+import EndpointDetails from '@/views/Service/Endpoints/Endpoint/EndpointDetails.vue';
+import EndpointAccessRights from '@/views/Service/Endpoints/Endpoint/EndpointAccessRights.vue';
+import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -278,17 +277,17 @@ const router = new Router({
               props: { default: true },
             },
             {
-              name: RouteName.ServiceEndpoints,
+              name: RouteName.Endpoints,
               path: '/service/:clientId/:serviceId/endpoints',
               components: {
-                default: ServiceEndpoints,
+                default: Endpoints,
               },
             },
           ],
         },
         {
           name: RouteName.EndpointDetails,
-          path: '/endpoint/:id',
+          path: '/service/:clientId/:serviceId/endpoints/:id',
           components: {
             default: EndpointDetails,
           },
@@ -296,7 +295,7 @@ const router = new Router({
         },
         {
           name: RouteName.EndpointAccessRights,
-          path: '/endpoint/:id/accessrights',
+          path: '/service/:clientId/:serviceId/endpoints/:id/accessrights',
           components: {
             default: EndpointAccessRights,
           },

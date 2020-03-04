@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
+import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -108,7 +109,7 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             endpointService.deleteEndpoint(endpointId);
         } catch (EndpointService.EndpointNotFoundException e) {
-            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
+            throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ConflictException("Client not found for the given endpoint with id: " + id);
         } catch (EndpointService.IllegalGeneratedEndpointRemoveException e) {
@@ -125,7 +126,7 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId, endpoint));
         } catch (EndpointService.EndpointNotFoundException e) {
-            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
+            throw new ResourceNotFoundException(e);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
         }
@@ -143,11 +144,35 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
-            throw new ConflictException("Client not found for the given endpoint with id: " + id);
+            throw new ConflictException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter
                 .convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public ResponseEntity<List<ServiceClient>> addEndpointAccessRights(String id, Subjects subjects) {
+        Long endpointId = parseLongIdOrThrowNotFound(id);
+        Set<Long> localGroupIds = getLocalGroupIds(subjects);
+        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
+        List<AccessRightHolderDto> accessRightHoldersByEndpoint = null;
+
+        try {
+            accessRightHoldersByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
+                    new HashSet<>(xRoadIds), localGroupIds);
+        } catch (EndpointService.EndpointNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
+            throw new ConflictException(e);
+        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+
+        List<ServiceClient> serviceClients = serviceClientConverter
+                .convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
+        return new ResponseEntity<>(serviceClients, HttpStatus.CREATED);
     }
 
     @Override
@@ -163,7 +188,7 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (EndpointService.EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
-            throw new ConflictException("Client not found for the given endpoint with id: " + id);
+            throw new ConflictException(e);
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
