@@ -749,6 +749,6 @@ public class ClientServiceIntegrationTest {
 
     @Test(expected = ClientNotFoundException.class)
     public void unregisterNonExistingClient() throws Exception {
-        clientService.unregisterClient(ClientId.create("non","existing","client",null));
+        clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
     }
 }
