@@ -25,11 +25,11 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.cache.SecurityServerOwner;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,13 +46,15 @@ public class ManagementRequestSenderService {
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
+    private final SecurityServerOwner securityServerOwner;
 
     @Autowired
     public ManagementRequestSenderService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
-            ServerConfService serverConfService) {
+            ServerConfService serverConfService, SecurityServerOwner securityServerOwner) {
         this.globalConfFacade = globalConfFacade;
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
+        this.securityServerOwner = securityServerOwner;
     }
 
     /**
@@ -121,11 +123,30 @@ public class ManagementRequestSenderService {
         }
     }
 
+    /**
+     * Sends a client unregister request as a normal X-Road message
+     * @param securityServer the security server id
+     * @param clientId the client id that will be unregistered
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
+     */
+    Integer sendClientUnregisterRequest(ClientId clientId)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientDeletionRequest(serverConfService.getSecurityServerId(), clientId);
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
     private ManagementRequestSender createManagementRequestSender()
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
-        ServerConfType serverConf = serverConfService.getServerConf();
-        ClientId sender = serverConf.getOwner().getIdentifier();
+        ClientId sender = securityServerOwner.getId();
         ClientId receiver = globalConfFacade.getManagementRequestService();
         return new ManagementRequestSender(sender, receiver);
     }

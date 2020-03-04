@@ -34,7 +34,9 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.cache.SecurityServerOwner;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -55,6 +58,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
+import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGINPROG;
 
 /**
  * client service
@@ -68,6 +75,7 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final GlobalConfFacade globalConfFacade;
     private final ManagementRequestSenderService managementRequestSenderService;
+    private final SecurityServerOwner securityServerOwner;
 
     /**
      * ClientService constructor
@@ -76,10 +84,11 @@ public class ClientService {
      */
     @Autowired
     public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
-            ManagementRequestSenderService managementRequestSenderService) {
+            ManagementRequestSenderService managementRequestSenderService, SecurityServerOwner securityServerOwner) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.managementRequestSenderService = managementRequestSenderService;
+        this.securityServerOwner = securityServerOwner;
     }
 
     /**
@@ -401,10 +410,38 @@ public class ClientService {
      * @throws ClientNotFoundException
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException {
-        ClientType client = getClientType(clientId); // throws if client doesn't exist
+        ClientType client = getClientType(clientId);
         try {
             managementRequestSenderService.sendClientRegisterRequest(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
+            clientRepository.saveOrUpdate(client);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Unregister a client
+     * @param clientId client to unregister
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
+     * @throws ActionNotPossibleException when trying do unregister a client that is already unregistered
+     */
+    public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+        ClientType client = getClientType(clientId);
+        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
+        if (!allowedStatuses.contains(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
+        }
+        ClientId ownerId = securityServerOwner.getId();
+        if (clientId.equals(ownerId)) {
+            throw new CannotUnregisterOwnerException();
+        }
+        try {
+            managementRequestSenderService.sendClientUnregisterRequest(clientId);
+            client.setClientStatus(STATUS_DELINPROG);
             clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
@@ -456,5 +493,16 @@ public class ClientService {
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
         return clientTypePredicate;
+    }
+
+    /**
+     * Thrown when trying to unregister the security server owner
+     */
+    public static class CannotUnregisterOwnerException extends ServiceException {
+        public static final String CANNOT_UNREGISTER_OWNER = "cannot_unregister_owner";
+
+        public CannotUnregisterOwnerException() {
+            super(new ErrorDeviation(CANNOT_UNREGISTER_OWNER));
+        }
     }
 }

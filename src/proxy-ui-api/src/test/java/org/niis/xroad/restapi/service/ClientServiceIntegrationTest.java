@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.cache.SecurityServerOwner;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -72,6 +73,8 @@ public class ClientServiceIntegrationTest {
 
     @Autowired
     private ClientRepository clientRepository;
+    @Autowired
+    private SecurityServerOwner securityServerOwner;
     private ClientService clientService;
 
     private byte[] pemBytes;
@@ -81,7 +84,9 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
-    private ClientId existingClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+    private ClientId existingSavedClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+    private ClientId existingRegisteredClientId = ClientId.create("FI", "GOV", "M1", "SS1");
+    private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
 
     @MockBean
     private ManagementRequestSenderService managementRequestSenderService;
@@ -110,7 +115,8 @@ public class ClientServiceIntegrationTest {
                     : TestUtils.NAME_FOR + "test-member";
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
-        clientService = new ClientService(clientRepository, globalConfFacade, managementRequestSenderService);
+        clientService = new ClientService(clientRepository, globalConfFacade, managementRequestSenderService,
+                securityServerOwner);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -385,23 +391,57 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void registerClient() throws Exception {
-        ClientType clientType = clientRepository.getClient(existingClientId);
+        ClientType clientType = clientRepository.getClient(existingSavedClientId);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
-        clientService.registerClient(existingClientId);
-        clientType = clientRepository.getClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
+        clientType = clientRepository.getClient(existingSavedClientId);
         assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
     }
 
     @Test(expected = CodedException.class)
     public void registerClientCodedException() throws Exception {
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
-        clientService.registerClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
     public void registerClientRuntimeException() throws Exception {
         when(managementRequestSenderService.sendClientRegisterRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
-        clientService.registerClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
+    }
+
+    @Test
+    public void unregisterClient() throws Exception {
+        ClientType clientType = clientRepository.getClient(existingRegisteredClientId);
+        assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
+        clientService.unregisterClient(existingRegisteredClientId);
+        clientType = clientRepository.getClient(existingRegisteredClientId);
+        assertEquals(ClientType.STATUS_DELINPROG, clientType.getClientStatus());
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void unregisterClientNotPossible() throws Exception {
+        ClientType clientType = clientRepository.getClient(existingSavedClientId);
+        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        clientService.unregisterClient(existingSavedClientId);
+    }
+
+    @Test(expected = ClientService.CannotUnregisterOwnerException.class)
+    public void unregisterOwnerClient() throws Exception {
+        clientService.unregisterClient(ownerClientId);
+    }
+
+    @Test(expected = CodedException.class)
+    public void unregisterClientCodedException() throws Exception {
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
+        clientService.registerClient(existingRegisteredClientId);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void unregisterClientRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendClientRegisterRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.registerClient(existingRegisteredClientId);
     }
 }
