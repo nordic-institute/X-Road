@@ -76,6 +76,7 @@ public class ClientConverter {
     public Client convert(ClientType clientType) {
         Client client = new Client();
         client.setId(convertId(clientType.getIdentifier()));
+        client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());

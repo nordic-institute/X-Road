@@ -22,43 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package ee.ria.xroad.common.identifier;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.junit.Test;
 
-import java.util.Collection;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 
 /**
- * Thrown if there was a conflict, for example tried to add an item which already exists.
- * Results in http 409 CONFLICT
+ * Test some ClientId features
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends OpenApiException {
-    public ConflictException() {
-    }
+public class ClientIdTest {
+    @Test
+    public void getMemberId() throws Exception {
+        ClientId subsystemId = ClientId.create("instance",
+                "memberclass",
+                "membercode",
+                "subsystemcode");
+        ClientId memberId = subsystemId.getMemberId();
+        assertTrue(subsystemId != memberId);
+        assertEquals(SUBSYSTEM, subsystemId.getObjectType());
+        assertEquals(MEMBER, memberId.getObjectType());
+        assertEquals(subsystemId.getXRoadInstance(), memberId.getXRoadInstance());
+        assertEquals(subsystemId.getMemberClass(), memberId.getMemberClass());
+        assertEquals(subsystemId.getMemberCode(), memberId.getMemberCode());
+        assertNull(memberId.getSubsystemCode());
 
-    public ConflictException(DeviationAwareException e) {
-        super(e, e.getErrorDeviation(), e.getWarningDeviations());
+        ClientId memberId2 = memberId.getMemberId();
+        assertTrue(memberId == memberId2);
     }
-
-    public ConflictException(String msg) {
-        super(msg);
-    }
-
-    public ConflictException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ConflictException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
-    }
-
-    public ConflictException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
 }

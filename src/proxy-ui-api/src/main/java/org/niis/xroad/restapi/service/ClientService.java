@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -37,8 +38,10 @@ import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.cache.SecurityServerOwner;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -72,23 +75,31 @@ import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGINPROG;
 @PreAuthorize("isAuthenticated()")
 public class ClientService {
 
+    public static final String WARNING_UNREGISTERED_MEMBER = "unregistered_member";
+
     private final ClientRepository clientRepository;
+    private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final SecurityServerOwner securityServerOwner;
+    private final ServerConfService serverConfService;
+    private final IdentifierRepository identifierRepository;
 
     /**
      * ClientService constructor
-     * @param clientRepository
-     * @param globalConfFacade
      */
     @Autowired
     public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
-            ManagementRequestSenderService managementRequestSenderService, SecurityServerOwner securityServerOwner) {
+            ManagementRequestSenderService managementRequestSenderService, SecurityServerOwner securityServerOwner,
+            ServerConfService serverConfService, GlobalConfService globalConfService,
+            IdentifierRepository identifierRepository) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.managementRequestSenderService = managementRequestSenderService;
         this.securityServerOwner = securityServerOwner;
+        this.serverConfService = serverConfService;
+        this.globalConfService = globalConfService;
+        this.identifierRepository = identifierRepository;
     }
 
     /**
@@ -97,6 +108,17 @@ public class ClientService {
      */
     public List<ClientType> getAllLocalClients() {
         return clientRepository.getAllLocalClients();
+    }
+
+    /**
+     * return all members that exist on this security server.
+     * There can only be 0, 1 or 2 members
+     * @return
+     */
+    public List<ClientType> getAllLocalMembers() {
+        return getAllLocalClients().stream()
+                .filter(ct -> ct.getIdentifier().getSubsystemCode() == null)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -138,12 +160,12 @@ public class ClientService {
     /**
      * Return one client, or null if not found.
      * This method does NOT trigger load of lazy loaded properties.
-     * Use {@code getClientIsCerts}, {@code getClientLocalGroups}, and
-     * {@code getClientServiceDescriptions} for that
+     * Use {@code getLocalClientIsCerts}, {@code getLocalClientLocalGroups}, and
+     * {@code getLocalClientServiceDescriptions} for that
      * @param id
      * @return the client, or null if matching client was not found
      */
-    public ClientType getClient(ClientId id) {
+    public ClientType getLocalClient(ClientId id) {
         ClientType clientType = clientRepository.getClient(id);
         return clientType;
     }
@@ -153,8 +175,8 @@ public class ClientService {
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
      */
-    public List<CertificateType> getClientIsCerts(ClientId id) {
-        ClientType clientType = getClient(id);
+    public List<CertificateType> getLocalClientIsCerts(ClientId id) {
+        ClientType clientType = getLocalClient(id);
         if (clientType != null) {
             Hibernate.initialize(clientType.getIsCert());
             return clientType.getIsCert();
@@ -168,8 +190,8 @@ public class ClientService {
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
      */
-    public List<ServiceDescriptionType> getClientServiceDescriptions(ClientId id) {
-        ClientType clientType = getClient(id);
+    public List<ServiceDescriptionType> getLocalClientServiceDescriptions(ClientId id) {
+        ClientType clientType = getLocalClient(id);
         if (clientType != null) {
             for (ServiceDescriptionType serviceDescriptionType : clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
@@ -186,8 +208,8 @@ public class ClientService {
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
      */
-    public List<LocalGroupType> getClientLocalGroups(ClientId id) {
-        ClientType clientType = getClient(id);
+    public List<LocalGroupType> getLocalClientLocalGroups(ClientId id) {
+        ClientType clientType = getLocalClient(id);
         if (clientType != null) {
             for (LocalGroupType localGroupType : clientType.getLocalGroup()) {
                 Hibernate.initialize(localGroupType.getGroupMember());
@@ -206,7 +228,7 @@ public class ClientService {
      * @throws ClientNotFoundException if client was not found
      */
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         clientType.setIsAuthentication(connectionType);
@@ -215,11 +237,11 @@ public class ClientService {
     }
 
     /**
-     * Get a client, throw exception if not found
+     * Get a local client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
-    private ClientType getClientType(ClientId id) throws ClientNotFoundException {
-        ClientType clientType = clientRepository.getClient(id);
+    private ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
+        ClientType clientType = getLocalClient(id);
         if (clientType == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
         }
@@ -243,7 +265,7 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> duplicate = clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findFirst();
@@ -296,7 +318,7 @@ public class ClientService {
      */
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException, CertificateNotFoundException {
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
@@ -318,7 +340,7 @@ public class ClientService {
      */
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
@@ -410,7 +432,7 @@ public class ClientService {
      * @throws ClientNotFoundException
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException {
-        ClientType client = getClientType(clientId);
+        ClientType client = getLocalClient(clientId);
         try {
             managementRequestSenderService.sendClientRegisterRequest(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
@@ -430,7 +452,7 @@ public class ClientService {
      */
     public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
-        ClientType client = getClientType(clientId);
+        ClientType client = getLocalClient(clientId);
         List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
         if (!allowedStatuses.contains(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
@@ -493,6 +515,123 @@ public class ClientService {
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
         return clientTypePredicate;
+    }
+
+    /**
+     * Add a new client to this security server. Can add either a member or a subsystem.
+     * Member (added client, or member associated with the client subsystem) can either
+     * be one already registered to global conf, or an unregistered one. Unregistered one
+     * can only be added with ignoreWarnings = true.
+     *
+     * Client is added to this instance, it is not possible to add clients who would have
+     * different instance_id from this security server's instance.
+     *
+     * To prevent against two threads both creating "first" additional members,
+     * synchronize access to this method on controller layer
+     * (synchronizing this method does not help since transaction start & commit
+     * are outside of this method).
+     * @param memberClass member class of added client
+     * @param memberCode member code of added client
+     * @param subsystemCode subsystem code of added client (null if adding a member)
+     * @param isAuthentication {@code IsAuthentication} value to set for the new client
+     * @param ignoreWarnings if warning about unregistered member should be ignored
+     * @return
+     * @throws ClientAlreadyExistsException if client has already been added to security server
+     * @throws AdditionalMemberAlreadyExistsException if tried to add a new member, and
+     * security server already has owner member + one additional member
+     * @throws UnhandledWarningsException if tried to add client associated with a member which
+     * does not exist in global conf yet, and ignoreWarnings was false
+     */
+    public ClientType addLocalClient(String memberClass,
+            String memberCode,
+            String subsystemCode,
+            IsAuthentication isAuthentication,
+            boolean ignoreWarnings) throws ClientAlreadyExistsException,
+            AdditionalMemberAlreadyExistsException, UnhandledWarningsException {
+
+        ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(),
+                memberClass,
+                memberCode,
+                subsystemCode);
+
+        ClientType existingLocalClient = getLocalClient(clientId);
+        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        if (existingLocalClient != null) {
+            throw new ClientAlreadyExistsException("client " + clientId + " already exists");
+        }
+        if (clientId.getSubsystemCode() == null) {
+            // adding member - check that we dont already have owner + one additional member
+            List<ClientType> existingMembers = getAllLocalMembers();
+            Optional<ClientType> additionalMember = existingMembers.stream()
+                    .filter(m -> !ownerId.equals(m.getIdentifier()))
+                    .findFirst();
+            if (additionalMember.isPresent()) {
+                throw new AdditionalMemberAlreadyExistsException("additional member "
+                        + additionalMember.get().getIdentifier() + " already exists");
+            }
+        }
+
+        // check if the member associated with clientId exists in global conf
+        ClientId memberId = clientId.getMemberId();
+        if (globalConfFacade.getMemberName(memberId) == null) {
+            // unregistered member
+            if (!ignoreWarnings) {
+                WarningDeviation warning = new WarningDeviation(WARNING_UNREGISTERED_MEMBER, memberId.toShortString());
+                throw new UnhandledWarningsException(warning);
+            }
+        }
+
+        boolean clientRegistered = globalConfService.isSecurityServerClientForThisInstance(clientId);
+        ClientType client = new ClientType();
+        client.setIdentifier(getPossiblyManagedEntity(clientId));
+        if (clientRegistered) {
+            client.setClientStatus(ClientType.STATUS_REGISTERED);
+        } else {
+            client.setClientStatus(ClientType.STATUS_SAVED);
+        }
+        client.setIsAuthentication(isAuthentication.name());
+        ServerConfType serverConfType = serverConfService.getServerConf();
+        client.setConf(serverConfType);
+        serverConfType.getClient().add(client);
+
+        clientRepository.saveOrUpdate(client);
+        return client;
+    }
+
+    /**
+     * If ClientId already exists in DB, return the managed instance.
+     * Otherwise return transient instance that was given as parameter
+     */
+    private ClientId getPossiblyManagedEntity(ClientId transientClientId) {
+        ClientId managedEntity = identifierRepository.getClientId(transientClientId);
+        if (managedEntity != null) {
+            return managedEntity;
+        } else {
+            return transientClientId;
+        }
+    }
+
+    /**
+     * Thrown when client that already exists in server conf was tried to add
+     */
+    public static class ClientAlreadyExistsException extends ServiceException {
+        public static final String ERROR_CLIENT_ALREADY_EXISTS = "client_already_exists";
+
+        public ClientAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ERROR_CLIENT_ALREADY_EXISTS));
+        }
+    }
+
+    /**
+     * Thrown when someone tries to add another member, and an additional member besides
+     * the owner member already exists (there can only be owner member + one additional member)
+     */
+    public static class AdditionalMemberAlreadyExistsException extends ServiceException {
+        public static final String ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS = "additional_member_already_exists";
+
+        public AdditionalMemberAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS));
+        }
     }
 
     /**

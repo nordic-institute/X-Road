@@ -28,6 +28,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * If warnings were detected and they were not ignored
@@ -39,4 +40,9 @@ public class UnhandledWarningsException extends ServiceException {
     public UnhandledWarningsException(Collection<WarningDeviation> warningDeviations) {
         super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), warningDeviations);
     }
+
+    public UnhandledWarningsException(WarningDeviation warningDeviation) {
+        super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), Collections.singletonList(warningDeviation));
+    }
+
 }

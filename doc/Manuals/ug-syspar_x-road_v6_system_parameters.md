@@ -259,7 +259,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-cache-period                         | 60                                         |   |   | Number of seconds to keep selected serverconf configuration items in memory |
 | server-conf-client-cache-size                    | 100                                        |   |   | Maximum number of local clients to keep cached |
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
-| server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. | 
+| server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
 
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but

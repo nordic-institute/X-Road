@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.repository;
 
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -94,8 +95,19 @@ public class IdentifierRepository {
      * return all identifiers
      */
     public Collection<XRoadId> getIdentifiers() {
-        IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
-        return identifierDAO.findAll(persistenceUtils.getCurrentSession(), XRoadId.class);
+        IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
+        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadId.class);
     }
+
+    /**
+     * Finds a (local) client identifier corresponding the example or null if none exits
+     */
+    public ClientId getClientId(ClientId clientId) {
+        Session session = persistenceUtils.getCurrentSession();
+        IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
+        ClientId localClientId = identifierDao.findClientId(session, clientId);
+        return localClientId;
+    }
+
 }
 

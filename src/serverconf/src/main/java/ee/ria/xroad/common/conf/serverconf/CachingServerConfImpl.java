@@ -26,6 +26,7 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -65,14 +66,21 @@ public class CachingServerConfImpl extends ServerConfImpl {
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
     private final Cache<ClientId, Optional<ClientType>> clientCache;
+    private final Cache<String, InternalSSLKey> internalKeyCache;
 
     /**
-     * Constructor, creates time based object cache with expireSeconds paramter
+     * Constructor, creates time based object cache with expireSeconds (or internalKeyExpireSeconds
+     * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl() {
         super();
         expireSeconds = SystemProperties.getServerConfCachePeriod();
+
+        internalKeyCache = CacheBuilder.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .build();
 
         tspCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
@@ -98,6 +106,19 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .recordStats()
                 .build();
 
+    }
+
+    @Override
+    public InternalSSLKey getSSLKey() {
+        try {
+            return internalKeyCache.get(InternalSSLKey.KEY_ALIAS, super::getSSLKey);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof CodedException) {
+                throw (CodedException) e.getCause();
+            }
+            log.debug("Failed to get InternalSSLKey", e);
+            return null;
+        }
     }
 
     @Override
@@ -130,7 +151,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
             return tspCache.get(TSP_URL, super::getTspUrl);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed to resolve tsp url", e);
             return Collections.emptyList();
@@ -203,7 +224,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
             return aclCache.get(key, () -> tx(s -> super.getEndpoints(s, client, service)));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed get list of endpoints", e);
             return Collections.emptyList();
@@ -216,7 +237,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     .get(serviceId, () -> tx(session -> Optional.ofNullable(super.getService(session, serviceId))));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed to get service", e);
             return Optional.empty();
@@ -229,7 +250,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     () -> tx(session -> Optional.ofNullable(super.getClient(session, clientId))));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
-                throw (CodedException)e.getCause();
+                throw (CodedException) e.getCause();
             }
             log.debug("Failed to get client", e);
             return Optional.empty();

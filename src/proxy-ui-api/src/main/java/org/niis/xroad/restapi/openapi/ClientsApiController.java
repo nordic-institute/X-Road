@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -46,6 +47,7 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
@@ -187,7 +189,7 @@ public class ClientsApiController implements ClientsApi {
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
-        ClientType clientType = clientService.getClient(clientId);
+        ClientType clientType = clientService.getLocalClient(clientId);
         if (clientType == null) {
             throw new ResourceNotFoundException("client with id " + encodedId + " not found");
         }
@@ -217,7 +219,7 @@ public class ClientsApiController implements ClientsApi {
         }
         ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
-        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
+        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get().name();
         ClientType changed = null;
         try {
             changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -282,7 +284,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientService.getClientIsCerts(clientType.getIdentifier())
+        List<CertificateDetails> certificates = clientService.getLocalClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
@@ -310,7 +312,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<LocalGroupType> localGroupTypes = clientService.getClientLocalGroups(clientType.getIdentifier());
+        List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
@@ -319,7 +321,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientService.getClientServiceDescriptions(clientType.getIdentifier()));
+                clientService.getLocalClientServiceDescriptions(clientType.getIdentifier()));
 
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
@@ -429,5 +431,35 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * This method is synchronized (like client add in old Ruby implementation)
+     * to prevent a problem with two threads both creating "first" additional members.
+     */
+    @Override
+    @PreAuthorize("hasAuthority('ADD_CLIENT')")
+    public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
+        boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
+        IsAuthentication isAuthentication = null;
+        try {
+            isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
+        } catch (Exception e) {
+            throw new BadRequestException("bad connection type parameter", e);
+        }
+        ClientType added = null;
+        try {
+            added = clientService.addLocalClient(clientAdd.getClient().getMemberClass(),
+                    clientAdd.getClient().getMemberCode(),
+                    clientAdd.getClient().getSubsystemCode(),
+                    isAuthentication, ignoreWarnings);
+        } catch (ClientService.ClientAlreadyExistsException
+                | ClientService.AdditionalMemberAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (UnhandledWarningsException e) {
+            throw new BadRequestException(e);
+        }
+        Client result = clientConverter.convert(added);
+        return createCreatedResponse("/api/clients/{id}", result, result.getId());
     }
 }
