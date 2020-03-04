@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.23"
+  version: "1.0.24"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -4084,9 +4084,12 @@ components:
       description: approved certificate authority information
       required:
         - name
-        - distinguished_name
+        - subject_distinguished_name
+        - issuer_distinguished_name
         - response
         - expires_at
+        - top_ca
+        - path
         - authentication_only
       properties:
         name:
@@ -4096,13 +4099,20 @@ components:
           example: X-Road Test CA CN
           minLength: 1
           maxLength: 255
-        distinguished_name:
+        subject_distinguished_name:
           type: string
           format: text
-          description: distinguished name
+          description: subject distinguished name
           example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
-          maxLength: 255
+          maxLength: 1024
+        issuer_distinguished_name:
+          type: string
+          format: text
+          description: issuer distinguished name
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
+          maxLength: 1024
         response:
           type: string
           format: text
@@ -4117,6 +4127,16 @@ components:
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        top_ca:
+          type: boolean
+          description: if the certificate authority is top CA (instead of intermediate)
+          example: true
+        path:
+          type: string
+          format: text
+          description: encoded path string from this CA to top CA
+          example: C=FI, O=X-Road Test Intermediate, OU=X-Road Test CA OU, CN=X-Road Test CA CN Intermediate:C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
         authentication_only:
           type: boolean
           description: if certificate authority is limited for authentication use only
