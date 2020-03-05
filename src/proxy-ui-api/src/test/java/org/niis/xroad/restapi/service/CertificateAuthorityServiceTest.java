@@ -86,8 +86,10 @@ import static org.mockito.Mockito.when;
 @WithMockUser
 public class CertificateAuthorityServiceTest {
 
-    public static final String MOCK_AUTH_CERT_SUBJECT = "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
-    public static final String MOCK_AUTH_CERT_ISSUER = "CN=Customized Test CA CN, OU=Customized Test CA OU, O=Customized Test, C=FI";
+    public static final String MOCK_AUTH_CERT_SUBJECT =
+            "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
+    public static final String MOCK_AUTH_CERT_ISSUER =
+            "CN=Customized Test CA CN, OU=Customized Test CA OU, O=Customized Test, C=FI";
     @Autowired
     CertificateAuthorityService certificateAuthorityService;
 
