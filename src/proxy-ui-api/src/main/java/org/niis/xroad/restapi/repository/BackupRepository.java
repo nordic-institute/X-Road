@@ -127,7 +127,7 @@ public class BackupRepository {
         }
         try {
             Files.write(path, content);
-            return getCreatedAt(filename);
+            return getCreatedAt(path.getFileName().toString());
         } catch (IOException ioe) {
             log.error("can't write backup file's content (" + path.toString() + ")");
             throw new RuntimeException(ioe);
@@ -146,7 +146,7 @@ public class BackupRepository {
     }
 
     private Path getFilePath(String filename) {
-        return Paths.get(getConfigurationBackupPath() + filename);
+        return Paths.get(getConfigurationBackupPath(), filename);
     }
 
     /**
