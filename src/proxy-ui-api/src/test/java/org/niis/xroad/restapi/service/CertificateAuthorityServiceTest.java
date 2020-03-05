@@ -32,14 +32,19 @@ import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
+import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -49,17 +54,20 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
@@ -83,6 +91,9 @@ public class CertificateAuthorityServiceTest {
     GlobalConfFacade globalConfFacade;
 
     @MockBean
+    SignerProxyFacade signerProxyFacade;
+
+    @MockBean
     ServerConfService serverConfService;
 
     @MockBean
@@ -95,13 +106,42 @@ public class CertificateAuthorityServiceTest {
 
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("fi-not-auth-only", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
                 "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider"));
         when(globalConfService.getApprovedCAsForThisInstance()).thenReturn(approvedCAInfos);
+
+        List<X509Certificate> caCerts = new ArrayList<>();
+        caCerts.add(CertificateTestUtils.getMockCertificate());
+        caCerts.add(CertificateTestUtils.getWidgitsCertificate());
+        when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(caCerts);
+
+        when(globalConfService.getApprovedCAForThisInstance(any())).thenAnswer(invocation -> {
+            X509Certificate cert = (X509Certificate) invocation.getArguments()[0];
+            for (int i = 0; i < caCerts.size(); i++) {
+                if (caCerts.get(i) == cert) {
+                    return approvedCAInfos.get(i);
+                }
+            }
+            throw new RuntimeException("approved ca info not found");
+        });
+
+        String[] ocspResponses = caCerts.stream()
+                .map(cert -> {
+                    try {
+                        byte[] bytes = CertificateTestUtils.generateOcspBytes(cert, CertificateStatus.GOOD);
+                        return CryptoUtils.encodeBase64(bytes);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList())
+                .toArray(new String[]{});
+        doReturn(ocspResponses).when(signerProxyFacade).getOcspResponses(any());
+
         SecurityServerId securityServerId = SecurityServerId.create("test-i",
                 "test-mclass", "test-mcode", "test-scode");
         ownerId = ClientId.create(securityServerId.getXRoadInstance(),
@@ -115,12 +155,12 @@ public class CertificateAuthorityServiceTest {
 
     @Test
     public void getCertificateAuthority() throws Exception {
-        ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthority("fi-not-auth-only");
+        ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo("fi-not-auth-only");
         assertEquals("ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
                 caInfo.getCertificateProfileInfo());
 
         try {
-            certificateAuthorityService.getCertificateAuthority("does-not-exist");
+            certificateAuthorityService.getCertificateAuthorityInfo("does-not-exist");
             fail("should have thrown exception");
         } catch (CertificateAuthorityNotFoundException expected) {
         }
@@ -128,18 +168,19 @@ public class CertificateAuthorityServiceTest {
 
 
     @Test
-    public void getCertificateAuthorities() {
-        Collection<ApprovedCAInfo> caInfos = certificateAuthorityService.getCertificateAuthorities(null);
-        assertEquals(2, caInfos.size());
+    public void getCertificateAuthorities() throws Exception {
+        Collection<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(null);
+        assertEquals(2, caDtos.size());
 
-        caInfos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
-        assertEquals(1, caInfos.size());
-        assertEquals("fi-not-auth-only", caInfos.iterator().next().getName());
+        caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
+        assertEquals(1, caDtos.size());
+        assertEquals("fi-not-auth-only", caDtos.iterator().next().getCommonName());
 
-        caInfos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
-        assertEquals(2, caInfos.size());
+        caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
+        assertEquals(2, caDtos.size());
 
-        when(globalConfService.getApprovedCAsForThisInstance()).thenReturn(new ArrayList<>());
+        when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(new ArrayList<>());
+        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
     }

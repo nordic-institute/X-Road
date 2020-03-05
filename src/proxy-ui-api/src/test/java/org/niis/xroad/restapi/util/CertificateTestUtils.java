@@ -39,6 +39,7 @@ import org.springframework.core.io.Resource;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -350,6 +351,11 @@ public final class CertificateTestUtils {
                 throw new RuntimeException("failed to create CertificateInfo", e);
             }
         }
+    }
+
+    public static byte[] generateOcspBytes(X509Certificate cert, CertificateStatus status) throws Exception {
+        OCSPResp response = generateOcspResponses(Collections.singletonList(cert), status).get(0);
+        return response.getEncoded();
     }
 
     private static List<OCSPResp> generateOcspResponses(List<X509Certificate> certs,

@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -36,6 +35,7 @@ import org.niis.xroad.restapi.converter.CertificateAuthorityConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrSubjectFieldDescriptionConverter;
 import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
+import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.restapi.openapi.model.CsrSubjectFieldDescription;
@@ -98,10 +98,17 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + " or #keyUsageType == null))"
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
-    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType) {
+    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
+            Boolean includeIntermediateCas) {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
-        Collection<ApprovedCAInfo> caInfos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo);
-        List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caInfos);
+        Collection<ApprovedCaDto> caDtos = null;
+        try {
+            caDtos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo, includeIntermediateCas);
+        } catch (CertificateAuthorityService.CaCertificateStatusProcessingException e) {
+            // TO DO: error handling
+            throw new InternalServerErrorException(e);
+        }
+        List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caDtos);
         return new ResponseEntity<>(cas, HttpStatus.OK);
     }
 

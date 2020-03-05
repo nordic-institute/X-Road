@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -35,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
@@ -101,9 +101,11 @@ public class CertificateAuthoritiesApiControllerTest {
             }
         }).when(keyService).getKey(any());
 
-        List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
-        approvedCAInfos.add(new ApprovedCAInfo(GENERAL_PURPOSE_CA_NAME, false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+        List<ApprovedCaDto> approvedCAInfos = new ArrayList<>();
+        approvedCAInfos.add(ApprovedCaDto.builder()
+                .commonName(GENERAL_PURPOSE_CA_NAME)
+                .authenticationOnly(false)
+                .build());
         when(certificateAuthorityService.getCertificateAuthorities(any())).thenReturn(approvedCAInfos);
         when(certificateAuthorityService.getCertificateProfile(any(), any(), any()))
                 .thenReturn(new CertificateProfileInfo() {
@@ -124,11 +126,11 @@ public class CertificateAuthoritiesApiControllerTest {
     @Test
     @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
     public void getApprovedCertificateAuthoritiesAuthWithAuthPermission() throws Exception {
-        caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION);
-        caController.getApprovedCertificateAuthorities(null);
+        caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
+        caController.getApprovedCertificateAuthorities(null, false);
 
         try {
-            caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING);
+            caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
             fail("should have thrown exception");
         } catch (AccessDeniedException expected) {
         }
@@ -137,15 +139,15 @@ public class CertificateAuthoritiesApiControllerTest {
     @Test
     @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
     public void getApprovedCertificateAuthoritiesAuthWithSignPermission() throws Exception {
-        caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING);
+        caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
 
         try {
-            caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION);
+            caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
             fail("should have thrown exception");
         } catch (AccessDeniedException expected) {
         }
         try {
-            caController.getApprovedCertificateAuthorities(null);
+            caController.getApprovedCertificateAuthorities(null, false);
             fail("should have thrown exception");
         } catch (AccessDeniedException expected) {
         }

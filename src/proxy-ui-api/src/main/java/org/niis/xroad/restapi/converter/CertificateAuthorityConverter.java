@@ -24,9 +24,8 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
 import org.springframework.stereotype.Component;
 
@@ -40,24 +39,31 @@ import java.util.stream.Collectors;
 public class CertificateAuthorityConverter {
 
     /**
-     * convert ApprovedCAInfo into openapi CertificateAuthority class
-     * @param approvedCAInfo
+     * convert ApprovedCaDto into openapi CertificateAuthority class
+     * @param approvedCaDto
      * @return
      */
-    public CertificateAuthority convert(ApprovedCAInfo approvedCAInfo) {
+    public CertificateAuthority convert(ApprovedCaDto approvedCaDto) {
         CertificateAuthority ca = new CertificateAuthority();
-        ca.setName(approvedCAInfo.getName());
-        ca.setAuthenticationOnly(Boolean.TRUE.equals(approvedCAInfo.getAuthenticationOnly()));
+        ca.setName(approvedCaDto.getCommonName());
+        ca.setAuthenticationOnly(Boolean.TRUE.equals(approvedCaDto.isAuthenticationOnly()));
+        ca.setExpiresAt(approvedCaDto.getNotAfter());
+        ca.setIssuerDistinguishedName(approvedCaDto.getIssuerDistinguishedName());
+        ca.setSubjectDistinguishedName(approvedCaDto.getSubjectDistinguishedName());
+        ca.setOcspResponse(CertificateAuthorityOcspResponseMapping.map(approvedCaDto.getOcspResponse())
+                .orElse(null));
+        ca.setPath(String.join(":", approvedCaDto.getSubjectDnPath()));
+        ca.setTopCa(approvedCaDto.isTopCa());
         return ca;
     }
 
     /**
-     * convert a group of ApprovedCAInfos into a list of CertificateAuthorities
-     * @param approvedCAInfos
+     * convert a group of ApprovedCaDtos into a list of CertificateAuthorities
+     * @param approvedCaDtos
      * @return
      */
-    public List<CertificateAuthority> convert(Iterable<ApprovedCAInfo> approvedCAInfos) {
-        return Streams.stream(approvedCAInfos)
+    public List<CertificateAuthority> convert(Iterable<ApprovedCaDto> approvedCaDtos) {
+        return Streams.stream(approvedCaDtos)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
