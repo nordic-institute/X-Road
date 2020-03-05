@@ -102,8 +102,7 @@ public class CertificateAuthorityService {
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
      * Returns top level certificate authorities
-     * @param keyUsageInfo
-     * @return
+     * @param keyUsageInfo list CAs for this type of key usage. If null, list all.
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
     public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo)
@@ -129,6 +128,7 @@ public class CertificateAuthorityService {
                 condition = "@certificateAuthorityCacheEvictor.evict")
         @Scheduled(fixedDelay = CACHE_EVICT_RATE)
         public void evict() {
+            // method is empty on purpose. Functionality is based on annotations
         }
     }
 
