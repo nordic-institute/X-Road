@@ -173,6 +173,6 @@ public class BackupRepository {
      * @return
      */
     public boolean fileExists(String filename) {
-        return Files.exists(getFilePath(filename));
+        return getFilePath(filename).toFile().exists();
     }
 }
