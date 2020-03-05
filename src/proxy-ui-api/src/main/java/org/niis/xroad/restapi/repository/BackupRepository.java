@@ -51,7 +51,7 @@ public class BackupRepository {
 
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
     // Criteria for valid backup file names:
-    // 1) cannot start with ".", 2) must contain one or more word characters ([a-zA-Z_0-9]), 3) must end with ".tar"
+    // 1) cannot start with ".", 2) must contain one or more word characters ([a-zA-Z_0-9.-]), 3) must end with ".tar"
     private static final String BACKUP_FILENAME_PATTERN = "^(?!\\.)[\\w\\.\\-]+\\.tar$";
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
@@ -115,6 +115,25 @@ public class BackupRepository {
     }
 
     /**
+     * Writes backup file's content to disk
+     * @param filename
+     * @param content
+     * @return
+     */
+    public OffsetDateTime writeBackupFile(String filename, byte[] content) {
+        Path path = getFilePath(filename);
+        if (!isFilenameValid(path)) {
+            throw new RuntimeException("invalid backup filename");
+        }
+        try {
+            Files.write(path, content);
+            return getCreatedAt(filename);
+        } catch (IOException ioe) {
+            log.error("can't write backup file's content (" + path.toString() + ")");
+            throw new RuntimeException(ioe);
+        }
+    }
+    /**
      * Return configuration backup path with a trailing slash
      * @return
      */
@@ -132,10 +151,28 @@ public class BackupRepository {
 
     /**
      * Check if the given filename is valid and meets the defined criteria
+     * @param filename
+     * @return
+     */
+    public boolean isFilenameValid(String filename) {
+        return isFilenameValid(getFilePath(filename));
+    }
+
+    /**
+     * Check if the given filename is valid and meets the defined criteria
      * @param path
      * @return
      */
-    private boolean isFilenameValid(Path path) {
+    public boolean isFilenameValid(Path path) {
         return Pattern.compile(BACKUP_FILENAME_PATTERN).matcher(path.getFileName().toString()).matches();
+    }
+
+    /**
+     * Check if a backup file with the given name already exists
+     * @param filename
+     * @return
+     */
+    public boolean fileExists(String filename) {
+        return Files.exists(getFilePath(filename));
     }
 }

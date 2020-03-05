@@ -28,6 +28,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -36,9 +38,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,6 +154,44 @@ public class BackupService {
     }
 
     /**
+     * Write uploaded backup file to disk. If overwriteExisting=false, an exception is thrown when a file with
+     * the same name already exists. If overwriteExisting=true, the existing file is overwritten.
+     * @param overwriteExisting
+     * @param file
+     * @return
+     * @throws InvalidFilenameException if backup file's name is invalid and does not pass validation
+     * @throws FileAlreadyExistsException if backup file with the same name already exists
+     * and overwriteExisting is false
+     * @throws InvalidBackupFileException if backup file is not a valid tar file or the first entry of the tar file
+     * does not match to the first entry if the Security Server generated backup tar files
+     */
+    public BackupFile uploadBackup(Boolean overwriteExisting, MultipartFile file)
+            throws InvalidFilenameException, FileAlreadyExistsException, InvalidBackupFileException {
+        String filename = file.getOriginalFilename();
+
+        if (!backupRepository.isFilenameValid(filename)) {
+            throw new InvalidFilenameException("uploading backup file failed because of invalid filename ("
+                    + filename + ")");
+        }
+
+        if (!overwriteExisting && backupRepository.fileExists(filename)) {
+            throw new FileAlreadyExistsException("file with the same name already exists (" + filename + ")");
+        }
+
+        try {
+            if (!isValidTarFile(file.getInputStream())) {
+                throw new InvalidBackupFileException("backup file is not a valid tar file (" + filename + ")");
+            }
+            OffsetDateTime createdAt = backupRepository.writeBackupFile(filename, file.getBytes());
+            BackupFile backupFile = new BackupFile(filename);
+            backupFile.setCreatedAt(createdAt);
+            return backupFile;
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    /**
      * Get a backup file with the given filename
      * @param filename
      * @return
@@ -163,7 +207,15 @@ public class BackupService {
      * @param backupFiles
      */
     private void setCreatedAt(List<BackupFile> backupFiles) {
-        backupFiles.stream().forEach(b -> b.setCreatedAt(backupRepository.getCreatedAt(b.getFilename())));
+        backupFiles.stream().forEach(this::setCreatedAt);
+    }
+
+    /**
+     * Set the "createdAt" property to a backup
+     * @param backupFile
+     */
+    private void setCreatedAt(BackupFile backupFile) {
+        backupFile.setCreatedAt(backupRepository.getCreatedAt(backupFile.getFilename()));
     }
 
     /**
@@ -179,5 +231,26 @@ public class BackupService {
         StringBuilder sb = new StringBuilder();
         sb.append("Backup file with name ").append(filename).append(" not found");
         return sb.toString();
+    }
+
+    /**
+     * Validate that the given InputStream is a tar file. In addition, validate that
+     * the first entry of the tar file begins with a label that is included in the
+     * Security Server backups.
+     * @param tarStream
+     * @return
+     */
+    private boolean isValidTarFile(InputStream tarStream) {
+        try (TarArchiveInputStream tarIn = new TarArchiveInputStream(tarStream)) {
+            TarArchiveEntry entry = (TarArchiveEntry) tarIn.getNextEntry();
+            // The first entry of a valid Security Server backup tar file contains:
+            // "security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
+            if (entry == null || !entry.getName().startsWith("security_")) {
+                return false;
+            }
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
     }
 }

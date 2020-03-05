@@ -86,14 +86,28 @@ paths:
       summary: upload new backup for the security server
       operationId: uploadBackup
       description: Uploads new security server backup to the system
+      parameters:
+        - in: query
+          name: overwrite_existing
+          description: if true, overwrites existing backup file
+            with the same name. If false (or missing), returns an
+            error if a backup file with the same name already exists
+          required: false
+          schema:
+            type: boolean
+            default: false
       requestBody:
         description: backup to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: backup file
+              title: BackupArchive
+              type: object
+              description: security server backup archive file
+              properties:
+                file:
+                  type: string
+                  format: binary
       responses:
         '201':
           description: item created
