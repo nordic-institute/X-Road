@@ -103,7 +103,7 @@ public class CertificateAuthoritiesApiControllerTest {
 
         List<ApprovedCaDto> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(ApprovedCaDto.builder()
-                .commonName(GENERAL_PURPOSE_CA_NAME)
+                .name(GENERAL_PURPOSE_CA_NAME)
                 .authenticationOnly(false)
                 .build());
         when(certificateAuthorityService.getCertificateAuthorities(any())).thenReturn(approvedCAInfos);

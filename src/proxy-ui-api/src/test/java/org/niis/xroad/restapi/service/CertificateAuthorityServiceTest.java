@@ -56,10 +56,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -83,6 +86,9 @@ public class CertificateAuthorityServiceTest {
 
     @Autowired
     CertificateAuthorityService certificateAuthorityService;
+
+    @Autowired
+    CertificateAuthorityService.CacheEvictor cacheEvictor;
 
     @MockBean
     GlobalConfService globalConfService;
@@ -166,6 +172,56 @@ public class CertificateAuthorityServiceTest {
         }
     }
 
+    @Test
+    public void buildPath() throws Exception {
+        X509Certificate certificate = CertificateTestUtils.getMockAuthCertificate();
+        String subject = "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
+        String issuer = "CN=Customized Test CA CN, OU=Customized Test CA OU, O=Customized Test, C=FI";
+        assertEquals(subject, certificate.getSubjectDN().getName());
+        assertEquals(issuer, certificate.getIssuerDN().getName());
+
+        Map<String, String> subjectsToIssuers = new HashMap<>();
+        subjectsToIssuers.put(subject, issuer);
+        subjectsToIssuers.put(issuer, "a");
+        subjectsToIssuers.put("a", "b");
+        subjectsToIssuers.put("b", "c");
+        subjectsToIssuers.put("c", "c");
+        List<String> path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
+        assertEquals(Arrays.asList("c", "b", "a", issuer, subject), path);
+
+        subjectsToIssuers = new HashMap<>();
+        subjectsToIssuers.put(subject, issuer);
+        subjectsToIssuers.put(issuer, "a");
+        subjectsToIssuers.put("a", "b");
+        subjectsToIssuers.put("b", "c");
+        path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
+        assertEquals(Arrays.asList("b", "a", issuer, subject), path);
+
+        subjectsToIssuers = new HashMap<>();
+        subjectsToIssuers.put(subject, issuer);
+        subjectsToIssuers.put(issuer, issuer);
+        path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
+        assertEquals(Arrays.asList(issuer, subject), path);
+
+        subjectsToIssuers = new HashMap<>();
+        subjectsToIssuers.put(subject, issuer);
+        path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
+        assertEquals(Arrays.asList(subject), path);
+
+        certificate = CertificateTestUtils.getMockCertificate();
+        subject = "CN=N/A";
+        issuer = "CN=N/A";
+        assertEquals(subject, certificate.getSubjectDN().getName());
+        assertEquals(issuer, certificate.getIssuerDN().getName());
+
+        subjectsToIssuers = new HashMap<>();
+        subjectsToIssuers.put(subject, issuer);
+        subjectsToIssuers.put(issuer, "a");
+        subjectsToIssuers.put("a", "b");
+        subjectsToIssuers.put("b", "c");
+        path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
+        assertEquals(Arrays.asList(subject), path);
+    }
 
     @Test
     public void getCertificateAuthorities() throws Exception {
@@ -174,11 +230,12 @@ public class CertificateAuthorityServiceTest {
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
         assertEquals(1, caDtos.size());
-        assertEquals("fi-not-auth-only", caDtos.iterator().next().getCommonName());
+        assertEquals("fi-not-auth-only", caDtos.iterator().next().getName());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
         assertEquals(2, caDtos.size());
 
+        cacheEvictor.evict();
         when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(new ArrayList<>());
         when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());

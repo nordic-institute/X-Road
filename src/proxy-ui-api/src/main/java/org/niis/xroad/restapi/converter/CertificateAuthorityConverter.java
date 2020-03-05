@@ -45,7 +45,7 @@ public class CertificateAuthorityConverter {
      */
     public CertificateAuthority convert(ApprovedCaDto approvedCaDto) {
         CertificateAuthority ca = new CertificateAuthority();
-        ca.setName(approvedCaDto.getCommonName());
+        ca.setName(approvedCaDto.getName());
         ca.setAuthenticationOnly(Boolean.TRUE.equals(approvedCaDto.isAuthenticationOnly()));
         ca.setExpiresAt(approvedCaDto.getNotAfter());
         ca.setIssuerDistinguishedName(approvedCaDto.getIssuerDistinguishedName());

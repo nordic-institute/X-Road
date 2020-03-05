@@ -4150,7 +4150,7 @@ components:
       type: object
       description: approved certificate authority information. Only for top CAs.
       required:
-        - ca_name
+        - name
         - subject_distinguished_name
         - issuer_distinguished_name
         - ocsp_response
@@ -4162,7 +4162,7 @@ components:
         name:
           type: string
           format: text
-          description: common name of the CA, used also as an identifier
+          description: name of the CA, as defined in global conf. Used also as an identifier
           example: X-Road Test CA CN
           minLength: 1
           maxLength: 255

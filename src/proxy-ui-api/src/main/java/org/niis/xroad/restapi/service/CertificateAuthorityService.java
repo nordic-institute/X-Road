@@ -196,7 +196,7 @@ public class CertificateAuthorityService {
         // properties from ApprovedCAInfo
         ApprovedCaDto.ApprovedCaDtoBuilder builder = ApprovedCaDto.builder();
         builder.authenticationOnly(Boolean.TRUE.equals(approvedCAInfo.getAuthenticationOnly()));
-        builder.commonName(approvedCAInfo.getName());
+        builder.name(approvedCAInfo.getName());
 
         // properties from X509Certificate
         builder.notAfter(FormatUtils.fromDateToOffsetDateTime(certificate.getNotAfter()));
@@ -224,9 +224,11 @@ public class CertificateAuthorityService {
         return builder.build();
     }
 
+    /**
+     * Build path from topmost CA down to this CA using subject-issuer relationships
+     */
     List<String> buildPath(X509Certificate certificate,
             Map<String, String> subjectsToIssuers) {
-        // TO DO: test
         ArrayList<String> pathElements = new ArrayList<>();
         String current = certificate.getSubjectDN().getName();
         String issuer = certificate.getIssuerDN().getName();

@@ -37,7 +37,7 @@ import java.util.List;
 @Builder
 public class ApprovedCaDto {
 
-    private final String commonName;
+    private final String name;
     private final boolean authenticationOnly;
     private final String issuerDistinguishedName;
     private final String subjectDistinguishedName;
