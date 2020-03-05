@@ -35,6 +35,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -43,7 +45,11 @@ import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +69,9 @@ import java.util.stream.Collectors;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class CertificateAuthorityService {
+
+    private static final String GET_CERTIFICATE_AUTHORITIES_CACHE = "certificate-authorities";
+    private static final int CACHE_EVICT_RATE = 60000; // 1 min
 
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
@@ -92,9 +101,31 @@ public class CertificateAuthorityService {
      * @param keyUsageInfo
      * @return
      */
+    @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
     public Collection<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo)
             throws CaCertificateStatusProcessingException {
         return getCertificateAuthorities(keyUsageInfo, false);
+    }
+
+    /**
+     * scheduled method needs to be in a separate component,
+     * otherwise we get a problem with service level PreAuthorize
+     * and "missing authentication"
+     */
+    @Component("certificateAuthorityCacheEvictor")
+    class CacheEvictor {
+        /**
+         * Tests need to be able to turn off cache eviction to be predictable
+         */
+        @Getter
+        @Setter
+        private boolean evict = true;
+
+        @CacheEvict(allEntries = true, cacheNames = { GET_CERTIFICATE_AUTHORITIES_CACHE },
+                condition = "@certificateAuthorityCacheEvictor.evict")
+        @Scheduled(fixedDelay = CACHE_EVICT_RATE)
+        public void evict() {
+        }
     }
 
     /**
@@ -106,10 +137,11 @@ public class CertificateAuthorityService {
      * @throws CaCertificateStatusProcessingException if something broke
      * @return
      */
+    @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
     public Collection<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
             boolean includeIntermediateCas) throws CaCertificateStatusProcessingException {
 
-
+        log.info("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
         List<ApprovedCaDto> dtos = new ArrayList<>();
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
