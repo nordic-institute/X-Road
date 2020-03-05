@@ -4086,66 +4086,6 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/KeyUsage'
-    CaCertificate: # ok
-      type: object
-      description: certificate authority (top or intermediate) certificate information
-      required:
-        - subject_distinguished_name
-        - issuer_distinguished_name
-        - response
-        - expires_at
-        - top_ca
-        - path
-        - authentication_only
-      properties:
-        name:
-          type: string
-          format: text
-          description: common name of the CA, used also as an identifier
-          example: X-Road Test CA CN
-          minLength: 1
-          maxLength: 255
-        subject_distinguished_name:
-          type: string
-          format: text
-          description: subject distinguished name
-          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
-          minLength: 1
-          maxLength: 1024
-        issuer_distinguished_name:
-          type: string
-          format: text
-          description: issuer distinguished name
-          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
-          minLength: 1
-          maxLength: 1024
-        response:
-          type: string
-          format: text
-          description: certificate authority response
-          example: N/A
-          minLength: 1
-          maxLength: 1000
-        expires_at:
-          type: string
-          format: date-time
-          description: certificate authority expires at
-          example: '2099-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        top_ca:
-          type: boolean
-          description: if the certificate authority is top CA (instead of intermediate)
-          example: true
-        path:
-          type: string
-          format: text
-          description: encoded path string from this CA to top CA
-          example: C=FI, O=X-Road Test Intermediate, OU=X-Road Test CA OU, CN=X-Road Test CA CN Intermediate:C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
-          minLength: 1
-        authentication_only:
-          type: boolean
-          description: if certificate authority is limited for authentication use only
     CertificateAuthority: # ok
       type: object
       description: approved certificate authority information. Only for top CAs.
