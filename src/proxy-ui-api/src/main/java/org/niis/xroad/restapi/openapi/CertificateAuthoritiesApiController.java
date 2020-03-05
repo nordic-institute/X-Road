@@ -104,8 +104,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         Collection<ApprovedCaDto> caDtos = null;
         try {
             caDtos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo, includeIntermediateCas);
-        } catch (CertificateAuthorityService.CaCertificateStatusProcessingException e) {
-            // TO DO: error handling
+        } catch (CertificateAuthorityService.InconsistentCaDataException e) {
             throw new InternalServerErrorException(e);
         }
         List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caDtos);

@@ -4154,7 +4154,7 @@ components:
         - subject_distinguished_name
         - issuer_distinguished_name
         - ocsp_response
-        - expires_at
+        - not_after
         - top_ca
         - path
         - authentication_only
@@ -4182,7 +4182,7 @@ components:
           maxLength: 1024
         ocsp_response:
           $ref: '#/components/schemas/CertificateAuthorityOcspResponse'
-        expires_at:
+        not_after:
           type: string
           format: date-time
           description: certificate authority expires at

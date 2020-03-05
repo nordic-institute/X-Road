@@ -94,7 +94,7 @@ public class TokenCertificateConverter {
                 tokenCertificate.getCertificateDetails()));
         tokenCertificate.setSavedToConfiguration(certificateInfo.isSavedToConfiguration());
         tokenCertificate.setStatus(CertificateStatusMapping.map(certificateInfo.getStatus())
-                                           .orElse(null));
+                .orElse(null));
         return tokenCertificate;
     }
 
@@ -119,7 +119,12 @@ public class TokenCertificateConverter {
         if (info.getOcspBytes() == null || info.getOcspBytes().length == 0) {
             return CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
         }
-        String ocspResponseStatus = OcspUtils.getOcspResponseStatus(info.getOcspBytes());
+        String ocspResponseStatus = null;
+        try {
+            ocspResponseStatus = OcspUtils.getOcspResponseStatus(info.getOcspBytes());
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new RuntimeException("extracting OCSP status failed", e);
+        }
         switch (ocspResponseStatus) {
             case CertificateInfo.OCSP_RESPONSE_GOOD:
                 return CertificateOcspStatus.OCSP_RESPONSE_GOOD;

@@ -55,9 +55,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +71,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -84,6 +86,8 @@ import static org.mockito.Mockito.when;
 @WithMockUser
 public class CertificateAuthorityServiceTest {
 
+    public static final String MOCK_AUTH_CERT_SUBJECT = "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
+    public static final String MOCK_AUTH_CERT_ISSUER = "CN=Customized Test CA CN, OU=Customized Test CA OU, O=Customized Test, C=FI";
     @Autowired
     CertificateAuthorityService certificateAuthorityService;
 
@@ -113,6 +117,7 @@ public class CertificateAuthorityServiceTest {
 
     @Before
     public void setup() throws Exception {
+        evictCache(); // start with empty cache
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("fi-not-auth-only", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
@@ -122,7 +127,7 @@ public class CertificateAuthorityServiceTest {
 
         List<X509Certificate> caCerts = new ArrayList<>();
         caCerts.add(CertificateTestUtils.getMockCertificate());
-        caCerts.add(CertificateTestUtils.getWidgitsCertificate());
+        caCerts.add(CertificateTestUtils.getMockAuthCertificate());
         when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(caCerts);
 
         when(globalConfService.getApprovedCAForThisInstance(any())).thenAnswer(invocation -> {
@@ -160,7 +165,7 @@ public class CertificateAuthorityServiceTest {
     }
 
     @Test
-    public void getCertificateAuthority() throws Exception {
+    public void getCertificateAuthorityInfo() throws Exception {
         ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo("fi-not-auth-only");
         assertEquals("ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
                 caInfo.getCertificateProfileInfo());
@@ -173,10 +178,57 @@ public class CertificateAuthorityServiceTest {
     }
 
     @Test
+    public void caching() throws Exception {
+        cacheEvictor.setEvict(false);
+
+        certificateAuthorityService.getCertificateAuthorities(null);
+        int expectedExecutions = 1;
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+
+        // repeat comes from cache
+        certificateAuthorityService.getCertificateAuthorities(null);
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+
+        // different parameter - different cache key
+        certificateAuthorityService.getCertificateAuthorities(null, true);
+        expectedExecutions++;
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+
+        // more parameters
+        certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
+        certificateAuthorityService.getCertificateAuthorities(null, false);
+        certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, true);
+        certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
+        expectedExecutions += 4;
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+
+        // repeats come from cache
+        certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
+        certificateAuthorityService.getCertificateAuthorities(null, false);
+        certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
+        certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+
+        // evict cache
+        evictCache();
+        certificateAuthorityService.getCertificateAuthorities(null);
+        expectedExecutions++;
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+
+        certificateAuthorityService.getCertificateAuthorities(null);
+        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+    }
+
+    private void evictCache() {
+        cacheEvictor.setEvict(true);
+        cacheEvictor.evict();
+    }
+
+    @Test
     public void buildPath() throws Exception {
         X509Certificate certificate = CertificateTestUtils.getMockAuthCertificate();
-        String subject = "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
-        String issuer = "CN=Customized Test CA CN, OU=Customized Test CA OU, O=Customized Test, C=FI";
+        String subject = MOCK_AUTH_CERT_SUBJECT;
+        String issuer = MOCK_AUTH_CERT_ISSUER;
         assertEquals(subject, certificate.getSubjectDN().getName());
         assertEquals(issuer, certificate.getIssuerDN().getName());
 
@@ -225,15 +277,32 @@ public class CertificateAuthorityServiceTest {
 
     @Test
     public void getCertificateAuthorities() throws Exception {
-        Collection<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(null);
+        List<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(null);
         assertEquals(2, caDtos.size());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
         assertEquals(1, caDtos.size());
-        assertEquals("fi-not-auth-only", caDtos.iterator().next().getName());
+        ApprovedCaDto ca = caDtos.get(0);
+        assertEquals("fi-not-auth-only", ca.getName());
+        assertEquals(false, ca.isAuthenticationOnly());
+        assertEquals("CN=N/A", ca.getIssuerDistinguishedName());
+        assertEquals("CN=N/A", ca.getSubjectDistinguishedName());
+        assertEquals(Arrays.asList("CN=N/A"), ca.getSubjectDnPath());
+        assertEquals(true, ca.isTopCa());
+        assertEquals("good", ca.getOcspResponse());
+        assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
         assertEquals(2, caDtos.size());
+        ApprovedCaDto ca2 = caDtos.get(1);
+        assertEquals("est-auth-only", ca2.getName());
+        assertEquals(true, ca2.isAuthenticationOnly());
+        assertEquals(MOCK_AUTH_CERT_ISSUER, ca2.getIssuerDistinguishedName());
+        assertEquals(MOCK_AUTH_CERT_SUBJECT, ca2.getSubjectDistinguishedName());
+        assertEquals(Arrays.asList(MOCK_AUTH_CERT_SUBJECT), ca2.getSubjectDnPath());
+        assertEquals(true, ca2.isTopCa());
+        assertEquals("good", ca2.getOcspResponse());
+        assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
 
         cacheEvictor.evict();
         when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(new ArrayList<>());

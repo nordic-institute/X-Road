@@ -49,9 +49,8 @@ public final class OcspUtils {
     /**
      * {@link OcspUtils#getOcspResponseStatus(byte[])}
      * @param base64EncodedOcspResponse base 64 encoded ocsp response. If empty, returns null
-     * @return
      */
-    public static String getOcspResponseStatus(String base64EncodedOcspResponse) {
+    public static String getOcspResponseStatus(String base64EncodedOcspResponse) throws OcspStatusExtractionException {
         if (StringUtils.isEmpty(base64EncodedOcspResponse)) {
             return null;
         }
@@ -63,9 +62,10 @@ public final class OcspUtils {
      * e.g. CertificateInfo.OCSP_RESPONSE_GOOD.
      * Logic follows what sysparams_controller.rb and token_renderer.rb had.
      * @param ocspResponse
-     * @return
+     * @throw OcspStatusExtractionException if OCSP status extraction failed for some reason
+     * @return String representing the status
      */
-    public static String getOcspResponseStatus(byte[] ocspResponse) {
+    public static String getOcspResponseStatus(byte[] ocspResponse) throws OcspStatusExtractionException {
         CertificateStatus certificateStatus = getCertificateStatus(ocspResponse);
         if (certificateStatus == null) {
             return CertificateInfo.OCSP_RESPONSE_GOOD;
@@ -86,7 +86,7 @@ public final class OcspUtils {
      * @param ocspBytes
      * @return
      */
-    private static CertificateStatus getCertificateStatus(byte[] ocspBytes) {
+    private static CertificateStatus getCertificateStatus(byte[] ocspBytes) throws OcspStatusExtractionException {
         try {
             OCSPResp response = new OCSPResp(ocspBytes);
             BasicOCSPResp basicResponse = (BasicOCSPResp) response.getResponseObject();
@@ -94,8 +94,18 @@ public final class OcspUtils {
             CertificateStatus status = resp.getCertStatus();
             return status;
         } catch (IOException | OCSPException e) {
-            throw new RuntimeException("Certificate OCSP response processing failed", e);
+            throw new OcspStatusExtractionException(e);
         }
     }
+
+    /**
+     * Thrown when attempt to extract ocsp status failed
+     */
+    public static class OcspStatusExtractionException extends Exception {
+        public OcspStatusExtractionException(Throwable throwable) {
+            super(throwable);
+        }
+    }
+
 
 }

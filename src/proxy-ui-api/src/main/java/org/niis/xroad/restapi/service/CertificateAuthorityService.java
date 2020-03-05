@@ -70,6 +70,10 @@ import java.util.stream.Collectors;
 @PreAuthorize("isAuthenticated()")
 public class CertificateAuthorityService {
 
+    // "not available" OCSP response status code.
+    // Used in addition to CertificateInfo statuses such as OCSP_RESPONSE_SUSPENDED
+    public static final String OCSP_RESPONSE_NOT_AVAILABLE = "not available";
+
     private static final String GET_CERTIFICATE_AUTHORITIES_CACHE = "certificate-authorities";
     private static final int CACHE_EVICT_RATE = 60000; // 1 min
 
@@ -102,8 +106,8 @@ public class CertificateAuthorityService {
      * @return
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
-    public Collection<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo)
-            throws CaCertificateStatusProcessingException {
+    public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo)
+            throws InconsistentCaDataException {
         return getCertificateAuthorities(keyUsageInfo, false);
     }
 
@@ -133,48 +137,50 @@ public class CertificateAuthorityService {
      * @param keyUsageInfo list CAs for this type of key usage. If null, list all.
      * @param includeIntermediateCas true = also include intermediate CAs.
      *                               false = only include top CAs
-     * TO DO: does CaCertificateStatusProcessingException make sense? plus other exception handling
-     * @throws CaCertificateStatusProcessingException if something broke
+     * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
+     * responses not being valid
      * @return
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
-    public Collection<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
-            boolean includeIntermediateCas) throws CaCertificateStatusProcessingException {
+    public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
+            boolean includeIntermediateCas) throws InconsistentCaDataException {
 
         log.info("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
         List<ApprovedCaDto> dtos = new ArrayList<>();
+        // map of each subject - issuer DN pair for easy lookups
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
                 Collectors.toMap(
                         x509 -> x509.getSubjectDN().getName(),
                         x509 -> x509.getIssuerDN().getName()));
 
+        String[] base64EncodedOcspResponses;
         try {
-            String[] base64EncodedResponses = signerProxyFacade.getOcspResponses(
-                    CertUtils.getCertHashes(new ArrayList<>(caCerts)));
-            if (caCerts.size() != base64EncodedResponses.length) {
-                throw new CaCertificateStatusProcessingException("broken ocsp responses");
-            }
-            for (int i = 0; i < caCerts.size(); i++) {
-                dtos.add(buildCertificateAuthorityDto(caCerts.get(i),
-                        base64EncodedResponses[i],
-                        subjectsToIssuers));
-            }
-        } catch (CaCertificateStatusProcessingException e) {
-            throw e;
+            String[] certHashes = CertUtils.getCertHashes(new ArrayList<>(caCerts));
+            base64EncodedOcspResponses = signerProxyFacade.getOcspResponses(certHashes);
         } catch (Exception e) {
-            throw new CaCertificateStatusProcessingException(e);
+            throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
+        }
+        if (caCerts.size() != base64EncodedOcspResponses.length) {
+            throw new InconsistentCaDataException("ocsp responses do not match ca certs");
+        }
+
+        // build dtos
+        for (int i = 0; i < caCerts.size(); i++) {
+            dtos.add(buildCertificateAuthorityDto(caCerts.get(i),
+                    base64EncodedOcspResponses[i],
+                    subjectsToIssuers));
         }
 
         if (keyUsageInfo == KeyUsageInfo.SIGNING) {
-            // need to remove "authentication only" CAs
+            // remove "authentication only" CAs
             dtos = dtos.stream()
                     .filter(dto -> !(Boolean.TRUE.equals(dto.isAuthenticationOnly())))
                     .collect(Collectors.toList());
         }
 
         if (!includeIntermediateCas) {
-            // need to remove intermediate CAs
+            // remove intermediate CAs
             dtos = dtos.stream()
                     .filter(dto -> dto.isTopCa())
                     .collect(Collectors.toList());
@@ -183,14 +189,22 @@ public class CertificateAuthorityService {
         return dtos;
     }
 
-    public static final String OCSP_RESPONSE_NOT_AVAILABLE = "not available";
+    /**
+     * Build a single {@code ApprovedCaDto} object using given parameters
+     * @param certificate CA certificate
+     * @param base64EncodedOcspResponse OCSP response
+     * @param subjectsToIssuers map linking all CA subject DNs to corresponding issuer DNs
+     * @return
+     * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
+     * responses not being valid
+     */
     private ApprovedCaDto buildCertificateAuthorityDto(
             X509Certificate certificate, String base64EncodedOcspResponse,
             Map<String, String> subjectsToIssuers)
-            throws CaCertificateStatusProcessingException {
+            throws InconsistentCaDataException {
         ApprovedCAInfo approvedCAInfo = globalConfService.getApprovedCAForThisInstance(certificate);
         if (approvedCAInfo == null) {
-            throw new CaCertificateStatusProcessingException("approved ca info not found");
+            throw new InconsistentCaDataException("approved ca info not found");
         }
 
         // properties from ApprovedCAInfo
@@ -205,7 +219,12 @@ public class CertificateAuthorityService {
         builder.subjectDistinguishedName(subjectName);
 
         // properties from ocsp response
-        String ocspResponseStatus = OcspUtils.getOcspResponseStatus(base64EncodedOcspResponse);
+        String ocspResponseStatus = null;
+        try {
+            ocspResponseStatus = OcspUtils.getOcspResponseStatus(base64EncodedOcspResponse);
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new InconsistentCaDataException(e);
+        }
         if (ocspResponseStatus == null) {
             builder.ocspResponse(OCSP_RESPONSE_NOT_AVAILABLE);
         } else {
@@ -308,15 +327,15 @@ public class CertificateAuthorityService {
     /**
      * Thrown when attempted to find CA certificate status and other details, but failed
      */
-    public static class CaCertificateStatusProcessingException extends ServiceException {
+    public static class InconsistentCaDataException extends ServiceException {
         public static final String ERROR_CA_CERT_PROCESSING = "ca_cert_status_processing_failure";
-        public CaCertificateStatusProcessingException() {
-            super(new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
+        public InconsistentCaDataException(String s, Throwable t) {
+            super(s, t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }
-        public CaCertificateStatusProcessingException(String s) {
+        public InconsistentCaDataException(String s) {
             super(s, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }
-        public CaCertificateStatusProcessingException(Throwable t) {
+        public InconsistentCaDataException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }
     }
