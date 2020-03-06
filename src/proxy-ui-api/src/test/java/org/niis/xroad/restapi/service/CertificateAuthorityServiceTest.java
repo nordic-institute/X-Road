@@ -344,7 +344,8 @@ public class CertificateAuthorityServiceTest {
         assertEquals(false, intermediateCa.isAuthenticationOnly());
         assertEquals(MOCK_TOP_CA_SUBJECT_DN, intermediateCa.getIssuerDistinguishedName());
         assertEquals(MOCK_INTERMEDIATE_CA_SUBJECT_DN, intermediateCa.getSubjectDistinguishedName());
-        assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN, MOCK_INTERMEDIATE_CA_SUBJECT_DN), intermediateCa.getSubjectDnPath());
+        assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN, MOCK_INTERMEDIATE_CA_SUBJECT_DN),
+                intermediateCa.getSubjectDnPath());
         assertEquals(false, intermediateCa.isTopCa());
         assertEquals("good", intermediateCa.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2040-02-28T07:53:49Z"), intermediateCa.getNotAfter());
