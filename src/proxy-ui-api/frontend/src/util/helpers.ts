@@ -42,7 +42,7 @@ export function isValidRestURL(str: string) {
 }
 
 // Save response data as a file
-export function saveResponseAsFile(response: any) {
+export function saveResponseAsFile(response: any, defaultFileName: string = 'certs.tar.gz') {
   let suggestedFileName;
   const disposition = response.headers['content-disposition'];
 
@@ -56,7 +56,7 @@ export function saveResponseAsFile(response: any) {
 
   const effectiveFileName =
     suggestedFileName === undefined
-      ? 'certs.tar.gz'
+      ? defaultFileName
       : suggestedFileName;
   const blob = new Blob([response.data]);
 
@@ -64,7 +64,9 @@ export function saveResponseAsFile(response: any) {
   const link = document.createElement('a');
   link.href = window.URL.createObjectURL(blob);
   link.setAttribute('download', effectiveFileName);
+  link.setAttribute('data-test', 'generated-download-link');
   document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link); // cleanup
 }
 

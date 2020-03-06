@@ -51,6 +51,7 @@
   import SubViewFooter from '@/components/ui/SubViewFooter.vue';
   import LargeButton from '@/components/ui/LargeButton.vue';
   import HelpIcon from '@/components/ui/HelpIcon.vue';
+  import { saveResponseAsFile } from '@/util/helpers';
 
   export default Vue.extend({
     components: {
@@ -75,13 +76,7 @@
         api
           .post('/system/certificate/csr', { name: this.distinguishedName }, { responseType: 'blob' })
           .then((res) => {
-            const tempLink = document.createElement('a');
-            tempLink.href = window.URL.createObjectURL(new Blob([res.data]));
-            tempLink.setAttribute('download', 'request.csr');
-            tempLink.setAttribute('data-test', 'generate-internal-csr-generated-csr-link');
-            document.body.appendChild(tempLink);
-            tempLink.click();
-            document.body.removeChild(tempLink); // cleanup
+            saveResponseAsFile(res, 'request.csr');
             this.csrGenerated = true;
           })
           .catch((error) => {
