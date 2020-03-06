@@ -1,19 +1,21 @@
 <template>
   <div class="content">
     <div class="info-block">
-      <div>
-        {{$t('wizard.clientInfo1')}}
-        <br />
-        <br />
-        {{$t('wizard.clientInfo2')}}
-      </div>
-      <div class="action-block">
-        <large-button
-          @click="showSelectClient = true"
-          outlined
-          data-test="select-client-button"
-        >{{$t('wizard.selectClient')}}</large-button>
-      </div>
+      <slot>
+        <div>
+          {{$t('wizard.clientInfo1')}}
+          <br />
+          <br />
+          {{$t('wizard.clientInfo2')}}
+        </div>
+        <div class="action-block">
+          <large-button
+            @click="showSelectClient = true"
+            outlined
+            data-test="select-client-button"
+          >{{$t('wizard.selectClient')}}</large-button>
+        </div>
+      </slot>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
@@ -49,7 +51,7 @@
         </ValidationProvider>
       </div>
 
-      <div class="row-wrap">
+      <div v-if="showSubsystem" class="row-wrap">
         <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
 
         <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
@@ -96,6 +98,16 @@ export default Vue.extend({
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
+  },
+  props: {
+    saveButtonText: {
+      type: String,
+      default: 'action.continue',
+    },
+    showSubsystem: {
+      type: Boolean,
+      default: true,
+    },
   },
   computed: {
     ...mapGetters(['localMembers']),
@@ -166,8 +178,6 @@ export default Vue.extend({
   data() {
     return {
       disableDone: false,
-      certificationService: undefined,
-      filteredServiceList: [],
       showSelectClient: false as boolean,
     };
   },
@@ -177,16 +187,6 @@ export default Vue.extend({
     },
     done(): void {
       this.$emit('done');
-    },
-    generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
     },
   },
   created() {

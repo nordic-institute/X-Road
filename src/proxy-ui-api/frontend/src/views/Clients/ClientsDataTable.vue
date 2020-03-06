@@ -196,6 +196,7 @@ export default Vue.extend({
     addSubsystem(item: any): void {
       this.$router.push({
         name: RouteName.AddSubsystem,
+        params: { clientId: item.id },
       });
     },
 
