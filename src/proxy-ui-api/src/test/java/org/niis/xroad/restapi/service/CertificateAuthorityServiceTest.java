@@ -90,6 +90,11 @@ public class CertificateAuthorityServiceTest {
             "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
     public static final String MOCK_AUTH_CERT_ISSUER =
             "CN=Customized Test CA CN, OU=Customized Test CA OU, O=Customized Test, C=FI";
+    public static final String MOCK_TOP_CA_SUBJECT_DN =
+            "CN=X-Road Test CA CN, OU=X-Road Test CA OU, O=X-Road Test, C=FI";
+    public static final String MOCK_INTERMEDIATE_CA_SUBJECT_DN =
+            "CN=int-cn, O=X-Road Test int";
+
     @Autowired
     CertificateAuthorityService certificateAuthorityService;
 
@@ -125,11 +130,17 @@ public class CertificateAuthorityServiceTest {
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
                 "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider"));
+        approvedCAInfos.add(new ApprovedCAInfo("mock-top-ca", false,
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+        approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         when(globalConfService.getApprovedCAsForThisInstance()).thenReturn(approvedCAInfos);
 
         List<X509Certificate> caCerts = new ArrayList<>();
         caCerts.add(CertificateTestUtils.getMockCertificate());
         caCerts.add(CertificateTestUtils.getMockAuthCertificate());
+        caCerts.add(CertificateTestUtils.getMockTopCaCertificate());
+        caCerts.add(CertificateTestUtils.getMockIntermediateCaCertificate());
         when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(caCerts);
 
         when(globalConfService.getApprovedCAForThisInstance(any())).thenAnswer(invocation -> {
@@ -280,10 +291,10 @@ public class CertificateAuthorityServiceTest {
     @Test
     public void getCertificateAuthorities() throws Exception {
         List<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(null);
-        assertEquals(2, caDtos.size());
+        assertEquals(3, caDtos.size());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
-        assertEquals(1, caDtos.size());
+        assertEquals(2, caDtos.size());
         ApprovedCaDto ca = caDtos.get(0);
         assertEquals("fi-not-auth-only", ca.getName());
         assertEquals(false, ca.isAuthenticationOnly());
@@ -295,7 +306,7 @@ public class CertificateAuthorityServiceTest {
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
-        assertEquals(2, caDtos.size());
+        assertEquals(3, caDtos.size());
         ApprovedCaDto ca2 = caDtos.get(1);
         assertEquals("est-auth-only", ca2.getName());
         assertEquals(true, ca2.isAuthenticationOnly());
@@ -312,6 +323,33 @@ public class CertificateAuthorityServiceTest {
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
     }
+
+    @Test
+    public void getIntermediateCertificateAuthorities() throws Exception {
+        List<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(null, true);
+        assertEquals(4, caDtos.size());
+
+        ApprovedCaDto topCa = caDtos.get(2);
+        assertEquals("mock-top-ca", topCa.getName());
+        assertEquals(false, topCa.isAuthenticationOnly());
+        assertEquals(MOCK_TOP_CA_SUBJECT_DN, topCa.getIssuerDistinguishedName());
+        assertEquals(MOCK_TOP_CA_SUBJECT_DN, topCa.getSubjectDistinguishedName());
+        assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN), topCa.getSubjectDnPath());
+        assertEquals(true, topCa.isTopCa());
+        assertEquals("good", topCa.getOcspResponse());
+        assertEquals(OffsetDateTime.parse("2039-06-09T06:11:31Z"), topCa.getNotAfter());
+
+        ApprovedCaDto intermediateCa = caDtos.get(3);
+        assertEquals("mock-intermediate-ca", intermediateCa.getName());
+        assertEquals(false, intermediateCa.isAuthenticationOnly());
+        assertEquals(MOCK_TOP_CA_SUBJECT_DN, intermediateCa.getIssuerDistinguishedName());
+        assertEquals(MOCK_INTERMEDIATE_CA_SUBJECT_DN, intermediateCa.getSubjectDistinguishedName());
+        assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN, MOCK_INTERMEDIATE_CA_SUBJECT_DN), intermediateCa.getSubjectDnPath());
+        assertEquals(false, intermediateCa.isTopCa());
+        assertEquals("good", intermediateCa.getOcspResponse());
+        assertEquals(OffsetDateTime.parse("2040-02-28T07:53:49Z"), intermediateCa.getNotAfter());
+    }
+
 
     @Test
     public void getCertificateProfile() throws Exception {

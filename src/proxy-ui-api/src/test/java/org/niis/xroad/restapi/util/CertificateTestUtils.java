@@ -174,8 +174,69 @@ public final class CertificateTestUtils {
                             + "Squ5wMaxbtMHoBTVKisuqbRa4HSjxAFGA0EfZkLxLsDIcOfQXmY6p2Q3Hxi8vrT7"
                             + "TeEqXuL/b9PoaiQWFcPZcg==");
 
+    private static final byte[] MOCK_TOP_CA_CERT_BYTES =
+            CryptoUtils.decodeBase64("MIIFpzCCA4+gAwIBAgIUOKHQEPC1bBLtBShmTvoJ180394kwDQYJKoZIhvcNAQELBQ"
+                    + "AwWzELMAkGA1UEBhMCRkkxFDASBgNVBAoMC1gtUm9hZCBUZXN0MRowGAYDVQQLDBFYLVJvYWQgVGVzdCBDQSBPVTEaMBg"
+                    + "GA1UEAwwRWC1Sb2FkIFRlc3QgQ0EgQ04wHhcNMTkwNjE0MDYxMTMxWhcNMzkwNjA5MDYxMTMxWjBbMQswCQYDVQQGEwJG"
+                    + "STEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgV"
+                    + "GVzdCBDQSBDTjCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALX71JjmKm+cms2m5nlTTBqj+81G3tsoKS57Kp"
+                    + "2u3qV443fllar+9mgFTBAAz19Donz542neTAtJx63NGSbW5OWoXMZFayI66vkYT2mBi6547hA18cLGeivS9W5VOK/3skV"
+                    + "AFsvMxxL2MOAQWg4nW7uj0/7KV1d254thmu6alNWKs7BTYYwhYCnFO7w66AF2c7QiLR9iuGVRED/Mjot3Fmeok27FoJHO"
+                    + "7AkHD2iq22p/wUy9qXZqk2P3/DHbXVazPVu/7WyPzru0WW9XN2XHtaszqMyIj4iCn3vN9f8T9Cd2ckw/5l6QGduKDo8ut"
+                    + "Q4dC7Gxoopf+OUnR4GWcnyhKYi/3ULSi4gh1NXe1URldTmahgWjQq1wY8HVKOu15O03ZJZOivE1Vv31hZs8qxvq1eR1b5"
+                    + "UoC9upHA1nNerGokmuDuUP8jWkGoUDd5ZfI2adaSvWCHGRfoi3GFF/3DQ0rlODZ0wNxjmddokSNAchQp/Er/fUGBqgMXg"
+                    + "pse1wgy/D1b2PoHms0DbJnYUnuPsWRqJvYOshKSpPX1i/iTW6HvJAg74u1h1ysotq5TnUZJXDlHonO8vMYTsnVpI9aGve"
+                    + "4kh0OsroJ0nic7NbCe+0+1mdyxx0ZTZiYdVyPD3V7bTUyO/1saVaazYiVCtqg3G4XhJHhPhxBJG96Xo8JC0xPq2PAgMBA"
+                    + "AGjYzBhMB0GA1UdDgQWBBRF7mqBg7FoNyjICO6UhSb7EVNwPTAfBgNVHSMEGDAWgBRF7mqBg7FoNyjICO6UhSb7EVNwPT"
+                    + "APBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsFAAOCAgEAdetsMFDVZie4tZRHNAitBQu"
+                    + "4cTy4yyDhYAw+DHitp6pakuYyJtZxxkzIFQwgAIChzE725w79HWr2lblauFHJsHaJEsGPeR62Jh9S3TuyrXyhSdXKWDbD"
+                    + "lsapoNguTSoTEQ9+l9AF1FAPhdSzzgeq1updbmP4tY0cIQlMOazbSsM+st6IeAklbpVWxTHAu/kkkql11W0THkvI646ns"
+                    + "iHNYdo7yMbmFiKYnCOQSVM7tZFYOvqJSNdlaISlux9FSzQEXtfCzb/bEInK/v2mjdlnBXCMMU460p0UDdr3fz8CZkot3M"
+                    + "VFV0YoTh1GA8xZqt1NGx7A8URuSHQ+1l9migTm6mRrnAOQDkflZ+OdJAE5ybEoOJMRP6vnCub0GpO6KPXj28kycniE60g"
+                    + "/SC9gL8MEqO74uDqnCEcmpY3ccV7k3IDNrNiN9Jgxulfawt+tT12ookrnBblq7sB8A4iPdsBRion5DCtQZ984ymMvnsH6"
+                    + "v+WId6LOYxkC5ItMlM+F6lu2bWAOsIgBv31WCcy5nlsvzCK32m5pFLKBU+DJonwHEpemi5C00ZA+r14SOy1kluaP6xzqw"
+                    + "x6puhG/nQmHv/8cgmAyejdn6t1tifToZph1KcBXtebJTPH1orYnYKtUsKxysZF6DWXw1YkiR8Cd2sRhs307CHuVizD3Wj"
+                    + "GniSmwSrk=");
+
+    private static final byte[] MOCK_INTERMEDIATE_CA_CERT_BYTES =
+            CryptoUtils.decodeBase64("MIIFZzCCA0+gAwIBAgIBEjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUM"
+                    + "BIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzd"
+                    + "CBDQSBDTjAeFw0yMDAzMDQwNzUzNDlaFw00MDAyMjgwNzUzNDlaMCsxGDAWBgNVBAoMD1gtUm9hZCBUZXN0IGludDEPM"
+                    + "A0GA1UEAwwGaW50LWNuMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAq1uxlwbJWnn/Ey0K3CIoAY+X4mDum"
+                    + "kL0qkimjQZnbh9Bowq5BCF1HCZWJ7919cJAdaQaV8TvtowWcDqxJmetcA375piNT/L4AldlotC0uxbjyiScXs0cT8qF6"
+                    + "AEs7CSoxemXby/uV0y48AtylD8blSwIE6d1LxwjWrKOfipfHNN6QCVpTN5JDDu+oq3Jzs6IxtQyPOZDUdNEzap466OQm"
+                    + "nHtoivTZqiiplygT0FkZ0fj3SHjP3J1ngbCTi2URaOwqaekYvuE6TUPQuaVA2YMZJwoYJ1jxmrIAcoD4HhywtkjU4yhg"
+                    + "v0LfZVLmXpmAhBVAr0mn/EACnz28e39i0PhnaiFn6SV1RNd3iwdylNm7Rn+ZF1a6N1HQPCD2+VbtMCE9KT4FHyXhgKuZ"
+                    + "D26zb63LrkxriOoIIlHWxMLpMTcwfoExkk2UGWYbAxf7QeYMvA4+tRQUchfE/osVv+DansbxaZrq7FXunQgcRphHlf5c"
+                    + "qYFyskc8DKOJsDmo+xuMSw1RM6qe0D6rr9sw4s2hFTEcKOSCmVeWcR7iIkm0hwzZAmemr8Yc2UhIyodrCVF3Wcs6nKjd"
+                    + "CagF2t+qEdm3S02E5GhUgZvrketYgiYGUwizeUyZcaAPsqK7EvBvsMai4YAOe5hJYssxPMYotb2Gp9LmxxxRG+P+tQ5S"
+                    + "R9OEcLl2AsCAwEAAaNmMGQwHQYDVR0OBBYEFN97AVWLyY6+6enqkr8A1x5DyBHKMB8GA1UdIwQYMBaAFEXuaoGDsWg3K"
+                    + "MgI7pSFJvsRU3A9MBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBCwUAA4ICAQAGz"
+                    + "7/mINANkmtGMIvmutda7qnIONzKPP7eejSXmcE28SyNxEsiUxiognUjxnVCseQ9uEmtdNHPHzbPIPRKZrxRy6nWB2IOj"
+                    + "m3rsU0g0AOA2qnHho7snx29uKCFSfQv3F8yQBySKabKSIliyMaVPMnrI8dtYVTyPYGACe1ghZX9SgMwis233FFuSSQe9"
+                    + "n1umnwxduhT52Fg2asCgtS1mi8l2s3Li0tST4EB/OfeVDE6EWLasbBRQI4HV/iCgfjmnIo5migTmilimHtDOH92YfScz"
+                    + "QvK7d0OP8lv7wds4pEVFDhc3SLhdTagtgerwWBJPT3ZbTRlgH8ymFitlj/H7ZlhoOsqm7q/c6isynGfYN9jW8cUfhPtl"
+                    + "BIS+8SpnH8aDPeOaGuNEDnpKA2QF2XVCd2nJgwHWq6uI+CMhtNAVf6Xt4KtJDalJp1LZNeqIKeRX05kNekb80mWnHk7I"
+                    + "UP6OgzetUOlx1q8X5EdCwyE5JM5C352v7OR67ERoX8u3pgxeVOclJcLB0UyPBV3X849L5jWrwJoNo6kcv1jnXwK4X/fG"
+                    + "QJ7JPOfD5lmD3/9MJL+gkA23dzg/oKJABLwqoe6vx9BQSKrJtwfOUSRokPcl4xYSlsnjuOQah6PHtgjuv1fPITf0FSuD"
+                    + "O40kM5i6xwOPqR4+kSXwmwQ2Z4cfs1o1ryL5w==");
+
     private CertificateTestUtils() {
         // noop
+    }
+
+    /**
+     * subject = CN=int-cn, O=X-Road Test int
+     */
+    public static X509Certificate getMockIntermediateCaCertificate() {
+        return getCertificate(MOCK_INTERMEDIATE_CA_CERT_BYTES);
+    }
+
+    /**
+     * subject = CN=X-Road Test CA CN, OU=X-Road Test CA OU, O=X-Road Test, C=FI
+     */
+    public static X509Certificate getMockTopCaCertificate() {
+        return getCertificate(MOCK_TOP_CA_CERT_BYTES);
     }
 
     /**
