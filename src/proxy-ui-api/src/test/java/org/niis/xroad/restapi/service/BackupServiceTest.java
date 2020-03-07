@@ -147,14 +147,14 @@ public class BackupServiceTest {
 
     @Test
     public void deleteBackup() throws BackupFileNotFoundException {
-            backupService.deleteBackup(BACKUP_FILE_1_NAME);
-            assertEquals(1, backupService.getBackupFiles().size());
+        backupService.deleteBackup(BACKUP_FILE_1_NAME);
+        assertEquals(1, backupService.getBackupFiles().size());
     }
 
     @Test
     public void deleteNonExistingBackup() {
         try {
-             backupService.deleteBackup("test_file.tar");
+            backupService.deleteBackup("test_file.tar");
             fail("should throw BackupFileNotFoundException");
         } catch (BackupFileNotFoundException expected) {
             // success
@@ -192,7 +192,7 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void uploadBackup() throws FileAlreadyExistsException, InvalidBackupFileException, IOException,
+    public void uploadBackup() throws UnhandledWarningsException, InvalidBackupFileException, IOException,
             InvalidFilenameException {
         MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, VALID_TAR_LABEL);
 
@@ -208,7 +208,7 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void uploadBackupInvalidTarLabel() throws FileAlreadyExistsException, IOException,
+    public void uploadBackupInvalidTarLabel() throws UnhandledWarningsException, IOException,
             InvalidFilenameException {
         MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, "invalid_label");
 
@@ -224,7 +224,7 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void uploadBackupWithInvalidFilename() throws FileAlreadyExistsException, InvalidBackupFileException {
+    public void uploadBackupWithInvalidFilename() throws UnhandledWarningsException, InvalidBackupFileException {
         try {
             backupService.uploadBackup(true, mockMultipartFile);
             fail("should throw InvalidFilenameException");
@@ -240,15 +240,15 @@ public class BackupServiceTest {
         when(backupRepository.fileExists(any(String.class))).thenReturn(true);
         try {
             backupService.uploadBackup(false, mockMultipartFile);
-            fail("should throw FileAlreadyExistsException");
-        } catch (FileAlreadyExistsException expected) {
+            fail("should throw UnhandledWarningsException");
+        } catch (UnhandledWarningsException expected) {
             // success
         }
     }
 
     @Test
     public void uploadBackupFileInvalidBackupFileOverwriteExisting() throws InvalidFilenameException,
-            FileAlreadyExistsException {
+            UnhandledWarningsException {
         when(backupRepository.isFilenameValid(any(String.class))).thenReturn(true);
         when(backupRepository.fileExists(any(String.class))).thenReturn(true);
         try {
@@ -261,7 +261,7 @@ public class BackupServiceTest {
 
     private MultipartFile createMultipartFileWithTar(String filename, String tarLabel) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             TarArchiveOutputStream taos = new TarArchiveOutputStream(baos)) {
+            TarArchiveOutputStream taos = new TarArchiveOutputStream(baos)) {
             TarArchiveEntry tarEntry = new TarArchiveEntry(tarLabel);
 
             taos.putArchiveEntry(tarEntry);

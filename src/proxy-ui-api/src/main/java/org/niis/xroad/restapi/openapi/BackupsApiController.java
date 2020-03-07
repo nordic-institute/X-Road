@@ -31,9 +31,9 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
-import org.niis.xroad.restapi.service.FileAlreadyExistsException;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -54,7 +54,6 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {
     public static final String ERROR_INVALID_FILENAME = "error_invalid_filename";
-    public static final String ERROR_FILE_EXISTS = "error_file_exists";
     public static final String ERROR_INVALID_BACKUP_FILE = "error_invalid_backup_file";
     public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
 
@@ -112,14 +111,14 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<Backup> uploadBackup(Boolean overwriteExisting, MultipartFile file) {
+    public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
-            BackupFile backupFile = backupService.uploadBackup(overwriteExisting, file);
+            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file);
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InvalidFilenameException e) {
             throw new BadRequestException(e, new ErrorDeviation(ERROR_INVALID_FILENAME));
-        } catch (FileAlreadyExistsException e) {
-            throw new BadRequestException(e, new ErrorDeviation(ERROR_FILE_EXISTS));
+        } catch (UnhandledWarningsException e) {
+            throw new BadRequestException(e);
         } catch (InvalidBackupFileException e) {
             throw new BadRequestException(e, new ErrorDeviation(ERROR_INVALID_BACKUP_FILE));
         }

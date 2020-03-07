@@ -29,12 +29,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
-import org.niis.xroad.restapi.service.FileAlreadyExistsException;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -243,7 +244,7 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupFileAlreadyExists() throws Exception {
-        doThrow(new FileAlreadyExistsException("")).when(backupService)
+        doThrow(new UnhandledWarningsException(new WarningDeviation(""))).when(backupService)
                 .uploadBackup(any(Boolean.class), any(MultipartFile.class));
 
         try {

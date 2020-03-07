@@ -33,6 +33,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,6 +61,7 @@ import java.util.Optional;
 public class BackupService {
 
     private static final String BACKUP_GENERATION_FAILED = "backup_generation_failed";
+    private static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
 
     private final BackupRepository backupRepository;
     private final ServerConfService serverConfService;
@@ -154,19 +156,19 @@ public class BackupService {
     }
 
     /**
-     * Write uploaded backup file to disk. If overwriteExisting=false, an exception is thrown when a file with
-     * the same name already exists. If overwriteExisting=true, the existing file is overwritten.
-     * @param overwriteExisting
+     * Write uploaded backup file to disk. If ignoreWarnings=false, an exception is thrown when a file with
+     * the same name already exists. If ignoreWarnings=true, the existing file is overwritten.
+     * @param ignoreWarnings
      * @param file
      * @return
      * @throws InvalidFilenameException if backup file's name is invalid and does not pass validation
-     * @throws FileAlreadyExistsException if backup file with the same name already exists
-     * and overwriteExisting is false
+     * @throws UnhandledWarningsException if backup file with the same name already exists
+     * and ignoreWarnings is false
      * @throws InvalidBackupFileException if backup file is not a valid tar file or the first entry of the tar file
      * does not match to the first entry if the Security Server generated backup tar files
      */
-    public BackupFile uploadBackup(Boolean overwriteExisting, MultipartFile file)
-            throws InvalidFilenameException, FileAlreadyExistsException, InvalidBackupFileException {
+    public BackupFile uploadBackup(Boolean ignoreWarnings, MultipartFile file)
+            throws InvalidFilenameException, UnhandledWarningsException, InvalidBackupFileException {
         String filename = file.getOriginalFilename();
 
         if (!backupRepository.isFilenameValid(filename)) {
@@ -174,8 +176,8 @@ public class BackupService {
                     + filename + ")");
         }
 
-        if (!overwriteExisting && backupRepository.fileExists(filename)) {
-            throw new FileAlreadyExistsException("file with the same name already exists (" + filename + ")");
+        if (!ignoreWarnings && backupRepository.fileExists(filename)) {
+            throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename));
         }
 
         try {
