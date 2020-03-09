@@ -3603,7 +3603,6 @@ paths:
               title: KeyLabelWithCsrGenerate
               type: object
               required:
-                - key_label
                 - csr_generate_request
               properties:
                 key_label:
@@ -4173,7 +4172,6 @@ components:
       required:
         - member_class
         - member_code
-        - subsystem_code
       properties:
         id:
           type: string
@@ -4183,11 +4181,20 @@ components:
           minLength: 1
           maxLength: 1023
           readOnly: true
+        instance_id:
+          type: string
+          format: text
+          description: xroad instance id
+          example: FI
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         member_name:
           type: string
           format: text
           description: member name
           example: FI
+          readOnly: true
           minLength: 1
           maxLength: 255
         member_class:
@@ -4220,6 +4227,7 @@ components:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
+          readOnly: true
     ClientAdd: # ok
       type: object
       description: request to add client. Carries a Client and ignore warnings parameter
@@ -4282,7 +4290,7 @@ components:
       format: enum
       description: connection type
       example: HTTP
-      default: HTTP
+      default: HTTPS
       enum:
         - HTTP
         - HTTPS

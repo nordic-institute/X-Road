@@ -1,40 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
-    <suppress>
-	<notes><![CDATA[
-	    file name: apache-mime4j-core-0.7.2.jar
-	    ]]></notes>
-	<gav regex="true">^org\.apache\.james:apache-mime4j-core:.*$</gav>
-	<cve>CVE-2012-4232</cve>
-    </suppress>
-    <suppress>
-	<notes><![CDATA[
-	    file name: apache-mime4j-core-0.7.2.jar
-	    ]]></notes>
-	<gav regex="true">^org\.apache\.james:apache-mime4j-core:.*$</gav>
-	<cve>CVE-2012-4231</cve>
-    </suppress>
-    <suppress>
-	<notes><![CDATA[
-	    file name: jackson-databind-2.8.9.jar
-	    ]]></notes>
-	<gav regex="true">^com\.fasterxml\.jackson\.core:jackson-databind:.*$</gav>
-	<cve>CVE-2016-7051</cve>
-    </suppress>
-    <suppress>
-	<notes><![CDATA[
-	    file name: jackson-core-2.8.9.jar
-	    ]]></notes>
-	<gav regex="true">^com\.fasterxml\.jackson\.core:jackson-core:.*$</gav>
-	<cve>CVE-2016-7051</cve>
-    </suppress>
-    <suppress>
-	<notes><![CDATA[
-	    file name: jackson-annotations-2.8.0.jar
-	    ]]></notes>
-	<gav regex="true">^com\.fasterxml\.jackson\.core:jackson-annotations:.*$</gav>
-	<cve>CVE-2016-7051</cve>
-    </suppress>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <suppress>
         <notes><![CDATA[
             file name: joda-time-2.1.jar
@@ -43,24 +8,19 @@
         <cpe>cpe:/a:date_project:date</cpe>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-            file name: javax.servlet-api-3.1.0.jar
-            ]]></notes>
-        <gav regex="true">^javax\.servlet:javax\.servlet-api:.*$</gav>
-        <cpe>cpe:/a:oracle:glassfish</cpe>
-    </suppress>
-    <suppress>
-       <notes><![CDATA[
-       file name: scala-library-2.11.11.jar
-       ]]></notes>
-       <gav regex="true">^org\.scala-lang:scala-library:.*$</gav>
-       <cve>CVE-2017-15288</cve>
-    </suppress>
-    <suppress>
        <notes><![CDATA[
        file name: proxy-1.0.jar/META-INF/maven/commons-io/commons-io/pom.xml
        ]]></notes>
        <gav regex="true">^commons-io:commons-io:.*$</gav>
        <cve>CVE-2014-9653</cve>
+    </suppress>
+    <suppress>
+       <notes><![CDATA[
+        file name: spring-security-web-5.1.8.RELEASE.jar
+        Applies only if used with Spring Framework 5.0.5
+        ]]>
+       </notes>
+       <packageUrl regex="true">^pkg:maven/org\.springframework\.security/.*$</packageUrl>
+       <cve>CVE-2018-1258</cve>
     </suppress>
 </suppressions>
