@@ -18,15 +18,6 @@ axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 // axios.defaults.headers.common['Authorization'] = 'fasfdsa'
 axios.defaults.headers.get.Accepts = 'application/json';
 
-const EventBus = new Vue();
-
-Object.defineProperties(Vue.prototype, {
-  $bus: {
-    get() {
-      return EventBus;
-    },
-  },
-});
 
 Vue.use(Router);
 
