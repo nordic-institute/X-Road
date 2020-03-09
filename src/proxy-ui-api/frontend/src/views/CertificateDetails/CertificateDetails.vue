@@ -193,7 +193,7 @@ export default Vue.extend({
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
 
       // Fetch possible actions
@@ -203,7 +203,7 @@ export default Vue.extend({
           this.possibleActions = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     showConfirmDelete(): void {
@@ -219,7 +219,7 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'cert.certDeleted');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     activateCertificate(hash: string): void {
@@ -263,7 +263,7 @@ export default Vue.extend({
           ) {
             this.unregisterErrorResponse = error.response;
           } else {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           }
 
           this.confirmUnregisterError = true;
@@ -290,7 +290,7 @@ export default Vue.extend({
           this.$emit('refreshList');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
           this.confirmUnregisterError = false;
         });
     },
