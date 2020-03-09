@@ -25,34 +25,82 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.BackupConverter;
+import org.niis.xroad.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.model.Backup;
+import org.niis.xroad.restapi.service.BackupFileNotFoundException;
+import org.niis.xroad.restapi.service.BackupService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
- * backups controller
+ * Backups controller
  */
 @Controller
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class BackupsApiController implements BackupsApi {
 
-    public static final int MAX_FIFTY_ITEMS = 50;
+    public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
 
-    private final NativeWebRequest request;
+    private final BackupService backupService;
+    private final BackupConverter backupConverter;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public BackupsApiController(NativeWebRequest request) {
-        this.request = request;
+    @Autowired
+    public BackupsApiController(BackupService backupService, BackupConverter backupConverter) {
+        this.backupService = backupService;
+        this.backupConverter = backupConverter;
     }
 
     @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<List<Backup>> getBackups() {
+        List<BackupFile> backupFiles = backupService.getBackupFiles();
+
+        return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Void> deleteBackup(String filename) {
+        try {
+            backupService.deleteBackup(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Resource> downloadBackup(String filename) {
+        byte[] backupFile = null;
+        try {
+            backupFile = backupService.readBackupFile(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return ApiUtil.createAttachmentResourceResponse(backupFile, filename);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Backup> addBackup() {
+        try {
+            BackupFile backupFile = backupService.generateBackup();
+            return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(GENERATE_BACKUP_INTERRUPTED));
+        }
     }
 }

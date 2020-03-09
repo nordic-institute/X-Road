@@ -1,11 +1,13 @@
 <template>
   <v-app class="xrd-app">
-    <div>
+    <app-toolbar />
+    <v-content app>
       <transition name="fade" mode="out-in">
         <router-view />
       </transition>
-    </div>
+    </v-content>
     <snackbar ref="snackbar"></snackbar>
+    <app-footer />
   </v-app>
 </template>
 
@@ -14,10 +16,16 @@ import Vue from 'vue';
 import axios from 'axios';
 import SnackbarMixin from '@/components/ui/SnackbarMixin.vue';
 import { RouteName } from '@/global';
+import AppFooter from '@/components/layout/AppFooter.vue';
+import AppToolbar from '@/components/layout/AppToolbar.vue';
 
 export default Vue.extend({
   name: 'App',
   mixins: [SnackbarMixin],
+  components: {
+    AppToolbar,
+    AppFooter,
+  },
   created() {
     // Add a response interceptor
     axios.interceptors.response.use(

@@ -25,8 +25,8 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +41,12 @@ import java.security.cert.X509Certificate;
 /**
  * a KeyManager that holds the internal SSL Key
  */
-@RequiredArgsConstructor
 public class InternalKeyManager extends X509ExtendedKeyManager {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(InternalKeyManager.class);
 
     private static final String ALIAS = "AuthKeyManager";
-
-    private final InternalSSLKey sslKey;
 
     @Override
     public String chooseEngineClientAlias(String[] keyType,
@@ -77,8 +74,15 @@ public class InternalKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        LOG.trace("getCertificateChain: {}", (Object)sslKey.getCertChain());
-        return sslKey.getCertChain();
+        try {
+            X509Certificate[] internalCertChain;
+            InternalSSLKey sslKey = ServerConf.getSSLKey();
+            internalCertChain = sslKey.getCertChain();
+            LOG.trace("getCertificateChain: {}", (Object) internalCertChain);
+            return internalCertChain;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -88,8 +92,14 @@ public class InternalKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        LOG.trace("getPrivateKey: {}", sslKey.getKey());
-        return sslKey.getKey();
+        InternalSSLKey sslKey;
+        try {
+            sslKey = ServerConf.getSSLKey();
+            LOG.trace("getPrivateKey: {}", sslKey.getKey());
+            return sslKey.getKey();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
