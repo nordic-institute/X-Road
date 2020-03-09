@@ -269,7 +269,7 @@ export default Vue.extend({
           this.$emit('refreshList');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
@@ -291,7 +291,7 @@ export default Vue.extend({
           this.$emit('refreshList');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

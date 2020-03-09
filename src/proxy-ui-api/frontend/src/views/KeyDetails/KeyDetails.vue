@@ -154,7 +154,7 @@ export default Vue.extend({
         })
         .catch((error: any) => {
           this.saveBusy = false;
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -165,7 +165,7 @@ export default Vue.extend({
           this.key = res.data;
         })
         .catch((error: any) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     deleteKey(): void {
@@ -178,7 +178,7 @@ export default Vue.extend({
           this.close();
         })
         .catch((error: any) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

@@ -293,7 +293,7 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'services.enableSuccess');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           // Whatever happens, refresh the data
@@ -319,7 +319,7 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'services.disableSuccess');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData();
@@ -363,7 +363,7 @@ export default Vue.extend({
             this.$bus.$emit('show-error', 'service already exists');
             this.addBusy = false;
           } else {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
             this.addBusy = false;
           }
         });
@@ -382,7 +382,7 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'services.wsdlAdded');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData();
@@ -426,7 +426,7 @@ export default Vue.extend({
             this.refreshWarningDialog = true;
             this.refreshId = serviceDescription.id;
           } else {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
             this.fetchData();
           }
         }).finally( () => {
@@ -443,7 +443,7 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'services.refreshed');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData();
@@ -473,7 +473,7 @@ export default Vue.extend({
           this.serviceDescriptions = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

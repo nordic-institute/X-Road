@@ -149,8 +149,7 @@ export default (Vue as VueConstructor<
                 });
               });
             }
-            console.error(error);
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showErrorMessage', error.message);
           },
         )
         .finally(() => {
@@ -168,8 +167,7 @@ export default (Vue as VueConstructor<
           },
           (error) => {
             // Display error
-            console.error(error);
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showErrorMessage', error.message);
           },
         )
         .finally(() => {
@@ -178,17 +176,14 @@ export default (Vue as VueConstructor<
         });
     },
     async fetchCurrentSecurityServer() {
-      this.$store
-        .dispatch('fetchCurrentSecurityServer')
-        .catch((error) => {
-          console.error(error);
-          this.$bus.$emit('show-error', error.message);
-        });
+      this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
     },
     async fetchSecurityServerVersion() {
       this.$store
         .dispatch('fetchSecurityServerVersion')
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
   },
 });

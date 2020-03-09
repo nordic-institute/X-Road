@@ -219,7 +219,7 @@ export default Vue.extend({
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -232,7 +232,7 @@ export default Vue.extend({
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -251,7 +251,7 @@ export default Vue.extend({
           this.fetchData(this.clientId, this.groupId);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -298,7 +298,7 @@ export default Vue.extend({
           items: members,
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData(this.clientId, this.groupId);
@@ -318,7 +318,7 @@ export default Vue.extend({
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

@@ -131,7 +131,7 @@ export default Vue.extend({
           })
           .catch((error) => {
             this.revertHack += 1;
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           });
       },
     },
@@ -197,7 +197,7 @@ export default Vue.extend({
               this.fetchTlsCertificates(this.id);
             },
             (error) => {
-              this.$bus.$emit('show-error', error.message);
+              this.$store.dispatch('showError', error);
             },
           );
       };
@@ -207,25 +207,25 @@ export default Vue.extend({
 
     fetchServer(id: string): void {
       this.$store.dispatch('fetchServer').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 
     fetchTlsCertificates(id: string): void {
       this.$store.dispatch('fetchTlsCertificates', id).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 
     exportSSCertificate(hash: string): void {
-      this.$store.dispatch('downloadSSCertificate', hash).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+      this.$store.dispatch('downloadSSCertificate').catch((error) => {
+        this.$store.dispatch('showError', error);
       });
     },
 
     fetchSSCertificate(id: string): void {
       this.$store.dispatch('fetchSSCertificate', id).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 

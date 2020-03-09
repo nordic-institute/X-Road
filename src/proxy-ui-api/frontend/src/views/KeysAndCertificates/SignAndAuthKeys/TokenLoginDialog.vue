@@ -100,7 +100,7 @@ export default Vue.extend({
             >).setErrors([this.$t('keys.incorrectPin') as string]);
           }
 
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
 
       this.clear();

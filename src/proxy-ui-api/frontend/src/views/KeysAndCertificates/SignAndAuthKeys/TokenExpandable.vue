@@ -234,7 +234,7 @@ export default Vue.extend({
               this.fetchData();
             },
             (error) => {
-              this.$bus.$emit('show-error', error.message);
+              this.$store.dispatch('showError', error);
             },
           );
       };
@@ -247,7 +247,7 @@ export default Vue.extend({
           this.fetchData();
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },
