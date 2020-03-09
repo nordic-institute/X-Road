@@ -104,7 +104,7 @@ public class SystemApiControllerTest {
     private static final String TSA_2_NAME = "TSA 2";
 
     private static final String ANCHOR_HASH =
-            "CE:2C:A4:FB:BB:67:26:0F:6C:E9:7F:9B:CB:73:50:1F:40:43:2A:1A:2C:4E:5D:A6:F9:F5:0D:D1";
+            "CE2CA4FBBB67260F6CE97F9BCB73501F40432A1A2C4E5DA6F9F50DD1";
 
     private static final String ANCHOR_CREATED_AT = "2019-04-28T09:03:31.841Z";
 

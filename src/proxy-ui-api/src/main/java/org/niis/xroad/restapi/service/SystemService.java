@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -216,13 +215,12 @@ public class SystemService {
     }
 
     /**
-     * Return anchor file's hash as a colon delimited hex string
+     * Return anchor file's hash as a hex string
      * @return
      */
     private String calculateAnchorHexHash(byte[] anchor) {
         try {
-            String hash = CryptoUtils.hexDigest(CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor);
-            return StringUtils.join(hash.toUpperCase().split("(?<=\\G.{2})"), ':');
+            return CryptoUtils.hexDigest(CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor).toUpperCase();
         } catch (Exception e) {
             log.error("can't create hex digest for anchor file");
             throw new RuntimeException(e);
