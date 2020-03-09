@@ -32,15 +32,13 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d %level [xroad-signer-console] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
         </encoder>
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
 
     <root level="INFO">
-        <appender-ref ref="FILE" />
-        <appender-ref ref="SYSLOG" />
         <appender-ref ref="STDOUT" />
     </root>
 

@@ -17,7 +17,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d %level [xroad-confclient] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
         </encoder>
     </appender>
 
@@ -26,8 +26,6 @@
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
 
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>
 
