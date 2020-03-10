@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -77,6 +78,7 @@ public class ClientService {
     private final ServerConfService serverConfService;
     private final IdentifierRepository identifierRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
+    private final CurrentSecurityServerId currentSecurityServerId;
 
     /**
      * ClientService constructor
@@ -84,13 +86,15 @@ public class ClientService {
     @Autowired
     public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
             ServerConfService serverConfService, GlobalConfService globalConfService,
-            IdentifierRepository identifierRepository, ManagementRequestSenderService managementRequestSenderService) {
+            IdentifierRepository identifierRepository, ManagementRequestSenderService managementRequestSenderService,
+            CurrentSecurityServerId currentSecurityServerId) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.globalConfService = globalConfService;
         this.identifierRepository = identifierRepository;
         this.managementRequestSenderService = managementRequestSenderService;
+        this.currentSecurityServerId = currentSecurityServerId;
     }
 
     /**
@@ -421,9 +425,18 @@ public class ClientService {
      * @param clientId client to register
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
+     * @throws CannotRegisterOwnerException
      */
-    public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException {
-        ClientType client = getLocalClientOrThrowNotFound(clientId); // throws if client doesn't exist
+    public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotRegisterOwnerException, ActionNotPossibleException {
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (ownerId.equals(client.getIdentifier())) {
+            throw new CannotRegisterOwnerException();
+        }
+        if (!client.getClientStatus().equals(ClientType.STATUS_SAVED)) {
+            throw new ActionNotPossibleException("Only clients with status 'saved' can be registered");
+        }
         try {
             managementRequestSenderService.sendClientRegisterRequest(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
@@ -597,4 +610,14 @@ public class ClientService {
         }
     }
 
+    /**
+     * Thrown when trying to register the owner member
+     */
+    public static class CannotRegisterOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_REGISTER_OWNER = "cannot_register_owner";
+
+        public CannotRegisterOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_REGISTER_OWNER));
+        }
+    }
 }

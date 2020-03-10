@@ -24,13 +24,13 @@
  */
 package org.niis.xroad.restapi.cache;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class SecurityServerOwner {
-    private ClientId id;
+public class CurrentSecurityServerId {
+    private final SecurityServerId serverId;
 }

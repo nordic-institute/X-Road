@@ -25,11 +25,11 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,14 +45,14 @@ public class ManagementRequestSenderService {
 
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
-    private final ServerConfService serverConfService;
+    private final CurrentSecurityServerId securityServerOwner;
 
     @Autowired
     public ManagementRequestSenderService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
-            ServerConfService serverConfService) {
+            CurrentSecurityServerId securityServerOwner) {
         this.globalConfFacade = globalConfFacade;
         this.globalConfService = globalConfService;
-        this.serverConfService = serverConfService;
+        this.securityServerOwner = securityServerOwner;
     }
 
     /**
@@ -71,7 +71,7 @@ public class ManagementRequestSenderService {
             throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertRegRequest(serverConfService.getSecurityServerId(), address, authCert);
+            return sender.sendAuthCertRegRequest(securityServerOwner.getServerId(), address, authCert);
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 throw (CodedException) e;
@@ -95,7 +95,7 @@ public class ManagementRequestSenderService {
             GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertDeletionRequest(serverConfService.getSecurityServerId(), authCert);
+            return sender.sendAuthCertDeletionRequest(securityServerOwner.getServerId(), authCert);
         } catch (Exception e) {
             throw new ManagementRequestSendingFailedException(e);
         }
@@ -103,17 +103,16 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client register request as a normal X-Road message
-     * @param securityServer the security server id
      * @param clientId the client id that will be registered
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    Integer sendClientRegisterRequest(ClientId clientId)
+    public Integer sendClientRegisterRequest(ClientId clientId)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendClientRegRequest(serverConfService.getSecurityServerId(), clientId);
+            return sender.sendClientRegRequest(securityServerOwner.getServerId(), clientId);
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
@@ -124,8 +123,7 @@ public class ManagementRequestSenderService {
     private ManagementRequestSender createManagementRequestSender()
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
-        ServerConfType serverConf = serverConfService.getServerConf();
-        ClientId sender = serverConf.getOwner().getIdentifier();
+        ClientId sender = securityServerOwner.getServerId().getOwner();
         ClientId receiver = globalConfFacade.getManagementRequestService();
         return new ManagementRequestSender(sender, receiver);
     }
