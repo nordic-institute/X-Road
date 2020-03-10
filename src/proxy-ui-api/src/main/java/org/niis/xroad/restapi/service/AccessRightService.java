@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -95,64 +95,25 @@ public class AccessRightService {
     }
 
     /**
-     * Makes an {@link AccessRightHolderDto} out of {@link AccessRightType}
-     * @param accessRightType The AccessRightType to convert from
-     * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
-     * their corresponding {@link LocalGroupType#groupCode}
-     * @return
-     */
-    private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
-            Map<String, LocalGroupType> localGroupMap) {
-        AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-        XRoadId subjectId = accessRightType.getSubjectId();
-        accessRightHolderDto.setRightsGiven(
-                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
-        accessRightHolderDto.setSubjectId(subjectId);
-        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
-            LocalGroupId localGroupId = (LocalGroupId) subjectId;
-            LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
-            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
-            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
-        }
-        return accessRightHolderDto;
-    }
-
-    /**
      * Get access right holders by Service
      * @param clientId
      * @param fullServiceCode
      * @return
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
+     * @throws EndpointNotFoundByServiceNameException if base endpoint for this service is not found from the client
      */
     public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
-            throws ClientNotFoundException, ServiceNotFoundException {
+            throws ClientNotFoundException, ServiceNotFoundException, EndpointNotFoundByServiceNameException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-
-        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
-
-        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
-
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
-
-        clientType.getAcl().forEach(accessRightType -> {
-            EndpointType endpoint = accessRightType.getEndpoint();
-            if (endpoint.getServiceCode().equals(serviceType.getServiceCode())
-                    && endpoint.getMethod().equals(EndpointType.ANY_METHOD)
-                    && endpoint.getPath().equals(EndpointType.ANY_PATH)) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
-                accessRightHolderDtos.add(accessRightHolderDto);
-            }
-        });
-
-        return accessRightHolderDtos;
+        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
+                .orElseThrow(() -> new EndpointNotFoundByServiceNameException(fullServiceCode));
+        return getAccessRightsHoldersByEndpoint(clientType, endpointType);
     }
 
     /**
@@ -172,12 +133,31 @@ public class AccessRightService {
             throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
         }
 
+        EndpointType endpointType = endpointRepository.getEndpoint(id);
+        if (endpointType == null) {
+            throw new EndpointService.EndpointNotFoundException(id.toString());
+        }
+
+        return getAccessRightsHoldersByEndpoint(clientType, endpointType);
+
+    }
+
+    /**
+     * Get access rights for endpoint
+     *
+     * @param clientType
+     * @param endpointType
+     * @return
+     */
+    private List<AccessRightHolderDto> getAccessRightsHoldersByEndpoint(ClientType clientType,
+                                                                        EndpointType endpointType) {
         List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
         Map<String, LocalGroupType> localGroupMap = new HashMap<>();
         clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
                 localGroupType));
+
         clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getId().equals(id)) {
+            if (accessRightType.getEndpoint().getId().equals(endpointType.getId())) {
                 AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
                 accessRightHolderDtos.add(accessRightHolderDto);
             }
@@ -186,41 +166,28 @@ public class AccessRightService {
         return accessRightHolderDtos;
     }
 
-
     /**
-     * Remove AccessRights from a Service
-     * @param clientId
-     * @param fullServiceCode
-     * @param subjectIds
-     * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     * @throws AccessRightNotFoundException if attempted to delete access right that did not exist for the service
+     * Makes an {@link AccessRightHolderDto} out of {@link AccessRightType}
+     * @param accessRightType The AccessRightType to convert from
+     * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
+     * their corresponding {@link LocalGroupType#groupCode}
+     * @return
      */
-    private void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
-            throws ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
+    private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
+                                                      Map<String, LocalGroupType> localGroupMap) {
+        AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+        XRoadId subjectId = accessRightType.getSubjectId();
+        accessRightHolderDto.setRightsGiven(
+                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+        accessRightHolderDto.setSubjectId(subjectId);
+        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
+            LocalGroupId localGroupId = (LocalGroupId) subjectId;
+            LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
+            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
+            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
+            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
         }
-
-        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-
-        List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl()
-                .stream()
-                .filter(accessRightType ->
-                        accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())
-                            && subjectIds.contains(accessRightType.getSubjectId())
-                            && accessRightType.getEndpoint().getMethod().equals(EndpointType.ANY_METHOD)
-                            && accessRightType.getEndpoint().getPath().equals(EndpointType.ANY_PATH))
-                .collect(Collectors.toList());
-
-        if (accessRightsToBeRemoved.size() != subjectIds.size()) {
-            throw new AccessRightNotFoundException();
-        }
-
-        clientType.getAcl().removeAll(accessRightsToBeRemoved);
-
-        clientRepository.saveOrUpdate(clientType);
+        return accessRightHolderDto;
     }
 
     /**
@@ -236,16 +203,19 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws LocalGroupNotFoundException, ClientNotFoundException,
-            AccessRightNotFoundException, ServiceNotFoundException {
-        Set<XRoadId> idsToDelete = new HashSet<>();
-        if (localGroupIds != null) {
-            idsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+                                              Set<Long> localGroupIds) throws LocalGroupNotFoundException,
+            ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException,
+            EndpointNotFoundByServiceNameException {
+        ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
-        if (subjectIds != null) {
-            idsToDelete.addAll(subjectIds);
-        }
-        deleteSoapServiceAccessRights(clientId, fullServiceCode, idsToDelete);
+
+        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
+        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
+                .orElseThrow(() -> new EndpointNotFoundByServiceNameException(fullServiceCode));
+
+        deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
 
     /**
@@ -260,7 +230,7 @@ public class AccessRightService {
      * @throws AccessRightNotFoundException                 if at least one access right expected is not found
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds, Set<Long> localGroupIds)
-        throws LocalGroupNotFoundException, EndpointService.EndpointNotFoundException,
+            throws LocalGroupNotFoundException, EndpointService.EndpointNotFoundException,
             ClientNotFoundException, AccessRightNotFoundException {
         verifyAuthority("EDIT_ENDPOINT_ACL");
 
@@ -268,69 +238,124 @@ public class AccessRightService {
         if (clientType == null) {
             throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
         }
-        Set<XRoadId> idsToDelete = new HashSet<>();
+        EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
+        if (endpointType == null) {
+            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
+        }
+
+        deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
+    }
+
+    /**
+     * Remove access rights from endpoint
+     *
+     * @param clientType
+     * @param endpointType
+     * @param subjectIds
+     * @param localGroupIds
+     * @throws LocalGroupNotFoundException  if localgroup is not found
+     * @throws AccessRightNotFoundException if access right is not found
+     */
+    private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds,
+            Set<Long> localGroupIds) throws LocalGroupNotFoundException, AccessRightNotFoundException {
+
+        Set<XRoadId> subjectsToDelete = new HashSet<>();
         if (localGroupIds != null) {
-            idsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+            subjectsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
         }
         if (subjectIds != null) {
-            idsToDelete.addAll(subjectIds);
+            subjectsToDelete.addAll(subjectIds);
         }
 
         List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
-                .filter(acl -> acl.getEndpoint().getId().equals(endpointId) && idsToDelete.contains(acl.getSubjectId()))
+                .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
+                        && subjectsToDelete.contains(acl.getSubjectId()))
                 .collect(Collectors.toList());
-        if (accessRightsToBeRemoved.size() != idsToDelete.size()) {
+        if (accessRightsToBeRemoved.size() != subjectsToDelete.size()) {
             throw new AccessRightNotFoundException();
         }
+
         clientType.getAcl().removeAll(accessRightsToBeRemoved);
         clientRepository.saveOrUpdate(clientType);
     }
 
     /**
-     * Add access rights to SOAP services.
+     * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
+     * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
+     * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
      * @param clientId
      * @param fullServiceCode
-     * @param subjectIds must be persistent objects
+     * @param subjectIds
+     * @param localGroupIds
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
+     * @throws LocalGroupNotFoundException
      * @throws ClientNotFoundException
      * @throws ServiceNotFoundException
-     * @throws EndpointNotFoundException
+     * @throws EndpointNotFoundByServiceNameException
      */
-    private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-            Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException,
-            DuplicateAccessRightException, EndpointNotFoundException {
+    public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
+                Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
+            ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
+            IdentifierNotFoundException, EndpointNotFoundByServiceNameException {
+
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
+
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
+        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
+                .orElseThrow(() -> new EndpointNotFoundByServiceNameException(fullServiceCode));
 
-        // Get matching endpoint from client. This should never throw with SOAP services
-        EndpointType endpoint = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
-                .orElseThrow(() -> new EndpointNotFoundException(fullServiceCode));
-
-        addAccessRights(subjectIds, clientType, endpoint);
-
-        return getAccessRightHolderDtosForEndpoint(clientType, endpoint);
+        // Combine subject ids and localgroup ids to a single list of XRoadIds
+        return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
 
-    private List<AccessRightHolderDto> getAccessRightHolderDtosForEndpoint(ClientType clientType,
-            EndpointType endpoint) {
-        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
+    /**
+     * Adds access rights to endpoint. If the provided {@code subjectIds} do not exist in the serverconf db
+     * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
+     * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
+     *
+     * @param endpointId
+     * @param subjectIds
+     * @param localGroupIds
+     * @return
+     * @throws EndpointService.EndpointNotFoundException endpoint is not found with given id
+     * @throws ClientNotFoundException                   client for the endpoint is not found (shouldn't happen)
+     * @throws IdentifierNotFoundException               Identifier is not found
+     * @throws LocalGroupNotFoundException               Local group is not found
+     * @throws DuplicateAccessRightException             Trying to add duplicate access rights
+     */
+    public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
+            Set<Long> localGroupIds) throws EndpointService.EndpointNotFoundException, ClientNotFoundException,
+            IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
+        verifyAuthority("EDIT_ENDPOINT_ACL");
 
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
+        EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
+        if (endpointType == null) {
+            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
+        }
 
-        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+        ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
+        }
+        return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
 
-        clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getId().equals(endpoint.getId())) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
-                accessRightHolderDtos.add(accessRightHolderDto);
-            }
-        });
+    }
 
-        return accessRightHolderDtos;
+    private List<AccessRightHolderDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
+            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws IdentifierNotFoundException,
+            LocalGroupNotFoundException, DuplicateAccessRightException {
+
+        // Combine subject ids and localgroup ids to a single list of XRoadIds
+        Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
+
+        // Add access rights to endpoint
+        addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
+
+        // Create DTOs for returning data
+        return getAccessRightHolderDtosForEndpoint(clientType, endpointType);
     }
 
     /**
@@ -364,43 +389,23 @@ public class AccessRightService {
         clientRepository.saveOrUpdate(clientType);
     }
 
-    /**
-     * Get matching {@link EndpointType endpoint} from {@link ClientType#endpoint client's list of endpoints}.
-     * @param clientType
-     * @param serviceType
-     * @param endpointMethod
-     * @param endpointPath
-     * @return
-     */
-    private Optional<EndpointType> getEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
-            String endpointPath) {
-        return clientType.getEndpoint().stream()
-                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
-                        && endpointType.getMethod().equals(endpointMethod)
-                        && endpointType.getPath().equals(endpointPath))
-                .findFirst();
-    }
+    private List<AccessRightHolderDto> getAccessRightHolderDtosForEndpoint(ClientType clientType,
+                                                                           EndpointType endpoint) {
+        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
 
-    /**
-     * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
-     * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
-     * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
-     * @param clientId
-     * @param fullServiceCode
-     * @param subjectIds
-     * @param localGroupIds
-     * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
-     * @throws LocalGroupNotFoundException
-     * @throws ClientNotFoundException
-     * @throws ServiceNotFoundException
-     * @throws EndpointNotFoundException
-     */
-    public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
-            IdentifierNotFoundException, EndpointNotFoundException {
-        Set<XRoadId> txSubjects = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
-        return addSoapServiceAccessRights(clientId, fullServiceCode, txSubjects);
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+                localGroupType));
+
+        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getId().equals(endpoint.getId())) {
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
+                accessRightHolderDtos.add(accessRightHolderDto);
+            }
+        });
+
+        return accessRightHolderDtos;
     }
 
     private Set<XRoadId> mergeSubjectIdsWithLocalgroups(Set<XRoadId> subjectIds, Set<Long> localGroupIds)
@@ -425,41 +430,20 @@ public class AccessRightService {
     }
 
     /**
-     * Add new access rights to endpoint
-     *
-     * @param endpointId
-     * @param subjectIds
-     * @param localGroupIds
+     * Get matching {@link EndpointType endpoint} from {@link ClientType#endpoint client's list of endpoints}.
+     * @param clientType
+     * @param serviceType
+     * @param endpointMethod
+     * @param endpointPath
      * @return
-     * @throws EndpointService.EndpointNotFoundException endpoint is not found with given id
-     * @throws ClientNotFoundException                   client for the endpoint is not found (shouldn't happen)
-     * @throws IdentifierNotFoundException
-     * @throws LocalGroupNotFoundException
-     * @throws DuplicateAccessRightException
      */
-    public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws EndpointService.EndpointNotFoundException, ClientNotFoundException,
-            IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
-        verifyAuthority("EDIT_ENDPOINT_ACL");
-
-        EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
-        if (endpointType == null) {
-            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
-        }
-
-        ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
-        }
-
-        // Combine subject ids and localgroup ids to a single list of XRoadIds
-        Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
-
-        // Add access rights to endpoint
-        addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
-
-        // Create DTOs for returning data
-        return getAccessRightHolderDtosForEndpoint(clientType, endpointType);
+    private Optional<EndpointType> getEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
+                                               String endpointPath) {
+        return clientType.getEndpoint().stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
+                        && endpointType.getMethod().equals(endpointMethod)
+                        && endpointType.getPath().equals(endpointPath))
+                .findFirst();
     }
 
     /**
@@ -515,11 +499,11 @@ public class AccessRightService {
     /**
      * If endpoint was not found
      */
-    public static class EndpointNotFoundException extends NotFoundException {
+    public static class EndpointNotFoundByServiceNameException extends NotFoundException {
         public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
         private static final String MESSAGE = "Endpoint not found for service: %s";
 
-        public EndpointNotFoundException(String fullServiceName) {
+        public EndpointNotFoundByServiceNameException(String fullServiceName) {
             super(String.format(MESSAGE, fullServiceName), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND,
                     fullServiceName));
         }
@@ -565,8 +549,8 @@ public class AccessRightService {
      * @return A List of {@link AccessRightHolderDto accessRightHolderDtos} or an empty List if nothing is found
      */
     public List<AccessRightHolderDto> findAccessRightHolders(ClientId clientId, String memberNameOrGroupDescription,
-            XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
-            String subsystemCode) throws ClientNotFoundException {
+             XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
+             String subsystemCode) throws ClientNotFoundException {
         List<AccessRightHolderDto> dtos = new ArrayList<>();
 
         // get client

@@ -278,7 +278,6 @@ export default Vue.extend({
           ssl_auth_all: this.ssl_auth_all,
         })
         .then((res) => {
-          this.$bus.$emit('saveService', res.data);
           this.$bus.$emit('show-success', 'Service saved');
         })
         .catch((error) => {
@@ -354,6 +353,9 @@ export default Vue.extend({
       api
         .post(`/services/${this.serviceId}/access-rights/delete`, {
           items: subjects,
+        })
+        .then( () => {
+          this.$bus.$emit('show-success', 'access.removeSubjectsSuccess');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);

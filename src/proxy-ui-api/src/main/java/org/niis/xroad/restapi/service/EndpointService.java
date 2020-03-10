@@ -83,7 +83,7 @@ public class EndpointService {
         EndpointType endpoint = endpointRepository.getEndpoint(id);
 
         if (endpoint == null) {
-            throw new EndpointService.EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id.toString());
         }
 
         if (endpoint.getId().equals(id) && endpoint.isGenerated()) {
@@ -115,7 +115,7 @@ public class EndpointService {
 
         EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
-            throw new EndpointService.EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id.toString());
         }
 
         if (endpoint.isGenerated()) {
@@ -129,17 +129,6 @@ public class EndpointService {
         endpointRepository.saveOrUpdate(endpoint);
 
         return endpoint;
-    }
-
-
-
-    public static class EndpointNotFoundException extends NotFoundException {
-        public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
-        private static final String MESSAGE = "Endpoint not found with id: %s";
-
-        public EndpointNotFoundException(String id) {
-            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
-        }
     }
 
     public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
@@ -162,4 +151,12 @@ public class EndpointService {
         }
     }
 
+    public static class EndpointNotFoundException extends NotFoundException {
+        public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
+        private static final String MESSAGE = "Endpoint not found with id: %s";
+
+        public EndpointNotFoundException(String id) {
+            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
+        }
+    }
 }

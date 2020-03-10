@@ -140,7 +140,8 @@ public class ServicesApiController implements ServicesApi {
         List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
             accessRightHolderDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
-        } catch (ClientNotFoundException | ServiceNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException
+                | AccessRightService.EndpointNotFoundByServiceNameException e) {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
@@ -158,7 +159,8 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
-        } catch (ServiceNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceNotFoundException | ClientNotFoundException
+                | AccessRightService.EndpointNotFoundByServiceNameException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
@@ -178,7 +180,7 @@ public class ServicesApiController implements ServicesApi {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
         } catch (ClientNotFoundException | ServiceNotFoundException
-                | AccessRightService.EndpointNotFoundException e) {
+                | AccessRightService.EndpointNotFoundByServiceNameException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | IdentifierNotFoundException e) {
             throw new BadRequestException(e);
