@@ -295,7 +295,7 @@ export default Vue.extend({
       api
         .get(`/services/${serviceId}/access-rights`)
         .then((res) => {
-          this.accessRightsSubjects = res.data;
+          this.$store.dispatch('setAccessRightsSubjects', res.data);
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
