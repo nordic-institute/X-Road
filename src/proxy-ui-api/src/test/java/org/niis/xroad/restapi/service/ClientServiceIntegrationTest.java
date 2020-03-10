@@ -94,8 +94,6 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private ManagementRequestSenderService managementRequestSenderService;
 
-    private ClientId existingClientId = ClientId.create("FI", "GOV", "M2", "SS6");
-
     @Before
     public void setup() throws Exception {
         List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
@@ -696,10 +694,10 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void registerClient() throws Exception {
-        ClientType clientType = clientService.getLocalClient(existingClientId);
+        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
-        clientService.registerClient(existingClientId);
-        clientType = clientService.getLocalClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
+        clientType = clientService.getLocalClient(existingSavedClientId);
         assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
     }
 
@@ -744,15 +742,15 @@ public class ClientServiceIntegrationTest {
 
     @Test(expected = CodedException.class)
     public void unregisterClientCodedException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
-        clientService.registerClient(existingRegisteredClientId);
+        when(managementRequestSenderService.sendClientUnregisterRequest(any())).thenThrow(CodedException.class);
+        clientService.unregisterClient(existingRegisteredClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
     public void unregisterClientRuntimeException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any()))
+        when(managementRequestSenderService.sendClientUnregisterRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
-        clientService.registerClient(existingRegisteredClientId);
+        clientService.unregisterClient(existingRegisteredClientId);
     }
 
     @Test(expected = ClientNotFoundException.class)
