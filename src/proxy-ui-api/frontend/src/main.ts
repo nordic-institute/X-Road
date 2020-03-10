@@ -10,6 +10,7 @@ import store from './store';
 import 'roboto-fontface/css/roboto/roboto-fontface.css';
 import './assets/icons.css';
 import i18n from './i18n';
+import VueClipboard from 'vue-clipboard2'
 
 Vue.config.productionTip = false;
 
@@ -18,8 +19,8 @@ axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 // axios.defaults.headers.common['Authorization'] = 'fasfdsa'
 axios.defaults.headers.get.Accepts = 'application/json';
 
-
 Vue.use(Router);
+Vue.use(VueClipboard);
 
 new Vue({
   router,
