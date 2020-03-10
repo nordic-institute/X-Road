@@ -41,7 +41,14 @@ RUN pg_ctlcluster 10 main start \
 RUN crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0 \
 && crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 
-RUN dpkg-query --showformat='${Version}' --show xroad-proxy >/etc/xroad/VERSION
+RUN mkdir -p /root/etc/xroad \
+&& cp -a /etc/xroad/* /root/etc/xroad/ \
+&& rm /root/etc/xroad/services/local.conf \
+   /root/etc/xroad/conf.d/local.ini \
+   /root/etc/xroad/devices.ini \
+   /root/etc/xroad/db.properties \
+&& dpkg-query --showformat='${Version}' --show xroad-proxy >/root/VERSION \
+&& cp /root/VERSION /etc/xroad/VERSION
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
