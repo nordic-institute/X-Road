@@ -570,6 +570,7 @@ public class ClientService {
      * @param clientId
      * @throws ActionNotPossibleException if client status did not allow delete
      * @throws CannotDeleteOwnerException if attempted to delete the owner
+     * @throws ClientNotFoundException if local client with given id was not found
      */
     public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
             CannotDeleteOwnerException, ClientNotFoundException {
