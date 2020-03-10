@@ -310,6 +310,7 @@
       "success": "New Security Server TLS key and certificate generated successfully"
     },
     "importCertificate": "Import cert.",
+    "certificateImported": "Certificate imported",
     "exportCertificate": "Export cert.",
     "keyCertTitle": "TLS Key and Certificate",
     "keyText": "Internal TLS Key"

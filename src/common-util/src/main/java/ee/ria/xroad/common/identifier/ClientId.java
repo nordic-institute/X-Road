@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
@@ -150,4 +152,18 @@ public final class ClientId extends XRoadId {
         return create(xRoadInstance, memberClass, memberCode, null);
     }
 
+    /**
+     * Returns {@code this} if this id already is a member id, or ClientId
+     * of this subsystem's member if this id is a subsystem id
+     */
+    @JsonIgnore
+    public ClientId getMemberId() {
+        if (getSubsystemCode() == null) {
+            return this;
+        } else {
+            return ClientId.create(this.getXRoadInstance(),
+                    this.getMemberClass(),
+                    this.getMemberCode());
+        }
+    }
 }

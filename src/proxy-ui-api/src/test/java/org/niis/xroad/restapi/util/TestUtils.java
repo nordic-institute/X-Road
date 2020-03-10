@@ -30,17 +30,23 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
+import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * Test utils for constants and generic object creation
@@ -67,6 +73,7 @@ public final class TestUtils {
     public static final String MEMBER_CLASS_PRO = "PRO";
     public static final String MEMBER_CODE_M1 = "M1";
     public static final String MEMBER_CODE_M2 = "M2";
+    public static final String MEMBER_CODE_M3 = "M3";
     public static final String SUBSYSTEM = "SUBSYSTEM";
     public static final String SUBSYSTEM1 = "SS1";
     public static final String SUBSYSTEM2 = "SS2";
@@ -122,6 +129,16 @@ public final class TestUtils {
     }
 
     /**
+     * Returns a new ClientId which has been built from encoded client id string,
+     * such as "FI:GOV:M1:SS1"
+     * @param encodedId
+     * @return
+     */
+    public static ClientId getClientId(String encodedId) {
+        return new ClientConverter(null, null).convertId(encodedId);
+    }
+
+    /**
      * Returns a new MemberInfo with given parameters
      * @param instance
      * @param memberClass
@@ -131,7 +148,7 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? NAME_FOR + subsystem : null);
+                subsystem != null ? NAME_FOR + subsystem : NAME_FOR + memberCode);
     }
 
     /**
@@ -233,5 +250,21 @@ public final class TestUtils {
         timestampingService.setUrl(url);
         timestampingService.setName(name);
         return timestampingService;
+    }
+
+    /**
+     * Returns a file from classpath
+     * @param pathToFile
+     * @return
+     */
+    public static File getTestResourceFile(String pathToFile) {
+        File resource = null;
+        try {
+            resource = new ClassPathResource(pathToFile).getFile();
+        } catch (IOException e) {
+            fail("could not get test resource file");
+        }
+        assertNotNull(resource);
+        return resource;
     }
 }

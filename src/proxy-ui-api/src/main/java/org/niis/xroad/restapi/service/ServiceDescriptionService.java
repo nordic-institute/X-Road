@@ -230,7 +230,7 @@ public class ServiceDescriptionService {
             ServiceAlreadyExistsException,
             InvalidUrlException,
             WsdlUrlAlreadyExistsException, InterruptedException {
-        ClientType client = clientService.getClient(clientId);
+        ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
@@ -330,7 +330,7 @@ public class ServiceDescriptionService {
             throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
         }
 
-        ClientType client = clientService.getClient(clientId);
+        ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
@@ -449,7 +449,7 @@ public class ServiceDescriptionService {
 
         validateUrl(url);
 
-        ClientType client = clientService.getClient(clientId);
+        ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }

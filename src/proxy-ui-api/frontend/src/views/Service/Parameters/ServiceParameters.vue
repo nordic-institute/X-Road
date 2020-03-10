@@ -288,6 +288,7 @@ export default Vue.extend({
     setTouched(): void {
       this.touched = true;
     },
+
     showAddSubjectsDialog(): void {
       this.addSubjectsDialogVisible = true;
     },

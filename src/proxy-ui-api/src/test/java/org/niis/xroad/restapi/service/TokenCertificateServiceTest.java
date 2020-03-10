@@ -562,7 +562,7 @@ public class TokenCertificateServiceTest {
     public void activateCertificate() throws CertificateNotFoundException {
         try {
             tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
-        } catch (TokenCertificateService.InvalidCertificateException e) {
+        } catch (InvalidCertificateException e) {
             fail("shouldn't throw InvalidCertificateException");
         } catch (CodedException expected) {
             assertEquals(expected.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
@@ -573,7 +573,7 @@ public class TokenCertificateServiceTest {
     public void deactivateCertificate() throws CertificateNotFoundException {
         try {
             tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH);
-        } catch (TokenCertificateService.InvalidCertificateException e) {
+        } catch (InvalidCertificateException e) {
             fail("shouldn't throw InvalidCertificateException");
         } catch (CodedException e) {
             assertEquals(e.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);

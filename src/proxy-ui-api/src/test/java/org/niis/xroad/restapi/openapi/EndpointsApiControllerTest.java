@@ -101,7 +101,7 @@ public class EndpointsApiControllerTest {
     @Test
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpoint() {
-        ClientType client = clientService.getClient(getClientId("FI", "GOV", "M2", "SS6"));
+        ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         int aclCount = client.getAcl().size();
         endpointsApiController.deleteEndpoint("11");
         assertTrue(client.getEndpoint().stream().noneMatch(ep -> ep.getId().equals(11L)));
@@ -131,7 +131,7 @@ public class EndpointsApiControllerTest {
         endpointUpdate.setGenerated(false);
         endpointsApiController.updateEndpoint("12", endpointUpdate);
 
-        ClientType client = clientService.getClient(getClientId("FI", "GOV", "M2", "SS6"));
+        ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         EndpointType endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 
