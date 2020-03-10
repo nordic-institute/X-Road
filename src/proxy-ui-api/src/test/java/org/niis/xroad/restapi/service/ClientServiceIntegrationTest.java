@@ -94,6 +94,8 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private ManagementRequestSenderService managementRequestSenderService;
 
+    private ClientId existingClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+
     @Before
     public void setup() throws Exception {
         List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
@@ -146,6 +148,7 @@ public class ClientServiceIntegrationTest {
             return match.isPresent();
         });
 
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -693,11 +696,16 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void registerClient() throws Exception {
-        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
+        ClientType clientType = clientService.getLocalClient(existingClientId);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
-        clientService.registerClient(existingSavedClientId);
-        clientType = clientService.getLocalClient(existingSavedClientId);
+        clientService.registerClient(existingClientId);
+        clientType = clientService.getLocalClient(existingClientId);
         assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void registerNonExistingClient() throws Exception {
+        clientService.registerClient(ClientId.create("non", "existing", "client", null));
     }
 
     @Test(expected = CodedException.class)
