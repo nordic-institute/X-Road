@@ -45,8 +45,8 @@ export default Vue.extend({
       api
         .post('/system/certificate', {})
         .then(() => {
-          this.$bus.$emit(
-            'show-success',
+          this.$store.dispatch(
+            'showSuccess',
             'ssTlsCertificate.generateTlsAndCertificateDialog.success',
           );
           this.$emit('saved');

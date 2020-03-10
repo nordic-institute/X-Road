@@ -107,7 +107,7 @@ export default Vue.extend({
       api
         .patch(`/tokens/${this.id}`, this.token)
         .then((res) => {
-          this.$bus.$emit('show-success', 'keys.tokenSaved');
+          this.$store.dispatch('showSuccess', 'keys.tokenSaved');
           this.$router.go(-1);
         })
         .catch((error) => {

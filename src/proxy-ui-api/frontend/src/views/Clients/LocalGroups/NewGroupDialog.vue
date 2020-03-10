@@ -65,7 +65,7 @@ export default Vue.extend({
           description: this.description,
         })
         .then(() => {
-          this.$bus.$emit('show-success', 'localGroup.localGroupAdded');
+          this.$store.dispatch('showSuccess', 'localGroup.localGroupAdded');
           this.$emit('groupAdded');
         })
         .catch((error) => {

@@ -149,7 +149,7 @@ export default (Vue as VueConstructor<
                 });
               });
             }
-            this.$store.dispatch('showErrorMessage', error.message);
+            this.$store.dispatch('showErrorMessageRaw', error.message);
           },
         )
         .finally(() => {
@@ -167,7 +167,7 @@ export default (Vue as VueConstructor<
           },
           (error) => {
             // Display error
-            this.$store.dispatch('showErrorMessage', error.message);
+            this.$store.dispatch('showErrorMessageRaw', error.message);
           },
         )
         .finally(() => {

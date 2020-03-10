@@ -230,7 +230,7 @@ export default Vue.extend({
           })
           .then(
             () => {
-              this.$bus.$emit('show-success', 'keys.importCertSuccess');
+              this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
               this.fetchData();
             },
             (error) => {
@@ -243,7 +243,7 @@ export default Vue.extend({
     importCertByHash(hash: string) {
       api.post(`/token-certificates/${hash}/import`, {}).then(
         () => {
-          this.$bus.$emit('show-success', 'keys.importCertSuccess');
+          this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
           this.fetchData();
         },
         (error) => {

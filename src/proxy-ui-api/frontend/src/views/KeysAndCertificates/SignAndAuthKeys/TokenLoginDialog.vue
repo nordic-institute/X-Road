@@ -86,7 +86,7 @@ export default Vue.extend({
         })
         .then((res) => {
           this.loading = false;
-          this.$bus.$emit('show-success', 'keys.loggedIn');
+          this.$store.dispatch('showSuccess', 'keys.loggedIn');
           this.$emit('save');
         })
         .catch((error) => {

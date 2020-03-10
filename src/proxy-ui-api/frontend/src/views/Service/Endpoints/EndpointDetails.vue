@@ -136,7 +136,7 @@ export default Vue.extend({
       api
         .remove(`/endpoints/${id}`)
         .then(() => {
-          this.$bus.$emit('show-success', 'endpoints.deleteSuccess');
+          this.$store.dispatch('showSuccess', 'endpoints.deleteSuccess');
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -148,7 +148,7 @@ export default Vue.extend({
       api
         .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
         .then(() => {
-          this.$bus.$emit('show-success', 'endpoints.editSuccess');
+          this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
           this.$router.go(-1);
         })
         .catch((error) => {

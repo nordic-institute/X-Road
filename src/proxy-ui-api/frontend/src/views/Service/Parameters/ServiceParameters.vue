@@ -282,7 +282,7 @@ export default Vue.extend({
         })
         .then((res) => {
           this.$bus.$emit('saveService', res.data);
-          this.$bus.$emit('show-success', 'Service saved');
+          this.$store.dispatch('showSuccess', 'Service saved');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

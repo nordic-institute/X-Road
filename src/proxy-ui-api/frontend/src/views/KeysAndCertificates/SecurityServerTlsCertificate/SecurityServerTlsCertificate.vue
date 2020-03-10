@@ -153,11 +153,12 @@ export default Vue.extend({
           tempLink.click();
           document.body.removeChild(tempLink); // cleanup
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.exportPending = false));
     },
     onImportFileChanged(event: any): void {
-      const fileList = (event.target.files || event.dataTransfer.files) as FileList;
+      const fileList = (event.target.files ||
+        event.dataTransfer.files) as FileList;
       if (!fileList.length) {
         return;
       }
@@ -167,19 +168,20 @@ export default Vue.extend({
         if (!e?.target?.result) {
           return;
         }
-        api.post('/system/certificate/import', e.target.result, {
+        api
+          .post('/system/certificate/import', e.target.result, {
             headers: {
               'Content-Type': 'application/octet-stream',
             },
           })
           .then(() => {
-            this.$bus.$emit(
-              'show-success',
+            this.$store.dispatch(
+              'showSuccess',
               'ssTlsCertificate.certificateImported',
             );
             this.fetchData();
           })
-          .catch((error) => this.$bus.$emit('show-error', error.message));
+          .catch((error) => this.$store.dispatch('showError', error));
       };
       reader.readAsArrayBuffer(fileList[0]);
     },

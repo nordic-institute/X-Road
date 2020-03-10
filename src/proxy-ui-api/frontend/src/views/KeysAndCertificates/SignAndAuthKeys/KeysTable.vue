@@ -265,7 +265,7 @@ export default Vue.extend({
           { address },
         )
         .then((res) => {
-          this.$bus.$emit('show-success', 'keys.certificateRegistered');
+          this.$store.dispatch('showSuccess', 'keys.certificateRegistered');
           this.$emit('refreshList');
         })
         .catch((error) => {
@@ -287,7 +287,7 @@ export default Vue.extend({
       api
         .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
         .then((res) => {
-          this.$bus.$emit('show-success', 'keys.csrDeleted');
+          this.$store.dispatch('showSuccess', 'keys.csrDeleted');
           this.$emit('refreshList');
         })
         .catch((error) => {

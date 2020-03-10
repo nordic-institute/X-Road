@@ -153,7 +153,7 @@ export default Vue.extend({
 
       this.$store.dispatch('tokenLogout', token.id).then(
         (response) => {
-          this.$bus.$emit('show-success', 'keys.loggedOut');
+          this.$store.dispatch('showSuccess', 'keys.loggedOut');
         },
         (error) => {
           this.$store.dispatch('showError', error);
@@ -179,7 +179,7 @@ export default Vue.extend({
         .post(`/tokens/${token.id}/keys`, request)
         .then((res) => {
           this.fetchData();
-          this.$bus.$emit('show-success', 'keys.keyAdded');
+          this.$store.dispatch('showSuccess', 'keys.keyAdded');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

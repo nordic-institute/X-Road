@@ -95,7 +95,7 @@ export default Vue.extend({
         })
         .then(
           (response) => {
-            this.$bus.$emit('show-success', 'cert.certDeleted');
+            this.$store.dispatch('showSuccess', 'cert.certDeleted');
           },
           (error) => {
             this.$store.dispatch('showError', error);

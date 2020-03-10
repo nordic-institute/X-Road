@@ -197,7 +197,7 @@ export default Vue.extend({
       api
         .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
         .then((res) => {
-          this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
           this.$router.go(-1);
         })
@@ -238,7 +238,7 @@ export default Vue.extend({
       api
         .remove(`/service-descriptions/${this.id}`)
         .then(() => {
-          this.$bus.$emit('show-success', 'services.deleted');
+          this.$store.dispatch('showSuccess', 'services.deleted');
           this.confirmWSDLDelete = false;
           this.confirmRESTDelete = false;
           this.$router.go(-1);
@@ -260,7 +260,7 @@ export default Vue.extend({
       api
         .patch(`/service-descriptions/${this.id}`, tempDesc)
         .then((res) => {
-          this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
         })
         .catch((error) => {
