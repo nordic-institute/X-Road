@@ -1,5 +1,4 @@
   #!/bin/bash
   
-  PIN_CODE=$(curl http://localhost:5555/autologin)
-  echo "${PIN_CODE}"
+  echo "${XROAD_TOKEN_PIN}"
   exit 0

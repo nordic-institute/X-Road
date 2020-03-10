@@ -2,7 +2,6 @@ FROM ubuntu:bionic
 ENV DEBIAN_FRONTEND=noninteractive
 ARG XROAD_ADMIN_USER
 ARG XROAD_ADMIN_PASSWORD
-ARG XROAD_TOKEN_PIN
 
 RUN apt-get -qq update \
 && apt-get -qq upgrade \
