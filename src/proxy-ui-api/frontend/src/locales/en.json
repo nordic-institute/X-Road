@@ -194,7 +194,9 @@
     "rightsGiven": "Access Rights given",
     "removeSuccess": "Access right removed successfully",
     "removeTitle": "Remove member?",
-    "removeText": "Are you sure that you want to remove this member?"
+    "removeText": "Are you sure that you want to remove this member?",
+    "addSubjectsSuccess": "Access rights added successfully",
+    "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",

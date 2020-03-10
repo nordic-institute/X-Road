@@ -195,7 +195,7 @@ import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import {ServiceClient} from '@/types';
+import {ServiceClient, Subject} from '@/types';
 import {ValidationObserver, ValidationProvider} from 'vee-validate';
 import {mapGetters} from 'vuex';
 import {RouteName} from '@/global';
@@ -289,19 +289,6 @@ export default Vue.extend({
     setTouched(): void {
       this.touched = true;
     },
-
-    fetchData(serviceId: string): void {
-
-      api
-        .get(`/services/${serviceId}/access-rights`)
-        .then((res) => {
-          this.accessRightsSubjects = res.data;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-    },
-
     showAddSubjectsDialog(): void {
       this.addSubjectsDialogVisible = true;
     },
@@ -314,7 +301,8 @@ export default Vue.extend({
           items: selected,
         })
         .then((res) => {
-          this.fetchData(this.serviceId);
+          this.$bus.$emit('show-success', 'access.addSubjectsSuccess');
+          this.$emit('updateService', this.service.id);
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -362,7 +350,7 @@ export default Vue.extend({
       this.selectedMember = undefined;
     },
 
-    removeArrayOfSubjects(subjects: any) {
+    removeArrayOfSubjects(subjects: Subject[]) {
       api
         .post(`/services/${this.serviceId}/access-rights/delete`, {
           items: subjects,
@@ -371,7 +359,7 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         })
         .finally(() => {
-          this.fetchData(this.serviceId);
+          this.$emit('updateService', this.service.id);
         });
     },
     close() {

@@ -143,7 +143,10 @@ public class AccessRightService {
                 localGroupType));
 
         clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
+            EndpointType endpoint = accessRightType.getEndpoint();
+            if (endpoint.getServiceCode().equals(serviceType.getServiceCode())
+                    && endpoint.getMethod().equals(EndpointType.ANY_METHOD)
+                    && endpoint.getPath().equals(EndpointType.ANY_PATH)) {
                 AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
                 accessRightHolderDtos.add(accessRightHolderDto);
             }
@@ -204,8 +207,11 @@ public class AccessRightService {
 
         List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl()
                 .stream()
-                .filter(accessRightType -> accessRightType.getEndpoint().getServiceCode()
-                        .equals(serviceType.getServiceCode()) && subjectIds.contains(accessRightType.getSubjectId()))
+                .filter(accessRightType ->
+                        accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())
+                            && subjectIds.contains(accessRightType.getSubjectId())
+                            && accessRightType.getEndpoint().getMethod().equals(EndpointType.ANY_METHOD)
+                            && accessRightType.getEndpoint().getPath().equals(EndpointType.ANY_PATH))
                 .collect(Collectors.toList());
 
         if (accessRightsToBeRemoved.size() != subjectIds.size()) {
@@ -273,7 +279,7 @@ public class AccessRightService {
         List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().getId().equals(endpointId) && idsToDelete.contains(acl.getSubjectId()))
                 .collect(Collectors.toList());
-        if (accessRightsToBeRemoved.size() != subjectIds.size()) {
+        if (accessRightsToBeRemoved.size() != idsToDelete.size()) {
             throw new AccessRightNotFoundException();
         }
         clientType.getAcl().removeAll(accessRightsToBeRemoved);
@@ -318,7 +324,7 @@ public class AccessRightService {
         List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
 
         clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getServiceCode().equals(endpoint.getServiceCode())) {
+            if (accessRightType.getEndpoint().getId().equals(endpoint.getId())) {
                 AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
                 accessRightHolderDtos.add(accessRightHolderDto);
             }
@@ -401,7 +407,7 @@ public class AccessRightService {
             throws IdentifierNotFoundException, LocalGroupNotFoundException {
         // Get persistent entities in order to change relations
         Set<XRoadId> txSubjects = new HashSet<>();
-        if (subjectIds != null) {
+        if (subjectIds != null && subjectIds.size() > 0) {
             txSubjects.addAll(getOrPersistSubsystemIds(subjectIds.stream()
                     .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.SUBSYSTEM)
                     .collect(Collectors.toSet())));
@@ -409,7 +415,7 @@ public class AccessRightService {
                     .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.GLOBALGROUP)
                     .collect(Collectors.toSet())));
         }
-        if (localGroupIds != null) {
+        if (localGroupIds != null && localGroupIds.size() > 0) {
             Set<XRoadId> localGroupXroadIds = getLocalGroupsAsXroadIds(localGroupIds);
             // Get LocalGroupIds from serverconf db - or save them if they don't exist
             Set<XRoadId> txLocalGroupXroadIds = identifierService.getOrPersistXroadIds(localGroupXroadIds);
@@ -418,10 +424,23 @@ public class AccessRightService {
         return txSubjects;
     }
 
+    /**
+     * Add new access rights to endpoint
+     *
+     * @param endpointId
+     * @param subjectIds
+     * @param localGroupIds
+     * @return
+     * @throws EndpointService.EndpointNotFoundException endpoint is not found with given id
+     * @throws ClientNotFoundException                   client for the endpoint is not found (shouldn't happen)
+     * @throws IdentifierNotFoundException
+     * @throws LocalGroupNotFoundException
+     * @throws DuplicateAccessRightException
+     */
     public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws EndpointService.EndpointNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
-        verifyAuthority("EDIT_SERVICE_ACL");
+        verifyAuthority("EDIT_ENDPOINT_ACL");
 
         EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
         if (endpointType == null) {
@@ -433,8 +452,13 @@ public class AccessRightService {
             throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
         }
 
+        // Combine subject ids and localgroup ids to a single list of XRoadIds
         Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
+
+        // Add access rights to endpoint
         addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
+
+        // Create DTOs for returning data
         return getAccessRightHolderDtosForEndpoint(clientType, endpointType);
     }
 

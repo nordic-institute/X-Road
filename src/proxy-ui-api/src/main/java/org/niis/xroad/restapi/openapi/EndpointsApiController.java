@@ -135,7 +135,7 @@ public class EndpointsApiController implements EndpointsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
+    @PreAuthorize("hasAuthority('VIEW_ENDPOINT_ACL')")
     public ResponseEntity<List<ServiceClient>> getEndpointAccessRights(String id) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         List<AccessRightHolderDto> accessRightHoldersByEndpoint;
@@ -152,7 +152,7 @@ public class EndpointsApiController implements EndpointsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<List<ServiceClient>> addEndpointAccessRights(String id, Subjects subjects) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         Set<Long> localGroupIds = getLocalGroupIds(subjects);
@@ -176,7 +176,7 @@ public class EndpointsApiController implements EndpointsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<Void> deleteEndpointAccessRights(String id, Subjects subjects) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         Set<Long> localGroupIds = getLocalGroupIds(subjects);

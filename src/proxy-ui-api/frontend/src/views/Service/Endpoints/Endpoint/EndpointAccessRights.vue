@@ -40,7 +40,7 @@
           <td>{{ sc.subject.member_name_group_description }}</td>
           <td>{{ sc.subject.id }}</td>
           <td>{{ sc.rights_given_at | formatDateTime }}</td>
-          <td>
+          <td class="wrap-right-tight">
             <v-btn
               small
               outlined
@@ -159,7 +159,7 @@
         api
           .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.subjectsToDelete })
           .then( () => {
-            this.$bus.$emit('show-success', 'endpoints.editSuccess');
+            this.$bus.$emit('show-success', 'access.removeSubjectsSuccess');
             this.fetchData();
           })
           .catch( (error) => {
@@ -173,7 +173,7 @@
         api
           .post(`/endpoints/${this.id}/access-rights`, { items: subjects})
           .then( (accessRights) => {
-            this.$bus.$emit('show-success', 'endpoints.editSuccess');
+            this.$bus.$emit('show-success', 'access.addSubjectsSuccess');
             this.serviceClients = accessRights.data;
           })
           .catch( (error) => {
@@ -208,6 +208,12 @@
     * {
       margin-left: 20px;
     }
+  }
+
+  .wrap-right-tight {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .row-title {
