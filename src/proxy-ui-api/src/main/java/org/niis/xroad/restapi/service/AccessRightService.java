@@ -73,6 +73,9 @@ import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class AccessRightService {
+
+    private static final String CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID = "Client not found for endpoint with id: ";
+
     private final LocalGroupRepository localGroupRepository;
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
@@ -130,7 +133,7 @@ public class AccessRightService {
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
         if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
+            throw new ClientNotFoundException(CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID + id.toString());
         }
 
         EndpointType endpointType = endpointRepository.getEndpoint(id);
@@ -201,6 +204,7 @@ public class AccessRightService {
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
+     * @throws EndpointNotFoundByServiceNameException if the base endpoint for the service is not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
                                               Set<Long> localGroupIds) throws LocalGroupNotFoundException,
@@ -236,7 +240,7 @@ public class AccessRightService {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
         if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
+            throw new ClientNotFoundException(CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID + endpointId.toString());
         }
         EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
         if (endpointType == null) {
@@ -283,6 +287,7 @@ public class AccessRightService {
      * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
+     *
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
@@ -291,6 +296,8 @@ public class AccessRightService {
      * @throws LocalGroupNotFoundException
      * @throws ClientNotFoundException
      * @throws ServiceNotFoundException
+     * @throws DuplicateAccessRightException
+     * @throws IdentifierNotFoundException
      * @throws EndpointNotFoundByServiceNameException
      */
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
@@ -338,7 +345,7 @@ public class AccessRightService {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
         if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + endpointId.toString());
+            throw new ClientNotFoundException(CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID + endpointId.toString());
         }
         return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
 
