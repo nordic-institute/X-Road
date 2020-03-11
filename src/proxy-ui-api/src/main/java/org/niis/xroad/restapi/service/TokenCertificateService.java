@@ -29,7 +29,6 @@ import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
@@ -509,6 +508,10 @@ public class TokenCertificateService {
      * @param securityServerAddress IP address or DNS name of the security server
      * @throws CertificateNotFoundException
      * @throws GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws SignCertificateNotSupportedException
+     * @throws KeyNotFoundException
+     * @throws ActionNotPossibleException
      */
     public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
             GlobalConfOutdatedException, InvalidCertificateException,
@@ -516,7 +519,6 @@ public class TokenCertificateService {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
-        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
             managementRequestSenderService.sendAuthCertRegisterRequest(securityServerAddress,
                     certificateInfo.getCertificateBytes());

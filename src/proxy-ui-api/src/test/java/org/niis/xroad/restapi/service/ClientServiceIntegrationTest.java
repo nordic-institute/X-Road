@@ -92,7 +92,9 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
-    private ClientId existingClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+    private ClientId existingSavedClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+    private ClientId existingRegisteredClientId = ClientId.create("FI", "GOV", "M1", "SS1");
+    private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
 
     @MockBean
     private ManagementRequestSenderService managementRequestSenderService;
@@ -137,6 +139,7 @@ public class ClientServiceIntegrationTest {
                 return null;
             }
         });
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
             // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
@@ -837,10 +840,10 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void registerClient() throws Exception {
-        ClientType clientType = clientService.getLocalClient(existingClientId);
+        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
-        clientService.registerClient(existingClientId);
-        clientType = clientService.getLocalClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
+        clientType = clientService.getLocalClient(existingSavedClientId);
         assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
     }
 
@@ -852,13 +855,52 @@ public class ClientServiceIntegrationTest {
     @Test(expected = CodedException.class)
     public void registerClientCodedException() throws Exception {
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
-        clientService.registerClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
     public void registerClientRuntimeException() throws Exception {
         when(managementRequestSenderService.sendClientRegisterRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
-        clientService.registerClient(existingClientId);
+        clientService.registerClient(existingSavedClientId);
+    }
+
+    @Test
+    public void unregisterClient() throws Exception {
+        ClientType clientType = clientService.getLocalClient(existingRegisteredClientId);
+        assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
+        clientService.unregisterClient(existingRegisteredClientId);
+        clientType = clientService.getLocalClient(existingRegisteredClientId);
+        assertEquals(ClientType.STATUS_DELINPROG, clientType.getClientStatus());
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void unregisterClientNotPossible() throws Exception {
+        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        clientService.unregisterClient(existingSavedClientId);
+    }
+
+    @Test(expected = ClientService.CannotUnregisterOwnerException.class)
+    public void unregisterOwnerClient() throws Exception {
+        clientService.unregisterClient(ownerClientId);
+    }
+
+    @Test(expected = CodedException.class)
+    public void unregisterClientCodedException() throws Exception {
+        when(managementRequestSenderService.sendClientUnregisterRequest(any())).thenThrow(CodedException.class);
+        clientService.unregisterClient(existingRegisteredClientId);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void unregisterClientRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendClientUnregisterRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.unregisterClient(existingRegisteredClientId);
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void unregisterNonExistingClient() throws Exception {
+        clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
     }
 }

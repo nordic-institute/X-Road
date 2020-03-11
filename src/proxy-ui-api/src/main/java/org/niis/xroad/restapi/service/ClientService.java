@@ -64,6 +64,8 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 
 /**
@@ -431,6 +433,7 @@ public class ClientService {
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws CannotRegisterOwnerException
+     * @throws ActionNotPossibleException
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotRegisterOwnerException, ActionNotPossibleException {
@@ -445,6 +448,34 @@ public class ClientService {
         try {
             managementRequestSenderService.sendClientRegisterRequest(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
+            clientRepository.saveOrUpdate(client);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Unregister a client
+     * @param clientId client to unregister
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
+     * @throws ActionNotPossibleException when trying do unregister a client that cannot be unregistered
+     */
+    public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
+        if (!allowedStatuses.contains(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
+        }
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (clientId.equals(ownerId)) {
+            throw new CannotUnregisterOwnerException();
+        }
+        try {
+            managementRequestSenderService.sendClientUnregisterRequest(clientId);
+            client.setClientStatus(STATUS_DELINPROG);
             clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
@@ -625,6 +656,7 @@ public class ClientService {
      */
     public static class CannotDeleteOwnerException extends ServiceException {
         public static final String ERROR_CANNOT_DELETE_OWNER = "cannot_delete_owner";
+
         public CannotDeleteOwnerException() {
             super(new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
         }
@@ -661,6 +693,17 @@ public class ClientService {
 
         public CannotRegisterOwnerException() {
             super(new ErrorDeviation(ERROR_CANNOT_REGISTER_OWNER));
+        }
+    }
+
+    /**
+     * Thrown when trying to unregister the security server owner
+     */
+    public static class CannotUnregisterOwnerException extends ServiceException {
+        public static final String CANNOT_UNREGISTER_OWNER = "cannot_unregister_owner";
+
+        public CannotUnregisterOwnerException() {
+            super(new ErrorDeviation(CANNOT_UNREGISTER_OWNER));
         }
     }
 }

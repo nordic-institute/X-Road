@@ -45,14 +45,14 @@ public class ManagementRequestSenderService {
 
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
-    private final CurrentSecurityServerId securityServerOwner;
+    private final CurrentSecurityServerId currentSecurityServerId;
 
     @Autowired
     public ManagementRequestSenderService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
-            CurrentSecurityServerId securityServerOwner) {
+            CurrentSecurityServerId currentSecurityServerId) {
         this.globalConfFacade = globalConfFacade;
         this.globalConfService = globalConfService;
-        this.securityServerOwner = securityServerOwner;
+        this.currentSecurityServerId = currentSecurityServerId;
     }
 
     /**
@@ -71,7 +71,7 @@ public class ManagementRequestSenderService {
             throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertRegRequest(securityServerOwner.getServerId(), address, authCert);
+            return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert);
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 throw (CodedException) e;
@@ -95,7 +95,7 @@ public class ManagementRequestSenderService {
             GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertDeletionRequest(securityServerOwner.getServerId(), authCert);
+            return sender.sendAuthCertDeletionRequest(currentSecurityServerId.getServerId(), authCert);
         } catch (Exception e) {
             throw new ManagementRequestSendingFailedException(e);
         }
@@ -112,7 +112,26 @@ public class ManagementRequestSenderService {
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendClientRegRequest(securityServerOwner.getServerId(), clientId);
+            return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId);
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    /**
+     * Sends a client unregister request as a normal X-Road message
+     * @param clientId the client id that will be unregistered
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
+     */
+    Integer sendClientUnregisterRequest(ClientId clientId)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientDeletionRequest(currentSecurityServerId.getServerId(), clientId);
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception e) {
@@ -123,7 +142,7 @@ public class ManagementRequestSenderService {
     private ManagementRequestSender createManagementRequestSender()
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
-        ClientId sender = securityServerOwner.getServerId().getOwner();
+        ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfFacade.getManagementRequestService();
         return new ManagementRequestSender(sender, receiver);
     }

@@ -482,4 +482,20 @@ public class ClientsApiController implements ClientsApi {
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_CLIENT_DEL_REQ')")
+    public ResponseEntity<Void> unregisterClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.unregisterClient(clientId);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException  e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
