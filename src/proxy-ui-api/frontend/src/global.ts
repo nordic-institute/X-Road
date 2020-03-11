@@ -33,6 +33,7 @@ export enum RouteName {
   AddKey = 'add-key',
   GenerateCertificateSignRequest = 'generate-csr',
   InternalTlsCertificate = 'internal-tls-certificate',
+  GenerateInternalCSR = 'generate-internal-csr',
   EndpointDetails = 'endpoint-details',
 }
 

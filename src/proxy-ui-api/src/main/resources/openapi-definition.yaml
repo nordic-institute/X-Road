@@ -3116,7 +3116,7 @@ paths:
             application/xml:
               schema:
                 type: string
-                format: ascii
+                format: binary
                 description: configuration anchor file
         '400':
           description: request was invalid
