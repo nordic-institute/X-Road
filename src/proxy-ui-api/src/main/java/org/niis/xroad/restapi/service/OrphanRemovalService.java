@@ -202,11 +202,11 @@ public class OrphanRemovalService {
      * @throws OrphansNotFoundException if orphans dont exist for this client. Possible reasons
      * include also that this client is still alive (not deleted).
      * @throws ActionNotPossibleException if delete-cert or delete-csr was not possible action
-     * @throws org.niis.xroad.restapi.service.GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * if global conf is outdated. This prevents key deletion.
      */
     public void deleteOrphans(ClientId clientId) throws OrphansNotFoundException,
-            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException {
+            ActionNotPossibleException, GlobalConfOutdatedException {
 
         if (isAlive(clientId) || hasAliveSiblings(clientId)) {
             throw new OrphansNotFoundException();

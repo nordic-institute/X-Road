@@ -278,7 +278,7 @@ public class TokenCertificateService {
      * @return CertificateType
      * @throws CertificateNotFoundException
      * @throws InvalidCertificateException other general import failure
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * @throws KeyNotFoundException
      * @throws CertificateAlreadyExistsException
      * @throws WrongCertificateUsageException
@@ -288,7 +288,7 @@ public class TokenCertificateService {
      * @throws ActionNotPossibleException if import was not possible due to cert/key/token states
      */
     public CertificateInfo importCertificateFromToken(String hash) throws CertificateNotFoundException,
-            InvalidCertificateException, GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException,
+            InvalidCertificateException, GlobalConfOutdatedException, KeyNotFoundException,
             CertificateAlreadyExistsException, WrongCertificateUsageException, ClientNotFoundException,
             CsrNotFoundException, AuthCertificateNotSupportedException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
@@ -304,7 +304,7 @@ public class TokenCertificateService {
      * @param certificateBytes
      * @param isFromToken whether the cert was read from a token or not
      * @return CertificateType
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * @throws KeyNotFoundException
      * @throws InvalidCertificateException other general import failure
      * @throws CertificateAlreadyExistsException
@@ -312,7 +312,7 @@ public class TokenCertificateService {
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      */
     private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken)
-            throws GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException,
+            throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException,
             CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
             AuthCertificateNotSupportedException, ClientNotFoundException {
         globalConfService.verifyGlobalConfValidity();
@@ -421,7 +421,7 @@ public class TokenCertificateService {
      * {@link #importCertificateFromToken(String hash)}
      * @param certificateBytes
      * @return CertificateType
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws KeyNotFoundException
      * @throws InvalidCertificateException other general import failure
@@ -430,7 +430,7 @@ public class TokenCertificateService {
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      */
     public CertificateInfo importCertificate(byte[] certificateBytes) throws InvalidCertificateException,
-            GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException, CertificateAlreadyExistsException,
+            GlobalConfOutdatedException, KeyNotFoundException, CertificateAlreadyExistsException,
             WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
             AuthCertificateNotSupportedException {
         return importCertificate(certificateBytes, false);
@@ -508,10 +508,10 @@ public class TokenCertificateService {
      * @param hash certificate hash
      * @param securityServerAddress IP address or DNS name of the security server
      * @throws CertificateNotFoundException
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      */
     public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
-            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            GlobalConfOutdatedException, InvalidCertificateException,
             SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
@@ -521,7 +521,7 @@ public class TokenCertificateService {
             managementRequestSenderService.sendAuthCertRegisterRequest(securityServerAddress,
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
-        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
+        } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not register auth cert", e);
@@ -535,16 +535,16 @@ public class TokenCertificateService {
      * @param skipUnregister whether to skip the actual delete request and only change cert status
      * @throws SignCertificateNotSupportedException
      * @throws ActionNotPossibleException
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
      * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
      */
     private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
-            throws CertificateNotFoundException, GlobalConfService.GlobalConfOutdatedException,
+            throws CertificateNotFoundException, GlobalConfOutdatedException,
             InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
-            ActionNotPossibleException, ManagementRequestSenderService.ManagementRequestSendingFailedException {
+            ActionNotPossibleException, ManagementRequestSendingFailedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
@@ -565,16 +565,16 @@ public class TokenCertificateService {
      * @param hash certificate hash
      * @throws SignCertificateNotSupportedException
      * @throws ActionNotPossibleException
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
      * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
      */
     public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
-            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            ActionNotPossibleException, GlobalConfOutdatedException, InvalidCertificateException,
             KeyNotFoundException, CertificateNotFoundException,
-            ManagementRequestSenderService.ManagementRequestSendingFailedException {
+            ManagementRequestSendingFailedException {
         unregisterAuthCertAndMarkForDeletion(hash, false);
     }
 
@@ -583,17 +583,17 @@ public class TokenCertificateService {
      * @param hash certificate hash
      * @throws SignCertificateNotSupportedException
      * @throws ActionNotPossibleException
-     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws GlobalConfOutdatedException
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
      */
     public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
-            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            ActionNotPossibleException, GlobalConfOutdatedException, InvalidCertificateException,
             KeyNotFoundException, CertificateNotFoundException {
         try {
             unregisterAuthCertAndMarkForDeletion(hash, true);
-        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+        } catch (ManagementRequestSendingFailedException e) {
             // should never happen
             throw new RuntimeException("Management request failed", e);
         }

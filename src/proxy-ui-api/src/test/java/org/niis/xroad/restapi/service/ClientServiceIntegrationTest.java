@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -35,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +92,11 @@ public class ClientServiceIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    private ClientId existingClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+
+    @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
+
     @Before
     public void setup() throws Exception {
         List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
@@ -141,6 +148,7 @@ public class ClientServiceIntegrationTest {
             return match.isPresent();
         });
 
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -155,12 +163,15 @@ public class ClientServiceIntegrationTest {
     private int countIdentifiers() {
         return JdbcTestUtils.countRowsInTable(jdbcTemplate, "identifier");
     }
+
     private long countMembers() {
         return countByType(false);
     }
+
     private long countSubsystems() {
         return countByType(true);
     }
+
     private long countByType(boolean subsystems) {
         List<ClientType> localClients = clientService.getAllLocalClients();
         return localClients.stream()
@@ -396,7 +407,7 @@ public class ClientServiceIntegrationTest {
         int startIdentifiers = countIdentifiers();
         ClientId id = TestUtils.getClientId("FI:GOV:M3");
         ClientType added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
+                IsAuthentication.SSLAUTH, false);
         // these should have status "REGISTERED"
         assertEquals(STATUS_REGISTERED, added.getClientStatus());
         assertEquals(startMembers + 1, countMembers());
@@ -499,12 +510,11 @@ public class ClientServiceIntegrationTest {
         assertEquals(startIdentifiers, countIdentifiers());
     }
 
-
     @Test
     public void getAllLocalMembers() {
         List<ClientType> localMembers = clientService.getAllLocalMembers();
         assertEquals(1, localMembers.size());
-        assertEquals(1, (long)localMembers.iterator().next().getId());
+        assertEquals(1, (long) localMembers.iterator().next().getId());
     }
 
     /**
@@ -563,7 +573,6 @@ public class ClientServiceIntegrationTest {
         assertEquals(IsAuthentication.SSLNOAUTH.name(), loadedAdded.getIsAuthentication());
 
     }
-
 
     @Test
     public void updateConnectionType() throws Exception {
@@ -824,5 +833,32 @@ public class ClientServiceIntegrationTest {
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
         Set<ClientId> result = clientService.getLocalClientMemberIds();
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void registerClient() throws Exception {
+        ClientType clientType = clientService.getLocalClient(existingClientId);
+        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        clientService.registerClient(existingClientId);
+        clientType = clientService.getLocalClient(existingClientId);
+        assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void registerNonExistingClient() throws Exception {
+        clientService.registerClient(ClientId.create("non", "existing", "client", null));
+    }
+
+    @Test(expected = CodedException.class)
+    public void registerClientCodedException() throws Exception {
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
+        clientService.registerClient(existingClientId);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void registerClientRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendClientRegisterRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.registerClient(existingClientId);
     }
 }

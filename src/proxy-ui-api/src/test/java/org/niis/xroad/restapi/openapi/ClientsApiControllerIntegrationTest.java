@@ -54,6 +54,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -141,6 +142,9 @@ public class ClientsApiControllerIntegrationTest {
     @MockBean
     private UrlValidator urlValidator;
 
+    @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
+
     @Before
     public void setup() throws Exception {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -174,6 +178,7 @@ public class ClientsApiControllerIntegrationTest {
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         // mock for URL validator - FormatUtils is tested independently
         when(urlValidator.isValidUrl(any())).thenReturn(true);
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
     }
 
     @Autowired
@@ -1016,4 +1021,23 @@ public class ClientsApiControllerIntegrationTest {
         }
     }
 
+
+    @Test
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerClient() {
+        ResponseEntity<Void> response = clientsApiController.registerClient(TestUtils.CLIENT_ID_M2_SS6);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerClientWrongStatus() {
+        clientsApiController.registerClient(TestUtils.CLIENT_ID_SS1);
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerOwner() {
+        clientsApiController.registerClient(TestUtils.OWNER_ID);
+    }
 }
