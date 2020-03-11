@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
-import org.niis.xroad.restapi.converter.EndpointHelper;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
@@ -51,6 +50,7 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
@@ -67,6 +67,7 @@ import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
+import org.niis.xroad.restapi.service.OrphanRemovalService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -111,22 +112,11 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
-    private final EndpointHelper endpointService;
+    private final OrphanRemovalService orphanRemovalService;
 
     /**
      * ClientsApiController constructor
-     * @param clientService
-     * @param tokenService
-     * @param clientConverter
-     * @param localGroupConverter
-     * @param localGroupService
-     * @param serviceDescriptionConverter
-     * @param serviceDescriptionService
-     * @param accessRightService
-     * @param subjectConverter
-     * @param tokenCertificateConverter
      */
-
     @Autowired
     public ClientsApiController(ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
@@ -134,7 +124,7 @@ public class ClientsApiController implements ClientsApi {
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
             SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
-            EndpointHelper endpointService) {
+            OrphanRemovalService orphanRemovalService) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -146,7 +136,7 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
-        this.endpointService = endpointService;
+        this.orphanRemovalService = orphanRemovalService;
     }
 
     /**
@@ -432,6 +422,49 @@ public class ClientsApiController implements ClientsApi {
         }
         Client result = clientConverter.convert(added);
         return createCreatedResponse("/api/clients/{id}", result, result.getId());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.deleteLocalClient(clientId);
+        } catch (ActionNotPossibleException | ClientService.CannotDeleteOwnerException e) {
+            throw new ConflictException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteOrphans(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            orphanRemovalService.deleteOrphans(clientId);
+        } catch (OrphanRemovalService.OrphansNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<OrphanInformation> getClientOrphans(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        boolean orphansExist = orphanRemovalService.orphansExist(clientId);
+        if (orphansExist) {
+            OrphanInformation info = new OrphanInformation().orphansExist(true);
+            return new ResponseEntity<>(info, HttpStatus.OK);
+        } else {
+            throw new ResourceNotFoundException();
+        }
     }
 
     @Override

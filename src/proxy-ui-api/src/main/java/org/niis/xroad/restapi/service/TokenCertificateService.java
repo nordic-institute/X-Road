@@ -140,8 +140,6 @@ public class TokenCertificateService {
             KeyNotFoundException,
             DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
 
-        // CertificateProfileInstantiationException
-
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo key = keyService.getKey(tokenInfo, keyId);
@@ -713,6 +711,10 @@ public class TokenCertificateService {
      * instead to determine correct KeyInfo.
      * Key not found exceptions are wrapped as RuntimeExceptions
      * since them happening is considered to be internal error.
+     * @param hash certificate hash
+     * @param certificateInfo
+     * @param keyInfo
+     * @param tokenInfo
      * @throws CertificateNotFoundException
      */
     private EnumSet<PossibleActionEnum> getPossibleActionsForCertificateInternal(
@@ -745,6 +747,35 @@ public class TokenCertificateService {
     }
 
     /**
+     * Deletes a collection of certificates
+     * @throws CertificateNotFoundException if certificate with given hash was not found
+     * @throws ActionNotPossibleException if delete was not possible due to cert/key/token states
+     */
+    public void deleteCertificates(List<CertificateInfo> certificateInfos)
+            throws CertificateNotFoundException, ActionNotPossibleException {
+        List<TokenInfo> tokenInfos = tokenService.getAllTokens();
+        for (CertificateInfo certificateInfo: certificateInfos) {
+            deleteCertificate(certificateInfo.getId(), tokenInfos);
+        }
+    }
+
+    private void deleteCertificate(String certificateId, List<TokenInfo> allTokens) throws
+            CertificateNotFoundException, ActionNotPossibleException {
+        // find token, key, and certificate info
+        for (TokenInfo tokenInfo: allTokens) {
+            for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
+                for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
+                    if (certificateInfo.getId().equals(certificateId)) {
+                        deleteCertificate(certificateInfo, keyInfo, tokenInfo);
+                        return;
+                    }
+                }
+            }
+        }
+        throw new CertificateNotFoundException("did not find certificate with id " + certificateId + " in tokens");
+    }
+
+    /**
      * Delete certificate with given hash
      * @param hash
      * @throws CertificateNotFoundException if certificate with given hash was not found
@@ -756,12 +787,22 @@ public class TokenCertificateService {
             ActionNotPossibleException {
         hash = hash.toLowerCase();
         CertificateInfo certificateInfo = getCertificateInfo(hash);
-        String keyId = getKeyIdForCertificateHash(hash);
-        KeyInfo keyInfo = keyService.getKey(keyId);
-        EnumSet<PossibleActionEnum> possibleActions =
-                getPossibleActionsForCertificateInternal(hash, certificateInfo, keyInfo, null);
-        possibleActionsRuleEngine.requirePossibleAction(
-                PossibleActionEnum.DELETE, possibleActions);
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
+        TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+
+        deleteCertificate(certificateInfo, keyInfo, tokenInfo);
+    }
+
+        /**
+         * Delete certificate with given hash
+         * @throws CertificateNotFoundException if signer could not find the cert
+         * @throws ActionNotPossibleException if delete was not possible due to cert/key/token states
+         */
+    private void deleteCertificate(CertificateInfo certificateInfo, KeyInfo keyInfo, TokenInfo tokenInfo)
+            throws CertificateNotFoundException, ActionNotPossibleException {
+        possibleActionsRuleEngine.requirePossibleCertificateAction(
+                PossibleActionEnum.DELETE, tokenInfo, keyInfo, certificateInfo);
 
         if (keyInfo.isForSigning()) {
             verifyAuthority("DELETE_SIGN_CERT");
