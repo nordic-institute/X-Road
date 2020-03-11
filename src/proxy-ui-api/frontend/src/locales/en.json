@@ -302,9 +302,26 @@
       "success": "New Security Server TLS key and certificate generated successfully"
     },
     "importCertificate": "Import cert.",
+    "certificateImported": "Certificate imported",
     "exportCertificate": "Export cert.",
     "keyCertTitle": "TLS Key and Certificate",
-    "keyText": "Internal TLS Key"
+    "keyText": "Internal TLS Key",
+    "generateCsr": "Generate CSR",
+    "generateInternalCsr": {
+      "title": "Generate TLS Certificate Signing Request",
+      "step1": {
+        "description": "1) First, provide a distinguished name",
+        "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code.",
+        "label": "Distinguished name",
+        "placeholder": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
+      },
+      "step2": {
+        "description": "2) Generate a new CSR and save it into a safe place",
+        "generateCSR": "Generate CSR"
+      },
+      "cancel": "CANCEL",
+      "done": "DONE"
+    }
   },
   "csr": {
     "usage": "Usage",
