@@ -43,7 +43,7 @@ pipeline {
                 }
             }
         }
-        stage('Bionic build') {
+        stage('Ubuntu bionic packaging') {
             agent {
                 dockerfile {
                     dir 'src/packages/docker/deb-bionic'
@@ -57,11 +57,25 @@ pipeline {
                 }
             }
         }
-        stage('RedHat build') {
+        stage('RHEL 7 packaging') {
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm'
                     args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-rpm.sh'
+                }
+            }
+        }
+        stage('RHEL 8 packaging') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/rpm-el8'
+                    args '-e HOME=/workspace/src/packages'
                     reuseNode true
                 }
             }

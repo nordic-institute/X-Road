@@ -8,10 +8,19 @@
         @click="generateDialog = true"
         data-test="security-server-tls-certificate-generate-key-button"
       >{{$t('ssTlsCertificate.generateKey')}}</large-button>
+      <input
+        v-show="false"
+        ref="importUpload"
+        type="file"
+        accept=".pem, .cer, .der"
+        @change="onImportFileChanged"
+      />
       <large-button
         v-if="importCertificateVisible"
         class="button-spacing"
         outlined
+        @click="$refs.importUpload.click()"
+        data-test="security-server-tls-certificate-import-certificate-key"
       >{{$t('ssTlsCertificate.importCertificate')}}</large-button>
       <large-button
         v-if="exportCertificateVisible"
@@ -52,7 +61,8 @@
           v-if="generateCsrVisible"
           class="table-button-fix"
           @click="generateCsr()"
-        >{{$t('keys.generateCsr')}}</SmallButton>
+          data-test="security-server-tls-certificate-generate-csr-button"
+        >{{$t('ssTlsCertificate.generateCsr')}}</SmallButton>
       </div>
     </div>
 
@@ -111,7 +121,9 @@ export default Vue.extend({
       });
     },
     generateCsr(): void {
-      // TODO: will be implemented in another task
+      this.$router.push({
+        name: RouteName.GenerateInternalCSR,
+      });
     },
     fetchData(): void {
       api
@@ -142,6 +154,33 @@ export default Vue.extend({
         })
         .catch((error) => this.$bus.$emit('show-error', error.message))
         .finally(() => this.exportPending = false);
+    },
+    onImportFileChanged(event: any): void {
+      const fileList = (event.target.files || event.dataTransfer.files) as FileList;
+      if (!fileList.length) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (!e?.target?.result) {
+          return;
+        }
+        api.post('/system/certificate/import', e.target.result, {
+            headers: {
+              'Content-Type': 'application/octet-stream',
+            },
+          })
+          .then(() => {
+            this.$bus.$emit(
+              'show-success',
+              'ssTlsCertificate.certificateImported',
+            );
+            this.fetchData();
+          })
+          .catch((error) => this.$bus.$emit('show-error', error.message));
+      };
+      reader.readAsArrayBuffer(fileList[0]);
     },
   },
   created() {
