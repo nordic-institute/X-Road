@@ -320,6 +320,47 @@
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
+  "systemParameters": {
+    "title": "System parameters",
+    "configurationAnchor": {
+      "title": "Configuration Anchor",
+      "action": {
+        "download": "DOWNLOAD",
+        "upload": "UPLOAD"
+      },
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "generated": "Generated"
+        }
+      }
+    },
+    "timestampingServices": {
+      "title": "Timestamping Services",
+      "action": {
+        "add": "ADD"
+      },
+      "table": {
+        "header": {
+          "certificateHash": "Certificate Hash (SHA/1)",
+          "serviceURL": "Service URL"
+        },
+        "action": {
+          "delete": "DELETE"
+        }
+      }
+    },
+    "approvedCertificateAuthorities": {
+      "title": "Approved Certificate Authorities",
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "ocspResponse": "OCSP Response",
+          "expires": "Expires"
+        }
+      }
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
