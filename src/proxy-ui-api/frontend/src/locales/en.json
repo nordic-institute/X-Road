@@ -202,6 +202,7 @@
     "close": "Close",
     "cancel": "Cancel",
     "yes": "Yes",
+    "no": "No",
     "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
@@ -358,6 +359,12 @@
       "todo2": "2) Once received back, import the signed CSR to the appropriate key",
       "todo3": "3) At this point you can register the new added client",
       "note": "NOTE: if you click Cancel, all data will be lost"
+    },
+    "subsystem": {
+      "title": "Add a Subsystem",
+      "selectSubsystem": "Select Subsystem",
+      "info1": "Specify the code of the subsystem to be added.",
+      "info2": "If the subsystem is already existing, you can select it from the Global list."
     }
   },
   "login": {
