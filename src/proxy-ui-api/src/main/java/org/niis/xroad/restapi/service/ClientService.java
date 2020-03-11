@@ -63,8 +63,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
-import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 
 /**
  * client service
@@ -618,6 +620,45 @@ public class ClientService {
             return managedEntity;
         } else {
             return transientClientId;
+        }
+    }
+
+    /**
+     * Delete a local client.
+     * @param clientId
+     * @throws ActionNotPossibleException if client status did not allow delete
+     * @throws CannotDeleteOwnerException if attempted to delete the owner
+     * @throws ClientNotFoundException if local client with given id was not found
+     */
+    public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
+            CannotDeleteOwnerException, ClientNotFoundException {
+        ClientType clientType = getLocalClientOrThrowNotFound(clientId);
+        // cant delete owner
+        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        if (ownerId.equals(clientType.getIdentifier())) {
+            throw new CannotDeleteOwnerException();
+        }
+        // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
+        List allowedStatuses = Arrays.asList(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
+        if (!allowedStatuses.contains(clientType.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
+        }
+
+        ServerConfType serverConfType = serverConfService.getServerConf();
+        if (!serverConfType.getClient().remove(clientType)) {
+            throw new RuntimeException("client to be deleted was somehow missing from serverconf");
+        }
+    }
+
+    /**
+     * Thrown when someone attempted to delete client who is this security
+     * server's owner member
+     */
+    public static class CannotDeleteOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_DELETE_OWNER = "cannot_delete_owner";
+
+        public CannotDeleteOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
         }
     }
 
