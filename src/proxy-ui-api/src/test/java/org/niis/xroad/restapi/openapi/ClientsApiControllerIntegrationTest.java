@@ -1061,11 +1061,12 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.unregisterClient(TestUtils.CLIENT_ID_M2_SS6);
     }
 
-    @Test
+    @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ", "ADD_CLIENT" })
-    public void changeOwner() {
+    public void changeOwnerNotRegistered() {
         clientsApiController.addClient(new ClientAdd().client(createTestClient(
                 "GOV", "M2", null)).ignoreWarnings(true));
+
         ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.NEW_OWNER_ID);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }

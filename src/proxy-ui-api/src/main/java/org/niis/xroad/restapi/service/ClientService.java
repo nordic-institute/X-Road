@@ -488,6 +488,7 @@ public class ClientService {
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws MemberAlreadyOwnerException
+     * @throws ActionNotPossibleException
      */
     public void changeOwner(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             MemberAlreadyOwnerException, ActionNotPossibleException {
@@ -499,6 +500,10 @@ public class ClientService {
         if (clientId.getSubsystemCode() != null) {
             throw new ActionNotPossibleException("Only member can be an owner");
         }
+        if (!client.getClientStatus().equals(STATUS_REGISTERED)) {
+            throw new ActionNotPossibleException("Only member with status 'registered' can become owner");
+        }
+
         try {
             managementRequestSenderService.sendOwnerChangeRequest(clientId);
         } catch (ManagementRequestSendingFailedException e) {
