@@ -179,6 +179,7 @@ public class ClientsApiControllerIntegrationTest {
         // mock for URL validator - FormatUtils is tested independently
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenReturn(0);
     }
 
     @Autowired
@@ -1058,5 +1059,32 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
     public void unregisterClientWrongStatus() {
         clientsApiController.unregisterClient(TestUtils.CLIENT_ID_M2_SS6);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ", "ADD_CLIENT" })
+    public void changeOwner() {
+        clientsApiController.addClient(new ClientAdd().client(createTestClient(
+                "GOV", "M2", null)).ignoreWarnings(true));
+        ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.NEW_OWNER_ID);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerCurrentOwner() {
+        ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.OWNER_ID);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerSubsystem() {
+        ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.CLIENT_ID_SS1);
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerClientDoesNotExist() {
+        ResponseEntity<Void> response = clientsApiController.makeOwner("non:existing:client");
     }
 }
