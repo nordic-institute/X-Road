@@ -1,83 +1,143 @@
+
 <template>
-  <v-container class="xrd-tab-max-width">
-    <v-layout text-xs-center wrap column>
-      <v-flex mb-4>
-        <h1 class="display-1 font-weight-bold mb-3">Add a Subsystem</h1>
-        <p
-          class="subheading font-weight-regular"
-        >Specify the name of the Subsystem and add it to the selected Member.</p>
-      </v-flex>
-      <v-layout pa-4 column>
-        <v-layout mb-4 row justify-start>
-          <v-flex mb-4 class="input-title">Member Name</v-flex>
-          <v-flex mb-4 class="subs-input">{{member.name}}</v-flex>
-        </v-layout>
-        <v-layout mb-4 row justify-start>
-          <v-flex mb-4 class="input-title">Member Class</v-flex>
-          <v-flex mb-4 class="subs-input">{{member.class}}</v-flex>
-        </v-layout>
-        <v-layout mb-4 row justify-start>
-          <v-flex mb-4 class="input-title">Member Code</v-flex>
-          <v-flex mb-4 class="subs-input">{{member.code}}</v-flex>
-        </v-layout>
+  <div class="view-wrap">
+    <subViewTitle class="view-title" :title="$t('wizard.subsystem.title')" :showClose="false" />
 
-        <v-layout mb-4 row justify-start>
-          <v-flex mb-4 class="input-title">Subsystem Name</v-flex>
-          <v-text-field label="Regular" class="input-name"></v-text-field>
-        </v-layout>
-      </v-layout>
-
-      <v-layout mb-4 justify-space-between>
-        <v-btn color="primary" @click="cancel" rounded outlined class="mb-2 rounded-button">Cancel</v-btn>
-
-        <v-btn
-          color="primary"
-          @click="addSubsystem"
-          rounded
-          dark
-          class="mb-2 rounded-button"
-        >Add subsystem</v-btn>
-      </v-layout>
-    </v-layout>
-  </v-container>
+    <SubsystemDetailsPage
+      @cancel="cancel"
+      @done="clientDetailsReady"
+      saveButtonText="action.submit"
+    >
+      <div>
+        {{$t('wizard.subsystem.info1')}}
+        <br />
+        <br />
+        {{$t('wizard.subsystem.info2')}}
+      </div>
+      <div class="action-block">
+        <large-button
+          @click="showSelectClient = true"
+          outlined
+        >{{$t('wizard.subsystem.selectSubsystem')}}</large-button>
+      </div>
+    </SubsystemDetailsPage>
+    <SelectClientDialog :dialog="showSelectClient" @cancel="showSelectClient = false" />
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName } from '@/global';
+import { mapGetters } from 'vuex';
+import HelpIcon from '@/components/ui/HelpIcon.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
+import SelectClientDialog from '@/views/AddClient/SelectClientDialog.vue';
+
+import { Key, Token } from '@/types';
+import { RouteName, UsageTypes } from '@/global';
+import * as api from '@/util/api';
 
 export default Vue.extend({
-  data: () => ({
-    member: {
-      name: 'Kuikka',
-      class: 'Org',
-      code: '111',
+  components: {
+    HelpIcon,
+    LargeButton,
+    SubViewTitle,
+    SubsystemDetailsPage,
+    SelectClientDialog,
+  },
+  props: {
+    clientId: {
+      type: String,
+      required: true,
     },
-  }),
+  },
+  data() {
+    return {
+      currentStep: 1,
+      showSelectClient: false,
+    };
+  },
+  computed: {
+    ...mapGetters(['localMembersIds']),
+  },
   methods: {
-    addSubsystem() {
-      console.log('add subsystem');
+    save(): void {
+      this.$store.dispatch('fetchCsrForm').then(
+        (response) => {
+          this.currentStep = 2;
+        },
+        (error) => {
+          this.$bus.$emit('show-error', error.message);
+        },
+      );
     },
-    cancel() {
+    cancel(): void {
+      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
+
+    clientDetailsReady(): void {
+      this.$store.dispatch('showSuccess', 'subsystem_code');
+      /*
+
+      this.$bus.$emit(
+        'show-indefinite',
+        'viesti',
+        this.$store.dispatch('fetchCsrForm'),
+      ); */
+    },
+
+    done(): void {
+      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetAddClientState');
+      this.$router.replace({ name: RouteName.Clients });
+    },
+    fetchData(): void {
+      // Fetch "parent" client from backend
+      this.$store.dispatch('fetchClient', this.clientId).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
+    },
+  },
+
+  created() {
+    this.fetchData();
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.input-title {
-  max-width: 160px;
-  text-align: left;
+@import '../../assets/colors';
+@import '../../assets/shared';
+
+.view-wrap {
+  width: 100%;
+  max-width: 850px;
+  margin: 10px;
 }
 
-.subs-input {
-  text-align: left;
+.view-title {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 30px;
 }
 
-.input-name {
-  padding-top: 0;
-  margin-top: 0;
+.stepper-content {
+  width: 100%;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stepper {
+  width: 100%;
+}
+
+.noshadow {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
 }
 </style>
-

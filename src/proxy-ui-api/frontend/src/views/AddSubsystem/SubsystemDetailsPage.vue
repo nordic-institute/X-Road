@@ -3,10 +3,10 @@
     <div class="info-block">
       <slot>
         <div>
-          {{$t('wizard.clientInfo1')}}
+          {{$t('wizard.subsystem.info1')}}
           <br />
           <br />
-          {{$t('wizard.clientInfo2')}}
+          {{$t('wizard.subsystem.info2')}}
         </div>
         <div class="action-block">
           <large-button
@@ -21,34 +21,16 @@
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="selectedMember" data-test="selected-member-name">{{selectedMember.member_name}}</div>
+        <div v-if="client" data-test="selected-member-name">{{client.member_name}}</div>
       </div>
 
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
-
-        <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            v-model="memberClass"
-            data-test="member-class-input"
-          ></v-text-field>
-        </ValidationProvider>
+        <div v-if="client" data-test="selected-member-name">{{client.member_class}}</div>
       </div>
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
-
-        <ValidationProvider name="addClient.memberCode" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            v-model="memberCode"
-            data-test="member-code-input"
-          ></v-text-field>
-        </ValidationProvider>
+        <div v-if="client" data-test="selected-member-name">{{client.member_code}}</div>
       </div>
 
       <div v-if="showSubsystem" class="row-wrap">
@@ -86,7 +68,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SelectClientDialog from './SelectClientDialog.vue';
+import SelectClientDialog from '@/views/AddClient/SelectClientDialog.vue';
 import { Client } from '@/types';
 
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
@@ -110,8 +92,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapGetters(['localMembers']),
-
+    ...mapGetters(['client', 'localMembers']),
     memberClass: {
       get(): string {
         return this.$store.getters.memberClass;
@@ -178,6 +159,8 @@ export default Vue.extend({
   data() {
     return {
       disableDone: false,
+      certificationService: undefined,
+      filteredServiceList: [],
       showSelectClient: false as boolean,
     };
   },
@@ -187,6 +170,16 @@ export default Vue.extend({
     },
     done(): void {
       this.$emit('done');
+    },
+    generateCsr(): void {
+      this.$store.dispatch('generateCsr').then(
+        (response) => {
+          this.disableDone = false;
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+        },
+      );
     },
   },
   created() {
