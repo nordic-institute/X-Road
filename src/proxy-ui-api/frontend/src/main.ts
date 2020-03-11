@@ -10,7 +10,7 @@ import store from './store';
 import 'roboto-fontface/css/roboto/roboto-fontface.css';
 import './assets/icons.css';
 import i18n from './i18n';
-import VueClipboard from 'vue-clipboard2'
+import VueClipboard from 'vue-clipboard2';
 
 Vue.config.productionTip = false;
 

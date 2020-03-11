@@ -103,7 +103,7 @@ export const mutations: MutationTree<NotificationsState> = {
   },
   setErrorObjectVisible(state, val: boolean) {
     state.showErrorObject = val;
-  }
+  },
 };
 
 export const actions: ActionTree<NotificationsState, RootState> = {
@@ -112,7 +112,7 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     commit('resetNotificationsState');
   },
   showSuccess({ commit }, localisationCode: string) {
-    // Show success snackbar with a localisation code for text 
+    // Show success snackbar with a localisation code for text
     commit('setSuccessCode', localisationCode);
   },
   showSuccessRaw({ commit }, messageText: string) {
@@ -120,7 +120,7 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     commit('setSuccessRaw', messageText);
   },
   showErrorMessageCode({ commit }, localisationCode: string) {
-    // Show error snackbar with a localisation code for text 
+    // Show error snackbar with a localisation code for text
     commit('setErrorMessageCode', localisationCode);
   },
   showErrorMessageRaw({ commit }, messageText: string) {
