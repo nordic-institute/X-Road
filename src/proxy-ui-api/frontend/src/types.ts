@@ -74,7 +74,7 @@ export interface CertificateAuthority {
   /**
    * distinguished name
    * example:
-   * /C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN
+   * C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
    */
   distinguished_name: string; // text
   /**
@@ -221,11 +221,17 @@ export interface Client {
    */
   readonly id?: string; // text
   /**
+   * xroad instance id
+   * example:
+   * FI
+   */
+  readonly instance_id?: string; // text
+  /**
    * member name
    * example:
    * FI
    */
-  member_name?: string; // text
+  readonly member_name?: string; // text
   /**
    * member class
    * example:
@@ -243,7 +249,7 @@ export interface Client {
    * example:
    * ABC
    */
-  subsystem_code: string; // text
+  subsystem_code?: string; // text
   /**
    * if this client is the owner member of this security server
    * example:
@@ -251,7 +257,7 @@ export interface Client {
    */
   readonly owner?: boolean;
   connection_type?: ConnectionType; // enum
-  status?: ClientStatus; // enum
+  readonly status?: ClientStatus; // enum
 }
 /**
  * request to add client. Carries a Client and ignore warnings parameter
@@ -412,7 +418,16 @@ export interface Endpoint {
    * example:
    * GET
    */
-  method: string;
+  method:
+    | '*'
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'PATCH'
+    | 'HEAD'
+    | 'OPTIONS'
+    | 'TRACE';
   /**
    * relative path where this endpoint is mapped to
    * example:

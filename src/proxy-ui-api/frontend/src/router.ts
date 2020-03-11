@@ -10,7 +10,7 @@ import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAnd
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
-import SystemParameters from '@/views/Settings/SystemParameters.vue';
+import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore.vue';
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
