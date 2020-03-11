@@ -67,7 +67,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 /**
@@ -906,26 +905,8 @@ public class ClientServiceIntegrationTest {
         clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
     }
 
-    @Test
-    public void changeOwner() {
-        // "changeOwner" does not do any local changes on the Security Server,
-        // it just send a "OwnerChangeRequest" management request. Therefore,
-        // any local changes cannot be validated.
-        try {
-            clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
-                    null, IsAuthentication.SSLAUTH, false);
-            doAnswer((i) -> {
-                assertEquals(newOwnerClientId, i.getArgument(0));
-                return 0;
-            }).when(managementRequestSenderService).sendOwnerChangeRequest(any());
-            clientService.changeOwner(newOwnerClientId);
-        } catch (Exception e) {
-            fail("should have not thrown Exception");
-        }
-    }
-
     @Test(expected = ActionNotPossibleException.class)
-    public void changeOwnerActionNotPossibleException() throws Exception {
+    public void changeOwnerNewOwnerSubsystem() throws Exception {
         // New owner ("existingClientId") is a subsystem which is not allowed
         clientService.changeOwner(existingRegisteredClientId);
     }
@@ -936,25 +917,15 @@ public class ClientServiceIntegrationTest {
                 "client", null));
     }
 
-    @Test(expected = CodedException.class)
-    public void changeOwnerCodedException() throws Exception {
+    @Test(expected = ActionNotPossibleException.class)
+    public void changeOwnerNewOwnerNotRegistered() throws Exception {
         clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                 null, IsAuthentication.SSLAUTH, false);
-        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(CodedException.class);
-        clientService.changeOwner(newOwnerClientId);
-    }
-
-    @Test(expected = DeviationAwareRuntimeException.class)
-    public void changeOwnerRuntimeException() throws Exception {
-        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
-                null, IsAuthentication.SSLAUTH, false);
-        when(managementRequestSenderService.sendOwnerChangeRequest(any()))
-                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.changeOwner(newOwnerClientId);
     }
 
     @Test(expected = ClientService.MemberAlreadyOwnerException.class)
-    public void changeOwnerMemberAlreadyOwnerException() throws Exception {
+    public void changeOwnerNewOwnerAlreadyOwner() throws Exception {
         clientService.changeOwner(ownerClientId);
     }
 
