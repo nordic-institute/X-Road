@@ -3,15 +3,7 @@ import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-
-export interface Client {
-  id: string;
-  name: string;
-  type?: string;
-  status?: string;
-  subsystem?: Client[];
-  connection_type?: string;
-}
+import { Client } from '@/types';
 
 export interface ClientState {
   client: Client | null;
