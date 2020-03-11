@@ -483,6 +483,30 @@ public class ClientService {
     }
 
     /**
+     * Changes Security Server owner
+     * @param clientId client to set as a new owner
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws MemberAlreadyOwnerException
+     */
+    public void changeOwner(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            MemberAlreadyOwnerException, ActionNotPossibleException {
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (ownerId.equals(client.getIdentifier())) {
+            throw new MemberAlreadyOwnerException();
+        }
+        if (clientId.getSubsystemCode() != null) {
+            throw new ActionNotPossibleException("Only member can be an owner");
+        }
+        try {
+            managementRequestSenderService.sendOwnerChangeRequest(clientId);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
      * Merge two client lists into one with only unique clients. The distinct clients in the latter list
      * {@code moreClients} are favoured in the case of duplicates.
      * @param clients list of clients
@@ -704,6 +728,17 @@ public class ClientService {
 
         public CannotUnregisterOwnerException() {
             super(new ErrorDeviation(CANNOT_UNREGISTER_OWNER));
+        }
+    }
+
+    /**
+     * Thrown when trying to make the current owner the new owner
+     */
+    public static class MemberAlreadyOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_MAKE_OWNER = "member_already_owner";
+
+        public MemberAlreadyOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_MAKE_OWNER));
         }
     }
 }
