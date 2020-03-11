@@ -122,7 +122,6 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client unregister request as a normal X-Road message
-     * @param securityServer the security server id
      * @param clientId the client id that will be unregistered
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException

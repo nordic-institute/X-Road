@@ -456,11 +456,12 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.unregisterClient(clientId);
-        } catch (GlobalConfOutdatedException | ClientService.CannotUnregisterOwnerException
-                | ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException  e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

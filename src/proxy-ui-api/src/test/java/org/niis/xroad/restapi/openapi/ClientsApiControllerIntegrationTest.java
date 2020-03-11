@@ -926,15 +926,34 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerOwner() {
+        clientsApiController.registerClient(TestUtils.OWNER_ID);
+    }
+
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
     public void registerClientWrongStatus() {
         clientsApiController.registerClient(TestUtils.CLIENT_ID_SS1);
     }
 
-    @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
-    public void registerOwner() {
-        clientsApiController.registerClient(TestUtils.OWNER_ID);
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
+    public void unregisterOwner() {
+        clientsApiController.unregisterClient(TestUtils.OWNER_ID);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
+    public void unregisterClient() {
+        ResponseEntity<Void> response = clientsApiController.unregisterClient(TestUtils.CLIENT_ID_SS1);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
+    public void unregisterClientWrongStatus() {
+        clientsApiController.unregisterClient(TestUtils.CLIENT_ID_M2_SS6);
     }
 }

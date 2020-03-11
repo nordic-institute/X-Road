@@ -431,6 +431,7 @@ public class ClientService {
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws CannotRegisterOwnerException
+     * @throws ActionNotPossibleException
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotRegisterOwnerException, ActionNotPossibleException {
@@ -457,7 +458,7 @@ public class ClientService {
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
-     * @throws ActionNotPossibleException when trying do unregister a client that is already unregistered
+     * @throws ActionNotPossibleException when trying do unregister a client that cannot be unregistered
      */
     public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
