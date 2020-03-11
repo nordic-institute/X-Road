@@ -15,9 +15,11 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires:  rlwrap, crudini
+%if 0%{?el7}
+Requires:  rlwrap
+%endif
 Requires:  jre-1.8.0-headless >= 1.8.0.51
-Requires:  sudo
+Requires:  crudini, hostname, sudo
 
 %define src %{_topdir}/..
 
