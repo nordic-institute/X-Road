@@ -56,4 +56,5 @@ public class ServerConfRepository {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
+
 }
