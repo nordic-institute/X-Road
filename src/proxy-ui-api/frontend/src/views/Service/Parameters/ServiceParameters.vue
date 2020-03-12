@@ -281,7 +281,6 @@ export default Vue.extend({
           ssl_auth_all: this.ssl_auth_all,
         })
         .then((res) => {
-          this.$bus.$emit('saveService', res.data);
           this.$store.dispatch('showSuccess', 'Service saved');
         })
         .catch((error) => {
