@@ -942,4 +942,24 @@ public class ClientServiceIntegrationTest {
         clientService.changeOwner(ownerClientId);
     }
 
+    @Test(expected = CodedException.class)
+    public void changeOwnerCodedException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(CodedException.class);
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+        clientType.setClientStatus(STATUS_REGISTERED);
+        clientService.changeOwner(newOwnerClientId);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void changeOwnerRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+        clientType.setClientStatus(STATUS_REGISTERED);
+        clientService.changeOwner(newOwnerClientId);
+    }
 }
