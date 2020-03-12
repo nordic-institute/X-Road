@@ -50,7 +50,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      search: '',
+      search: '' as string,
     };
   },
   computed: {

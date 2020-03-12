@@ -64,7 +64,7 @@ export default Vue.extend({
     },
     canBackup: {
       type: Boolean,
-      default: true,
+      default: false,
       required: true,
     },
   },
