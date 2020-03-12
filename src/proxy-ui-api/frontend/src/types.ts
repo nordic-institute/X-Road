@@ -62,38 +62,62 @@ export interface Backup {
   created_at: string; // date-time
 }
 /**
- * approved certificate authority information
+ * approved certificate authority information. Only for top CAs.
  */
 export interface CertificateAuthority {
   /**
-   * common name of the CA, used also as an identifier
+   * name of the CA, as defined in global conf. Used also as an identifier
    * example:
    * X-Road Test CA CN
    */
   name: string; // text
   /**
-   * distinguished name
+   * subject distinguished name
    * example:
    * C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
    */
-  distinguished_name: string; // text
+  subject_distinguished_name: string; // text
   /**
-   * certificate authority response
+   * issuer distinguished name
    * example:
-   * N/A
+   * C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
    */
-  response: string; // text
+  issuer_distinguished_name: string; // text
+  ocsp_response: CertificateAuthorityOcspResponse; // enum
   /**
    * certificate authority expires at
    * example:
    * 2099-12-15T00:00:00.001Z
    */
-  expires_at: string; // date-time
+  not_after: string; // date-time
+  /**
+   * if the certificate authority is top CA (instead of intermediate)
+   * example:
+   * true
+   */
+  top_ca: boolean;
+  /**
+   * encoded path string from this CA to top CA
+   * example:
+   * C=FI, O=X-Road Test Intermediate, OU=X-Road Test CA OU, CN=X-Road Test CA CN Intermediate:C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+   */
+  path: string; // text
   /**
    * if certificate authority is limited for authentication use only
    */
   authentication_only: boolean;
 }
+/**
+ * certificate authority OCSP status
+ * example:
+ * IN_USE
+ */
+export type CertificateAuthorityOcspResponse =
+  | 'NOT_AVAILABLE'
+  | 'OCSP_RESPONSE_UNKNOWN'
+  | 'OCSP_RESPONSE_GOOD'
+  | 'OCSP_RESPONSE_SUSPENDED'
+  | 'OCSP_RESPONSE_REVOKED'; // enum
 /**
  * certificate details for any kind of certificate (TLS, auth, sign)
  */
