@@ -1068,7 +1068,6 @@ public class ClientsApiControllerIntegrationTest {
                 "GOV", "M2", null)).ignoreWarnings(true));
 
         ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.NEW_OWNER_ID);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test(expected = BadRequestException.class)

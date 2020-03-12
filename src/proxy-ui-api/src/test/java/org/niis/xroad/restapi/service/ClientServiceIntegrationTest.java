@@ -905,6 +905,19 @@ public class ClientServiceIntegrationTest {
         clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
     }
 
+    @Test
+    public void changeOwner() {
+        try {
+            clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                    null, IsAuthentication.SSLAUTH, false);
+            ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+            clientType.setClientStatus(STATUS_REGISTERED);
+            clientService.changeOwner(newOwnerClientId);
+        } catch (Exception e) {
+            fail("should have not thrown Exception");
+        }
+    }
+
     @Test(expected = ActionNotPossibleException.class)
     public void changeOwnerNewOwnerSubsystem() throws Exception {
         // New owner ("existingClientId") is a subsystem which is not allowed
