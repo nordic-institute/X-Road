@@ -22,39 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Management request failed
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+public class ManagementRequestSendingFailedException extends ServiceException {
+    public static final String MANAGEMENT_REQUEST_SENDING_FAILED = "management_request_sending_failed";
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public ManagementRequestSendingFailedException(Throwable t) {
+        super(t, createError(t));
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
+    private static ErrorDeviation createError(Throwable t) {
+        return new ErrorDeviation(MANAGEMENT_REQUEST_SENDING_FAILED, t.getMessage());
     }
-
 }

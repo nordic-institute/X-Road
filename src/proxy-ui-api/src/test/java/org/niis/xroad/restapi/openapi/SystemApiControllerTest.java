@@ -31,19 +31,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
-import org.niis.xroad.restapi.service.GlobalConfService;
-import org.niis.xroad.restapi.service.ServerConfService;
+import org.niis.xroad.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.restapi.service.SystemService;
+import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.VersionService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -52,16 +56,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 /**
@@ -84,17 +90,10 @@ public class SystemApiControllerTest {
     private SystemApiController systemApiController;
 
     @MockBean
-    GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @MockBean
-    ServerConfService serverConfService;
-
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-
-    private static final Map<String, TspType> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
-
-    private static final List<TspType> CONFIGURED_TIMESTAMPING_SERVICES = new ArrayList<>();
+    private  SystemService systemService;
 
     private static final String TSA_1_URL = "https://tsa.com";
 
@@ -104,24 +103,16 @@ public class SystemApiControllerTest {
 
     private static final String TSA_2_NAME = "TSA 2";
 
+    private static final String ANCHOR_HASH =
+            "CE2CA4FBBB67260F6CE97F9BCB73501F40432A1A2C4E5DA6F9F50DD1";
+
+    private static final String ANCHOR_CREATED_AT = "2019-04-28T09:03:31.841Z";
+
+    private static final Long ANCHOR_CREATED_AT_MILLIS = 1556442211841L;
+
     @Before
     public void setup() {
-
-        TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
-        TspType tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
-        APPROVED_TIMESTAMPING_SERVICES.put(tsa1.getName(), tsa1);
-        APPROVED_TIMESTAMPING_SERVICES.put(tsa2.getName(), tsa2);
-
-        CONFIGURED_TIMESTAMPING_SERVICES.addAll(Arrays.asList(tsa1));
-
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
-        when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
-                Arrays.asList(tsa1, tsa2));
-        when(globalConfService.getApprovedTspName(TSA_1_URL))
-                .thenReturn(tsa1.getName());
-        when(globalConfService.getApprovedTspName(TSA_2_URL))
-                .thenReturn(tsa2.getName());
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(CONFIGURED_TIMESTAMPING_SERVICES);
     }
 
     @Test
@@ -162,19 +153,23 @@ public class SystemApiControllerTest {
     @Test
     @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getConfiguredTimestampingServices() {
+        when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(
+                Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME),
+                        TestUtils.createTspType(TSA_2_URL, TSA_2_NAME))));
+
         ResponseEntity<List<TimestampingService>> response =
                 systemApiController.getConfiguredTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<TimestampingService> timestampingServices = response.getBody();
 
-        assertEquals(CONFIGURED_TIMESTAMPING_SERVICES.size(), timestampingServices.size());
+        assertEquals(2, timestampingServices.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getConfiguredTimestampingServicesEmptyList() {
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
+        when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
 
         ResponseEntity<List<TimestampingService>> response =
                 systemApiController.getConfiguredTimestampingServices();
@@ -188,27 +183,24 @@ public class SystemApiControllerTest {
     @Test
     @WithMockUser(authorities = { "ADD_TSP" })
     public void addConfiguredTimestampingService() {
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
-                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
 
         ResponseEntity<TimestampingService> response = systemApiController
                 .addConfiguredTimestampingService(timestampingService);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(2, serverConfService.getConfiguredTimestampingServices().size());
-        assertEquals(serverConfService.getConfiguredTimestampingServices().get(1).getName(),
-                timestampingService.getName());
-        assertEquals(serverConfService.getConfiguredTimestampingServices().get(1).getUrl(),
-                timestampingService.getUrl());
+        assertEquals(TSA_2_NAME, response.getBody().getName());
+        assertEquals(TSA_2_URL, response.getBody().getUrl());
     }
 
     @Test
     @WithMockUser(authorities = { "ADD_TSP" })
-    public void addDuplicateConfiguredTimestampingService() {
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
-                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
+    public void addDuplicateConfiguredTimestampingService() throws
+            SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+
+        doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
+                .addConfiguredTimestampingService(timestampingService);
 
         try {
             ResponseEntity<TimestampingService> response = systemApiController
@@ -221,11 +213,14 @@ public class SystemApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "ADD_TSP" })
-    public void addNonExistingConfiguredTimestampingService() {
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
-                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
+    public void addNonExistingConfiguredTimestampingService() throws
+            SystemService.DuplicateConfiguredTimestampingServiceException,
+            TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils
                 .createTimestampingService("http://dummy.com", "Dummy");
+
+        doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
+                .addConfiguredTimestampingService(timestampingService);
 
         try {
             ResponseEntity<TimestampingService> response = systemApiController
@@ -239,25 +234,78 @@ public class SystemApiControllerTest {
     @Test
     @WithMockUser(authorities = { "DELETE_TSP" })
     public void deleteConfiguredTimestampingService() {
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(
-                new ArrayList<TspType>(Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME))));
-
         ResponseEntity<Void> response = systemApiController
                 .deleteConfiguredTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME));
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        assertEquals(0, serverConfService.getConfiguredTimestampingServices().size());
     }
 
     @Test
     @WithMockUser(authorities = { "DELETE_TSP" })
-    public void deleteNonExistingConfiguredTimestampingService() {
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
+    public void deleteNonExistingConfiguredTimestampingService() throws TimestampingServiceNotFoundException {
+        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+
+        doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
+                .deleteConfiguredTimestampingService(timestampingService);
 
         try {
             ResponseEntity<Void> response = systemApiController
-                    .deleteConfiguredTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME));
+                    .deleteConfiguredTimestampingService(timestampingService);
             fail("should throw ResourceNotFoundException");
         } catch (BadRequestException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_ANCHOR" })
+    public void getAnchor() throws AnchorNotFoundException {
+        AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
+        anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        when(systemService.getAnchorFile()).thenReturn(anchorFile);
+
+        ResponseEntity<Anchor> response = systemApiController.getAnchor();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        Anchor anchor = response.getBody();
+        assertEquals(ANCHOR_HASH, anchor.getHash());
+        assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_ANCHOR" })
+    public void getAnchorNotFound() throws AnchorNotFoundException {
+        doThrow(new AnchorNotFoundException("")).when(systemService).getAnchorFile();
+
+        try {
+            ResponseEntity<Anchor> response = systemApiController.getAnchor();
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
+    public void downloadAnchor() throws AnchorNotFoundException, IOException {
+        byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
+        when(systemService.readAnchorFile()).thenReturn(bytes);
+        when(systemService.getAnchorFilenameForDownload())
+                .thenReturn("configuration_anchor_UTC_2019-04-28_09_03_31.xml");
+
+        ResponseEntity<Resource> response = systemApiController.downloadAnchor();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(bytes.length, response.getBody().contentLength());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
+    public void downloadAnchorNotFound() throws AnchorNotFoundException {
+        doThrow(new AnchorNotFoundException("")).when(systemService).readAnchorFile();
+
+        try {
+            ResponseEntity<Resource> response = systemApiController.downloadAnchor();
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException expected) {
             // success
         }
     }

@@ -24,37 +24,49 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Anchor repository
  */
 @Slf4j
 @Repository
-@Transactional
-public class ServerConfRepository {
+public class AnchorRepository {
+    private static final String CONFIGURATION_ANCHOR_FILENAME = SystemProperties.getConfigurationAnchorFile();
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    /**
+     * Read anchor file's content
+     * @return
+     * @throws NoSuchFileException if anchor file does not exist
+     */
+    public byte[] readAnchorFile() throws NoSuchFileException {
+        Path path = Paths.get(CONFIGURATION_ANCHOR_FILENAME);
+        try {
+            return Files.readAllBytes(path);
+        } catch (NoSuchFileException nsfe) {
+            log.error("anchor file does not exist (" + path.toString() + ")");
+            throw nsfe;
+        } catch (IOException ioe) {
+            log.error("can't read anchor file's content (" + path.toString() + ")");
+            throw new RuntimeException(ioe);
+        }
     }
 
     /**
-     * Return ServerConfType
+     * Load anchor from file
      * @return
      */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
+    public ConfigurationAnchorV2 loadAnchorFromFile() {
+        return new ConfigurationAnchorV2(CONFIGURATION_ANCHOR_FILENAME);
     }
-
 }

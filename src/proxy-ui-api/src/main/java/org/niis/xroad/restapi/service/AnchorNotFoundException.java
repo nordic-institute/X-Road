@@ -22,39 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * If anchor file was not found
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+public class AnchorNotFoundException extends NotFoundException {
 
-    private final PersistenceUtils persistenceUtils;
+    public static final String ERROR_ANCHOR_NOT_FOUND = "anchor_not_found";
 
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public AnchorNotFoundException(String s)  {
+        super(s, new ErrorDeviation(ERROR_ANCHOR_NOT_FOUND));
     }
-
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
-
 }

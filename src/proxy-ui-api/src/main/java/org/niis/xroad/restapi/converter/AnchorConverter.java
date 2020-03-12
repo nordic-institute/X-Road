@@ -22,39 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.openapi.model.Anchor;
+import org.springframework.stereotype.Component;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Converter for Anchor related data between openapi and service domain classes
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+@Component
+public class AnchorConverter {
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public Anchor convert(AnchorFile anchorFile) {
+        Anchor anchor = new Anchor();
+        anchor.setHash(anchorFile.getHash());
+        anchor.setCreatedAt(anchorFile.getCreatedAt());
+        return anchor;
     }
-
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
-
 }

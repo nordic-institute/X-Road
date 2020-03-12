@@ -34,7 +34,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -128,14 +127,6 @@ public class GlobalConfService {
         }
     }
 
-    public static class GlobalConfOutdatedException extends ServiceException {
-        public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
-
-        public GlobalConfOutdatedException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
-        }
-    }
-
     static boolean isCausedByOutdatedGlobalconf(CodedException e) {
         return X_OUTDATED_GLOBALCONF.equals(e.getFaultCode());
     }
@@ -170,7 +161,6 @@ public class GlobalConfService {
     }
 
     /**
-     *
      * @param url
      * @return name of the timestamping service with the given url
      */

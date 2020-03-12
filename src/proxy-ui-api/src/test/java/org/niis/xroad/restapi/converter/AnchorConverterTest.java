@@ -22,39 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import org.junit.Before;
+import org.junit.Test;
+import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.openapi.model.Anchor;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import java.time.ZoneOffset;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Test AnchorConverter
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+public class AnchorConverterTest {
 
-    private final PersistenceUtils persistenceUtils;
+    private AnchorConverter anchorConverter;
 
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    private static final String ANCHOR_HASH =
+            "CE:2C:A4:FB:BB:67:26:0F:6C:E9:7F:9B:CB:73:50:1F:40:43:2A:1A:2C:4E:5D:A6:F9:F5:0D:D1";
+
+    private static final String CREATED_AT = "2019-04-28T09:03:31.841Z";
+
+    private static final Long CREATED_AT_MILLIS = 1556442211841L;
+
+    @Before
+    public void setup() {
+        anchorConverter = new AnchorConverter();
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
+    @Test
+    public void convertAnchor() {
+        AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
+        anchorFile.setCreatedAt(new Date(CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
+        Anchor anchor = anchorConverter.convert(anchorFile);
+
+        assertEquals(ANCHOR_HASH, anchorFile.getHash());
+        assertEquals(CREATED_AT, anchorFile.getCreatedAt().toString());
+    }
 }
