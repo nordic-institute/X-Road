@@ -1,11 +1,21 @@
 <template>
-  <v-container>
-    <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
+  <div class="wrapper xrd-view-common">
+    <v-tabs
+      v-model="tab"
+      class="xrd-tabs"
+      color="secondary"
+      grow
+      slider-size="4"
+    >
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">
+        {{ $t(tab.name) }}</v-tab
+      >
     </v-tabs>
-    <router-view />
-  </v-container>
+    <div class="content">
+      <router-view />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -36,4 +46,8 @@ export default Vue.extend({
   },
 });
 </script>
-
+<style lang="scss">
+.content {
+  width: 1000px;
+}
+</style>
