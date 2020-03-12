@@ -12,7 +12,7 @@ import { Permissions } from '@/global';
 </template>
 
 <script lang="ts">
-  import Vue from 'vue';
+import Vue from 'vue';
   import { Permissions, RouteName } from '@/global';
 
   export default Vue.extend({
@@ -30,7 +30,7 @@ import { Permissions } from '@/global';
           to: {
             name: RouteName.SystemParameters,
           },
-          permission: Permissions.VIEW_SYS_PARAMS
+          permission: Permissions.VIEW_SYS_PARAMS,
         },
         {
           key: 'backup',
@@ -38,11 +38,11 @@ import { Permissions } from '@/global';
           to: {
             name: RouteName.BackupAndRestore,
           },
-          permission: Permissions.BACKUP_CONFIGURATION
+          permission: Permissions.BACKUP_CONFIGURATION,
         },
       ];
       return this.$store.getters.getAllowedTabs(allTabs);
-    }
+    },
   },
 });
 </script>

@@ -77,10 +77,10 @@
               </tr>
               </thead>
               <tbody data-test="system-parameters-approved-ca-table-body">
-              <tr>
-                <td>/C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN</td>
-                <td>N/A</td>
-                <td>2020-03-11</td>
+              <tr v-for="approvedCA in approvedCertificateAuthorities" :key="approvedCA.path">
+                <td>{{approvedCA.subject_distinguished_name}}</td>
+                <td>{{approvedCA.ocsp_response}}</td>
+                <td>{{approvedCA.not_after | formatDate}}</td>
               </tr>
               </tbody>
             </table>
@@ -92,45 +92,52 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue';
-  import LargeButton from '@/components/ui/LargeButton.vue';
-  import SmallButton from '@/components/ui/SmallButton.vue';
-  import { Anchor, TimestampingService } from '@/types';
-  import * as api from '@/util/api';
-  import { Permissions } from '@/global';
+import Vue from 'vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import SmallButton from '@/components/ui/SmallButton.vue';
+import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
+import * as api from '@/util/api';
+import { Permissions } from '@/global';
 
-  export default Vue.extend({
-    components: {
-      LargeButton,
-      SmallButton,
+export default Vue.extend({
+  components: {
+    LargeButton,
+    SmallButton,
+  },
+  data() {
+    return {
+      configuratonAnchor: {} as Anchor,
+      configuredTimestampingServices: [] as TimestampingService[],
+      approvedCertificateAuthorities: [] as CertificateAuthority[],
+      permissions: Permissions,
+    };
+  },
+  methods: {
+    hasPermission(permission: Permissions): boolean {
+      return this.$store.getters.hasPermission(permission);
     },
-    data() {
-      return {
-        configuratonAnchor: {} as Anchor,
-        configuredTimestampingServices: [] as TimestampingService[],
-        permissions: Permissions
-      };
+    async fetchConfigurationAnchor() {
+      return api.get('/system/anchor')
+        .then((resp) => this.configuratonAnchor = resp.data)
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
-    methods: {
-      hasPermission(permission: Permissions): boolean {
-        return this.$store.getters.hasPermission(permission);
-      },
-      async fetchConfigurationAnchor() {
-        return api.get('/system/anchor')
-          .then(resp => this.configuratonAnchor = resp.data)
-          .catch(error => this.$bus.$emit('show-error', error.message));
-      },
-      async fetchConfiguredTimestampingServiced() {
-        return api.get('/system/timestamping-services')
-          .then(resp => this.configuredTimestampingServices = resp.data)
-          .catch(error => this.$bus.$emit('show-error', error.message));
-      }
+    async fetchConfiguredTimestampingServiced() {
+      return api.get('/system/timestamping-services')
+        .then((resp) => this.configuredTimestampingServices = resp.data)
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
-    created(): void {
-      this.fetchConfigurationAnchor();
-      this.fetchConfiguredTimestampingServiced();
-    }
-  });
+    async fetchApprovedCertificateAuthorities() {
+      return api.get('/certificate-authorities?include_intermediate_cas=true')
+        .then((resp) => this.approvedCertificateAuthorities = resp.data)
+        .catch((error) => this.$bus.$emit('show-error', error.message));
+    },
+  },
+  created(): void {
+    this.fetchConfigurationAnchor();
+    this.fetchConfiguredTimestampingServiced();
+    this.fetchApprovedCertificateAuthorities();
+  },
+});
 </script>
 
 <style lang="scss" scoped>

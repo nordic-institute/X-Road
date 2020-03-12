@@ -44,13 +44,13 @@ export default Vue.extend({
     requiresPermission: {
       required: false,
       type: String,
-      validator: (val) => Object.values(Permissions).some(permission => permission === val),
-    }
+      validator: (val) => Object.values(Permissions).some((permission) => permission === val),
+    },
   },
   computed: {
     isAllowed(): boolean {
       return this.requiresPermission === undefined || this.$store.getters.hasPermission(this.requiresPermission);
-    }
+    },
   },
   methods: {
     click(event: any): void {
