@@ -38,7 +38,7 @@
 
 <script lang="ts">
 /**
- * View for 'backup and restore' tab. Not implemented yet.
+ * View for 'backup and restore' tab
  */
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';

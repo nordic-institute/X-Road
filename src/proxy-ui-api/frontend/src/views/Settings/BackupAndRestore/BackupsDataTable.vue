@@ -73,7 +73,7 @@ export default Vue.extend({
   }),
   methods: {
     filtered(): Backup[] {
-      return selectedFilter(this.backups, this.filter, 'id');
+      return selectedFilter(this.backups, this.filter, 'created_at');
     },
     fetchData(): void {
       api
