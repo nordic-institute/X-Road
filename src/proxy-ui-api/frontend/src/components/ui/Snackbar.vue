@@ -39,7 +39,7 @@
     >
       {{ errorObject.message }}
       <br />
-      ID: {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
+      {{ $t('id') }}: {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
       <v-btn icon v-clipboard:copy="errorObject.response.headers['x-road-ui-correlation-id'] ">
         <v-icon>mdi-content-copy</v-icon>
       </v-btn>
