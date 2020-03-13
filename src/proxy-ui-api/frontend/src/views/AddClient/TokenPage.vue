@@ -30,11 +30,21 @@
           data-test="cancel-button"
         >{{$t('action.cancel')}}</large-button>
       </div>
-      <large-button
-        @click="done"
-        :disabled="disableNext"
-        data-test="next-button"
-      >{{$t('action.next')}}</large-button>
+
+      <div>
+        <large-button
+          @click="previous"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+        >{{$t('action.previous')}}</large-button>
+
+        <large-button
+          @click="done"
+          :disabled="disableNext"
+          data-test="next-button"
+        >{{$t('action.next')}}</large-button>
+      </div>
     </div>
   </div>
 </template>
@@ -78,6 +88,9 @@ export default Vue.extend({
   methods: {
     cancel(): void {
       this.$emit('cancel');
+    },
+    previous(): void {
+      this.$emit('previous');
     },
     done(): void {
       if (!this.tokenGroup || !this.tokenGroup.id) {

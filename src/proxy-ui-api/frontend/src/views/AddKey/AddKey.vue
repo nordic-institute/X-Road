@@ -18,11 +18,11 @@
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageCsrDetails @cancel="cancel" @done="save" />
+          <WizardPageCsrDetails @cancel="cancel" @previous="currentStep = 1" @done="save" />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content step="3">
-          <WizardPageGenerateCsr @cancel="cancel" @done="done" />
+          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 2" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
