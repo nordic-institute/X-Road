@@ -38,3 +38,4 @@ The script setup_security_server_sidecar.sh will:
 - Generate internal and admin UI TLS keys and certificates on the first run.
 - Configure xroad-autologin software token PIN code.
 - Configure admin username and password.
+- Update X-Road configuration on startup if the installed version on image has been updated.
