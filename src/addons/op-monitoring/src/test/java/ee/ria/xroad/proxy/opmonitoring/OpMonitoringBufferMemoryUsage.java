@@ -183,8 +183,6 @@ public final class OpMonitoringBufferMemoryUsage {
 
             record.setSucceeded(true);
 
-            //record.setSoapFault(exception);
-
             buffer.put(i, record);
         }
 

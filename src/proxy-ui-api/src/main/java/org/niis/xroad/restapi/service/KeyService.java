@@ -38,7 +38,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -98,7 +100,7 @@ public class KeyService {
      * @param keyId id of a key inside the token
      * @throws NoSuchElementException if key with keyId was not found
      */
-    public KeyInfo getKey(TokenInfo tokenInfo, String keyId) {
+    public KeyInfo getKey(TokenInfo tokenInfo, String keyId) throws NoSuchElementException {
         return tokenInfo.getKeyInfo().stream()
                 .filter(k -> k.getId().equals(keyId))
                 .findFirst()
@@ -179,11 +181,10 @@ public class KeyService {
      * @param keyId
      * @throws ActionNotPossibleException if delete was not possible for the key
      * @throws KeyNotFoundException if key with given id was not found
-     * @throws org.niis.xroad.restapi.service.GlobalConfService.GlobalConfOutdatedException
-     * if global conf was outdated
+     * @throws org.niis.xroad.restapi.service.GlobalConfOutdatedException if global conf was outdated
      */
     public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
-            GlobalConfService.GlobalConfOutdatedException {
+            GlobalConfOutdatedException {
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
 
@@ -202,9 +203,9 @@ public class KeyService {
 
         // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-            for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
+            for (CertificateInfo certificateInfo : keyInfo.getCerts()) {
                 if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
-                    || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
+                        || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
                     unregisterAuthCert(certificateInfo);
                 }
             }
@@ -225,7 +226,7 @@ public class KeyService {
      * Unregister one auth cert
      */
     private void unregisterAuthCert(CertificateInfo certificateInfo)
-            throws GlobalConfService.GlobalConfOutdatedException {
+            throws GlobalConfOutdatedException {
         // this permission is not checked by unregisterCertificate()
         verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
 
@@ -239,10 +240,23 @@ public class KeyService {
                     certificateInfo.getCertificateBytes());
             // update status
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
+        } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not unregister auth cert", e);
         }
     }
+
+    /**
+     * Return possible actions for one key
+     * @throw KeyNotFoundException if key with given id was not found
+     */
+    public EnumSet<PossibleActionEnum> getPossibleActionsForKey(String keyId) throws KeyNotFoundException {
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        KeyInfo keyInfo = getKey(tokenInfo, keyId);
+        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine
+                .getPossibleKeyActions(tokenInfo, keyInfo);
+        return possibleActions;
+    }
+
 }

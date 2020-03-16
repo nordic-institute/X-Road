@@ -26,18 +26,27 @@ package org.niis.xroad.restapi.util;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
+import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * Test utils for constants and generic object creation
@@ -55,6 +64,7 @@ public final class TestUtils {
     public static final String SS1_GET_RANDOM_V1 = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
+    public static final String SS6_OPENAPI_TEST = "FI:GOV:M2:SS6:openapi3-test.v1";
     public static final String URL_HTTPS = "https://foo.bar";
     public static final String URL_HTTP = "http://foo.bar";
     public static final String INSTANCE_FI = "FI";
@@ -63,14 +73,19 @@ public final class TestUtils {
     public static final String MEMBER_CLASS_PRO = "PRO";
     public static final String MEMBER_CODE_M1 = "M1";
     public static final String MEMBER_CODE_M2 = "M2";
+    public static final String MEMBER_CODE_M3 = "M3";
     public static final String SUBSYSTEM = "SUBSYSTEM";
     public static final String SUBSYSTEM1 = "SS1";
     public static final String SUBSYSTEM2 = "SS2";
     public static final String SUBSYSTEM3 = "SS3";
+    public static final String OWNER_ID = "FI:GOV:M1";
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";
     public static final String CLIENT_ID_SS4 = "FI:GOV:M1:SS4";
+    public static final String CLIENT_ID_SS5 = "FI:GOV:M1:SS5";
+    public static final String CLIENT_ID_SS6 = "FI:GOV:M1:SS6";
+    public static final String CLIENT_ID_M2_SS6 = "FI:GOV:M2:SS6";
     public static final String NEW_GROUPCODE = "NEW_GROUPCODE";
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NEW_GROUP_DESC = "NEW_GROUP_DESC";
@@ -116,6 +131,16 @@ public final class TestUtils {
     }
 
     /**
+     * Returns a new ClientId which has been built from encoded client id string,
+     * such as "FI:GOV:M1:SS1"
+     * @param encodedId
+     * @return
+     */
+    public static ClientId getClientId(String encodedId) {
+        return new ClientConverter(null, null).convertId(encodedId);
+    }
+
+    /**
      * Returns a new MemberInfo with given parameters
      * @param instance
      * @param memberClass
@@ -125,7 +150,7 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? NAME_FOR + subsystem : null);
+                subsystem != null ? NAME_FOR + subsystem : NAME_FOR + memberCode);
     }
 
     /**
@@ -175,5 +200,73 @@ public final class TestUtils {
         assertNull(locationHeaders);
     }
 
+    // this key has all roles in data.sql
+    public static final String API_KEY_HEADER_PREFIX = "X-Road-apikey token=";
+    public static final String API_KEY_TOKEN_WITH_ALL_ROLES = "d56e1ca7-4134-4ed4-8030-5f330bdb602a";
 
+    /**
+     * Add Authentication header for API key with all roles
+     * @param testRestTemplate
+     */
+    public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate) {
+        addApiKeyAuthorizationHeader(testRestTemplate, API_KEY_TOKEN_WITH_ALL_ROLES);
+    }
+
+    /**
+     * Add Authentication header for specific API key
+     * @param testRestTemplate
+     * @param apiKeyToken API key token
+     */
+    public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate,
+            String apiKeyToken) {
+        testRestTemplate.getRestTemplate().setInterceptors(
+                Collections.singletonList((request, body, execution) -> {
+                    request.getHeaders()
+                            .add("Authorization",
+                                    API_KEY_HEADER_PREFIX + apiKeyToken);
+                    return execution.execute(request, body);
+                }));
+    }
+
+    /**
+     * Creates a new TspType using the given url and name
+     * @param url
+     * @param name
+     * @return
+     */
+    public static TspType createTspType(String url, String name) {
+        TspType tsp = new TspType();
+        tsp.setUrl(url);
+        tsp.setName(name);
+        return tsp;
+    }
+
+    /**
+     * Creates a new TimestampingService using the given url and name
+     * @param url
+     * @param name
+     * @return
+     */
+    public static TimestampingService createTimestampingService(String url, String name) {
+        TimestampingService timestampingService = new TimestampingService();
+        timestampingService.setUrl(url);
+        timestampingService.setName(name);
+        return timestampingService;
+    }
+
+    /**
+     * Returns a file from classpath
+     * @param pathToFile
+     * @return
+     */
+    public static File getTestResourceFile(String pathToFile) {
+        File resource = null;
+        try {
+            resource = new ClassPathResource(pathToFile).getFile();
+        } catch (IOException e) {
+            fail("could not get test resource file");
+        }
+        assertNotNull(resource);
+        return resource;
+    }
 }

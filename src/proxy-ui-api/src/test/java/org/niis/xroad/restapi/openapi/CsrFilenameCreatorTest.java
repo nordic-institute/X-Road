@@ -27,12 +27,14 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.niis.xroad.restapi.openapi.CsrFilenameCreator.INTERNAL_CSR_FILE_EXTENSION;
+import static org.niis.xroad.restapi.openapi.CsrFilenameCreator.INTERNAL_CSR_FILE_PREFIX;
 
 /**
  * test CsrFilenameCreatorTest
@@ -40,28 +42,35 @@ import static org.junit.Assert.assertEquals;
 public class CsrFilenameCreatorTest {
 
     private CsrFilenameCreator csrFilenameCreator;
+    private static final String DATE = "20190228";
 
     @Before
     public void setup() throws Exception {
         csrFilenameCreator = new CsrFilenameCreator() {
             @Override
             String createDateString() {
-                return "20190228";
+                return DATE;
             }
         };
     }
 
     @Test
     public void createCsrFilename() {
-        SecurityServerId securityServerId = SecurityServerId.create("I", "MEMCLASS",  "MEMCODE", "SERVERCODE");
-        ClientId memberId = ClientId.create("I", "MEMCLASS",  "MEMCODE", null);
+        SecurityServerId securityServerId = SecurityServerId.create("I", "MEMCLASS", "MEMCODE", "SERVERCODE");
+        ClientId memberId = ClientId.create("I", "MEMCLASS", "MEMCODE", null);
         String authFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.AUTHENTICATION,
-                GenerateCertRequest.RequestFormat.PEM,
+                CertificateRequestFormat.PEM,
                 memberId, securityServerId);
-        assertEquals("auth_csr_20190228_securityserver_I_MEMCLASS_MEMCODE_SERVERCODE.pem", authFilename);
+        assertEquals("auth_csr_" + DATE + "_securityserver_I_MEMCLASS_MEMCODE_SERVERCODE.pem", authFilename);
         String signFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.SIGNING,
-                GenerateCertRequest.RequestFormat.DER,
+                CertificateRequestFormat.DER,
                 memberId, securityServerId);
-        assertEquals("sign_csr_20190228_member_I_MEMCLASS_MEMCODE.der", signFilename);
+        assertEquals("sign_csr_" + DATE + "_member_I_MEMCLASS_MEMCODE.der", signFilename);
+    }
+
+    @Test
+    public void createInternalCertCsrFilename() {
+        String filename = csrFilenameCreator.createInternalCsrFilename();
+        assertEquals(INTERNAL_CSR_FILE_PREFIX + DATE + INTERNAL_CSR_FILE_EXTENSION, filename);
     }
 }

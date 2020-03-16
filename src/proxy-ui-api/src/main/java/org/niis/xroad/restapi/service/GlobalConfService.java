@@ -28,11 +28,12 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,10 +57,13 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 public class GlobalConfService {
 
     private final GlobalConfFacade globalConfFacade;
+    private final ServerConfService serverConfService;
 
     @Autowired
-    public GlobalConfService(GlobalConfFacade globalConfFacade) {
+    public GlobalConfService(GlobalConfFacade globalConfFacade,
+            ServerConfService serverConfService) {
         this.globalConfFacade = globalConfFacade;
+        this.serverConfService = serverConfService;
     }
 
     /**
@@ -123,14 +127,6 @@ public class GlobalConfService {
         }
     }
 
-    public static class GlobalConfOutdatedException extends ServiceException {
-        public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
-
-        public GlobalConfOutdatedException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
-        }
-    }
-
     static boolean isCausedByOutdatedGlobalconf(CodedException e) {
         return X_OUTDATED_GLOBALCONF.equals(e.getFaultCode());
     }
@@ -140,6 +136,44 @@ public class GlobalConfService {
      */
     public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
         return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
+    }
+
+    /**
+     * @return approved timestamping services for current instance.
+     * {@link TspType#getId()} is null for all returned items
+     */
+    public List<TspType> getApprovedTspsForThisInstance() {
+        List<String> urls = globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
+        List<TspType> tsps = urls.stream()
+                .map(this::createTspType)
+                .collect(Collectors.toList());
+        return tsps;
+    }
+
+    /**
+     * init TspType DTO with name and url. id will be null
+     */
+    private TspType createTspType(String url) {
+        TspType tsp = new TspType();
+        tsp.setUrl(url);
+        tsp.setName(globalConfFacade.getApprovedTspName(globalConfFacade.getInstanceIdentifier(), url));
+        return tsp;
+    }
+
+    /**
+     * @param url
+     * @return name of the timestamping service with the given url
+     */
+    public String getApprovedTspName(String url) {
+        return globalConfFacade.getApprovedTspName(globalConfFacade.getInstanceIdentifier(), url);
+    }
+
+    /**
+     * Checks if given client is one of this security server's clients
+     */
+    public boolean isSecurityServerClientForThisInstance(ClientId client) {
+        return globalConfFacade.isSecurityServerClient(client,
+                serverConfService.getSecurityServerId());
     }
 
 }

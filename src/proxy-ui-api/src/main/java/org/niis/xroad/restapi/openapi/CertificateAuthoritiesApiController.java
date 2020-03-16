@@ -108,10 +108,9 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     @SuppressWarnings("squid:S3655") // see reason below
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
-            + " or #keyUsageType == null))"
-            + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
+            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
+            + "(#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING))")
     public ResponseEntity<List<CsrSubjectFieldDescription>> getSubjectFieldDescriptions(
             String caName,
             KeyUsageType keyUsageType,
@@ -121,6 +120,14 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).get();
+
+        // memberId is mandatory for sign csrs
+        if (keyUsageInfo == KeyUsageInfo.SIGNING) {
+            if (StringUtils.isBlank(encodedMemberId)) {
+                throw new BadRequestException("memberId is mandatory for sign csrs");
+            }
+        }
+
         try {
             if (!StringUtils.isBlank(keyId)) {
                 // validate that key.usage matches keyUsageType

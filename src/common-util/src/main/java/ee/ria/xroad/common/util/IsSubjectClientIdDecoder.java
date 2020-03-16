@@ -34,17 +34,14 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
-import java.util.regex.Pattern;
 
 import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
 
 /**
- * Helper class for decoding ClientId from Finnish X-Road instance signing
- * certificates.
+ * Helper class for decoding ClientId from Icelandic
+ * X-Road instance signing certificates.
  */
 public final class IsSubjectClientIdDecoder {
-
-    public static final int NUM_COMPONENTS = 3;
 
     private IsSubjectClientIdDecoder() {
         // utility class
@@ -66,49 +63,53 @@ public final class IsSubjectClientIdDecoder {
         return parseClientId(x500name);
     }
 
-    /*
-     * The encoding for clientID: <ul> <li>C = IS (country code must be 'IS' when
-     * using this decoder)</li> <li>O = organization (must be present) <li>CN =
-     * memberCode (business code without "Y" prefix)</li> <li>serialNumber =
-     * instanceIdentifier;serverCode;memberClass </ul>
+     /**
+     * The encoding for clientID:
+     *
+     *  C  = IS (country code must be 'IS' when using this decoder)
+     *  O  = instance identifier (must be present)
+     *  OU = memberClass
+     *  CN = memberCode
+     *  serialNumber = serverId, not used
      */
-
-    private static final Pattern SPLIT_PATTERN = Pattern.compile("/");
-
     private static ClientId parseClientId(X500Name x500name) {
-        String c = getRDNValue(x500name, BCStyle.C);
-        if (!"IS".equals(c)) {
+
+        // Country Code Identifier
+        String memberCountry = getRDNValue(x500name, BCStyle.C);
+        if (!"IS".equals(memberCountry)) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain valid country code");
+                "Certificate subject name does not contain valid country code");
         }
 
-        if (getRDNValue(x500name, BCStyle.O) == null) {
+        // Instance Identifier
+        String memberInstance = getRDNValue(x500name, BCStyle.O);
+        if (memberInstance == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain organization");
+                "Certificate subject name does not contain organization");
         }
 
+        // Member Class Identifier
+        String memberClass = getRDNValue(x500name, BCStyle.OU);
+        if (memberClass == null) {
+            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+                "Certificate subject name does not contain organization unit");
+        }
+
+        // Member Class Identifier
         String memberCode = getRDNValue(x500name, BCStyle.CN);
         if (memberCode == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain common name");
+                "Certificate subject name does not contain common name");
         }
 
-        String serialNumber = getRDNValue(x500name, BCStyle.SERIALNUMBER);
-        if (serialNumber == null) {
+        // Check if the Serial Number is present
+        if (getRDNValue(x500name, BCStyle.SERIALNUMBER) == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain serial number");
+                "Certificate subject name does not contain serial number");
         }
 
-        final String[] components = SPLIT_PATTERN.split(serialNumber);
-        if (components.length != NUM_COMPONENTS) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name's attribute serialNumber has invalid value");
-        }
-
-        // Note. components[1] = serverCode, unused
-        return ClientId.create(components[0], // instanceId
-                components[2], // memberClass
-                memberCode);
+        // Call factory method for creating a new ClientId.
+        return ClientId.create(memberInstance, memberClass, memberCode);
 
     }
 

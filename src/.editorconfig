@@ -11,8 +11,11 @@ indent_size=4
 [*.java]
 continuation_indent_size=8
 
-[*.rb]
+[{*.yml, *.yaml, *.vue, *.ts, *.rb}]
 indent_size=2
 
-[*.yml]
+[*.ts]
+indent_size=2
+
+[*.vue]
 indent_size=2

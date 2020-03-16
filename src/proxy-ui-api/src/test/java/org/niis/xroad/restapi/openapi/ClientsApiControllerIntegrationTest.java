@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +38,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -50,10 +54,14 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.restapi.service.TokenService;
-import org.niis.xroad.restapi.service.WsdlUrlValidator;
+import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.niis.xroad.restapi.wsdl.WsdlValidatorTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,13 +82,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
@@ -116,6 +130,9 @@ public class ClientsApiControllerIntegrationTest {
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
+    private SignerProxyFacade signerProxyFacade;
+
+    @MockBean
     private TokenService tokenService;
 
     @SpyBean
@@ -123,7 +140,10 @@ public class ClientsApiControllerIntegrationTest {
     private WsdlValidator wsdlValidator;
 
     @MockBean
-    private WsdlUrlValidator wsdlUrlValidator;
+    private UrlValidator urlValidator;
+
+    @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
 
     @Before
     public void setup() throws Exception {
@@ -147,7 +167,8 @@ public class ClientsApiControllerIntegrationTest {
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
                         TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        null))
+                        null)
+                )
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenService.getAllTokens()).thenReturn(mockTokens);
@@ -156,7 +177,8 @@ public class ClientsApiControllerIntegrationTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         // mock for URL validator - FormatUtils is tested independently
-        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
     }
 
     @Autowired
@@ -169,6 +191,19 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.findClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(9, response.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void ownerMemberFlag() {
+        ResponseEntity<List<Client>> response =
+                clientsApiController.findClients(null, null, null, null, null, true, false);
+        assertEquals(9, response.getBody().size());
+        List<Client> owners = response.getBody().stream()
+                .filter(Client::getOwner)
+                .collect(Collectors.toList());
+        assertEquals(1, owners.size());
+        assertEquals("FI:GOV:M1", owners.iterator().next().getId());
     }
 
     @Test
@@ -579,6 +614,84 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(1, clientsResponse.getBody().size());
     }
 
+    private Client createTestClient(String memberClass, String memberCode, String subsystemCode) {
+        Client client = new Client();
+        client.setMemberClass(memberClass);
+        client.setMemberCode(memberCode);
+        client.setSubsystemCode(subsystemCode);
+        return client;
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClient() {
+        Client clientToAdd = createTestClient("GOV", "M2", null);
+        ResponseEntity<Client> response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("FI", response.getBody().getInstanceId());
+        assertEquals("M2", response.getBody().getMemberCode());
+        assertEquals(ClientStatus.SAVED, response.getBody().getStatus());
+        assertEquals(ConnectionType.HTTPS, response.getBody().getConnectionType());
+        assertFalse(response.getBody().getOwner());
+        assertLocationHeader("/api/clients/FI:GOV:M2", response);
+
+        response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd
+                        .connectionType(ConnectionType.HTTPS_NO_AUTH)
+                        .subsystemCode("SUBSYSTEM1"))
+                        .ignoreWarnings(false));
+        assertEquals("SUBSYSTEM1", response.getBody().getSubsystemCode());
+        assertEquals(ClientStatus.SAVED, response.getBody().getStatus());
+        assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
+        assertLocationHeader("/api/clients/FI:GOV:M2:SUBSYSTEM1", response);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClientConflicts() {
+        // conflict: client already exists
+        Client clientToAdd = createTestClient("GOV", "M1", null);
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+        }
+
+        // conflict: two additional members
+        clientToAdd = createTestClient("GOV", "ADDITIONAL1", null);
+        ResponseEntity<Client> response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(true));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd.memberCode("ADDITIONAL2")).ignoreWarnings(true));
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClientBadRequestFromWarnings() {
+        // warning about unregistered client
+        doReturn(null).when(globalConfFacade).getMemberName(any());
+        Client clientToAdd = createTestClient("UNREGISTEREDA", "B", "C");
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_WARNINGS_DETECTED, expected.getErrorDeviation().getCode());
+        }
+
+        ResponseEntity<Client> response = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(true));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
@@ -669,8 +782,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(ERROR_INVALID_WSDL,
-                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
 
         // cannot ignore these fatal errors
@@ -679,8 +791,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(ERROR_INVALID_WSDL,
-                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
 
     }
@@ -696,8 +807,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(ERROR_INVALID_WSDL,
-                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
     }
 
@@ -820,5 +930,133 @@ public class ClientsApiControllerIntegrationTest {
                 "nothing", null, null, null, "unknown-code", null);
         subjects = subjectsResponse.getBody();
         assertEquals(0, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_CLIENT", "ADD_CLIENT", "VIEW_CLIENT_DETAILS" })
+    public void deleteClient() {
+        try {
+            clientsApiController.deleteClient("FI:GOV:M1");
+            fail("should have thrown exception (cant delete owner, or registered)");
+        } catch (ConflictException expected) {
+        }
+        try {
+            clientsApiController.deleteClient("FI:GOV:NOT-EXISTING");
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+        // create a new client, and then delete it
+        Client clientToAdd = createTestClient("GOV", "M3", null);
+        ResponseEntity<Client> addResponse = clientsApiController.addClient(
+                new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+        assertEquals(HttpStatus.CREATED, addResponse.getStatusCode());
+
+        ResponseEntity<Void> deleteResponse =
+                clientsApiController.deleteClient("FI:GOV:M3");
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
+        try {
+            clientsApiController.getClient("FI:GOV:M3");
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_CLIENT" })
+    public void getOrphans() {
+        ClientId orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(orphanClient)
+                        .build())
+                .build();
+        TokenInfo tokenInfo = new TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
+        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        ResponseEntity<OrphanInformation> orphanResponse = clientsApiController
+                .getClientOrphans("FI:GOV:ORPHAN:SS1");
+        assertEquals(HttpStatus.OK, orphanResponse.getStatusCode());
+        assertEquals(true, orphanResponse.getBody().getOrphansExist());
+
+        try {
+            clientsApiController.getClientOrphans("FI:GOV:M1:SS777");
+            fail("should not find orphans");
+        } catch (ResourceNotFoundException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_CLIENT", "DELETE_SIGN_KEY" })
+    public void deleteOrphans() throws Exception {
+        ClientId orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
+        String orphanKeyId = "orphan-key";
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .id(orphanKeyId)
+                .csr(new CertRequestInfoBuilder()
+                        .clientId(orphanClient)
+                        .build())
+                .build();
+        TokenInfo tokenInfo = new TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
+        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        when(tokenService.getTokenForKeyId(any())).thenReturn(tokenInfo);
+        ResponseEntity<Void> orphanResponse = clientsApiController
+                .deleteOrphans("FI:GOV:ORPHAN:SS1");
+        assertEquals(HttpStatus.NO_CONTENT, orphanResponse.getStatusCode());
+
+        verify(signerProxyFacade, times(1))
+                .deleteKey(orphanKeyId, true);
+        verify(signerProxyFacade, times(1))
+                .deleteKey(orphanKeyId, false);
+        verifyNoMoreInteractions(signerProxyFacade);
+
+        try {
+            clientsApiController.deleteOrphans("FI:GOV:M1:SS777");
+            fail("should not find orphans");
+        } catch (ResourceNotFoundException expected) {
+        }
+    }
+
+
+    @Test
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerClient() {
+        ResponseEntity<Void> response = clientsApiController.registerClient(TestUtils.CLIENT_ID_M2_SS6);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerOwner() {
+        clientsApiController.registerClient(TestUtils.OWNER_ID);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerClientWrongStatus() {
+        clientsApiController.registerClient(TestUtils.CLIENT_ID_SS1);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
+    public void unregisterOwner() {
+        clientsApiController.unregisterClient(TestUtils.OWNER_ID);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
+    public void unregisterClient() {
+        ResponseEntity<Void> response = clientsApiController.unregisterClient(TestUtils.CLIENT_ID_SS1);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
+    public void unregisterClientWrongStatus() {
+        clientsApiController.unregisterClient(TestUtils.CLIENT_ID_M2_SS6);
     }
 }

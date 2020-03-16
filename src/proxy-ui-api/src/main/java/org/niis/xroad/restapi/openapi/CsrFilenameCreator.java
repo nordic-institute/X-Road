@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -41,6 +41,8 @@ import java.time.format.DateTimeFormatter;
 @Component
 @Slf4j
 public class CsrFilenameCreator {
+    public static final String INTERNAL_CSR_FILE_PREFIX = "internal_tls_cert_request_";
+    public static final String INTERNAL_CSR_FILE_EXTENSION = ".p10";
 
     /**
      * Create a filename for CSR
@@ -50,7 +52,7 @@ public class CsrFilenameCreator {
      * @param securityServerId
      * @return
      */
-    public String createCsrFilename(KeyUsageInfo keyUsageInfo, GenerateCertRequest.RequestFormat csrFormat,
+    public String createCsrFilename(KeyUsageInfo keyUsageInfo, CertificateRequestFormat csrFormat,
             ClientId memberId, SecurityServerId securityServerId) {
         StringBuilder builder = new StringBuilder();
         if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
@@ -95,5 +97,11 @@ public class CsrFilenameCreator {
         return builder.toString();
     }
 
-
+    /**
+     * Create a simple filename with the current date for internal cert CSR
+     * @return
+     */
+    public String createInternalCsrFilename() {
+        return INTERNAL_CSR_FILE_PREFIX + createDateString() + INTERNAL_CSR_FILE_EXTENSION;
+    }
 }

@@ -222,7 +222,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static void updateOpMonitoringSoapFault(OpMonitoringData opMonitoringData, CodedException e) {
         if (opMonitoringData != null) {
-            opMonitoringData.setSoapFault(e);
+            opMonitoringData.setFaultCodeAndString(e);
         }
     }
 

@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 /*
  * Wraps axios and post method calls with data
  */
-export function post(uri: string, data: any) {
-  return axios.post(uri, data);
+export function post(uri: string, data: any, config?: AxiosRequestConfig) {
+  return axios.post(uri, data, config);
 }
 
 /*
@@ -31,7 +31,7 @@ export function remove(uri: string) {
 /*
  * Wraps axios get method calls
  */
-export function get(uri: string) {
-  return axios.get(uri);
+export function get(uri: string, config?: AxiosRequestConfig) {
+  return axios.get(uri, config);
 }
 

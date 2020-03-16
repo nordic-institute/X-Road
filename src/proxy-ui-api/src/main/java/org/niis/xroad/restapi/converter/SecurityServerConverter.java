@@ -27,11 +27,16 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 
@@ -45,10 +50,12 @@ public class SecurityServerConverter {
     public static final int SECURITY_SERVER_CODE_INDEX = 3;
 
     private final ClientConverter clientConverter;
+    private final GlobalConfFacade globalConfFacade;
 
     @Autowired
-    public SecurityServerConverter(ClientConverter clientConverter) {
+    public SecurityServerConverter(ClientConverter clientConverter, GlobalConfFacade globalConfFacade) {
         this.clientConverter = clientConverter;
+        this.globalConfFacade = globalConfFacade;
     }
 
     /**
@@ -103,7 +110,20 @@ public class SecurityServerConverter {
         securityServer.setMemberClass(securityServerId.getMemberClass());
         securityServer.setMemberCode(securityServerId.getMemberCode());
         securityServer.setServerCode(securityServerId.getServerCode());
+        String securityServerAddress = globalConfFacade.getSecurityServerAddress(securityServerId);
+        securityServer.setServerAddress(securityServerAddress);
         return securityServer;
+    }
+
+    /**
+     * Convert a group of {@link SecurityServerId SecurityServerIds} into {@link SecurityServer SecurityServers}
+     * @param securityServerIds
+     * @return
+     */
+    public List<SecurityServer> convert(Iterable<SecurityServerId> securityServerIds) {
+        return Streams.stream(securityServerIds)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 
 }

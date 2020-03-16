@@ -37,14 +37,6 @@ import java.io.Serializable;
 @Value
 public class GenerateCertRequest implements Serializable {
 
-    /**
-     * Specifies the cert request format to return.
-     */
-    public enum RequestFormat {
-        PEM,
-        DER
-    }
-
     private final String keyId;
 
     private final ClientId memberId;
@@ -53,6 +45,5 @@ public class GenerateCertRequest implements Serializable {
 
     private final String subjectName;
 
-    private final RequestFormat format;
-
+    private final CertificateRequestFormat format;
 }

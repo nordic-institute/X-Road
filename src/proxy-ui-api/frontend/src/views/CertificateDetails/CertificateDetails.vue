@@ -8,24 +8,28 @@
           class="button-spacing"
           outlined
           @click="activateCertificate(certificate.certificate_details.hash)"
+          data-test="activate-button"
         >{{$t('action.activate')}}</large-button>
         <large-button
           v-if="showDisable"
           class="button-spacing"
           outlined
           @click="deactivateCertificate(certificate.certificate_details.hash)"
+          data-test="deactivate-button"
         >{{$t('action.deactivate')}}</large-button>
         <large-button
           v-if="showUnregister"
           class="button-spacing"
           outlined
-          @click="confirmUnregiseterCertificate = true"
+          @click="confirmUnregisterCertificate = true"
+          data-test="unregister-button"
         >{{$t('action.unregister')}}</large-button>
         <large-button
           v-if="showDelete"
           class="button-spacing"
           outlined
-          @click="deleteCertificate()"
+          @click="showConfirmDelete()"
+          data-test="delete-button"
         >{{$t('action.delete')}}</large-button>
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -42,16 +46,16 @@
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
-      @accept="doDeleteCertificate()"
+      @accept="deleteCertificate()"
     />
 
     <!-- Confirm dialog for unregister certificate -->
     <ConfirmDialog
-      :dialog="confirmUnregiseterCertificate"
+      :dialog="confirmUnregisterCertificate"
       :loading="unregisterLoading"
       title="keys.unregisterTitle"
       text="keys.unregisterText"
-      @cancel="confirmUnregiseterCertificate = false"
+      @cancel="confirmUnregisterCertificate = false"
       @accept="unregisterCert()"
     />
 
@@ -102,7 +106,7 @@ export default Vue.extend({
       confirm: false,
       certificate: undefined as TokenCertificate | undefined,
       possibleActions: [] as string[],
-      confirmUnregiseterCertificate: false,
+      confirmUnregisterCertificate: false,
       confirmUnregisterError: false,
       unregisterLoading: false,
       unregisterErrorResponse: undefined as undefined | object,
@@ -202,10 +206,10 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    deleteCertificate(): void {
+    showConfirmDelete(): void {
       this.confirm = true;
     },
-    doDeleteCertificate(): void {
+    deleteCertificate(): void {
       this.confirm = false;
 
       api
@@ -229,9 +233,9 @@ export default Vue.extend({
     },
     deactivateCertificate(hash: string): void {
       api
-        .put(`token-certificates/${hash}/deactivate`, hash)
+        .put(`token-certificates/${hash}/disable`, hash)
         .then((res) => {
-          this.$bus.$emit('show-success', 'cert.deactivateSuccess');
+          this.$bus.$emit('show-success', 'cert.disableSuccess');
           this.fetchData(this.hash);
         })
         .catch((error) => this.$bus.$emit('show-error', error.message));
@@ -254,7 +258,7 @@ export default Vue.extend({
         })
         .catch((error) => {
           if (
-            error.response.data.error.code ===
+            error?.response?.data?.error?.code ===
             'management_request_sending_failed'
           ) {
             this.unregisterErrorResponse = error.response;
@@ -265,7 +269,7 @@ export default Vue.extend({
           this.confirmUnregisterError = true;
         })
         .finally(() => {
-          this.confirmUnregiseterCertificate = false;
+          this.confirmUnregisterCertificate = false;
           this.unregisterLoading = false;
         });
     },

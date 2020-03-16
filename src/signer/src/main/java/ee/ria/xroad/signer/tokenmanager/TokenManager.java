@@ -460,6 +460,18 @@ public final class TokenManager {
     }
 
     /**
+     * @param certReqId cert request id
+     * @return the certificate request info or null if not found
+     */
+    public static synchronized CertRequestInfo getCertRequestInfo(String certReqId) {
+        log.trace("getCertRequestInfo({})", certReqId);
+
+        return forCertRequest((k, c) -> certReqId.equals(c.getId()),
+                (k, c) -> c.toDTO())
+                .orElse(null);
+    }
+
+    /**
      * @param certHash the certificate hash
      * @return key info for the certificate hash
      */
@@ -836,13 +848,8 @@ public final class TokenManager {
 
         return forCertRequest((k, c) -> c.getId().equals(certReqId),
                 (k, c) -> {
-                    if (k.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-                        // Authentication keys can only have one certificate request
-                        k.getCertRequests().clear();
-                    } else {
-                        if (!k.getCertRequests().remove(c)) {
-                            return null;
-                        }
+                    if (!k.getCertRequests().remove(c)) {
+                        return null;
                     }
 
                     return k.getId();

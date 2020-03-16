@@ -154,4 +154,41 @@ public class GlobalConfFacade {
     public ClientId getManagementRequestService() {
         return GlobalConf.getManagementRequestService();
     }
+
+    /**
+     * {@link GlobalConf#getSecurityServers(String...)}
+     */
+    public List<SecurityServerId> getSecurityServers(String... instanceIdentifiers) {
+        return GlobalConf.getSecurityServers(instanceIdentifiers);
+    }
+
+    /**
+     * {@link GlobalConf#getSecurityServerAddress(SecurityServerId)}
+     */
+    public String getSecurityServerAddress(SecurityServerId securityServerId) {
+        return GlobalConf.getSecurityServerAddress(securityServerId);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedTsps(String)}}
+     */
+    public List<String> getApprovedTsps(String instanceIdentifier) {
+        return GlobalConf.getApprovedTsps(instanceIdentifier);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedTspName(String, String)}}
+     */
+    public String getApprovedTspName(String instanceIdentifier, String url) {
+        return GlobalConf.getApprovedTspName(instanceIdentifier, url);
+    }
+
+    /**
+     * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}
+     */
+    public boolean isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer) {
+        return GlobalConf.isSecurityServerClient(client, securityServer);
+    }
+
 }

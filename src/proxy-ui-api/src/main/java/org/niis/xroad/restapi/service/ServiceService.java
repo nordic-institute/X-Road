@@ -25,11 +25,14 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -40,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * service class for handling services
@@ -54,19 +59,20 @@ public class ServiceService {
 
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
-    private final WsdlUrlValidator wsdlUrlValidator;
+    private final UrlValidator urlValidator;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            WsdlUrlValidator wsdlUrlValidator) {
+            UrlValidator urlValidator) {
         this.clientRepository = clientRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
-        this.wsdlUrlValidator = wsdlUrlValidator;
+        this.urlValidator = urlValidator;
     }
 
     /**
      * get ServiceType by ClientId and service code that includes service version
-     * see {@link FormatUtils#getServiceFullName(ServiceType)}
+     * see {@link FormatUtils#getServiceFullName(ServiceType)}.
+     * ServiceType has serviceType.serviceDescription.client.endpoints lazy field fetched.
      * @param clientId
      * @param fullServiceCode
      * @return
@@ -79,7 +85,10 @@ public class ServiceService {
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
-        return getServiceFromClient(client, fullServiceCode);
+
+        ServiceType serviceType = getServiceFromClient(client, fullServiceCode);
+        Hibernate.initialize(serviceType.getServiceDescription().getClient().getEndpoint());
+        return serviceType;
     }
 
     /**
@@ -120,7 +129,7 @@ public class ServiceService {
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             boolean sslAuth, boolean sslAuthAll) throws InvalidUrlException, ServiceNotFoundException,
             ClientNotFoundException {
-        if (!wsdlUrlValidator.isValidWsdlUrl(url)) {
+        if (!urlValidator.isValidUrl(url)) {
             throw new InvalidUrlException("URL is not valid: " + url);
         }
 
@@ -152,6 +161,37 @@ public class ServiceService {
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceType;
+    }
+
+    /**
+     * Add new endpoint to a service
+     *
+     * @param serviceType                                                       service where endpoint is added
+     * @param method                                                            method
+     * @param path                                                              path
+     * @return
+     * @throws EndpointAlreadyExistsException                                   equivalent endpoint already exists for
+     *                                                                          this client
+     * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException   if trying to add endpoint to a WSDL
+     */
+    public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
+            throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException {
+        verifyAuthority("ADD_OPENAPI3_ENDPOINT");
+
+        if (serviceType.getServiceDescription().getType().equals(DescriptionType.WSDL)) {
+            throw new ServiceDescriptionService.WrongServiceDescriptionTypeException("Endpoint can't be added to a "
+                    + "WSDL type of Service Description");
+        }
+
+        EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), method, path, false);
+        ClientType client = serviceType.getServiceDescription().getClient();
+        if (client.getEndpoint().stream().anyMatch(existingEp -> existingEp.isEquivalent(endpointType))) {
+            throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
+                    + "exists for this client");
+        }
+        client.getEndpoint().add(endpointType);
+        clientRepository.saveOrUpdate(client);
+        return endpointType;
     }
 
 }

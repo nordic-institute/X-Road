@@ -26,9 +26,11 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -53,7 +55,10 @@ public class ClientConverterTest {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfFacade);
+        ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
+        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
+
+        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId));
     }
 
     @Test
@@ -65,6 +70,7 @@ public class ClientConverterTest {
         Client converted = clientConverter.convert(clientType);
         assertEquals("XRD2:GOV:M4:SS1", converted.getId());
         assertEquals(ClientStatus.REGISTERED, converted.getStatus());
+        assertEquals("XRD2", converted.getInstanceId());
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());

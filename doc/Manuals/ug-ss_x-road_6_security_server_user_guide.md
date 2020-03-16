@@ -69,6 +69,7 @@ Doc. ID: UG-SS
  04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
  05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
+ 24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -518,7 +519,37 @@ After the X-Road governing authority has accepted the registration, the registra
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
-To change the security server owner the following actions must be completed.
+To change the security server owner, two registered Owner members must be available. If a registered member is already available, jump directly to step 3.
+
+To add a new member and change it to Owner member, the following actions must be completed.
+
+1.  Add a new Owner member to the security server
+
+    1.1 On the **Clients** view, select **Add Member**.
+    
+    1.2 In the opening wizard, Select the new Owner member from the list of security server clients
+    
+    1.3 Add the selected member
+    
+    Note: Signing Key and Certificate must be configured for the new Owner member. If needed, the wizard will automatically show the dedicated steps for Key and Certificate configuration to collect the needed information.
+    
+2.  Register the new member
+
+    2.1 On the **Clients** view, locate the new member in the Clients list and click **Register** in the corresponding row
+    
+    2.2 In the opening dialog, click **Register**. A registeration request is sent to the X-Road Governing Authority
+    
+    Note: Once the request is approved, the new member appears as "Registered" - it can be set as Owner member.
+
+3.  Request a change of the security server owner
+
+    3.1 On the **Clients** view, locate the new member and click its name to open the member's detail view
+    
+    3.2 In the detail view, click **Make owner**
+    
+    1.3 In the opening dialog, click **Make owner**. A owner change request is sent to the X-Road Governing Authority
+    
+Once the owner change request, the new member will be automatically shown as the security server Owner member.
 
 - A new member must be added to the security server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
 
@@ -1320,7 +1351,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that importing a new TLS certificate will restart the xroad-proxy and thus affects providing services from the security server.
+   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 

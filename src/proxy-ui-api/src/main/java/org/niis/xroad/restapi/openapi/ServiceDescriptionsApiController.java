@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -39,7 +40,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
@@ -65,6 +65,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @PreAuthorize("denyAll")
 public class ServiceDescriptionsApiController implements ServiceDescriptionsApi {
+    public static final String WSDL_VALIDATOR_INTERRUPTED = "wsdl_validator_interrupted";
 
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
@@ -172,8 +173,10 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionService.UrlAlreadyExistsException
                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
+        } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
         }
 
         ServiceDescription serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
@@ -181,7 +184,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     }
 
     @Override
-    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
+    @PreAuthorize("hasAnyAuthority('REFRESH_WSDL', 'REFRESH_REST', 'REFRESH_OPENAPI3')")
     public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, IgnoreWarnings ignoreWarnings) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription = null;
@@ -191,13 +194,16 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
                 | InvalidUrlException | InvalidWsdlException
-                | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                | OpenApiParser.ParsingException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
