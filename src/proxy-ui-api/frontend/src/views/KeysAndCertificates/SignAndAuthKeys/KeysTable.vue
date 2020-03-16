@@ -46,7 +46,7 @@
               <SmallButton
                 v-if="hasPermission"
                 class="table-button-fix"
-                :disabled="disableGenerateCsr"
+                :disabled="disableGenerateCsr(key)"
                 @click="generateCsr(key)"
               >{{$t('keys.generateCsr')}}</SmallButton>
             </td>
@@ -94,7 +94,7 @@
               <SmallButton
                 v-if="hasPermission"
                 class="table-button-fix"
-                :disabled="disableGenerateCsr"
+                :disabled="disableGenerateCsr(key)"
                 @click="generateCsr(key)"
               >{{$t('keys.generateCsr')}}</SmallButton>
             </td>
@@ -180,7 +180,7 @@ import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
-import { Permissions, UsageTypes } from '@/global';
+import { Permissions, UsageTypes, PossibleActions } from '@/global';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -199,7 +199,7 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-    disableGenerateCsr: {
+    tokenLoggedIn: {
       type: Boolean,
     },
     tokenType: {
@@ -234,6 +234,21 @@ export default Vue.extend({
     },
   },
   methods: {
+    disableGenerateCsr(key: Key): boolean {
+      if (!this.tokenLoggedIn) {
+        return true;
+      }
+
+      if (
+        key.possible_actions?.includes(PossibleActions.GENERATE_AUTH_CSR) ||
+        key.possible_actions?.includes(PossibleActions.GENERATE_SIGN_CSR)
+      ) {
+        return false;
+      }
+
+      return true;
+    },
+
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
