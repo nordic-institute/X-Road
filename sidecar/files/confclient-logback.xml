@@ -1,20 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration scan="true" scanPeriod="60 seconds">
 
-    <property name="logOutputPath" value="/var/log/xroad" />
-
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logOutputPath}/configuration_client.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/configuration_client.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d %level [xroad-confclient] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
@@ -29,7 +15,4 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <root level="ERROR">
-        <appender-ref ref="STDOUT" />
-    </root>
 </configuration>
