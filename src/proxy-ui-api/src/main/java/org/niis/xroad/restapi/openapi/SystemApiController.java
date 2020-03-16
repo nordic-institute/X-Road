@@ -222,6 +222,8 @@ public class SystemApiController implements SystemApi {
             systemService.uploadAnchor(anchorBytes);
         } catch (SystemService.InvalidAnchorInstanceException e) {
             throw new BadRequestException(e);
+        } catch (SystemService.AnchorUploadException e) {
+            throw new InternalServerErrorException(e);
         }
         return ApiUtil.createCreatedResponse("/api/system/anchor", null);
     }

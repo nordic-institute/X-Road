@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -46,6 +47,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.security.KeyPair;
@@ -68,6 +70,7 @@ public class SystemService {
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
     private final AnchorRepository anchorRepository;
+    private final ConfigurationVerifier configurationVerifier;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -81,10 +84,12 @@ public class SystemService {
      */
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-            AnchorRepository anchorRepository) {
+            AnchorRepository anchorRepository,
+            ConfigurationVerifier configurationVerifier) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
+        this.configurationVerifier = configurationVerifier;
     }
 
     /**
@@ -207,20 +212,49 @@ public class SystemService {
     }
 
     /**
-     * Upload a new configuration anchor
+     * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order run
+     * the verification process with configuration-client module (via external script).
      * @param anchorBytes
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     * @throws AnchorUploadException in case of external process exceptions
      */
-    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException {
+    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException {
         ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromBytes(anchorBytes);
         verifyAnchorInstance(anchor);
+        File tempAnchor = null;
         try {
-            anchorRepository.save(anchor);
+            tempAnchor = createTemporaryAnchorFile(anchorBytes);
+            configurationVerifier.verifyInternalConfiguration(tempAnchor.getAbsolutePath());
+            anchorRepository.saveAndReplace(tempAnchor);
+        } catch (ConfigurationVerifier.ConfigurationVerificationException ce) {
+            throw new DeviationAwareRuntimeException(ce, ce.getErrorDeviation());
         } catch (CodedException ce) {
             throw ce;
+        } catch (ServiceException | InterruptedException e) {
+            throw new AnchorUploadException(e);
         } catch (Exception e) {
             throw new RuntimeException("Cannot upload a new anchor", e);
+        } finally {
+            if (tempAnchor != null) {
+                tempAnchor.delete();
+            }
         }
+    }
+
+    /**
+     * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
+     * configuration-client module (this might be changed in the future). This method does not delete the created
+     * temporary file. Remember to delete the file after it is no longer needed.
+     * @param anchorBytes
+     * @return temporary anchor file
+     * @throws IOException
+     */
+    private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
+        String tempAnchorPrefix = "temp-internal-anchor-";
+        String tempAnchorSuffix = ".xml";
+        File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix);
+        FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
+        return tempAnchor;
     }
 
     /**
@@ -296,6 +330,17 @@ public class SystemService {
 
         public InvalidAnchorInstanceException(String s) {
             super(s, new ErrorDeviation(INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID));
+        }
+    }
+
+    /**
+     * Thrown when uploading a conf anchor fails
+     */
+    public static class AnchorUploadException extends ServiceException {
+        public static final String ANCHOR_UPLOAD_FAILED = "anchor_upload_failed";
+
+        public AnchorUploadException(Throwable t) {
+            super(t, new ErrorDeviation(ANCHOR_UPLOAD_FAILED));
         }
     }
 }

@@ -45,7 +45,7 @@ public class ExternalProcessRunnerTest {
     @Test
     public void executeSuccess() {
         try {
-            externalProcessRunner.execute(MOCK_SUCCESS_SCRIPT, SCRIPT_ARGS);
+            externalProcessRunner.executeAndThrowOnFailure(MOCK_SUCCESS_SCRIPT, SCRIPT_ARGS);
         } catch (Exception e) {
             fail("should not throw exceptions");
         }
@@ -54,7 +54,7 @@ public class ExternalProcessRunnerTest {
     @Test
     public void executeScriptFail() throws Exception {
         try {
-            externalProcessRunner.execute(MOCK_FAIL_SCRIPT, SCRIPT_ARGS);
+            externalProcessRunner.executeAndThrowOnFailure(MOCK_FAIL_SCRIPT, SCRIPT_ARGS);
         } catch (ProcessFailedException e) {
             assertEquals(PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
@@ -63,7 +63,7 @@ public class ExternalProcessRunnerTest {
     @Test
     public void executeError() throws Exception {
         try {
-            externalProcessRunner.execute(NON_EXISTING_SCRIPT, SCRIPT_ARGS);
+            externalProcessRunner.executeAndThrowOnFailure(NON_EXISTING_SCRIPT, SCRIPT_ARGS);
         } catch (ProcessNotExecutableException e) {
             assertTrue(e.getCause() instanceof IOException);
         }

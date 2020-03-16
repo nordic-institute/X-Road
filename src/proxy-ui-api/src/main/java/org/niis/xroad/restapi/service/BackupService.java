@@ -129,10 +129,11 @@ public class BackupService {
             log.info("Run configuration backup with command '"
                     + generateBackupScriptPath + " " + Arrays.toString(args) + "'");
 
-            List<String> output = externalProcessRunner.execute(generateBackupScriptPath, args);
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(generateBackupScriptPath, args);
 
             log.info(" --- Backup script console output - START --- ");
-            log.info(String.join("\n", output));
+            log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate backup", e);

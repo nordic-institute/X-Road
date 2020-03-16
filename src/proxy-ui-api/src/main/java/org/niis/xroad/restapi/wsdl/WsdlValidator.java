@@ -77,7 +77,9 @@ public class WsdlValidator {
         }
 
         try {
-            return externalProcessRunner.execute(getWsdlValidatorCommand(), wsdlUrl);
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(getWsdlValidatorCommand(), wsdlUrl);
+            return processResult.getProcessOutput();
         } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
         } catch (ProcessFailedException e) {

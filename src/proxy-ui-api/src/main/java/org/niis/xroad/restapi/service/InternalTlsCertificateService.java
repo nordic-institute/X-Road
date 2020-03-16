@@ -143,7 +143,8 @@ public class InternalTlsCertificateService {
      */
     public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
         try {
-            externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
+            externalProcessRunner.executeAndThrowOnFailure(generateCertScriptPath,
+                    generateCertScriptArgs.split("\\s+"));
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate internal TLS key and cert", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));

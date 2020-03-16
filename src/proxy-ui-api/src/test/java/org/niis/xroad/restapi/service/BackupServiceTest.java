@@ -172,7 +172,8 @@ public class BackupServiceTest {
 
     @Test
     public void addBackupFails() throws ProcessNotExecutableException, ProcessFailedException, InterruptedException {
-        when(externalProcessRunner.execute(any())).thenThrow(new RuntimeException(new ProcessFailedException("")));
+        when(externalProcessRunner.executeAndThrowOnFailure(any()))
+                .thenThrow(new RuntimeException(new ProcessFailedException("")));
         try {
             BackupFile backupFile = backupService.generateBackup();
             fail("should throw ProcessFailedException");
