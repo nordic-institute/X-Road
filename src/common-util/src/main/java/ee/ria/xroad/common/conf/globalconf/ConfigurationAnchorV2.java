@@ -57,6 +57,13 @@ public class ConfigurationAnchorV2
     }
 
     /**
+     * @param fileBytes the configuration anchor file bytes
+     */
+    public ConfigurationAnchorV2(byte[] fileBytes) {
+        super(ObjectFactory.class, fileBytes, PrivateParametersSchemaValidatorV2.class);
+    }
+
+    /**
      * @return the generated at date
      */
     public Date getGeneratedAt() {

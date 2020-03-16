@@ -102,6 +102,18 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         }
     }
 
+    protected AbstractXmlConf(Class<?> objectFactory, byte[] fileBytes,
+            Class<? extends SchemaValidator> schemaValidator) {
+        try {
+            jaxbCtx = JAXBContext.newInstance(objectFactory);
+            this.schemaValidator = schemaValidator;
+
+            load(fileBytes);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+    }
+
     protected AbstractXmlConf(Class<?> objectFactory, JAXBElement<T> root,
             Class<? extends SchemaValidator> schemaValidator) {
         try {

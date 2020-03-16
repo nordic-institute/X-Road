@@ -3070,17 +3070,47 @@ paths:
         - security server
       summary: upload a configuration anchor file
       operationId: uploadAnchor
-      description: Administrator uploads configuration anchor file
+      description: Administrator uploads a configuration anchor file
       requestBody:
         description: configuration anchor
         content:
-          application/xml:
+          application/octet-stream:
             schema:
               type: string
-              format: ascii
+              format: binary
               description: configuration anchor file
-              minLength: 1
-              maxLength: 1000000
+      responses:
+        '201':
+          description: configuration anchor uploaded
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /system/anchor/temporary:
+    put: # ok
+      tags:
+        - security server
+      summary: Read the configuration anchor file and return the hash for a preview. The anchor will not be saved.
+      operationId: uploadTemporaryAnchor
+      description: Administrator wants to preview a configuration anchor file hash
+      requestBody:
+        description: configuration anchor
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: configuration anchor file
       responses:
         '201':
           description: configuration anchor uploaded

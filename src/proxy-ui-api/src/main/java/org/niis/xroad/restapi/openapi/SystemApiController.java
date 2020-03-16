@@ -213,4 +213,29 @@ public class SystemApiController implements SystemApi {
             throw new InternalServerErrorException(new ErrorDeviation(ANCHOR_FILE_NOT_FOUND));
         }
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
+    public ResponseEntity<Void> uploadAnchor(Resource anchorResource) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+        try {
+            systemService.uploadAnchor(anchorBytes);
+        } catch (SystemService.InvalidAnchorInstanceException e) {
+            throw new BadRequestException(e);
+        }
+        return ApiUtil.createCreatedResponse("/api/system/anchor", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
+    public ResponseEntity<Anchor> uploadTemporaryAnchor(Resource anchorResource) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+        AnchorFile anchorFile = null;
+        try {
+            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
+        } catch (SystemService.InvalidAnchorInstanceException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
+    }
 }

@@ -69,4 +69,20 @@ public class AnchorRepository {
     public ConfigurationAnchorV2 loadAnchorFromFile() {
         return new ConfigurationAnchorV2(CONFIGURATION_ANCHOR_FILENAME);
     }
+
+    /**
+     * Load anchor from bytes
+     * @return
+     */
+    public ConfigurationAnchorV2 loadAnchorFromBytes(byte[] anchorBytes) {
+        return new ConfigurationAnchorV2(anchorBytes);
+    }
+
+    /**
+     * Save anchor
+     * @return
+     */
+    public void save(ConfigurationAnchorV2 anchor) throws Exception {
+        anchor.save();
+    }
 }

@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
@@ -80,7 +81,7 @@ public class SystemService {
      */
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-                         AnchorRepository anchorRepository) {
+            AnchorRepository anchorRepository) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
@@ -191,6 +192,53 @@ public class SystemService {
     }
 
     /**
+     * Calculate the hex hash of the given anchor file. Used to verify/preview an anchor file before
+     * uploading it
+     * @param anchorBytes
+     * @return
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     */
+    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes) throws InvalidAnchorInstanceException {
+        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromBytes(anchorBytes);
+        verifyAnchorInstance(anchor);
+        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
+        anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
+        return anchorFile;
+    }
+
+    /**
+     * Upload a new configuration anchor
+     * @param anchorBytes
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     */
+    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException {
+        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromBytes(anchorBytes);
+        verifyAnchorInstance(anchor);
+        try {
+            anchorRepository.save(anchor);
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot upload a new anchor", e);
+        }
+    }
+
+    /**
+     * Verify that the anchor has been generated in the current instance
+     * @param anchor
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     */
+    private void verifyAnchorInstance(ConfigurationAnchorV2 anchor) throws InvalidAnchorInstanceException {
+        String anchorInstanceId = anchor.getInstanceIdentifier();
+        String ownerInstance = serverConfService.getSecurityServerOwnerId().getXRoadInstance();
+        if (!anchorInstanceId.equals(ownerInstance)) {
+            String errorMessage = String.format("Cannot upload an anchor from instance %s into instance %s",
+                    anchorInstanceId, ownerInstance);
+            throw new InvalidAnchorInstanceException(errorMessage);
+        }
+    }
+
+    /**
      * Read anchor file's content
      * @return
      * @throws AnchorNotFoundException if anchor file is not found
@@ -226,6 +274,7 @@ public class SystemService {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * Thrown when attempt to add timestamping service that is already configured
      */
@@ -235,6 +284,18 @@ public class SystemService {
 
         public DuplicateConfiguredTimestampingServiceException(String s) {
             super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
+        }
+    }
+
+    /**
+     * Thrown when attempting to upload an anchor from a wrong instance
+     */
+    public static class InvalidAnchorInstanceException extends ServiceException {
+        public static final String INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID
+                = "internal_anchor_upload_invalid_instance_id";
+
+        public InvalidAnchorInstanceException(String s) {
+            super(s, new ErrorDeviation(INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID));
         }
     }
 }
