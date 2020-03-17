@@ -11,7 +11,7 @@ import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCerti
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters.vue';
-import BackupAndRestore from '@/views/Settings/BackupAndRestore.vue';
+import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AddClient from '@/views/AddClient/AddClient.vue';
@@ -105,7 +105,7 @@ const router = new Router({
           children: [
             {
               name: RouteName.SystemParameters,
-              path: '',
+              path: 'system-parameters',
               component: SystemParameters,
               props: true,
             },
@@ -331,7 +331,6 @@ const router = new Router({
 });
 
 router.beforeEach((to: Route, from: Route, next: Next) => {
-
   // Going to login
   if (to.name === 'login') {
     next();
