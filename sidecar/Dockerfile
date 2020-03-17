@@ -53,6 +53,7 @@ RUN mkdir -p /root/etc/xroad \
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chown=xroad:xroad files/local.conf /etc/xroad/services/local.conf
+COPY --chown=xroad:xroad files/*logback* /etc/xroad/conf.d/
 CMD ["/root/entrypoint.sh"]
 
 EXPOSE 80 443 4000 5500 5577 5588

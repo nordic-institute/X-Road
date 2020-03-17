@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %level [xroad-signer-console] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ee.ria.xroad" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
