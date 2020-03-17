@@ -15,6 +15,7 @@ export default Vue.extend({
       type: String,
       validator: (val) =>
         [
+          '',
           'green',
           'green-ring',
           'orange',

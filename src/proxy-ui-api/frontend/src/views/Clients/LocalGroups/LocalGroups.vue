@@ -143,17 +143,6 @@ export default Vue.extend({
   margin-top: 40px;
 }
 
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  padding-left: 24px;
-  margin-bottom: 24px;
-}
-
 .search-input {
   max-width: 300px;
 }
