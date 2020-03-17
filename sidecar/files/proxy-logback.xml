@@ -1,45 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration scan="true" scanPeriod="60 seconds">
 
-    <appender name="clientproxy-access-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logOutputPath}/clientproxy_access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/clientproxy_access.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
-    <appender name="serverproxy-access-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logOutputPath}/serverproxy_access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/serverproxy_access.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d %level [xroad-proxy] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad.proxy.clientproxy.RequestLog" level="INFO" additivity="false">
-        <appender-ref ref="clientproxy-access-log"/>
-    </logger>
-
-    <logger name="ee.ria.xroad.proxy.serverproxy.RequestLog" level="INFO" additivity="false">
-        <appender-ref ref="serverproxy-access-log"/>
-    </logger>
-
-    <logger name="ee.ria.xroad" level="INFO"/>
+    <logger name="ee.ria.xroad" level="INFO" />
     <logger name="akka" level="WARN" />
 
     <root level="INFO">
