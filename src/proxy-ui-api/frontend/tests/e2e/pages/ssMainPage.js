@@ -144,6 +144,14 @@ var localGroupPopupCommands = {
     this.click('@localGroupRemoveCancelButton');
     return this;
   },
+  confirmDelete: function() {
+    this.click('@localGroupRemoveYesButton');
+    return this;
+  },
+  cancelDelete: function() {
+    this.click('@localGroupRemoveCancelButton');
+    return this;
+  },
   clickHeader: function() {
     this.click('@localGroupCode');
     return this;

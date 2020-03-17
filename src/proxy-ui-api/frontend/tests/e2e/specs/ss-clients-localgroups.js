@@ -13,12 +13,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers
     mainPage.openClientsTab();
@@ -27,6 +22,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
+
     // Verify default sorting
     browser
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[2]//span[contains(text(),"1122")]')
@@ -63,12 +59,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers
     mainPage.openClientsTab();
@@ -153,12 +144,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
@@ -170,17 +156,17 @@ module.exports = {
     clientLocalGroups.openAbbDetails();
     browser.waitForElementVisible(localGroupPopup);
 
-    // Add new member to local group
+    // Add new member to local group, cancel case
     localGroupPopup.openAddMembers();
     localGroupPopup.searchMembers();
     localGroupPopup.selectNewTestComMember();
     localGroupPopup.cancelAddMembersDialog();
 
-    //localGroupPopup.addSelectedMembers();
     browser.waitForElementNotVisible('//span[contains(@class, "headline") and contains(text(), "Add Members")]');
     browser.waitForElementVisible(localGroupPopup);
     browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]')
 
+    // Add new member to local group
     localGroupPopup.openAddMembers();
     localGroupPopup.searchMembers();
     localGroupPopup.selectNewTestComMember();
@@ -205,12 +191,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
@@ -270,12 +251,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
@@ -303,6 +279,13 @@ module.exports = {
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]')
     clientLocalGroups.openCbbDetails();
     browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,255));
+    localGroupPopup.clickHeader();
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
+    localGroupPopup.close();
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "'+browser.globals.test_string_300.slice(0,255)+'")]]')
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription('GroupChanged');
     localGroupPopup.clickHeader();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
@@ -323,12 +306,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
@@ -343,7 +321,7 @@ module.exports = {
     // Delete and cancel
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
-    localGroupPopup.cancelMemberRemove();
+    localGroupPopup.cancelDelete();
     browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');   
     localGroupPopup.close();
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
@@ -354,9 +332,9 @@ module.exports = {
 
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
-    localGroupPopup.confirmMemberRemove();  
-    browser.waitForElementVisible(clientLocalGroups); 
-
+    localGroupPopup.confirmDelete();
+    browser.waitForElementVisible(clientLocalGroups);
+    browser.assert.not.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
 
   }
 };

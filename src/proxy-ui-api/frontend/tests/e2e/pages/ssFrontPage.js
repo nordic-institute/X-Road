@@ -19,6 +19,14 @@ var loginCommands = {
   signin: function () {
     this.click('@loginButton');
     return this;
+  },
+  signinDefaultUser: function () {
+    this.clearValue2('@usernameInput');
+    this.clearValue2('@passwordInput');
+    this.setValue('@usernameInput', this.api.globals.login_usr);
+    this.setValue('@passwordInput', this.api.globals.login_pwd);
+    this.click('@loginButton');
+    return this;
   }
 };
 
