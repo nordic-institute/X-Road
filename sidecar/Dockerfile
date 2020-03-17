@@ -54,9 +54,6 @@ COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chown=xroad:xroad files/local.conf /etc/xroad/services/local.conf
 COPY --chown=xroad:xroad files/*logback* /etc/xroad/conf.d/
-COPY files/autologin.conf /etc/nginx/sites-available/
-RUN ln -s /etc/nginx/sites-available/autologin.conf /etc/nginx/sites-enabled/ \
-&& sed -i 's/XROAD_TOKEN_PIN/'"${XROAD_TOKEN_PIN}"'/' /etc/nginx/sites-enabled/autologin.conf
 COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 CMD ["/root/entrypoint.sh"]
 
