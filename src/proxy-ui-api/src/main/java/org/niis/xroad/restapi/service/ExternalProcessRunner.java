@@ -107,13 +107,13 @@ public class ExternalProcessRunner {
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
         }
-        ProcessResult processResult = new ProcessResult(String.join(" ", commandWithArgs), exitCode,
-                processOutput);
+        String commandWithArgsString = String.join(" ", commandWithArgs);
+        ProcessResult processResult = new ProcessResult(commandWithArgsString, exitCode, processOutput);
         return processResult;
     }
 
     /**
-     * Executes the given command with given arguments and throws a {@code ProcessFailedException} if the process' exit
+     * Executes the given command with given arguments and throws a {@link ProcessFailedException} if the process' exit
      * code is not 0. Used e.g. for simple script execution when there is no need to handle different exit codes
      * @param command the command to execute
      * @param args arguments to be appended to the command. Make sure to pass your arguments in the correct order

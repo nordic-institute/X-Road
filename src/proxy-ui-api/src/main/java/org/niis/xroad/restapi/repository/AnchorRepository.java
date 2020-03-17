@@ -73,14 +73,6 @@ public class AnchorRepository {
     }
 
     /**
-     * Load anchor from bytes
-     * @return
-     */
-    public ConfigurationAnchorV2 loadAnchorFromBytes(byte[] anchorBytes) {
-        return new ConfigurationAnchorV2(anchorBytes);
-    }
-
-    /**
      * Save anchor. The replacing of the old anchor file is done atomically.
      * @return
      */

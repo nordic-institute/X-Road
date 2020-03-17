@@ -204,7 +204,7 @@ public class SystemService {
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      */
     public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes) throws InvalidAnchorInstanceException {
-        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromBytes(anchorBytes);
+        ConfigurationAnchorV2 anchor = new ConfigurationAnchorV2(anchorBytes);
         verifyAnchorInstance(anchor);
         AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
@@ -212,14 +212,14 @@ public class SystemService {
     }
 
     /**
-     * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order run
+     * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order to run
      * the verification process with configuration-client module (via external script).
      * @param anchorBytes
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      * @throws AnchorUploadException in case of external process exceptions
      */
     public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException {
-        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromBytes(anchorBytes);
+        ConfigurationAnchorV2 anchor = new ConfigurationAnchorV2(anchorBytes);
         verifyAnchorInstance(anchor);
         File tempAnchor = null;
         try {
