@@ -47,7 +47,6 @@ RUN mkdir -p /root/etc/xroad \
 && rm /root/etc/xroad/services/local.conf \
    /root/etc/xroad/conf.d/local.ini \
    /root/etc/xroad/devices.ini \
-   /root/etc/xroad/db.properties \
 && dpkg-query --showformat='${Version}' --show xroad-proxy >/root/VERSION \
 && cp /root/VERSION /etc/xroad/VERSION
 
