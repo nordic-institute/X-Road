@@ -60,12 +60,13 @@ public class ExternalProcessRunner {
         if (StringUtils.isEmpty(command)) {
             throw new IllegalArgumentException("command cannot be null");
         }
-
         List<String> commandWithArgs = new ArrayList<>();
         commandWithArgs.add(command);
         if (args != null && args.length > 0) {
             commandWithArgs.addAll(Arrays.asList(args));
         }
+        String commandWithArgsString = String.join(" ", commandWithArgs);
+        log.info("Running an external command: " + commandWithArgsString);
         Process process;
         ProcessBuilder pb = new ProcessBuilder(commandWithArgs);
         // redirect process errors into process's input stream
@@ -107,7 +108,6 @@ public class ExternalProcessRunner {
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
         }
-        String commandWithArgsString = String.join(" ", commandWithArgs);
         ProcessResult processResult = new ProcessResult(commandWithArgsString, exitCode, processOutput);
         return processResult;
     }

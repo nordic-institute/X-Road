@@ -43,16 +43,20 @@ public class ExternalProcessRunnerTest {
     private final ExternalProcessRunner externalProcessRunner = new ExternalProcessRunner();
 
     @Test
-    public void executeSuccess() {
+    public void executeAndThrowOnFailureSuccess() {
         try {
-            externalProcessRunner.executeAndThrowOnFailure(MOCK_SUCCESS_SCRIPT, SCRIPT_ARGS);
+            ExternalProcessRunner.ProcessResult processResult =
+                    externalProcessRunner.executeAndThrowOnFailure(MOCK_SUCCESS_SCRIPT, SCRIPT_ARGS);
+            assertEquals(MOCK_SUCCESS_SCRIPT + " " + SCRIPT_ARGS, processResult.getCommandWithArgs());
+            assertEquals(0, processResult.getExitCode());
+            assertEquals("SUCCESS", processResult.getProcessOutput().get(0));
         } catch (Exception e) {
             fail("should not throw exceptions");
         }
     }
 
     @Test
-    public void executeScriptFail() throws Exception {
+    public void executeAndThrowOnFailureScriptFail() throws Exception {
         try {
             externalProcessRunner.executeAndThrowOnFailure(MOCK_FAIL_SCRIPT, SCRIPT_ARGS);
         } catch (ProcessFailedException e) {
@@ -61,9 +65,40 @@ public class ExternalProcessRunnerTest {
     }
 
     @Test
-    public void executeError() throws Exception {
+    public void executeAndThrowOnFailureError() throws Exception {
         try {
             externalProcessRunner.executeAndThrowOnFailure(NON_EXISTING_SCRIPT, SCRIPT_ARGS);
+        } catch (ProcessNotExecutableException e) {
+            assertTrue(e.getCause() instanceof IOException);
+        }
+    }
+
+    @Test
+    public void executeSuccess() {
+        try {
+            ExternalProcessRunner.ProcessResult processResult =
+                    externalProcessRunner.execute(MOCK_SUCCESS_SCRIPT, SCRIPT_ARGS);
+            assertEquals(MOCK_SUCCESS_SCRIPT + " " + SCRIPT_ARGS, processResult.getCommandWithArgs());
+            assertEquals(0, processResult.getExitCode());
+            assertEquals("SUCCESS", processResult.getProcessOutput().get(0));
+        } catch (Exception e) {
+            fail("should not throw exceptions");
+        }
+    }
+
+    @Test
+    public void executeScriptFail() throws Exception {
+        ExternalProcessRunner.ProcessResult processResult =
+                externalProcessRunner.execute(MOCK_FAIL_SCRIPT, SCRIPT_ARGS);
+        assertEquals(MOCK_FAIL_SCRIPT + " " + SCRIPT_ARGS, processResult.getCommandWithArgs());
+        assertEquals(1, processResult.getExitCode());
+        assertEquals("FAIL", processResult.getProcessOutput().get(0));
+    }
+
+    @Test
+    public void executeError() throws Exception {
+        try {
+            externalProcessRunner.execute(NON_EXISTING_SCRIPT, SCRIPT_ARGS);
         } catch (ProcessNotExecutableException e) {
             assertTrue(e.getCause() instanceof IOException);
         }
