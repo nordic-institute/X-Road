@@ -1,8 +1,8 @@
 <template>
-  <div class="pt-2">
+  <div class="pt-10">
     <v-card flat class="xrd-card">
       <v-container>
-        <v-row v-if="hasPermission(permissions.VIEW_ANCHOR)">
+        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
           <v-col><h3>{{$t('systemParameters.configurationAnchor.title')}}</h3></v-col>
           <v-col class="text-right">
             <large-button data-test="system-parameters-configuration-anchor-download-button" outlined :requires-permission="permissions.DOWNLOAD_ANCHOR">
@@ -13,7 +13,7 @@
             </large-button>
           </v-col>
         </v-row>
-        <v-row v-if="hasPermission(permissions.VIEW_ANCHOR)">
+        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -31,7 +31,7 @@
             </table>
           </v-col>
         </v-row>
-        <v-row class="mt-5" v-if="hasPermission(permissions.VIEW_TSPS)">
+        <v-row no-gutters class="mt-10" v-if="hasPermission(permissions.VIEW_TSPS)">
           <v-col><h3>{{$t('systemParameters.timestampingServices.title')}}</h3></v-col>
           <v-col class="text-right">
             <large-button data-test="system-parameters-timestamping-services-add-button" outlined :requires-permission="permissions.ADD_TSP">
@@ -39,7 +39,7 @@
             </large-button>
           </v-col>
         </v-row>
-        <v-row v-if="hasPermission(permissions.VIEW_TSPS)">
+        <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -63,10 +63,10 @@
             </table>
           </v-col>
         </v-row>
-        <v-row class="mt-5">
+        <v-row no-gutters class="mt-10">
           <v-col><h3>{{$t('systemParameters.approvedCertificateAuthorities.title')}}</h3></v-col>
         </v-row>
-        <v-row>
+        <v-row no-gutters>
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -78,7 +78,7 @@
               </thead>
               <tbody data-test="system-parameters-approved-ca-table-body">
               <tr v-for="approvedCA in orderedCertificateAuthorities" :key="approvedCA.path">
-                <td :class="{'interm-ca': !approvedCA.top_ca}">{{approvedCA.subject_distinguished_name}}</td>
+                <td :class="{'interm-ca': !approvedCA.top_ca, 'root-ca': approvedCA.top_ca}">{{approvedCA.subject_distinguished_name}}</td>
                 <td v-if="approvedCA.top_ca">{{$t('systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE')}}</td>
                 <td v-if="!approvedCA.top_ca">{{$t(`systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`)}}</td>
                 <td>{{approvedCA.not_after | formatDate}}</td>
@@ -151,20 +151,31 @@ export default Vue.extend({
   @import '../../../assets/tables';
 
   h3 {
-    color: $XRoad-Grey60;
+    color: lighten($XRoad-Black, 10);
+    font-weight: 500;
+  }
+
+  table {
+    font-size: 0.9rem;
   }
 
   tr th {
     font-weight: 500;
+    color: lighten($XRoad-Black, 20);
   }
 
   tr td {
     color: $XRoad-Black;
+    font-weight: normal !important;
   }
 
   tr td:last-child {
     width: 1%;
     white-space: nowrap;
+  }
+
+  .root-ca {
+    font-weight: bold !important;
   }
 
   .interm-ca {
