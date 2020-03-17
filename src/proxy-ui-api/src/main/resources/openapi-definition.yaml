@@ -898,6 +898,76 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /clients/{id}/orphans:
+    get: # ok
+      tags:
+        - security server
+      summary: get information about orphaned sign keys, certificates and csrs left behind a delete client
+      operationId: getClientOrphans
+      description: Administrator has deleted a client and wants to know if some orphaned sign keys, certificates or csrs exist
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: information telling that orphans exist. If they don't exist, 404 is returned instead.
+          content:
+            application/json:
+              schema:
+                title: OrphanInformation
+                type: object
+                properties:
+                  orphans_exist:
+                    type: boolean
+                    default: false
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete: # ok
+      tags:
+        - security server
+      summary: delete orphaned sign keys, certificates and csrs left behind a delete client
+      operationId: deleteOrphans
+      description: Administrator deletes the orphaned sign keys, certificates and csrs left behind a delete client.
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
   /clients/{id}/register:
     put: # ok
       tags:

@@ -25,12 +25,11 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,14 +45,14 @@ public class ManagementRequestSenderService {
 
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
-    private final ServerConfService serverConfService;
+    private final CurrentSecurityServerId currentSecurityServerId;
 
     @Autowired
     public ManagementRequestSenderService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
-            ServerConfService serverConfService) {
+            CurrentSecurityServerId currentSecurityServerId) {
         this.globalConfFacade = globalConfFacade;
         this.globalConfService = globalConfService;
-        this.serverConfService = serverConfService;
+        this.currentSecurityServerId = currentSecurityServerId;
     }
 
     /**
@@ -66,12 +65,13 @@ public class ManagementRequestSenderService {
      * @param address the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
+     * @throws GlobalConfOutdatedException
      */
-    public Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
-            throws GlobalConfService.GlobalConfOutdatedException {
+    Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
+            throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertRegRequest(serverConfService.getSecurityServerId(), address, authCert);
+            return sender.sendAuthCertRegRequest(currentSecurityServerId.getServerId(), address, authCert);
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 throw (CodedException) e;
@@ -88,38 +88,62 @@ public class ManagementRequestSenderService {
      * call's SecurityServerId = this security server's id)
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
-            GlobalConfService.GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+    Integer sendAuthCertDeletionRequest(byte[] authCert) throws
+            GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertDeletionRequest(serverConfService.getSecurityServerId(), authCert);
+            return sender.sendAuthCertDeletionRequest(currentSecurityServerId.getServerId(), authCert);
+        } catch (Exception e) {
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    /**
+     * Sends a client register request as a normal X-Road message
+     * @param clientId the client id that will be registered
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
+     */
+    public Integer sendClientRegisterRequest(ClientId clientId)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId);
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    /**
+     * Sends a client unregister request as a normal X-Road message
+     * @param clientId the client id that will be unregistered
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException if there is a problem sending the message
+     */
+    Integer sendClientUnregisterRequest(ClientId clientId)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientDeletionRequest(currentSecurityServerId.getServerId(), clientId);
+        } catch (CodedException ce) {
+            throw ce;
         } catch (Exception e) {
             throw new ManagementRequestSendingFailedException(e);
         }
     }
 
     private ManagementRequestSender createManagementRequestSender()
-            throws GlobalConfService.GlobalConfOutdatedException {
+            throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
-        ServerConfType serverConf = serverConfService.getServerConf();
-        ClientId sender = serverConf.getOwner().getIdentifier();
+        ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfFacade.getManagementRequestService();
         return new ManagementRequestSender(sender, receiver);
-    }
-
-    /**
-     * Missing a valid auth cert
-     */
-    public static class ManagementRequestSendingFailedException extends ServiceException {
-        public static final String MANAGEMENT_REQUEST_SENDING_FAILED = "management_request_sending_failed";
-
-        public ManagementRequestSendingFailedException(Throwable t) {
-            super(t, createError(t));
-        }
-
-        private static ErrorDeviation createError(Throwable t) {
-            return new ErrorDeviation(MANAGEMENT_REQUEST_SENDING_FAILED, t.getMessage());
-        }
     }
 }

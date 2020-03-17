@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.cache;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.springframework.context.annotation.Bean;
@@ -35,13 +35,13 @@ import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLAS
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
 @Configuration
-public class SecurityServerOwnerConfig {
+public class CurrentSecurityServerIdConfig {
 
     @Bean
     @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
-    public SecurityServerOwner securityServerOwner(ServerConfService serverConfService) {
-        ClientId id = serverConfService.getSecurityServerOwnerId();
-        return new SecurityServerOwner(id);
+    public CurrentSecurityServerId securityServerOwner(ServerConfService serverConfService) {
+        SecurityServerId id = serverConfService.getSecurityServerId();
+        return new CurrentSecurityServerId(id);
     }
 
 }

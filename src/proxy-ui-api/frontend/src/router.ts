@@ -11,7 +11,7 @@ import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCerti
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
-import BackupAndRestore from '@/views/Settings/BackupAndRestore.vue';
+import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AddClient from '@/views/AddClient/AddClient.vue';
@@ -36,6 +36,7 @@ import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import EndpointDetails from '@/views/Service/Endpoints/EndpointDetails.vue';
+import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -80,6 +81,13 @@ const router = new Router({
           ],
         },
         {
+          name: RouteName.GenerateInternalCSR,
+          path: '/keys/tsl-cert/generate-csr',
+          component: GenerateInternalCsr,
+          meta: { permission: Permissions.GENERATE_INTERNAL_SSL_CSR },
+          props: true,
+        },
+        {
           name: RouteName.Diagnostics,
           path: '/diagnostics',
           components: {
@@ -97,7 +105,7 @@ const router = new Router({
           children: [
             {
               name: RouteName.SystemParameters,
-              path: '',
+              path: 'system-parameters',
               component: SystemParameters,
               props: true,
             },
@@ -323,7 +331,6 @@ const router = new Router({
 });
 
 router.beforeEach((to: Route, from: Route, next: Next) => {
-
   // Going to login
   if (to.name === 'login') {
     next();
