@@ -2,8 +2,6 @@
 
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
-DB_URL=jdbc:postgresql://127.0.0.1:5432/serverconf
-DB_NAME=serverconf
 GROUPNAMES="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
@@ -60,29 +58,6 @@ then
     done
 fi
 
-# Recreate serverconf database and properties file with user-supplied username and password
-if [ ! -f ${DB_PROPERTIES} ]
-then
-    echo "Creating serverconf database with user-supplied credentials"
-    pg_ctlcluster 10 main start
-    su - postgres -c "psql postgres -tAc \"CREATE ROLE ${XROAD_DB_USER} LOGIN PASSWORD '${XROAD_DB_PASSWD}';\""
-    su - postgres -c "createdb ${DB_NAME} -O ${XROAD_DB_USER} -E UTF-8"
-    su - postgres -c "psql ${DB_NAME} -tAc \"CREATE EXTENSION IF NOT EXISTS hstore\""
-    cd /usr/share/xroad/db/
-    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${DB_URL}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${DB_NAME}-changelog.xml --password=${XROAD_DB_PASSWD} --username=${XROAD_DB_USER}  update || die "Connection to database has failed, please check database availability and configuration in ${DB_PROPERTIES} file"
-    pg_ctlcluster 10 main stop
-
-    touch ${DB_PROPERTIES}
-    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.jdbc.use_streams_for_binary true
-    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.url ${DB_URL}
-    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.username  ${XROAD_DB_USER}
-    crudini --set ${DB_PROPERTIES} '' serverconf.hibernate.connection.password ${XROAD_DB_PASSWD}
-    chown xroad:xroad ${DB_PROPERTIES}
-    chmod 640 ${DB_PROPERTIES}
-fi
-
 # Generate internal and admin UI TLS keys and certificates on the first run
 if [ ! -f /etc/xroad/ssl/internal.crt ];
 then
@@ -96,6 +71,16 @@ then
     echo "Generating new SSL key and certificate for the admin UI"
     ARGS="-n nginx -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
+fi
+
+# Recreate serverconf database and properties file with serverconf username and random password
+if [ ! -f ${DB_PROPERTIES} ]
+then
+    echo "Creating serverconf database and properties file"
+    pg_ctlcluster 10 main start
+    dpkg-reconfigure -fnoninteractive xroad-proxy
+    pg_ctlcluster 10 main stop
+    nginx -s stop
 fi
 
 # Start services

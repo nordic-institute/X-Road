@@ -8,8 +8,6 @@ To create a sidecar security server instance you need to provide the seven argum
 #3 Software token PIN code for autologin service
 #4 Username for sidecar security server admin UI
 #5 Password for sidecar security server admin UI
-#6 Username for sidecar security server configuration database
-#7 Password for sidecar security server configuration database
 "
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
@@ -30,7 +28,7 @@ docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
 echo "=====> Run container"
-docker run --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_USER=$6 -e XROAD_DB_PASSWD=$7 --name $1 xroad-sidecar-security-server-image
+docker run --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 --name $1 xroad-sidecar-security-server-image
 
 printf "\n
 Sidecar security server software token PIN is set to $3
