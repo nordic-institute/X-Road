@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Setter;
@@ -31,8 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,12 +58,36 @@ import java.security.cert.X509Certificate;
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
 
+    public static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
+    public static final String IMPORT_INTERNAL_CERT_FAILED = "import_internal_cert_failed";
+
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
 
-    @Autowired
+    private final ExternalProcessRunner externalProcessRunner;
+    private final String generateCertScriptArgs;
+
+    @Setter
+    private String generateCertScriptPath;
     @Setter
     private InternalTlsCertificateRepository internalTlsCertificateRepository;
+    @Setter
+    private String internalCertPath = SystemProperties.getConfPath() + InternalSSLKey.CRT_FILE_NAME;
+    @Setter
+    private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
+    @Setter
+    private String internalKeystorePath = SystemProperties.getConfPath() + InternalSSLKey.KEY_FILE_NAME;
+
+    @Autowired
+    public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
+            ExternalProcessRunner externalProcessRunner,
+            @Value("${script.generate-certificate.path}") String generateCertScriptPath,
+            @Value("${script.generate-certificate.args}") String generateCertScriptArgs) {
+        this.internalTlsCertificateRepository = internalTlsCertificateRepository;
+        this.externalProcessRunner = externalProcessRunner;
+        this.generateCertScriptPath = generateCertScriptPath;
+        this.generateCertScriptArgs = generateCertScriptArgs;
+    }
 
     public X509Certificate getInternalTlsCertificate() {
         return internalTlsCertificateRepository.getInternalTlsCertificate();
@@ -68,7 +98,6 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
-     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -105,5 +134,42 @@ public class InternalTlsCertificateService {
         tarOutputStream.putArchiveEntry(archiveEntry);
         tarOutputStream.write(fileBytes);
         tarOutputStream.closeArchiveEntry();
+    }
+
+    /**
+     * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
+     * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
+     * @throws InterruptedException if the thread running the key generator is interrupted
+     */
+    public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
+        try {
+            externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            log.error("Failed to generate internal TLS key and cert", e);
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));
+        }
+    }
+
+    /**
+     * Imports a new internal TLS certificate.
+     * @param certificateBytes
+     * @return X509Certificate
+     * @throws InvalidCertificateException
+     */
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException {
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+        try {
+            CertUtils.writePemToFile(certificateBytes, internalCertPath);
+            CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException("cannot import internal tls cert", e,
+                    new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));
+        }
+        return x509Certificate;
     }
 }

@@ -7,10 +7,12 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Authentication
-  version: "1.0.1"
+  version: "1.0.2"
   title: X-Road UI Based API
   contact:
-    email: lauri.koutaniemi@gofore.com
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

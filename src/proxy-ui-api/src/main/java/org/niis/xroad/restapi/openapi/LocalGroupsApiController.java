@@ -96,7 +96,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public ResponseEntity<Members> addGroupMember(String groupIdString, Members members) {
         if (members == null || members.getItems() == null || members.getItems().size() < 1) {
-            throw new InvalidParametersException("missing member id");
+            throw new BadRequestException("missing member id");
         }
         // remove duplicates
         List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
@@ -129,7 +129,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     public ResponseEntity<Void> deleteGroupMember(String groupIdString, Members members) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         try {
-            localGroupService.deleteGroupMember(localGroupType, clientConverter.convertIds(members.getItems()));
+            localGroupService.deleteGroupMember(localGroupType.getId(), clientConverter.convertIds(members.getItems()));
         } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
             throw new ConflictException(e);
         }

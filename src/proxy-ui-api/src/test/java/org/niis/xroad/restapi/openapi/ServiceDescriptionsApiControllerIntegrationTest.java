@@ -39,7 +39,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.service.WsdlUrlValidator;
+import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -47,6 +47,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +64,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 
 /**
  * Test ServiceDescriptionsApiController
@@ -84,7 +86,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
-    private WsdlUrlValidator wsdlUrlValidator;
+    private UrlValidator urlValidator;
 
     @Before
     public void setup() {
@@ -94,7 +96,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"
                     : "test-member" + "NAME";
         });
-        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
     }
 
     @Test
@@ -180,7 +182,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescriptionsApiController.deleteServiceDescription("2");
         List<ServiceDescription> serviceDescriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody();
-        assertEquals(2, serviceDescriptions.size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT - 1, serviceDescriptions.size());
         client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
     }
@@ -261,6 +263,12 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_XROAD_GET_RANDOM));
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_BMI));
         assertTrue(refreshed.getRefreshedAt().isAfter(serviceDescription.getRefreshedAt()));
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "REFRESH_REST" })
+    public void refreshRestServiceDescriptionWithoutRights() {
+        serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarnings().ignoreWarnings(false));
     }
 
     @Test

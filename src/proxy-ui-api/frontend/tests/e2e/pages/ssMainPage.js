@@ -208,7 +208,6 @@ var clientLocalGroupsCommands = {
   }
 };
 
-
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],

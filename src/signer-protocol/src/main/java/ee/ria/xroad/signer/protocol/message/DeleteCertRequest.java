@@ -34,6 +34,6 @@ import java.io.Serializable;
 @Value
 public class DeleteCertRequest implements Serializable {
 
-    private final String certId;
+    private final String certRequestId;
 
 }

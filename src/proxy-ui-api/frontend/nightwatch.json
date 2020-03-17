@@ -30,6 +30,17 @@
           "w3c": false
         }
       }
+    },
+    "chrome": {
+      "desiredCapabilities" : {
+        "browserName" : "chrome",
+        "javascriptEnabled" : true,
+        "acceptSslCerts" : true,
+        "acceptInsecureCerts": true,
+        "chromeOptions" : {
+          "w3c": false
+        }
+      }
     }
   }
 }

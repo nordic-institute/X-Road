@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -45,9 +46,11 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
@@ -55,17 +58,22 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.AccessRightService;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
+import org.niis.xroad.restapi.service.MissingParameterException;
+import org.niis.xroad.restapi.service.OrphanRemovalService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -81,6 +89,7 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
+import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * clients api
@@ -103,28 +112,19 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
+    private final OrphanRemovalService orphanRemovalService;
 
     /**
      * ClientsApiController constructor
-     * @param clientService
-     * @param tokenService
-     * @param clientConverter
-     * @param localGroupConverter
-     * @param localGroupService
-     * @param serviceDescriptionConverter
-     * @param serviceDescriptionService
-     * @param accessRightService
-     * @param subjectConverter
-     * @param tokenCertificateConverter
      */
-
     @Autowired
     public ClientsApiController(ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
-            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter) {
+            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
+            OrphanRemovalService orphanRemovalService) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -136,6 +136,7 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
+        this.orphanRemovalService = orphanRemovalService;
     }
 
     /**
@@ -178,7 +179,7 @@ public class ClientsApiController implements ClientsApi {
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
-        ClientType clientType = clientService.getClient(clientId);
+        ClientType clientType = clientService.getLocalClient(clientId);
         if (clientType == null) {
             throw new ResourceNotFoundException("client with id " + encodedId + " not found");
         }
@@ -204,11 +205,11 @@ public class ClientsApiController implements ClientsApi {
     @Override
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
-            throw new InvalidParametersException();
+            throw new BadRequestException();
         }
         ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
-        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
+        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get().name();
         ClientType changed = null;
         try {
             changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -273,7 +274,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientType.getIsCert()
+        List<CertificateDetails> certificates = clientService.getLocalClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
@@ -299,9 +300,9 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<List<LocalGroup>> getClientGroups(String id) {
-        ClientType clientType = getClientType(id);
-        List<LocalGroupType> localGroupTypes = clientType.getLocalGroup();
+    public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
+        List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
@@ -310,20 +311,25 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientType.getServiceDescription());
+                clientService.getLocalClientServiceDescriptions(clientType.getIdentifier()));
+
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADD_WSDL')")
+    @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
+        ClientId clientId = clientConverter.convertId(id);
+        String url = serviceDescription.getUrl();
+        boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
+        String restServiceCode = serviceDescription.getRestServiceCode();
+
         ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
-                        clientConverter.convertId(id),
-                        serviceDescription.getUrl(), serviceDescription.getIgnoreWarnings());
+                        clientId, url, ignoreWarnings);
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
                     | InvalidUrlException | InvalidWsdlException e) {
                 // deviation data (errorcode + warnings) copied
@@ -335,10 +341,34 @@ public class ClientsApiController implements ClientsApi {
                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
+            } catch (InterruptedException e) {
+                throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
             }
-
+        } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
+            try {
+                addedServiceDescriptionType = serviceDescriptionService.addOpenApi3ServiceDescription(clientId, url,
+                        restServiceCode, ignoreWarnings);
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException
+                    | InvalidUrlException e) {
+                throw new BadRequestException(e);
+            } catch (ClientNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            } catch (ServiceDescriptionService.UrlAlreadyExistsException
+                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
         } else if (serviceDescription.getType() == ServiceType.REST) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+            try {
+                addedServiceDescriptionType = serviceDescriptionService.addRestEndpointServiceDescription(clientId,
+                        url, restServiceCode);
+            } catch (ClientNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            } catch (MissingParameterException | InvalidUrlException e) {
+                throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
+                    | ServiceDescriptionService.UrlAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
                 addedServiceDescriptionType);
@@ -362,5 +392,110 @@ public class ClientsApiController implements ClientsApi {
         }
         List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
+
+    /**
+     * This method is synchronized (like client add in old Ruby implementation)
+     * to prevent a problem with two threads both creating "first" additional members.
+     */
+    @Override
+    @PreAuthorize("hasAuthority('ADD_CLIENT')")
+    public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
+        boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
+        IsAuthentication isAuthentication = null;
+        try {
+            isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
+        } catch (Exception e) {
+            throw new BadRequestException("bad connection type parameter", e);
+        }
+        ClientType added = null;
+        try {
+            added = clientService.addLocalClient(clientAdd.getClient().getMemberClass(),
+                    clientAdd.getClient().getMemberCode(),
+                    clientAdd.getClient().getSubsystemCode(),
+                    isAuthentication, ignoreWarnings);
+        } catch (ClientService.ClientAlreadyExistsException
+                | ClientService.AdditionalMemberAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (UnhandledWarningsException e) {
+            throw new BadRequestException(e);
+        }
+        Client result = clientConverter.convert(added);
+        return createCreatedResponse("/api/clients/{id}", result, result.getId());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.deleteLocalClient(clientId);
+        } catch (ActionNotPossibleException | ClientService.CannotDeleteOwnerException e) {
+            throw new ConflictException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteOrphans(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            orphanRemovalService.deleteOrphans(clientId);
+        } catch (OrphanRemovalService.OrphansNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<OrphanInformation> getClientOrphans(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        boolean orphansExist = orphanRemovalService.orphansExist(clientId);
+        if (orphansExist) {
+            OrphanInformation info = new OrphanInformation().orphansExist(true);
+            return new ResponseEntity<>(info, HttpStatus.OK);
+        } else {
+            throw new ResourceNotFoundException();
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_CLIENT_REG_REQ')")
+    public ResponseEntity<Void> registerClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.registerClient(clientId);
+        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_CLIENT_DEL_REQ')")
+    public ResponseEntity<Void> unregisterClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.unregisterClient(clientId);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException  e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

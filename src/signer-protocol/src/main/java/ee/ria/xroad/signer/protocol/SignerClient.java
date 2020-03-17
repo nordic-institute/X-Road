@@ -139,7 +139,7 @@ public final class SignerClient {
     }
 
     private static String getSignerPath(String signerIpAddress) {
-        return "akka.tcp://" + SIGNER + "@" + signerIpAddress + ":"
+        return "akka://" + SIGNER + "@" + signerIpAddress + ":"
                 + SystemProperties.getSignerPort();
     }
 

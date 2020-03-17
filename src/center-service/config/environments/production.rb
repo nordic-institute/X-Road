@@ -30,8 +30,7 @@ CenterService::Application.configure do
 
   # In production we use database coordinates in one authoritative location.
   def config.database_configuration
-    DbConfParser.new(
-      "production", SystemProperties.getCenterDatabasePropertiesFile).parse
+    DbConfParser.new( "production", SystemProperties.getCenterDatabasePropertiesFile).parse
   end
 
   # Code is not reloaded between requests

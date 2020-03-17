@@ -535,7 +535,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
             monitorAgentNotifyFailure(exception);
 
-            opMonitoringData.setSoapFault(exception);
+            opMonitoringData.setFaultCodeAndString(exception);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             encoder.fault(SoapFault.createFaultXml(exception));
@@ -657,7 +657,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
 
-            opMonitoringData.setResponseSoapSize(responseSoap.getBytes().length);
+            opMonitoringData.setResponseSize(responseSoap.getBytes().length);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
 
             encoder.soap(responseSoap, headers);

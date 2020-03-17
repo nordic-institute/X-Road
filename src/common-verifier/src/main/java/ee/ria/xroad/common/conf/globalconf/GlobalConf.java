@@ -247,7 +247,8 @@ public final class GlobalConf {
 
     /**
      * @param clientId the client identifier
-     * @return member name for the given client identifier
+     * @return member name for the given client identifier, or null if member does
+     * not exist in global conf
      */
     public static String getMemberName(ClientId clientId) {
         log.trace("getMemberName({})", clientId);

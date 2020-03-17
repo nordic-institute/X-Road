@@ -1,10 +1,22 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <div>
-      <subViewTitle v-if="key.usage == 'SIGNING'" :title="$t('keys.signDetailsTitle')" @close="close" />
-      <subViewTitle v-if="key.usage == 'AUTHENTICATION'" :title="$t('keys.authDetailsTitle')" @close="close" />
-      <div class="delete-wrap">
-        <large-button @click="confirmDelete = true" outlined>{{$t('action.delete')}}</large-button>
+      <subViewTitle
+        v-if="key.usage == 'SIGNING'"
+        :title="$t('keys.signDetailsTitle')"
+        @close="close"
+      />
+      <subViewTitle
+        v-if="key.usage == 'AUTHENTICATION'"
+        :title="$t('keys.authDetailsTitle')"
+        @close="close"
+      />
+      <div class="details-view-tools">
+        <large-button
+          v-if="canDelete"
+          @click="confirmDelete = true"
+          outlined
+        >{{$t('action.delete')}}</large-button>
       </div>
     </div>
 
@@ -25,6 +37,7 @@
             type="text"
             :maxlength="255"
             :error-messages="errors"
+            :disabled="!canEdit"
             @input="touched = true"
           ></v-text-field>
         </ValidationProvider>
@@ -65,7 +78,7 @@
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
       @cancel="confirmDelete = false"
-      @accept="doDeleteKey()"
+      @accept="deleteKey()"
     />
   </div>
 </template>
@@ -78,8 +91,8 @@ import Vue from 'vue';
 import _ from 'lodash';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
+import { Permissions, UsageTypes } from '@/global';
+import { Key } from '@/types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -103,10 +116,27 @@ export default Vue.extend({
       confirmDelete: false,
       touched: false,
       saveBusy: false,
-      key: {},
+      key: {} as Key,
     };
   },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_KEY_FRIENDLY_NAME,
+      );
+    },
+    canDelete(): boolean {
+      if (this.key.usage === UsageTypes.SIGNING) {
+        return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
+      }
 
+      if (this.key.usage === UsageTypes.AUTHENTICATION) {
+        return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_KEY);
+      }
+
+      return this.$store.getters.hasPermission(Permissions.DELETE_KEY);
+    },
+  },
   methods: {
     close(): void {
       this.$router.go(-1);
@@ -119,7 +149,7 @@ export default Vue.extend({
         .patch(`/keys/${this.id}`, this.key)
         .then((res: any) => {
           this.saveBusy = false;
-          this.$bus.$emit('show-success', 'key saved');
+          this.$bus.$emit('show-success', 'keys.keySaved');
           this.close();
         })
         .catch((error: any) => {
@@ -138,9 +168,18 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    doDeleteKey(): void {
+    deleteKey(): void {
       this.confirmDelete = false;
-      // TODO will be implemented on later task
+
+      api
+        .remove(`/keys/${this.id}`)
+        .then((res: any) => {
+          this.$bus.$emit('show-success', 'keys.keyDeleted');
+          this.close();
+        })
+        .catch((error: any) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
   created() {

@@ -174,16 +174,14 @@ public final class OpMonitoringBufferMemoryUsage {
             record.setClientSecurityServerAddress(getDummyStr(longStrLen));
             record.setServiceSecurityServerAddress(getDummyStr(longStrLen));
 
-            record.setRequestSoapSize(DUMMY_LONG_10);
+            record.setRequestSize(DUMMY_LONG_10);
             record.setRequestMimeSize(DUMMY_LONG_10);
             record.setRequestAttachmentCount(DUMMY_INT_2);
-            record.setResponseSoapSize(DUMMY_LONG_10);
+            record.setResponseSize(DUMMY_LONG_10);
             record.setResponseMimeSize(DUMMY_LONG_10);
             record.setResponseAttachmentCount(DUMMY_INT_2);
 
             record.setSucceeded(true);
-
-            //record.setSoapFault(exception);
 
             buffer.put(i, record);
         }

@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.facade;
 
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
@@ -37,12 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 /**
  * GlobalConf facade.
  * Pure facade / wrapper, just delegates to GlobalConf. Zero business logic.
+ * Use {@link org.niis.xroad.restapi.service.GlobalConfService} for methods are more than pure delegates.
  * Exists to make testing easier by offering non-static methods.
  */
 @Slf4j
@@ -130,4 +133,62 @@ public class GlobalConfFacade {
             X509Certificate cert) throws Exception {
         return GlobalConf.getSubjectName(signCertificateProfileInfoParameters, cert);
     }
+
+    /**
+     * {@link GlobalConf#getApprovedCAs(String)}
+     */
+    public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
+        return GlobalConf.getApprovedCAs(instanceIdentifier);
+    }
+
+    /**
+     * {@link GlobalConf#getServerOwner(SecurityServerId)}
+     */
+    public static ClientId getServerOwner(SecurityServerId serverId) {
+        return GlobalConf.getServerOwner(serverId);
+    }
+
+    /**
+     * {@link GlobalConf#getManagementRequestService()}
+     */
+    public ClientId getManagementRequestService() {
+        return GlobalConf.getManagementRequestService();
+    }
+
+    /**
+     * {@link GlobalConf#getSecurityServers(String...)}
+     */
+    public List<SecurityServerId> getSecurityServers(String... instanceIdentifiers) {
+        return GlobalConf.getSecurityServers(instanceIdentifiers);
+    }
+
+    /**
+     * {@link GlobalConf#getSecurityServerAddress(SecurityServerId)}
+     */
+    public String getSecurityServerAddress(SecurityServerId securityServerId) {
+        return GlobalConf.getSecurityServerAddress(securityServerId);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedTsps(String)}}
+     */
+    public List<String> getApprovedTsps(String instanceIdentifier) {
+        return GlobalConf.getApprovedTsps(instanceIdentifier);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedTspName(String, String)}}
+     */
+    public String getApprovedTspName(String instanceIdentifier, String url) {
+        return GlobalConf.getApprovedTspName(instanceIdentifier, url);
+    }
+
+    /**
+     * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}
+     */
+    public boolean isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer) {
+        return GlobalConf.isSecurityServerClient(client, securityServer);
+    }
+
 }

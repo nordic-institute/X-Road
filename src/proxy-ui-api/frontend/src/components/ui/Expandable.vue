@@ -13,9 +13,7 @@
 
       <v-spacer />
       <div class="action-wrap">
-        <slot name="action">
-          <v-switch class="switch"></v-switch>
-        </slot>
+        <slot name="action"></slot>
       </div>
     </div>
     <div v-if="isOpen" class="content-wrap">
@@ -68,10 +66,6 @@ export default Vue.extend({
   border-radius: 4px;
   background-color: $XRoad-Grey10;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
-}
-
-.switch {
-  width: 60px;
 }
 
 .action-wrap {

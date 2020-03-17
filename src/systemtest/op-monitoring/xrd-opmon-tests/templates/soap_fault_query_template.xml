@@ -1,0 +1,26 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://producer.x-road.eu" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>{params[client_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[client_class]}</id:memberClass>
+            <id:memberCode>{params[client_code]}</id:memberCode>
+            <id:subsystemCode>{params[client_system]}</id:subsystemCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>{params[producer_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[producer_class]}</id:memberClass>
+            <id:memberCode>{params[producer_code]}</id:memberCode>
+            <id:subsystemCode>{params[producer_system]}</id:subsystemCode>
+            <id:serviceCode>mock</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+        <xrd:id>{message_id_placeholder}</xrd:id>
+        <xrd:issue>faultPlease</xrd:issue>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:mock>
+            <desiredResponse>fault</desiredResponse>
+        </ns1:mock>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

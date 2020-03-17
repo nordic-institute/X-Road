@@ -2,7 +2,7 @@ This directory contains the various test suites and helper code
 for testing the Operational Monitoring system at various levels.
 
 The dependencies for each testing level are described in the corresponding
-subdirectory (integration and load).
+subdirectory.
 
 Unit tests are integrated into the build system of the respective
 source code modules and are not covered here.
@@ -12,18 +12,13 @@ overview of the testing strategy and the expected environment.
 
 The contents of this directory:
 
-- integration: Source code, request templates etc for running the integration
+- xrd-opmon-tests: Source code, request templates etc for running the integration
   test suite of the Operational Monitoring system.
 
-- load: Source code for running the load test simulations of the Operational
-  Monitoring system.
-
-- misc: One-off scripts and various files used for manual testing.
-
-- mock: Configuration of the SoapUI-based mock service used for simulating
+- xrd-mock-soapui: Configuration of the SoapUI-based mock service used for simulating
   a service provider's information system in the testing environment.
 
-- python_common: A library of reusable code for the integration and load tests.
+- misc: One-off scripts and various files used for manual testing.
 
 - requests: Sample SOAP requests that can be used for manual testing.
 

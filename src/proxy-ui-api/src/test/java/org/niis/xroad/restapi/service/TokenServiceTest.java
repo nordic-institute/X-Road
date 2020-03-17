@@ -79,6 +79,10 @@ public class TokenServiceTest {
     @MockBean
     private SignerProxyFacade signerProxyFacade;
 
+    // allow all operations in this test
+    @MockBean
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
+
     @Before
     public void setup() throws Exception {
         doAnswer(invocation -> {
@@ -113,7 +117,7 @@ public class TokenServiceTest {
             return null;
         }).when(signerProxyFacade).deactivateToken(any());
 
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo(GOOD_TOKEN_NAME);
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName(GOOD_TOKEN_NAME).build();
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build();
         tokenInfo.getKeyInfo().add(keyInfo);
 

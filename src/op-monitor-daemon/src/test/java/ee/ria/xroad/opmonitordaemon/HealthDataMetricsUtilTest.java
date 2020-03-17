@@ -31,7 +31,8 @@ import org.junit.Test;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getServiceTypeName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -49,6 +50,7 @@ public class HealthDataMetricsUtilTest {
         rec.setServiceSubsystemCode("testsub");
         rec.setServiceCode("testservice");
         rec.setServiceVersion("v1");
+        rec.setServiceType("OPENAPI3");
 
         // This simple service ID is not escaped in any way in the parameter
         // keys.
@@ -83,6 +85,11 @@ public class HealthDataMetricsUtilTest {
 
         regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
         assertTrue(jmxKey.matches(regex));
+
+        jmxKey = getServiceTypeName(serviceId);
+        assertEquals(jmxKey, "serviceType(" + serviceId.toShortString() + ")");
+        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
+        assertTrue(jmxKey.matches(regex));
     }
 
     @Test
@@ -107,8 +114,8 @@ public class HealthDataMetricsUtilTest {
         assertEquals(expectedServiceId, escapedId);
         System.out.println(escapedId);
 
-        String requestSoapSizeKey = getRequestSoapSizeName(serviceId);
-        assertEquals("requestSoapSize(" + escapedId + ")", requestSoapSizeKey);
+        String requestSizeKey = getRequestSizeName(serviceId);
+        assertEquals("requestSize(" + escapedId + ")", requestSizeKey);
     }
 
     @Test
@@ -185,7 +192,6 @@ public class HealthDataMetricsUtilTest {
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
                 requestDurationKey);
-         assertTrue(requestDurationKey.matches(regex));
+        assertTrue(requestDurationKey.matches(regex));
     }
-
 }

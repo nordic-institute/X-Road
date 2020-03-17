@@ -108,10 +108,10 @@ class ServerProxyHandler extends HandlerBase {
 
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
-            opMonitoringData.setSoapFault(cex);
+            opMonitoringData.setFaultCodeAndString(cex);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
-            failure(response, cex);
+            failure(request, response, cex);
         } finally {
             baseRequest.setHandled(true);
 
@@ -135,10 +135,10 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    protected void failure(HttpServletResponse response, CodedException e) throws IOException {
+    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException e)
+            throws IOException {
         MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
-
-        sendErrorResponse(response, e);
+        sendErrorResponse(request, response, e);
     }
 
     private static void logProxyVersion(HttpServletRequest request) {

@@ -1,7 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Database setup
 #
+
+is_rhel8() {
+    ([[ -f /etc/os-release ]] && source /etc/os-release && [[ "$ID_LIKE" == *rhel* && "$VERSION_ID" == 8* ]])
+}
 
 init_local_postgres() {
     SERVICE_NAME=postgresql
@@ -10,16 +14,19 @@ init_local_postgres() {
     systemctl is-active $SERVICE_NAME && return 0
 
     # Copied from postgresql-setup. Determine default data directory
-    PGDATA=`systemctl show -p Environment "${SERVICE_NAME}.service" |
-    sed 's/^Environment=//' | tr ' ' '\n' |
-    sed -n 's/^PGDATA=//p' | tail -n 1`
-    if [ x"$PGDATA" = x ]; then
+    PGDATA=$(systemctl show -p Environment "${SERVICE_NAME}.service" | sed 's/^Environment=//' | tr ' ' '\n' | sed -n 's/^PGDATA=//p' | tail -n 1)
+    if [ -z "$PGDATA" ]; then
         echo "failed to find PGDATA setting in ${SERVICE_NAME}.service"
         return 1
     fi
 
-    if ! postgresql-check-db-dir $PGDATA >/dev/null; then
-        PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" postgresql-setup initdb || return 1
+    if [ ! -e "$PGDATA/PG_VERSION" ]; then
+        if is_rhel8; then
+            cmd="--initdb"
+        else
+            cmd="initdb"
+        fi
+        PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" postgresql-setup $cmd || return 1
     fi
 
     # ensure that PostgreSQL is running
@@ -29,44 +36,43 @@ init_local_postgres() {
 configure_local_postgres() {
 
     echo "configure local db"
+    local_psql() { su -l -c "psql -qtA ${*@Q}" postgres; }
 
     init_local_postgres || exit 1
 
-    if ! netstat -na | grep -q :5432
-    then echo -e  "\n\nIs postgres running on port 5432 ?"
+    if ! local_psql -c '\q'; then
+        echo -e "\n\nIs postgres running on port 5432 ?"
         echo -e "Aborting installation! please fix issues and rerun\n\n"
         exit 100
     fi
 
-    if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-    then echo -e "\n\npostgreSQL is not UTF8 compatible."
+    if ! local_psql -F ' ' --list | grep template1 | awk '{print $3}' | grep -q "UTF8"; then
+        echo -e "\n\npostgreSQL is not UTF8 compatible."
         echo -e "Aborting installation! please fix issues and rerun\n\n"
         exit 101
     fi
 
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
-    then
-        echo  "$db_user user exists, skipping schema creation"
-        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+    if [[ $(local_psql -c "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'") == "1" ]]; then
+        echo "$db_user user exists, skipping schema creation"
+        local_psql -c "ALTER ROLE \"${db_user}\" WITH PASSWORD '${db_passwd}';"
     else
-        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+        local_psql -c "CREATE ROLE \"${db_user}\" LOGIN PASSWORD '${db_passwd}';"
     fi
 
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\""`  == "1" ]]
-    then
+    if [[ $(local_psql -c "SELECT 1 FROM pg_database WHERE datname='${db_name}'") == "1" ]]; then
         echo "database ${db_name} exists"
     else
         su - postgres -c "createdb ${db_name} -O ${db_user} -E UTF-8"
     fi
 
-    su - postgres -c "psql serverconf -tAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
+    local_psql -d "${db_name}" -c "CREATE EXTENSION IF NOT EXISTS hstore;"
 
     touch ${db_properties}
     crudini --set ${db_properties} '' serverconf.hibernate.jdbc.use_streams_for_binary true
     crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' serverconf.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' serverconf.hibernate.connection.username  ${db_user}
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.username ${db_user}
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password ${db_passwd}
 }
 
@@ -74,25 +80,23 @@ configure_remote_postgres() {
 
     echo "configure remote db"
 
-    master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
+    master_passwd=$(crudini --get ${root_properties} '' postgres.connection.password)
     export PGPASSWORD=${master_passwd}
 
-    if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
-    then echo -e "\n\npostgreSQL is not UTF8 compatible."
+    if ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"; then
+        echo -e "\n\nPostgreSQL is not UTF8 compatible."
         echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
         exit 101
     fi
 
-    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
-    then
-        echo  "$db_user user exists, skipping role creation"
+    if [[ $(psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'") == "1" ]]; then
+        echo "$db_user user exists, skipping role creation"
         echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
     else
         echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
     fi
 
-    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
-    then
+    if [[ $(psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'") == "1" ]]; then
         echo "database ${db_name} exists"
     else
         echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
@@ -106,7 +110,7 @@ configure_remote_postgres() {
     crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' serverconf.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' serverconf.hibernate.connection.username  ${db_user}
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.username ${db_user}
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password ${db_passwd}
     crudini --set ${root_properties} '' serverconf.database.initialized true
 }
@@ -119,11 +123,10 @@ db_properties=/etc/xroad/db.properties
 root_properties=/etc/xroad.properties
 
 #is database connection configured?
-if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
-then
+if [[ -f ${db_properties} && $(crudini --get ${db_properties} '' serverconf.hibernate.connection.url) != "" ]]; then
     db_url=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.url)
-    db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
-    db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
+    db_user=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.username)
+    db_passwd=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.password)
 fi
 
 res=${db_url%/*}
@@ -132,17 +135,14 @@ db_addr=${db_host%%:*}
 db_port=${db_host##*:}
 
 # If the database host is not local, connect with master username and password
-if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
-then
-    if  [[ `crudini --get ${root_properties} '' serverconf.database.initialized` != "true" ]]
-    then
+if [[ -f ${root_properties} && $(crudini --get ${root_properties} '' postgres.connection.password) != "" ]]; then
+    if [[ $(crudini --get ${root_properties} '' serverconf.database.initialized) != "true" ]]; then
         configure_remote_postgres
     else
         echo "database already configured"
     fi
 else
-    if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
-    then
+    if [[ -f ${db_properties} && $(crudini --get ${db_properties} '' serverconf.hibernate.connection.url) != "" ]]; then
         echo "database already configured"
     else
         configure_local_postgres

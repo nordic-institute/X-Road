@@ -27,13 +27,21 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.PossibleActionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.openapi.model.SecurityServerAddress;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
-import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.service.CsrNotFoundException;
+import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.restapi.service.InvalidCertificateException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.ManagementRequestSendingFailedException;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +51,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * certificates api
@@ -55,12 +66,40 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     private final TokenCertificateService tokenCertificateService;
     private final TokenCertificateConverter tokenCertificateConverter;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
     public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
-            TokenCertificateConverter tokenCertificateConverter) {
+            TokenCertificateConverter tokenCertificateConverter, PossibleActionConverter possibleActionConverter) {
         this.tokenCertificateService = tokenCertificateService;
         this.tokenCertificateConverter = tokenCertificateConverter;
+        this.possibleActionConverter = possibleActionConverter;
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
+    public ResponseEntity<Void> activateCertificate(String hash) {
+        try {
+            tokenCertificateService.activateCertificate(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
+    public ResponseEntity<Void> disableCertificate(String hash) {
+        try {
+            tokenCertificateService.deactivateCertificate(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
@@ -70,12 +109,12 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificate(certificateBytes);
-        } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
+        } catch (GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
-                | TokenCertificateService.InvalidCertificateException
+                | InvalidCertificateException
                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
+        } catch (CertificateAlreadyExistsException | CsrNotFoundException e) {
             throw new ConflictException(e);
         }
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
@@ -103,12 +142,13 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificateFromToken(hash);
-        } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
+        } catch (GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
-                | TokenCertificateService.InvalidCertificateException
+                | InvalidCertificateException
                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
+        } catch (CertificateAlreadyExistsException | CsrNotFoundException
+                | ActionNotPossibleException e) {
             throw new ConflictException(e);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -116,5 +156,81 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
         return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
                 tokenCertificate.getCertificateDetails().getHash());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
+    public ResponseEntity<Void> deleteCertificate(String hash) {
+        try {
+            tokenCertificateService.deleteCertificate(hash);
+        } catch (CertificateNotFoundException | KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<List<PossibleAction>> getPossibleActionsForCertificate(String hash) {
+        try {
+            EnumSet<PossibleActionEnum> actions = tokenCertificateService
+                    .getPossibleActionsForCertificate(hash);
+            return new ResponseEntity<>(possibleActionConverter.convert(actions), HttpStatus.OK);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_REG_REQ')")
+    public ResponseEntity<Void> registerCertificate(String hash, SecurityServerAddress securityServerAddress) {
+        try {
+            tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException
+                | InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
+    public ResponseEntity<Void> unregisterAuthCertificate(String hash) {
+        try {
+            tokenCertificateService.unregisterAuthCert(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+            throw new ConflictException(e);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
+    public ResponseEntity<Void> markAuthCertForDeletion(String hash) {
+        try {
+            tokenCertificateService.markAuthCertForDeletion(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

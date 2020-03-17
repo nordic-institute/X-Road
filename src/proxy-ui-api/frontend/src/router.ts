@@ -1,4 +1,4 @@
-import Router, { Route } from 'vue-router';
+import Router, { Route, NavigationGuard } from 'vue-router';
 import { sync } from 'vuex-router-sync';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AppLogin from '@/views/AppLogin.vue';
@@ -11,7 +11,7 @@ import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCerti
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters.vue';
-import BackupAndRestore from '@/views/Settings/BackupAndRestore.vue';
+import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AddClient from '@/views/AddClient/AddClient.vue';
@@ -29,9 +29,19 @@ import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
 import Service from '@/views/Service/Service.vue';
+import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
-import { RouteName, Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
+import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
+import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
+import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
+import EndpointDetails from '@/views/Service/Endpoints/EndpointDetails.vue';
+import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 
+// At the moment the vue router does not have a type for Next.
+// Using this solution was recommended in a github comment:
+// https://github.com/vuejs/vue-router/pull/2497#issuecomment-474010032
+type Next = Parameters<NavigationGuard>[2];
 
 const router = new Router({
   routes: [
@@ -71,6 +81,13 @@ const router = new Router({
           ],
         },
         {
+          name: RouteName.GenerateInternalCSR,
+          path: '/keys/tsl-cert/generate-csr',
+          component: GenerateInternalCsr,
+          meta: { permission: Permissions.GENERATE_INTERNAL_SSL_CSR },
+          props: true,
+        },
+        {
           name: RouteName.Diagnostics,
           path: '/diagnostics',
           components: {
@@ -88,7 +105,7 @@ const router = new Router({
           children: [
             {
               name: RouteName.SystemParameters,
-              path: '',
+              path: 'system-parameters',
               component: SystemParameters,
               props: true,
             },
@@ -202,7 +219,7 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate/:hash',
+          path: '/certificate/:hash/:usage',
           components: {
             default: CertificateDetails,
           },
@@ -251,9 +268,51 @@ const router = new Router({
         },
         {
           name: RouteName.Service,
-          path: '/service/:clientId/:serviceId',
+          path: '/service',
           components: {
             default: Service,
+          },
+          redirect: '/service/:clientId/:serviceId/parameters',
+          props: { default: true },
+          children: [
+            {
+              name: RouteName.ServiceParameters,
+              path: '/service/:clientId/:serviceId/parameters',
+              components: {
+                default: ServiceParameters,
+              },
+              props: { default: true },
+            },
+            {
+              name: RouteName.ServiceEndpoints,
+              path: '/service/:clientId/:serviceId/endpoints',
+              components: {
+                default: ServiceEndpoints,
+              },
+            },
+          ],
+        },
+        {
+          name: RouteName.EndpointDetails,
+          path: '/endpoint/:id',
+          components: {
+            default: EndpointDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.GenerateCertificateSignRequest,
+          path: '/generate-csr/:keyId',
+          components: {
+            default: GenerateCertificateSignRequest,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.InternalTlsCertificate,
+          path: '/internal-tls-certificate',
+          components: {
+            default: InternalCertificateDetails,
           },
           props: { default: true },
         },
@@ -271,8 +330,7 @@ const router = new Router({
   ],
 });
 
-router.beforeEach((to: Route, from: Route, next) => {
-
+router.beforeEach((to: Route, from: Route, next: Next) => {
   // Going to login
   if (to.name === 'login') {
     next();

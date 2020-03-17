@@ -66,6 +66,6 @@ public class ProxyMonitor implements AddOn {
             log.warn(String.format("Could not load configuration property %s - using the default port",
                     CONFIG_PROPERTY_PORT));
         }
-        return String.format("akka.tcp://xroad-monitor@127.0.0.1:%d", port);
+        return String.format("akka://xroad-monitor@127.0.0.1:%d", port);
     }
 }

@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.openapi.InvalidParametersException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +73,7 @@ public class ApiKeyController {
         try {
             createdKeyData = apiKeyRepository.create(roles);
         } catch (InvalidRoleNameException e) {
-            throw new InvalidParametersException(e);
+            throw new BadRequestException(e);
         }
         Map<String, Object> result = new HashMap();
         result.put("key", createdKeyData.getKey());

@@ -48,7 +48,6 @@ module.exports = {
     browser.assert.containsText(certificatePopup, "SHA256withRSA");
     browser.assert.containsText(certificatePopup, "93:7F:89:09:B0:8F:B3:DA:40:96:50:8A:24:8A:0C:E2:F8:77:AC:A7");
     browser.assert.containsText(certificatePopup, "SERIALNUMBER=REST-UI-TEST/ss1-vrk/GOV, CN=0245437-2, O=VRK, C=FI");     
- 
      
     // Close sign certificate popup
     certificatePopup.close();

@@ -56,4 +56,18 @@ public final class KeyInfo implements Serializable {
     public boolean isForSigning() {
         return usage == KeyUsageInfo.SIGNING;
     }
+
+    /**
+     * Logic to determine if a token is saved to configuration.
+     * True if there are some cert requests, or there is at least one certificate which is saved to configuration.
+     * (logic originally from token_renderer.rb#key_saved_to_configuration)
+     */
+    public boolean isSavedToConfiguration() {
+        if (!certRequests.isEmpty()) {
+            return true;
+        }
+        return certs.stream()
+                .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
+
+    }
 }

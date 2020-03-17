@@ -15,7 +15,7 @@ export function selectedFilter(arr: any[], search: string, excluded?: string): a
     // If there is an excluded key remove it from the keys
     if (excluded) {
       filteredKeys = filteredKeys.filter((value) => {
-        return value !== 'id';
+        return value !== excluded;
       });
     }
 
@@ -39,5 +39,34 @@ export function isValidWsdlURL(str: string) {
 // Checks if the given REST URL is valid
 export function isValidRestURL(str: string) {
   return isValidWsdlURL(str);
+}
+
+// Save response data as a file
+export function saveResponseAsFile(response: any, defaultFileName: string = 'certs.tar.gz') {
+  let suggestedFileName;
+  const disposition = response.headers['content-disposition'];
+
+  if (disposition && disposition.indexOf('attachment') !== -1) {
+    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+    const matches = filenameRegex.exec(disposition);
+    if (matches != null && matches[1]) {
+      suggestedFileName = matches[1].replace(/['"]/g, '');
+    }
+  }
+
+  const effectiveFileName =
+    suggestedFileName === undefined
+      ? defaultFileName
+      : suggestedFileName;
+  const blob = new Blob([response.data]);
+
+  // Create a link to DOM and click it. This will trigger the browser to start file download.
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.setAttribute('download', effectiveFileName);
+  link.setAttribute('data-test', 'generated-download-link');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link); // cleanup
 }
 

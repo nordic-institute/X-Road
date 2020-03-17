@@ -153,6 +153,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         // and the responseInTs must be equal with the responseOutTs.
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+        opMonitoringData.setServiceType(DescriptionType.REST.name());
     }
 
     private void handleListMethods(ProxyMessage requestProxyMessage) throws IOException {
