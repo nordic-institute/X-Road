@@ -701,4 +701,19 @@ public final class GlobalConf {
 
         return getInstance().getSecurityServers(instanceIdentifiers);
     }
+
+    /**
+     * Get ApprovedCAInfo matching given CA certificate
+     * @param instanceIdentifier instance id
+     * @param cert intermediate or top CA cert
+     * @return ApprovedCAInfo (for the top CA)
+     * @throws CodedException if something went wrong, for example
+     * {@code cert} was not an approved CA cert
+     */
+    public static ApprovedCAInfo getApprovedCA(
+            String instanceIdentifier, X509Certificate cert) throws CodedException {
+        log.trace("getApprovedCA()");
+
+        return getInstance().getApprovedCA(instanceIdentifier, cert);
+    }
 }
