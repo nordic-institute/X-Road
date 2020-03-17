@@ -29,7 +29,7 @@
   },
   "backup": {
     "backupConfiguration": "Back up config.",
-    "uploadBackup": "Upload back up"
+    "uploadBackup": "Upload backup"
   },
   "client": {
     "name": "Name",
