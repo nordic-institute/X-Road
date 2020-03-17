@@ -13,9 +13,9 @@ import { Permissions } from '@/global';
 
 <script lang="ts">
 import Vue from 'vue';
-  import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 
-  export default Vue.extend({
+export default Vue.extend({
   data() {
     return {
       tab: null,

@@ -357,6 +357,13 @@
           "distinguishedName": "Distinguished Name",
           "ocspResponse": "OCSP Response",
           "expires": "Expires"
+        },
+        "ocspResponse": {
+          "NOT_AVAILABLE": "N/A",
+          "OCSP_RESPONSE_UNKNOWN": "Unknown",
+          "OCSP_RESPONSE_GOOD": "Good",
+          "OCSP_RESPONSE_SUSPENDED": "Suspended",
+          "OCSP_RESPONSE_REVOKED": "Revoked"
         }
       }
     }

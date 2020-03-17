@@ -77,9 +77,10 @@
               </tr>
               </thead>
               <tbody data-test="system-parameters-approved-ca-table-body">
-              <tr v-for="approvedCA in approvedCertificateAuthorities" :key="approvedCA.path">
-                <td>{{approvedCA.subject_distinguished_name}}</td>
-                <td>{{approvedCA.ocsp_response}}</td>
+              <tr v-for="approvedCA in orderedCertificateAuthorities" :key="approvedCA.path">
+                <td :class="{'interm-ca': !approvedCA.top_ca}">{{approvedCA.subject_distinguished_name}}</td>
+                <td v-if="approvedCA.top_ca">{{$t('systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE')}}</td>
+                <td v-if="!approvedCA.top_ca">{{$t(`systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`)}}</td>
                 <td>{{approvedCA.not_after | formatDate}}</td>
               </tr>
               </tbody>
@@ -108,9 +109,14 @@ export default Vue.extend({
     return {
       configuratonAnchor: {} as Anchor,
       configuredTimestampingServices: [] as TimestampingService[],
-      approvedCertificateAuthorities: [] as CertificateAuthority[],
+      certificateAuthorities: [] as CertificateAuthority[],
       permissions: Permissions,
     };
+  },
+  computed: {
+    orderedCertificateAuthorities(): CertificateAuthority[] {
+      return this.certificateAuthorities.sort((authorityA, authorityB) => authorityA.path.localeCompare(authorityB.path));
+    },
   },
   methods: {
     hasPermission(permission: Permissions): boolean {
@@ -128,7 +134,7 @@ export default Vue.extend({
     },
     async fetchApprovedCertificateAuthorities() {
       return api.get('/certificate-authorities?include_intermediate_cas=true')
-        .then((resp) => this.approvedCertificateAuthorities = resp.data)
+        .then((resp) => this.certificateAuthorities = resp.data)
         .catch((error) => this.$bus.$emit('show-error', error.message));
     },
   },
@@ -159,6 +165,11 @@ export default Vue.extend({
   tr td:last-child {
     width: 1%;
     white-space: nowrap;
+  }
+
+  .interm-ca {
+    font-weight: normal !important;
+    padding-left: 2rem !important;
   }
 
 </style>
