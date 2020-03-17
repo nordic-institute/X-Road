@@ -27,15 +27,19 @@ package org.niis.xroad.restapi.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.LimitRequestSizesException;
+import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.Collections;
 
 /**
  * Handle Spring internal exceptions
@@ -51,13 +55,23 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
         log.error("exception caught", ex);
+        ErrorInfo errorInfo = new ErrorInfo();
         if (causedBySizeLimitExceeded(ex)) {
             status = HttpStatus.PAYLOAD_TOO_LARGE;
+        } else if (ex instanceof MethodArgumentNotValidException) {
+            errorInfo.setError(fromValidationException((MethodArgumentNotValidException) ex));
         }
-        ErrorInfo errorInfo = new ErrorInfo();
         errorInfo.setStatus(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
                 status, request);
+    }
+
+    public static final String VALIDATION_FAILURE_ERROR = "validation_failure";
+    private CodeWithMetadata fromValidationException(MethodArgumentNotValidException e) {
+        CodeWithMetadata result = new CodeWithMetadata();
+        result.setCode(VALIDATION_FAILURE_ERROR);
+        result.setMetadata(Collections.singletonList(e.getBindingResult().toString()));
+        return result;
     }
 
     /**

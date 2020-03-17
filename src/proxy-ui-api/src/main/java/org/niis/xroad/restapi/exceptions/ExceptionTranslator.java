@@ -26,15 +26,19 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,14 +79,37 @@ public class ExceptionTranslator {
 
                 }
             }
+            // handle bad request validation errors
+            if (e instanceof BadRequestException) {
+                BadRequestException badRequestException = (BadRequestException) e;
+                if (badRequestException.getValidationErrors() != null) {
+                    errorDto.setError(fromValidationErrors(badRequestException.getValidationErrors()));
+                }
+            }
+
         } else if (e instanceof CodedException) {
             // map fault code and string from core CodedException
             CodedException c = (CodedException) e;
             Deviation deviation = new Deviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(),
                     c.getFaultString());
             errorDto.setError(convert(deviation));
+        } else if (e instanceof MethodArgumentNotValidException) {
+            errorDto.setError(fromValidationException((MethodArgumentNotValidException) e));
         }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
+    }
+
+    private CodeWithMetadata fromValidationErrors(Errors validationErrors) {
+        CodeWithMetadata result = new CodeWithMetadata();
+        result.setCode(VALIDATION_FAILURE_ERROR);
+        result.setMetadata(Collections.singletonList(validationErrors.toString()));
+        return result;
+    }
+
+    public static final String VALIDATION_FAILURE_ERROR = "validation_failure";
+    private CodeWithMetadata fromValidationException(MethodArgumentNotValidException e) {
+        Errors errors = e.getBindingResult();
+        return fromValidationErrors(errors);
     }
 
     private CodeWithMetadata convert(Deviation deviation) {
