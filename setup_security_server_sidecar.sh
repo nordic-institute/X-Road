@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage="\n
-To create a sidecar security server instance you need to provide the seven arguments described here below.
+To create a sidecar security server instance you need to provide the five arguments described here below.
 
 #1 Name for the sidecar security server container
 #2 Local port number to bind the sidecar security server admin UI

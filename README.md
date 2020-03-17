@@ -28,7 +28,7 @@ Minimum recommended docker engine configuration to run sidecar security server c
 Run the following script:
 
   ```bash
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <serverconf username> <serverconf password>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
   ```
 
 The script setup_security_server_sidecar.sh will:
@@ -38,6 +38,5 @@ The script setup_security_server_sidecar.sh will:
 - Configure xroad-autologin software token PIN code.
 - Configure admin username and password.
 - Update X-Road configuration on startup if the installed version on image has been updated.
-- Configure serverconf username and password.
-- Generate serverconf database with user-supplied username and password.
+- Generate serverconf database and properties file with default username (serverconf) and random password.
 - Generate internal and admin UI TLS keys and certificates.
