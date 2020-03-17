@@ -28,13 +28,6 @@ else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
 
-# Configure default xroad-autologin software token PIN code if the environment variable is not set
-if [ ! -n "$XROAD_TOKEN_PIN" ]
-then
-    echo "XROAD_TOKEN_PIN variable is not set, writing default PIN code 1234 to /etc/xroad/autologin"
-    su xroad -c 'echo 1234 >/etc/xroad/autologin'
-fi
-
 # Generate internal and admin UI TLS keys and certificates on the first run
 if [ ! -f /etc/xroad/ssl/internal.crt ];
 then
