@@ -3096,12 +3096,12 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /system/anchor/temporary:
+  /system/anchor/preview:
     post: # ok
       tags:
         - security server
       summary: Read the configuration anchor file and return the hash for a preview. The anchor will not be saved.
-      operationId: uploadTemporaryAnchor
+      operationId: previewAnchor
       description: Administrator wants to preview a configuration anchor file hash
       requestBody:
         description: configuration anchor

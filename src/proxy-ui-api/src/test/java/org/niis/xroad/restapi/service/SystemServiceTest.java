@@ -25,12 +25,17 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -46,7 +51,14 @@ import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.ConfigurationVerifier.MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
+import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
+import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_HASH;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -55,26 +67,24 @@ import static org.mockito.Mockito.when;
 @Transactional
 @WithMockUser
 public class SystemServiceTest {
+    private static final String TSA_1_URL = "https://tsa.com";
+    private static final String TSA_1_NAME = "TSA 1";
+    private static final String TSA_2_URL = "https://example.com";
+    private static final String TSA_2_NAME = "TSA 2";
 
     @Autowired
     private SystemService systemService;
-
     @MockBean
     private ServerConfService serverConfService;
-
     @MockBean
     private GlobalConfService globalConfService;
-
-    private static final String TSA_1_URL = "https://tsa.com";
-
-    private static final String TSA_1_NAME = "TSA 1";
-
-    private static final String TSA_2_URL = "https://example.com";
-
-    private static final String TSA_2_NAME = "TSA 2";
+    @MockBean
+    private AnchorRepository anchorRepository;
+    @MockBean
+    private ConfigurationVerifier configurationVerifier;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
 
         systemService.setInternalKeyPath("src/test/resources/internal.key");
 
@@ -88,6 +98,8 @@ public class SystemServiceTest {
         when(globalConfService.getApprovedTspName(TSA_2_URL))
                 .thenReturn(tsa2.getName());
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
+        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("CS", "GOV", "1111"));
+        doNothing().when(configurationVerifier).verifyInternalConfiguration(any());
     }
 
     @Test
@@ -161,6 +173,43 @@ public class SystemServiceTest {
             fail("should throw TimestampingServiceNotFoundException");
         } catch (TimestampingServiceNotFoundException expected) {
             // success
+        }
+    }
+
+    @Test
+    public void getAnchorFileFromBytes() throws Exception {
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
+        assertEquals(ANCHOR_HASH, anchorFile.getHash());
+    }
+
+    @Test(expected = SystemService.InvalidAnchorInstanceException.class)
+    public void getAnchorFileFromBytesWrongInstance() throws Exception {
+        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("INVALID", "GOV", "1111"));
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        systemService.getAnchorFileFromBytes(anchorBytes);
+    }
+
+    @Test
+    public void uploadAnchor() throws Exception {
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        try {
+            systemService.uploadAnchor(anchorBytes);
+        } catch (Exception e) {
+            fail("Should not fail");
+        }
+    }
+
+    @Test
+    public void uploadAnchorFailVerification() throws Exception {
+        doThrow(new ConfigurationVerifier.ConfigurationVerificationException(MISSING_PRIVATE_PARAMS))
+                .when(configurationVerifier).verifyInternalConfiguration(any());
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        try {
+            systemService.uploadAnchor(anchorBytes);
+            fail("Should have failed");
+        } catch (Exception e) {
+            assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS, (DeviationAwareRuntimeException) e);
         }
     }
 }
