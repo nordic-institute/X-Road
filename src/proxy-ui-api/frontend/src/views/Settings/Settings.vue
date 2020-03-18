@@ -1,3 +1,4 @@
+import { Permissions } from '@/global';
 <template>
   <div class="wrapper xrd-view-common">
     <v-tabs
@@ -9,8 +10,8 @@
     >
       <v-tabs-slider color="secondary"></v-tabs-slider>
       <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">
-        {{ $t(tab.name) }}</v-tab
-      >
+        {{ $t(tab.name) }}
+      </v-tab>
     </v-tabs>
     <div class="content">
       <router-view />
@@ -26,13 +27,18 @@ export default Vue.extend({
   data() {
     return {
       tab: null,
-      tabs: [
+    };
+  },
+  computed: {
+    tabs(): any[] {
+      const allTabs = [
         {
           key: 'system',
           name: 'tab.settings.systemParameters',
           to: {
             name: RouteName.SystemParameters,
           },
+          permission: Permissions.VIEW_SYS_PARAMS,
         },
         {
           key: 'backup',
@@ -40,9 +46,11 @@ export default Vue.extend({
           to: {
             name: RouteName.BackupAndRestore,
           },
+          permission: Permissions.BACKUP_CONFIGURATION,
         },
-      ],
-    };
+      ];
+      return this.$store.getters.getAllowedTabs(allTabs);
+    },
   },
 });
 </script>
