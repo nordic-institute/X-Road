@@ -1,10 +1,10 @@
 <template>
-  <tr>
+  <tr data-test="system.parameters-timestamping-service-row">
     <td>{{ timestampingService.name }}</td>
     <td>{{ timestampingService.url }}</td>
     <td>
       <small-button
-        data-test="system-parameters-timestamping-services-delete-button"
+        data-test="system-parameters-timestamping-service-delete-button"
         outlined
         @click="confirmDeleteDialog = true"
         :requires-permission="permissions.DELETE_TSP"
@@ -14,7 +14,7 @@
         }}
       </small-button>
       <confirm-dialog
-        data-test="system-parameters-timestamping-services-delete-confirm-dialog"
+        data-test="system-parameters-timestamping-service-delete-confirm-dialog"
         :dialog="confirmDeleteDialog"
         @cancel="confirmDeleteDialog = false"
         @accept="deleteTimestampingService"

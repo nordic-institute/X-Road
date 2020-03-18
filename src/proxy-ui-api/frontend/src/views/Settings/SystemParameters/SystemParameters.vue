@@ -192,11 +192,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 
 export default Vue.extend({
