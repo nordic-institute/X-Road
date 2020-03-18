@@ -1253,7 +1253,12 @@ Default settings for logging are the following:
 
 # 18. Migrating to Remote Database Host
 
-Since version 6.23.0 Central Server supports using remote databases. In case you have an already running Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+Prerequisites
+
+* Same version (10 or later) of PostgreSQL installed on the remote database host.
+* Network connections to PostgreSQL port (tcp/5432) are allowed from the Central Server to the remote database server.
 
 1. Shutdown X-Road processes.
 
