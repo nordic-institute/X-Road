@@ -1514,6 +1514,32 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/globalconf:
+    get: # ok
+      tags:
+        - security server
+      summary: view global configuration diagnostics information
+      operationId: getGlobalConfDiagnostics
+      description: Administrator views the global configuration diagnostics information.
+      responses:
+        '200':
+          description: global configuration diagnostics information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalConfDiagnostics'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /local-groups/{group_id}:
     get: # ok
       tags:
@@ -4460,6 +4486,37 @@ components:
           description: if true, label key is in property "label_key". If false, actual label is in property "label"
           example: true
           readOnly: true
+    DiagnosticStatusClass: # ok
+      type: string
+      format: enum
+      description: diagnostics status class
+      example: OK
+      enum:
+        - OK
+        - WAITING
+        - FAIL
+    DiagnosticStatusCode: # ok
+      type: string
+      format: enum
+      description: diagnostic status code
+      example: SUCCESS
+      enum:
+        - SUCCESS
+        - ERROR_CODE_INTERNAL
+        - ERROR_CODE_INVALID_SIGNATURE_VALUE
+        - ERROR_CODE_EXPIRED_CONF
+        - ERROR_CODE_CANNOT_DOWNLOAD_CONF
+        - ERROR_CODE_MISSING_PRIVATE_PARAMS
+        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT
+        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL
+        - ERROR_CODE_UNINITIALIZED
+        - ERROR_CODE_TIMESTAMP_UNINITIALIZED
+        - ERROR_CODE_OCSP_CONNECTION_ERROR
+        - ERROR_CODE_OCSP_FAILED
+        - ERROR_CODE_OCSP_RESPONSE_INVALID
+        - ERROR_CODE_OCSP_UNINITIALIZED
+        - ERROR_CODE_LOGMANAGER_UNAVAILABLE
+        - UNKNOWN
     ErrorInfo:
       type: object
       description: object returned in error cases
@@ -4550,6 +4607,37 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/GroupMember'
+    GlobalConfDiagnostics: # ok
+      type: object
+      description: global configuration diagnostics
+      required:
+        - status_class
+        - status_code
+        - prev_update_at
+        - next_update_at
+      properties:
+        status_class:
+          $ref: '#/components/schemas/DiagnosticStatusClass'
+          readOnly: true
+        status_code:
+          $ref: '#/components/schemas/DiagnosticStatusCode'
+          readOnly: true
+        prev_update_at:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+          readOnly: true
+        next_update_at:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+          readOnly: truef
     GroupMember: # ok
       type: object
       description: group member
