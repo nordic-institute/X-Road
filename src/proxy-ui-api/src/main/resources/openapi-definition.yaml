@@ -876,7 +876,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LocalGroup'
+              $ref: '#/components/schemas/LocalGroupAdd'
       responses:
         '201':
           description: local group created
@@ -4583,6 +4583,27 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/GroupMember'
+    LocalGroupAdd: # ok
+      type: object
+      description: model for adding a new LocalGroup
+      required:
+        - code
+        - description
+      properties:
+        code:
+          type: string
+          format: text
+          description: group code
+          example: groupcode
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          format: text
+          description: group description
+          example: description
+          minLength: 1
+          maxLength: 255
     GroupMember: # ok
       type: object
       description: group member

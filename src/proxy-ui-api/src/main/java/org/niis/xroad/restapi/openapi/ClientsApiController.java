@@ -50,6 +50,7 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -283,12 +284,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public ResponseEntity<LocalGroup> addClientGroup(String id, LocalGroup localGroup) {
+    public ResponseEntity<LocalGroup> addClientGroup(String id, LocalGroupAdd localGroupAdd) {
         ClientType clientType = getClientType(id);
         LocalGroupType localGroupType = null;
         try {
             localGroupType = localGroupService.addLocalGroup(clientType.getIdentifier(),
-                    localGroupConverter.convert(localGroup));
+                    localGroupConverter.convert(localGroupAdd));
         } catch (LocalGroupService.DuplicateLocalGroupCodeException e) {
             throw new ConflictException(e);
         } catch (ClientNotFoundException e) {
