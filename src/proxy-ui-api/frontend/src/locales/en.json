@@ -368,7 +368,14 @@
           "serviceURL": "Service URL"
         },
         "action": {
-          "delete": "DELETE"
+          "delete": {
+            "button": "DELETE",
+            "confirmation": {
+              "title": "Are you sure?",
+              "text": "Are you sure you want to delete the timestamping service?"
+            },
+            "success": "Timestamping service successfully deleted"
+          }
         }
       }
     },
