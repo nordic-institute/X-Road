@@ -34,12 +34,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -128,14 +128,6 @@ public class GlobalConfService {
         }
     }
 
-    public static class GlobalConfOutdatedException extends ServiceException {
-        public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
-
-        public GlobalConfOutdatedException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
-        }
-    }
-
     static boolean isCausedByOutdatedGlobalconf(CodedException e) {
         return X_OUTDATED_GLOBALCONF.equals(e.getFaultCode());
     }
@@ -145,6 +137,20 @@ public class GlobalConfService {
      */
     public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
         return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
+    }
+
+    /**
+     * @return approved CA matching given CA cert (top level or intermediate), for current instance
+     */
+    public ApprovedCAInfo getApprovedCAForThisInstance(X509Certificate certificate) {
+        return globalConfFacade.getApprovedCA(globalConfFacade.getInstanceIdentifier(), certificate);
+    }
+
+    /**
+     * @return CA certs for current instance
+     */
+    public Collection<X509Certificate> getAllCaCertsForThisInstance() {
+        return globalConfFacade.getAllCaCerts(globalConfFacade.getInstanceIdentifier());
     }
 
     /**
@@ -170,7 +176,6 @@ public class GlobalConfService {
     }
 
     /**
-     *
      * @param url
      * @return name of the timestamping service with the given url
      */

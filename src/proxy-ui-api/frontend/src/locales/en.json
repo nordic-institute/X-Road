@@ -27,6 +27,10 @@
       "parameters": "Service Parameters"
     }
   },
+  "backup": {
+    "backupConfiguration": "Back up config.",
+    "uploadBackup": "Upload backup"
+  },
   "client": {
     "name": "Name",
     "id": "ID",
@@ -206,9 +210,11 @@
     "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
+    "download": "Download",
     "remove": "Remove",
     "removeAll": "Remove All",
     "register": "Register",
+    "restore": "Restore",
     "unregister": "Unregister",
     "save": "Save",
     "confirm": "Confirm",
@@ -305,9 +311,26 @@
       "success": "New Security Server TLS key and certificate generated successfully"
     },
     "importCertificate": "Import cert.",
+    "certificateImported": "Certificate imported",
     "exportCertificate": "Export cert.",
     "keyCertTitle": "TLS Key and Certificate",
-    "keyText": "Internal TLS Key"
+    "keyText": "Internal TLS Key",
+    "generateCsr": "Generate CSR",
+    "generateInternalCsr": {
+      "title": "Generate TLS Certificate Signing Request",
+      "step1": {
+        "description": "1) First, provide a distinguished name",
+        "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code.",
+        "label": "Distinguished name",
+        "placeholder": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
+      },
+      "step2": {
+        "description": "2) Generate a new CSR and save it into a safe place",
+        "generateCSR": "Generate CSR"
+      },
+      "cancel": "CANCEL",
+      "done": "DONE"
+    }
   },
   "csr": {
     "usage": "Usage",
@@ -365,6 +388,54 @@
       "selectSubsystem": "Select Subsystem",
       "info1": "Specify the code of the subsystem to be added.",
       "info2": "If the subsystem is already existing, you can select it from the Global list."
+    }
+  },
+  "systemParameters": {
+    "title": "System parameters",
+    "configurationAnchor": {
+      "title": "Configuration Anchor",
+      "action": {
+        "download": "DOWNLOAD",
+        "upload": "UPLOAD"
+      },
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "generated": "Generated"
+        }
+      }
+    },
+    "timestampingServices": {
+      "title": "Timestamping Services",
+      "action": {
+        "add": "ADD"
+      },
+      "table": {
+        "header": {
+          "certificateHash": "Certificate Hash (SHA/1)",
+          "serviceURL": "Service URL"
+        },
+        "action": {
+          "delete": "DELETE"
+        }
+      }
+    },
+    "approvedCertificateAuthorities": {
+      "title": "Approved Certificate Authorities",
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "ocspResponse": "OCSP Response",
+          "expires": "Expires"
+        },
+        "ocspResponse": {
+          "NOT_AVAILABLE": "N/A",
+          "OCSP_RESPONSE_UNKNOWN": "Unknown",
+          "OCSP_RESPONSE_GOOD": "Good",
+          "OCSP_RESPONSE_SUSPENDED": "Suspended",
+          "OCSP_RESPONSE_REVOKED": "Revoked"
+        }
+      }
     }
   },
   "login": {

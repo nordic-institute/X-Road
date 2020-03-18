@@ -137,14 +137,14 @@ public class BackupServiceTest {
 
     @Test
     public void deleteBackup() throws BackupFileNotFoundException {
-            backupService.deleteBackup(BACKUP_FILE_1_NAME);
-            assertEquals(1, backupService.getBackupFiles().size());
+        backupService.deleteBackup(BACKUP_FILE_1_NAME);
+        assertEquals(1, backupService.getBackupFiles().size());
     }
 
     @Test
     public void deleteNonExistingBackup() {
         try {
-             backupService.deleteBackup("test_file.tar");
+            backupService.deleteBackup("test_file.tar");
             fail("should throw BackupFileNotFoundException");
         } catch (BackupFileNotFoundException expected) {
             // success
