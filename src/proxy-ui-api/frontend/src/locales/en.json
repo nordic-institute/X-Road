@@ -343,7 +343,8 @@
     "token": {
       "title": "Token",
       "info": "Select to which token you want to add the new Client. Note: the token must be in Log-in state.",
-      "tokenName": "Token name"
+      "tokenName": "Token name",
+      "loggedIn": "Logged in"
     },
     "signKey": {
       "title": "Sign Key",

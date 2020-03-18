@@ -114,6 +114,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@import '../../assets/dialogs';
 </style>
 
