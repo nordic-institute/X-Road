@@ -46,6 +46,7 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -168,7 +169,7 @@ public class ClientsApiControllerIntegrationTest {
                         TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
                         null)
-                )
+        )
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenService.getAllTokens()).thenReturn(mockTokens);
@@ -431,7 +432,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
         ResponseEntity<LocalGroup> response = clientsApiController.addClientGroup(TestUtils.CLIENT_ID_SS1,
-                createGroup(TestUtils.NEW_GROUPCODE));
+                createLocalGroupAdd(TestUtils.NEW_GROUPCODE));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         LocalGroup localGroup = response.getBody();
         assertEquals(TestUtils.NEW_GROUPCODE, localGroup.getCode());
@@ -439,7 +440,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS"})
+    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS" })
     public void getClientGroups() throws Exception {
         ResponseEntity<List<LocalGroup>> response =
                 clientsApiController.getClientGroups(TestUtils.CLIENT_ID_SS1);
@@ -447,11 +448,11 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(2, response.getBody().size());
     }
 
-    private static LocalGroup createGroup(String groupCode) {
-        LocalGroup localGroup = new LocalGroup();
-        localGroup.setDescription(TestUtils.GROUP_DESC);
-        localGroup.setCode(groupCode);
-        return localGroup;
+    private static LocalGroupAdd createLocalGroupAdd(String groupCode) {
+        LocalGroupAdd localGroupAdd = new LocalGroupAdd();
+        localGroupAdd.setDescription(TestUtils.GROUP_DESC);
+        localGroupAdd.setCode(groupCode);
+        return localGroupAdd;
     }
 
     @Test
@@ -1020,7 +1021,6 @@ public class ClientsApiControllerIntegrationTest {
         } catch (ResourceNotFoundException expected) {
         }
     }
-
 
     @Test
     @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
