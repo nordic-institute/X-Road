@@ -28,7 +28,9 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.GlobalConfDiagnosticConverter;
+import org.niis.xroad.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.service.DiagnosticService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 /**
  * diagnostics api
@@ -48,15 +52,18 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     private DiagnosticService diagnosticService;
     private GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
+    private TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
 
     /**
      * DiagnosticsApiController constructor
      */
     @Autowired
     public DiagnosticsApiController(DiagnosticService diagnosticService,
-                                    GlobalConfDiagnosticConverter globalConfDiagnosticConverter) {
+                                    GlobalConfDiagnosticConverter globalConfDiagnosticConverter,
+                                    TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter) {
         this.diagnosticService = diagnosticService;
         this.globalConfDiagnosticConverter = globalConfDiagnosticConverter;
+        this.timestampingServiceDiagnosticConverter = timestampingServiceDiagnosticConverter;
     }
 
     @Override
@@ -64,5 +71,12 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     public ResponseEntity<GlobalConfDiagnostics> getGlobalConfDiagnostics() {
         DiagnosticsStatus diagnosticsStatus = diagnosticService.queryGlobalConfStatus();
         return new ResponseEntity<>(globalConfDiagnosticConverter.convert(diagnosticsStatus), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<List<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
+        List<DiagnosticsStatus> diagnosticsStatus = diagnosticService.queryTimestampingStatus();
+        return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(diagnosticsStatus), HttpStatus.OK);
     }
 }

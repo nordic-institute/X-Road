@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.service.DiagnosticService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -64,6 +67,8 @@ import static org.mockito.Mockito.when;
 public class DiagnosticsApiControllerTest {
 
     private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
+    private static final String CURRENT_TIME_BEFORE_MIDNIGHT = "2019-12-31T23:59:50.123";
+    private static final String CURRENT_TIME_AFTER_MIDNIGHT = "2020-01-01T00:00:30.123";
     private static final String PREVIOUS_UPDATE_STR = "2020-03-16T10:15:40.703";
     private static final String NEXT_UPDATE_STR = "2020-03-16T10:16:40.703";
     private static final String PREVIOUS_UPDATE_MIDNIGHT_STR = "2019-12-31T23:59:40.703";
@@ -73,6 +78,7 @@ public class DiagnosticsApiControllerTest {
     private static final LocalTime PREVIOUS_UPDATE_MIDNIGHT = LocalTime.of(23, 59, 40, 703000000);
     private static final LocalTime NEXT_UPDATE_MIDNIGHT = LocalTime.of(00, 00, 40, 703000000);
     private static final int ERROR_CODE_UNKNOWN = 999;
+    private static final String URL_1 = "https://tsa1.example.com";
 
     @Autowired
     private DiagnosticsApiController diagnosticsApiController;
@@ -128,7 +134,7 @@ public class DiagnosticsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "DIAGNOSTICS" })
     public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds("2019-12-31T23:59:50.123"));
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_BEFORE_MIDNIGHT));
 
         when(diagnosticService.queryGlobalConfStatus()).thenReturn(new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT));
@@ -148,7 +154,7 @@ public class DiagnosticsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "DIAGNOSTICS" })
     public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds("2020-01-01T00:00:30.123"));
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_AFTER_MIDNIGHT));
 
         when(diagnosticService.queryGlobalConfStatus()).thenReturn(new DiagnosticsStatus(
                 ERROR_CODE_UNKNOWN, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT));
@@ -172,6 +178,91 @@ public class DiagnosticsApiControllerTest {
 
         try {
             ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
+            fail("should throw RuntimeException");
+        } catch (RuntimeException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getTimestampingServiceDiagnosticsSuccess() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE);
+        diagnosticsStatus.setDescription(URL_1);
+
+        when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
+
+        ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+                .getTimestampingServicesDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
+        assertEquals(1, timestampingServiceDiagnostics.size());
+        assertEquals(DiagnosticStatusCode.SUCCESS, timestampingServiceDiagnostics.get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.get(0).getStatusClass());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
+                (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getTimestampingServiceDiagnosticsWaiting() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, PREVIOUS_UPDATE);
+        diagnosticsStatus.setDescription(URL_1);
+
+        when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
+
+        ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+                .getTimestampingServicesDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
+        assertEquals(1, timestampingServiceDiagnostics.size());
+        assertEquals(DiagnosticStatusCode.ERROR_CODE_UNINITIALIZED,
+                timestampingServiceDiagnostics.get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(0).getStatusClass());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
+                (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_BEFORE_MIDNIGHT));
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_MIDNIGHT);
+        diagnosticsStatus.setDescription(URL_1);
+
+        when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
+
+        ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+                .getTimestampingServicesDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
+        assertEquals(1, timestampingServiceDiagnostics.size());
+        assertEquals(DiagnosticStatusCode.ERROR_CODE_INTERNAL,
+                timestampingServiceDiagnostics.get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
+                (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getTimestampingServiceDiagnosticsException() {
+        when(diagnosticService.queryTimestampingStatus()).thenThrow(new RuntimeException());
+
+        try {
+            ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+                    .getTimestampingServicesDiagnostics();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
             // success

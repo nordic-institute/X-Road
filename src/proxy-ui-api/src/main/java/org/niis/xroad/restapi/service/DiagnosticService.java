@@ -25,9 +25,11 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * diagnostic service
@@ -57,7 +62,13 @@ public class DiagnosticService {
     private static final String DIAGNOSTICS_BASE_URL = "http://localhost";
     private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
     private static final String CONF_CLIENT_ADMIN_PATH = "status";
+    private static final int TIMESTAMPING_SERVICE_ADMIN_PORT = PortNumbers.ADMIN_PORT;
+    private static final String TIMESTAMPING_SERVICE_ADMIN_PATH = "timestampstatus";
 
+    /**
+     * Query global configuration status from admin port over HTTP.
+     * @return
+     */
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
             JsonObject json = sendGetRequest(buildUri(CONF_CLIENT_ADMIN_PORT, CONF_CLIENT_ADMIN_PATH));
@@ -67,6 +78,27 @@ public class DiagnosticService {
         }
     }
 
+    /**
+     * Query timestamping services status from admin port over HTTP.
+     * @return
+     */
+    public List<DiagnosticsStatus> queryTimestampingStatus() {
+        try {
+            JsonObject json = sendGetRequest(buildUri(TIMESTAMPING_SERVICE_ADMIN_PORT,
+                    TIMESTAMPING_SERVICE_ADMIN_PATH));
+            return json.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
+                    .map(this::parseTimestampingStatus).collect(Collectors.toList());
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
+     * @param address
+     * @return
+     * @throws DiagnosticRequestException
+     */
     private JsonObject sendGetRequest(String address) throws DiagnosticRequestException {
         HttpGet request = new HttpGet(address);
 
@@ -84,6 +116,12 @@ public class DiagnosticService {
             log.error("unable to connect to admin port (" + address + ")");
             throw new DiagnosticRequestException();
         }
+    }
+
+    private DiagnosticsStatus parseTimestampingStatus(Map.Entry<String, JsonElement> entry) {
+        DiagnosticsStatus diagnosticsStatus = new Gson().fromJson(entry.getValue(), DiagnosticsStatus.class);
+        diagnosticsStatus.setDescription(entry.getKey());
+        return diagnosticsStatus;
     }
 
     private String buildUri(int port, String path) {

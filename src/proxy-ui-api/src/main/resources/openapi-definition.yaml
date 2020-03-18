@@ -1540,6 +1540,36 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/timestamping-services:
+    get: # ok
+      tags:
+        - security server
+      summary: view global timestamping services diagnostics information
+      operationId: getTimestampingServicesDiagnostics
+      description: Administrator views the timestamping services diagnostics information.
+      responses:
+        '200':
+          description: timestamping services diagnostics information
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of timestamping service diagnostics objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/TimestampingServiceDiagnostics'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /local-groups/{group_id}:
     get: # ok
       tags:
@@ -4637,7 +4667,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-          readOnly: truef
+          readOnly: true
     GroupMember: # ok
       type: object
       description: group member
@@ -5254,22 +5284,13 @@ components:
           maxLength: 255
     TimestampingServiceDiagnostics: # ok
       type: object
-      description: timestamping services
+      description: timestamping service diagnostics
       required:
-        - name
         - url
-        - updated_at
-        - message
-        - status
+        - status_class
+        - status_code
+        - prev_update_at
       properties:
-        name:
-          type: string
-          format: text
-          description: name of the time stamping service
-          example: X-Road Test TSA CN
-          minLength: 1
-          maxLength: 255
-          readOnly: true
         url:
           type: string
           format: url
@@ -5278,7 +5299,13 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
-        updated_at:
+        status_class:
+          $ref: '#/components/schemas/DiagnosticStatusClass'
+          readOnly: true
+        status_code:
+          $ref: '#/components/schemas/DiagnosticStatusCode'
+          readOnly: true
+        prev_update_at:
           type: string
           format: date-time
           description: last time updated
@@ -5286,30 +5313,6 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-        message:
-          type: string
-          format: text
-          description: timestamping service message
-          example: ok
-          minLength: 1
-          maxLength: 255
-          readOnly: true
-        status:
-          $ref: '#/components/schemas/TimestampingStatus'
-          readOnly: true
-    TimestampingStatus: # ok
-      type: string
-      format: enum
-      description: timestamping status
-      example: SUCCESS
-      enum:
-        - SUCCESS # Everything ok
-        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.
-        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL # Malformed timestamp server URL. Check the URL.
-        - ERROR_CODE_UNKNOWN # Unknown error code.
-        - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
-        - ERROR_CODE_TIMESTAMP_UNINITIALIZED # Connection ok, no timestamp request made yet.
-        - ERROR_CODE_CONNECTION_FAILED # Connection to configuration client failed. Ensure that xroad-confclient is running.
     Token: # ok
       type: object
       description: token
