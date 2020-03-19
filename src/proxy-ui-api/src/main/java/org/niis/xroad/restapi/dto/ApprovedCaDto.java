@@ -22,27 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi;
+package org.niis.xroad.restapi.dto;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
- * main spring boot application.
+ * DTO for approved certificate authority data
  */
-@ServletComponentScan
-@SpringBootApplication
-@EnableCaching
-@EnableScheduling
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
-    /**
-     * start application
-     */
-    public static void main(String[] args) {
-        SpringApplication.run(RestApiApplication.class, args);
-    }
+@Getter
+@Builder
+public class ApprovedCaDto {
+
+    private final String name;
+    private final boolean authenticationOnly;
+    private final String issuerDistinguishedName;
+    private final String subjectDistinguishedName;
+    private final String ocspResponse;
+    private final OffsetDateTime notAfter;
+    private final boolean topCa;
+    // subject DN names from topmost CA to this CA
+    private final List<String> subjectDnPath;
 }
