@@ -28,8 +28,8 @@ package org.niis.xroad.restapi.validator;
  * Encapsulates validation logic that is copied from Spring firewall internal methods and
  * variables
  */
-public final class SpringFirewallLogic {
-    private SpringFirewallLogic() {
+public final class SpringFirewallValidationRules {
+    private SpringFirewallValidationRules() {
     }
 
     private static final String FORBIDDEN_PERCENT = "%";

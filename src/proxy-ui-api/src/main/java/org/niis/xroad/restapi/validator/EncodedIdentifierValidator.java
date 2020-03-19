@@ -61,19 +61,19 @@ public class EncodedIdentifierValidator {
         if (s.contains(FORBIDDEN_COLON)) {
             errors.add(ValidationError.COLON);
         }
-        if (SpringFirewallLogic.containsBackslash(s)) {
+        if (SpringFirewallValidationRules.containsBackslash(s)) {
             errors.add(ValidationError.BACKSLASH);
         }
-        if (SpringFirewallLogic.containsForwardslash(s)) {
+        if (SpringFirewallValidationRules.containsForwardslash(s)) {
             errors.add(ValidationError.FORWARDSLASH);
         }
-        if (SpringFirewallLogic.containsPercent(s)) {
+        if (SpringFirewallValidationRules.containsPercent(s)) {
             errors.add(ValidationError.PERCENT);
         }
-        if (SpringFirewallLogic.containsSemicolon(s)) {
+        if (SpringFirewallValidationRules.containsSemicolon(s)) {
             errors.add(ValidationError.SEMICOLON);
         }
-        if (!SpringFirewallLogic.isNormalized(s)) {
+        if (!SpringFirewallValidationRules.isNormalized(s)) {
             errors.add(ValidationError.NON_NORMALIZED_PATH);
         }
         return errors;
