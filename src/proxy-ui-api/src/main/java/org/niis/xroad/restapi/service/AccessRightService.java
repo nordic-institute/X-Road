@@ -222,7 +222,7 @@ public class AccessRightService {
      */
     private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException,
-            DuplicateAccessRightException, EndpointNotFoundException {
+            DuplicateAccessRightException, EndpointNotFoundException, LocalGroupNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -235,7 +235,21 @@ public class AccessRightService {
 
         Date now = new Date();
 
+        List<LocalGroupType> clientLocalGroups = clientType.getLocalGroup();
+
         for (XRoadId subjectId : subjectIds) {
+            // A LocalGroup must belong to this client
+            if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
+                LocalGroupId localGroupId = (LocalGroupId) subjectId;
+                boolean localGroupNotFound = clientLocalGroups.stream()
+                        .noneMatch(localGroupType -> localGroupType.getGroupCode()
+                                .equals(localGroupId.getGroupCode()));
+                if (localGroupNotFound) {
+                    String errorMsg = String.format("LocalGroup with the groupCode %s does not belong to client %s",
+                            subjectId.toShortString(), clientId.toShortString());
+                    throw new LocalGroupNotFoundException(errorMsg);
+                }
+            }
             Optional<AccessRightType> existingAccessRight = clientType.getAcl().stream()
                     .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
                     .findFirst();
@@ -255,7 +269,7 @@ public class AccessRightService {
 
         Map<String, LocalGroupType> localGroupMap = new HashMap<>();
 
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+        clientLocalGroups.forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
                 localGroupType));
 
         List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();

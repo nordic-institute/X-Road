@@ -215,4 +215,26 @@ public class AccessRightServiceTest {
         accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
+
+    @Test
+    public void addAccessRightsToLocalGroup() throws Throwable {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        ClientId clientId = TestUtils.getM1Ss1ClientId();
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(1L);
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, null,
+                localGroupIds);
+    }
+
+    @Test(expected = LocalGroupNotFoundException.class)
+    public void addAccessRightsToOtherClientsLocalGroup() throws Throwable {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        ClientId clientId = TestUtils.getM1Ss2ClientId();
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(1L);
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_BMI_OLD, null,
+                localGroupIds);
+    }
 }

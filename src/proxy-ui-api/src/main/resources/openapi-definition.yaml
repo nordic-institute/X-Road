@@ -820,7 +820,7 @@ paths:
       tags:
         - security server
       summary: get local groups for the selected client
-      operationId: getClientGroups
+      operationId: getClientLocalGroups
       description: Administrator views the local groups for the client.
       parameters:
         - in: path
@@ -859,7 +859,7 @@ paths:
       tags:
         - security server
       summary: add new local group for the security server client
-      operationId: addClientGroup
+      operationId: addClientLocalGroup
       description: Administrator adds a new local group for the client.
       parameters:
         - in: path
@@ -1519,7 +1519,7 @@ paths:
       tags:
         - security server
       summary: get local group information
-      operationId: getGroup
+      operationId: getLocalGroup
       description: Administrator views local group details.
       parameters:
         - in: path
@@ -1550,11 +1550,11 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update local group information
-      operationId: updateGroup
+      operationId: updateLocalGroup
       description: Administrator updates the local group information.
       parameters:
         - in: path
@@ -1566,15 +1566,23 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: description
-          description: local group description
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: LocalGroupDescription
+              type: object
+              required:
+                - description
+              properties:
+                description:
+                  type: string
+                  description: description for the LocalGroup
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                name: This is an awesome local group!
       responses:
         '200':
           description: local group modified
@@ -1598,7 +1606,7 @@ paths:
       tags:
         - security server
       summary: delete local group
-      operationId: deleteGroup
+      operationId: deleteLocalGroup
       description: Administrator deletes the local group.
       parameters:
         - in: path
@@ -1628,8 +1636,8 @@ paths:
       tags:
         - security server
       summary: add new member for the local group
-      operationId: addGroupMember
-      description: Administrator adds a new member for the local group.
+      operationId: addLocalGroupMember
+      description: Administrator adds a new member for the local group. The new member can be an X-Road member or a subsystem
       parameters:
         - in: path
           name: group_id
@@ -1671,7 +1679,7 @@ paths:
       tags:
         - security server
       summary: delete member from local group
-      operationId: deleteGroupMember
+      operationId: deleteLocalGroupMember
       description: Administrator deletes the member from local group.
       parameters:
         - in: path
@@ -4756,11 +4764,12 @@ components:
           readOnly: true
     Members: # ok
       type: object
-      description: request object containing an array of member ids
+      description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
       properties:
         items:
           type: array
           description: array of members to be added
+          example: ["FI:GOV:123", "FI:GOV:123:SS1", "FI:GOV:123:SS2"]
           items:
             type: string
             format: text

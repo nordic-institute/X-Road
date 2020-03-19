@@ -431,7 +431,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
-        ResponseEntity<LocalGroup> response = clientsApiController.addClientGroup(TestUtils.CLIENT_ID_SS1,
+        ResponseEntity<LocalGroup> response = clientsApiController.addClientLocalGroup(TestUtils.CLIENT_ID_SS1,
                 createLocalGroupAdd(TestUtils.NEW_GROUPCODE));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         LocalGroup localGroup = response.getBody();
@@ -443,7 +443,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS" })
     public void getClientGroups() throws Exception {
         ResponseEntity<List<LocalGroup>> response =
-                clientsApiController.getClientGroups(TestUtils.CLIENT_ID_SS1);
+                clientsApiController.getClientLocalGroups(TestUtils.CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
