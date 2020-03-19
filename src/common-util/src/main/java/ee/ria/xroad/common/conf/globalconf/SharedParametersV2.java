@@ -77,6 +77,8 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
             new HashMap<>();
     private final Map<X509Certificate, String> caCertsAndCertProfiles =
             new HashMap<>();
+    private final Map<X509Certificate, ApprovedCATypeV2> caCertsAndApprovedCAData =
+            new HashMap<>();
     private final Map<X509Certificate, List<OcspInfoType>> caCertsAndOcspData =
             new HashMap<>();
     private final Map<ClientId, Set<String>> memberAddresses = new HashMap<>();
@@ -194,6 +196,7 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private void clearCache() {
         subjectsAndCaCerts.clear();
         caCertsAndCertProfiles.clear();
+        caCertsAndApprovedCAData.clear();
         caCertsAndOcspData.clear();
         memberAddresses.clear();
         memberAuthCerts.clear();
@@ -227,6 +230,8 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
             for (X509Certificate pkiCaCert : pkiCaCerts) {
                 caCertsAndCertProfiles.put(pkiCaCert,
                         caType.getCertificateProfileInfo());
+                caCertsAndApprovedCAData.put(pkiCaCert,
+                        caType);
             }
             allCaCerts.addAll(pkiCaCerts);
         }
