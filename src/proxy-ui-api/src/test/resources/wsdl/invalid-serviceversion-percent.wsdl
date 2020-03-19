@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:xrd="http://x-road.ee/xsd/x-road.xsd"
+    xmlns:tns="http://xroad-andmekogu.x-road.ee/producer"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    name="xroadGetRandom"
+    targetNamespace="http://xroad-andmekogu.x-road.ee/producer">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://xroad-andmekogu.x-road.ee/producer">
+      <xsd:import namespace="http://x-road.ee/xsd/x-road.xsd" schemaLocation="http://x-road.ee/xsd/x-road.xsd"/>
+      <xsd:element name="xroadGetRandom">
+        <xsd:complexType>
+          <xsd:sequence>
+           <xsd:element name="request">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="in" type="xsd:string">
+                    <xsd:annotation>
+                      <xsd:appinfo>
+                        <xrd:title>Random input</xrd:title>
+                      </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="xroadGetRandomResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="response" type="xsd:string">
+              <xsd:annotation>
+                <xsd:appinfo>
+                  <xrd:title>Random response</xrd:title>
+                </xsd:appinfo>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="standardheader">
+    <wsdl:part name="consumer" element="xrd:consumer"/>
+    <wsdl:part name="producer" element="xrd:producer"/>
+    <wsdl:part name="userId" element="xrd:userId"/>
+    <wsdl:part name="service" element="xrd:service"/>
+    <wsdl:part name="id" element="xrd:id"/>
+  </wsdl:message>
+
+  <wsdl:message name="xroadGetRandom">
+    <wsdl:part name="body"  element="tns:xroadGetRandom" />
+  </wsdl:message>
+  <wsdl:message name="xroadGetRandomResponse">
+    <wsdl:part name="body"  element="tns:xroadGetRandomResponse" />
+  </wsdl:message>
+
+  <wsdl:portType name="xroadGetRandom">
+    <wsdl:operation name="xroadGetRandom">
+      <wsdl:documentation>
+        <xrd:title>Suvaline sisend document/literal stiilis</xrd:title>
+        <xrd:notes>Suvalisele sisendile tuleb ka suvaline vastus.</xrd:notes>
+      </wsdl:documentation>
+      <wsdl:input message="tns:xroadGetRandom"/>
+      <wsdl:output message="tns:xroadGetRandomResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="xroadGetRandomSOAP" type="tns:xroadGetRandom">
+    <soap:binding style="document"
+      transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="xroadGetRandom">
+      <soap:operation soapAction="" style="document"/>
+      <xrd:version>v1%234</xrd:version>
+      <wsdl:input>
+        <soap:body parts="body" use="literal"/>
+        <soap:header message="tns:standardheader" part="consumer" use="literal"/>
+        <soap:header message="tns:standardheader" part="producer" use="literal"/>
+        <soap:header message="tns:standardheader" part="userId" use="literal"/>
+        <soap:header message="tns:standardheader" part="id" use="literal"/>
+        <soap:header message="tns:standardheader" part="service" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body parts="body" use="literal"/>
+        <soap:header message="tns:standardheader" part="consumer" use="literal"/>
+        <soap:header message="tns:standardheader" part="producer" use="literal"/>
+        <soap:header message="tns:standardheader" part="userId" use="literal"/>
+        <soap:header message="tns:standardheader" part="id" use="literal"/>
+        <soap:header message="tns:standardheader" part="service" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="xroad-andmekoguService">
+    <wsdl:port binding="tns:xroadGetRandomSOAP" name="xroadGetRandomSOAP">
+      <soap:address location="http://iks2-testhost:8080/testservice-0.1/xroad"/>
+      <xrd:address producer="xroad-andmekogu"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
