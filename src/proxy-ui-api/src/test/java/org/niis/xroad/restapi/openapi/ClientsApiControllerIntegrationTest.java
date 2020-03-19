@@ -649,35 +649,6 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = { "ADD_CLIENT" })
-    public void addClientForbiddenIdentifiers() {
-        assertAddClientThrowsBadRequest("aa:bb", null);
-        assertAddClientThrowsBadRequest("aa;bb", null);
-        assertAddClientThrowsBadRequest("aa%bb", null);
-        assertAddClientThrowsBadRequest("aa/../bb", null);
-        assertAddClientThrowsBadRequest("aa\\bb", null);
-        assertAddClientThrowsBadRequest("aa", "bb:cc");
-        assertAddClientThrowsBadRequest("aa", "bb;cc");
-        assertAddClientThrowsBadRequest("aa", "bb%cc");
-        assertAddClientThrowsBadRequest("aa", "bb/../cc");
-        assertAddClientThrowsBadRequest("aa", "bb\\cc");
-        // these ids should be fine by validation rules (although member is not found)
-        clientsApiController.addClient(new ClientAdd().client(
-                createTestClient("GOV", "aa.bb.列.ä", "aa.bb.列.ä")
-        ).ignoreWarnings(false));
-    }
-
-    private void assertAddClientThrowsBadRequest(String memberCode, String subsystemCode) {
-        try {
-            clientsApiController.addClient(new ClientAdd().client(
-                    createTestClient("GOV", memberCode, subsystemCode)
-            ).ignoreWarnings(false));
-            fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
-        }
-    }
-
-    @Test
-    @WithMockUser(authorities = { "ADD_CLIENT" })
     public void addClientConflicts() {
         // conflict: client already exists
         Client clientToAdd = createTestClient("GOV", "M1", null);

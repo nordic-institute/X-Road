@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.24"
+  version: "1.0.25"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -2507,6 +2507,7 @@ paths:
         - in: path
           name: id
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2541,6 +2542,7 @@ paths:
         - in: path
           name: id
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2581,6 +2583,7 @@ paths:
         - in: path
           name: id
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
