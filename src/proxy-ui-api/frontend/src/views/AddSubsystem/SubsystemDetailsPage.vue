@@ -46,6 +46,16 @@
           ></v-text-field>
         </ValidationProvider>
       </div>
+
+      <div class="row-wrap">
+        <v-checkbox
+          v-model="registerChecked"
+          color="primary"
+          class="register-checkbox"
+          data-test="register-subsystem-checkbox"
+        ></v-checkbox>
+        <div style="padding-bottom: 20px">{{$t('wizard.subsystem.registerSubsystem')}}</div>
+      </div>
       <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
       <div class="button-footer">
         <div class="button-group">
@@ -53,9 +63,9 @@
         </div>
         <large-button
           @click="done"
-          :disabled="invalid || duplicateClient"
-          data-test="next-button"
-        >{{$t('action.next')}}</large-button>
+          :disabled="invalid"
+          data-test="submit-add-subsystem-button"
+        >{{$t('action.addSubsystem')}}</large-button>
       </div>
     </ValidationObserver>
 
@@ -162,24 +172,55 @@ export default Vue.extend({
       certificationService: undefined,
       filteredServiceList: [],
       showSelectClient: false as boolean,
+      registerChecked: true,
     };
   },
   methods: {
     cancel(): void {
       this.$emit('cancel');
     },
+
     done(): void {
-      this.$emit('done');
+      this.$store
+        .dispatch('addSubsystem', {
+          memberName: this.client.member_name,
+          memberClass: this.client.member_class,
+          memberCode: this.client.member_code,
+          subsystemCode: this.subsystemCode,
+        })
+        .then(
+          (response) => {
+            this.disableDone = false;
+
+            if (this.registerChecked) {
+              this.registerSubsystem();
+            } else {
+              this.$emit('done');
+            }
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
     },
-    generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+
+    registerSubsystem(): void {
+      this.$store
+        .dispatch('registerClient', {
+          memberName: this.client.member_name,
+          memberClass: this.client.member_class,
+          memberCode: this.client.member_code,
+          subsystemCode: this.subsystemCode,
+        })
+        .then(
+          (response) => {
+            this.disableDone = false;
+            this.$emit('done');
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
     },
   },
   created() {

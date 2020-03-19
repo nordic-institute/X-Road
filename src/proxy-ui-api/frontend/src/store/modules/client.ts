@@ -212,6 +212,23 @@ export const actions: ActionTree<ClientState, RootState> = {
     return axios.put(`/clients/${clientId}/unregister`, {});
   },
 
+  addSubsystem({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
+    const body = {
+      client: {
+        member_name: memberName,
+        member_class: memberClass,
+        member_code: memberCode,
+        subsystem_code: subsystemCode,
+      },
+      ignore_warnings: false,
+    };
+
+    return axios.post('/clients', body)
+      .catch((error) => {
+        throw error;
+      });
+  },
+
   clearData({ commit, rootGetters }) {
     commit('storeClient', null);
   },
