@@ -25,24 +25,28 @@
 package org.niis.xroad.restapi.openapi.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 @Slf4j
-public class ClientValidator extends AbstractIdentifierValidator {
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        Client client = (Client) target;
-        return Arrays.asList(ValidatedField.builder().fieldName("memberCode").value(client.getMemberCode()).build(),
-                ValidatedField.builder().fieldName("subsystemCode").value(client.getSubsystemCode()).build());
-    }
+public class ClientAddValidator extends AbstractIdentifierValidator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return Client.class.equals(clazz);
+        return ClientAdd.class.equals(clazz);
     }
 
+    @Override
+    Collection<ValidatedField> getValidatedFields(Object target) {
+        ClientAdd clientAdd = (ClientAdd) target;
+        return Arrays.asList(
+                ValidatedField.builder()
+                        .fieldName("client.memberCode")
+                        .value(clientAdd.getClient().getMemberCode()).build(),
+                ValidatedField.builder()
+                        .fieldName("client.subsystemCode")
+                        .value(clientAdd.getClient().getSubsystemCode()).build());
+    }
 }

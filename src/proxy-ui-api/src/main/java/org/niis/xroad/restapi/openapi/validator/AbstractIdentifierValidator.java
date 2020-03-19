@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 
 /**
- * Base class for validators that validate objects with fields that are used to create encoded indentifiers
+ * Base class for validators that validate objects with fields that are used to create encoded identifiers
  */
 @Slf4j
 abstract class AbstractIdentifierValidator implements Validator {

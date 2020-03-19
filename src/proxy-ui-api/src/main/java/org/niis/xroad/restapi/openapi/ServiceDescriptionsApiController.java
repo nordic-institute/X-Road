@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.validator.ServiceDescriptionUpdateValidator;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
@@ -50,6 +51,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collections;
@@ -86,6 +89,12 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceConverter = serviceConverter;
+    }
+
+    @InitBinder("serviceDescriptionUpdate")
+    @PreAuthorize("permitAll()")
+    protected void initServiceDescriptionUpdateBinder(WebDataBinder binder) {
+        binder.addValidators(new ServiceDescriptionUpdateValidator());
     }
 
     @Override

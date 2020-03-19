@@ -55,6 +55,9 @@ public class EncodedIdentifierValidator {
 
     public EnumSet<ValidationError> getValidationErrors(String s) {
         EnumSet<ValidationError> errors = EnumSet.noneOf(ValidationError.class);
+        if (s == null) {
+            return errors;
+        }
         if (s.contains(FORBIDDEN_COLON)) {
             errors.add(ValidationError.COLON);
         }
