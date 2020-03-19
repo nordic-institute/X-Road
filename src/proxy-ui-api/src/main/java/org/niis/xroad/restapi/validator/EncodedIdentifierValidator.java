@@ -34,19 +34,15 @@ import java.util.EnumSet;
  * sequences are forbidden:
  *
  * - non-normalized paths: character sequences creating a path traversal sequence like "./", "/../" or "/."
- * - characters that are not printable ASCII characters
  * - colons (":"), since we use that as encoded ID identifier separator (e.g. "FI:GOV:123:SUBSYSTEM1")
  * - semicolons (";")
- * - slash (even URL encoded) ("/")
- * - backslash("\")
- * - percent (even URL encoded) ("%")
+ * - slash ("/")
+ * - backslash ("\")
+ * - percent ("%")
  *
- * TO DO:
- * - wont check for non-printable ASCII chars, since we are validating
- * decoded chars, and it must be possible to use also other than printable
- * ascii characters. REST API urls must only use printable ASCII chars, but
- * they can use url encoding to encode the non-printable chars (unless those
- * are forbidden, like e.g. encoded slash is)
+ * Spring Firewall checks for url-encoded characters - such as semicolon "%3B" - but this validator does
+ * not. This validator is intended for use in controllers, for validating JSON request body, where
+ * properties are not url-encoded.
  *
  */
 public class EncodedIdentifierValidator {

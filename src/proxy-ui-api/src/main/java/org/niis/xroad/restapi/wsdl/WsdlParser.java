@@ -98,6 +98,8 @@ public final class WsdlParser {
      * Extracts the list of services that are described in the given WSDL.
      * @param wsdlUrl the URL from which the WSDL is available
      * @return collection of ServiceInfo objects
+     * @throws WsdlNotFoundException if a WSDL was not found at given URL
+     * @throws WsdlParseException if anything else than WsdlNotFoundException went wrong in parsing
      */
     public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException {
         try {

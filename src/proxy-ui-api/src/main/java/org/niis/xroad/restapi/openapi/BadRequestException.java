@@ -24,12 +24,10 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.Getter;
 import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Collection;
@@ -40,13 +38,6 @@ import java.util.Collection;
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class BadRequestException extends OpenApiException {
-
-    @Getter
-    private Errors validationErrors;
-
-    public BadRequestException(Errors errors) {
-        this.validationErrors = errors;
-    }
 
     public BadRequestException(DeviationAwareException e) {
         super(e, e.getErrorDeviation(), e.getWarningDeviations());
