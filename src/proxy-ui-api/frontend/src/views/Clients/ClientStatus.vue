@@ -22,6 +22,9 @@ export default Vue.extend({
 
   computed: {
     statusIconType(): string {
+      if (!this.status) {
+        return '';
+      }
       switch (this.status.toLowerCase()) {
         case 'registered':
           return 'green';

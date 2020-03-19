@@ -152,7 +152,7 @@ public class KeyAndCertificateRequestService {
         try {
             keyService.deleteKey(keyId);
             rollbackSuccess = true;
-        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfOutdatedException e) {
             // should not happen, since only thrown from unregister cert (which wont be done)
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         } catch (KeyNotFoundException | ActionNotPossibleException e) {

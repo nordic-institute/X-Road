@@ -247,7 +247,8 @@ public final class GlobalConf {
 
     /**
      * @param clientId the client identifier
-     * @return member name for the given client identifier
+     * @return member name for the given client identifier, or null if member does
+     * not exist in global conf
      */
     public static String getMemberName(ClientId clientId) {
         log.trace("getMemberName({})", clientId);
@@ -699,5 +700,20 @@ public final class GlobalConf {
         log.trace("getSecurityServers()");
 
         return getInstance().getSecurityServers(instanceIdentifiers);
+    }
+
+    /**
+     * Get ApprovedCAInfo matching given CA certificate
+     * @param instanceIdentifier instance id
+     * @param cert intermediate or top CA cert
+     * @return ApprovedCAInfo (for the top CA)
+     * @throws CodedException if something went wrong, for example
+     * {@code cert} was not an approved CA cert
+     */
+    public static ApprovedCAInfo getApprovedCA(
+            String instanceIdentifier, X509Certificate cert) throws CodedException {
+        log.trace("getApprovedCA()");
+
+        return getInstance().getApprovedCA(instanceIdentifier, cert);
     }
 }

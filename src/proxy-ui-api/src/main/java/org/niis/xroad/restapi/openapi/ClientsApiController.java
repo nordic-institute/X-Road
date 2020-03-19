@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
-import org.niis.xroad.restapi.converter.EndpointHelper;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
@@ -46,9 +46,11 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
@@ -56,13 +58,16 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.AccessRightService;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
+import org.niis.xroad.restapi.service.OrphanRemovalService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -107,23 +112,11 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
-    private final EndpointHelper endpointService;
+    private final OrphanRemovalService orphanRemovalService;
 
     /**
      * ClientsApiController constructor
-     *
-     * @param clientService
-     * @param tokenService
-     * @param clientConverter
-     * @param localGroupConverter
-     * @param localGroupService
-     * @param serviceDescriptionConverter
-     * @param serviceDescriptionService
-     * @param accessRightService
-     * @param subjectConverter
-     * @param tokenCertificateConverter
      */
-
     @Autowired
     public ClientsApiController(ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
@@ -131,7 +124,7 @@ public class ClientsApiController implements ClientsApi {
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
             SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
-            EndpointHelper endpointService) {
+            OrphanRemovalService orphanRemovalService) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -143,12 +136,11 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
-        this.endpointService = endpointService;
+        this.orphanRemovalService = orphanRemovalService;
     }
 
     /**
      * Finds clients matching search terms
-     *
      * @param name
      * @param instance
      * @param memberClass
@@ -179,7 +171,6 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Read one client from DB
-     *
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
      * @return
@@ -188,7 +179,7 @@ public class ClientsApiController implements ClientsApi {
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
-        ClientType clientType = clientService.getClient(clientId);
+        ClientType clientType = clientService.getLocalClient(clientId);
         if (clientType == null) {
             throw new ResourceNotFoundException("client with id " + encodedId + " not found");
         }
@@ -206,7 +197,6 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Update a client's connection type
-     *
      * @param encodedId
      * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
@@ -219,7 +209,7 @@ public class ClientsApiController implements ClientsApi {
         }
         ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
-        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
+        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get().name();
         ClientType changed = null;
         try {
             changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -284,7 +274,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientService.getClientIsCerts(clientType.getIdentifier())
+        List<CertificateDetails> certificates = clientService.getLocalClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
@@ -312,7 +302,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<LocalGroupType> localGroupTypes = clientService.getClientLocalGroups(clientType.getIdentifier());
+        List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
@@ -321,7 +311,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientService.getClientServiceDescriptions(clientType.getIdentifier()));
+                clientService.getLocalClientServiceDescriptions(clientType.getIdentifier()));
 
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
@@ -402,5 +392,110 @@ public class ClientsApiController implements ClientsApi {
         }
         List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
+
+    /**
+     * This method is synchronized (like client add in old Ruby implementation)
+     * to prevent a problem with two threads both creating "first" additional members.
+     */
+    @Override
+    @PreAuthorize("hasAuthority('ADD_CLIENT')")
+    public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
+        boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
+        IsAuthentication isAuthentication = null;
+        try {
+            isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
+        } catch (Exception e) {
+            throw new BadRequestException("bad connection type parameter", e);
+        }
+        ClientType added = null;
+        try {
+            added = clientService.addLocalClient(clientAdd.getClient().getMemberClass(),
+                    clientAdd.getClient().getMemberCode(),
+                    clientAdd.getClient().getSubsystemCode(),
+                    isAuthentication, ignoreWarnings);
+        } catch (ClientService.ClientAlreadyExistsException
+                | ClientService.AdditionalMemberAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (UnhandledWarningsException e) {
+            throw new BadRequestException(e);
+        }
+        Client result = clientConverter.convert(added);
+        return createCreatedResponse("/api/clients/{id}", result, result.getId());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.deleteLocalClient(clientId);
+        } catch (ActionNotPossibleException | ClientService.CannotDeleteOwnerException e) {
+            throw new ConflictException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<Void> deleteOrphans(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            orphanRemovalService.deleteOrphans(clientId);
+        } catch (OrphanRemovalService.OrphansNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    public ResponseEntity<OrphanInformation> getClientOrphans(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        boolean orphansExist = orphanRemovalService.orphansExist(clientId);
+        if (orphansExist) {
+            OrphanInformation info = new OrphanInformation().orphansExist(true);
+            return new ResponseEntity<>(info, HttpStatus.OK);
+        } else {
+            throw new ResourceNotFoundException();
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_CLIENT_REG_REQ')")
+    public ResponseEntity<Void> registerClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.registerClient(clientId);
+        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_CLIENT_DEL_REQ')")
+    public ResponseEntity<Void> unregisterClient(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        try {
+            clientService.unregisterClient(clientId);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException  e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
