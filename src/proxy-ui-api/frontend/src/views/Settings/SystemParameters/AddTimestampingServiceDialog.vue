@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="550" data-test="system-parameters-add-timestamping-service-dialog">
+  <v-dialog v-model="show" max-width="550" persistent data-test="system-parameters-add-timestamping-service-dialog">
     <template v-slot:activator="{ on: { click } }">
       <large-button
         data-test="system-parameters-timestamping-services-add-button"
