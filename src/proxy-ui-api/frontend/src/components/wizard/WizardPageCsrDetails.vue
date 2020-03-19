@@ -73,11 +73,21 @@
 
       <div class="button-footer">
         <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
-        <large-button
-          :disabled="invalid"
-          @click="done"
-          data-test="save-button"
-        >{{$t(saveButtonText)}}</large-button>
+
+        <div>
+          <large-button
+            v-if="showPreviousButton"
+            @click="previous"
+            outlined
+            class="previous-button"
+            data-test="previous-button"
+          >{{$t('action.previous')}}</large-button>
+          <large-button
+            :disabled="invalid"
+            @click="done"
+            data-test="save-button"
+          >{{$t(saveButtonText)}}</large-button>
+        </div>
       </div>
     </ValidationObserver>
   </div>
@@ -106,6 +116,10 @@ export default Vue.extend({
     saveButtonText: {
       type: String,
       default: 'action.continue',
+    },
+    showPreviousButton: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {
@@ -158,6 +172,9 @@ export default Vue.extend({
   methods: {
     done(): void {
       this.$emit('done');
+    },
+    previous(): void {
+      this.$emit('previous');
     },
     cancel(): void {
       this.$emit('cancel');

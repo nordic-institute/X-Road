@@ -45,7 +45,7 @@
 import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
-import TokenLoginDialog from './TokenLoginDialog.vue';
+import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 

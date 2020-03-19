@@ -12,11 +12,11 @@
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageCsrDetails @cancel="cancel" @done="save" />
+          <WizardPageCsrDetails @cancel="cancel" @done="save" :showPreviousButton="false" />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageGenerateCsr @cancel="cancel" @done="done" />
+          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>

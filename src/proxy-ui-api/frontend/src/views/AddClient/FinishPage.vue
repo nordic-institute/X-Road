@@ -19,15 +19,22 @@
         <large-button
           outlined
           @click="cancel"
-          :disabled="!disableDone"
+          :disabled="disableCancel"
           data-test="cancel-button"
         >{{$t('action.cancel')}}</large-button>
       </div>
-      <large-button
-        @click="done"
-        :disabled="disableDone"
-        data-test="submit-button"
-      >{{$t('action.submit')}}</large-button>
+
+      <div>
+        <large-button
+          @click="previous"
+          outlined
+          :disabled="disableCancel"
+          class="previous-button"
+          data-test="previous-button"
+        >{{$t('action.previous')}}</large-button>
+
+        <large-button @click="done" data-test="submit-button">{{$t('action.submit')}}</large-button>
+      </div>
     </div>
   </div>
 </template>
@@ -49,31 +56,41 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: false,
+      disableCancel: false,
     };
   },
   methods: {
     cancel(): void {
       this.$emit('cancel');
     },
+    previous(): void {
+      this.$emit('previous');
+    },
     done(): void {
+      this.disableCancel = true;
+
       this.$store.dispatch('createClient').then(
         (response) => {
-          this.disableDone = false;
+          this.generateCsr();
+        },
+        (error) => {
+          this.$bus.$emit('show-error', error.message);
+          this.disableCancel = false;
+        },
+      );
+    },
+
+    generateCsr(): void {
+      const tokenId = this.$store.getters.csrTokenId;
+
+      this.$store.dispatch('generateKeyAndCsr', tokenId).then(
+        (response) => {
+          this.disableCancel = false;
           this.$emit('done');
         },
         (error) => {
           this.$bus.$emit('show-error', error.message);
-        },
-      );
-    },
-    generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.disableCancel = false;
         },
       );
     },

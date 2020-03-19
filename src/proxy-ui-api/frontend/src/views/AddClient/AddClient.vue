@@ -29,31 +29,33 @@
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <TokenPage @cancel="cancel" @done="tokenReady" />
+          <TokenPage @cancel="cancel" @previous="tokenPrevious" @done="tokenReady" />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content step="3">
-          <SignKeyPage @cancel="cancel" @done="signKeyReady" />
+          <SignKeyPage @cancel="cancel" @previous="signKeyPrevious" @done="signKeyReady" />
         </v-stepper-content>
         <!-- Step 4 -->
         <v-stepper-content step="4">
           <WizardPageCsrDetails
             @cancel="cancel"
+            @previous="csrDetailsPrevious"
             @done="csrDetailsReady"
             saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 5 -->
         <v-stepper-content step="5">
-          <WizardPageGenerateCsr
+          <GenerateCsrPage
             @cancel="cancel"
-            @done="generatecsrReady"
+            @previous="generateCsrPrevious"
+            @done="generateCsrReady"
             saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 6 -->
         <v-stepper-content step="6">
-          <FinishPage @cancel="cancel" @done="done" />
+          <FinishPage @cancel="cancel" @previous="finishPrevious" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -71,7 +73,7 @@ import TokenPage from './TokenPage.vue';
 import SignKeyPage from './SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
-import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
+import GenerateCsrPage from './GenerateCsrPage.vue';
 
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
@@ -87,7 +89,7 @@ export default Vue.extend({
     SignKeyPage,
     FinishPage,
     WizardPageCsrDetails,
-    WizardPageGenerateCsr,
+    GenerateCsrPage,
   },
   props: {},
   data() {
@@ -144,8 +146,27 @@ export default Vue.extend({
         },
       );
     },
-    generatecsrReady(): void {
+    generateCsrReady(): void {
       this.currentStep = 6;
+    },
+
+    tokenPrevious(): void {
+      this.currentStep = 1;
+    },
+
+    signKeyPrevious(): void {
+      this.currentStep = 2;
+    },
+
+    csrDetailsPrevious(): void {
+      this.currentStep = 3;
+    },
+    generateCsrPrevious(): void {
+      this.currentStep = 4;
+    },
+
+    finishPrevious(): void {
+      this.currentStep = 5;
     },
 
     done(): void {

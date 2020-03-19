@@ -13,12 +13,23 @@
     </v-text-field>
 
     <v-radio-group v-model="tokenGroup">
-      <v-radio
-        v-for="token in filteredTokens"
-        :key="token.id"
-        :label="`Token ${token.name}`"
-        :value="token"
-      ></v-radio>
+      <div class="radio-row" v-for="token in filteredTokens" :key="token.id">
+        <v-radio :label="`Token ${token.name}`" :value="token" :disabled="!token.logged_in"></v-radio>
+        <div>
+          <large-button
+            @click="confirmLogin(token)"
+            v-if="!token.logged_in"
+            :disabled="!token.available"
+            data-test="token-login-button"
+          >{{$t('keys.logIn')}}</large-button>
+          <large-button
+            v-if="token.logged_in"
+            outlined
+            disabled
+            data-test="token-logout-button"
+          >{{$t('wizard.token.loggedIn')}}</large-button>
+        </div>
+      </div>
     </v-radio-group>
 
     <div class="button-footer">
@@ -30,12 +41,23 @@
           data-test="cancel-button"
         >{{$t('action.cancel')}}</large-button>
       </div>
-      <large-button
-        @click="done"
-        :disabled="disableNext"
-        data-test="next-button"
-      >{{$t('action.next')}}</large-button>
+
+      <div>
+        <large-button
+          @click="previous"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+        >{{$t('action.previous')}}</large-button>
+
+        <large-button
+          @click="done"
+          :disabled="disableNext"
+          data-test="next-button"
+        >{{$t('action.next')}}</large-button>
+      </div>
     </div>
+    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
   </div>
 </template>
 
@@ -43,6 +65,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Token } from '@/types';
 
@@ -51,6 +74,7 @@ export default Vue.extend({
     LargeButton,
     ValidationObserver,
     ValidationProvider,
+    TokenLoginDialog,
   },
   computed: {
     ...mapGetters(['tokens']),
@@ -59,6 +83,13 @@ export default Vue.extend({
       get(): Token[] {
         return this.$store.getters.tokensFilteredByName(this.search);
       },
+    },
+
+    disableSelection() {
+      if (this.tokens.length === 1) {
+        return true;
+      }
+      return false;
     },
 
     disableNext() {
@@ -73,11 +104,15 @@ export default Vue.extend({
       search: undefined,
       disableDone: true,
       tokenGroup: undefined as Token | undefined,
+      loginDialog: false,
     };
   },
   methods: {
     cancel(): void {
       this.$emit('cancel');
+    },
+    previous(): void {
+      this.$emit('previous');
     },
     done(): void {
       if (!this.tokenGroup || !this.tokenGroup.id) {
@@ -86,21 +121,30 @@ export default Vue.extend({
       this.$store.dispatch('setCsrTokenId', this.tokenGroup.id);
       this.$emit('done');
     },
+    confirmLogin(token: Token): void {
+      this.$store.dispatch('setSelectedToken', token);
+      this.loginDialog = true;
+    },
+    tokenLogin(password: string): void {
+      this.fetchData();
+      this.loginDialog = false;
+    },
     fetchData(): void {
       // Fetch tokens from backend
-      this.$store.dispatch('fetchTokens').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
-      });
-    },
-    generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
+      this.$store
+        .dispatch('fetchTokens')
+        .then(() => {
+          // Preselect the token if there is only one
+          if (
+            this.filteredTokens.length === 1 &&
+            this.filteredTokens[0].logged_in
+          ) {
+            this.tokenGroup = this.filteredTokens[0];
+          }
+        })
+        .catch((error) => {
           this.$bus.$emit('show-error', error.message);
-        },
-      );
+        });
     },
   },
   created() {
@@ -114,6 +158,19 @@ export default Vue.extend({
 
 .search-input {
   width: 300px;
+}
+
+.radio-row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding-right: 10px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  border-bottom: 1px solid $XRoad-Grey20;
+  padding-left: 12px;
+  padding-bottom: 5px;
+  padding-top: 5px;
 }
 </style>
 
