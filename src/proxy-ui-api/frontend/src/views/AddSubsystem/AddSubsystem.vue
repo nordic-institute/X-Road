@@ -3,25 +3,79 @@
   <div class="view-wrap">
     <subViewTitle class="view-title" :title="$t('wizard.subsystem.title')" :showClose="false" />
 
-    <SubsystemDetailsPage
-      @cancel="cancel"
-      @done="clientDetailsReady"
-      saveButtonText="action.submit"
-    >
-      <div>
-        {{$t('wizard.subsystem.info1')}}
-        <br />
-        <br />
-        {{$t('wizard.subsystem.info2')}}
+    <div class="content">
+      <div class="info-block">
+        <div>
+          {{$t('wizard.subsystem.info1')}}
+          <br />
+          <br />
+          {{$t('wizard.subsystem.info2')}}
+        </div>
+        <div class="action-block">
+          <large-button
+            @click="showSelectClient = true"
+            outlined
+            data-test="select-subsystem-button"
+          >{{$t('wizard.subsystem.selectSubsystem')}}</large-button>
+        </div>
       </div>
-      <div class="action-block">
-        <large-button
-          @click="showSelectClient = true"
-          outlined
-        >{{$t('wizard.subsystem.selectSubsystem')}}</large-button>
-      </div>
-    </SubsystemDetailsPage>
-    <SelectClientDialog :dialog="showSelectClient" @cancel="showSelectClient = false" />
+
+      <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+        <div class="row-wrap">
+          <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
+          <div v-if="client" data-test="selected-member-name">{{client.member_name}}</div>
+        </div>
+
+        <div class="row-wrap">
+          <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
+          <div v-if="client" data-test="selected-member-name">{{client.member_class}}</div>
+        </div>
+        <div class="row-wrap">
+          <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
+          <div v-if="client" data-test="selected-member-name">{{client.member_code}}</div>
+        </div>
+
+        <div class="row-wrap">
+          <FormLabel
+            labelText="wizard.subsystemCode"
+            helpText="wizard.client.subsystemCodeTooltip"
+          />
+
+          <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
+            <v-text-field
+              class="form-input"
+              type="text"
+              :error-messages="errors"
+              v-model="subsystemCode"
+              data-test="subsystem-code-input"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+
+        <div class="row-wrap">
+          <v-checkbox
+            v-model="registerChecked"
+            color="primary"
+            class="register-checkbox"
+            data-test="register-subsystem-checkbox"
+          ></v-checkbox>
+          <div style="padding-bottom: 20px">{{$t('wizard.subsystem.registerSubsystem')}}</div>
+        </div>
+        <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
+        <div class="button-footer">
+          <div class="button-group">
+            <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+          </div>
+          <large-button
+            @click="done"
+            :disabled="invalid"
+            data-test="submit-add-subsystem-button"
+          >{{$t('action.addSubsystem')}}</large-button>
+        </div>
+      </ValidationObserver>
+
+      <SelectClientDialog :dialog="showSelectClient" @cancel="showSelectClient = false" />
+    </div>
   </div>
 </template>
 
@@ -33,18 +87,22 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
 import SelectClientDialog from '@/views/AddClient/SelectClientDialog.vue';
-
+import FormLabel from '@/components/ui/FormLabel.vue';
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
+import { Client } from '@/types';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
+
 import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
+    FormLabel,
     LargeButton,
-    SubViewTitle,
-    SubsystemDetailsPage,
+    ValidationObserver,
+    ValidationProvider,
     SelectClientDialog,
+    SubViewTitle,
   },
   props: {
     clientId: {
@@ -55,46 +113,141 @@ export default Vue.extend({
   data() {
     return {
       currentStep: 1,
-      showSelectClient: false,
+
+      disableDone: false,
+      certificationService: undefined,
+      filteredServiceList: [],
+      showSelectClient: false as boolean,
+      registerChecked: true,
     };
   },
   computed: {
-    ...mapGetters(['localMembersIds']),
+    ...mapGetters(['client', 'localMembers']),
+    memberClass: {
+      get(): string {
+        return this.$store.getters.memberClass;
+      },
+      set(value: string) {
+        this.$store.commit('setMemberClass', value);
+      },
+    },
+
+    memberCode: {
+      get(): string {
+        return this.$store.getters.memberCode;
+      },
+      set(value: string) {
+        this.$store.commit('setMemberCode', value);
+      },
+    },
+
+    subsystemCode: {
+      get(): string {
+        return this.$store.getters.subsystemCode;
+      },
+      set(value: string) {
+        this.$store.commit('setSubsystemCode', value);
+      },
+    },
+
+    selectedMember: {
+      get(): Client {
+        return this.$store.getters.selectedMember;
+      },
+      set(value: Client) {
+        this.$store.commit('setMember', value);
+      },
+    },
+
+    duplicateClient(): boolean {
+      if (!this.memberClass || !this.memberCode || !this.subsystemCode) {
+        return false;
+      }
+
+      if (
+        this.localMembers.some((e: Client) => {
+          if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
+            return false;
+          }
+
+          if (e.member_code.toLowerCase() !== this.memberCode.toLowerCase()) {
+            return false;
+          }
+
+          if (e.subsystem_code !== this.subsystemCode) {
+            return false;
+          }
+          return true;
+        })
+      ) {
+        return true;
+      }
+
+      return false;
+    },
   },
   methods: {
-    save(): void {
-      this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
-          this.currentStep = 2;
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
-    },
     cancel(): void {
       this.$store.dispatch('resetState');
       this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
+    done(): void {
+      this.$store
+        .dispatch('addSubsystem', {
+          memberName: this.client.member_name,
+          memberClass: this.client.member_class,
+          memberCode: this.client.member_code,
+          subsystemCode: this.subsystemCode,
+        })
+        .then(
+          (response) => {
+            this.disableDone = false;
+
+            if (this.registerChecked) {
+              this.registerSubsystem();
+            } else {
+              this.exitView();
+            }
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
+    },
+
+    registerSubsystem(): void {
+      this.$store
+        .dispatch('registerClient', {
+          memberName: this.client.member_name,
+          memberClass: this.client.member_class,
+          memberCode: this.client.member_code,
+          subsystemCode: this.subsystemCode,
+        })
+        .then(
+          (response) => {
+            this.disableDone = false;
+            this.exitView();
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
+    },
 
     clientDetailsReady(): void {
       this.$store.dispatch('showSuccess', 'subsystem_code');
-      /*
-
-      this.$bus.$emit(
-        'show-indefinite',
-        'viesti',
-        this.$store.dispatch('fetchCsrForm'),
-      ); */
     },
 
-    done(): void {
+    exitView(): void {
       this.$store.dispatch('resetState');
       this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
     fetchData(): void {
+      this.$store.dispatch('fetchMembers');
+      this.$store.dispatch('fetchLocalMembers');
+
       // Fetch "parent" client from backend
       this.$store.dispatch('fetchClient', this.clientId).catch((error) => {
         this.$bus.$emit('show-error', error.message);
@@ -111,10 +264,11 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/colors';
 @import '../../assets/shared';
+@import '../../assets/wizards';
 
 .view-wrap {
   width: 100%;
-  max-width: 850px;
+  max-width: 1000px;
   margin: 10px;
 }
 
@@ -124,20 +278,22 @@ export default Vue.extend({
   margin-bottom: 30px;
 }
 
-.stepper-content {
-  width: 100%;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+.info-block {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 40px;
+
+  .action-block {
+    margin-top: 30px;
+    margin-left: auto;
+    margin-right: 0px;
+  }
 }
 
-.stepper {
-  width: 100%;
-}
-
-.noshadow {
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
+.duplicate-warning {
+  margin-left: 230px;
+  margin-top: 10px;
+  color: #ff5252;
+  font-size: 12px;
 }
 </style>
