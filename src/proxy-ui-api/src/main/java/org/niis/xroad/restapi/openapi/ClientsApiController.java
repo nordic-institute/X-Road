@@ -414,12 +414,6 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException(errors);
         }
 
-//        if (clientAdd.getClient().getMemberClass().contains("G")) {
-//            BindingResult errors = new BeanPropertyBindingResult(clientAdd, "clientAdd");
-//            errors.rejectValue("client.memberClass", "cant.have.g", null, "cant be g");
-//            throw new BadRequestException(errors);
-//        }
-
         try {
             isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
         } catch (Exception e) {

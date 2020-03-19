@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
+package org.niis.xroad.restapi.validator;
 
 /**
  * Encapsulates validation logic that is copied from Spring firewall internal methods and

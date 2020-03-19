@@ -22,23 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.openapi.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator;
+import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
 
 import java.util.EnumSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError.BACKSLASH;
-import static org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError.COLON;
-import static org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
-import static org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
-import static org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError.PERCENT;
-import static org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError.SEMICOLON;
+import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.BACKSLASH;
+import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.COLON;
+import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
+import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
+import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.PERCENT;
+import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.SEMICOLON;
 
 @Slf4j
 public class EncodedIdentifierValidatorTest {

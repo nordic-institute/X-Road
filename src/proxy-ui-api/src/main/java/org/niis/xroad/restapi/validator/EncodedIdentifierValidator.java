@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
+package org.niis.xroad.restapi.validator;
 
 import java.util.EnumSet;
 
@@ -83,6 +83,5 @@ public class EncodedIdentifierValidator {
         FORWARDSLASH,
         BACKSLASH,
         PERCENT,
-//        NOT_PRINTABLE_ASCII,
     }
 }

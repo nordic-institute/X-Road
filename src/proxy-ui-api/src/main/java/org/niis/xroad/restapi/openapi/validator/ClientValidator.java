@@ -25,36 +25,24 @@
 package org.niis.xroad.restapi.openapi.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.openapi.model.Client;
-import org.niis.xroad.restapi.openapi.validator.EncodedIdentifierValidator.ValidationError;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 @Slf4j
-public class ClientValidator implements Validator {
+public class ClientValidator extends AbstractIdentifierValidator {
+
+    @Override
+    Collection<ValidatedField> getValidatedFields(Object target) {
+        Client client = (Client) target;
+        return Arrays.asList(ValidatedField.builder().fieldName("memberCode").value(client.getMemberCode()).build(),
+                ValidatedField.builder().fieldName("subsystemCode").value(client.getSubsystemCode()).build());
+    }
+
     @Override
     public boolean supports(Class<?> clazz) {
         return Client.class.equals(clazz);
     }
 
-    private String getErrorCode(ValidationError validationError) {
-        // TO DO: better names and add error messages also
-        return validationError.name().toLowerCase();
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        Client client = (Client) target;
-        String memberCode = client.getMemberCode();
-        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
-        validator.getValidationErrors(memberCode).forEach(error ->
-                errors.rejectValue("memberCode", getErrorCode(error), null, getErrorCode(error)));
-
-        String subsystemCode = client.getSubsystemCode();
-        if (!StringUtils.isBlank(subsystemCode)) {
-            validator.getValidationErrors(subsystemCode).forEach(error ->
-                    errors.rejectValue("subsystemCode", getErrorCode(error), null, getErrorCode(error)));
-        }
-    }
 }
