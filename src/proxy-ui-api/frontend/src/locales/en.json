@@ -360,7 +360,14 @@
     "timestampingServices": {
       "title": "Timestamping Services",
       "action": {
-        "add": "ADD"
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
       },
       "table": {
         "header": {
