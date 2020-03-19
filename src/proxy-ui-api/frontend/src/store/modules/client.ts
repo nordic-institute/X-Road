@@ -206,7 +206,7 @@ export const actions: ActionTree<ClientState, RootState> = {
   registerClient({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
 
     const clientId = memberName + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
-    return axios.post(`/clients/${clientId}/register`, {});
+    return axios.put(`/clients/${clientId}/register`, {});
   },
 
 

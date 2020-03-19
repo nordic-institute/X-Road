@@ -18,7 +18,7 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <v-btn
-        v-if="showAddClient()"
+        v-if="showAddClient"
         color="primary"
         @click="addClient"
         rounded
@@ -46,7 +46,7 @@
         <template v-if="item.type == 'owner'">
           <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open</v-icon>
           <span
-            v-if="canOpenClient()"
+            v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openClient(item)"
           >{{item.name}} ({{ $t("client.owner") }})</span>
@@ -66,7 +66,7 @@
             :class="{ 'icon-subsystem': treeMode }"
           >mdi-card-bulleted-outline</v-icon>
           <span
-            v-if="canOpenClient()"
+            v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openSubsystem(item)"
           >{{item.name}}</span>
@@ -81,7 +81,7 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <v-btn
-            v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient()"
+            v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient"
             small
             outlined
             rounded
@@ -89,6 +89,16 @@
             class="xrd-small-button xrd-table-button"
             @click="addSubsystem(item)"
           >{{$t('action.addSubsystem')}}</v-btn>
+
+          <v-btn
+            v-if="(item.type == 'client' ||item.type != 'owner') && showRegister"
+            small
+            outlined
+            rounded
+            color="primary"
+            class="xrd-small-button xrd-table-button"
+            @click="registerClient(item)"
+          >{{$t('action.register')}}</v-btn>
         </div>
       </template>
 
@@ -111,6 +121,7 @@ import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
+import { Client } from '@/types';
 
 export default Vue.extend({
   components: {
@@ -163,16 +174,18 @@ export default Vue.extend({
         },
       ];
     },
-  },
-
-  methods: {
     showAddClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
+    },
+    showRegister(): boolean {
+      return true;
     },
     canOpenClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
+  },
 
+  methods: {
     openClient(item: any): void {
       this.$router.push({
         name: RouteName.Client,
@@ -198,6 +211,24 @@ export default Vue.extend({
         name: RouteName.AddSubsystem,
         params: { clientId: item.id },
       });
+    },
+
+    registerClient(item: Client): void {
+      this.$store
+        .dispatch('registerClient', {
+          memberName: item.member_name,
+          memberClass: item.member_class,
+          memberCode: item.member_code,
+          subsystemCode: item.subsystem_code,
+        })
+        .then(
+          (response) => {
+            this.$bus.$emit('show-success', 'error.message');
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
     },
 
     customFilter: (value: any, search: string | null, item: any): boolean => {
