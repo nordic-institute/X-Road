@@ -387,7 +387,8 @@
       "title": "Add a Subsystem",
       "selectSubsystem": "Select Subsystem",
       "info1": "Specify the code of the subsystem to be added.",
-      "info2": "If the subsystem is already existing, you can select it from the Global list."
+      "info2": "If the subsystem is already existing, you can select it from the Global list.",
+      "registerSubsystem": "Register subsystem"
     }
   },
   "systemParameters": {
