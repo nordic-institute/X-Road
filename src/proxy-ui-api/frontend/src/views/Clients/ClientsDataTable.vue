@@ -91,7 +91,7 @@
           >{{$t('action.addSubsystem')}}</v-btn>
 
           <v-btn
-            v-if="(item.type == 'client' ||item.type != 'owner') && showRegister"
+            v-if="(item.type == 'client' ||item.type != 'owner' && item.status !== 'REGISTERED') && showRegister"
             small
             outlined
             rounded
@@ -99,6 +99,15 @@
             class="xrd-small-button xrd-table-button"
             @click="registerClient(item)"
           >{{$t('action.register')}}</v-btn>
+          <v-btn
+            v-if="(item.type != 'owner' && item.status === 'REGISTERED') && showRegister"
+            small
+            outlined
+            rounded
+            color="primary"
+            class="xrd-small-button xrd-table-button"
+            @click="unregisterClient(item)"
+          >{{$t('action.unregister')}}</v-btn>
         </div>
       </template>
 
@@ -216,6 +225,24 @@ export default Vue.extend({
     registerClient(item: Client): void {
       this.$store
         .dispatch('registerClient', {
+          memberName: item.member_name,
+          memberClass: item.member_class,
+          memberCode: item.member_code,
+          subsystemCode: item.subsystem_code,
+        })
+        .then(
+          (response) => {
+            this.$bus.$emit('show-success', 'error.message');
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
+    },
+
+    unregisterClient(item: Client): void {
+      this.$store
+        .dispatch('unregisterClient', {
           memberName: item.member_name,
           memberClass: item.member_class,
           memberCode: item.member_code,

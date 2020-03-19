@@ -202,13 +202,15 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   },
 
-
   registerClient({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
-
     const clientId = memberName + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
     return axios.put(`/clients/${clientId}/register`, {});
   },
 
+  unregisterClient({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
+    const clientId = memberName + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
+    return axios.put(`/clients/${clientId}/unregister`, {});
+  },
 
   clearData({ commit, rootGetters }) {
     commit('storeClient', null);
