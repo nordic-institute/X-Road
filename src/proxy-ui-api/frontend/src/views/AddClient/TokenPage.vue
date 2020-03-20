@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     {{$t('wizard.token.info')}}
     <v-text-field
       v-model="search"

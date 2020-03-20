@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
         <div class="label">{{$t('certificateProfile.' + item.label_key)}}</div>
