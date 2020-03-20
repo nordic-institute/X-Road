@@ -183,7 +183,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the central server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster preferably before installing the X-Road software.
 
 1.  On each node, edit file `/etc/xroad/conf.d/local.ini`, creating it if necessary
 2.  Add the following lines
@@ -488,4 +488,6 @@ Since version 6.23.0 it is possible to use an external database for the Central 
 
 2. Follow the instructions in [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) to migrate the Central Server database from local to remote.
 
-3. Setup the database cluster as instructed in [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database).
+3. Follow the instructions in [General Installation of HA Support](#4-general-installation-of-ha-support)
+
+4. Setup the database cluster as instructed in [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database).

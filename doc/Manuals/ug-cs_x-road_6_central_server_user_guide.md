@@ -1273,7 +1273,7 @@ Prerequisites
     `systemctl stop postgresql`
     `systemctl mask postgresql`
 
-4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows. Note that the line GRANT centerui_production to postgres is AWS RDS specific and not necessary if the postgres user is a true super-user.
+4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows. Note that the line `GRANT centerui_production to postgres` is AWS RDS specific and not necessary if the postgres user is a true super-user.
 
 Central Server version 6.23.x
 ```
