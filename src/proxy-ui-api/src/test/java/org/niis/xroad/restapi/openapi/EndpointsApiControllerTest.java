@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.EndpointPathAndMethod;
 import org.niis.xroad.restapi.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -89,31 +90,24 @@ public class EndpointsApiControllerTest {
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
-        Endpoint endpointUpdate = new Endpoint();
-        endpointUpdate.setId("10");
-        endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
-        endpointUpdate.setPath("/test");
-        endpointUpdate.setGenerated(false);
-        endpointsApiController.updateEndpoint("10", endpointUpdate);
+        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
+        pathAndMethod.setMethod(EndpointPathAndMethod.MethodEnum.STAR);
+        pathAndMethod.setPath("/test");
+        endpointsApiController.updateEndpoint("10", pathAndMethod);
     }
 
     @Test
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpoint() {
-        Endpoint endpointUpdate = new Endpoint();
-        endpointUpdate.setId("12");
-        endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
-        endpointUpdate.setPath("/test");
-        endpointUpdate.setGenerated(false);
-        endpointsApiController.updateEndpoint("12", endpointUpdate);
+        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
+        pathAndMethod.setMethod(EndpointPathAndMethod.MethodEnum.STAR);
+        pathAndMethod.setPath("/test");
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
 
         ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         EndpointType endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 
-        assertTrue(endpointType.getServiceCode().equals("TestServiceCode"));
         assertTrue(endpointType.getMethod().equals("*"));
         assertTrue(endpointType.getPath().equals("/test"));
 

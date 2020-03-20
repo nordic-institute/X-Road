@@ -28,7 +28,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,12 +103,13 @@ public class EndpointService {
      * Update endpoint details
      *
      * @param id                                        endpoint id
-     * @param endpointUpdate                            endpoint object to use for updating
+     * @param method method to be
+     * @param path                            endpoint object to use for updating
      * @return
      * @throws EndpointNotFoundException                endpoint not found with given id
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
      */
-    public EndpointType updateEndpoint(Long id, Endpoint endpointUpdate)
+    public EndpointType updateEndpoint(Long id, String method, String path)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
         verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
 
@@ -122,9 +122,8 @@ public class EndpointService {
             throw new IllegalGeneratedEndpointUpdateException(id.toString());
         }
 
-        endpoint.setServiceCode(endpointUpdate.getServiceCode());
-        endpoint.setMethod(endpointUpdate.getMethod().toString());
-        endpoint.setPath(endpointUpdate.getPath());
+        endpoint.setMethod(method);
+        endpoint.setPath(path);
 
         endpointRepository.saveOrUpdate(endpoint);
 

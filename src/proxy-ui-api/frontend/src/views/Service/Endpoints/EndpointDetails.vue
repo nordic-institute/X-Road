@@ -147,7 +147,10 @@
       },
       saveEndpoint(): void {
         api
-          .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
+          .put(`/endpoints/${this.endpoint.id}`, {
+            method: this.endpoint.method,
+            path: this.endpoint.path,
+          })
           .then( () => {
             this.$bus.$emit('show-success', 'endpoints.editSuccess');
             this.$router.go(-1);

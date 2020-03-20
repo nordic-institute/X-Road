@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.24"
+  version: "1.0.25"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -2551,7 +2551,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Endpoint'
+              $ref: '#/components/schemas/EndpointPathAndMethod'
       responses:
         '200':
           description: endpoint updated
@@ -4910,23 +4910,34 @@ components:
           example: false
           default: false
     Endpoint:
+      allOf:
+        - $ref: '#/components/schemas/EndpointPathAndMethod'
+        - type: object
+          description: Endpoint for a service
+          required:
+            - service_code
+            - method
+            - path
+          properties:
+            id:
+              type: string
+              description: unique identifier
+              example: 15
+            service_code:
+              type: string
+              example: example_service_code
+            generated:
+              type: boolean
+              description: has endpoint been generated from openapi3 description
+              example: true
+              readOnly: true
+    EndpointPathAndMethod:
       type: object
-      description: Endpoint for a service
-      required:
-        - service_code
-        - method
-        - path
+      description: Object for updating endpoints method and/or path
       properties:
-        id:
-          type: string
-          description: unique identifier
-          example: 15
-        service_code:
-          type: string
-          example: example_service_code
         method:
           type: string
-          description: http method mapeed to this endpoint
+          description: http method mapped to this endpoint
           example: 'GET'
           default: '*'
           enum: [ '*', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE' ]
@@ -4935,11 +4946,6 @@ components:
           description: relative path where this endpoint is mapped to
           example: '/foo'
           default: '**'
-        generated:
-          type: boolean
-          description: has endpoint been generated from openapi3 description
-          example: true
-          readOnly: true
     ServiceClient: # ok
       type: object
       description: service client
