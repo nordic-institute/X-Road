@@ -43,6 +43,8 @@ import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.converter.SubjectTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -50,6 +52,7 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -71,6 +74,7 @@ import org.niis.xroad.restapi.service.OrphanRemovalService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.OcspUtils;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
@@ -100,6 +104,8 @@ import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WS
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
     public static final String ERROR_INVALID_CERT = "invalid_cert";
+    public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local signed certificate";
+
 
     private final ClientConverter clientConverter;
     private final ClientService clientService;
@@ -153,11 +159,18 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
-            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
+            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
+            Boolean onlyLocalClientWithValidSignCert, Boolean onlyLocallyMissingClients) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        List<Client> clients = clientConverter.convert(clientService.findClients(name,
-                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
+        List<Client> clients = null;
+        try {
+             clients = clientConverter.convert(clientService.findClients(name,
+                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
+                     onlyLocalClientWithValidSignCert, onlyLocallyMissingClients));
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new DeviationAwareRuntimeException(ERROR_OCSP_EXTRACT_MSG, e);
+        }
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -165,7 +178,12 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Client> getClient(String id) {
         ClientType clientType = getClientType(id);
-        Client client = clientConverter.convert(clientType);
+        Client client = null;
+        try {
+            client = clientConverter.convert(clientType);
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new DeviationAwareRuntimeException(ERROR_OCSP_EXTRACT_MSG + " for client: " + id, e);
+        }
         return new ResponseEntity<>(client, HttpStatus.OK);
     }
 
@@ -211,12 +229,16 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedId);
         String connectionTypeString = ConnectionTypeMapping.map(connectionType).get().name();
         ClientType changed = null;
+        Client result = null;
         try {
             changed = clientService.updateConnectionType(clientId, connectionTypeString);
+            result = clientConverter.convert(changed);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new DeviationAwareRuntimeException(ERROR_OCSP_EXTRACT_MSG + " for client: " + encodedId, e);
         }
-        Client result = clientConverter.convert(changed);
+
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -409,18 +431,23 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException("bad connection type parameter", e);
         }
         ClientType added = null;
+        Client result = null;
         try {
             added = clientService.addLocalClient(clientAdd.getClient().getMemberClass(),
                     clientAdd.getClient().getMemberCode(),
                     clientAdd.getClient().getSubsystemCode(),
                     isAuthentication, ignoreWarnings);
+            result = clientConverter.convert(added);
         } catch (ClientService.ClientAlreadyExistsException
                 | ClientService.AdditionalMemberAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new DeviationAwareRuntimeException(ERROR_OCSP_EXTRACT_MSG + " for client id: "
+                    + clientAdd.getClient().getId(), e);
         }
-        Client result = clientConverter.convert(added);
+
         return createCreatedResponse("/api/clients/{id}", result, result.getId());
     }
 

@@ -27,19 +27,23 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.util.ClientUtils;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +59,7 @@ public class ClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
     private final CurrentSecurityServerId securityServerOwner; // request scoped
+    private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates; // request scoped contains all certificates of type sign
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -63,17 +68,20 @@ public class ClientConverter {
 
     @Autowired
     public ClientConverter(GlobalConfFacade globalConfFacade,
-            CurrentSecurityServerId securityServerOwner) {
+            CurrentSecurityServerId securityServerOwner,
+            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates) {
         this.globalConfFacade = globalConfFacade;
         this.securityServerOwner = securityServerOwner;
+        this.currentSecurityServerSignCertificates = currentSecurityServerSignCertificates;
     }
 
     /**
-     * convert ClientType into openapi Client class
+     *
      * @param clientType
      * @return
+     * @throws OcspUtils.OcspStatusExtractionException
      */
-    public Client convert(ClientType clientType) {
+    public Client convert(ClientType clientType) throws OcspUtils.OcspStatusExtractionException {
         Client client = new Client();
         client.setId(convertId(clientType.getIdentifier()));
         client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
@@ -82,6 +90,9 @@ public class ClientConverter {
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfFacade.getMemberName(clientType.getIdentifier()));
         client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
+        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
+                currentSecurityServerSignCertificates.getSignCertificateInfos()));
+
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.orElse(null));
         Optional<ConnectionType> connectionTypeEnum =
@@ -94,11 +105,14 @@ public class ClientConverter {
      * convert a group of ClientType into a list of openapi Client class
      * @param clientTypes
      * @return
+     * @throws OcspUtils.OcspStatusExtractionException
      */
-    public List<Client> convert(Iterable<ClientType> clientTypes) {
-        return Streams.stream(clientTypes)
-                .map(this::convert)
-                .collect(Collectors.toList());
+    public List<Client> convert(Iterable<ClientType> clientTypes) throws OcspUtils.OcspStatusExtractionException {
+        ArrayList<Client> clients = new ArrayList<>();
+        for (ClientType clientType : clientTypes) {
+            clients.add(convert(clientType));
+        }
+        return clients;
     }
 
     /**

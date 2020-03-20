@@ -25,23 +25,41 @@
 package org.niis.xroad.restapi.cache;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.niis.xroad.restapi.service.ServerConfService;
+import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
 @Configuration
-public class CurrentSecurityServerIdConfig {
+public class CurrentSecurityServerConfig {
 
     @Bean
     @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
     public CurrentSecurityServerId securityServerOwner(ServerConfService serverConfService) {
         SecurityServerId id = serverConfService.getSecurityServerId();
         return new CurrentSecurityServerId(id);
+    }
+
+    @Bean
+    @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
+    public CurrentSecurityServerSignCertificates allLocalSignCertificates(TokenService tokenService) {
+        List<TokenInfo> tokens = tokenService.getAllTokens();
+        List<CertificateInfo> certificateInfos = tokens.stream()
+                .flatMap(token -> token.getKeyInfo().stream())
+                .filter(keyInfo -> keyInfo.isForSigning())
+                .flatMap(keyInfo -> keyInfo.getCerts().stream())
+                .collect(Collectors.toList());
+        return new CurrentSecurityServerSignCertificates(certificateInfos);
     }
 
 }
