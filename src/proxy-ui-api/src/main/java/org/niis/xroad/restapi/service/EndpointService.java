@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.model.EndpointPathAndMethod;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,16 +103,27 @@ public class EndpointService {
     /**
      * Update endpoint details
      *
-     * @param id                                        endpoint id
-     * @param method method to be
-     * @param path                            endpoint object to use for updating
+     * @param id for the endpoint to be updated
+     * @param method new value for method
+     * @param path new value for path
      * @return
      * @throws EndpointNotFoundException                endpoint not found with given id
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
+     * @throws IllegalArgumentException                 passing illegal combination of parameters
      */
-    public EndpointType updateEndpoint(Long id, String method, String path)
+    public EndpointType updateEndpoint(Long id, EndpointPathAndMethod.MethodEnum method, String path)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
         verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
+
+        if ("".equals(path)) {
+            throw new IllegalArgumentException("Path can't be empty string when updating an endpoint: "
+                + id.toString());
+        }
+
+        if (method == null && path == null) {
+            throw new IllegalArgumentException("Method and path can't both be null when updating an endpoint: "
+                + id.toString());
+        }
 
         EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
@@ -122,8 +134,13 @@ public class EndpointService {
             throw new IllegalGeneratedEndpointUpdateException(id.toString());
         }
 
-        endpoint.setMethod(method);
-        endpoint.setPath(path);
+        if (path != null) {
+            endpoint.setPath(path);
+        }
+
+        if (method != null) {
+            endpoint.setMethod(method.toString());
+        }
 
         endpointRepository.saveOrUpdate(endpoint);
 
@@ -158,5 +175,7 @@ public class EndpointService {
             super(String.format(MESSAGE, id), new ErrorDeviation(ILLEGAL_GENERATED_ENDPOINT_REMOVE, id));
         }
     }
+
+
 
 }

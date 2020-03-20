@@ -96,6 +96,21 @@ public class EndpointsApiControllerTest {
         endpointsApiController.updateEndpoint("10", pathAndMethod);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    public void updateEndpointWithEmptyPathString() {
+        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
+        pathAndMethod.setPath("");
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    public void updateEndpointWithEmptyPathAndMethod() {
+        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
+    }
+
     @Test
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpoint() {
@@ -110,7 +125,6 @@ public class EndpointsApiControllerTest {
 
         assertTrue(endpointType.getMethod().equals("*"));
         assertTrue(endpointType.getPath().equals("/test"));
-
     }
 
 }
