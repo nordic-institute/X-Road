@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :value="showPreview" persistent max-width="800">
+  <v-dialog :value="showPreview" persistent max-width="850">
     <template v-slot:activator="{ on }">
       <input
         v-show="false"
@@ -44,7 +44,7 @@
               }}
             </v-col>
             <v-col cols="12" sm="9">
-              {{ anchorPreview.hash }}
+              {{ anchorPreview.hash | colonize }}
             </v-col>
           </v-row>
           <v-row no-gutters>
