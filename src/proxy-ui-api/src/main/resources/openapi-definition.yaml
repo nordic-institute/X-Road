@@ -4939,13 +4939,11 @@ components:
           type: string
           description: http method mapped to this endpoint
           example: 'GET'
-          default: '*'
           enum: [ '*', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE' ]
         path:
           type: string
           description: relative path where this endpoint is mapped to
           example: '/foo'
-          default: '**'
     ServiceClient: # ok
       type: object
       description: service client
