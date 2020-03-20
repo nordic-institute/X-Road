@@ -62,8 +62,8 @@ public enum DiagnosticStatusCodeMapping {
             DiagnosticStatusCode.ERROR_CODE_OCSP_RESPONSE_INVALID),
     ERROR_CODE_OCSP_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED,
             DiagnosticStatusCode.ERROR_CODE_OCSP_UNINITIALIZED),
-    ERROR_CODE_LOGMANAGER_UNAVAILABLE(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED,
-            DiagnosticStatusCode.ERROR_CODE_OCSP_UNINITIALIZED),
+    ERROR_CODE_LOGMANAGER_UNAVAILABLE(DiagnosticsErrorCodes.ERROR_CODE_LOGMANAGER_UNAVAILABLE,
+            DiagnosticStatusCode.ERROR_CODE_LOGMANAGER_UNAVAILABLE),
     UNKNOWN(-1, DiagnosticStatusCode.UNKNOWN);
 
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
@@ -85,43 +85,18 @@ public enum DiagnosticStatusCodeMapping {
     }
 
     /**
-     * Return matching DiagnosticsErrorCode, if any
-     * @param diagnosticStatusCode
-     * @return
-     */
-    public static Optional<Integer> map(DiagnosticStatusCode diagnosticStatusCode) {
-        return getFor(diagnosticStatusCode).map(DiagnosticStatusCodeMapping::getDiagnosticsErrorCode);
-    }
-
-    /**
      * return DiagnosticsStatusCodeMapping matching the given DiagnosticsErrorCode, if any
      * @param diagnosticsErrorCode
      * @return
      */
     public static Optional<DiagnosticStatusCodeMapping> getFor(Integer diagnosticsErrorCode) {
         Optional<DiagnosticStatusCodeMapping> result = Arrays.stream(values())
-                .filter(mapping -> mapping.diagnosticsErrorCode == diagnosticsErrorCode)
+                .filter(mapping -> mapping.diagnosticsErrorCode.equals(diagnosticsErrorCode))
                 .findFirst();
         if (result.isPresent()) {
             return result;
         }  else {
             return getFor(DIAGNOSTICS_ERROR_CODE_UNKNOWN);
-        }
-    }
-
-    /**
-     * return DiagnosticsStatusCodeMapping matching the given DiagnosticStatusCode, if any
-     * @param diagnosticStatusCode
-     * @return
-     */
-    public static Optional<DiagnosticStatusCodeMapping> getFor(DiagnosticStatusCode diagnosticStatusCode) {
-        Optional<DiagnosticStatusCodeMapping> result = Arrays.stream(values())
-                .filter(mapping -> mapping.diagnosticStatusCode.equals(diagnosticStatusCode))
-                .findFirst();
-        if (result.isPresent()) {
-            return result;
-        }  else {
-            return getFor(DiagnosticStatusCode.UNKNOWN);
         }
     }
 }

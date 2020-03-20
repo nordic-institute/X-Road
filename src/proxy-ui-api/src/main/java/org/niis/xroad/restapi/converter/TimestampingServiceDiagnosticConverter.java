@@ -58,8 +58,8 @@ public class TimestampingServiceDiagnosticConverter {
         return timestampingServiceDiagnostics;
     }
 
-    public List<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> files)  {
-        return Streams.stream(files)
+    public List<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> statuses)  {
+        return Streams.stream(statuses)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }

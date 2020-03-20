@@ -71,7 +71,7 @@ public enum DiagnosticStatusClassMapping {
      */
     public static Optional<DiagnosticStatusClassMapping> getFor(Integer diagnosticsErrorCode) {
         Optional<DiagnosticStatusClassMapping> result = Arrays.stream(values())
-                .filter(mapping -> mapping.diagnosticsErrorCode == diagnosticsErrorCode)
+                .filter(mapping -> mapping.diagnosticsErrorCode.equals(diagnosticsErrorCode))
                 .findFirst();
         if (result.isPresent()) {
             return result;

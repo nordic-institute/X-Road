@@ -39,6 +39,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,8 @@ public class DiagnosticService {
     private static final String CONF_CLIENT_ADMIN_PATH = "status";
     private static final int TIMESTAMPING_SERVICE_ADMIN_PORT = PortNumbers.ADMIN_PORT;
     private static final String TIMESTAMPING_SERVICE_ADMIN_PATH = "timestampstatus";
+    private static final int SIGNER_ADMIN_PORT = SystemProperties.getSignerAdminPort();
+    private static final String SIGNER_ADMIN_PATH = "status";
 
     /**
      * Query global configuration status from admin port over HTTP.
@@ -94,10 +97,26 @@ public class DiagnosticService {
     }
 
     /**
+     * Query ocsp responders status from admin port over HTTP.
+     * @return
+     */
+    public List<CertificateAuthorityDiagnosticsStatus> queryOcspResponderStatus() {
+        try {
+            JsonObject json = sendGetRequest(buildUri(SIGNER_ADMIN_PORT,
+                    SIGNER_ADMIN_PATH));
+            JsonObject certificationServiceStatusMap = json.getAsJsonObject("certificationServiceStatusMap");
+            return certificationServiceStatusMap.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
+                    .map(this::parseCertificateAuthorityStatus).collect(Collectors.toList());
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
      * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
      * @param address
      * @return
-     * @throws DiagnosticRequestException
+     * @throws DiagnosticRequestException if sending a diagnostics requests fails or an error is returned
      */
     private JsonObject sendGetRequest(String address) throws DiagnosticRequestException {
         HttpGet request = new HttpGet(address);
@@ -118,12 +137,54 @@ public class DiagnosticService {
         }
     }
 
+    /**
+     * Parse DiagnosticsStatus representing a timestamping service diagnostics status
+     * @param entry
+     * @return
+     */
     private DiagnosticsStatus parseTimestampingStatus(Map.Entry<String, JsonElement> entry) {
         DiagnosticsStatus diagnosticsStatus = new Gson().fromJson(entry.getValue(), DiagnosticsStatus.class);
         diagnosticsStatus.setDescription(entry.getKey());
         return diagnosticsStatus;
     }
 
+    /**
+     * Parse CertificateAuthorityDiagnosticsStatus representing a certificate authority diagnostics status
+     * including the ocsp services of the certificate authority
+     * @param entry
+     * @return
+     */
+    private CertificateAuthorityDiagnosticsStatus parseCertificateAuthorityStatus(
+            Map.Entry<String, JsonElement> entry) {
+        JsonObject ca = entry.getValue().getAsJsonObject();
+        CertificateAuthorityDiagnosticsStatus status = new CertificateAuthorityDiagnosticsStatus(
+                ca.get("name").getAsString());
+        JsonObject ocspResponderStatusMap = ca.get("ocspResponderStatusMap").getAsJsonObject();
+        List<DiagnosticsStatus> statuses = ocspResponderStatusMap.entrySet().stream()
+                .filter(e -> e.getValue() instanceof JsonObject)
+                .map(this::parseOcspResponderStatus)
+                .collect(Collectors.toList());
+        status.setOcspResponderStatusMap(statuses);
+        return status;
+    }
+
+    private DiagnosticsStatus parseOcspResponderStatus(Map.Entry<String, JsonElement> entry) {
+        JsonObject json = entry.getValue().getAsJsonObject();
+        // Parse "prevUpdate" and "nextUpdate" properties
+        DiagnosticsStatus temp = new Gson().fromJson(json, DiagnosticsStatus.class);
+        // Create a new update using parsed values and return it as a result
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(json.get("status").getAsInt(),
+                temp.getPrevUpdate(), temp.getNextUpdate());
+        diagnosticsStatus.setDescription(json.get("url").getAsString());
+        return diagnosticsStatus;
+    }
+
+    /**
+     * Build URI to send diagnostics requests (http://localhost:{port}/{path})
+     * @param port
+     * @param path
+     * @return
+     */
     private String buildUri(int port, String path) {
         StringBuilder sb = new StringBuilder(DIAGNOSTICS_BASE_URL);
         sb.append(":").append(port).append("/").append(path);

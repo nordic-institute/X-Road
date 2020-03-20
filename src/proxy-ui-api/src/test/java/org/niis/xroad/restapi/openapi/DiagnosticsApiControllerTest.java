@@ -32,6 +32,8 @@ import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
+import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
@@ -78,7 +80,11 @@ public class DiagnosticsApiControllerTest {
     private static final LocalTime PREVIOUS_UPDATE_MIDNIGHT = LocalTime.of(23, 59, 40, 703000000);
     private static final LocalTime NEXT_UPDATE_MIDNIGHT = LocalTime.of(00, 00, 40, 703000000);
     private static final int ERROR_CODE_UNKNOWN = 999;
-    private static final String URL_1 = "https://tsa1.example.com";
+    private static final String TSA_URL_1 = "https://tsa1.example.com";
+    private static final String CA_NAME_1 = "CN=Xroad Test CA CN, OU=Xroad Test CA OU, O=Xroad Test, C=FI";
+    private static final String CA_NAME_2 = "CN=Xroad Test, C=EE";
+    private static final String OCSP_URL_1 = "https://ocsp1.example.com";
+    private static final String OCSP_URL_2 = "https://ocsp2.example.com";
 
     @Autowired
     private DiagnosticsApiController diagnosticsApiController;
@@ -190,7 +196,7 @@ public class DiagnosticsApiControllerTest {
         DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE);
-        diagnosticsStatus.setDescription(URL_1);
+        diagnosticsStatus.setDescription(TSA_URL_1);
 
         when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
 
@@ -204,7 +210,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.get(0).getUrl());
     }
 
     @Test
@@ -213,7 +219,7 @@ public class DiagnosticsApiControllerTest {
         DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, PREVIOUS_UPDATE);
-        diagnosticsStatus.setDescription(URL_1);
+        diagnosticsStatus.setDescription(TSA_URL_1);
 
         when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
 
@@ -228,16 +234,16 @@ public class DiagnosticsApiControllerTest {
         assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.get(0).getUrl());
     }
 
     @Test
     @WithMockUser(authorities = { "DIAGNOSTICS" })
     public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_BEFORE_MIDNIGHT));
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_AFTER_MIDNIGHT));
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_MIDNIGHT);
-        diagnosticsStatus.setDescription(URL_1);
+        diagnosticsStatus.setDescription(TSA_URL_1);
 
         when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
 
@@ -252,7 +258,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
                 (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.get(0).getUrl());
     }
 
     @Test
@@ -263,6 +269,140 @@ public class DiagnosticsApiControllerTest {
         try {
             ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
                     .getTimestampingServicesDiagnostics();
+            fail("should throw RuntimeException");
+        } catch (RuntimeException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getCertificateAuthorityDiagnosticsSuccess() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
+        CertificateAuthorityDiagnosticsStatus caStatus = new CertificateAuthorityDiagnosticsStatus(CA_NAME_1);
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE, NEXT_UPDATE);
+        diagnosticsStatus.setDescription(OCSP_URL_1);
+        caStatus.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus));
+
+        when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(caStatus));
+
+        ResponseEntity<List<CertificateAuthorityDiagnostics>> response = diagnosticsApiController
+                .getOcspRespondersDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<CertificateAuthorityDiagnostics> caDiagnostics = response.getBody();
+        assertEquals(1, caDiagnostics.size());
+        assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
+
+        assertEquals(CA_NAME_1, caDiagnostics.get(0).getDistinguishedName());
+        assertEquals(DiagnosticStatusCode.SUCCESS, caDiagnostics.get(0).getOcspResponders().get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.OK, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
+                (Long)caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR),
+                (Long)caDiagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(OCSP_URL_1, caDiagnostics.get(0).getOcspResponders().get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getCertificateAuthorityDiagnosticsWaiting() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
+        CertificateAuthorityDiagnosticsStatus caStatus = new CertificateAuthorityDiagnosticsStatus(CA_NAME_2);
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, null, NEXT_UPDATE);
+        diagnosticsStatus.setDescription(OCSP_URL_2);
+        caStatus.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus));
+
+        when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(caStatus));
+
+        ResponseEntity<List<CertificateAuthorityDiagnostics>> response = diagnosticsApiController
+                .getOcspRespondersDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<CertificateAuthorityDiagnostics> caDiagnostics = response.getBody();
+        assertEquals(1, caDiagnostics.size());
+        assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
+
+        assertEquals(CA_NAME_2, caDiagnostics.get(0).getDistinguishedName());
+        assertEquals(DiagnosticStatusCode.ERROR_CODE_OCSP_UNINITIALIZED, caDiagnostics.get(0).getOcspResponders()
+                .get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.WAITING, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
+        assertEquals(null, caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR),
+                (Long)caDiagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(OCSP_URL_2, caDiagnostics.get(0).getOcspResponders().get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getCertificateAuthorityDiagnosticsFailNextUpdateTomorrow() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_BEFORE_MIDNIGHT));
+        CertificateAuthorityDiagnosticsStatus caStatus = new CertificateAuthorityDiagnosticsStatus(CA_NAME_1);
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, null, NEXT_UPDATE_MIDNIGHT);
+        diagnosticsStatus.setDescription(OCSP_URL_1);
+        caStatus.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus));
+
+        when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(caStatus));
+
+        ResponseEntity<List<CertificateAuthorityDiagnostics>> response = diagnosticsApiController
+                .getOcspRespondersDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<CertificateAuthorityDiagnostics> caDiagnostics = response.getBody();
+        assertEquals(1, caDiagnostics.size());
+        assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
+
+        assertEquals(CA_NAME_1, caDiagnostics.get(0).getDistinguishedName());
+        assertEquals(DiagnosticStatusCode.ERROR_CODE_OCSP_RESPONSE_INVALID, caDiagnostics.get(0).getOcspResponders()
+                .get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
+        assertEquals(null, caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_MIDNIGHT_STR),
+                (Long)caDiagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(OCSP_URL_1, caDiagnostics.get(0).getOcspResponders().get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getCertificateAuthorityDiagnosticsFailPreviousUpdateYesterday() {
+        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_AFTER_MIDNIGHT));
+        CertificateAuthorityDiagnosticsStatus caStatus = new CertificateAuthorityDiagnosticsStatus(CA_NAME_2);
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
+                ERROR_CODE_UNKNOWN, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT);
+        diagnosticsStatus.setDescription(OCSP_URL_2);
+        caStatus.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus));
+
+        when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(caStatus));
+
+        ResponseEntity<List<CertificateAuthorityDiagnostics>> response = diagnosticsApiController
+                .getOcspRespondersDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<CertificateAuthorityDiagnostics> caDiagnostics = response.getBody();
+        assertEquals(1, caDiagnostics.size());
+        assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
+
+        assertEquals(CA_NAME_2, caDiagnostics.get(0).getDistinguishedName());
+        assertEquals(DiagnosticStatusCode.UNKNOWN, caDiagnostics.get(0).getOcspResponders().get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
+                (Long)caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_MIDNIGHT_STR),
+                (Long)caDiagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(OCSP_URL_2, caDiagnostics.get(0).getOcspResponders().get(0).getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DIAGNOSTICS" })
+    public void getCertificateAuthorityDiagnosticsException() {
+        when(diagnosticService.queryOcspResponderStatus()).thenThrow(new RuntimeException());
+
+        try {
+            ResponseEntity<List<CertificateAuthorityDiagnostics>> response = diagnosticsApiController
+                    .getOcspRespondersDiagnostics();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
             // success

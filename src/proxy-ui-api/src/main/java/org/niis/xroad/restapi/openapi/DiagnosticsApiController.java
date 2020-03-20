@@ -27,8 +27,11 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.CertificateAuthorityDiagnosticConverter;
 import org.niis.xroad.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceDiagnosticConverter;
+import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
+import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.service.DiagnosticService;
@@ -53,6 +56,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private DiagnosticService diagnosticService;
     private GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
+    private CertificateAuthorityDiagnosticConverter certificateAuthorityDiagnosticConverter;
 
     /**
      * DiagnosticsApiController constructor
@@ -60,23 +64,32 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @Autowired
     public DiagnosticsApiController(DiagnosticService diagnosticService,
                                     GlobalConfDiagnosticConverter globalConfDiagnosticConverter,
-                                    TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter) {
+                                    TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter,
+                                    CertificateAuthorityDiagnosticConverter certificateAuthorityDiagnosticConverter) {
         this.diagnosticService = diagnosticService;
         this.globalConfDiagnosticConverter = globalConfDiagnosticConverter;
         this.timestampingServiceDiagnosticConverter = timestampingServiceDiagnosticConverter;
+        this.certificateAuthorityDiagnosticConverter = certificateAuthorityDiagnosticConverter;
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<GlobalConfDiagnostics> getGlobalConfDiagnostics() {
-        DiagnosticsStatus diagnosticsStatus = diagnosticService.queryGlobalConfStatus();
-        return new ResponseEntity<>(globalConfDiagnosticConverter.convert(diagnosticsStatus), HttpStatus.OK);
+        DiagnosticsStatus status = diagnosticService.queryGlobalConfStatus();
+        return new ResponseEntity<>(globalConfDiagnosticConverter.convert(status), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<List<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
-        List<DiagnosticsStatus> diagnosticsStatus = diagnosticService.queryTimestampingStatus();
-        return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(diagnosticsStatus), HttpStatus.OK);
+        List<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
+        return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(statuses), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<List<CertificateAuthorityDiagnostics>> getOcspRespondersDiagnostics() {
+        List<CertificateAuthorityDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
+        return new ResponseEntity<>(certificateAuthorityDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
 }
