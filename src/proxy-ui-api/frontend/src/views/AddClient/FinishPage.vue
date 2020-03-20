@@ -1,5 +1,5 @@
 <template>
-  <div class="content" data-test="finish-content">
+  <div data-test="finish-content">
     <p>
       {{$t('wizard.finish.infoLine1')}}
       <br />

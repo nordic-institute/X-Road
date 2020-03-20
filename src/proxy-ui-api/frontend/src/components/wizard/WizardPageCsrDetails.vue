@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <div class="label">

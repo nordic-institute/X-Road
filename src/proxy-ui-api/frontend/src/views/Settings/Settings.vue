@@ -54,7 +54,7 @@ export default Vue.extend({
   },
 });
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .content {
   width: 1000px;
 }

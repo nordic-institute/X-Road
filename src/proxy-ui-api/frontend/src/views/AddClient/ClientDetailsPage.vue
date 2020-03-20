@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     <div class="info-block">
       <div>
         {{$t('wizard.clientInfo1')}}

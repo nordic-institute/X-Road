@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     {{$t('wizard.signKey.info')}}
     <div class="row-wrap">
       <FormLabel labelText="wizard.signKey.keyLabel" />
