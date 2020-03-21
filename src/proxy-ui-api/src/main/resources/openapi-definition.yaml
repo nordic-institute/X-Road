@@ -1554,10 +1554,10 @@ paths:
             application/json:
               schema:
                 type: array
-                description: array of certificate authority diagnostics objects
+                description: array of ocsp responder diagnostics objects
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/CertificateAuthorityDiagnostics'
+                  $ref: '#/components/schemas/OcspResponderDiagnostics'
   /diagnostics/timestamping-services:
     get: # ok
       tags:
@@ -3087,32 +3087,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system: # ok
-    get:
-      tags:
-        - security server
-      summary: get system information
-      operationId: getSystem
-      description: Administrator views the system information.
-      responses:
-        '200':
-          description: system information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/System'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
   /system/anchor:
     get: # ok
       tags:
@@ -4103,17 +4077,17 @@ components:
           description: possible actions that can be done to this object, e.g DELETE.
             Has value only for operationIds getToken and getTokens.
             Does not consider user authorization.
-    CertificateAuthorityDiagnostics: # ok
+    OcspResponderDiagnostics: # ok
       type: object
-      description: Certificate authority diagnostics
+      description: Ocsp responder diagnostics
       required:
-        - distinguished_name
+        - ca_distinguished_name
         - ocsp_responders
       properties:
         distinguished_name:
           type: string
           format: text
-          description: distinguished name
+          description: CA distinguished name
           example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
           maxLength: 255
@@ -4121,7 +4095,7 @@ components:
           type: array
           readOnly: true
           items:
-            $ref: '#/components/schemas/OcspResponderDiagnostics'
+            $ref: '#/components/schemas/OcspResponder'
     CertificateDetails: # ok
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -4846,7 +4820,7 @@ components:
             format: text
             minLength: 1
             maxLength: 1023
-    OcspResponderDiagnostics: # ok
+    OcspResponder: # ok
       type: object
       description: OCSP responder diagnostics
       required:
@@ -4885,38 +4859,6 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    OcspResponders: # ok
-      type: object
-      description: ocsp responce
-      required:
-        - url
-        - status
-        - updated_at
-        - next_update_at
-      properties:
-        url:
-          type: string
-          format: url
-          description: service url
-          example: https://domain.com/service
-          minLength: 1
-          maxLength: 255
-        status:
-          $ref: '#/components/schemas/OcspStatus'
-        updated_at:
-          type: string
-          format: date-time
-          description: last time updated
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        next_update_at:
-          type: string
-          format: date-time
-          description: last time updated
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
     OcspStatus: # ok
       type: string
       format: enum
@@ -5284,39 +5226,6 @@ components:
           description: array of subject ids
           items:
             $ref: '#/components/schemas/Subject'
-    System: # ok
-      type: object
-      description: system parameters
-      required:
-        - anchor
-        - configuration
-        - timestamping_services
-        - ocsp_responders
-        - certificate_authorities
-        - tls_certificate
-        - version
-      properties:
-        anchor:
-          $ref: '#/components/schemas/Anchor'
-        configuration:
-          $ref: '#/components/schemas/GlobalConfiguration'
-        timestamping_services:
-          type: array
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/TimestampingService'
-        ocsp_responders:
-          $ref: '#/components/schemas/OcspResponders'
-        certificate_authorities:
-          type: array
-          description: system certificate authorities
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/CertificateAuthority'
-        tls_certificate:
-          $ref: '#/components/schemas/CertificateDetails'
-        version:
-          $ref: '#/components/schemas/Version'
     TimestampingService: # ok
       type: object
       description: timestamping services

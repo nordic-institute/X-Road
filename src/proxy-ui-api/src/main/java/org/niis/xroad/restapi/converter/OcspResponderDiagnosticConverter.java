@@ -27,9 +27,9 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
-import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
+import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
+import org.niis.xroad.restapi.openapi.model.OcspResponder;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -43,45 +43,45 @@ import java.util.stream.Collectors;
  * Converter for certificate authority diagnostics related data between openapi and service domain classes
  */
 @Component
-public class CertificateAuthorityDiagnosticConverter {
+public class OcspResponderDiagnosticConverter {
 
-    public CertificateAuthorityDiagnostics convert(
-            CertificateAuthorityDiagnosticsStatus certificateAuthorityDiagnosticsStatus) {
-        CertificateAuthorityDiagnostics certificateAuthorityDiagnostics = new CertificateAuthorityDiagnostics();
-        certificateAuthorityDiagnostics.setDistinguishedName(certificateAuthorityDiagnosticsStatus.getName());
-        List<OcspResponderDiagnostics> ocspResponderDiagnostics = convertOcspResponderDiagnostics(
-                certificateAuthorityDiagnosticsStatus.getOcspResponderStatusMap());
-        certificateAuthorityDiagnostics.setOcspResponders(ocspResponderDiagnostics);
-        return certificateAuthorityDiagnostics;
+    public OcspResponderDiagnostics convert(
+            OcspResponderDiagnosticsStatus ocspResponderDiagnosticsStatus) {
+        OcspResponderDiagnostics ocspResponderDiagnostics = new OcspResponderDiagnostics();
+        ocspResponderDiagnostics.setDistinguishedName(ocspResponderDiagnosticsStatus.getName());
+        List<OcspResponder> ocspResponders = convertOcspResponders(
+                ocspResponderDiagnosticsStatus.getOcspResponderStatusMap());
+        ocspResponderDiagnostics.setOcspResponders(ocspResponders);
+        return ocspResponderDiagnostics;
     }
 
-    public List<CertificateAuthorityDiagnostics> convert(Iterable<CertificateAuthorityDiagnosticsStatus> statuses)  {
+    public List<OcspResponderDiagnostics> convert(Iterable<OcspResponderDiagnosticsStatus> statuses)  {
         return Streams.stream(statuses)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
 
-    private OcspResponderDiagnostics convertOcspResponderDiagnostics(DiagnosticsStatus diagnosticsStatus) {
-        OcspResponderDiagnostics ocspResponderDiagnostics = new OcspResponderDiagnostics();
-        ocspResponderDiagnostics.setUrl(diagnosticsStatus.getDescription());
+    private OcspResponder convertOcspResponder(DiagnosticsStatus diagnosticsStatus) {
+        OcspResponder ocspResponder = new OcspResponder();
+        ocspResponder.setUrl(diagnosticsStatus.getDescription());
         Optional<OcspStatus> statusCode = OcspStatusMapping.map(
                 diagnosticsStatus.getReturnCode());
-        ocspResponderDiagnostics.setStatusCode(statusCode.orElse(null));
+        ocspResponder.setStatusCode(statusCode.orElse(null));
         Optional<DiagnosticStatusClass> statusClass = DiagnosticStatusClassMapping.map(
                 diagnosticsStatus.getReturnCode());
-        ocspResponderDiagnostics.setStatusClass(statusClass.orElse(null));
+        ocspResponder.setStatusClass(statusClass.orElse(null));
         if (diagnosticsStatus.getPrevUpdate() != null) {
-            ocspResponderDiagnostics.setPrevUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
+            ocspResponder.setPrevUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
                     diagnosticsStatus.getPrevUpdate(), true));
         }
-        ocspResponderDiagnostics.setNextUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
+        ocspResponder.setNextUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
                 diagnosticsStatus.getNextUpdate(), false));
-        return ocspResponderDiagnostics;
+        return ocspResponder;
     }
 
-    private List<OcspResponderDiagnostics> convertOcspResponderDiagnostics(Iterable<DiagnosticsStatus> statuses)  {
+    private List<OcspResponder> convertOcspResponders(Iterable<DiagnosticsStatus> statuses)  {
         return Streams.stream(statuses)
-                .map(this::convertOcspResponderDiagnostics)
+                .map(this::convertOcspResponder)
                 .collect(Collectors.toList());
     }
 }

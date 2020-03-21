@@ -27,12 +27,12 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.CertificateAuthorityDiagnosticConverter;
 import org.niis.xroad.restapi.converter.GlobalConfDiagnosticConverter;
+import org.niis.xroad.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceDiagnosticConverter;
-import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
-import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
+import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.service.DiagnosticService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private DiagnosticService diagnosticService;
     private GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
-    private CertificateAuthorityDiagnosticConverter certificateAuthorityDiagnosticConverter;
+    private OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
 
     /**
      * DiagnosticsApiController constructor
@@ -65,11 +65,11 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     public DiagnosticsApiController(DiagnosticService diagnosticService,
                                     GlobalConfDiagnosticConverter globalConfDiagnosticConverter,
                                     TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter,
-                                    CertificateAuthorityDiagnosticConverter certificateAuthorityDiagnosticConverter) {
+                                    OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter) {
         this.diagnosticService = diagnosticService;
         this.globalConfDiagnosticConverter = globalConfDiagnosticConverter;
         this.timestampingServiceDiagnosticConverter = timestampingServiceDiagnosticConverter;
-        this.certificateAuthorityDiagnosticConverter = certificateAuthorityDiagnosticConverter;
+        this.ocspResponderDiagnosticConverter = ocspResponderDiagnosticConverter;
     }
 
     @Override
@@ -88,8 +88,8 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<List<CertificateAuthorityDiagnostics>> getOcspRespondersDiagnostics() {
-        List<CertificateAuthorityDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
-        return new ResponseEntity<>(certificateAuthorityDiagnosticConverter.convert(statuses), HttpStatus.OK);
+    public ResponseEntity<List<OcspResponderDiagnostics>> getOcspRespondersDiagnostics() {
+        List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
+        return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
 }

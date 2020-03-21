@@ -31,10 +31,10 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * DTO for certificate authority diagnostics status
+ * DTO for ocsp responder diagnostics status
  */
 @Data
-public class CertificateAuthorityDiagnosticsStatus {
+public class OcspResponderDiagnosticsStatus {
     private String name;
     private List<DiagnosticsStatus> ocspResponderStatusMap;
 
@@ -42,7 +42,7 @@ public class CertificateAuthorityDiagnosticsStatus {
      * Constructor
      * @param name name
      */
-    public CertificateAuthorityDiagnosticsStatus(String name) {
+    public OcspResponderDiagnosticsStatus(String name) {
         this.name = name;
     }
 }

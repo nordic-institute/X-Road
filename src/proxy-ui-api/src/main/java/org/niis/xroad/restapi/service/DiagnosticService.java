@@ -39,7 +39,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
+import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.http.HttpStatus;
@@ -100,13 +100,13 @@ public class DiagnosticService {
      * Query ocsp responders status from admin port over HTTP.
      * @return
      */
-    public List<CertificateAuthorityDiagnosticsStatus> queryOcspResponderStatus() {
+    public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         try {
             JsonObject json = sendGetRequest(buildUri(SIGNER_ADMIN_PORT,
                     SIGNER_ADMIN_PATH));
             JsonObject certificationServiceStatusMap = json.getAsJsonObject("certificationServiceStatusMap");
             return certificationServiceStatusMap.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
-                    .map(this::parseCertificateAuthorityStatus).collect(Collectors.toList());
+                    .map(this::parseOcspResponderDiagnosticsStatus).collect(Collectors.toList());
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -149,15 +149,15 @@ public class DiagnosticService {
     }
 
     /**
-     * Parse CertificateAuthorityDiagnosticsStatus representing a certificate authority diagnostics status
-     * including the ocsp services of the certificate authority
+     * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
+     * of the certificate authority
      * @param entry
      * @return
      */
-    private CertificateAuthorityDiagnosticsStatus parseCertificateAuthorityStatus(
+    private OcspResponderDiagnosticsStatus parseOcspResponderDiagnosticsStatus(
             Map.Entry<String, JsonElement> entry) {
         JsonObject ca = entry.getValue().getAsJsonObject();
-        CertificateAuthorityDiagnosticsStatus status = new CertificateAuthorityDiagnosticsStatus(
+        OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(
                 ca.get("name").getAsString());
         JsonObject ocspResponderStatusMap = ca.get("ocspResponderStatusMap").getAsJsonObject();
         List<DiagnosticsStatus> statuses = ocspResponderStatusMap.entrySet().stream()
