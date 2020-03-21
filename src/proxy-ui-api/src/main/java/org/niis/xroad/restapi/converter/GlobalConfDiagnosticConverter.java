@@ -26,8 +26,8 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
 
+import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ public class GlobalConfDiagnosticConverter {
 
     public GlobalConfDiagnostics convert(DiagnosticsStatus diagnosticsStatus) {
         GlobalConfDiagnostics globalConfDiagnostics = new GlobalConfDiagnostics();
-        Optional<DiagnosticStatusCode> statusCode = DiagnosticStatusCodeMapping.map(
+        Optional<ConfigurationStatus> statusCode = ConfigurationStatusMapping.map(
                 diagnosticsStatus.getReturnCode());
         globalConfDiagnostics.setStatusCode(statusCode.orElse(null));
         Optional<DiagnosticStatusClass> statusClass = DiagnosticStatusClassMapping.map(

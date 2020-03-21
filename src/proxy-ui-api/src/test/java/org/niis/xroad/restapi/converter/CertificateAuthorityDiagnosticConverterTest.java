@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
+import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -93,7 +93,7 @@ public class CertificateAuthorityDiagnosticConverterTest {
         assertEquals(1, caDiagnostics.getOcspResponders().size());
 
         assertEquals(CA_NAME_1, caDiagnostics.getDistinguishedName());
-        assertEquals(DiagnosticStatusCode.SUCCESS, caDiagnostics.getOcspResponders().get(0).getStatusCode());
+        assertEquals(OcspStatus.SUCCESS, caDiagnostics.getOcspResponders().get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, caDiagnostics.getOcspResponders().get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
                 (Long)caDiagnostics.getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());
@@ -108,7 +108,7 @@ public class CertificateAuthorityDiagnosticConverterTest {
 
         CertificateAuthorityDiagnosticsStatus caStatus1 = new CertificateAuthorityDiagnosticsStatus(CA_NAME_1);
         DiagnosticsStatus diagnosticsStatus1 = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_1, NEXT_UPDATE_1);
+                DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, PREVIOUS_UPDATE_1, NEXT_UPDATE_1);
         diagnosticsStatus1.setDescription(URL_1);
         caStatus1.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus1));
 
@@ -130,7 +130,7 @@ public class CertificateAuthorityDiagnosticConverterTest {
 
         assertEquals(CA_NAME_1, caDiagnostics.get(0).getDistinguishedName());
 
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_INTERNAL, caDiagnostics.get(0).getOcspResponders().get(0)
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, caDiagnostics.get(0).getOcspResponders().get(0)
                 .getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
@@ -141,7 +141,7 @@ public class CertificateAuthorityDiagnosticConverterTest {
 
         assertEquals(CA_NAME_2, caDiagnostics.get(1).getDistinguishedName());
 
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_OCSP_UNINITIALIZED, caDiagnostics.get(1).getOcspResponders().get(0)
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED, caDiagnostics.get(1).getOcspResponders().get(0)
                 .getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, caDiagnostics.get(1).getOcspResponders().get(0).getStatusClass());
         assertEquals(null, caDiagnostics.get(1).getOcspResponders().get(0).getPrevUpdateAt());
@@ -149,7 +149,7 @@ public class CertificateAuthorityDiagnosticConverterTest {
                 (Long)caDiagnostics.get(1).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
         assertEquals(URL_2, caDiagnostics.get(1).getOcspResponders().get(0).getUrl());
 
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_OCSP_RESPONSE_INVALID, caDiagnostics.get(1).getOcspResponders()
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, caDiagnostics.get(1).getOcspResponders()
                 .get(1).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, caDiagnostics.get(1).getOcspResponders().get(1).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),

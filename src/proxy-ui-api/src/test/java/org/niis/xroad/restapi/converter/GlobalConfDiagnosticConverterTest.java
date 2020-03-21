@@ -32,8 +32,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -75,7 +75,7 @@ public class GlobalConfDiagnosticConverterTest {
         GlobalConfDiagnostics globalConfDiagnostics = globalConfDiagnosticConverter.convert(new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE, NEXT_UPDATE));
 
-        assertEquals(DiagnosticStatusCode.SUCCESS, globalConfDiagnostics.getStatusCode());
+        assertEquals(ConfigurationStatus.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, globalConfDiagnostics.getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)globalConfDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());

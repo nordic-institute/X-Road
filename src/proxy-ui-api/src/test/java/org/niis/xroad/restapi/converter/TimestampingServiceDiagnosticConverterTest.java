@@ -32,8 +32,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -82,7 +82,7 @@ public class TimestampingServiceDiagnosticConverterTest {
                 diagnosticsStatus
         );
 
-        assertEquals(DiagnosticStatusCode.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
+        assertEquals(TimestampingStatus.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
                 (Long)timestampingServiceDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
@@ -96,7 +96,7 @@ public class TimestampingServiceDiagnosticConverterTest {
                 DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_1);
         diagnosticsStatus1.setDescription(URL_1);
         DiagnosticsStatus diagnosticsStatus2 = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, PREVIOUS_UPDATE_2);
+                DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, PREVIOUS_UPDATE_2);
         diagnosticsStatus2.setDescription(URL_2);
         List<DiagnosticsStatus> list = new ArrayList<>(Arrays.asList(diagnosticsStatus1, diagnosticsStatus2));
         List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
@@ -105,13 +105,13 @@ public class TimestampingServiceDiagnosticConverterTest {
         assertEquals(2, timestampingServiceDiagnostics.size());
 
         assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_INTERNAL, timestampingServiceDiagnostics.get(0).getStatusCode());
+        assertEquals(TimestampingStatus.ERROR_CODE_INTERNAL, timestampingServiceDiagnostics.get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
                 (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
 
         assertEquals(URL_2, timestampingServiceDiagnostics.get(1).getUrl());
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_UNINITIALIZED, timestampingServiceDiagnostics.get(1)
+        assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED, timestampingServiceDiagnostics.get(1)
                 .getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(1).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_2),

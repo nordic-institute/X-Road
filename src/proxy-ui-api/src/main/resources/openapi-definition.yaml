@@ -1514,24 +1514,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /diagnostics/ocsp-responders:
-    get: # ok
-      tags:
-        - security server
-      summary: view ocsp responders diagnostics information
-      operationId: getOcspRespondersDiagnostics
-      description: Administrator views the ocsp responders diagnostics information.
-      responses:
-        '200':
-          description: ocsp responders diagnostics information
-          content:
-            application/json:
-              schema:
-                type: array
-                description: array of certificate authority diagnostics objects
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/CertificateAuthorityDiagnostics'
   /diagnostics/globalconf:
     get: # ok
       tags:
@@ -1558,6 +1540,24 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/ocsp-responders:
+    get: # ok
+      tags:
+        - security server
+      summary: view ocsp responders diagnostics information
+      operationId: getOcspRespondersDiagnostics
+      description: Administrator views the ocsp responders diagnostics information.
+      responses:
+        '200':
+          description: ocsp responders diagnostics information
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of certificate authority diagnostics objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/CertificateAuthorityDiagnostics'
   /diagnostics/timestamping-services:
     get: # ok
       tags:
@@ -4422,12 +4422,13 @@ components:
       example: SUCCESS
       enum:
         - SUCCESS # Everything ok
-        - CONFCLIENT_STATUS_FAILED # Global configuration client status query failed
-        - ERROR_CODE_INTERNAL # Internal error occurred."
-        - ERROR_CODE_INVALID_SIGNATURE_VALUE # Invalid signature value."
-        - ERROR_CODE_EXPIRED_CONF # The downloaded global configuration has expired."
-        - ERROR_CODE_CANNOT_DOWNLOAD_CONF # Unable to download global configuration. Check network connection to global configuration provider."
-        - ERROR_CODE_MISSING_PRIVATE_PARAM # The downloaded global configuration did not contain private parameters
+        - ERROR_CODE_INTERNAL # Internal error occurred.
+        - ERROR_CODE_INVALID_SIGNATURE_VALUE # Invalid signature value.
+        - ERROR_CODE_EXPIRED_CONF # The downloaded global configuration has expired.
+        - ERROR_CODE_CANNOT_DOWNLOAD_CONF # Unable to download global configuration. Check network connection to global configuration provider.
+        - ERROR_CODE_MISSING_PRIVATE_PARAMS # The downloaded global configuration did not contain private parameters
+        - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
+        - UNKNOWN
     CodeWithMetadata:
       type: object
       description: object that contains a code identifier and possibly collection of
@@ -4562,28 +4563,6 @@ components:
         - OK
         - WAITING
         - FAIL
-    DiagnosticStatusCode: # ok
-      type: string
-      format: enum
-      description: diagnostic status code
-      example: SUCCESS
-      enum:
-        - SUCCESS
-        - ERROR_CODE_INTERNAL
-        - ERROR_CODE_INVALID_SIGNATURE_VALUE
-        - ERROR_CODE_EXPIRED_CONF
-        - ERROR_CODE_CANNOT_DOWNLOAD_CONF
-        - ERROR_CODE_MISSING_PRIVATE_PARAMS
-        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT
-        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL
-        - ERROR_CODE_UNINITIALIZED
-        - ERROR_CODE_TIMESTAMP_UNINITIALIZED
-        - ERROR_CODE_OCSP_CONNECTION_ERROR
-        - ERROR_CODE_OCSP_FAILED
-        - ERROR_CODE_OCSP_RESPONSE_INVALID
-        - ERROR_CODE_OCSP_UNINITIALIZED
-        - ERROR_CODE_LOGMANAGER_UNAVAILABLE
-        - UNKNOWN
     ErrorInfo:
       type: object
       description: object returned in error cases
@@ -4687,7 +4666,7 @@ components:
           $ref: '#/components/schemas/DiagnosticStatusClass'
           readOnly: true
         status_code:
-          $ref: '#/components/schemas/DiagnosticStatusCode'
+          $ref: '#/components/schemas/ConfigurationStatus'
           readOnly: true
         prev_update_at:
           type: string
@@ -4888,7 +4867,7 @@ components:
           $ref: '#/components/schemas/DiagnosticStatusClass'
           readOnly: true
         status_code:
-          $ref: '#/components/schemas/DiagnosticStatusCode'
+          $ref: '#/components/schemas/OcspStatus'
           readOnly: true
         prev_update_at:
           type: string
@@ -4949,6 +4928,7 @@ components:
         - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
         - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
+        - UNKNOWN
     SecurityServer: # ok
       type: object
       description: security server information
@@ -5379,7 +5359,7 @@ components:
           $ref: '#/components/schemas/DiagnosticStatusClass'
           readOnly: true
         status_code:
-          $ref: '#/components/schemas/DiagnosticStatusCode'
+          $ref: '#/components/schemas/TimestampingStatus'
           readOnly: true
         prev_update_at:
           type: string
@@ -5389,6 +5369,18 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
+    TimestampingStatus: # ok
+      type: string
+      format: enum
+      description: timestamping status
+      example: SUCCESS
+      enum:
+        - SUCCESS # Everything ok
+        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.
+        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL # Malformed timestamp server URL. Check the URL.
+        - ERROR_CODE_TIMESTAMP_UNINITIALIZED # Connection ok, no timestamp request made yet.
+        - ERROR_CODE_INTERNAL # Internal error occurred.
+        - UNKNOWN
     Token: # ok
       type: object
       description: token

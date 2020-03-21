@@ -30,8 +30,8 @@ import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
+import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +64,7 @@ public class CertificateAuthorityDiagnosticConverter {
     private OcspResponderDiagnostics convertOcspResponderDiagnostics(DiagnosticsStatus diagnosticsStatus) {
         OcspResponderDiagnostics ocspResponderDiagnostics = new OcspResponderDiagnostics();
         ocspResponderDiagnostics.setUrl(diagnosticsStatus.getDescription());
-        Optional<DiagnosticStatusCode> statusCode = DiagnosticStatusCodeMapping.map(
+        Optional<OcspStatus> statusCode = OcspStatusMapping.map(
                 diagnosticsStatus.getReturnCode());
         ocspResponderDiagnostics.setStatusCode(statusCode.orElse(null));
         Optional<DiagnosticStatusClass> statusClass = DiagnosticStatusClassMapping.map(

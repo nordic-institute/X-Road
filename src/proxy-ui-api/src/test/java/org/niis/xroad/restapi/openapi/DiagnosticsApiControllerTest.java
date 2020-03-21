@@ -34,10 +34,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.CertificateAuthorityDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthorityDiagnostics;
+import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
 import org.niis.xroad.restapi.service.DiagnosticService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +111,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
-        assertEquals(DiagnosticStatusCode.SUCCESS, globalConfDiagnostics.getStatusCode());
+        assertEquals(ConfigurationStatus.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, globalConfDiagnostics.getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)globalConfDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
@@ -129,7 +131,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_UNINITIALIZED, globalConfDiagnostics.getStatusCode());
+        assertEquals(ConfigurationStatus.ERROR_CODE_UNINITIALIZED, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, globalConfDiagnostics.getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)globalConfDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
@@ -149,7 +151,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_INTERNAL, globalConfDiagnostics.getStatusCode());
+        assertEquals(ConfigurationStatus.ERROR_CODE_INTERNAL, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, globalConfDiagnostics.getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
                 (Long)globalConfDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
@@ -169,7 +171,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
-        assertEquals(DiagnosticStatusCode.UNKNOWN, globalConfDiagnostics.getStatusCode());
+        assertEquals(ConfigurationStatus.UNKNOWN, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, globalConfDiagnostics.getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
                 (Long)globalConfDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
@@ -206,7 +208,7 @@ public class DiagnosticsApiControllerTest {
 
         List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
         assertEquals(1, timestampingServiceDiagnostics.size());
-        assertEquals(DiagnosticStatusCode.SUCCESS, timestampingServiceDiagnostics.get(0).getStatusCode());
+        assertEquals(TimestampingStatus.SUCCESS, timestampingServiceDiagnostics.get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
@@ -218,7 +220,7 @@ public class DiagnosticsApiControllerTest {
     public void getTimestampingServiceDiagnosticsWaiting() {
         DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, PREVIOUS_UPDATE);
+                DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, PREVIOUS_UPDATE);
         diagnosticsStatus.setDescription(TSA_URL_1);
 
         when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
@@ -229,7 +231,7 @@ public class DiagnosticsApiControllerTest {
 
         List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
         assertEquals(1, timestampingServiceDiagnostics.size());
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_UNINITIALIZED,
+        assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
                 timestampingServiceDiagnostics.get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
@@ -242,7 +244,7 @@ public class DiagnosticsApiControllerTest {
     public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
         DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME_AFTER_MIDNIGHT));
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_MIDNIGHT);
+                DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL, PREVIOUS_UPDATE_MIDNIGHT);
         diagnosticsStatus.setDescription(TSA_URL_1);
 
         when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
@@ -253,7 +255,7 @@ public class DiagnosticsApiControllerTest {
 
         List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
         assertEquals(1, timestampingServiceDiagnostics.size());
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_INTERNAL,
+        assertEquals(TimestampingStatus.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
                 timestampingServiceDiagnostics.get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
@@ -296,7 +298,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
 
         assertEquals(CA_NAME_1, caDiagnostics.get(0).getDistinguishedName());
-        assertEquals(DiagnosticStatusCode.SUCCESS, caDiagnostics.get(0).getOcspResponders().get(0).getStatusCode());
+        assertEquals(OcspStatus.SUCCESS, caDiagnostics.get(0).getOcspResponders().get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
                 (Long)caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());
@@ -326,7 +328,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
 
         assertEquals(CA_NAME_2, caDiagnostics.get(0).getDistinguishedName());
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_OCSP_UNINITIALIZED, caDiagnostics.get(0).getOcspResponders()
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED, caDiagnostics.get(0).getOcspResponders()
                 .get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
         assertEquals(null, caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
@@ -356,7 +358,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
 
         assertEquals(CA_NAME_1, caDiagnostics.get(0).getDistinguishedName());
-        assertEquals(DiagnosticStatusCode.ERROR_CODE_OCSP_RESPONSE_INVALID, caDiagnostics.get(0).getOcspResponders()
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, caDiagnostics.get(0).getOcspResponders()
                 .get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
         assertEquals(null, caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
@@ -386,7 +388,7 @@ public class DiagnosticsApiControllerTest {
         assertEquals(1, caDiagnostics.get(0).getOcspResponders().size());
 
         assertEquals(CA_NAME_2, caDiagnostics.get(0).getDistinguishedName());
-        assertEquals(DiagnosticStatusCode.UNKNOWN, caDiagnostics.get(0).getOcspResponders().get(0).getStatusCode());
+        assertEquals(OcspStatus.UNKNOWN, caDiagnostics.get(0).getOcspResponders().get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, caDiagnostics.get(0).getOcspResponders().get(0).getStatusClass());
         assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_MIDNIGHT_STR),
                 (Long)caDiagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());

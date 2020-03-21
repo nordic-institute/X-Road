@@ -28,8 +28,8 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusCode;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
@@ -46,14 +46,16 @@ public class TimestampingServiceDiagnosticConverter {
     public TimestampingServiceDiagnostics convert(DiagnosticsStatus diagnosticsStatus) {
         TimestampingServiceDiagnostics timestampingServiceDiagnostics = new TimestampingServiceDiagnostics();
         timestampingServiceDiagnostics.setUrl(diagnosticsStatus.getDescription());
-        Optional<DiagnosticStatusCode> statusCode = DiagnosticStatusCodeMapping.map(
+        Optional<TimestampingStatus> statusCode = TimestampingStatusMapping.map(
                 diagnosticsStatus.getReturnCode());
         timestampingServiceDiagnostics.setStatusCode(statusCode.orElse(null));
         Optional<DiagnosticStatusClass> statusClass = DiagnosticStatusClassMapping.map(
                 diagnosticsStatus.getReturnCode());
         timestampingServiceDiagnostics.setStatusClass(statusClass.orElse(null));
-        timestampingServiceDiagnostics.setPrevUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
-                diagnosticsStatus.getPrevUpdate(), true));
+        if (diagnosticsStatus.getPrevUpdate() != null) {
+            timestampingServiceDiagnostics.setPrevUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
+                    diagnosticsStatus.getPrevUpdate(), true));
+        }
 
         return timestampingServiceDiagnostics;
     }
