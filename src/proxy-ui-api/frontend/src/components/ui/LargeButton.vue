@@ -4,6 +4,7 @@
     :disabled="disabled"
     :min-width="min_width"
     :loading="loading"
+    v-if="isAllowed"
     rounded
     color="primary"
     class="large-button"
@@ -18,6 +19,7 @@
 /** Wrapper for vuetify button with x-road look */
 
 import Vue from 'vue';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   props: {
@@ -39,8 +41,17 @@ export default Vue.extend({
       type: Number,
       default: 120,
     },
+    requiresPermission: {
+      required: false,
+      type: String,
+      validator: (val) => Object.values(Permissions).some((permission) => permission === val),
+    },
   },
-
+  computed: {
+    isAllowed(): boolean {
+      return this.requiresPermission === undefined || this.$store.getters.hasPermission(this.requiresPermission);
+    },
+  },
   methods: {
     click(event: any): void {
       this.$emit('click', event);
