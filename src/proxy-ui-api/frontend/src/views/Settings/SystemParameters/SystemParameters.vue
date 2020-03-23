@@ -18,14 +18,7 @@
             >
               {{ $t('systemParameters.configurationAnchor.action.download') }}
             </large-button>
-            <large-button
-              data-test="system-parameters-configuration-anchor-upload-button"
-              outlined
-              :requires-permission="permissions.UPLOAD_ANCHOR"
-              class="ml-5"
-            >
-              {{ $t('systemParameters.configurationAnchor.action.upload') }}
-            </large-button>
+            <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor"/>
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
@@ -212,12 +205,14 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
+import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
     LargeButton,
     SmallButton,
+    UploadConfigurationAnchorDialog,
   },
   data() {
     return {
