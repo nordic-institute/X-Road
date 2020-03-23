@@ -53,13 +53,13 @@
         </div>
 
         <div class="row-wrap">
+          <FormLabel labelText="wizard.subsystem.registerSubsystem" />
           <v-checkbox
             v-model="registerChecked"
             color="primary"
             class="register-checkbox"
             data-test="register-subsystem-checkbox"
           ></v-checkbox>
-          <div style="padding-bottom: 20px">{{$t('wizard.subsystem.registerSubsystem')}}</div>
         </div>
         <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
         <div class="button-footer">
