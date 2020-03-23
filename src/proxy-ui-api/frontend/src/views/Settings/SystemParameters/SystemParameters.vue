@@ -11,6 +11,8 @@
           <v-col class="text-right">
             <large-button
               data-test="system-parameters-configuration-anchor-download-button"
+              @click="downloadAnchor"
+              :loading="downloadingAnchor"
               outlined
               :requires-permission="permissions.DOWNLOAD_ANCHOR"
             >
@@ -204,6 +206,7 @@ import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
+import { saveResponseAsFile } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -214,6 +217,7 @@ export default Vue.extend({
   data() {
     return {
       configuratonAnchor: {} as Anchor,
+      downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
       certificateAuthorities: [] as CertificateAuthority[],
       permissions: Permissions,
@@ -247,6 +251,16 @@ export default Vue.extend({
         .get('/certificate-authorities?include_intermediate_cas=true')
         .then((resp) => (this.certificateAuthorities = resp.data))
         .catch((error) => this.$bus.$emit('show-error', error.message));
+    },
+    downloadAnchor(): void {
+      this.downloadingAnchor = true;
+      api
+        .get('/system/anchor/download', { responseType: 'blob' })
+        .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => this.downloadingAnchor = false);
     },
   },
   created(): void {
