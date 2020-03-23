@@ -14,6 +14,7 @@ export interface NotificationsState {
   showErrorRaw: boolean;
   showErrorCode: boolean;
 }
+
 const getDefaultState = () => {
   return {
     successMessageCode: '',
@@ -33,34 +34,34 @@ const getDefaultState = () => {
 const notificationsState: NotificationsState = getDefaultState();
 
 export const getters: GetterTree<NotificationsState, RootState> = {
-  showSuccessCode(state): boolean {
+  showSuccessCode(state: NotificationsState): boolean {
     return state.showSuccessCode;
   },
-  showSuccessRaw(state): boolean {
+  showSuccessRaw(state: NotificationsState): boolean {
     return state.showSuccessRaw;
   },
-  successMessageCode(state): string {
+  successMessageCode(state: NotificationsState): string {
     return state.successMessageCode;
   },
-  successMessageRaw(state): string {
+  successMessageRaw(state: NotificationsState): string {
     return state.successMessageRaw;
   },
-  showErrorObject(state): boolean {
+  showErrorObject(state: NotificationsState): boolean {
     return state.showErrorObject;
   },
-  showErrorRaw(state): boolean {
+  showErrorRaw(state: NotificationsState): boolean {
     return state.showErrorRaw;
   },
-  showErrorCode(state): boolean {
+  showErrorCode(state: NotificationsState): boolean {
     return state.showErrorCode;
   },
-  errorMessageRaw(state): string {
+  errorMessageRaw(state: NotificationsState): string {
     return state.errorMessageRaw;
   },
-  errorMessageCode(state): string {
+  errorMessageCode(state: NotificationsState): string {
     return state.errorMessageCode;
   },
-  errorObject(state): any {
+  errorObject(state: NotificationsState): any {
     return state.errorObject;
   },
 };
@@ -69,39 +70,39 @@ export const mutations: MutationTree<NotificationsState> = {
   resetNotificationsState(state) {
     Object.assign(state, getDefaultState());
   },
-  setSuccessCode(state, val: string) {
+  setSuccessCode(state: NotificationsState, val: string) {
     state.successMessageCode = val;
     state.showSuccessCode = true;
   },
-  setSuccessRaw(state, val: string) {
+  setSuccessRaw(state: NotificationsState, val: string) {
     state.successMessageRaw = val;
     state.showSuccessRaw = true;
   },
-  setErrorMessageCode(state, val: string) {
+  setErrorMessageCode(state: NotificationsState, val: string) {
     state.errorMessageCode = val;
     state.showErrorCode = true;
   },
-  setErrorMessageRaw(state, val: string) {
+  setErrorMessageRaw(state: NotificationsState, val: string) {
     state.errorMessageRaw = val;
     state.showErrorRaw = true;
   },
-  setErrorObject(state, errorObject: any) {
+  setErrorObject(state: NotificationsState, errorObject: any) {
     state.errorObject = errorObject;
     state.showErrorObject = true;
   },
-  setSuccessRawVisible(state, val: boolean) {
+  setSuccessRawVisible(state: NotificationsState, val: boolean) {
     state.showSuccessRaw = val;
   },
-  setSuccessCodeVisible(state, val: boolean) {
+  setSuccessCodeVisible(state: NotificationsState, val: boolean) {
     state.showSuccessCode = val;
   },
-  setErrorRawVisible(state, val: boolean) {
+  setErrorRawVisible(state: NotificationsState, val: boolean) {
     state.showErrorRaw = val;
   },
-  setErrorCodeVisible(state, val: boolean) {
+  setErrorCodeVisible(state: NotificationsState, val: boolean) {
     state.showErrorCode = val;
   },
-  setErrorObjectVisible(state, val: boolean) {
+  setErrorObjectVisible(state: NotificationsState, val: boolean) {
     state.showErrorObject = val;
   },
 };
