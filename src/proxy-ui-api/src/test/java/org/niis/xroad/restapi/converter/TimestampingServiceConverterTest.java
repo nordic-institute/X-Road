@@ -91,4 +91,13 @@ public class TimestampingServiceConverterTest {
 
         assertEquals(2, timestampingServices.size());
     }
+
+    @Test
+    public void convertSingleTimestampingService() {
+        TspType tspType = timestampingServiceConverter.convert(TestUtils
+                .createTimestampingService(TSA_1_URL, TSA_1_NAME));
+
+        assertEquals(TSA_1_URL, tspType.getUrl());
+        assertEquals(TSA_1_NAME, tspType.getName());
+    }
 }

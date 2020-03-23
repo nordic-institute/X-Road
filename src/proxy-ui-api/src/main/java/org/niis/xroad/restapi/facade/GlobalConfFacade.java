@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.facade;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
@@ -142,6 +143,13 @@ public class GlobalConfFacade {
     }
 
     /**
+     * {@link GlobalConf#getAllCaCerts(String)}
+     */
+    public Collection<X509Certificate> getAllCaCerts(String instanceIdentifier) {
+        return GlobalConf.getAllCaCerts(instanceIdentifier);
+    }
+
+    /**
      * {@link GlobalConf#getServerOwner(SecurityServerId)}
      */
     public static ClientId getServerOwner(SecurityServerId serverId) {
@@ -189,6 +197,13 @@ public class GlobalConfFacade {
     public boolean isSecurityServerClient(ClientId client,
             SecurityServerId securityServer) {
         return GlobalConf.isSecurityServerClient(client, securityServer);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedCA(String, X509Certificate)}}
+     */
+    public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException {
+        return GlobalConf.getApprovedCA(instanceIdentifier, cert);
     }
 
 }

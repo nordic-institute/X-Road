@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.23"
+  version: "1.0.24"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -3312,6 +3312,13 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: include_intermediate_cas
+          description: if true, include also intermediate CAs. Otherwise only top CAs are included. Default value is "false".
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: list of approved certificate authorities
@@ -4164,42 +4171,57 @@ components:
             $ref: '#/components/schemas/KeyUsage'
     CertificateAuthority: # ok
       type: object
-      description: approved certificate authority information
+      description: approved certificate authority information. Only for top CAs.
       required:
         - name
-        - distinguished_name
-        - response
-        - expires_at
+        - subject_distinguished_name
+        - issuer_distinguished_name
+        - ocsp_response
+        - not_after
+        - top_ca
+        - path
         - authentication_only
       properties:
         name:
           type: string
           format: text
-          description: common name of the CA, used also as an identifier
+          description: name of the CA, as defined in global conf. Used also as an identifier
           example: X-Road Test CA CN
           minLength: 1
           maxLength: 255
-        distinguished_name:
+        subject_distinguished_name:
           type: string
           format: text
-          description: distinguished name
+          description: subject distinguished name
           example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
-          maxLength: 255
-        response:
+          maxLength: 1024
+        issuer_distinguished_name:
           type: string
           format: text
-          description: certificate authority response
-          example: N/A
+          description: issuer distinguished name
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
-          maxLength: 1000
-        expires_at:
+          maxLength: 1024
+        ocsp_response:
+          $ref: '#/components/schemas/CertificateAuthorityOcspResponse'
+        not_after:
           type: string
           format: date-time
           description: certificate authority expires at
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        top_ca:
+          type: boolean
+          description: if the certificate authority is top CA (instead of intermediate)
+          example: true
+        path:
+          type: string
+          format: text
+          description: encoded path string from this CA to top CA
+          example: C=FI, O=X-Road Test Intermediate, OU=X-Road Test CA OU, CN=X-Road Test CA CN Intermediate:C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
         authentication_only:
           type: boolean
           description: if certificate authority is limited for authentication use only
@@ -4214,6 +4236,17 @@ components:
         - REGISTERED
         - DELETION_IN_PROGRESS
         - GLOBAL_ERROR
+    CertificateAuthorityOcspResponse: # ok
+      type: string
+      format: enum
+      description: certificate authority OCSP status
+      example: IN_USE
+      enum:
+        - NOT_AVAILABLE
+        - OCSP_RESPONSE_UNKNOWN
+        - OCSP_RESPONSE_GOOD
+        - OCSP_RESPONSE_SUSPENDED
+        - OCSP_RESPONSE_REVOKED
     CertificateOcspStatus: # ok
       type: string
       format: enum
