@@ -9,15 +9,12 @@
           <v-col class="text-right">
             <large-button
               data-test="system-parameters-configuration-anchor-download-button"
+              @click="downloadAnchor"
+              :loading="downloadingAnchor"
               outlined
               :requires-permission="permissions.DOWNLOAD_ANCHOR"
             >{{ $t('systemParameters.configurationAnchor.action.download') }}</large-button>
-            <large-button
-              data-test="system-parameters-configuration-anchor-upload-button"
-              outlined
-              :requires-permission="permissions.UPLOAD_ANCHOR"
-              class="ml-5"
-            >{{ $t('systemParameters.configurationAnchor.action.upload') }}</large-button>
+            <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" />
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
@@ -55,11 +52,10 @@
             <h3>{{ $t('systemParameters.timestampingServices.title') }}</h3>
           </v-col>
           <v-col class="text-right">
-            <large-button
-              data-test="system-parameters-timestamping-services-add-button"
-              outlined
-              :requires-permission="permissions.ADD_TSP"
-            >{{ $t('systemParameters.timestampingServices.action.add') }}</large-button>
+            <add-timestamping-service-dialog
+              :configured-timestamping-services="configuredTimestampingServices"
+              @added="fetchConfiguredTimestampingServiced"
+            />
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
@@ -183,15 +179,21 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
+import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
+import { saveResponseAsFile } from '@/util/helpers';
+import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
 
 export default Vue.extend({
   components: {
     LargeButton,
     SmallButton,
+    UploadConfigurationAnchorDialog,
+    AddTimestampingServiceDialog,
   },
   data() {
     return {
       configuratonAnchor: {} as Anchor,
+      downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
       certificateAuthorities: [] as CertificateAuthority[],
       permissions: Permissions,
@@ -225,6 +227,16 @@ export default Vue.extend({
         .get('/certificate-authorities?include_intermediate_cas=true')
         .then((resp) => (this.certificateAuthorities = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
+    },
+    downloadAnchor(): void {
+      this.downloadingAnchor = true;
+      api
+        .get('/system/anchor/download', { responseType: 'blob' })
+        .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => (this.downloadingAnchor = false));
     },
   },
   created(): void {
