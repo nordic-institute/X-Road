@@ -1,4 +1,3 @@
-import { Permissions } from '@/global';
 <template>
   <div class="wrapper xrd-view-common">
     <v-tabs
@@ -54,7 +53,7 @@ export default Vue.extend({
   },
 });
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .content {
   width: 1000px;
 }
