@@ -66,13 +66,7 @@
             </h3></v-col
           >
           <v-col class="text-right">
-            <large-button
-              data-test="system-parameters-timestamping-services-add-button"
-              outlined
-              :requires-permission="permissions.ADD_TSP"
-            >
-              {{ $t('systemParameters.timestampingServices.action.add') }}
-            </large-button>
+            <add-timestamping-service-dialog :configured-timestamping-services="configuredTimestampingServices" @added="fetchConfiguredTimestampingServiced"/>
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
@@ -207,12 +201,14 @@ import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
+import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
 
 export default Vue.extend({
   components: {
     LargeButton,
     SmallButton,
     UploadConfigurationAnchorDialog,
+    AddTimestampingServiceDialog,
   },
   data() {
     return {
