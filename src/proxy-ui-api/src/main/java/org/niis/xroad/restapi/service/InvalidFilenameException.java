@@ -30,6 +30,6 @@ public class InvalidFilenameException extends ServiceException {
     public static final String ERROR_INVALID_FILENAME = "invalid_filename";
 
     public InvalidFilenameException(String msg) {
-        super(new ErrorDeviation(ERROR_INVALID_FILENAME, msg));
+        super(msg, new ErrorDeviation(ERROR_INVALID_FILENAME));
     }
 }

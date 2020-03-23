@@ -43,6 +43,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -53,8 +54,6 @@ import java.util.List;
 @Slf4j
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {
-    public static final String ERROR_INVALID_FILENAME = "error_invalid_filename";
-    public static final String ERROR_INVALID_BACKUP_FILE = "error_invalid_backup_file";
     public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
 
     private final BackupService backupService;
@@ -113,14 +112,13 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
-            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file);
+            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
+                    file.getBytes());
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
-        } catch (InvalidFilenameException e) {
-            throw new BadRequestException(e, new ErrorDeviation(ERROR_INVALID_FILENAME));
-        } catch (UnhandledWarningsException e) {
+        } catch (InvalidFilenameException | UnhandledWarningsException | InvalidBackupFileException e) {
             throw new BadRequestException(e);
-        } catch (InvalidBackupFileException e) {
-            throw new BadRequestException(e, new ErrorDeviation(ERROR_INVALID_BACKUP_FILE));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

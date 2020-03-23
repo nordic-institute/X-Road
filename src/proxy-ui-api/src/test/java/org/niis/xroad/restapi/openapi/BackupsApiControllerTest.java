@@ -47,7 +47,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
@@ -90,7 +89,8 @@ public class BackupsApiControllerTest {
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
-    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "content".getBytes());
+    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "test",
+            "multipart/form-data", "content".getBytes());
 
     @Before
     public void setup() {
@@ -220,7 +220,7 @@ public class BackupsApiControllerTest {
     public void uploadBackup() throws Exception {
         BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
 
-        when(backupService.uploadBackup(any(Boolean.class), any(MultipartFile.class))).thenReturn(backupFile);
+        when(backupService.uploadBackup(any(Boolean.class), any(String.class), any())).thenReturn(backupFile);
 
         ResponseEntity<Backup> response = backupsApiController.uploadBackup(true, mockMultipartFile);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -231,7 +231,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupWithInvalidFilename() throws Exception {
         doThrow(new InvalidFilenameException("")).when(backupService)
-                .uploadBackup(any(Boolean.class), any(MultipartFile.class));
+                .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(true, mockMultipartFile);
@@ -245,7 +245,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupFileAlreadyExists() throws Exception {
         doThrow(new UnhandledWarningsException(new WarningDeviation(""))).when(backupService)
-                .uploadBackup(any(Boolean.class), any(MultipartFile.class));
+                .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
@@ -259,7 +259,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupFileInvalidBackupFile() throws Exception {
         doThrow(new InvalidBackupFileException("")).when(backupService)
-                .uploadBackup(any(Boolean.class), any(MultipartFile.class));
+                .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);

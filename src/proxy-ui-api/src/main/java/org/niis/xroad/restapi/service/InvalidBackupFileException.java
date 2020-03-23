@@ -30,6 +30,6 @@ public class InvalidBackupFileException extends ServiceException {
     public static final String ERROR_INVALID_BACKUP_FILE = "invalid_backup_file";
 
     public InvalidBackupFileException(String msg) {
-        super(new ErrorDeviation(ERROR_INVALID_BACKUP_FILE, msg));
+        super(msg, new ErrorDeviation(ERROR_INVALID_BACKUP_FILE));
     }
 }

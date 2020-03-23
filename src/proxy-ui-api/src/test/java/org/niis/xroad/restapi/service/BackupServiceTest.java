@@ -95,6 +95,12 @@ public class BackupServiceTest {
 
     private static final String VALID_TAR_LABEL = "security_XROAD-6.24.0_TESTSS";
 
+    public static final String ERROR_INVALID_FILENAME = "invalid_filename";
+
+    public static final String ERROR_INVALID_BACKUP_FILE = "invalid_backup_file";
+
+    private static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
+
     private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "content".getBytes());
 
     @Before
@@ -201,7 +207,8 @@ public class BackupServiceTest {
         when(backupRepository.writeBackupFile(BACKUP_FILE_1_NAME, multipartFile.getBytes())).thenReturn(
                 new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
-        BackupFile backupFile = backupService.uploadBackup(true, multipartFile);
+        BackupFile backupFile = backupService.uploadBackup(true, multipartFile.getOriginalFilename(),
+                multipartFile.getBytes());
 
         assertEquals(BACKUP_FILE_1_NAME, backupFile.getFilename());
         assertEquals(BACKUP_FILE_1_CREATED_AT, backupFile.getCreatedAt().toString());
@@ -216,52 +223,57 @@ public class BackupServiceTest {
         when(backupRepository.fileExists(BACKUP_FILE_1_NAME)).thenReturn(false);
 
         try {
-            backupService.uploadBackup(true, multipartFile);
+            backupService.uploadBackup(true, multipartFile.getOriginalFilename(),
+                    multipartFile.getBytes());
             fail("should throw InvalidBackupFileException");
         } catch (InvalidBackupFileException expected) {
-            // success
+            assertEquals(ERROR_INVALID_BACKUP_FILE, expected.getErrorDeviation().getCode());
         }
     }
 
     @Test
-    public void uploadBackupWithInvalidFilename() throws UnhandledWarningsException, InvalidBackupFileException {
+    public void uploadBackupWithInvalidFilename() throws UnhandledWarningsException, InvalidBackupFileException,
+            IOException {
         try {
-            backupService.uploadBackup(true, mockMultipartFile);
+            backupService.uploadBackup(true, mockMultipartFile.getOriginalFilename(),
+                    mockMultipartFile.getBytes());
             fail("should throw InvalidFilenameException");
         } catch (InvalidFilenameException expected) {
-            // success
+            assertEquals(ERROR_INVALID_FILENAME, expected.getErrorDeviation().getCode());
         }
     }
 
     @Test
     public void uploadBackupFileAlreadyExistsNoOverwrite() throws InvalidFilenameException,
-            InvalidBackupFileException {
+            InvalidBackupFileException, IOException {
         when(backupRepository.isFilenameValid(any(String.class))).thenReturn(true);
         when(backupRepository.fileExists(any(String.class))).thenReturn(true);
         try {
-            backupService.uploadBackup(false, mockMultipartFile);
+            backupService.uploadBackup(false, mockMultipartFile.getOriginalFilename(),
+                    mockMultipartFile.getBytes());
             fail("should throw UnhandledWarningsException");
         } catch (UnhandledWarningsException expected) {
-            // success
+            assertEquals(WARNING_FILE_ALREADY_EXISTS, expected.getWarningDeviations().iterator().next().getCode());
         }
     }
 
     @Test
     public void uploadBackupFileInvalidBackupFileOverwriteExisting() throws InvalidFilenameException,
-            UnhandledWarningsException {
+            UnhandledWarningsException, IOException {
         when(backupRepository.isFilenameValid(any(String.class))).thenReturn(true);
         when(backupRepository.fileExists(any(String.class))).thenReturn(true);
         try {
-            backupService.uploadBackup(true, mockMultipartFile);
+            backupService.uploadBackup(true, mockMultipartFile.getOriginalFilename(),
+                    mockMultipartFile.getBytes());
             fail("should throw InvalidBackupFileException");
         } catch (InvalidBackupFileException expected) {
-            // success
+            assertEquals(ERROR_INVALID_BACKUP_FILE, expected.getErrorDeviation().getCode());
         }
     }
 
     private MultipartFile createMultipartFileWithTar(String filename, String tarLabel) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            TarArchiveOutputStream taos = new TarArchiveOutputStream(baos)) {
+                TarArchiveOutputStream taos = new TarArchiveOutputStream(baos)) {
             TarArchiveEntry tarEntry = new TarArchiveEntry(tarLabel);
 
             taos.putArchiveEntry(tarEntry);
