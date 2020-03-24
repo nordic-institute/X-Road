@@ -73,7 +73,7 @@ export default Vue.extend({
           this.currentStep = 3;
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },
@@ -88,19 +88,19 @@ export default Vue.extend({
 
     fetchKeyData(id: string): void {
       this.$store.dispatch('fetchKeyData').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 
     fetchLocalMembers(): void {
       this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
   },
