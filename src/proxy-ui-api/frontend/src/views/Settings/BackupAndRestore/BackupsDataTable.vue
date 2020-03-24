@@ -32,7 +32,11 @@
                 data-test="backup-restore"
                 >{{ $t('action.restore') }}
               </v-btn>
-              <delete-backup-button :can-backup="canBackup" :backup="backup" @deleted="fetchData"/>
+              <delete-backup-button
+                :can-backup="canBackup"
+                :backup="backup"
+                @deleted="fetchData"
+              />
             </div>
           </td>
         </tr>
