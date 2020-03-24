@@ -1,5 +1,5 @@
 <template>
-  <div class="content" data-test="finish-content">
+  <div data-test="finish-content">
     <p>
       {{$t('wizard.finish.infoLine1')}}
       <br />
@@ -74,7 +74,7 @@ export default Vue.extend({
           this.generateCsr();
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
           this.disableCancel = false;
         },
       );
@@ -89,7 +89,7 @@ export default Vue.extend({
           this.$emit('done');
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
           this.disableCancel = false;
         },
       );

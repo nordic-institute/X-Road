@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     <div class="info-block">
       <div>
         {{$t('wizard.clientInfo1')}}
@@ -184,7 +184,7 @@ export default Vue.extend({
           this.disableDone = false;
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },

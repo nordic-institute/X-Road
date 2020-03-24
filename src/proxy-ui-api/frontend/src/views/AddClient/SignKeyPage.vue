@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     {{$t('wizard.signKey.info')}}
     <div class="row-wrap">
       <FormLabel labelText="wizard.signKey.keyLabel" />
@@ -73,7 +73,7 @@ export default Vue.extend({
           this.disableDone = false;
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },

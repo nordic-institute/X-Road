@@ -45,7 +45,7 @@
 import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
-import TokenLoginDialog from './TokenLoginDialog.vue';
+import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
@@ -167,25 +167,10 @@ export default Vue.extend({
       this.loginDialog = false;
     },
     addKey(label: string) {
-      // Send add new key request to backend
-      const request = label.length > 0 ? { label } : {};
-      const token: Token = this.$store.getters.selectedToken;
-
-      if (!token) {
-        return;
-      }
-
-      api
-        .post(`/tokens/${token.id}/keys`, request)
-        .then((res) => {
-          this.fetchData();
-          this.$store.dispatch('showSuccess', 'keys.keyAdded');
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
-
-      this.addKeyDialog = false;
+      this.$router.push({
+        name: RouteName.AddKey,
+        params: { tokenId: this.$store.getters.selectedToken.id },
+      });
     },
   },
   created() {
