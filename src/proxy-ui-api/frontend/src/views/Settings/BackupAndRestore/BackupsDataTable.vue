@@ -32,16 +32,7 @@
                 data-test="backup-restore"
                 >{{ $t('action.restore') }}
               </v-btn>
-              <v-btn
-                v-if="canBackup"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
-                data-test="backup-delete"
-                >{{ $t('action.delete') }}
-              </v-btn>
+              <delete-backup-button :can-backup="canBackup" :backup="backup" @deleted="fetchData"/>
             </div>
           </td>
         </tr>
@@ -55,8 +46,12 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { Backup } from '@/types';
 import { selectedFilter } from '@/util/helpers';
+import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 
 export default Vue.extend({
+  components: {
+    DeleteBackupButton,
+  },
   props: {
     filter: {
       type: String,
