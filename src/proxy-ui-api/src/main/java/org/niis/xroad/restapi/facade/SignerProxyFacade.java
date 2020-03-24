@@ -220,4 +220,11 @@ public class SignerProxyFacade {
     public TokenInfo getTokenForKeyId(String keyId) throws Exception {
         return SignerProxy.getTokenForKeyId(keyId);
     }
+
+    /**
+     * {@link SignerProxy#getOcspResponses(String[])}
+     */
+    public String[] getOcspResponses(String[] certHashes) throws Exception {
+        return SignerProxy.getOcspResponses(certHashes);
+    }
 }

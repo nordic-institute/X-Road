@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
@@ -350,4 +351,14 @@ public interface GlobalConfProvider extends ConfProvider {
      * specified
      */
     List<SecurityServerId> getSecurityServers(String... instanceIdentifiers);
+
+    /**
+     * Get ApprovedCAInfo matching given CA certificate
+     * @param instanceIdentifier instance id
+     * @param cert intermediate or top CA cert
+     * @return ApprovedCAInfo (for the top CA)
+     * @throws CodedException if something went wrong, for example
+     * {@code cert} was not an approved CA cert
+     */
+    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
 }

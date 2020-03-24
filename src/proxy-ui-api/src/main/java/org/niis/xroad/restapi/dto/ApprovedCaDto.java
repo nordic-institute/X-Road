@@ -22,40 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.dto;
 
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import lombok.Builder;
+import lombok.Getter;
 
-import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.springframework.stereotype.Component;
-
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Converter for timestamping services related data between openapi and service domain classes
+ * DTO for approved certificate authority data
  */
-@Component
-public class TimestampingServiceConverter {
+@Getter
+@Builder
+public class ApprovedCaDto {
 
-    public TimestampingService convert(TspType tsp)  {
-        TimestampingService timestampingService = new TimestampingService();
-        timestampingService.setUrl(tsp.getUrl());
-        timestampingService.setName(tsp.getName());
-        return timestampingService;
-    }
-
-    public List<TimestampingService> convert(Iterable<TspType> tsps)  {
-        return Streams.stream(tsps)
-                .map(this::convert)
-                .collect(Collectors.toList());
-    }
-
-    public TspType convert(TimestampingService timestampingService)  {
-        TspType tspType = new TspType();
-        tspType.setUrl(timestampingService.getUrl());
-        tspType.setName(timestampingService.getName());
-        return tspType;
-    }
+    private final String name;
+    private final boolean authenticationOnly;
+    private final String issuerDistinguishedName;
+    private final String subjectDistinguishedName;
+    private final String ocspResponse;
+    private final OffsetDateTime notAfter;
+    private final boolean topCa;
+    // subject DN names from topmost CA to this CA
+    private final List<String> subjectDnPath;
 }

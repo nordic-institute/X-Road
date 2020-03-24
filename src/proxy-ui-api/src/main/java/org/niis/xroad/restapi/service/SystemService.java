@@ -37,7 +37,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,56 +93,51 @@ public class SystemService {
         return serverConfService.getConfiguredTimestampingServices();
     }
 
-    public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
+    public void addConfiguredTimestampingService(TspType tspTypeToAdd)
             throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
         // Check that the timestamping service is an approved timestamping service
         Optional<TspType> match = globalConfService.getApprovedTspsForThisInstance().stream()
-                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
-                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
+                .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
+                        && tspTypeToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (!match.isPresent()) {
-            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToAdd.getName(),
-                    timestampingServiceToAdd.getUrl(), "not found"));
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(tspTypeToAdd.getName(),
+                    tspTypeToAdd.getUrl(), "not found"));
         }
 
         // Check that the timestamping service is not already configured
         Optional<TspType> existingTsp = getConfiguredTimestampingServices().stream()
-                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
-                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
+                .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
+                        && tspTypeToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (existingTsp.isPresent()) {
             throw new DuplicateConfiguredTimestampingServiceException(
-                    getExceptionMessage(timestampingServiceToAdd.getName(), timestampingServiceToAdd.getUrl(),
+                    getExceptionMessage(tspTypeToAdd.getName(), tspTypeToAdd.getUrl(),
                             "is already configured")
             );
         }
-
-        TspType tspType = new TspType();
-        tspType.setName(timestampingServiceToAdd.getName());
-        tspType.setUrl(timestampingServiceToAdd.getUrl());
-
-        serverConfService.getConfiguredTimestampingServices().add(tspType);
+        serverConfService.getConfiguredTimestampingServices().add(tspTypeToAdd);
     }
 
     /**
      * Deletes a configured timestamping service from serverconf
-     * @param timestampingService
+     * @param tspTypeToDelete
      * @throws TimestampingServiceNotFoundException
      */
-    public void deleteConfiguredTimestampingService(TimestampingService timestampingService)
+    public void deleteConfiguredTimestampingService(TspType tspTypeToDelete)
             throws TimestampingServiceNotFoundException {
         List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
 
         Optional<TspType> delete = configuredTimestampingServices.stream()
-                .filter(tsp -> timestampingService.getName().equals(tsp.getName())
-                        && timestampingService.getUrl().equals(tsp.getUrl()))
+                .filter(tsp -> tspTypeToDelete.getName().equals(tsp.getName())
+                        && tspTypeToDelete.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (!delete.isPresent()) {
-            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingService.getName(),
-                    timestampingService.getUrl(), "not found")
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(tspTypeToDelete.getName(),
+                    tspTypeToDelete.getUrl(), "not found")
             );
         }
 
