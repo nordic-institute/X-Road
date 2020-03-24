@@ -139,7 +139,7 @@ export default Vue.extend({
             this.anchorPreview = resp.data;
             this.showPreview = true;
           })
-          .catch((error) => this.$bus.$emit('show-error', error.message));
+          .catch((error) => this.$store.dispatch('showError', error));
       };
       reader.readAsArrayBuffer(fileList[0]);
     },
@@ -151,15 +151,13 @@ export default Vue.extend({
             'Content-Type': 'application/octet-stream',
           },
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => {
           this.uploading = false;
           this.close();
-          this.$bus.$emit(
-            'show-success',
-            this.$t(
-              'systemParameters.configurationAnchor.action.upload.dialog.success',
-            ),
+          this.$store.dispatch(
+            'showSuccess',
+            'systemParameters.configurationAnchor.action.upload.dialog.success',
           );
           this.$emit('uploaded');
         });

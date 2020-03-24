@@ -213,13 +213,13 @@ export default Vue.extend({
           {},
         )
         .then((res) => {
-          this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -232,7 +232,7 @@ export default Vue.extend({
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -251,7 +251,7 @@ export default Vue.extend({
           this.fetchData(this.clientId, this.groupId);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -298,7 +298,7 @@ export default Vue.extend({
           items: members,
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData(this.clientId, this.groupId);
@@ -314,11 +314,11 @@ export default Vue.extend({
       api
         .remove(`/local-groups/${this.groupId}`)
         .then(() => {
-          this.$bus.$emit('show-success', 'localGroup.groupDeleted');
+          this.$store.dispatch('showSuccess', 'localGroup.groupDeleted');
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },
