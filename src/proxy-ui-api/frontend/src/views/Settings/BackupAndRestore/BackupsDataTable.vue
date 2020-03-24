@@ -93,7 +93,7 @@ export default Vue.extend({
       api
         .get(`/backups/${fileName}/download`, { responseType: 'blob' })
         .then((resp) => saveResponseAsFile(resp, fileName))
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
   },
   created(): void {
