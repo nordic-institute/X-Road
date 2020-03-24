@@ -70,3 +70,5 @@ script:
   generate-certificate:
     path: /usr/share/xroad/scripts/generate_certificate.sh
     args: -n internal -f -S -p 2>&1
+  generate-backup:
+    path: /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh

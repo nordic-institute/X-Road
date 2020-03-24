@@ -11,6 +11,7 @@ import { tokensModule } from './modules/tokens';
 import { servicesModule } from './modules/services';
 import { addClientModule } from './modules/addClient';
 import { csrModule } from './modules/certificateSignRequest';
+import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
 
 Vue.use(Vuex);
@@ -33,6 +34,7 @@ const store: StoreOptions<RootState> = {
     servicesModule,
     csrModule,
     addClientModule,
+    notificationsModule,
   },
   // @ts-ignore
   plugins: [vuexLocal.plugin],

@@ -293,4 +293,10 @@ public class EmptyGlobalConf implements GlobalConfProvider {
             X509Certificate cert) throws Exception {
         return null;
     }
+
+    @Override
+    public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) {
+        return null;
+    }
+
 }

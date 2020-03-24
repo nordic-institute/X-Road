@@ -1,11 +1,9 @@
 buildscript {
     ext {
-        springBootVersion = '2.1.3.RELEASE'
         openapiGeneratorVersion = '4.0.1'
         nodePluginVersion = '1.3.1'
         nodeVersion = '10.16.1'
         npmVersion = '6.9.0'
-        springCloudSleuthVersion = '2.1.3.RELEASE'
         swaggerParserVersion = '2.0.13'
     }
     repositories {
@@ -19,16 +17,24 @@ buildscript {
 
 }
 
+plugins {
+  id "io.spring.dependency-management"
+  id 'org.springframework.boot'
+}
+
+ext {
+	set('springCloudVersion', "Greenwich.SR5")
+}
+
 sourceSets {
     main {
         java.srcDirs = ['src/main/java', 'build/generated-sources']
     }
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
 apply plugin: "com.moowork.node"
 apply plugin: 'org.openapi.generator'
+apply plugin: 'com.github.hierynomus.license'
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -172,12 +178,6 @@ idea.module {
     buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-sleuth:${springCloudSleuthVersion}"
-    }
-}
-
 jar {
     enabled = true
     classifier = 'plainDependency'
@@ -188,7 +188,6 @@ configurations {
         exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
     }
 }
-
 
 dependencies {
     implementation project(':serverconf')
@@ -201,10 +200,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     implementation('org.kohsuke:libpam4j:1.11')
-    implementation('org.postgresql:postgresql:42.2.5')
-    implementation('org.apache.commons:commons-compress:1.18')
+    implementation('org.apache.commons:commons-compress:1.20')
     implementation('wsdl4j:wsdl4j:1.6.3')
-    implementation('org.apache.cxf:cxf-tools-validator:3.3.2')
+    implementation('org.apache.cxf:cxf-tools-validator:3.3.5')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.4.1')
     implementation('io.swagger.parser.v3:swagger-parser:2.0.13')
 
@@ -219,4 +217,10 @@ dependencies {
     implementation('org.openapitools:jackson-databind-nullable:0.1.0')
     implementation('javax.validation:validation-api')
     // /openapi-generator related
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }

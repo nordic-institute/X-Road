@@ -21,7 +21,7 @@
         @refreshList="fetchData"
         @tokenLogout="logoutDialog = true"
         @tokenLogin="loginDialog = true"
-        @addKey="addKey"
+        @addKey="addKeyDialog = true"
         :token="token"
       />
     </template>
@@ -141,7 +141,7 @@ export default Vue.extend({
     fetchData(): void {
       // Fetch tokens from backend
       this.$store.dispatch('fetchTokens').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
     acceptTokenLogout(): void {
@@ -153,10 +153,10 @@ export default Vue.extend({
 
       this.$store.dispatch('tokenLogout', token.id).then(
         (response) => {
-          this.$bus.$emit('show-success', 'keys.loggedOut');
+          this.$store.dispatch('showSuccess', 'keys.loggedOut');
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
 
@@ -167,10 +167,25 @@ export default Vue.extend({
       this.loginDialog = false;
     },
     addKey(label: string) {
-      this.$router.push({
-        name: RouteName.AddKey,
-        params: { tokenId: this.$store.getters.selectedToken.id },
-      });
+      // Send add new key request to backend
+      const request = label.length > 0 ? { label } : {};
+      const token: Token = this.$store.getters.selectedToken;
+
+      if (!token) {
+        return;
+      }
+
+      api
+        .post(`/tokens/${token.id}/keys`, request)
+        .then((res) => {
+          this.fetchData();
+          this.$store.dispatch('showSuccess', 'keys.keyAdded');
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        });
+
+      this.addKeyDialog = false;
     },
   },
   created() {

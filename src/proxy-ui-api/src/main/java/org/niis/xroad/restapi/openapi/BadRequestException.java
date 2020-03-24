@@ -58,6 +58,10 @@ public class BadRequestException extends OpenApiException {
         super(msg, t, errorDeviation);
     }
 
+    public BadRequestException(String msg, Throwable t) {
+        super(msg, t);
+    }
+
     public BadRequestException(Throwable t) {
         super(t);
     }

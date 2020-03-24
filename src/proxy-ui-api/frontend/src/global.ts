@@ -33,6 +33,7 @@ export enum RouteName {
   AddKey = 'add-key',
   GenerateCertificateSignRequest = 'generate-csr',
   InternalTlsCertificate = 'internal-tls-certificate',
+  GenerateInternalCSR = 'generate-internal-csr',
   EndpointDetails = 'endpoint-details',
 }
 
@@ -48,13 +49,13 @@ export enum Permissions {
   ADD_WSDL = 'ADD_WSDL', // client > services > add WSDL / REST
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION',
   DELETE_AUTH_CERT = 'DELETE_AUTH_CERT', // certificate details
-  DELETE_AUTH_KEY = 'DELETE_AUTH_KEY',
+  DELETE_AUTH_KEY = 'DELETE_AUTH_KEY', // key details
   DELETE_CLIENT = 'DELETE_CLIENT',
   DELETE_CLIENT_INTERNAL_CERT = 'DELETE_CLIENT_INTERNAL_CERT',  // detete certificate in client - cetificate view
-  DELETE_KEY = 'DELETE_KEY',
+  DELETE_KEY = 'DELETE_KEY',  // key details
   DELETE_LOCAL_GROUP = 'DELETE_LOCAL_GROUP', // client > local groups
   DELETE_SIGN_CERT = 'DELETE_SIGN_CERT', // sign cert details
-  DELETE_SIGN_KEY = 'DELETE_SIGN_KEY',
+  DELETE_SIGN_KEY = 'DELETE_SIGN_KEY', // key details
   DELETE_TSP = 'DELETE_TSP',
   DELETE_WSDL = 'DELETE_WSDL',  // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint

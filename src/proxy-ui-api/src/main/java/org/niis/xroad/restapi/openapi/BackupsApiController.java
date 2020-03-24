@@ -25,34 +25,100 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.BackupConverter;
+import org.niis.xroad.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.model.Backup;
+import org.niis.xroad.restapi.service.BackupFileNotFoundException;
+import org.niis.xroad.restapi.service.BackupService;
+import org.niis.xroad.restapi.service.InvalidBackupFileException;
+import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.util.List;
 
 /**
- * backups controller
+ * Backups controller
  */
 @Controller
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class BackupsApiController implements BackupsApi {
+    public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
 
-    public static final int MAX_FIFTY_ITEMS = 50;
+    private final BackupService backupService;
+    private final BackupConverter backupConverter;
 
-    private final NativeWebRequest request;
-
-    @org.springframework.beans.factory.annotation.Autowired
-    public BackupsApiController(NativeWebRequest request) {
-        this.request = request;
+    @Autowired
+    public BackupsApiController(BackupService backupService, BackupConverter backupConverter) {
+        this.backupService = backupService;
+        this.backupConverter = backupConverter;
     }
 
     @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<List<Backup>> getBackups() {
+        List<BackupFile> backupFiles = backupService.getBackupFiles();
+
+        return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Void> deleteBackup(String filename) {
+        try {
+            backupService.deleteBackup(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Resource> downloadBackup(String filename) {
+        byte[] backupFile = null;
+        try {
+            backupFile = backupService.readBackupFile(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return ApiUtil.createAttachmentResourceResponse(backupFile, filename);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Backup> addBackup() {
+        try {
+            BackupFile backupFile = backupService.generateBackup();
+            return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(GENERATE_BACKUP_INTERRUPTED));
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
+        try {
+            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
+                    file.getBytes());
+            return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
+        } catch (InvalidFilenameException | UnhandledWarningsException | InvalidBackupFileException e) {
+            throw new BadRequestException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

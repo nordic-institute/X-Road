@@ -51,4 +51,11 @@ public class TimestampingServiceConverter {
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
+
+    public TspType convert(TimestampingService timestampingService)  {
+        TspType tspType = new TspType();
+        tspType.setUrl(timestampingService.getUrl());
+        tspType.setName(timestampingService.getName());
+        return tspType;
+    }
 }

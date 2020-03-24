@@ -1,16 +1,10 @@
-buildscript {
-    ext {
-        springCloudSleuthVersion = '2.1.3.RELEASE'
-    }
+plugins {
+  id "io.spring.dependency-management"
+  id 'org.springframework.boot'
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-
-dependencyManagement {
-    imports {
-        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
-    }
+ext {
+	set('springCloudVersion', "Greenwich.SR5")
 }
 
 bootJar {
@@ -21,12 +15,6 @@ configurations {
     developmentOnly
     runtimeClasspath {
         extendsFrom developmentOnly
-    }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-sleuth:${springCloudSleuthVersion}"
     }
 }
 
@@ -42,4 +30,10 @@ dependencies {
     testImplementation('org.springframework.security:spring-security-test')
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }

@@ -27,6 +27,10 @@
       "parameters": "Service Parameters"
     }
   },
+  "backup": {
+    "backupConfiguration": "Back up config.",
+    "uploadBackup": "Upload backup"
+  },
   "client": {
     "name": "Name",
     "id": "ID",
@@ -205,9 +209,11 @@
     "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
+    "download": "Download",
     "remove": "Remove",
     "removeAll": "Remove All",
     "register": "Register",
+    "restore": "Restore",
     "unregister": "Unregister",
     "save": "Save",
     "confirm": "Confirm",
@@ -304,9 +310,26 @@
       "success": "New Security Server TLS key and certificate generated successfully"
     },
     "importCertificate": "Import cert.",
+    "certificateImported": "Certificate imported",
     "exportCertificate": "Export cert.",
     "keyCertTitle": "TLS Key and Certificate",
-    "keyText": "Internal TLS Key"
+    "keyText": "Internal TLS Key",
+    "generateCsr": "Generate CSR",
+    "generateInternalCsr": {
+      "title": "Generate TLS Certificate Signing Request",
+      "step1": {
+        "description": "1) First, provide a distinguished name",
+        "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code.",
+        "label": "Distinguished name",
+        "placeholder": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
+      },
+      "step2": {
+        "description": "2) Generate a new CSR and save it into a safe place",
+        "generateCSR": "Generate CSR"
+      },
+      "cancel": "CANCEL",
+      "done": "DONE"
+    }
   },
   "csr": {
     "usage": "Usage",
@@ -360,6 +383,73 @@
       "note": "NOTE: if you click Cancel, all data will be lost"
     }
   },
+  "systemParameters": {
+    "title": "System parameters",
+    "configurationAnchor": {
+      "title": "Configuration Anchor",
+      "action": {
+        "download": "DOWNLOAD",
+        "upload": {
+          "button": "UPLOAD",
+          "dialog": {
+            "title": "Confirm configuration anchor details",
+            "info": "Configuration anchor details:",
+            "confirmation": "Continue with import?",
+            "field": {
+              "hash": "Hash (SHA-224)",
+              "generated": "Generated"
+            },
+            "success": "Configuration anchor uploaded"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "distinguishedName": "Hash (SHA-224)",
+          "generated": "Generated"
+        }
+      }
+    },
+    "timestampingServices": {
+      "title": "Timestamping Services",
+      "action": {
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "certificateHash": "Certificate Hash (SHA/1)",
+          "serviceURL": "Service URL"
+        },
+        "action": {
+          "delete": "DELETE"
+        }
+      }
+    },
+    "approvedCertificateAuthorities": {
+      "title": "Approved Certificate Authorities",
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "ocspResponse": "OCSP Response",
+          "expires": "Expires"
+        },
+        "ocspResponse": {
+          "NOT_AVAILABLE": "N/A",
+          "OCSP_RESPONSE_UNKNOWN": "Unknown",
+          "OCSP_RESPONSE_GOOD": "Good",
+          "OCSP_RESPONSE_SUSPENDED": "Suspended",
+          "OCSP_RESPONSE_REVOKED": "Revoked"
+        }
+      }
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -388,6 +478,7 @@
   "instance": "Instance",
   "type": "Type",
   "warning": "Warning",
+  "id": "ID",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
