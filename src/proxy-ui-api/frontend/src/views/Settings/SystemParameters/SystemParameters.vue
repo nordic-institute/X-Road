@@ -46,7 +46,7 @@
                 data-test="system-parameters-configuration-anchor-table-body"
               >
                 <tr>
-                  <td>{{ this.configuratonAnchor.hash }}</td>
+                  <td>{{ this.configuratonAnchor.hash | colonize }}</td>
                   <td>
                     {{ this.configuratonAnchor.created_at | formatDateTime }}
                   </td>
@@ -234,19 +234,19 @@ export default Vue.extend({
       return api
         .get('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     async fetchConfiguredTimestampingServiced() {
       return api
         .get('/system/timestamping-services')
         .then((resp) => (this.configuredTimestampingServices = resp.data))
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     async fetchApprovedCertificateAuthorities() {
       return api
         .get('/certificate-authorities?include_intermediate_cas=true')
         .then((resp) => (this.certificateAuthorities = resp.data))
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;
@@ -254,9 +254,9 @@ export default Vue.extend({
         .get('/system/anchor/download', { responseType: 'blob' })
         .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
-        .finally(() => this.downloadingAnchor = false);
+        .finally(() => (this.downloadingAnchor = false));
     },
   },
   created(): void {
