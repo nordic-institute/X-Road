@@ -898,38 +898,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/make-owner:
-    put: # ok
-      tags:
-        - security server
-      summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
-      operationId: makeOwner
-      description: Administrator changes Security Server's owner.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-      responses:
-        '204':
-          description: client was set as owner
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
   /clients/{id}/orphans:
     get: # ok
       tags:
@@ -1534,6 +1502,34 @@ paths:
                 description: array of Subjects
                 items:
                   $ref: '#/components/schemas/Subject'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /clients/owner:
+    put: # ok
+      tags:
+        - security server
+      summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
+      operationId: changeOwner
+      description: Administrator changes Security Server's owner.
+      requestBody:
+        description: client to be set as owner
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        '204':
+          description: client was set as owner
         '400':
           description: request was invalid
         '401':

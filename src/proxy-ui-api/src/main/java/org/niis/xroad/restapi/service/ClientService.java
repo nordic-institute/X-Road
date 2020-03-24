@@ -484,21 +484,25 @@ public class ClientService {
 
     /**
      * Changes Security Server owner
-     * @param clientId client to set as a new owner
+     * @param memberClass member class of new owner
+     * @param memberCode member code of new owner
+     * @param subsystemCode should be null because only member can be owner
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws MemberAlreadyOwnerException
      * @throws ActionNotPossibleException
      */
-    public void changeOwner(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
-            MemberAlreadyOwnerException, ActionNotPossibleException {
+    public void changeOwner(String memberClass, String memberCode, String subsystemCode) throws
+            GlobalConfOutdatedException, ClientNotFoundException, MemberAlreadyOwnerException,
+            ActionNotPossibleException {
+        if (subsystemCode != null) {
+            throw new ActionNotPossibleException("Only member can be an owner");
+        }
+        ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(), memberClass, memberCode);
         ClientType client = getLocalClientOrThrowNotFound(clientId);
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
-        }
-        if (clientId.getSubsystemCode() != null) {
-            throw new ActionNotPossibleException("Only member can be an owner");
         }
         if (!client.getClientStatus().equals(STATUS_REGISTERED)) {
             throw new ActionNotPossibleException("Only member with status 'registered' can become owner");

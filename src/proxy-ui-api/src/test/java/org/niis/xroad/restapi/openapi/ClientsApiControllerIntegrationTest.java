@@ -1067,24 +1067,32 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.addClient(new ClientAdd().client(createTestClient(
                 "GOV", "M2", null)).ignoreWarnings(true));
 
-        ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.NEW_OWNER_ID);
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M2", null));
     }
 
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
     public void changeOwnerCurrentOwner() {
-        ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.OWNER_ID);
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M1", null));
     }
 
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
     public void changeOwnerSubsystem() {
-        ResponseEntity<Void> response = clientsApiController.makeOwner(TestUtils.CLIENT_ID_SS1);
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M1", "SS1"));
     }
 
     @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
     public void changeOwnerClientDoesNotExist() {
-        ResponseEntity<Void> response = clientsApiController.makeOwner("non:existing:client");
+        Client client = new Client();
+        client.setInstanceId("non");
+        client.setMemberClass("existing");
+        client.setMemberCode("client");
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "non", "existing", null));
     }
 }

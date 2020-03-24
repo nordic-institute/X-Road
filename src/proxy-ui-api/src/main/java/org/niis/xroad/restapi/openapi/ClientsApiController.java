@@ -501,10 +501,9 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_OWNER_CHANGE_REQ')")
-    public ResponseEntity<Void> makeOwner(String encodedClientId) {
-        ClientId clientId = clientConverter.convertId(encodedClientId);
+    public ResponseEntity<Void> changeOwner(Client client) {
         try {
-            clientService.changeOwner(clientId);
+            clientService.changeOwner(client.getMemberClass(), client.getMemberCode(), client.getSubsystemCode());
         } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {

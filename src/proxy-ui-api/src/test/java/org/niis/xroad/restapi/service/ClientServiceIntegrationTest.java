@@ -914,7 +914,8 @@ public class ClientServiceIntegrationTest {
                     null, IsAuthentication.SSLAUTH, false);
             ClientType clientType = clientService.getLocalClient(newOwnerClientId);
             clientType.setClientStatus(STATUS_REGISTERED);
-            clientService.changeOwner(newOwnerClientId);
+            clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                    newOwnerClientId.getSubsystemCode());
         } catch (Exception e) {
             fail("should have not thrown Exception");
         }
@@ -923,25 +924,27 @@ public class ClientServiceIntegrationTest {
     @Test(expected = ActionNotPossibleException.class)
     public void changeOwnerNewOwnerSubsystem() throws Exception {
         // New owner ("existingClientId") is a subsystem which is not allowed
-        clientService.changeOwner(existingRegisteredClientId);
+        clientService.changeOwner(existingRegisteredClientId.getMemberClass(),
+                existingRegisteredClientId.getMemberCode(), existingRegisteredClientId.getSubsystemCode());
     }
 
     @Test(expected = ClientNotFoundException.class)
     public void changeOwnerNonExistingClient() throws Exception {
-        clientService.changeOwner(ClientId.create("non", "existing",
-                "client", null));
+        clientService.changeOwner("existing", "client", null);
     }
 
     @Test(expected = ActionNotPossibleException.class)
     public void changeOwnerNewOwnerNotRegistered() throws Exception {
         clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
                 null, IsAuthentication.SSLAUTH, false);
-        clientService.changeOwner(newOwnerClientId);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
     }
 
     @Test(expected = ClientService.MemberAlreadyOwnerException.class)
     public void changeOwnerNewOwnerAlreadyOwner() throws Exception {
-        clientService.changeOwner(ownerClientId);
+        clientService.changeOwner(ownerClientId.getMemberClass(), ownerClientId.getMemberCode(),
+                ownerClientId.getSubsystemCode());
     }
 
     @Test(expected = CodedException.class)
@@ -951,7 +954,8 @@ public class ClientServiceIntegrationTest {
                 null, IsAuthentication.SSLAUTH, false);
         ClientType clientType = clientService.getLocalClient(newOwnerClientId);
         clientType.setClientStatus(STATUS_REGISTERED);
-        clientService.changeOwner(newOwnerClientId);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
@@ -962,6 +966,7 @@ public class ClientServiceIntegrationTest {
                 null, IsAuthentication.SSLAUTH, false);
         ClientType clientType = clientService.getLocalClient(newOwnerClientId);
         clientType.setClientStatus(STATUS_REGISTERED);
-        clientService.changeOwner(newOwnerClientId);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
     }
 }
