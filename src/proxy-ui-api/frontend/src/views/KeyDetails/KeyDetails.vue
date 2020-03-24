@@ -186,7 +186,7 @@ export default Vue.extend({
           this.possibleActions = res.data;
         })
         .catch((error: any) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
