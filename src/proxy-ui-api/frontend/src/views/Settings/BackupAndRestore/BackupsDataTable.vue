@@ -12,16 +12,14 @@
           <td>{{ backup.filename }}</td>
           <td>
             <div class="d-flex justify-end">
-              <v-btn
+              <small-button
                 v-if="canBackup"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
+                :min_width="50"
+                class="xrd-table-button"
                 data-test="backup-download"
+                @click="downloadBackup(backup.filename)"
                 >{{ $t('action.download') }}
-              </v-btn>
+              </small-button>
               <v-btn
                 v-if="canBackup"
                 small
@@ -54,9 +52,13 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { Backup } from '@/types';
-import { selectedFilter } from '@/util/helpers';
+import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
+import SmallButton from '@/components/ui/SmallButton.vue';
 
 export default Vue.extend({
+  components: {
+    SmallButton,
+  },
   props: {
     filter: {
       type: String,
@@ -86,6 +88,12 @@ export default Vue.extend({
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
+    },
+    async downloadBackup(fileName: string) {
+      api
+        .get(`/backups/${fileName}/download`, { responseType: 'blob' })
+        .then((resp) => saveResponseAsFile(resp, fileName))
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
   },
   created(): void {
