@@ -390,11 +390,23 @@
       "title": "Configuration Anchor",
       "action": {
         "download": "DOWNLOAD",
-        "upload": "UPLOAD"
+        "upload": {
+          "button": "UPLOAD",
+          "dialog": {
+            "title": "Confirm configuration anchor details",
+            "info": "Configuration anchor details:",
+            "confirmation": "Continue with import?",
+            "field": {
+              "hash": "Hash (SHA-224)",
+              "generated": "Generated"
+            },
+            "success": "Configuration anchor uploaded"
+          }
+        }
       },
       "table": {
         "header": {
-          "distinguishedName": "Distinguished Name",
+          "distinguishedName": "Hash (SHA-224)",
           "generated": "Generated"
         }
       }
@@ -402,7 +414,14 @@
     "timestampingServices": {
       "title": "Timestamping Services",
       "action": {
-        "add": "ADD"
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
       },
       "table": {
         "header": {
@@ -460,6 +479,7 @@
   "instance": "Instance",
   "type": "Type",
   "warning": "Warning",
+  "id": "ID",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."

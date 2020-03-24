@@ -5,9 +5,8 @@ module.exports = {
     const frontPage = browser.page.ssFrontPage();
 
     // Open SUT and check that page is loaded
-    frontPage
-      .navigate();
-    browser.waitForElementVisible('#app');
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter invalid credentials
     frontPage
@@ -16,19 +15,18 @@ module.exports = {
       .signin();
 
     // Verify error message
-    browser
-      .useXpath().waitForElementVisible('//div[text() = "Wrong username or password"]')
-      .useCss()
-      .end();
+    browser.waitForElementVisible('//div[text() = "Wrong username or password"]');
+
+    browser.end();
+
   },
   'Security server passed login': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
 
     // Open SUT and check that page is loaded
-    frontPage
-      .navigate();
-    browser.waitForElementVisible('#app');
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
     frontPage
@@ -39,15 +37,14 @@ module.exports = {
       .signin();
 
     // Verify successful login    
-    browser
-      .waitForElementVisible('div.server-name');
+    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Test refresh
     browser
       .refresh()
-      .waitForElementVisible('div.server-name');
+      .waitForElementVisible('//div[contains(@class, "server-name")]');
 
     browser
-      .end()
+      .end();
   }
 };

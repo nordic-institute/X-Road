@@ -84,7 +84,7 @@ export default Vue.extend({
           });
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

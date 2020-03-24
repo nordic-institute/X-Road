@@ -1,4 +1,3 @@
-import { Permissions } from '@/global';
 <template>
   <div class="wrapper xrd-view-common">
     <v-tabs

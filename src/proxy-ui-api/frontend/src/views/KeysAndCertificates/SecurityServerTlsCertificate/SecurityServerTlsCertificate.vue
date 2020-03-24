@@ -35,7 +35,8 @@
     <generate-tls-and-certificate-dialog
       :dialog="generateDialog"
       @cancel="generateDialog = false"
-      @saved="newCertificateGenerated"/>
+      @saved="newCertificateGenerated"
+    />
 
     <div class="content-title">{{$t('ssTlsCertificate.keyCertTitle')}}</div>
     <div class="horizontal-line-dark"></div>
@@ -132,7 +133,7 @@ export default Vue.extend({
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     newCertificateGenerated(): void {
@@ -142,21 +143,25 @@ export default Vue.extend({
     exportCertificate(): void {
       this.exportPending = true;
       api
-        .get('/system/certificate/export', {responseType: 'blob'})
+        .get('/system/certificate/export', { responseType: 'blob' })
         .then((res) => {
           const tempLink = document.createElement('a');
           tempLink.href = window.URL.createObjectURL(new Blob([res.data]));
           tempLink.setAttribute('download', 'certs.tar.gz');
-          tempLink.setAttribute('data-test', 'security-server-tls-certificate-export-certificate-link');
+          tempLink.setAttribute(
+            'data-test',
+            'security-server-tls-certificate-export-certificate-link',
+          );
           document.body.appendChild(tempLink);
           tempLink.click();
           document.body.removeChild(tempLink); // cleanup
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
-        .finally(() => this.exportPending = false);
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => (this.exportPending = false));
     },
     onImportFileChanged(event: any): void {
-      const fileList = (event.target.files || event.dataTransfer.files) as FileList;
+      const fileList = (event.target.files ||
+        event.dataTransfer.files) as FileList;
       if (!fileList.length) {
         return;
       }
@@ -166,19 +171,20 @@ export default Vue.extend({
         if (!e?.target?.result) {
           return;
         }
-        api.post('/system/certificate/import', e.target.result, {
+        api
+          .post('/system/certificate/import', e.target.result, {
             headers: {
               'Content-Type': 'application/octet-stream',
             },
           })
           .then(() => {
-            this.$bus.$emit(
-              'show-success',
+            this.$store.dispatch(
+              'showSuccess',
               'ssTlsCertificate.certificateImported',
             );
             this.fetchData();
           })
-          .catch((error) => this.$bus.$emit('show-error', error.message));
+          .catch((error) => this.$store.dispatch('showError', error));
       };
       reader.readAsArrayBuffer(fileList[0]);
     },
