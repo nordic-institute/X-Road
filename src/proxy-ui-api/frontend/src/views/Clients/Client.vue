@@ -67,7 +67,7 @@ export default Vue.extend({
   methods: {
     fetchClient(id: string): void {
       this.$store.dispatch('fetchClient', id).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
   },

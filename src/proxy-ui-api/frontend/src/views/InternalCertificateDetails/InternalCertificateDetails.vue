@@ -50,7 +50,7 @@ export default Vue.extend({
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

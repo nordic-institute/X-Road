@@ -41,6 +41,7 @@ import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * Format utils
@@ -50,6 +51,9 @@ public final class FormatUtils {
     public static final String HTTP_PROTOCOL = "http://";
     public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*"
             + "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+    // Criteria for a valid backup file name:
+    // 1) cannot start with ".", 2) must contain one or more word characters ([a-zA-Z_0-9.-]), 3) must end with ".tar"
+    private static final String BACKUP_FILENAME_PATTERN = "^(?!\\.)[\\w\\.\\-]+\\.tar$";
 
     private FormatUtils() {
         // noop
@@ -185,5 +189,14 @@ public final class FormatUtils {
                 throw new IllegalStateException("Unexpected value: " + xRoadId.getObjectType()); // never ever
         }
         return encodedId.toString();
+    }
+
+    /**
+     * Check if the given filename is valid and meets the defined criteria
+     * @param filename
+     * @return
+     */
+    public static boolean isValidBackupFilename(String filename) {
+        return Pattern.compile(BACKUP_FILENAME_PATTERN).matcher(filename).matches();
     }
 }
