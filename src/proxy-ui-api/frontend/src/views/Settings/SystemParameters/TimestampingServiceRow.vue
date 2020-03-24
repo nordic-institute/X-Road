@@ -71,14 +71,12 @@ export default Vue.extend({
           this.deleting = false;
           this.confirmDeleteDialog = false;
           this.$emit('deleted');
-          this.$bus.$emit(
-            'show-success',
-            this.$t(
-              'systemParameters.timestampingServices.table.action.delete.success',
-            ),
+          this.$store.dispatch(
+            'showSuccess',
+            'systemParameters.timestampingServices.table.action.delete.success',
           );
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
   },
 });
