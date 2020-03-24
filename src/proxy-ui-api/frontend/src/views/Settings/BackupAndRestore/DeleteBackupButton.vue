@@ -56,14 +56,14 @@ export default Vue.extend({
         .remove(`/backups/${this.backup.filename}`)
         .then(() => {
           this.$emit('deleted');
-          this.$bus.$emit(
-            'show-success',
+          this.$store.dispatch(
+            'showSuccessRaw',
             this.$t('backup.action.delete.success', {
               file: this.backup.filename,
             }),
           );
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.deleting = false));
     },
   },
