@@ -22,8 +22,10 @@
 
     <div class="edit-row">
       <div>{{$t('services.serviceType')}}</div>
-      <div class="code-input">{{serviceDesc.type === 'OPENAPI3'
-        ? $t('services.OpenApi3Description') : $t('services.restApiBasePath')}}</div>
+      <div class="code-input">
+        {{serviceDesc.type === 'OPENAPI3'
+        ? $t('services.OpenApi3Description') : $t('services.restApiBasePath')}}
+      </div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
@@ -111,7 +113,6 @@
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
     ></warningDialog>
-
   </div>
 </template>
 
@@ -128,7 +129,7 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import {ServiceDescription} from '@/types';
+import { ServiceDescription } from '@/types';
 
 export default Vue.extend({
   components: {
@@ -176,21 +177,27 @@ export default Vue.extend({
         type: this.serviceDesc.type,
       } as any;
 
-      if (serviceDescriptionUpdate.type === 'REST' || serviceDescriptionUpdate.type === 'OPENAPI3') {
+      if (
+        serviceDescriptionUpdate.type === 'REST' ||
+        serviceDescriptionUpdate.type === 'OPENAPI3'
+      ) {
         serviceDescriptionUpdate.ignore_warnings = false;
         serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
-        const currentServiceCode = this.serviceDesc.services && this.serviceDesc.services[0]
-          && this.serviceDesc.services[0].service_code;
+        const currentServiceCode =
+          this.serviceDesc.services &&
+          this.serviceDesc.services[0] &&
+          this.serviceDesc.services[0].service_code;
 
         serviceDescriptionUpdate.new_rest_service_code =
-                serviceDescriptionUpdate.rest_service_code !== currentServiceCode ? currentServiceCode :
-                serviceDescriptionUpdate.rest_service_code;
+          serviceDescriptionUpdate.rest_service_code !== currentServiceCode
+            ? currentServiceCode
+            : serviceDescriptionUpdate.rest_service_code;
       }
 
       api
         .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
         .then((res) => {
-          this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
           this.$router.go(-1);
         })
@@ -199,7 +206,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.confirmEditWarning = true;
           } else {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
             this.saveBusy = false;
           }
         });
@@ -210,11 +217,13 @@ export default Vue.extend({
         .get(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
-          this.initialServiceCode = this.serviceDesc.services && this.serviceDesc.services[0]
-                  && this.serviceDesc.services[0].service_code;
+          this.initialServiceCode =
+            this.serviceDesc.services &&
+            this.serviceDesc.services[0] &&
+            this.serviceDesc.services[0].service_code;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -229,13 +238,13 @@ export default Vue.extend({
       api
         .remove(`/service-descriptions/${this.id}`)
         .then(() => {
-          this.$bus.$emit('show-success', 'services.deleted');
+          this.$store.dispatch('showSuccess', 'services.deleted');
           this.confirmWSDLDelete = false;
           this.confirmRESTDelete = false;
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -251,11 +260,11 @@ export default Vue.extend({
       api
         .patch(`/service-descriptions/${this.id}`, tempDesc)
         .then((res) => {
-          this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.saveBusy = false;

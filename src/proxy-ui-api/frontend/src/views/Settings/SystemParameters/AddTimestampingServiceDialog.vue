@@ -115,7 +115,7 @@ export default Vue.extend({
       api
         .get('/timestamping-services')
         .then((resp) => (this.approvedTimestampingServices = resp.data))
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     add(): void {
       this.loading = true;
@@ -125,14 +125,12 @@ export default Vue.extend({
           this.$emit('added');
           this.loading = false;
           this.close();
-          this.$bus.$emit(
-            'show-success',
-            this.$t(
-              'systemParameters.timestampingServices.action.add.dialog.success',
-            ),
+          this.$store.dispatch(
+            'showSuccess',
+            'systemParameters.timestampingServices.action.add.dialog.success',
           );
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     close(): void {
       this.show = false;

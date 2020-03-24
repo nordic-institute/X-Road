@@ -268,7 +268,10 @@ export default Vue.extend({
         params: { id: desc.id },
       });
     },
-    serviceClick(serviceDescription: ServiceDescription, service: Service): void {
+    serviceClick(
+      serviceDescription: ServiceDescription,
+      service: Service,
+    ): void {
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id, clientId: this.id },
@@ -290,10 +293,10 @@ export default Vue.extend({
       api
         .put(`/service-descriptions/${serviceDesc.id}/enable`, {})
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.enableSuccess');
+          this.$store.dispatch('showSuccess', 'services.enableSuccess');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           // Whatever happens, refresh the data
@@ -316,10 +319,10 @@ export default Vue.extend({
           disabled_notice: notice,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.disableSuccess');
+          this.$store.dispatch('showSuccess', 'services.disableSuccess');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData();
@@ -349,7 +352,7 @@ export default Vue.extend({
           type: 'WSDL',
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.wsdlAdded');
+          this.$store.dispatch('showSuccess', 'services.wsdlAdded');
           this.addBusy = false;
           this.fetchData();
         })
@@ -360,10 +363,13 @@ export default Vue.extend({
           } else if (
             error.response.data.error.code === 'service_already_exists'
           ) {
-            this.$bus.$emit('show-error', 'service already exists');
+            this.$store.dispatch(
+              'showErrorMessageRaw',
+              'service already exists',
+            );
             this.addBusy = false;
           } else {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
             this.addBusy = false;
           }
         });
@@ -379,10 +385,10 @@ export default Vue.extend({
           ignore_warnings: true,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.wsdlAdded');
+          this.$store.dispatch('showSuccess', 'services.wsdlAdded');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData();
@@ -415,9 +421,11 @@ export default Vue.extend({
       this.refreshButtonComponentKey += 1; // update component key to make spinner work
 
       api
-        .put(`/service-descriptions/${serviceDescription.id}/refresh`, {ignore_warnings: false})
+        .put(`/service-descriptions/${serviceDescription.id}/refresh`, {
+          ignore_warnings: false,
+        })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.refreshed');
+          this.$store.dispatch('showSuccess', 'services.refreshed');
           this.fetchData();
         })
         .catch((error) => {
@@ -426,7 +434,7 @@ export default Vue.extend({
             this.refreshWarningDialog = true;
             this.refreshId = serviceDescription.id;
           } else {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
             this.fetchData();
           }
         }).finally( () => {
@@ -440,10 +448,10 @@ export default Vue.extend({
           ignore_warnings: true,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.refreshed');
+          this.$store.dispatch('showSuccess', 'services.refreshed');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.fetchData();
@@ -473,7 +481,7 @@ export default Vue.extend({
           this.serviceDescriptions = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },
