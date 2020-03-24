@@ -145,7 +145,8 @@ public class SystemApiController implements SystemApi {
     public ResponseEntity<TimestampingService> addConfiguredTimestampingService(
             TimestampingService timestampingServiceToAdd) {
         try {
-            systemService.addConfiguredTimestampingService(timestampingServiceToAdd);
+            systemService.addConfiguredTimestampingService(timestampingServiceConverter
+                    .convert(timestampingServiceToAdd));
         } catch (SystemService.DuplicateConfiguredTimestampingServiceException e) {
             throw new ConflictException(e);
         } catch (TimestampingServiceNotFoundException e) {
@@ -158,7 +159,8 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('DELETE_TSP')")
     public ResponseEntity<Void> deleteConfiguredTimestampingService(TimestampingService timestampingService) {
         try {
-            systemService.deleteConfiguredTimestampingService(timestampingService);
+            systemService.deleteConfiguredTimestampingService(timestampingServiceConverter
+                    .convert(timestampingService));
         } catch (TimestampingServiceNotFoundException e) {
             throw new BadRequestException(e);
         }

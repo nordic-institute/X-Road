@@ -65,11 +65,11 @@ export default Vue.extend({
           description: this.description,
         })
         .then(() => {
-          this.$bus.$emit('show-success', 'localGroup.localGroupAdded');
+          this.$store.dispatch('showSuccess', 'localGroup.localGroupAdded');
           this.$emit('groupAdded');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => this.clearForm());
     },

@@ -207,7 +207,7 @@ public class SystemApiControllerTest {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
-                .addConfiguredTimestampingService(timestampingService);
+                .addConfiguredTimestampingService(any());
 
         try {
             ResponseEntity<TimestampingService> response = systemApiController
@@ -227,7 +227,7 @@ public class SystemApiControllerTest {
                 .createTimestampingService("http://dummy.com", "Dummy");
 
         doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
-                .addConfiguredTimestampingService(timestampingService);
+                .addConfiguredTimestampingService(any());
 
         try {
             ResponseEntity<TimestampingService> response = systemApiController
@@ -252,7 +252,7 @@ public class SystemApiControllerTest {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
-                .deleteConfiguredTimestampingService(timestampingService);
+                .deleteConfiguredTimestampingService(any());
 
         try {
             ResponseEntity<Void> response = systemApiController
