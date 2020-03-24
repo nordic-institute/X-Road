@@ -67,68 +67,68 @@ export const getters: GetterTree<NotificationsState, RootState> = {
 };
 
 export const mutations: MutationTree<NotificationsState> = {
-  resetNotificationsState(state) {
+  resetNotificationsState(state): void {
     Object.assign(state, getDefaultState());
   },
-  setSuccessCode(state: NotificationsState, val: string) {
+  setSuccessCode(state: NotificationsState, val: string): void {
     state.successMessageCode = val;
     state.showSuccessCode = true;
   },
-  setSuccessRaw(state: NotificationsState, val: string) {
+  setSuccessRaw(state: NotificationsState, val: string): void {
     state.successMessageRaw = val;
     state.showSuccessRaw = true;
   },
-  setErrorMessageCode(state: NotificationsState, val: string) {
+  setErrorMessageCode(state: NotificationsState, val: string): void {
     state.errorMessageCode = val;
     state.showErrorCode = true;
   },
-  setErrorMessageRaw(state: NotificationsState, val: string) {
+  setErrorMessageRaw(state: NotificationsState, val: string): void {
     state.errorMessageRaw = val;
     state.showErrorRaw = true;
   },
-  setErrorObject(state: NotificationsState, errorObject: any) {
+  setErrorObject(state: NotificationsState, errorObject: any): void {
     state.errorObject = errorObject;
     state.showErrorObject = true;
   },
-  setSuccessRawVisible(state: NotificationsState, val: boolean) {
+  setSuccessRawVisible(state: NotificationsState, val: boolean): void {
     state.showSuccessRaw = val;
   },
-  setSuccessCodeVisible(state: NotificationsState, val: boolean) {
+  setSuccessCodeVisible(state: NotificationsState, val: boolean): void {
     state.showSuccessCode = val;
   },
-  setErrorRawVisible(state: NotificationsState, val: boolean) {
+  setErrorRawVisible(state: NotificationsState, val: boolean): void {
     state.showErrorRaw = val;
   },
-  setErrorCodeVisible(state: NotificationsState, val: boolean) {
+  setErrorCodeVisible(state: NotificationsState, val: boolean): void {
     state.showErrorCode = val;
   },
-  setErrorObjectVisible(state: NotificationsState, val: boolean) {
+  setErrorObjectVisible(state: NotificationsState, val: boolean): void {
     state.showErrorObject = val;
   },
 };
 
 export const actions: ActionTree<NotificationsState, RootState> = {
-  resetNotificationsState({ commit }) {
+  resetNotificationsState({ commit }): void {
     // Clear the store state
     commit('resetNotificationsState');
   },
-  showSuccess({ commit }, localisationCode: string) {
+  showSuccess({ commit }, localisationCode: string): void {
     // Show success snackbar with a localisation code for text
     commit('setSuccessCode', localisationCode);
   },
-  showSuccessRaw({ commit }, messageText: string) {
+  showSuccessRaw({ commit }, messageText: string): void {
     // Show success snackbar without localisation
     commit('setSuccessRaw', messageText);
   },
-  showErrorMessageCode({ commit }, localisationCode: string) {
+  showErrorMessageCode({ commit }, localisationCode: string): void {
     // Show error snackbar with a localisation code for text
     commit('setErrorMessageCode', localisationCode);
   },
-  showErrorMessageRaw({ commit }, messageText: string) {
+  showErrorMessageRaw({ commit }, messageText: string): void {
     // Show error snackbar without localisation
     commit('setErrorMessageRaw', messageText);
   },
-  showError({ commit }, errorObject: any) {
+  showError({ commit }, errorObject: any): void {
     // Show error using the error object
     commit('setErrorObject', errorObject);
   },
