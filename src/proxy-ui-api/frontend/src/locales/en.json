@@ -364,7 +364,7 @@
       },
       "table": {
         "header": {
-          "distinguishedName": "Distinguished Name",
+          "distinguishedName": "Hash (SHA-224)",
           "generated": "Generated"
         }
       }
