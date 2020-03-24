@@ -199,7 +199,7 @@ export default Vue.extend({
             }
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         );
     },
@@ -218,7 +218,7 @@ export default Vue.extend({
             this.$emit('done');
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         );
     },

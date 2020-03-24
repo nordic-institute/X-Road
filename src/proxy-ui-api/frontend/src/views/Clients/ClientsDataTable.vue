@@ -235,7 +235,7 @@ export default Vue.extend({
             this.$bus.$emit('show-success', 'error.message');
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         );
     },
@@ -253,7 +253,7 @@ export default Vue.extend({
             this.$bus.$emit('show-success', 'error.message');
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         );
     },

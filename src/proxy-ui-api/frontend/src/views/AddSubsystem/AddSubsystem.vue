@@ -211,7 +211,7 @@ export default Vue.extend({
             }
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         );
     },
@@ -230,7 +230,7 @@ export default Vue.extend({
             this.exitView();
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         );
     },
@@ -250,7 +250,7 @@ export default Vue.extend({
 
       // Fetch "parent" client from backend
       this.$store.dispatch('fetchClient', this.clientId).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
   },
