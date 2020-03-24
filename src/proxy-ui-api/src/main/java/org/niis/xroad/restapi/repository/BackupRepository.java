@@ -52,6 +52,7 @@ public class BackupRepository {
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
+    private static final String INVALID_BACKUP_FILENAME = "invalid backup filename";
 
     /**
      * Read backup files from configuration backup path
@@ -88,7 +89,7 @@ public class BackupRepository {
      */
     public void deleteBackupFile(String filename) {
         if (!FormatUtils.isValidBackupFilename(filename)) {
-            throw new RuntimeException("invalid backup filename");
+            throw new RuntimeException(INVALID_BACKUP_FILENAME);
         }
         Path path = getFilePath(filename);
         try {
@@ -106,7 +107,7 @@ public class BackupRepository {
      */
     public byte[] readBackupFile(String filename) {
         if (!FormatUtils.isValidBackupFilename(filename)) {
-            throw new RuntimeException("invalid backup filename");
+            throw new RuntimeException(INVALID_BACKUP_FILENAME);
         }
         Path path = getFilePath(filename);
         try {
@@ -125,7 +126,7 @@ public class BackupRepository {
      */
     public OffsetDateTime writeBackupFile(String filename, byte[] content) {
         if (!FormatUtils.isValidBackupFilename(filename)) {
-            throw new RuntimeException("invalid backup filename");
+            throw new RuntimeException(INVALID_BACKUP_FILENAME);
         }
         Path path = getFilePath(filename);
         try {
