@@ -202,7 +202,6 @@ public class BackupServiceTest {
             InvalidFilenameException {
         MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, VALID_TAR_LABEL);
 
-        // when(backupRepository.isFilenameValid(BACKUP_FILE_1_NAME)).thenReturn(true);
         when(backupRepository.fileExists(BACKUP_FILE_1_NAME)).thenReturn(false);
         when(backupRepository.writeBackupFile(BACKUP_FILE_1_NAME, multipartFile.getBytes())).thenReturn(
                 new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
@@ -219,7 +218,6 @@ public class BackupServiceTest {
             InvalidFilenameException {
         MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, "invalid_label");
 
-        // when(backupRepository.isFilenameValid(BACKUP_FILE_1_NAME)).thenReturn(true);
         when(backupRepository.fileExists(BACKUP_FILE_1_NAME)).thenReturn(false);
 
         try {
