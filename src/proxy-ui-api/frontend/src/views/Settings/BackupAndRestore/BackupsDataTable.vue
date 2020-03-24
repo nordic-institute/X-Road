@@ -52,9 +52,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import * as api from '@/util/api';
 import { Backup } from '@/types';
 import { selectedFilter } from '@/util/helpers';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   props: {
@@ -67,29 +67,15 @@ export default Vue.extend({
       default: false,
       required: true,
     },
+    backups: {
+      type: Array as Prop<Backup[]>,
+      required: true,
+    },
   },
-  data: () => ({
-    backups: [] as Backup[],
-  }),
   methods: {
     filtered(): Backup[] {
       return selectedFilter(this.backups, this.filter, 'created_at');
     },
-    fetchData(): void {
-      api
-        .get('/backups')
-        .then((res) => {
-          this.backups = res.data.sort((a: Backup, b: Backup) => {
-            return b.created_at > a.created_at;
-          });
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-    },
-  },
-  created(): void {
-    this.fetchData();
   },
 });
 </script>

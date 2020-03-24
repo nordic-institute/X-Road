@@ -12,15 +12,14 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <div>
-        <v-btn
+        <large-button
           v-if="canBackup"
           color="primary"
-          rounded
-          dark
-          class="button-spacing rounded-button elevation-0"
+          :loading="creatingBackup"
           data-test="backup-create-configuration"
-          >{{ $t('backup.backupConfiguration') }}
-        </v-btn>
+          @click="createBackup"
+          >{{ $t('backup.backupConfiguration.button') }}
+        </large-button>
         <v-btn
           v-if="canBackup"
           color="primary"
@@ -32,7 +31,11 @@
         </v-btn>
       </div>
     </div>
-    <BackupsDataTable :canBackup="canBackup" :filter="search" />
+    <BackupsDataTable
+      :canBackup="canBackup"
+      :backups="backups"
+      :filter="search"
+    />
   </div>
 </template>
 
@@ -43,14 +46,21 @@
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import * as api from '@/util/api';
+import { Backup } from '@/types';
+import { AxiosResponse } from 'axios';
 
 export default Vue.extend({
   components: {
     BackupsDataTable,
+    LargeButton,
   },
   data() {
     return {
       search: '' as string,
+      creatingBackup: false,
+      backups: [] as Backup[],
     };
   },
   computed: {
@@ -59,6 +69,39 @@ export default Vue.extend({
         Permissions.BACKUP_CONFIGURATION,
       );
     },
+  },
+  methods: {
+    async fetchData() {
+      return api
+        .get('/backups')
+        .then((res) => {
+          this.backups = res.data.sort((a: Backup, b: Backup) => {
+            return b.created_at > a.created_at;
+          });
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+    async createBackup() {
+      this.creatingBackup = true;
+      return api
+        .post('/backups', null)
+        .then((resp: AxiosResponse<Backup>) => {
+          this.$bus.$emit(
+            'show-success',
+            this.$t('backup.backupConfiguration.message.success', {
+              file: resp.data.filename,
+            }),
+          );
+          this.fetchData();
+        })
+        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .finally(() => (this.creatingBackup = false));
+    },
+  },
+  created(): void {
+    this.fetchData();
   },
 });
 </script>
