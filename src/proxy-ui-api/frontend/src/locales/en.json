@@ -31,7 +31,7 @@
     "backupConfiguration": {
       "button": "Back up config.",
       "message": {
-        "success": "Back up {file} successfully created"
+        "success": "Backup {file} successfully created"
       }
     },
     "uploadBackup": "Upload backup"
