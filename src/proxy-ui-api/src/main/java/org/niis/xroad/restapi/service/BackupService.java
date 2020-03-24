@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.BackupRepository;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -169,7 +170,7 @@ public class BackupService {
      */
     public BackupFile uploadBackup(Boolean ignoreWarnings, String filename, byte[] fileBytes)
             throws InvalidFilenameException, UnhandledWarningsException, InvalidBackupFileException {
-        if (!backupRepository.isFilenameValid(filename)) {
+        if (!FormatUtils.isValidBackupFilename(filename)) {
             throw new InvalidFilenameException("uploading backup file failed because of invalid filename ("
                     + filename + ")");
         }
