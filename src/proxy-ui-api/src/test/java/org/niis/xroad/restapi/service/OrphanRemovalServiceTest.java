@@ -239,10 +239,10 @@ public class OrphanRemovalServiceTest {
         doReturn(Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
         Map<ClientId, ClientType> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
-                    ClientType clientType = new ClientType();
-                    clientType.setIdentifier(id);
-                    localClients.put(id, clientType);
-                });
+            ClientType clientType = new ClientType();
+            clientType.setIdentifier(id);
+            localClients.put(id, clientType);
+        });
         doReturn(new ArrayList(localClients.values())).when(clientService).getAllLocalClients();
         doAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];

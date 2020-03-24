@@ -280,11 +280,11 @@ export default Vue.extend({
           { address },
         )
         .then((res) => {
-          this.$bus.$emit('show-success', 'keys.certificateRegistered');
+          this.$store.dispatch('showSuccess', 'keys.certificateRegistered');
           this.$emit('refreshList');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
@@ -302,11 +302,11 @@ export default Vue.extend({
       api
         .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
         .then((res) => {
-          this.$bus.$emit('show-success', 'keys.csrDeleted');
+          this.$store.dispatch('showSuccess', 'keys.csrDeleted');
           this.$emit('refreshList');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

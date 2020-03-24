@@ -75,7 +75,7 @@ export default Vue.extend({
           this.$store.dispatch('setService', res.data);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
 
       api
@@ -84,14 +84,16 @@ export default Vue.extend({
           this.$store.dispatch('setAccessRightsSubjects', res.data);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
     close(): void {
-      this.$router.push({ name: RouteName.SubsystemServices, params: { id: this.clientId }} );
+      this.$router.push({
+        name: RouteName.SubsystemServices,
+        params: { id: this.clientId },
+      });
     },
-
   },
 
   created() {

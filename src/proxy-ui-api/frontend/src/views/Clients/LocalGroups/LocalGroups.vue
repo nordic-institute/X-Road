@@ -124,7 +124,7 @@ export default Vue.extend({
           });
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },
@@ -141,17 +141,6 @@ export default Vue.extend({
 
 .details-certificates {
   margin-top: 40px;
-}
-
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  padding-left: 24px;
-  margin-bottom: 24px;
 }
 
 .search-input {

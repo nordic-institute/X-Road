@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.23"
+  version: "1.0.24"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -86,14 +86,27 @@ paths:
       summary: upload new backup for the security server
       operationId: uploadBackup
       description: Uploads new security server backup to the system
+      parameters:
+        - in: query
+          name: ignore_warnings
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+                    any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
+            default: false
       requestBody:
         description: backup to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: backup file
+              title: BackupArchive
+              type: object
+              description: security server backup archive file
+              properties:
+                file:
+                  type: string
+                  format: binary
       responses:
         '201':
           description: item created
@@ -1502,6 +1515,34 @@ paths:
                 description: array of Subjects
                 items:
                   $ref: '#/components/schemas/Subject'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /clients/owner:
+    put: # ok
+      tags:
+        - security server
+      summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
+      operationId: changeOwner
+      description: Administrator changes Security Server's owner.
+      requestBody:
+        description: client to be set as owner
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        '204':
+          description: client was set as owner
         '400':
           description: request was invalid
         '401':
@@ -3299,6 +3340,13 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: include_intermediate_cas
+          description: if true, include also intermediate CAs. Otherwise only top CAs are included. Default value is "false".
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: list of approved certificate authorities
@@ -4151,42 +4199,57 @@ components:
             $ref: '#/components/schemas/KeyUsage'
     CertificateAuthority: # ok
       type: object
-      description: approved certificate authority information
+      description: approved certificate authority information. Only for top CAs.
       required:
         - name
-        - distinguished_name
-        - response
-        - expires_at
+        - subject_distinguished_name
+        - issuer_distinguished_name
+        - ocsp_response
+        - not_after
+        - top_ca
+        - path
         - authentication_only
       properties:
         name:
           type: string
           format: text
-          description: common name of the CA, used also as an identifier
+          description: name of the CA, as defined in global conf. Used also as an identifier
           example: X-Road Test CA CN
           minLength: 1
           maxLength: 255
-        distinguished_name:
+        subject_distinguished_name:
           type: string
           format: text
-          description: distinguished name
+          description: subject distinguished name
           example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
-          maxLength: 255
-        response:
+          maxLength: 1024
+        issuer_distinguished_name:
           type: string
           format: text
-          description: certificate authority response
-          example: N/A
+          description: issuer distinguished name
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
-          maxLength: 1000
-        expires_at:
+          maxLength: 1024
+        ocsp_response:
+          $ref: '#/components/schemas/CertificateAuthorityOcspResponse'
+        not_after:
           type: string
           format: date-time
           description: certificate authority expires at
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        top_ca:
+          type: boolean
+          description: if the certificate authority is top CA (instead of intermediate)
+          example: true
+        path:
+          type: string
+          format: text
+          description: encoded path string from this CA to top CA
+          example: C=FI, O=X-Road Test Intermediate, OU=X-Road Test CA OU, CN=X-Road Test CA CN Intermediate:C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
         authentication_only:
           type: boolean
           description: if certificate authority is limited for authentication use only
@@ -4201,6 +4264,17 @@ components:
         - REGISTERED
         - DELETION_IN_PROGRESS
         - GLOBAL_ERROR
+    CertificateAuthorityOcspResponse: # ok
+      type: string
+      format: enum
+      description: certificate authority OCSP status
+      example: IN_USE
+      enum:
+        - NOT_AVAILABLE
+        - OCSP_RESPONSE_UNKNOWN
+        - OCSP_RESPONSE_GOOD
+        - OCSP_RESPONSE_SUSPENDED
+        - OCSP_RESPONSE_REVOKED
     CertificateOcspStatus: # ok
       type: string
       format: enum

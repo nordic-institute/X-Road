@@ -158,12 +158,12 @@ export default Vue.extend({
         .patch(`/keys/${this.id}`, this.key)
         .then((res: any) => {
           this.saveBusy = false;
-          this.$bus.$emit('show-success', 'keys.keySaved');
+          this.$store.dispatch('showSuccess', 'keys.keySaved');
           this.close();
         })
         .catch((error: any) => {
           this.saveBusy = false;
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -175,7 +175,7 @@ export default Vue.extend({
           this.fetchPossibleActions(id);
         })
         .catch((error: any) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -196,11 +196,11 @@ export default Vue.extend({
       api
         .remove(`/keys/${this.id}`)
         .then((res: any) => {
-          this.$bus.$emit('show-success', 'keys.keyDeleted');
+          this.$store.dispatch('showSuccess', 'keys.keyDeleted');
           this.close();
         })
         .catch((error: any) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
   },

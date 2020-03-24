@@ -1,5 +1,4 @@
-@import '../assets/colors'; 
-
+@import '../assets/colors';
 
 // Use this to set up font etc. common things for normal views
 .xrd-view-common {
@@ -18,11 +17,11 @@
   margin-right: 4px;
   min-width: 120px;
   text-transform: capitalize;
-  
+
   .v-btn__loader {
     .v-progress-circular {
-      width: 16px  !important;
-      height: 16px  !important;
+      width: 16px !important;
+      height: 16px !important;
     }
   }
 }
@@ -40,15 +39,17 @@
 }
 
 .xrd-tabs {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 1000px;
   border-bottom: $XRoad-Grey40 solid 1px;
 }
-
 
 // Set validation provider to full width
 .validation-provider {
   width: 100%;
 }
-
 
 // Override vuetify styling in alert dialog card
 .xrd-card {

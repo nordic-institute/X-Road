@@ -27,6 +27,10 @@
       "parameters": "Service Parameters"
     }
   },
+  "backup": {
+    "backupConfiguration": "Back up config.",
+    "uploadBackup": "Upload backup"
+  },
   "client": {
     "name": "Name",
     "id": "ID",
@@ -205,9 +209,11 @@
     "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
+    "download": "Download",
     "remove": "Remove",
     "removeAll": "Remove All",
     "register": "Register",
+    "restore": "Restore",
     "unregister": "Unregister",
     "save": "Save",
     "confirm": "Confirm",
@@ -336,6 +342,73 @@
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
+  "systemParameters": {
+    "title": "System parameters",
+    "configurationAnchor": {
+      "title": "Configuration Anchor",
+      "action": {
+        "download": "DOWNLOAD",
+        "upload": {
+          "button": "UPLOAD",
+          "dialog": {
+            "title": "Confirm configuration anchor details",
+            "info": "Configuration anchor details:",
+            "confirmation": "Continue with import?",
+            "field": {
+              "hash": "Hash (SHA-224)",
+              "generated": "Generated"
+            },
+            "success": "Configuration anchor uploaded"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "distinguishedName": "Hash (SHA-224)",
+          "generated": "Generated"
+        }
+      }
+    },
+    "timestampingServices": {
+      "title": "Timestamping Services",
+      "action": {
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "certificateHash": "Certificate Hash (SHA/1)",
+          "serviceURL": "Service URL"
+        },
+        "action": {
+          "delete": "DELETE"
+        }
+      }
+    },
+    "approvedCertificateAuthorities": {
+      "title": "Approved Certificate Authorities",
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "ocspResponse": "OCSP Response",
+          "expires": "Expires"
+        },
+        "ocspResponse": {
+          "NOT_AVAILABLE": "N/A",
+          "OCSP_RESPONSE_UNKNOWN": "Unknown",
+          "OCSP_RESPONSE_GOOD": "Good",
+          "OCSP_RESPONSE_SUSPENDED": "Suspended",
+          "OCSP_RESPONSE_REVOKED": "Revoked"
+        }
+      }
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -364,6 +437,7 @@
   "instance": "Instance",
   "type": "Type",
   "warning": "Warning",
+  "id": "ID",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
