@@ -79,24 +79,22 @@ export default Vue.extend({
             return b.created_at > a.created_at;
           });
         })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     async createBackup() {
       this.creatingBackup = true;
       return api
         .post('/backups', null)
         .then((resp: AxiosResponse<Backup>) => {
-          this.$bus.$emit(
-            'show-success',
+          this.$store.dispatch(
+            'showSuccessRaw',
             this.$t('backup.backupConfiguration.message.success', {
               file: resp.data.filename,
             }),
           );
           this.fetchData();
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.creatingBackup = false));
     },
   },
