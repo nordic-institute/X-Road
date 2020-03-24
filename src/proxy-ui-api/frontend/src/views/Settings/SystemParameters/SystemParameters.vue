@@ -3,9 +3,11 @@
     <v-card flat class="xrd-card">
       <v-container>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
-          <v-col>
-            <h3>{{ $t('systemParameters.configurationAnchor.title') }}</h3>
-          </v-col>
+          <v-col
+            ><h3>
+              {{ $t('systemParameters.configurationAnchor.title') }}
+            </h3></v-col
+          >
           <v-col class="text-right">
             <large-button
               data-test="system-parameters-configuration-anchor-download-button"
@@ -13,8 +15,10 @@
               :loading="downloadingAnchor"
               outlined
               :requires-permission="permissions.DOWNLOAD_ANCHOR"
-            >{{ $t('systemParameters.configurationAnchor.action.download') }}</large-button>
-            <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" />
+            >
+              {{ $t('systemParameters.configurationAnchor.action.download') }}
+            </large-button>
+            <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor"/>
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
@@ -24,38 +28,45 @@
                 <tr>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.configurationAnchor.table.header.distinguishedName',
-                    )
+                      $t(
+                        'systemParameters.configurationAnchor.table.header.distinguishedName',
+                      )
                     }}
                   </th>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.configurationAnchor.table.header.generated',
-                    )
+                      $t(
+                        'systemParameters.configurationAnchor.table.header.generated',
+                      )
                     }}
                   </th>
                 </tr>
               </thead>
-              <tbody data-test="system-parameters-configuration-anchor-table-body">
+              <tbody
+                data-test="system-parameters-configuration-anchor-table-body"
+              >
                 <tr>
-                  <td>{{ this.configuratonAnchor.hash }}</td>
-                  <td>{{ this.configuratonAnchor.created_at | formatDateTime }}</td>
+                  <td>{{ this.configuratonAnchor.hash | colonize }}</td>
+                  <td>
+                    {{ this.configuratonAnchor.created_at | formatDateTime }}
+                  </td>
                 </tr>
               </tbody>
             </table>
           </v-col>
         </v-row>
-        <v-row no-gutters class="mt-10" v-if="hasPermission(permissions.VIEW_TSPS)">
-          <v-col>
-            <h3>{{ $t('systemParameters.timestampingServices.title') }}</h3>
-          </v-col>
+        <v-row
+          no-gutters
+          class="mt-10"
+          v-if="hasPermission(permissions.VIEW_TSPS)"
+        >
+          <v-col
+            ><h3>
+              {{ $t('systemParameters.timestampingServices.title') }}
+            </h3></v-col
+          >
           <v-col class="text-right">
-            <add-timestamping-service-dialog
-              :configured-timestamping-services="configuredTimestampingServices"
-              @added="fetchConfiguredTimestampingServiced"
-            />
+            <add-timestamping-service-dialog :configured-timestamping-services="configuredTimestampingServices" @added="fetchConfiguredTimestampingServiced"/>
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
@@ -65,22 +76,24 @@
                 <tr>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.timestampingServices.table.header.certificateHash',
-                    )
+                      $t(
+                        'systemParameters.timestampingServices.table.header.certificateHash',
+                      )
                     }}
                   </th>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.timestampingServices.table.header.serviceURL',
-                    )
+                      $t(
+                        'systemParameters.timestampingServices.table.header.serviceURL',
+                      )
                     }}
                   </th>
                   <th>&nbsp;</th>
                 </tr>
               </thead>
-              <tbody data-test="system-parameters-timestamping-services-table-body">
+              <tbody
+                data-test="system-parameters-timestamping-services-table-body"
+              >
                 <tr
                   v-for="timestampingService in this
                     .configuredTimestampingServices"
@@ -95,9 +108,9 @@
                       :requires-permission="permissions.DELETE_TSP"
                     >
                       {{
-                      $t(
-                      'systemParameters.timestampingServices.table.action.delete',
-                      )
+                        $t(
+                          'systemParameters.timestampingServices.table.action.delete',
+                        )
                       }}
                     </small-button>
                   </td>
@@ -107,9 +120,11 @@
           </v-col>
         </v-row>
         <v-row no-gutters class="mt-10">
-          <v-col>
-            <h3>{{ $t('systemParameters.approvedCertificateAuthorities.title') }}</h3>
-          </v-col>
+          <v-col
+            ><h3>
+              {{ $t('systemParameters.approvedCertificateAuthorities.title') }}
+            </h3></v-col
+          >
         </v-row>
         <v-row no-gutters>
           <v-col>
@@ -118,47 +133,52 @@
                 <tr>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.distinguishedName',
-                    )
+                      $t(
+                        'systemParameters.approvedCertificateAuthorities.table.header.distinguishedName',
+                      )
                     }}
                   </th>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
-                    )
+                      $t(
+                        'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
+                      )
                     }}
                   </th>
                   <th>
                     {{
-                    $t(
-                    'systemParameters.approvedCertificateAuthorities.table.header.expires',
-                    )
+                      $t(
+                        'systemParameters.approvedCertificateAuthorities.table.header.expires',
+                      )
                     }}
                   </th>
                 </tr>
               </thead>
               <tbody data-test="system-parameters-approved-ca-table-body">
-                <tr v-for="approvedCA in orderedCertificateAuthorities" :key="approvedCA.path">
+                <tr
+                  v-for="approvedCA in orderedCertificateAuthorities"
+                  :key="approvedCA.path"
+                >
                   <td
                     :class="{
                       'interm-ca': !approvedCA.top_ca,
                       'root-ca': approvedCA.top_ca,
                     }"
-                  >{{ approvedCA.subject_distinguished_name }}</td>
+                  >
+                    {{ approvedCA.subject_distinguished_name }}
+                  </td>
                   <td v-if="approvedCA.top_ca">
                     {{
-                    $t(
-                    'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
-                    )
+                      $t(
+                        'systemParameters.approvedCertificateAuthorities.table.ocspResponse.NOT_AVAILABLE',
+                      )
                     }}
                   </td>
                   <td v-if="!approvedCA.top_ca">
                     {{
-                    $t(
-                    `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
-                    )
+                      $t(
+                        `systemParameters.approvedCertificateAuthorities.table.ocspResponse.${approvedCA.ocsp_response}`,
+                      )
                     }}
                   </td>
                   <td>{{ approvedCA.not_after | formatDate }}</td>
@@ -214,19 +234,19 @@ export default Vue.extend({
       return api
         .get('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
     async fetchConfiguredTimestampingServiced() {
       return api
         .get('/system/timestamping-services')
         .then((resp) => (this.configuredTimestampingServices = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
     async fetchApprovedCertificateAuthorities() {
       return api
         .get('/certificate-authorities?include_intermediate_cas=true')
         .then((resp) => (this.certificateAuthorities = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;
@@ -234,9 +254,9 @@ export default Vue.extend({
         .get('/system/anchor/download', { responseType: 'blob' })
         .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.$bus.$emit('show-error', error.message);
         })
-        .finally(() => (this.downloadingAnchor = false));
+        .finally(() => this.downloadingAnchor = false);
     },
   },
   created(): void {
