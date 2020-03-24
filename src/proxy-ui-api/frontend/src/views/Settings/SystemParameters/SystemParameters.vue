@@ -46,7 +46,7 @@
                 data-test="system-parameters-configuration-anchor-table-body"
               >
                 <tr>
-                  <td>{{ this.configuratonAnchor.hash }}</td>
+                  <td>{{ this.configuratonAnchor.hash | colonize }}</td>
                   <td>
                     {{ this.configuratonAnchor.created_at | formatDateTime }}
                   </td>
