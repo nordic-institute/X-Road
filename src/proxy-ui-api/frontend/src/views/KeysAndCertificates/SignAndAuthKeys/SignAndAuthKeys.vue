@@ -141,7 +141,7 @@ export default Vue.extend({
     fetchData(): void {
       // Fetch tokens from backend
       this.$store.dispatch('fetchTokens').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
     acceptTokenLogout(): void {
@@ -153,10 +153,10 @@ export default Vue.extend({
 
       this.$store.dispatch('tokenLogout', token.id).then(
         (response) => {
-          this.$bus.$emit('show-success', 'keys.loggedOut');
+          this.$store.dispatch('showSuccess', 'keys.loggedOut');
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
 
