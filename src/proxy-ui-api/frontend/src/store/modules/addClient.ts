@@ -10,11 +10,10 @@ export interface AddClientState {
   tokens: Token[];
   tokenId: string | undefined;
   members: Client[];
-  localMembers: Client[];
   selectedMember: Client;
   memberClass: string;
   memberCode: string;
-  subsystemCode: string;
+  subsystemCode: string | undefined;
 }
 
 const getDefaultState = () => {
@@ -22,11 +21,10 @@ const getDefaultState = () => {
     expandedTokens: [],
     tokens: [],
     members: [],
-    localMembers: [],
     selectedMember: { member_class: '', member_code: '', subsystem_code: '' },
     memberClass: '',
     memberCode: '',
-    subsystemCode: '',
+    subsystemCode: undefined,
     tokenId: undefined,
   };
 };
@@ -40,30 +38,17 @@ export const getters: GetterTree<AddClientState, RootState> = {
   members(state): Client[] {
     return state.members;
   },
-  addClientLocalMembers(state): Client[] {
-    return state.localMembers;
-  },
   memberClass(state): string {
     return state.memberClass;
   },
   memberCode(state): string {
     return state.memberCode;
   },
-  subsystemCode(state): string {
+  subsystemCode(state): string | undefined {
     return state.subsystemCode;
   },
   selectedMember(state): Client | undefined {
     return state.selectedMember;
-  },
-  duplicateClient(state): boolean {
-    if (!state.selectedMember) {
-      return false;
-    }
-
-    if (state.localMembers.some((e) => e.member_class === state.selectedMember.member_class)) {
-      return true;
-    }
-    return false;
   },
 };
 
@@ -89,9 +74,6 @@ export const mutations: MutationTree<AddClientState> = {
   storeMembers(state, members: Client[]) {
     state.members = members;
   },
-  storeLocalMembers(state, members: Client[]) {
-    state.localMembers = members;
-  },
 };
 
 export const actions: ActionTree<AddClientState, RootState> = {
@@ -109,18 +91,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
         throw error;
       });
   },
-
-  fetchLocalMembers({ commit, rootGetters }, id: string) {
-    // Fetch members from backend
-    return api.get('/clients?show_members=true&internal_search=true')
-      .then((res) => {
-        commit('storeLocalMembers', res.data);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
 
   setSelectedMember({ commit, rootGetters }, member: Client) {
     commit('setMember', member);
