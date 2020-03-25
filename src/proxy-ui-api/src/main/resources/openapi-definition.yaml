@@ -130,23 +130,19 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /backups/{filename}:
-    delete: # ok
+  /backups/delete:
+    post: # ok
       tags:
         - security server
       summary: delete security server backup
       operationId: deleteBackup
       description: Administrator deletes the backup of the security server.
-      parameters:
-        - in: path
-          name: filename
-          description: filename of the backup
-          required: true
-          schema:
-            type: string
-            format: filename
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: the name of the backup file
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BackupFileName'
       responses:
         '204':
           description: deletion was successful
@@ -160,23 +156,19 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /backups/{filename}/restore:
+  /backups/restore:
     put: # ok
       tags:
         - security server
       summary: restore security server configuration from backup
       operationId: restoreBackup
       description: Administrator restores the security server configuration from backup.
-      parameters:
-        - in: path
-          name: filename
-          description: filename of the backup
-          required: true
-          schema:
-            type: string
-            format: filename
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: the name of the backup file
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BackupFileName'
       responses:
         '202':
           description: item accepted
@@ -194,23 +186,19 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /backups/{filename}/download:
+  /backups/download:
     get: # ok
       tags:
         - security server
       summary: download security server backup
       operationId: downloadBackup
       description: Administrator downloads the backup of the security server.
-      parameters:
-        - in: path
-          name: filename
-          description: filename of the backup
-          required: true
-          schema:
-            type: string
-            format: filename
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: the name of the backup file
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BackupFileName'
       responses:
         '200':
           description: backup file downloaded
@@ -4042,6 +4030,19 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    BackupFileName: # ok
+      type: object
+      description: wrapper for security server backup filename
+      required:
+        - filename
+      properties:
+        filename:
+          type: string
+          format: filename
+          description: backup filename
+          example: configuration_backup_20181224.tar
+          minLength: 1
+          maxLength: 255
     TokenCertificateSigningRequest: # ok
       type: object
       description: CSR for certificate that is stored in a Token

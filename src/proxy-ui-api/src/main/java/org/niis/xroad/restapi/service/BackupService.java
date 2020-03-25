@@ -77,8 +77,8 @@ public class BackupService {
      */
     @Autowired
     public BackupService(BackupRepository backupRepository, ServerConfService serverConfService,
-                         ExternalProcessRunner externalProcessRunner,
-                         @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
+            ExternalProcessRunner externalProcessRunner,
+            @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
         this.backupRepository = backupRepository;
         this.serverConfService = serverConfService;
         this.externalProcessRunner = externalProcessRunner;
@@ -130,8 +130,8 @@ public class BackupService {
     public BackupFile generateBackup() throws InterruptedException {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         String filename = generateBackupFileName();
-        String fullPath =  backupRepository.getConfigurationBackupPath() + filename;
-        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
+        String fullPath = backupRepository.getConfigurationBackupPath() + filename;
+        String[] args = new String[] { "-s", securityServerId.toShortString(), "-f", fullPath };
 
         try {
             log.info("Run configuration backup with command '"
@@ -144,7 +144,6 @@ public class BackupService {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            log.error("Failed to generate backup", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(BACKUP_GENERATION_FAILED));
         }
 

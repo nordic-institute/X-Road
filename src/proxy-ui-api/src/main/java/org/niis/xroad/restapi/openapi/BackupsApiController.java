@@ -29,10 +29,12 @@ import org.niis.xroad.restapi.converter.BackupConverter;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
+import org.niis.xroad.restapi.openapi.model.BackupFileName;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.RestoreService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -55,13 +57,17 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {
     public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
+    public static final String RESTORE_INTERRUPTED = "backup_restore_interrupted";
 
     private final BackupService backupService;
+    private final RestoreService restoreService;
     private final BackupConverter backupConverter;
 
     @Autowired
-    public BackupsApiController(BackupService backupService, BackupConverter backupConverter) {
+    public BackupsApiController(BackupService backupService,
+            RestoreService restoreService, BackupConverter backupConverter) {
         this.backupService = backupService;
+        this.restoreService = restoreService;
         this.backupConverter = backupConverter;
     }
 
@@ -75,7 +81,8 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<Void> deleteBackup(String filename) {
+    public ResponseEntity<Void> deleteBackup(BackupFileName backupFileName) {
+        String filename = backupFileName.getFilename();
         try {
             backupService.deleteBackup(filename);
         } catch (BackupFileNotFoundException e) {
@@ -87,7 +94,8 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<Resource> downloadBackup(String filename) {
+    public ResponseEntity<Resource> downloadBackup(BackupFileName backupFileName) {
+        String filename = backupFileName.getFilename();
         byte[] backupFile = null;
         try {
             backupFile = backupService.readBackupFile(filename);
@@ -120,5 +128,19 @@ public class BackupsApiController implements BackupsApi {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
+    public ResponseEntity<Void> restoreBackup(BackupFileName backupFileName) {
+        String filename = backupFileName.getFilename();
+        try {
+            restoreService.restoreFromBackup(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(RESTORE_INTERRUPTED));
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
