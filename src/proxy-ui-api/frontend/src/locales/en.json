@@ -197,6 +197,7 @@
   "action": {
     "addSubsystem": "add subsystem",
     "addClient": "add client",
+    "addMember": "Add member",
     "search": "Search",
     "add": "Add",
     "export": "Export",
@@ -346,6 +347,7 @@
   },
   "wizard": {
     "addClientTitle": "Add a Client",
+    "addMemberTitle": "Add member",
     "clientDetails": "Client details",
     "clientInfo1": "Specify the details of the Client you want to add.",
     "clientInfo2": "If the Client is already existing, you can select it from the Global list.",

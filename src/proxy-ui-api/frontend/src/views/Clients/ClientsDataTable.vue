@@ -18,6 +18,14 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <v-btn
+        v-if="showAddMember()"
+        color="primary"
+        @click="addMember"
+        rounded
+        dark
+        class="ma-0 rounded-button elevation-0"
+      >{{$t('action.addMember')}}</v-btn>
+      <v-btn
         v-if="showAddClient()"
         color="primary"
         @click="addClient"
@@ -169,6 +177,9 @@ export default Vue.extend({
     showAddClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
+    showAddMember(): boolean {
+      return true;
+    },
     canOpenClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
@@ -190,6 +201,12 @@ export default Vue.extend({
     addClient(): void {
       this.$router.push({
         name: RouteName.AddClient,
+      });
+    },
+
+    addMember(): void {
+      this.$router.push({
+        name: RouteName.AddMember,
       });
     },
 
