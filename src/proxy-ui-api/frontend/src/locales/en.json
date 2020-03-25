@@ -31,6 +31,13 @@
     "backupConfiguration": "Back up config.",
     "uploadBackup": "Upload backup"
   },
+  "clients": {
+    "action": {
+      "register": {
+        "success": "Client registered"
+      }
+    }
+  },
   "client": {
     "name": "Name",
     "id": "ID",

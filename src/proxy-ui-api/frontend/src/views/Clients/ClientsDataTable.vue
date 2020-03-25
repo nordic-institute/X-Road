@@ -99,15 +99,6 @@
             class="xrd-small-button xrd-table-button"
             @click="registerClient(item)"
           >{{$t('action.register')}}</v-btn>
-          <v-btn
-            v-if="(item.type != 'owner' && item.status === 'REGISTERED') && showRegister"
-            small
-            outlined
-            rounded
-            color="primary"
-            class="xrd-small-button xrd-table-button"
-            @click="unregisterClient(item)"
-          >{{$t('action.unregister')}}</v-btn>
         </div>
       </template>
 
@@ -232,25 +223,10 @@ export default Vue.extend({
         })
         .then(
           (response) => {
-            this.$bus.$emit('show-success', 'error.message');
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        );
-    },
-
-    unregisterClient(item: Client): void {
-      this.$store
-        .dispatch('unregisterClient', {
-          memberName: item.member_name,
-          memberClass: item.member_class,
-          memberCode: item.member_code,
-          subsystemCode: item.subsystem_code,
-        })
-        .then(
-          (response) => {
-            this.$bus.$emit('show-success', 'error.message');
+            this.$store.dispatch(
+              'showSuccess',
+              'clients.action.register.success',
+            );
           },
           (error) => {
             this.$store.dispatch('showError', error);
