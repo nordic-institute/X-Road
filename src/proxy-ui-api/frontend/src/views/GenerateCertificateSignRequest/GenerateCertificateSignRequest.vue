@@ -55,9 +55,6 @@ export default Vue.extend({
       currentStep: 1,
     };
   },
-  computed: {
-    ...mapGetters(['localMembersIds']),
-  },
   methods: {
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
