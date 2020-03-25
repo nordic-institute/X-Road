@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -57,6 +58,7 @@ import java.io.IOException;
 public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    @Qualifier("normalPam")
     private AuthenticationProvider authenticationProvider;
 
     @Override

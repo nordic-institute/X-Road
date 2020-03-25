@@ -40,8 +40,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
  * matching url /api/api-key/**
  */
 @Configuration
-@Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
-public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+@Order(MultiAuthWebSecurityConfig.RING_2_ORDER)
+public class Ring2WebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
     @Qualifier("localhostPam")
@@ -50,14 +50,14 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .antMatcher("/api/api-key/**")
+            .antMatcher("/api/rings/2/**")
             .authorizeRequests()
                 .anyRequest().access("hasRole('"
                 + Role.XROAD_SYSTEM_ADMINISTRATOR.name()
-                + "') and hasIpAddress('127.0.0.1')")
+                + "')")
                 .and()
             .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                 .and()
             .httpBasic()
                 .and()

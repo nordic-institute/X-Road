@@ -38,6 +38,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -53,9 +54,9 @@ import java.util.stream.Collectors;
  * roles are granted with user groups, mappings in {@link Role}
  */
 @Slf4j
-@Component("normalPam")
+@Component("localhostPam")
 @Profile("!devtools-test-auth")
-public class PamAuthenticationProvider implements AuthenticationProvider {
+public class LocalhostPamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
@@ -73,6 +74,13 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
+        WebAuthenticationDetails details = (WebAuthenticationDetails) authentication.getDetails();
+        String userIp = details.getRemoteAddress();
+        if (!"200.0.0.1".equals(userIp)) {
+            throw new BadCredentialsException("Invalid IP Address");
+        }
+
         String username = String.valueOf(authentication.getPrincipal());
         String password = String.valueOf(authentication.getCredentials());
         PAM pam;
