@@ -80,25 +80,15 @@
 
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
-          <v-btn
+          <SmallButton
             v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient"
-            small
-            outlined
-            rounded
-            color="primary"
-            class="xrd-small-button xrd-table-button"
             @click="addSubsystem(item)"
-          >{{$t('action.addSubsystem')}}</v-btn>
+          >{{$t('action.addSubsystem')}}</SmallButton>
 
-          <v-btn
+          <SmallButton
             v-if="(item.type == 'client' ||item.type != 'owner' && item.status !== 'REGISTERED') && showRegister"
-            small
-            outlined
-            rounded
-            color="primary"
-            class="xrd-small-button xrd-table-button"
             @click="registerClient(item)"
-          >{{$t('action.register')}}</v-btn>
+          >{{$t('action.register')}}</SmallButton>
         </div>
       </template>
 
@@ -122,10 +112,12 @@ import ClientStatus from './ClientStatus.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Client } from '@/types';
+import SmallButton from '@/components/ui/SmallButton.vue';
 
 export default Vue.extend({
   components: {
     ClientStatus,
+    SmallButton,
   },
 
   data: () => ({
