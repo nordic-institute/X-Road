@@ -2027,7 +2027,7 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
 
 ```
 
-#### 19.1.3 Updating existing API keys
+#### 19.1.3 Updating API keys
 
 An existing API key is updated with a `PUT` request to `/api/api-key/{id}`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the key id and roles associated with the key.
