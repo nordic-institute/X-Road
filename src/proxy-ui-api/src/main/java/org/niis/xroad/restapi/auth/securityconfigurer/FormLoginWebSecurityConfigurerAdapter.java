@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -46,6 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.REGULAR_PAM_AUTHENTICATION_BEAN;
+
 /**
  * form login / session cookie authentication
  * matching any url (but denying /api/*** since 2 other configurations are used
@@ -57,6 +60,7 @@ import java.io.IOException;
 public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    @Qualifier(REGULAR_PAM_AUTHENTICATION_BEAN)
     private AuthenticationProvider authenticationProvider;
 
     @Override

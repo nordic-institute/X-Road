@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -33,6 +34,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.LOCALHOST_PAM_AUTHENTICATION_BEAN;
 
 /**
  * basic authentication configuration for managing api keys
@@ -43,6 +46,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    @Qualifier(LOCALHOST_PAM_AUTHENTICATION_BEAN)
     private AuthenticationProvider authenticationProvider;
 
     @Override
@@ -50,12 +54,11 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
         http
             .antMatcher("/api/api-key/**")
             .authorizeRequests()
-                .anyRequest().access("hasRole('"
-                + Role.XROAD_SYSTEM_ADMINISTRATOR.name()
-                + "') and hasIpAddress('127.0.0.1')")
+                .anyRequest()
+                .hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
                 .and()
             .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                 .and()
             .httpBasic()
                 .and()
