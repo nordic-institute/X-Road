@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
@@ -96,7 +97,7 @@ public class EndpointsApiController implements EndpointsApi {
         Endpoint endpoint;
         try {
             endpoint = endpointConverter.convert(endpointService.getEndpoint(endpointId));
-        } catch (EndpointService.EndpointNotFoundException e) {
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         }
         return new ResponseEntity(endpoint, HttpStatus.OK);
@@ -108,7 +109,7 @@ public class EndpointsApiController implements EndpointsApi {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         try {
             endpointService.deleteEndpoint(endpointId);
-        } catch (EndpointService.EndpointNotFoundException e) {
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ConflictException("Client not found for the given endpoint with id: " + id);
@@ -125,7 +126,7 @@ public class EndpointsApiController implements EndpointsApi {
         Endpoint ep;
         try {
             ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId, endpoint));
-        } catch (EndpointService.EndpointNotFoundException e) {
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
@@ -141,7 +142,7 @@ public class EndpointsApiController implements EndpointsApi {
         List<AccessRightHolderDto> accessRightHoldersByEndpoint;
         try {
             accessRightHoldersByEndpoint = accessRightService.getAccessRightHoldersByEndpoint(endpointId);
-        } catch (EndpointService.EndpointNotFoundException e) {
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
@@ -162,7 +163,7 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             accessRightHoldersByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (EndpointService.EndpointNotFoundException e) {
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
             throw new ConflictException(e);
@@ -185,7 +186,7 @@ public class EndpointsApiController implements EndpointsApi {
             accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds, localGroupIds);
         } catch (LocalGroupNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (EndpointService.EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
+        } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);

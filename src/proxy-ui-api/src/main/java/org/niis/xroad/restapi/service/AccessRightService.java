@@ -124,11 +124,11 @@ public class AccessRightService {
      *
      * @param id
      * @return
-     * @throws EndpointService.EndpointNotFoundException    if no endpoint is found with given id
+     * @throws EndpointNotFoundException    if no endpoint is found with given id
      * @throws ClientNotFoundException                      if client attached to endpoint is not found
      */
     public List<AccessRightHolderDto> getAccessRightHoldersByEndpoint(Long id)
-            throws EndpointService.EndpointNotFoundException, ClientNotFoundException {
+            throws EndpointNotFoundException, ClientNotFoundException {
         verifyAuthority("VIEW_ENDPOINT_ACL");
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
@@ -138,7 +138,7 @@ public class AccessRightService {
 
         EndpointType endpointType = endpointRepository.getEndpoint(id);
         if (endpointType == null) {
-            throw new EndpointService.EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id.toString());
         }
 
         return getAccessRightsHoldersByEndpoint(clientType, endpointType);
@@ -229,12 +229,12 @@ public class AccessRightService {
      * @param subjectIds
      * @param localGroupIds
      * @throws LocalGroupNotFoundException                  if localgroups is not found
-     * @throws EndpointService.EndpointNotFoundException    if endpoint by given id is not found
+     * @throws EndpointNotFoundException    if endpoint by given id is not found
      * @throws ClientNotFoundException                      if client attached to endpoint is not found
      * @throws AccessRightNotFoundException                 if at least one access right expected is not found
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds, Set<Long> localGroupIds)
-            throws LocalGroupNotFoundException, EndpointService.EndpointNotFoundException,
+            throws LocalGroupNotFoundException, EndpointNotFoundException,
             ClientNotFoundException, AccessRightNotFoundException {
         verifyAuthority("EDIT_ENDPOINT_ACL");
 
@@ -244,7 +244,7 @@ public class AccessRightService {
         }
         EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
         if (endpointType == null) {
-            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
+            throw new EndpointNotFoundException(endpointId.toString());
         }
 
         deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
@@ -327,20 +327,20 @@ public class AccessRightService {
      * @param subjectIds
      * @param localGroupIds
      * @return
-     * @throws EndpointService.EndpointNotFoundException endpoint is not found with given id
+     * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException                   client for the endpoint is not found (shouldn't happen)
      * @throws IdentifierNotFoundException               Identifier is not found
      * @throws LocalGroupNotFoundException               Local group is not found
      * @throws DuplicateAccessRightException             Trying to add duplicate access rights
      */
     public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws EndpointService.EndpointNotFoundException, ClientNotFoundException,
+            Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
         verifyAuthority("EDIT_ENDPOINT_ACL");
 
         EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
         if (endpointType == null) {
-            throw new EndpointService.EndpointNotFoundException(endpointId.toString());
+            throw new EndpointNotFoundException(endpointId.toString());
         }
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
