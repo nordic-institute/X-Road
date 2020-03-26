@@ -69,8 +69,9 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
                 .and()
                 .and()
             .csrf()
+                .disable()
+            .formLogin()
                 .disable();
-
     }
 
     @Override
