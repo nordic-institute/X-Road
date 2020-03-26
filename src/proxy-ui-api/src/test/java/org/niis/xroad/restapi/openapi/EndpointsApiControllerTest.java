@@ -30,7 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.niis.xroad.restapi.openapi.model.EndpointPathAndMethod;
+import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -90,8 +90,8 @@ public class EndpointsApiControllerTest {
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
-        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
-        pathAndMethod.setMethod(EndpointPathAndMethod.MethodEnum.STAR);
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
         pathAndMethod.setPath("/test");
         endpointsApiController.updateEndpoint("10", pathAndMethod);
     }
@@ -99,7 +99,7 @@ public class EndpointsApiControllerTest {
     @Test(expected = IllegalArgumentException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpointWithEmptyPathString() {
-        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
         pathAndMethod.setPath("");
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
@@ -107,15 +107,15 @@ public class EndpointsApiControllerTest {
     @Test(expected = IllegalArgumentException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpointWithEmptyPathAndMethod() {
-        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
     @Test
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpoint() {
-        EndpointPathAndMethod pathAndMethod = new EndpointPathAndMethod();
-        pathAndMethod.setMethod(EndpointPathAndMethod.MethodEnum.STAR);
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
         pathAndMethod.setPath("/test");
         endpointsApiController.updateEndpoint("12", pathAndMethod);
 

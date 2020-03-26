@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.niis.xroad.restapi.openapi.model.EndpointPathAndMethod;
+import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,12 +92,12 @@ public class EndpointsApiController implements EndpointsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3_ENDPOINT')")
-    public ResponseEntity<Endpoint> updateEndpoint(String id, EndpointPathAndMethod pathAndMethod) {
+    public ResponseEntity<Endpoint> updateEndpoint(String id, EndpointUpdate endpointUpdate) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         Endpoint ep;
         try {
             ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId,
-                    pathAndMethod.getMethod(), pathAndMethod.getPath()));
+                    endpointUpdate.getMethod(), endpointUpdate.getPath()));
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {

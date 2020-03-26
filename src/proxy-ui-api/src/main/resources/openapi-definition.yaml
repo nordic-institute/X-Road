@@ -2551,7 +2551,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EndpointPathAndMethod'
+              $ref: '#/components/schemas/EndpointUpdate'
       responses:
         '200':
           description: endpoint updated
@@ -4938,7 +4938,7 @@ components:
           description: has endpoint been generated from openapi3 description
           example: true
           readOnly: true
-    EndpointPathAndMethod:
+    EndpointUpdate:
       type: object
       description: Object for updating endpoints method and/or path
       properties:
