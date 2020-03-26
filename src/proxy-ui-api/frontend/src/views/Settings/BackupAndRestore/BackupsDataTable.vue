@@ -33,7 +33,7 @@
               <delete-backup-button
                 :can-backup="canBackup"
                 :backup="backup"
-                @deleted="fetchData"
+                @deleted="refreshData"
               />
             </div>
           </td>

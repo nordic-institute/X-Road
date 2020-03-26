@@ -35,6 +35,7 @@
       :canBackup="canBackup"
       :backups="backups"
       :filter="search"
+      @refresh-data="fetchData"
     />
   </div>
 </template>
