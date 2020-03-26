@@ -419,7 +419,7 @@ public class AccessRightService {
             throws IdentifierNotFoundException, LocalGroupNotFoundException {
         // Get persistent entities in order to change relations
         Set<XRoadId> txSubjects = new HashSet<>();
-        if (subjectIds != null && subjectIds.size() > 0) {
+        if (subjectIds != null && !subjectIds.isEmpty()) {
             txSubjects.addAll(getOrPersistSubsystemIds(subjectIds.stream()
                     .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.SUBSYSTEM)
                     .collect(Collectors.toSet())));
