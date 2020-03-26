@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -59,6 +60,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 /**
  * Test live clients api controller with rest template.
@@ -83,6 +85,9 @@ public class TransactionHandlingRestTemplateTest {
     @SpyBean
     private ClientConverter clientConverter;
 
+    @MockBean
+    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
     @Before
     public void setup() {
         restTemplate.getRestTemplate().setInterceptors(
@@ -104,6 +109,7 @@ public class TransactionHandlingRestTemplateTest {
             return members;
         }).when(globalConfFacade).getMembers();
 
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
     }
 
     @Test
@@ -203,7 +209,7 @@ public class TransactionHandlingRestTemplateTest {
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
-    public void clientConverterCannotLazyLoadPropertiesSinceOsivIsNotUsed() {
+    public void clientConverterCannotLazyLoadPropertiesSinceOsivIsNotUsed() throws Exception {
         doAnswer((Answer<String>) invocation -> {
             ClientType clientType = (ClientType) invocation.getArguments()[0];
             // cause a lazy loading exception

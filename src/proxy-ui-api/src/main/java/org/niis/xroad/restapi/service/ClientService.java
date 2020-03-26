@@ -390,7 +390,9 @@ public class ClientService {
         // predicate for filtering by valid local sign cert
         Predicate<ClientType> validSignCertPredicate = buildValidSignCertPredicate(onlyLocalClientWithValidSignCert);
 
-        return getAllLocalClients().stream()
+        List<ClientType> allLocalClients = getAllLocalClients();
+
+        return allLocalClients.stream()
                 .filter(matchingSearchTerms)
                 .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
                 .filter(validSignCertPredicate)
@@ -448,9 +450,9 @@ public class ClientService {
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch,
             boolean onlyLocalClientWithValidSignCert, boolean onlyLocallyMissingClients) {
-        if (onlyLocalClientWithValidSignCert && onlyLocallyMissingClients) {
-            throw new BadRequestException("Can't do the query when only_local_client_with_valid_sign_cert and "
-                + "only_locally_missing_clients are both true");
+        if ((onlyLocalClientWithValidSignCert || internalSearch) && onlyLocallyMissingClients) {
+            throw new BadRequestException("Illegally using parameters for "
+                    + "filtering local and global clients simultaneously");
         }
 
         List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
@@ -480,8 +482,10 @@ public class ClientService {
             List<ClientType> localClients) {
         List<String> localClientIds = localClients.stream().map(localClient ->
                 localClient.getIdentifier().toShortString()).collect(Collectors.toList());
-        globalClients.removeIf(globalClient -> localClientIds.contains(globalClient.getIdentifier().toShortString()));
-        return globalClients;
+
+        return globalClients.stream()
+                .filter(globalClient -> !localClientIds.contains(globalClient.getIdentifier().toShortString()))
+                .collect(Collectors.toList());
     }
 
     /**

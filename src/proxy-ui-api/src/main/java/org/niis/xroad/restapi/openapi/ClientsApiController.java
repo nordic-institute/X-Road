@@ -43,7 +43,6 @@ import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.converter.SubjectTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
@@ -52,7 +51,6 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -165,7 +163,7 @@ public class ClientsApiController implements ClientsApi {
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = null;
         try {
-             clients = clientConverter.convert(clientService.findClients(name,
+            clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                      onlyLocalClientWithValidSignCert, onlyLocallyMissingClients));
         } catch (OcspUtils.OcspStatusExtractionException e) {

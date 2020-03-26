@@ -30,14 +30,21 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.x509.CRLReason;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -52,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -100,6 +108,9 @@ public class ClientServiceIntegrationTest {
 
     @MockBean
     private ManagementRequestSenderService managementRequestSenderService;
+
+    @MockBean
+    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
     @Before
     public void setup() throws Exception {
@@ -163,6 +174,29 @@ public class ClientServiceIntegrationTest {
         assertTrue(pemBytes.length > 1);
         assertTrue(derBytes.length > 1);
         assertTrue(sqlFileBytes.length > 1);
+    }
+
+    private List<CertificateInfo> createCertificateInfoList() {
+        List<CertificateInfo> certificateInfos = new ArrayList<>();
+
+        CertificateTestUtils.CertificateInfoBuilder certificateInfoBuilder =
+                new CertificateTestUtils.CertificateInfoBuilder();
+
+        // Create cert with good ocsp response status
+        ClientId clientId1 = ClientId.create("FI", "GOV", "M1");
+        certificateInfoBuilder.clientId(clientId1);
+        CertificateInfo cert1 = certificateInfoBuilder.build();
+
+        // Create cert with revoked ocsp response status
+        certificateInfoBuilder.ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold));
+        CertificateInfo cert2 = certificateInfoBuilder.build();
+
+        // Create cert with unknown ocsp response status
+        certificateInfoBuilder.ocspStatus(new UnknownStatus());
+        CertificateInfo cert3 = certificateInfoBuilder.build();
+
+        certificateInfos.addAll(Arrays.asList(cert2, cert3, cert1));
+        return certificateInfos;
     }
 
     private int countIdentifiers() {
@@ -679,6 +713,22 @@ public class ClientServiceIntegrationTest {
         assertEquals(0, clientType.getIsCert().size());
     }
 
+    /* Test findClients search */
+    @Test(expected = BadRequestException.class)
+    public void findClientsWithBadParameters() {
+        clientService.findClients("TESTNAME", null, null, null, null, false, false, true, true);
+    }
+
+    @Test
+    public void findClientsWithOnlyLocallyMissingClients() {
+        List<ClientType> allFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, false, false);
+        assertEquals(5, allFiGovClients.size());
+        List<ClientType> locallyMissingFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, false, true);
+        assertEquals(1, locallyMissingFiGovClients.size());
+    }
+
     /* Test LOCAL client search */
     @Test
     public void findLocalClientsByNameIncludeMembers() {
@@ -752,6 +802,13 @@ public class ClientServiceIntegrationTest {
                 TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false, false);
         assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByOnlyLocalClientsWithValidSignCert() throws Exception {
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createCertificateInfoList());
+        List<ClientType> clients = clientService.findLocalClients(null, null, null, null, null, false, true);
+        assertEquals(2, clients.size());
     }
 
     /* Test GLOBAL client search */

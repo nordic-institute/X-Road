@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
@@ -59,7 +58,8 @@ public class ClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
     private final CurrentSecurityServerId securityServerOwner; // request scoped
-    private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates; // request scoped contains all certificates of type sign
+    // request scoped contains all certificates of type sign
+    private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
