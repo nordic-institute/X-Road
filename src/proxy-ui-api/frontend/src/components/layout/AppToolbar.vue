@@ -9,26 +9,28 @@
       @click="home()"
       class="xrd-logo"
     ></v-img>
-    <div class="separator"></div>
-    <div class="server-type">Security Server</div>
-    <div class="white--text server-name" data-test="app-toolbar-server-name" v-show="currentSecurityServer.id" :title="currentSecurityServer.server_address">
-        {{`${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`}}
-    </div>
-    <v-spacer></v-spacer>
-    {{username}}
-    <v-menu bottom left>
-      <template v-slot:activator="{ on }">
-        <v-btn icon v-on="on">
-          <v-icon>mdi-account-circle</v-icon>
-        </v-btn>
-      </template>
+    <div class="auth-container" v-if="isAuthenticated">
+      <div class="separator"></div>
+      <div class="server-type">Security Server</div>
+      <div class="white--text server-name" data-test="app-toolbar-server-name" v-show="currentSecurityServer.id" :title="currentSecurityServer.server_address">
+          {{`${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`}}
+      </div>
+      <v-spacer></v-spacer>
+      {{username}}
+      <v-menu bottom left>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-account-circle</v-icon>
+          </v-btn>
+        </template>
 
-      <v-list>
-        <v-list-item id="logout-list-tile" @click="logout">
-          <v-list-item-title id="logout-title">{{$t('login.logOut')}}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+        <v-list>
+          <v-list-item id="logout-list-tile" @click="logout">
+            <v-list-item-title id="logout-title">{{$t('login.logOut')}}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
   </v-app-bar>
 </template>
 
@@ -40,7 +42,7 @@ import { RouteName } from '@/global';
 export default Vue.extend({
   name: 'toolbar',
   computed: {
-    ...mapGetters(['username', 'currentSecurityServer']),
+    ...mapGetters(['username', 'currentSecurityServer', 'isAuthenticated']),
   },
   methods: {
     home(): void {
@@ -87,5 +89,12 @@ export default Vue.extend({
   @media only screen and (max-width: 920px) {
     display: none;
   }
+}
+
+.auth-container {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  width: 100%;
 }
 </style>
