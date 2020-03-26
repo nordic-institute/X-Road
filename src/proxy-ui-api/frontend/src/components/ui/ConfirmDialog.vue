@@ -9,7 +9,7 @@
     :showClose="false"
     :loading="loading"
   >
-    <div slot="content" data-test="dialog-content-text">{{$t(text)}}</div>
+    <div slot="content" data-test="dialog-content-text">{{$t(text, data)}}</div>
   </simpleDialog>
 </template>
 
@@ -50,6 +50,11 @@ export default Vue.extend({
     loading: {
       type: Boolean,
       default: false,
+    },
+    // In case the confirmation text requires additional data
+    data: {
+      type: Object,
+      required: false,
     },
   },
 
