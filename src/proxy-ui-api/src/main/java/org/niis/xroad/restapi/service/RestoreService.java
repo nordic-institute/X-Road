@@ -24,13 +24,13 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,33 +39,43 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 
+/**
+ * service class for restoring security server configuration from a backup
+ */
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
 public class RestoreService {
     @Setter
-    private String configurationRestorerScriptPath;
+    private String configurationRestoreScriptPath;
     @Setter
-    private String configurationRestorerScriptArgs;
-    @Setter
-    private String configurationBackupPath;
+    private String configurationRestoreScriptArgs;
 
     private final ExternalProcessRunner externalProcessRunner;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final BackupRepository backupRepository;
 
     @Autowired
     public RestoreService(ExternalProcessRunner externalProcessRunner,
-            @Value("${script.restore-configuration.path}") String configurationRestorerScriptPath,
-            @Value("${script.restore-configuration.args}") String configurationRestorerScriptArgs,
-            CurrentSecurityServerId currentSecurityServerId) {
+            @Value("${script.restore-configuration.path}") String configurationRestoreScriptPath,
+            @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
+            CurrentSecurityServerId currentSecurityServerId,
+            BackupRepository backupRepository) {
         this.externalProcessRunner = externalProcessRunner;
-        this.configurationRestorerScriptPath = configurationRestorerScriptPath;
-        this.configurationRestorerScriptArgs = configurationRestorerScriptArgs;
+        this.configurationRestoreScriptPath = configurationRestoreScriptPath;
+        this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
         this.currentSecurityServerId = currentSecurityServerId;
-        this.configurationBackupPath = SystemProperties.getConfBackupPath();
+        this.backupRepository = backupRepository;
     }
 
+    /**
+     * Restores the security server configuration from a backup
+     * @param fileName name of the backup file
+     * @throws BackupFileNotFoundException
+     * @throws InterruptedException execution of the restore script was interrupted
+     */
     public void restoreFromBackup(String fileName) throws BackupFileNotFoundException, InterruptedException {
+        String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);
         if (!backupFile.isFile()) {
@@ -74,7 +84,7 @@ public class RestoreService {
         String[] arguments = buildArguments(backupFilePath);
         try {
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
-                    .executeAndThrowOnFailure(configurationRestorerScriptPath, arguments);
+                    .executeAndThrowOnFailure(configurationRestoreScriptPath, arguments);
 
             int exitCode = processResult.getExitCode();
 
@@ -99,7 +109,7 @@ public class RestoreService {
         String encodedOwner = FormatUtils.encodeStringToBase64(securityServerId.toShortString());
         String encodedBackupPath = FormatUtils.encodeStringToBase64(backupFilePath);
         String argumentsString = String
-                .format(configurationRestorerScriptArgs, encodedOwner, encodedBackupPath)
+                .format(configurationRestoreScriptArgs, encodedOwner, encodedBackupPath)
                 .trim();
         return argumentsString.split("\\s+");
     }

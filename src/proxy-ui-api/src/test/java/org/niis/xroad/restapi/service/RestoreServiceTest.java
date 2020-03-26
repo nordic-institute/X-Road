@@ -31,9 +31,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.repository.BackupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,7 @@ import java.io.File;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -54,6 +57,8 @@ public class RestoreServiceTest {
 
     @Autowired
     private RestoreService configurationRestorer;
+    @MockBean
+    private BackupRepository backupRepository;
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -62,10 +67,10 @@ public class RestoreServiceTest {
 
     @Before
     public void setup() throws Exception {
-        configurationRestorer.setConfigurationRestorerScriptPath(ExternalProcessRunnerTest.MOCK_SUCCESS_SCRIPT);
-        configurationRestorer.setConfigurationRestorerScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
+        configurationRestorer.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_SUCCESS_SCRIPT);
+        configurationRestorer.setConfigurationRestoreScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
-        configurationRestorer.setConfigurationBackupPath(tempBackupFile.getParent() + "/");
+        when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
     }
 
     @Test
@@ -80,29 +85,29 @@ public class RestoreServiceTest {
             configurationRestorer.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
         } catch (BackupFileNotFoundException e) {
-            // expected
+            assertEquals(BackupFileNotFoundException.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
         }
     }
 
     @Test
     public void restoreFromBackupFail() throws Exception {
-        configurationRestorer.setConfigurationRestorerScriptPath(ExternalProcessRunnerTest.MOCK_FAIL_SCRIPT);
+        configurationRestorer.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_FAIL_SCRIPT);
         try {
             configurationRestorer.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (DeviationAwareRuntimeException e) {
-            assertEquals(RestoreService.RESTORE_FAILED, e.getErrorDeviation().getCode());
+            assertEquals(ProcessFailedException.PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 
     @Test
     public void restoreFromBackupNotExecutable() throws Exception {
-        configurationRestorer.setConfigurationRestorerScriptPath("path/to/nowhere.sh");
+        configurationRestorer.setConfigurationRestoreScriptPath("path/to/nowhere.sh");
         try {
             configurationRestorer.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (DeviationAwareRuntimeException e) {
-            assertEquals(RestoreService.RESTORE_FAILED, e.getErrorDeviation().getCode());
+            assertEquals(ProcessNotExecutableException.PROCESS_NOT_EXECUTABLE, e.getErrorDeviation().getCode());
         }
     }
 }
