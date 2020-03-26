@@ -76,7 +76,7 @@ public class AnchorRepository {
      * Save anchor. The replacing of the old anchor file is done atomically.
      * @return
      */
-    public void saveAndReplace(File anchorFile) throws Exception {
+    public void saveAndReplace(File anchorFile) throws IOException {
         AtomicSave.moveBetweenFilesystems(anchorFile.getAbsolutePath(), CONFIGURATION_ANCHOR_FILENAME);
     }
 }

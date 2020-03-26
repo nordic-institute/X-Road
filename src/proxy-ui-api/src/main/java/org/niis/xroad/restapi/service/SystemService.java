@@ -57,6 +57,11 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static org.niis.xroad.restapi.exceptions.ExceptionTranslator.CORE_CODED_EXCEPTION_PREFIX;
+
 /**
  * Service that handles system services
  */
@@ -196,9 +201,20 @@ public class SystemService {
      * @param anchorBytes
      * @return
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     * @throws MalformedAnchorException if the Anchor content is wrong
      */
-    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes) throws InvalidAnchorInstanceException {
-        ConfigurationAnchorV2 anchor = new ConfigurationAnchorV2(anchorBytes);
+    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes) throws InvalidAnchorInstanceException,
+            MalformedAnchorException {
+        ConfigurationAnchorV2 anchor = null;
+        try {
+            anchor = new ConfigurationAnchorV2(anchorBytes);
+        } catch (CodedException ce) {
+            if (isCausedByMalformedAnchorContent(ce)) {
+                throw new MalformedAnchorException("Anchor is invalid");
+            } else {
+                throw ce;
+            }
+        }
         verifyAnchorInstance(anchor);
         AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
@@ -211,9 +227,20 @@ public class SystemService {
      * @param anchorBytes
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      * @throws AnchorUploadException in case of external process exceptions
+     * @throws MalformedAnchorException if the Anchor content is wrong
      */
-    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException {
-        ConfigurationAnchorV2 anchor = new ConfigurationAnchorV2(anchorBytes);
+    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
+            MalformedAnchorException {
+        ConfigurationAnchorV2 anchor = null;
+        try {
+            anchor = new ConfigurationAnchorV2(anchorBytes);
+        } catch (CodedException ce) {
+            if (isCausedByMalformedAnchorContent(ce)) {
+                throw new MalformedAnchorException("Anchor is invalid");
+            } else {
+                throw ce;
+            }
+        }
         verifyAnchorInstance(anchor);
         File tempAnchor = null;
         try {
@@ -303,6 +330,10 @@ public class SystemService {
         }
     }
 
+    static boolean isCausedByMalformedAnchorContent(CodedException e) {
+        return (CORE_CODED_EXCEPTION_PREFIX + X_MALFORMED_GLOBALCONF).equals(e.getFaultCode());
+    }
+
     /**
      * Thrown when attempt to add timestamping service that is already configured
      */
@@ -335,6 +366,17 @@ public class SystemService {
 
         public AnchorUploadException(Throwable t) {
             super(t, new ErrorDeviation(ANCHOR_UPLOAD_FAILED));
+        }
+    }
+
+    /**
+     * Thrown e.g. if Anchor upload or preview fails because of invalid content
+     */
+    public static class MalformedAnchorException extends ServiceException {
+        public static final String MALFORMED_ANCHOR = "malformed_anchor";
+
+        public MalformedAnchorException(String s) {
+            super(s, new ErrorDeviation(MALFORMED_ANCHOR));
         }
     }
 }
