@@ -108,6 +108,44 @@ public class ApiKeyRepository {
         return entry;
     }
 
+    /**
+     * update api key with one role by key id
+     * @param id
+     * @param roleName
+     * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
+     * @throws ApiKeyNotFoundException if api key was not found
+     */
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
+    public PersistentApiKeyType update(long id, String roleName)
+            throws InvalidRoleNameException, ApiKeyNotFoundException {
+        return update(id, Collections.singletonList(roleName));
+    }
+
+    /**
+     * update api key with collection of roles by key id
+     * @param id
+     * @param roleNames
+     * @return
+     * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
+     * @throws ApiKeyNotFoundException if api key was not found
+     */
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
+    public PersistentApiKeyType update(long id, Collection<String> roleNames)
+            throws InvalidRoleNameException, ApiKeyNotFoundException {
+        PersistentApiKeyDAOImpl apiKeyDAO = new PersistentApiKeyDAOImpl();
+        PersistentApiKeyType apiKeyType = apiKeyDAO.findById(persistenceUtils.getCurrentSession(), id);
+        if (apiKeyType == null) {
+            throw new ApiKeyNotFoundException("api key with id " + id + " not found");
+        }
+        if (roleNames.isEmpty()) {
+            throw new InvalidRoleNameException("missing roles");
+        }
+        Set<Role> roles = Role.getForNames(roleNames);
+        apiKeyType.setRoles(roles);
+        apiKeyDAO.update(persistenceUtils.getCurrentSession(), apiKeyType);
+        return apiKeyType;
+    }
+
     private String encode(String key) {
         return passwordEncoder.encode(key);
     }

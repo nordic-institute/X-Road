@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.domain;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ import java.util.Set;
 public class PersistentApiKeyType {
     private Long id;
     private String encodedKey;
+    @Setter
     private Set<Role> roles;
 
     /**

@@ -83,6 +83,20 @@ public class ApiKeyController {
     }
 
     /**
+     * update an existing api key
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<PublicKeyData> updateKey(@PathVariable("id") long id,
+                                                          @RequestBody List<String> roles) {
+        try {
+            PersistentApiKeyType key = apiKeyRepository.update(id, roles);
+            return new ResponseEntity<>(new PublicKeyData(key.getId(), key.getRoles()), HttpStatus.OK);
+        } catch (InvalidRoleNameException | ApiKeyRepository.ApiKeyNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+    }
+
+    /**
      * list api keys from db
      */
     @RequestMapping(method = RequestMethod.GET)

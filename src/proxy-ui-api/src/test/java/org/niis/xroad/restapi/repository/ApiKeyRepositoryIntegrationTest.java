@@ -43,6 +43,7 @@ import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Test api key repository
@@ -84,10 +85,12 @@ public class ApiKeyRepositoryIntegrationTest {
     }
 
     @Test
-    public void testSaveAndLoad() throws Exception {
+    public void testSaveAndLoadAndUpdate() throws Exception {
+        // Save
         String plainKey = apiKeyRepository.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
+        // Load
         PersistentApiKeyType loaded = apiKeyRepository.get(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();
@@ -96,6 +99,13 @@ public class ApiKeyRepositoryIntegrationTest {
         assertEquals(encodedKey, loaded.getEncodedKey());
         assertEquals(2, loaded.getRoles().size());
         assertTrue(loaded.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
+        // Update
+        PersistentApiKeyType updated = apiKeyRepository.update(loaded.getId(),
+                Arrays.asList("XROAD_SECURITYSERVER_OBSERVER"));
+        assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), updated.getId());
+        assertEquals(1, updated.getRoles().size());
+        assertTrue(updated.getRoles().contains(Role.XROAD_SECURITYSERVER_OBSERVER));
+        assertFalse(updated.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
     }
 
     @Test
@@ -108,6 +118,16 @@ public class ApiKeyRepositoryIntegrationTest {
         try {
             String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                     "FOOBAR")).getKey();
+            fail("should fail due to bad role");
+        } catch (InvalidRoleNameException expected) { }
+
+        try {
+            PersistentApiKeyType key = apiKeyRepository.update(1, new ArrayList<>());
+            fail("should fail due to missing roles");
+        } catch (InvalidRoleNameException expected) { }
+
+        try {
+            PersistentApiKeyType key = apiKeyRepository.update(1, Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) { }
 
