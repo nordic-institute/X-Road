@@ -127,6 +127,7 @@
                     <th>{{$t('services.memberNameGroupDesc')}}</th>
                     <th>{{$t('services.idGroupCode')}}</th>
                     <th>{{$t('type')}}</th>
+                    <th>{{$t('access.rightsGiven')}}</th>
                     <th></th>
                 </tr>
                 <template v-if="accessRightsSubjects">
@@ -134,6 +135,7 @@
                         <td>{{subject.subject.member_name_group_description}}</td>
                         <td>{{subject.subject.id}}</td>
                         <td>{{subject.subject.subject_type}}</td>
+                        <td>{{subject.rights_given_at | formatDateTime}}</td>
                         <td>
                             <div class="button-wrap">
                                 <v-btn
