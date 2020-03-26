@@ -28,7 +28,12 @@
     }
   },
   "backup": {
-    "backupConfiguration": "Back up config.",
+    "backupConfiguration": {
+      "button": "Back up config.",
+      "message": {
+        "success": "Backup {file} successfully created"
+      }
+    },
     "uploadBackup": "Upload backup",
     "action": {
       "delete": {
