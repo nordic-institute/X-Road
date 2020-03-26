@@ -70,7 +70,7 @@ Doc. ID: UG-SS
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
  05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
  24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
- 26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-update-api-keys) | Petteri Kivimäki
+ 26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -183,7 +183,7 @@ Doc. ID: UG-SS
   - [19.1 API key management operations](#191-api-key-management-operations)
     - [19.1.1 Creating new API keys](#1911-creating-new-api-keys)
     - [19.1.2 Listing API keys](#1912-listing-api-keys)
-    - [19.1.3 Updating API keys](#1913-update-api-keys)
+    - [19.1.3 Updating API keys](#1913-updating-api-keys)
     - [19.1.4 Revoking API keys](#1914-revoking-api-keys)
     - [19.1.5 API key caching](#1915-api-key-caching)
   - [19.2 Executing REST calls](#192-executing-rest-calls)
