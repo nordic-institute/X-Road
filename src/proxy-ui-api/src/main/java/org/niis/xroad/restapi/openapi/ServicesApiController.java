@@ -43,6 +43,7 @@ import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
+import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
@@ -138,8 +139,7 @@ public class ServicesApiController implements ServicesApi {
         List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
             accessRightHolderDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
-        } catch (ClientNotFoundException | ServiceNotFoundException
-                | AccessRightService.EndpointNotFoundByServiceNameException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
@@ -157,8 +157,7 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
-        } catch (ServiceNotFoundException | ClientNotFoundException
-                | AccessRightService.EndpointNotFoundByServiceNameException e) {
+        } catch (ServiceNotFoundException | ClientNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
@@ -177,8 +176,7 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (ClientNotFoundException | ServiceNotFoundException
-                | AccessRightService.EndpointNotFoundByServiceNameException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | IdentifierNotFoundException e) {
             throw new BadRequestException(e);
@@ -188,8 +186,6 @@ public class ServicesApiController implements ServicesApi {
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
-
-
 
     @Override
     @PreAuthorize("hasAuthority('ADD_OPENAPI3_ENDPOINT')")

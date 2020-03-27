@@ -83,11 +83,13 @@ public class AccessRightService {
     private final IdentifierService identifierService;
     private final GlobalConfService globalConfService;
     private final EndpointRepository endpointRepository;
+    private final EndpointService endpointService;
 
     @Autowired
     public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService, EndpointRepository endpointRepository) {
+            GlobalConfService globalConfService, EndpointRepository endpointRepository,
+            EndpointService endpointService) {
         this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
@@ -95,6 +97,7 @@ public class AccessRightService {
         this.identifierService = identifierService;
         this.globalConfService = globalConfService;
         this.endpointRepository = endpointRepository;
+        this.endpointService = endpointService;
     }
 
     /**
@@ -104,18 +107,17 @@ public class AccessRightService {
      * @return
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     * @throws EndpointNotFoundByServiceNameException if base endpoint for this service is not found from the client
+     * @throws EndpointNotFoundException if base endpoint for this service is not found from the client
      */
     public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
-            throws ClientNotFoundException, ServiceNotFoundException, EndpointNotFoundByServiceNameException {
+            throws ClientNotFoundException, ServiceNotFoundException, EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
-                .orElseThrow(() -> new EndpointNotFoundByServiceNameException(fullServiceCode));
+        EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
         return getAccessRightsHoldersByEndpoint(clientType, endpointType);
     }
 
@@ -204,20 +206,19 @@ public class AccessRightService {
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     * @throws EndpointNotFoundByServiceNameException if the base endpoint for the service is not found
+     * @throws EndpointNotFoundException if the base endpoint for the service is not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
                                               Set<Long> localGroupIds) throws LocalGroupNotFoundException,
             ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException,
-            EndpointNotFoundByServiceNameException {
+            EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
-                .orElseThrow(() -> new EndpointNotFoundByServiceNameException(fullServiceCode));
+        EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
 
         deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
@@ -297,12 +298,12 @@ public class AccessRightService {
      * @throws ServiceNotFoundException
      * @throws DuplicateAccessRightException
      * @throws IdentifierNotFoundException
-     * @throws EndpointNotFoundByServiceNameException
+     * @throws EndpointNotFoundException
      */
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
                 Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
             ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
-            IdentifierNotFoundException, EndpointNotFoundByServiceNameException {
+            IdentifierNotFoundException, EndpointNotFoundException {
 
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -310,8 +311,7 @@ public class AccessRightService {
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
-                .orElseThrow(() -> new EndpointNotFoundByServiceNameException(fullServiceCode));
+        EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
         return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
@@ -500,20 +500,6 @@ public class AccessRightService {
             localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
         }
         return localGroupXRoadIds;
-    }
-
-    /**
-     * If endpoint was not found
-     */
-    public static class EndpointNotFoundByServiceNameException extends NotFoundException {
-        public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
-        private static final String MESSAGE = "Endpoint not found for service: %s";
-
-        public EndpointNotFoundByServiceNameException(String fullServiceName) {
-            super(String.format(MESSAGE, fullServiceName), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND,
-                    fullServiceName));
-        }
-
     }
 
     /**

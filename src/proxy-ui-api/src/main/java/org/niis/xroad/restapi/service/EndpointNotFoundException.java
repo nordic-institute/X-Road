@@ -28,9 +28,15 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 public class EndpointNotFoundException extends NotFoundException {
     public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
+    public static final String ERROR_BASE_ENDPOINT_NOT_FOUND = "base_endpoint_not_found";
+
     private static final String MESSAGE = "Endpoint not found with id: %s";
 
     public EndpointNotFoundException(String id) {
         super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
+    }
+
+    public EndpointNotFoundException(String errorCode, String msg) {
+        super(msg, new ErrorDeviation(errorCode));
     }
 }

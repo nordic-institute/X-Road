@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
@@ -129,6 +130,26 @@ public class EndpointService {
         endpointRepository.saveOrUpdate(endpoint);
 
         return endpoint;
+    }
+
+    /**
+     * Get matching base-endpoint for the given client and service.
+     *
+     * @param clientType
+     * @param serviceType
+     * @return
+     * @throws EndpointNotFoundException
+     */
+    public EndpointType getBaseEndpoint(ClientType clientType, ServiceType serviceType)
+            throws EndpointNotFoundException {
+        return clientType.getEndpoint().stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
+                        && endpointType.getMethod().equals(EndpointType.ANY_METHOD)
+                        && endpointType.getPath().equals(EndpointType.ANY_PATH))
+                .findFirst()
+                .orElseThrow(() -> new EndpointNotFoundException(
+                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client"
+                        + clientType.getIdentifier() + " and servicecode " + serviceType.getServiceCode()));
     }
 
     public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
