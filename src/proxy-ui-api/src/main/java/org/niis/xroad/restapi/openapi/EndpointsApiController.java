@@ -27,15 +27,13 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
+import org.niis.xroad.restapi.converter.SubjectHelper;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.restapi.openapi.model.Subject;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -53,8 +51,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
 
@@ -72,6 +68,7 @@ public class EndpointsApiController implements EndpointsApi {
     private final AccessRightService accessRightService;
     private final ServiceClientConverter serviceClientConverter;
     private final SubjectConverter subjectConverter;
+    private final SubjectHelper subjectHelper;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 
@@ -82,12 +79,14 @@ public class EndpointsApiController implements EndpointsApi {
             EndpointConverter endpointConverter,
             AccessRightService accessRightService,
             ServiceClientConverter serviceClientConverter,
-            SubjectConverter subjectConverter) {
+            SubjectConverter subjectConverter,
+            SubjectHelper subjectHelper) {
         this.endpointService = endpointService;
         this.endpointConverter = endpointConverter;
         this.accessRightService = accessRightService;
         this.serviceClientConverter = serviceClientConverter;
         this.subjectConverter = subjectConverter;
+        this.subjectHelper = subjectHelper;
     }
 
     @Override
@@ -156,8 +155,8 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<List<ServiceClient>> addEndpointAccessRights(String id, Subjects subjects) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        Set<Long> localGroupIds = getLocalGroupIds(subjects);
-        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
+        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(subjects);
+        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(subjects);
         List<AccessRightHolderDto> accessRightHoldersByEndpoint = null;
 
         try {
@@ -180,8 +179,8 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<Void> deleteEndpointAccessRights(String id, Subjects subjects) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        Set<Long> localGroupIds = getLocalGroupIds(subjects);
-        HashSet<XRoadId> xRoadIds = new HashSet<>(getXRoadIdsButSkipLocalGroups(subjects));
+        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(subjects);
+        HashSet<XRoadId> xRoadIds = new HashSet<>(subjectHelper.getXRoadIdsButSkipLocalGroups(subjects));
         try {
             accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds, localGroupIds);
         } catch (LocalGroupNotFoundException e) {
@@ -195,31 +194,5 @@ public class EndpointsApiController implements EndpointsApi {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    private List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
-        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        return subjectConverter.convertId(subjects.getItems());
-    }
 
-    private Set<Long> getLocalGroupIds(Subjects subjects) {
-        return subjects.getItems()
-                .stream()
-                .filter(hasNumericIdAndIsLocalGroup)
-                .map(subject -> Long.parseLong(subject.getId()))
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * The client-provided Subjects only contain id and subjectType when adding or deleting access rights.
-     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
-     * Therefore LocalGroups need to be handled separately from other types of subjects.
-     */
-    private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
-        boolean hasNumericId = StringUtils.isNumeric(subject.getId());
-        boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
-        if (!hasNumericId && isLocalGroup) {
-            throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
-        }
-        return hasNumericId && isLocalGroup;
-    };
 }
