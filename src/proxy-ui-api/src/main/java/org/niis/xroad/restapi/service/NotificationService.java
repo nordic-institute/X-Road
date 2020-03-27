@@ -67,8 +67,8 @@ public class NotificationService {
     public AlertStatus getAlerts() {
         AlertStatus alertStatus = new AlertStatus();
         alertStatus.setAlertsEnabled(alertsEnabled);
-        alertStatus.setGlobalConfValid(alertsEnabled ? isGlobalConfValid() : true);
-        alertStatus.setSoftTokenPinEntered(alertsEnabled ? isSoftTokenPinEntered() : true);
+        alertStatus.setGlobalConfValid(isGlobalConfValid());
+        alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
         return alertStatus;
     }
 
