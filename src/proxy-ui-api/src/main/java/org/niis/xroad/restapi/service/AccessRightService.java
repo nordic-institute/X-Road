@@ -264,7 +264,11 @@ public class AccessRightService {
 
         Set<XRoadId> subjectsToDelete = new HashSet<>();
         if (localGroupIds != null) {
-            subjectsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+            try {
+                subjectsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+            } catch (LocalGroupNotFoundException e) {
+                throw new AccessRightNotFoundException();
+            }
         }
         if (subjectIds != null) {
             subjectsToDelete.addAll(subjectIds);
@@ -393,7 +397,7 @@ public class AccessRightService {
     }
 
     private Set<XRoadId> mergeSubjectIdsWithLocalgroups(Set<XRoadId> subjectIds, Set<Long> localGroupIds)
-            throws IdentifierNotFoundException, LocalGroupNotFoundException {
+            throws IdentifierNotFoundException, AccessRightNotFoundException {
         // Get persistent entities in order to change relations
         Set<XRoadId> txSubjects = new HashSet<>();
         if (subjectIds != null && !subjectIds.isEmpty()) {
@@ -405,7 +409,12 @@ public class AccessRightService {
                     .collect(Collectors.toSet())));
         }
         if (localGroupIds != null && localGroupIds.size() > 0) {
-            Set<XRoadId> localGroupXroadIds = getLocalGroupsAsXroadIds(localGroupIds);
+            Set<XRoadId> localGroupXroadIds = null;
+            try {
+                localGroupXroadIds = getLocalGroupsAsXroadIds(localGroupIds);
+            } catch (LocalGroupNotFoundException e) {
+                throw new AccessRightNotFoundException();
+            }
             // Get LocalGroupIds from serverconf db - or save them if they don't exist
             Set<XRoadId> txLocalGroupXroadIds = identifierService.getOrPersistXroadIds(localGroupXroadIds);
             txSubjects.addAll(txLocalGroupXroadIds);
