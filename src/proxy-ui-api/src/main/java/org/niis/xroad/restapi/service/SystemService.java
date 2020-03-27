@@ -42,9 +42,13 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,10 +61,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static org.niis.xroad.restapi.exceptions.ExceptionTranslator.CORE_CODED_EXCEPTION_PREFIX;
 
 /**
  * Service that handles system services
@@ -75,25 +76,31 @@ public class SystemService {
     private final ServerConfService serverConfService;
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
+    @Setter
+    private String downloadConfigurationAnchorUrl;
+    private String tempFilesPath = SystemProperties.getTempFilesPath();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
     private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
+    private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
 
     /**
      * constructor
      */
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-            AnchorRepository anchorRepository,
-            ConfigurationVerifier configurationVerifier) {
+            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier,
+            @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
         this.configurationVerifier = configurationVerifier;
+        this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
     }
 
     /**
@@ -229,8 +236,11 @@ public class SystemService {
      * @throws AnchorUploadException in case of external process exceptions
      * @throws MalformedAnchorException if the Anchor content is wrong
      */
+    // SonarQube: "InterruptedException" should not be ignored -> it has already been handled at this point
+    @SuppressWarnings("squid:S2142")
     public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
-            MalformedAnchorException {
+            MalformedAnchorException, ConfigurationDownloadException,
+            ConfigurationVerifier.ConfigurationVerificationException {
         ConfigurationAnchorV2 anchor = null;
         try {
             anchor = new ConfigurationAnchorV2(anchorBytes);
@@ -247,19 +257,19 @@ public class SystemService {
             tempAnchor = createTemporaryAnchorFile(anchorBytes);
             configurationVerifier.verifyInternalConfiguration(tempAnchor.getAbsolutePath());
             anchorRepository.saveAndReplace(tempAnchor);
-        } catch (ConfigurationVerifier.ConfigurationVerificationException ce) {
-            throw new DeviationAwareRuntimeException(ce, ce.getErrorDeviation());
-        } catch (CodedException ce) {
-            throw ce;
-        } catch (ServiceException | InterruptedException e) {
+        } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {
             throw new AnchorUploadException(e);
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException("Cannot upload a new anchor", e);
         } finally {
             if (tempAnchor != null) {
-                tempAnchor.delete();
+                boolean deleted = tempAnchor.delete();
+                if (!deleted) {
+                    log.error("Temporary anchor could not be deleted: " + tempAnchor.getAbsolutePath());
+                }
             }
         }
+        executeDownloadConfigurationFromAnchor();
     }
 
     /**
@@ -268,12 +278,13 @@ public class SystemService {
      * temporary file. Remember to delete the file after it is no longer needed.
      * @param anchorBytes
      * @return temporary anchor file
-     * @throws IOException
+     * @throws IOException if temp file creation fails
      */
     private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
         String tempAnchorPrefix = "temp-internal-anchor-";
         String tempAnchorSuffix = ".xml";
-        File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix);
+        File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
+        File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
         FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
         return tempAnchor;
     }
@@ -317,6 +328,14 @@ public class SystemService {
         return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 
+    private void executeDownloadConfigurationFromAnchor() throws ConfigurationDownloadException {
+        log.info("Starting to download GlobalConf");
+        ResponseEntity<String> response = restTemplate.getForEntity(downloadConfigurationAnchorUrl, String.class);
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new ConfigurationDownloadException(response.getBody());
+        }
+    }
+
     /**
      * Return anchor file's hash as a hex string
      * @return
@@ -331,7 +350,7 @@ public class SystemService {
     }
 
     static boolean isCausedByMalformedAnchorContent(CodedException e) {
-        return (CORE_CODED_EXCEPTION_PREFIX + X_MALFORMED_GLOBALCONF).equals(e.getFaultCode());
+        return (X_MALFORMED_GLOBALCONF).equals(e.getFaultCode());
     }
 
     /**
@@ -377,6 +396,18 @@ public class SystemService {
 
         public MalformedAnchorException(String s) {
             super(s, new ErrorDeviation(MALFORMED_ANCHOR));
+        }
+    }
+
+    /**
+     * Thrown if downloading configuration from the anchor fails. Usually caused by erroneous response (500) from
+     * ConfigurationClient.
+     */
+    public static class ConfigurationDownloadException extends ServiceException {
+        public static final String CONF_DOWNLOAD_FAILED = "conf_download_failed";
+
+        public ConfigurationDownloadException(String s) {
+            super(s, new ErrorDeviation(CONF_DOWNLOAD_FAILED));
         }
     }
 }

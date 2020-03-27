@@ -125,7 +125,9 @@ public class BackupService {
     /**
      * Generate a new backup file
      * @return
-     * @throws InterruptedException if the thread the backup process is interrupted and the backup fails
+     * @throws InterruptedException if the thread the backup process is interrupted and the backup fails. <b>The
+     * interrupted thread has already been handled with so you can choose to ignore this exception if you
+     * so please.</b>
      */
     public BackupFile generateBackup() throws InterruptedException {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();

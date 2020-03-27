@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.restapi.service.InvalidCertificateException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
@@ -222,9 +223,10 @@ public class SystemApiController implements SystemApi {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         try {
             systemService.uploadAnchor(anchorBytes);
-        } catch (SystemService.InvalidAnchorInstanceException e) {
+        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException
+                | ConfigurationVerifier.ConfigurationVerificationException e) {
             throw new BadRequestException(e);
-        } catch (SystemService.AnchorUploadException e) {
+        } catch (SystemService.AnchorUploadException | SystemService.ConfigurationDownloadException e) {
             throw new InternalServerErrorException(e);
         }
         return ApiUtil.createCreatedResponse("/api/system/anchor", null);
@@ -237,7 +239,7 @@ public class SystemApiController implements SystemApi {
         AnchorFile anchorFile = null;
         try {
             anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
-        } catch (SystemService.InvalidAnchorInstanceException e) {
+        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);

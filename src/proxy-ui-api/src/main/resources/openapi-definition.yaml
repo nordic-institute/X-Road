@@ -3106,7 +3106,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    put: # ok
       tags:
         - security server
       summary: upload a configuration anchor file
