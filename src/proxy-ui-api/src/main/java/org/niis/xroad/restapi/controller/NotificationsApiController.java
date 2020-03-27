@@ -28,6 +28,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.SessionTimeoutFilter;
+import org.niis.xroad.restapi.converter.AlertDataConverter;
+import org.niis.xroad.restapi.domain.AlertData;
+import org.niis.xroad.restapi.dto.AlertStatus;
+import org.niis.xroad.restapi.service.NotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,7 +54,10 @@ import javax.servlet.http.HttpSession;
 @Slf4j
 @PreAuthorize("denyAll")
 public class NotificationsApiController {
-
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private AlertDataConverter alertDataConverter;
     public static final String NOTIFICATIONS_API_URL = "/api/notifications";
 
     /**
@@ -70,5 +78,17 @@ public class NotificationsApiController {
     @AllArgsConstructor
     private class StatusData {
         private boolean valid;
+    }
+
+    /**
+     * check if there are alerts
+     */
+    @PreAuthorize("permitAll")
+    @RequestMapping(value = "/alerts",
+            produces = { "application/json" },
+            method = RequestMethod.GET)
+    public ResponseEntity<AlertData> checkAlerts() {
+        AlertStatus alertStatus = notificationService.getAlerts();
+        return new ResponseEntity<>(alertDataConverter.convert(alertStatus), HttpStatus.OK);
     }
 }
