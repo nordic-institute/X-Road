@@ -179,6 +179,7 @@ public class ClientsApiControllerIntegrationTest {
         // mock for URL validator - FormatUtils is tested independently
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenReturn(0);
     }
 
     @Autowired
@@ -1058,5 +1059,40 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
     public void unregisterClientWrongStatus() {
         clientsApiController.unregisterClient(TestUtils.CLIENT_ID_M2_SS6);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ", "ADD_CLIENT" })
+    public void changeOwnerNotRegistered() {
+        clientsApiController.addClient(new ClientAdd().client(createTestClient(
+                "GOV", "M2", null)).ignoreWarnings(true));
+
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M2", null));
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerCurrentOwner() {
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M1", null));
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerSubsystem() {
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M1", "SS1"));
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerClientDoesNotExist() {
+        Client client = new Client();
+        client.setInstanceId("non");
+        client.setMemberClass("existing");
+        client.setMemberCode("client");
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "non", "existing", null));
     }
 }

@@ -60,7 +60,7 @@
           v-if="getAuthKeys(token.keys).length > 0"
           :keys="getAuthKeys(token.keys)"
           title="keys.authKeyCert"
-          :disableGenerateCsr="!token.logged_in"
+          :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
           @keyClick="keyClick"
           @generateCsr="generateCsr"
@@ -74,7 +74,7 @@
           v-if="getSignKeys(token.keys).length > 0"
           :keys="getSignKeys(token.keys)"
           title="keys.signKeyCert"
-          :disableGenerateCsr="!token.logged_in"
+          :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
           @keyClick="keyClick"
           @generateCsr="generateCsr"
@@ -88,7 +88,7 @@
           v-if="getOtherKeys(token.keys).length > 0"
           :keys="getOtherKeys(token.keys)"
           title="keys.unknown"
-          :disableGenerateCsr="!token.logged_in"
+          :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
           @keyClick="keyClick"
           @generateCsr="generateCsr"
@@ -230,11 +230,11 @@ export default Vue.extend({
           })
           .then(
             () => {
-              this.$bus.$emit('show-success', 'keys.importCertSuccess');
+              this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
               this.fetchData();
             },
             (error) => {
-              this.$bus.$emit('show-error', error.message);
+              this.$store.dispatch('showError', error);
             },
           );
       };
@@ -243,11 +243,11 @@ export default Vue.extend({
     importCertByHash(hash: string) {
       api.post(`/token-certificates/${hash}/import`, {}).then(
         () => {
-          this.$bus.$emit('show-success', 'keys.importCertSuccess');
+          this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
           this.fetchData();
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },
