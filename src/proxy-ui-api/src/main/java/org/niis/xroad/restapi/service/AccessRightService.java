@@ -63,8 +63,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
-
 /**
  * service class for handling access rights
  */
@@ -118,7 +116,9 @@ public class AccessRightService {
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
         EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
-        return getAccessRightsHoldersByEndpoint(clientType, endpointType);
+
+        List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
+        return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
     }
 
     /**
@@ -127,11 +127,10 @@ public class AccessRightService {
      * @param id
      * @return
      * @throws EndpointNotFoundException    if no endpoint is found with given id
-     * @throws ClientNotFoundException                      if client attached to endpoint is not found
+     * @throws ClientNotFoundException      if client attached to endpoint is not found
      */
     public List<AccessRightHolderDto> getAccessRightHoldersByEndpoint(Long id)
             throws EndpointNotFoundException, ClientNotFoundException {
-        verifyAuthority("VIEW_ENDPOINT_ACL");
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
         if (clientType == null) {
@@ -143,32 +142,32 @@ public class AccessRightService {
             throw new EndpointNotFoundException(id.toString());
         }
 
-        return getAccessRightsHoldersByEndpoint(clientType, endpointType);
+        List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
+        return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
+    }
 
+    private List<AccessRightType> getAccessRightsByEndpoint(ClientType clientType, EndpointType endpointType) {
+        return clientType.getAcl().stream()
+                .filter(accessRightType -> accessRightType.getEndpoint().getId().equals(endpointType.getId()))
+                .collect(Collectors.toList());
     }
 
     /**
      * Get access rights for endpoint
      *
      * @param clientType
-     * @param endpointType
+     * @param accessRightTypes
      * @return
      */
-    private List<AccessRightHolderDto> getAccessRightsHoldersByEndpoint(ClientType clientType,
-                                                                        EndpointType endpointType) {
-        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+    private List<AccessRightHolderDto> mapAccessRightsToAccessRightHolders(ClientType clientType,
+            List<AccessRightType> accessRightTypes) {
         Map<String, LocalGroupType> localGroupMap = new HashMap<>();
         clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
                 localGroupType));
 
-        clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getId().equals(endpointType.getId())) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
-                accessRightHolderDtos.add(accessRightHolderDto);
-            }
-        });
-
-        return accessRightHolderDtos;
+        return accessRightTypes.stream()
+                .map( (accessRightType -> accessRightTypeToDto(accessRightType, localGroupMap)))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -179,7 +178,7 @@ public class AccessRightService {
      * @return
      */
     private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
-                                                      Map<String, LocalGroupType> localGroupMap) {
+            Map<String, LocalGroupType> localGroupMap) {
         AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
         XRoadId subjectId = accessRightType.getSubjectId();
         accessRightHolderDto.setRightsGiven(
@@ -237,7 +236,6 @@ public class AccessRightService {
     public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds, Set<Long> localGroupIds)
             throws LocalGroupNotFoundException, EndpointNotFoundException,
             ClientNotFoundException, AccessRightNotFoundException {
-        verifyAuthority("EDIT_ENDPOINT_ACL");
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
         if (clientType == null) {
@@ -335,7 +333,6 @@ public class AccessRightService {
     public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
-        verifyAuthority("EDIT_ENDPOINT_ACL");
 
         EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
         if (endpointType == null) {
@@ -361,7 +358,7 @@ public class AccessRightService {
         addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
 
         // Create DTOs for returning data
-        return getAccessRightsHoldersByEndpoint(clientType, endpointType);
+        return mapAccessRightsToAccessRightHolders(clientType, endpointType);
     }
 
     /**
