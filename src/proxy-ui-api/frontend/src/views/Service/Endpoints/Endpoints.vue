@@ -46,7 +46,7 @@
                 color="primary"
                 class="xrd-small-button xrd-table-button"
                 data-test="endpoint-edit-accessrights"
-                @click="editAccessRights(endpoint)">{{$t('access.accessRights')}}
+                @click="editAccessRights(endpoint)">{{$t('accessRights.title')}}
               </v-btn>
             </td>
           </tr>

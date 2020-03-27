@@ -102,7 +102,7 @@
         </ValidationObserver>
 
         <div class="group-members-row">
-            <div class="row-title">{{$t('access.accessRights')}}</div>
+            <div class="row-title">{{$t('accessRights.title')}}</div>
             <div class="row-buttons">
                 <large-button
                         :disabled="!hasSubjects"
@@ -116,7 +116,7 @@
                         class="add-members-button"
                         @click="showAddSubjectsDialog()"
                         data-test="show-add-subjects"
-                >{{$t('access.addSubjects')}}
+                >{{$t('accessRights.addSubjects')}}
                 </large-button>
             </div>
         </div>
@@ -127,7 +127,7 @@
                     <th>{{$t('services.memberNameGroupDesc')}}</th>
                     <th>{{$t('services.idGroupCode')}}</th>
                     <th>{{$t('type')}}</th>
-                    <th>{{$t('access.rightsGiven')}}</th>
+                    <th>{{$t('accessRights.rightsGiven')}}</th>
                     <th></th>
                 </tr>
                 <template v-if="accessRightsSubjects">
@@ -182,7 +182,7 @@
                 :dialog="addSubjectsDialogVisible"
                 :filtered="accessRightsSubjects"
                 :clientId="clientId"
-                title="access.addSubjectsTitle"
+                title="accessRights.addSubjectsTitle"
                 @cancel="closeAccessRightsDialog"
                 @subjectsAdded="doAddSubjects"
         />
@@ -303,7 +303,7 @@ export default Vue.extend({
           items: selected,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'access.addSubjectsSuccess');
+          this.$bus.$emit('show-success', 'accessRights.addSubjectsSuccess');
           this.$emit('updateService', this.service.id);
         })
         .catch((error) => {
@@ -358,7 +358,7 @@ export default Vue.extend({
           items: subjects,
         })
         .then( () => {
-          this.$bus.$emit('show-success', 'access.removeSubjectsSuccess');
+          this.$bus.$emit('show-success', 'accessRights.removeSubjectsSuccess');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);

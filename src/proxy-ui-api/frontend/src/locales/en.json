@@ -185,8 +185,8 @@
     "deleteEndpointText": "Are you sure that you want to delete this endpoint",
     "editSuccess": "Changes to endpoint saved successfully"
   },
-  "access": {
-    "accessRights": "Access Rights",
+  "accessRights": {
+    "title": "Access Rights",
     "addSubjects": "Add subjects",
     "addSubjectsTitle": "Add Subjects",
     "memberName": "Member Name / Group Description",

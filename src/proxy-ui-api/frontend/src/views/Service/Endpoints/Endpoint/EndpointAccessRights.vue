@@ -8,7 +8,7 @@
     </div>
 
     <div class="group-members-row">
-      <div class="row-title">{{$t('access.accessRights')}}</div>
+      <div class="row-title">{{$t('accessRights.title')}}</div>
       <div class="row-buttons">
         <large-button
           @click="removeAll()"
@@ -20,7 +20,7 @@
           @click="toggleAddSubjectsDialog()"
           outlined
           data-test="add-subjects-dialog"
-        >{{$t('access.addSubjects')}}
+        >{{$t('accessRights.addSubjects')}}
         </large-button>
       </div>
     </div>
@@ -28,9 +28,9 @@
     <table class="xrd-table">
       <thead>
       <tr>
-        <th>{{$t('access.memberName')}}</th>
-        <th>{{$t('access.id')}}</th>
-        <th>{{$t('access.rightsGiven')}}</th>
+        <th>{{$t('accessRights.memberName')}}</th>
+        <th>{{$t('accessRights.id')}}</th>
+        <th>{{$t('accessRights.rightsGiven')}}</th>
         <th></th>
       </tr>
       </thead>
@@ -58,8 +58,8 @@
     <!-- Confirm dialog remove Access Right subject -->
     <confirmDialog
       :dialog="confirmDelete"
-      title="access.removeTitle"
-      text="access.removeText"
+      title="accessRights.removeTitle"
+      text="accessRights.removeText"
       @cancel="resetDeletionSettings()"
       @accept="doRemoveSelectedSubjects()"
     />
@@ -69,7 +69,7 @@
       :dialog="addSubjectsDialogVisible"
       :filtered="serviceClients"
       :clientId="clientId"
-      title="access.addSubjectsTitle"
+      title="accessRights.addSubjectsTitle"
       @cancel="toggleAddSubjectsDialog"
       @subjectsAdded="doAddSubjects"
     />
@@ -159,7 +159,7 @@
         api
           .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.subjectsToDelete })
           .then( () => {
-            this.$bus.$emit('show-success', 'access.removeSubjectsSuccess');
+            this.$bus.$emit('show-success', 'accessRights.removeSubjectsSuccess');
             this.fetchData();
           })
           .catch( (error) => {
@@ -173,7 +173,7 @@
         api
           .post(`/endpoints/${this.id}/access-rights`, { items: subjects})
           .then( (accessRights) => {
-            this.$bus.$emit('show-success', 'access.addSubjectsSuccess');
+            this.$bus.$emit('show-success', 'accessRights.addSubjectsSuccess');
             this.serviceClients = accessRights.data;
           })
           .catch( (error) => {

@@ -280,7 +280,6 @@ public class AccessRightService {
         }
 
         clientType.getAcl().removeAll(accessRightsToBeRemoved);
-        clientRepository.saveOrUpdate(clientType);
     }
 
     /**
