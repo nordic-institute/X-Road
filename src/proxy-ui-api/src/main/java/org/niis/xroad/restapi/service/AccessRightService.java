@@ -361,7 +361,7 @@ public class AccessRightService {
         addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
 
         // Create DTOs for returning data
-        return getAccessRightHolderDtosForEndpoint(clientType, endpointType);
+        return getAccessRightsHoldersByEndpoint(clientType, endpointType);
     }
 
     /**
@@ -393,25 +393,6 @@ public class AccessRightService {
         }
 
         clientRepository.saveOrUpdate(clientType);
-    }
-
-    private List<AccessRightHolderDto> getAccessRightHolderDtosForEndpoint(ClientType clientType,
-                                                                           EndpointType endpoint) {
-        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
-
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
-
-        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
-
-        clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getId().equals(endpoint.getId())) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
-                accessRightHolderDtos.add(accessRightHolderDto);
-            }
-        });
-
-        return accessRightHolderDtos;
     }
 
     private Set<XRoadId> mergeSubjectIdsWithLocalgroups(Set<XRoadId> subjectIds, Set<Long> localGroupIds)
