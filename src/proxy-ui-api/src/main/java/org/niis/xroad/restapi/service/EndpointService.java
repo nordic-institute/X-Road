@@ -111,7 +111,7 @@ public class EndpointService {
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
      * @throws IllegalArgumentException                 passing illegal combination of parameters
      */
-    public EndpointType updateEndpoint(Long id, EndpointUpdate.MethodEnum method, String path)
+    public EndpointType updateEndpoint(Long id, String method, String path)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
         verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
 
@@ -139,7 +139,7 @@ public class EndpointService {
         }
 
         if (method != null) {
-            endpoint.setMethod(method.toString());
+            endpoint.setMethod(method);
         }
 
         endpointRepository.saveOrUpdate(endpoint);

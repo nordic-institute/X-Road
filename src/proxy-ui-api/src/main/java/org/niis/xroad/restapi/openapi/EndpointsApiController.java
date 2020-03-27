@@ -97,7 +97,7 @@ public class EndpointsApiController implements EndpointsApi {
         Endpoint ep;
         try {
             ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId,
-                    endpointUpdate.getMethod(), endpointUpdate.getPath()));
+                    endpointUpdate.getMethod().toString(), endpointUpdate.getPath()));
         } catch (EndpointService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
