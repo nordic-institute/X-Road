@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import org.niis.xroad.restapi.controller.ApiKeysController;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,7 +40,7 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.LOCALHOST_PA
 
 /**
  * basic authentication configuration for managing api keys
- * matching url /api/api-key/**
+ * matching url /api/api-keys/**
  */
 @Configuration
 @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
@@ -52,7 +53,7 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .antMatcher("/api/api-key/**")
+            .antMatcher(ApiKeysController.API_KEYS_PATH + "/**")
             .authorizeRequests()
                 .anyRequest()
                 .hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
