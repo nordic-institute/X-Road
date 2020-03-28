@@ -2035,7 +2035,7 @@ associated with the key. Server responds with data that contains the key id and 
 ```
 curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
-  "id": 61,
+  "id": 60,
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
     "XROAD_SECURITYSERVER_OBSERVER"
