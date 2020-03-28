@@ -91,9 +91,9 @@ Date       | Version | Description                                              
   * [3.43 UC SS\_42: Unregister an Authentication Certificate on Key Deletion](#343-uc-ss_42-unregister-an-authentication-certificate-on-key-deletion)
   * [3.44 UC SS\_43: Create a new API key](#344-uc-ss_43-create-a-new-api-key)
   * [3.45 UC SS\_44: List API keys](#345-uc-ss_44-list-api-keys)
-  * [3.46 UC SS\_45: Edit an API key](#345-uc-ss_45-edit-an-api-key)
-  * [3.47 UC SS\_46: Revoke an API key](#346-uc-ss_46-revoke-an-api-key)
-  * [3.48 UC SS\_47: Call a REST API](#347-uc-ss_47-call-a-rest-api)
+  * [3.46 UC SS\_45: Edit an API key](#346-uc-ss_45-edit-an-api-key)
+  * [3.47 UC SS\_46: Revoke an API key](#347-uc-ss_46-revoke-an-api-key)
+  * [3.48 UC SS\_47: Call a REST API](#348-uc-ss_47-call-a-rest-api)
 
 <!-- tocstop -->
 
