@@ -91,8 +91,10 @@ public class ApiKeyController {
         try {
             PersistentApiKeyType key = apiKeyRepository.update(id, roles);
             return new ResponseEntity<>(new PublicKeyData(key.getId(), key.getRoles()), HttpStatus.OK);
-        } catch (InvalidRoleNameException | ApiKeyRepository.ApiKeyNotFoundException e) {
+        } catch (InvalidRoleNameException e) {
             throw new BadRequestException(e);
+        } catch (ApiKeyRepository.ApiKeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         }
     }
 
