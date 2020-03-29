@@ -22,40 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.springframework.stereotype.Component;
+public class InvalidBackupFileException extends ServiceException {
+    public static final String ERROR_INVALID_BACKUP_FILE = "invalid_backup_file";
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * Converter for timestamping services related data between openapi and service domain classes
- */
-@Component
-public class TimestampingServiceConverter {
-
-    public TimestampingService convert(TspType tsp)  {
-        TimestampingService timestampingService = new TimestampingService();
-        timestampingService.setUrl(tsp.getUrl());
-        timestampingService.setName(tsp.getName());
-        return timestampingService;
-    }
-
-    public List<TimestampingService> convert(Iterable<TspType> tsps)  {
-        return Streams.stream(tsps)
-                .map(this::convert)
-                .collect(Collectors.toList());
-    }
-
-    public TspType convert(TimestampingService timestampingService)  {
-        TspType tspType = new TspType();
-        tspType.setUrl(timestampingService.getUrl());
-        tspType.setName(timestampingService.getName());
-        return tspType;
+    public InvalidBackupFileException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_INVALID_BACKUP_FILE));
     }
 }

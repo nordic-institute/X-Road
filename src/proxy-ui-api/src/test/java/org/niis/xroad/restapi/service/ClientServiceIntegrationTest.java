@@ -105,6 +105,7 @@ public class ClientServiceIntegrationTest {
     private ClientId existingSavedClientId = ClientId.create("FI", "GOV", "M2", "SS6");
     private ClientId existingRegisteredClientId = ClientId.create("FI", "GOV", "M1", "SS1");
     private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
+    private ClientId newOwnerClientId = ClientId.create("FI", "GOV", "M2", null);
 
     @MockBean
     private ManagementRequestSenderService managementRequestSenderService;
@@ -961,5 +962,68 @@ public class ClientServiceIntegrationTest {
     @Test(expected = ClientNotFoundException.class)
     public void unregisterNonExistingClient() throws Exception {
         clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
+    }
+
+    @Test
+    public void changeOwner() {
+        try {
+            clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                    null, IsAuthentication.SSLAUTH, false);
+            ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+            clientType.setClientStatus(STATUS_REGISTERED);
+            clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                    newOwnerClientId.getSubsystemCode());
+        } catch (Exception e) {
+            fail("should have not thrown Exception");
+        }
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void changeOwnerNewOwnerSubsystem() throws Exception {
+        // New owner ("existingClientId") is a subsystem which is not allowed
+        clientService.changeOwner(existingRegisteredClientId.getMemberClass(),
+                existingRegisteredClientId.getMemberCode(), existingRegisteredClientId.getSubsystemCode());
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void changeOwnerNonExistingClient() throws Exception {
+        clientService.changeOwner("existing", "client", null);
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void changeOwnerNewOwnerNotRegistered() throws Exception {
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
+    }
+
+    @Test(expected = ClientService.MemberAlreadyOwnerException.class)
+    public void changeOwnerNewOwnerAlreadyOwner() throws Exception {
+        clientService.changeOwner(ownerClientId.getMemberClass(), ownerClientId.getMemberCode(),
+                ownerClientId.getSubsystemCode());
+    }
+
+    @Test(expected = CodedException.class)
+    public void changeOwnerCodedException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(CodedException.class);
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+        clientType.setClientStatus(STATUS_REGISTERED);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void changeOwnerRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+        clientType.setClientStatus(STATUS_REGISTERED);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
     }
 }

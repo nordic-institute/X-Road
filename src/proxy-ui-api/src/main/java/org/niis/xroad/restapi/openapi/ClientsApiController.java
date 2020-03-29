@@ -523,4 +523,19 @@ public class ClientsApiController implements ClientsApi {
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_OWNER_CHANGE_REQ')")
+    public ResponseEntity<Void> changeOwner(Client client) {
+        try {
+            clientService.changeOwner(client.getMemberClass(), client.getMemberCode(), client.getSubsystemCode());
+        } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

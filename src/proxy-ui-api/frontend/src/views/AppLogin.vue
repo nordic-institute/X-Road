@@ -1,71 +1,58 @@
 <template>
-  <v-app class="app-custom">
-    <v-content>
-      <v-toolbar dark color="#202020" class="elevation-2">
-        <v-img
-          :src="require('../assets/xroad_logo_64.png')"
-          height="64"
-          width="128"
-          max-height="64"
-          max-width="128"
-        ></v-img>
-        <v-spacer></v-spacer>
-      </v-toolbar>
-      <v-container fluid fill-height>
-        <v-layout align-center justify-center>
-          <v-flex sm8 md4 class="set-width">
-            <v-card flat>
-              <v-toolbar flat class="login-form-toolbar">
-                <v-toolbar-title class="login-form-toolbar-title">{{$t('login.logIn')}}</v-toolbar-title>
-              </v-toolbar>
-              <v-card-text>
-                <v-form>
-                  <ValidationObserver ref="form" v-slot="{ validate }">
-                    <ValidationProvider name="username" rules="required" v-slot="{ errors }">
-                      <v-text-field
-                        id="username"
-                        name="username"
-                        :label="$t('fields.username')"
-                        :error-messages="errors"
-                        type="text"
-                        v-model="username"
-                        @keyup.enter="submit"
-                      ></v-text-field>
-                    </ValidationProvider>
+  <v-container fluid fill-height>
+    <v-layout align-center justify-center>
+      <v-flex sm8 md4 class="set-width">
+        <v-card flat>
+          <v-toolbar flat class="login-form-toolbar">
+            <v-toolbar-title class="login-form-toolbar-title">{{$t('login.logIn')}}</v-toolbar-title>
+          </v-toolbar>
+          <v-card-text>
+            <v-form>
+              <ValidationObserver ref="form" v-slot="{ validate }">
+                <ValidationProvider name="username" rules="required" v-slot="{ errors }">
+                  <v-text-field
+                    id="username"
+                    name="username"
+                    :label="$t('fields.username')"
+                    :error-messages="errors"
+                    type="text"
+                    v-model="username"
+                    @keyup.enter="submit"
+                  ></v-text-field>
+                </ValidationProvider>
 
-                    <ValidationProvider name="password" rules="required" v-slot="{ errors }">
-                      <v-text-field
-                        id="password"
-                        name="password"
-                        :label="$t('fields.password')"
-                        :error-messages="errors"
-                        type="password"
-                        v-model="password"
-                        @keyup.enter="submit"
-                      ></v-text-field>
-                    </ValidationProvider>
-                  </ValidationObserver>
-                </v-form>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn
-                  id="submit-button"
-                  color="primary"
-                  class="rounded-button"
-                  @click="submit"
-                  min-width="120"
-                  rounded
-                  :disabled="isDisabled"
-                  :loading="loading"
-                >{{$t('login.logIn')}}</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-flex>
-        </v-layout>
-      </v-container>
-    </v-content>
-  </v-app>
+                <ValidationProvider name="password" rules="required" v-slot="{ errors }">
+                  <v-text-field
+                    id="password"
+                    name="password"
+                    :label="$t('fields.password')"
+                    :error-messages="errors"
+                    type="password"
+                    v-model="password"
+                    @keyup.enter="submit"
+                  ></v-text-field>
+                </ValidationProvider>
+              </ValidationObserver>
+            </v-form>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              id="submit-button"
+              color="primary"
+              class="rounded-button"
+              @click="submit"
+              min-width="120"
+              rounded
+              :disabled="isDisabled"
+              :loading="loading"
+            >{{$t('login.logIn')}}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -149,8 +136,7 @@ export default (Vue as VueConstructor<
                 });
               });
             }
-            console.error(error);
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showErrorMessageRaw', error.message);
           },
         )
         .finally(() => {
@@ -168,8 +154,7 @@ export default (Vue as VueConstructor<
           },
           (error) => {
             // Display error
-            console.error(error);
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showErrorMessageRaw', error.message);
           },
         )
         .finally(() => {
@@ -178,17 +163,14 @@ export default (Vue as VueConstructor<
         });
     },
     async fetchCurrentSecurityServer() {
-      this.$store
-        .dispatch('fetchCurrentSecurityServer')
-        .catch((error) => {
-          console.error(error);
-          this.$bus.$emit('show-error', error.message);
-        });
+      this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
     },
     async fetchSecurityServerVersion() {
       this.$store
         .dispatch('fetchSecurityServerVersion')
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
   },
 });

@@ -8,7 +8,7 @@
     rounded
     color="primary"
     class="large-button"
-    @click="click()"
+    @click="click"
   >
     <slot></slot>
   </v-btn>

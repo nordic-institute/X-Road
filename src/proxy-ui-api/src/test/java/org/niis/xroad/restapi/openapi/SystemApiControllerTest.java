@@ -66,6 +66,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -200,7 +201,7 @@ public class SystemApiControllerTest {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
-                .addConfiguredTimestampingService(timestampingService);
+                .addConfiguredTimestampingService(any());
 
         try {
             ResponseEntity<TimestampingService> response = systemApiController
@@ -220,7 +221,7 @@ public class SystemApiControllerTest {
                 .createTimestampingService("http://dummy.com", "Dummy");
 
         doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
-                .addConfiguredTimestampingService(timestampingService);
+                .addConfiguredTimestampingService(any());
 
         try {
             ResponseEntity<TimestampingService> response = systemApiController
@@ -245,7 +246,7 @@ public class SystemApiControllerTest {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         doThrow(new TimestampingServiceNotFoundException("")).when(systemService)
-                .deleteConfiguredTimestampingService(timestampingService);
+                .deleteConfiguredTimestampingService(any());
 
         try {
             ResponseEntity<Void> response = systemApiController
