@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -65,6 +66,8 @@ public class ClientConverter {
     public static final int MEMBER_CLASS_INDEX = 1;
     public static final int MEMBER_CODE_INDEX = 2;
     public static final int SUBSYSTEM_CODE_INDEX = 3;
+    public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local signed certificate";
+
 
     @Autowired
     public ClientConverter(GlobalConfFacade globalConfFacade,
@@ -81,7 +84,7 @@ public class ClientConverter {
      * @return
      * @throws OcspUtils.OcspStatusExtractionException
      */
-    public Client convert(ClientType clientType) throws OcspUtils.OcspStatusExtractionException {
+    public Client convert(ClientType clientType) {
         Client client = new Client();
         client.setId(convertId(clientType.getIdentifier()));
         client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
@@ -90,8 +93,14 @@ public class ClientConverter {
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfFacade.getMemberName(clientType.getIdentifier()));
         client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
-        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
-                currentSecurityServerSignCertificates.getSignCertificateInfos()));
+
+        try {
+            client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
+                    currentSecurityServerSignCertificates.getSignCertificateInfos()));
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new DeviationAwareRuntimeException(ERROR_OCSP_EXTRACT_MSG + " for client: "
+                    + clientType.getIdentifier().toShortString(), e);
+        }
 
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.orElse(null));
@@ -105,9 +114,8 @@ public class ClientConverter {
      * convert a group of ClientType into a list of openapi Client class
      * @param clientTypes
      * @return
-     * @throws OcspUtils.OcspStatusExtractionException
      */
-    public List<Client> convert(Iterable<ClientType> clientTypes) throws OcspUtils.OcspStatusExtractionException {
+    public List<Client> convert(Iterable<ClientType> clientTypes) {
         ArrayList<Client> clients = new ArrayList<>();
         for (ClientType clientType : clientTypes) {
             clients.add(convert(clientType));
