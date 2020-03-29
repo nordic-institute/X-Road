@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,17 +55,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test api key repository caching while mocking DB
+ * Test api key service caching while mocking DB
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
-public class ApiKeyRepositoryCachingIntegrationTest {
+public class ApiKeyServiceCachingIntegrationTest {
 
     @Autowired
-    private ApiKeyRepository apiKeyRepository;
+    private ApiKeyService apiKeyService;
 
     @MockBean
     private EntityManager entityManager;
@@ -76,63 +77,66 @@ public class ApiKeyRepositoryCachingIntegrationTest {
     private Query query;
 
     @Test
+    @WithMockUser
     public void testList() {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         when(query.list()).thenReturn(new ArrayList());
-        apiKeyRepository.listAll();
-        apiKeyRepository.listAll();
+        apiKeyService.listAll();
+        apiKeyService.listAll();
         verify(query, times(1)).list();
     }
 
     @Test
+    @WithMockUser
     public void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
         Map.Entry<String, PersistentApiKeyType> keyEntry =
-                apiKeyRepository.create(Role.XROAD_REGISTRATION_OFFICER.name());
+                apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
         List<PersistentApiKeyType> listOfOne = Arrays.asList(keyEntry.getValue());
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyRepository.get(keyEntry.getKey());
-        apiKeyRepository.get(keyEntry.getKey());
+        apiKeyService.get(keyEntry.getKey());
+        apiKeyService.get(keyEntry.getKey());
         verify(query, times(1)).list();
 
         // list uses a different cache
-        apiKeyRepository.listAll();
-        apiKeyRepository.listAll();
+        apiKeyService.listAll();
+        apiKeyService.listAll();
         verify(query, times(2)).list();
 
         // create new key to force cache invalidation
-        apiKeyRepository.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        apiKeyRepository.listAll();
-        apiKeyRepository.listAll();
+        apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        apiKeyService.listAll();
+        apiKeyService.listAll();
         verify(query, times(3)).list();
 
         // revoke a key to force cache invalidation
         // (remove(key) itself already uses query.findAll)
-        apiKeyRepository.remove(keyEntry.getKey());
+        apiKeyService.remove(keyEntry.getKey());
         verify(query, times(4)).list();
-        apiKeyRepository.get(keyEntry.getKey());
-        apiKeyRepository.get(keyEntry.getKey());
+        apiKeyService.get(keyEntry.getKey());
+        apiKeyService.get(keyEntry.getKey());
         verify(query, times(5)).list();
     }
 
     @Test
+    @WithMockUser
     public void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
         Map.Entry<String, PersistentApiKeyType> keyEntry =
-                apiKeyRepository.create(Role.XROAD_REGISTRATION_OFFICER.name());
+                apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
         List<PersistentApiKeyType> listOfOne = Arrays.asList(keyEntry.getValue());
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyRepository.get(keyEntry.getKey());
-        apiKeyRepository.get(keyEntry.getKey());
+        apiKeyService.get(keyEntry.getKey());
+        apiKeyService.get(keyEntry.getKey());
         verify(query, times(1)).list();
     }
 

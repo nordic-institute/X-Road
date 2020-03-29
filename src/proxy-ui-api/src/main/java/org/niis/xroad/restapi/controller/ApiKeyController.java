@@ -32,7 +32,7 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 public class ApiKeyController {
 
     @Autowired
-    private ApiKeyRepository apiKeyRepository;
+    private ApiKeyService apiKeyService;
 
     /**
      * create a new api key
@@ -71,7 +71,7 @@ public class ApiKeyController {
     public Map<String, Object> createKey(@RequestBody List<String> roles) {
         Map.Entry<String, PersistentApiKeyType> createdKeyData = null;
         try {
-            createdKeyData = apiKeyRepository.create(roles);
+            createdKeyData = apiKeyService.create(roles);
         } catch (InvalidRoleNameException e) {
             throw new BadRequestException(e);
         }
@@ -89,11 +89,11 @@ public class ApiKeyController {
     public ResponseEntity<PublicKeyData> updateKey(@PathVariable("id") long id,
                                                           @RequestBody List<String> roles) {
         try {
-            PersistentApiKeyType key = apiKeyRepository.update(id, roles);
+            PersistentApiKeyType key = apiKeyService.update(id, roles);
             return new ResponseEntity<>(new PublicKeyData(key.getId(), key.getRoles()), HttpStatus.OK);
         } catch (InvalidRoleNameException e) {
             throw new BadRequestException(e);
-        } catch (ApiKeyRepository.ApiKeyNotFoundException e) {
+        } catch (ApiKeyService.ApiKeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
     }
@@ -103,7 +103,7 @@ public class ApiKeyController {
      */
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<Collection<PublicKeyData>> list() {
-        Collection<PersistentApiKeyType> keys = apiKeyRepository.listAll();
+        Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
         Collection<PublicKeyData> publicData = keys.stream()
                 .map(key -> new PublicKeyData(key.getId(), key.getRoles()))
                 .collect(Collectors.toList());
@@ -126,8 +126,8 @@ public class ApiKeyController {
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity revoke(@PathVariable("id") long id) {
         try {
-            apiKeyRepository.removeById(id);
-        } catch (ApiKeyRepository.ApiKeyNotFoundException e) {
+            apiKeyService.removeById(id);
+        } catch (ApiKeyService.ApiKeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity(HttpStatus.OK);

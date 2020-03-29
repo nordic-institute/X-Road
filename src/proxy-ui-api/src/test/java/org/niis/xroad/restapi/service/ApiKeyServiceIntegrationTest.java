@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,52 +47,54 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 /**
- * Test api key repository
+ * Test api key service
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
-public class ApiKeyRepositoryIntegrationTest {
+public class ApiKeyServiceIntegrationTest {
 
     @Autowired
-    private ApiKeyRepository apiKeyRepository;
+    private ApiKeyService apiKeyService;
 
     private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
 
     @Test
+    @WithMockUser
     public void testDelete() throws Exception {
-        String plainKey = apiKeyRepository.create(
+        String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
-        assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyRepository.listAll().size());
-        PersistentApiKeyType apiKey = apiKeyRepository.get(plainKey);
+        assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyService.listAll().size());
+        PersistentApiKeyType apiKey = apiKeyService.get(plainKey);
         assertEquals(2, apiKey.getRoles().size());
 
         // after remove, listall should be reduced and get(key) should fail
-        apiKeyRepository.remove(plainKey);
-        assertEquals(KEYS_CREATED_ELSEWHERE, apiKeyRepository.listAll().size());
+        apiKeyService.remove(plainKey);
+        assertEquals(KEYS_CREATED_ELSEWHERE, apiKeyService.listAll().size());
         try {
-            apiKey = apiKeyRepository.get(plainKey);
+            apiKey = apiKeyService.get(plainKey);
             fail("should throw exception");
-        } catch (ApiKeyRepository.ApiKeyNotFoundException expected) {
+        } catch (ApiKeyService.ApiKeyNotFoundException expected) {
         }
         try {
-            apiKeyRepository.remove(plainKey);
+            apiKeyService.remove(plainKey);
             fail("should throw exception");
-        } catch (ApiKeyRepository.ApiKeyNotFoundException expected) {
+        } catch (ApiKeyService.ApiKeyNotFoundException expected) {
         }
     }
 
     @Test
+    @WithMockUser
     public void testSaveAndLoadAndUpdate() throws Exception {
         // Save
-        String plainKey = apiKeyRepository.create(
+        String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
         // Load
-        PersistentApiKeyType loaded = apiKeyRepository.get(plainKey);
+        PersistentApiKeyType loaded = apiKeyService.get(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();
         assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), loaded.getId());
@@ -100,7 +103,7 @@ public class ApiKeyRepositoryIntegrationTest {
         assertEquals(2, loaded.getRoles().size());
         assertTrue(loaded.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
         // Update
-        PersistentApiKeyType updated = apiKeyRepository.update(loaded.getId(),
+        PersistentApiKeyType updated = apiKeyService.update(loaded.getId(),
                 Arrays.asList("XROAD_SECURITYSERVER_OBSERVER"));
         assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), updated.getId());
         assertEquals(1, updated.getRoles().size());
@@ -109,29 +112,30 @@ public class ApiKeyRepositoryIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     public void testDifferentRoles() throws Exception {
         try {
-            String key = apiKeyRepository.create(new ArrayList<>()).getKey();
+            String key = apiKeyService.create(new ArrayList<>()).getKey();
             fail("should fail due to missing roles");
         } catch (InvalidRoleNameException expected) { }
 
         try {
-            String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
+            String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                     "FOOBAR")).getKey();
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) { }
 
         try {
-            PersistentApiKeyType key = apiKeyRepository.update(1, new ArrayList<>());
+            PersistentApiKeyType key = apiKeyService.update(1, new ArrayList<>());
             fail("should fail due to missing roles");
         } catch (InvalidRoleNameException expected) { }
 
         try {
-            PersistentApiKeyType key = apiKeyRepository.update(1, Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
+            PersistentApiKeyType key = apiKeyService.update(1, Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) { }
 
-        String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
+        String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                 "XROAD_REGISTRATION_OFFICER")).getKey();
     }
 }
