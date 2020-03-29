@@ -34,10 +34,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.domain.InvalidRoleNameException;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -54,11 +58,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 /**
  * Test live clients api controller with rest template.
@@ -78,13 +84,16 @@ public class TransactionHandlingRestTemplateTest {
     private TestRestTemplate restTemplate;
 
     @MockBean
+    private ApiKeyService apiKeyService;
+
+    @MockBean
     private GlobalConfFacade globalConfFacade;
 
     @SpyBean
     private ClientConverter clientConverter;
 
     @Before
-    public void setup() {
+    public void setup() throws ApiKeyService.ApiKeyNotFoundException, InvalidRoleNameException {
         restTemplate.getRestTemplate().setInterceptors(
                 Collections.singletonList((request, body, execution) -> {
                     request.getHeaders()
@@ -104,6 +113,10 @@ public class TransactionHandlingRestTemplateTest {
             return members;
         }).when(globalConfFacade).getMembers();
 
+        Set<Role> roles = Role.getForNames(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR",
+                "XROAD_REGISTRATION_OFFICER", "XROAD_SERVICE_ADMINISTRATOR", "XROAD_SECURITYSERVER_OBSERVER"));
+        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(new PersistentApiKeyType(
+                "ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1", roles));
     }
 
     @Test
