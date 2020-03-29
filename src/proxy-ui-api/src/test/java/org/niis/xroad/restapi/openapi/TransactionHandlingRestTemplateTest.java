@@ -34,9 +34,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.domain.InvalidRoleNameException;
-import org.niis.xroad.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
@@ -59,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
