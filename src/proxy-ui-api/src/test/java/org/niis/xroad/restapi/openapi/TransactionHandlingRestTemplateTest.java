@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,9 @@ public class TransactionHandlingRestTemplateTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
+
     @MockBean
     private ApiKeyService apiKeyService;
 
@@ -93,7 +97,7 @@ public class TransactionHandlingRestTemplateTest {
     private ClientConverter clientConverter;
 
     @Before
-    public void setup() throws ApiKeyService.ApiKeyNotFoundException, InvalidRoleNameException {
+    public void setup() throws ApiKeyService.ApiKeyNotFoundException {
         restTemplate.getRestTemplate().setInterceptors(
                 Collections.singletonList((request, body, execution) -> {
                     request.getHeaders()
@@ -113,10 +117,7 @@ public class TransactionHandlingRestTemplateTest {
             return members;
         }).when(globalConfFacade).getMembers();
 
-        Set<Role> roles = Role.getForNames(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR",
-                "XROAD_REGISTRATION_OFFICER", "XROAD_SERVICE_ADMINISTRATOR", "XROAD_SECURITYSERVER_OBSERVER"));
-        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(new PersistentApiKeyType(
-                "ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1", roles));
+        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(apiKeyRepository.getApiKey(1));
     }
 
     @Test
