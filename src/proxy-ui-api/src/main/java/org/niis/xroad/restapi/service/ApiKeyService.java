@@ -38,11 +38,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -82,17 +80,17 @@ public class ApiKeyService {
      * create api key with one role
      */
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
-    public Map.Entry<String, PersistentApiKeyType> create(String roleName) throws InvalidRoleNameException {
+    public PersistentApiKeyType create(String roleName) throws InvalidRoleNameException {
         return create(Collections.singletonList(roleName));
     }
 
     /**
      * create api key with collection of roles
-     * @return Map.Entry with key = plaintext key, value = PersistentApiKeyType
+     * @return new PersistentApiKeyType that contains the new key in plain text
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
-    public Map.Entry<String, PersistentApiKeyType> create(Collection<String> roleNames)
+    public PersistentApiKeyType create(Collection<String> roleNames)
             throws InvalidRoleNameException {
         if (roleNames.isEmpty()) {
             throw new InvalidRoleNameException("missing roles");
@@ -100,11 +98,10 @@ public class ApiKeyService {
         Set<Role> roles = Role.getForNames(roleNames);
         String plainKey = createApiKey();
         String encodedKey = encode(plainKey);
-        PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey, Collections.unmodifiableCollection(roles));
+        PersistentApiKeyType apiKey = new PersistentApiKeyType(plainKey, encodedKey,
+                Collections.unmodifiableCollection(roles));
         apiKeyRepository.saveOrUpdate(apiKey);
-        Map.Entry<String, PersistentApiKeyType> entry =
-                new AbstractMap.SimpleImmutableEntry<>(plainKey, apiKey);
-        return entry;
+        return apiKey;
     }
 
     /**

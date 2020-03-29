@@ -24,12 +24,11 @@
  */
 package org.niis.xroad.restapi.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -46,11 +45,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Controller for rest apis for api key operations
@@ -64,33 +59,31 @@ public class ApiKeyController {
     @Autowired
     private ApiKeyService apiKeyService;
 
+    @Autowired
+    private PublicApiKeyDataConverter publicApiKeyDataConverter;
+
     /**
      * create a new api key
      */
     @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Object> createKey(@RequestBody List<String> roles) {
-        Map.Entry<String, PersistentApiKeyType> createdKeyData = null;
+    public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
         try {
-            createdKeyData = apiKeyService.create(roles);
+            PersistentApiKeyType createdKeyData = apiKeyService.create(roles);
+            return new ResponseEntity<>(publicApiKeyDataConverter.convert(createdKeyData), HttpStatus.OK);
         } catch (InvalidRoleNameException e) {
             throw new BadRequestException(e);
         }
-        Map<String, Object> result = new HashMap();
-        result.put("key", createdKeyData.getKey());
-        result.put("roles", createdKeyData.getValue().getRoles());
-        result.put("id", createdKeyData.getValue().getId());
-        return result;
     }
 
     /**
      * update an existing api key
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<PublicKeyData> updateKey(@PathVariable("id") long id,
+    public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
                                                           @RequestBody List<String> roles) {
         try {
             PersistentApiKeyType key = apiKeyService.update(id, roles);
-            return new ResponseEntity<>(new PublicKeyData(key.getId(), key.getRoles()), HttpStatus.OK);
+            return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
         } catch (InvalidRoleNameException e) {
             throw new BadRequestException(e);
         } catch (ApiKeyService.ApiKeyNotFoundException e) {
@@ -102,20 +95,9 @@ public class ApiKeyController {
      * list api keys from db
      */
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Collection<PublicKeyData>> list() {
+    public ResponseEntity<Collection<PublicApiKeyData>> list() {
         Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
-        Collection<PublicKeyData> publicData = keys.stream()
-                .map(key -> new PublicKeyData(key.getId(), key.getRoles()))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(publicData,
-                HttpStatus.OK);
-    }
-
-    @Data
-    @AllArgsConstructor
-    private class PublicKeyData {
-        private long id;
-        private Set<Role> roles;
+        return new ResponseEntity<>(publicApiKeyDataConverter.convert(keys), HttpStatus.OK);
     }
 
     /**

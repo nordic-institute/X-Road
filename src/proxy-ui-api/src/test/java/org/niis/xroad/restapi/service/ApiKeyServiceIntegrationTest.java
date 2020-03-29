@@ -66,7 +66,7 @@ public class ApiKeyServiceIntegrationTest {
     public void testDelete() throws Exception {
         String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
-                .getKey();
+                .getPlaintTextKey();
         assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyService.listAll().size());
         PersistentApiKeyType apiKey = apiKeyService.get(plainKey);
         assertEquals(2, apiKey.getRoles().size());
@@ -92,7 +92,7 @@ public class ApiKeyServiceIntegrationTest {
         // Save
         String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
-                .getKey();
+                .getPlaintTextKey();
         // Load
         PersistentApiKeyType loaded = apiKeyService.get(plainKey);
         assertNotNull(loaded);
@@ -115,13 +115,13 @@ public class ApiKeyServiceIntegrationTest {
     @WithMockUser
     public void testDifferentRoles() throws Exception {
         try {
-            String key = apiKeyService.create(new ArrayList<>()).getKey();
+            String key = apiKeyService.create(new ArrayList<>()).getPlaintTextKey();
             fail("should fail due to missing roles");
         } catch (InvalidRoleNameException expected) { }
 
         try {
             String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                    "FOOBAR")).getKey();
+                    "FOOBAR")).getPlaintTextKey();
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) { }
 
@@ -136,6 +136,6 @@ public class ApiKeyServiceIntegrationTest {
         } catch (InvalidRoleNameException expected) { }
 
         String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                "XROAD_REGISTRATION_OFFICER")).getKey();
+                "XROAD_REGISTRATION_OFFICER")).getPlaintTextKey();
     }
 }

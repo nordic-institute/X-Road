@@ -45,7 +45,6 @@ import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -94,13 +93,13 @@ public class ApiKeyServiceCachingIntegrationTest {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
-        Map.Entry<String, PersistentApiKeyType> keyEntry =
+        PersistentApiKeyType key =
                 apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(keyEntry.getValue());
+        List<PersistentApiKeyType> listOfOne = Arrays.asList(key);
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyService.get(keyEntry.getKey());
-        apiKeyService.get(keyEntry.getKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
         verify(query, times(1)).list();
 
         // list uses a different cache
@@ -116,10 +115,10 @@ public class ApiKeyServiceCachingIntegrationTest {
 
         // revoke a key to force cache invalidation
         // (remove(key) itself already uses query.findAll)
-        apiKeyService.remove(keyEntry.getKey());
+        apiKeyService.remove(key.getPlaintTextKey());
         verify(query, times(4)).list();
-        apiKeyService.get(keyEntry.getKey());
-        apiKeyService.get(keyEntry.getKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
         verify(query, times(5)).list();
     }
 
@@ -130,13 +129,13 @@ public class ApiKeyServiceCachingIntegrationTest {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
-        Map.Entry<String, PersistentApiKeyType> keyEntry =
+        PersistentApiKeyType key =
                 apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(keyEntry.getValue());
+        List<PersistentApiKeyType> listOfOne = Arrays.asList(key);
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyService.get(keyEntry.getKey());
-        apiKeyService.get(keyEntry.getKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
         verify(query, times(1)).list();
     }
 
