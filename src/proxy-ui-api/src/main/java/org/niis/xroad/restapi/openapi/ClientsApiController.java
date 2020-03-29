@@ -411,19 +411,18 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException("bad connection type parameter", e);
         }
         ClientType added = null;
-        Client result = null;
         try {
             added = clientService.addLocalClient(clientAdd.getClient().getMemberClass(),
                     clientAdd.getClient().getMemberCode(),
                     clientAdd.getClient().getSubsystemCode(),
                     isAuthentication, ignoreWarnings);
-            result = clientConverter.convert(added);
         } catch (ClientService.ClientAlreadyExistsException
                 | ClientService.AdditionalMemberAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
         }
+        Client result = clientConverter.convert(added);
 
         return createCreatedResponse("/api/clients/{id}", result, result.getId());
     }

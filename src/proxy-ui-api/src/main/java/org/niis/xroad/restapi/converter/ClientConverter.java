@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
@@ -43,7 +44,6 @@ import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -116,11 +116,9 @@ public class ClientConverter {
      * @return
      */
     public List<Client> convert(Iterable<ClientType> clientTypes) {
-        ArrayList<Client> clients = new ArrayList<>();
-        for (ClientType clientType : clientTypes) {
-            clients.add(convert(clientType));
-        }
-        return clients;
+        return Streams.stream(clientTypes)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 
     /**

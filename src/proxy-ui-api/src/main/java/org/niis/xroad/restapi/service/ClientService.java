@@ -360,18 +360,6 @@ public class ClientService {
     }
 
     /**
-     *
-     * @param name
-     * @param instance
-     * @param propertyClass
-     * @param memberCode
-     * @param subsystemCode
-     * @param showMembers
-     * @param
-     * @return ClientType list
-     */
-
-    /**
      * Find clients in the local serverconf
      * @param name
      * @param instance
@@ -751,12 +739,11 @@ public class ClientService {
         }
     }
 
-
     /**
      * Delete a local client.
      * @param clientId
      * @throws ActionNotPossibleException if client status did not allow delete
-     * @throws CannotDeleteOwnerException if attempted to delete the owner
+     * @throws CannotDeleteOwnerException if attempted to delete
      * @throws ClientNotFoundException if local client with given id was not found
      */
     public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
