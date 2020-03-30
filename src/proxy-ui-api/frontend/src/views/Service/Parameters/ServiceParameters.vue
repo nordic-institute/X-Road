@@ -76,41 +76,6 @@
 
       <div class="edit-row">
         <div class="edit-title">
-          {{$t('services.timeoutSec')}}
-          <helpIcon :text="$t('services.timeoutTooltip')" />
-        </div>
-        <div class="edit-input">
-          <ValidationProvider
-            :rules="{ required: true, between: { min: 0, max: 1000 } }"
-            name="serviceTimeout"
-            class="validation-provider"
-            v-slot="{ errors }"
-          >
-            <v-text-field
-              v-model="service.timeout"
-              single-line
-              @input="setTouched()"
-              type="number"
-              style="max-width: 200px;"
-              name="serviceTimeout"
-              :error-messages="errors"
-              data-test="service-timeout"
-            ></v-text-field>
-          </ValidationProvider>
-          <!-- 0 - 1000 -->
-        </div>
-
-        <v-checkbox
-          @change="setTouched()"
-          v-model="timeout_all"
-          color="primary"
-          class="table-checkbox"
-          data-test="timeout-all"
-        ></v-checkbox>
-      </div>
-
-      <div class="edit-row">
-        <div class="edit-title">
           {{$t('services.verifyTls')}}
           <helpIcon :text="$t('services.tlsTooltip')" />
         </div>
