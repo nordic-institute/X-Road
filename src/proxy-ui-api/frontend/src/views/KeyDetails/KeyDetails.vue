@@ -7,10 +7,11 @@
         @close="close"
       />
       <subViewTitle
-        v-if="key.usage == 'AUTHENTICATION'"
+        v-else-if="key.usage == 'AUTHENTICATION'"
         :title="$t('keys.authDetailsTitle')"
         @close="close"
       />
+      <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
         <large-button
           v-if="canDelete"
@@ -91,7 +92,7 @@ import Vue from 'vue';
 import _ from 'lodash';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { Permissions, UsageTypes } from '@/global';
+import { UsageTypes, Permissions, PossibleActions } from '@/global';
 import { Key } from '@/types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -117,15 +118,24 @@ export default Vue.extend({
       touched: false,
       saveBusy: false,
       key: {} as Key,
+      possibleActions: [] as string[],
     };
   },
   computed: {
     canEdit(): boolean {
+      if (!this.possibleActions.includes(PossibleActions.EDIT_FRIENDLY_NAME)) {
+        return false;
+      }
+
       return this.$store.getters.hasPermission(
         Permissions.EDIT_KEY_FRIENDLY_NAME,
       );
     },
     canDelete(): boolean {
+      if (!this.possibleActions.includes(PossibleActions.DELETE)) {
+        return false;
+      }
+
       if (this.key.usage === UsageTypes.SIGNING) {
         return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
       }
@@ -163,11 +173,24 @@ export default Vue.extend({
         .get(`/keys/${id}`)
         .then((res: any) => {
           this.key = res.data;
+          this.fetchPossibleActions(id);
         })
         .catch((error: any) => {
           this.$store.dispatch('showError', error);
         });
     },
+
+    fetchPossibleActions(id: string): void {
+      api
+        .get(`/keys/${id}/possible-actions`)
+        .then((res: any) => {
+          this.possibleActions = res.data;
+        })
+        .catch((error: any) => {
+          this.$store.dispatch('showError', error);
+        });
+    },
+
     deleteKey(): void {
       this.confirmDelete = false;
 
