@@ -52,7 +52,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentStep: 0,
+      currentStep: 1,
     };
   },
   computed: {
