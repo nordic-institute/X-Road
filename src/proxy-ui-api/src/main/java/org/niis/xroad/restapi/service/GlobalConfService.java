@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
@@ -36,8 +37,12 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -57,14 +62,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 @PreAuthorize("isAuthenticated()")
 public class GlobalConfService {
 
+    private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
+
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final String downloadConfigurationAnchorUrl;
 
     @Autowired
-    public GlobalConfService(GlobalConfFacade globalConfFacade,
-            ServerConfService serverConfService) {
+    public GlobalConfService(GlobalConfFacade globalConfFacade, ServerConfService serverConfService,
+            @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl) {
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
+        this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
     }
 
     /**
@@ -191,4 +201,15 @@ public class GlobalConfService {
                 serverConfService.getSecurityServerId());
     }
 
+    /**
+     * Sends an http request to configuration-client in order to trigger the downloading of the global conf
+     * @throws ConfigurationDownloadException if the request succeeds but configuration-client returns an error
+     */
+    public void executeDownloadConfigurationFromAnchor() throws ConfigurationDownloadException {
+        log.info("Starting to download GlobalConf");
+        ResponseEntity<String> response = restTemplate.getForEntity(downloadConfigurationAnchorUrl, String.class);
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new ConfigurationDownloadException(response.getBody());
+        }
+    }
 }

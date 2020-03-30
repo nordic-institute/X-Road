@@ -42,13 +42,9 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,31 +72,28 @@ public class SystemService {
     private final ServerConfService serverConfService;
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
-    private final RestTemplate restTemplate = new RestTemplate();
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
+
     @Setter
-    private String downloadConfigurationAnchorUrl;
     private String tempFilesPath = SystemProperties.getTempFilesPath();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
     private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
-    private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
 
     /**
      * constructor
      */
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier,
-            @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl) {
+            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
         this.configurationVerifier = configurationVerifier;
-        this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
+
     }
 
     /**
@@ -257,6 +250,7 @@ public class SystemService {
             tempAnchor = createTemporaryAnchorFile(anchorBytes);
             configurationVerifier.verifyInternalConfiguration(tempAnchor.getAbsolutePath());
             anchorRepository.saveAndReplace(tempAnchor);
+            globalConfService.executeDownloadConfigurationFromAnchor();
         } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {
             throw new AnchorUploadException(e);
         } catch (IOException e) {
@@ -269,7 +263,6 @@ public class SystemService {
                 }
             }
         }
-        executeDownloadConfigurationFromAnchor();
     }
 
     /**
@@ -326,14 +319,6 @@ public class SystemService {
         DateFormat df = new SimpleDateFormat(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT);
         ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
         return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
-    }
-
-    private void executeDownloadConfigurationFromAnchor() throws ConfigurationDownloadException {
-        log.info("Starting to download GlobalConf");
-        ResponseEntity<String> response = restTemplate.getForEntity(downloadConfigurationAnchorUrl, String.class);
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new ConfigurationDownloadException(response.getBody());
-        }
     }
 
     /**
@@ -396,18 +381,6 @@ public class SystemService {
 
         public MalformedAnchorException(String s) {
             super(s, new ErrorDeviation(MALFORMED_ANCHOR));
-        }
-    }
-
-    /**
-     * Thrown if downloading configuration from the anchor fails. Usually caused by erroneous response (500) from
-     * ConfigurationClient.
-     */
-    public static class ConfigurationDownloadException extends ServiceException {
-        public static final String CONF_DOWNLOAD_FAILED = "conf_download_failed";
-
-        public ConfigurationDownloadException(String s) {
-            super(s, new ErrorDeviation(CONF_DOWNLOAD_FAILED));
         }
     }
 }

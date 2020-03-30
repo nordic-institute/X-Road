@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.restapi.service.ConfigurationDownloadException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.restapi.service.InvalidCertificateException;
@@ -226,7 +227,7 @@ public class SystemApiController implements SystemApi {
         } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException
                 | ConfigurationVerifier.ConfigurationVerificationException e) {
             throw new BadRequestException(e);
-        } catch (SystemService.AnchorUploadException | SystemService.ConfigurationDownloadException e) {
+        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException e) {
             throw new InternalServerErrorException(e);
         }
         return ApiUtil.createCreatedResponse("/api/system/anchor", null);
