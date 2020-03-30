@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -35,9 +36,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -54,9 +57,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,6 +75,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@AutoConfigureTestDatabase
 @Slf4j
 @Transactional
 @WithMockUser
@@ -84,6 +93,14 @@ public class ClientServiceIntegrationTest {
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
+
+    private ClientId existingSavedClientId = ClientId.create("FI", "GOV", "M2", "SS6");
+    private ClientId existingRegisteredClientId = ClientId.create("FI", "GOV", "M1", "SS1");
+    private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
+    private ClientId newOwnerClientId = ClientId.create("FI", "GOV", "M2", null);
+
+    @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
 
     @Before
     public void setup() throws Exception {
@@ -125,6 +142,7 @@ public class ClientServiceIntegrationTest {
                 return null;
             }
         });
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
             // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
@@ -136,6 +154,7 @@ public class ClientServiceIntegrationTest {
             return match.isPresent();
         });
 
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -150,17 +169,161 @@ public class ClientServiceIntegrationTest {
     private int countIdentifiers() {
         return JdbcTestUtils.countRowsInTable(jdbcTemplate, "identifier");
     }
+
     private long countMembers() {
         return countByType(false);
     }
+
     private long countSubsystems() {
         return countByType(true);
     }
+
     private long countByType(boolean subsystems) {
         List<ClientType> localClients = clientService.getAllLocalClients();
         return localClients.stream()
                 .filter(client -> (client.getIdentifier().getSubsystemCode() != null) == subsystems)
                 .count();
+    }
+
+    @Test
+    public void deleteLocalClient() throws Exception {
+        long startMembers = countMembers();
+        long startSubsystems = countSubsystems();
+        int startIdentifiers = countIdentifiers();
+
+        // setup: create a new member and a subsystem
+        // second member FI:GOV:M3, subsystem FI:GOV:M3:SS-NEW
+        ClientId memberId = TestUtils.getClientId("FI:GOV:M3");
+        ClientId subsystemId = TestUtils.getClientId("FI:GOV:M3:SS-NEW");
+        ClientType addedMember = clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(),
+                IsAuthentication.SSLAUTH, false);
+
+        assertEquals(STATUS_SAVED, addedMember.getClientStatus());
+        ClientType addedSubsystem = clientService.addLocalClient(subsystemId.getMemberClass(),
+                subsystemId.getMemberCode(), subsystemId.getSubsystemCode(),
+                IsAuthentication.SSLAUTH, false);
+        assertEquals(STATUS_SAVED, addedSubsystem.getClientStatus());
+        assertEquals(startMembers + 1, countMembers());
+        assertEquals(startSubsystems + 1, countSubsystems());
+        assertEquals(startIdentifiers + 2, countIdentifiers());
+
+        // delete unregistered member
+        clientService.deleteLocalClient(memberId);
+        assertEquals(startMembers, countMembers());
+        assertEquals(startSubsystems + 1, countSubsystems());
+        assertEquals(startIdentifiers + 2, countIdentifiers());
+        assertNull(clientService.getLocalClient(memberId));
+        // subsystems are not affected
+        assertNotNull(clientService.getLocalClient(subsystemId));
+
+        // delete unregistered subsystem
+        clientService.deleteLocalClient(subsystemId);
+        assertEquals(startMembers, countMembers());
+        assertEquals(startSubsystems, countSubsystems());
+        assertEquals(startIdentifiers + 2, countIdentifiers());
+        assertNull(clientService.getLocalClient(memberId));
+        assertNull(clientService.getLocalClient(subsystemId));
+
+        // 404 from member
+        try {
+            clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT"));
+            fail("should throw exception");
+        } catch (ClientNotFoundException expected) {
+        }
+
+        // 404 from subsystem
+        try {
+            clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT:SUBSYSTEM"));
+            fail("should throw exception");
+        } catch (ClientNotFoundException expected) {
+        }
+    }
+
+    /**
+     * add a new client, set status, attempt to delete
+     */
+    private void addAndDeleteLocalClient(ClientId clientId, String status) throws ActionNotPossibleException,
+            ClientService.CannotDeleteOwnerException, ClientNotFoundException,
+            ClientService.AdditionalMemberAlreadyExistsException, UnhandledWarningsException,
+            ClientService.ClientAlreadyExistsException {
+        ClientType addedClient = clientService.addLocalClient(clientId.getMemberClass(),
+                clientId.getMemberCode(), clientId.getSubsystemCode(),
+                IsAuthentication.SSLAUTH, true);
+        addedClient.setClientStatus(status);
+        clientService.deleteLocalClient(clientId);
+    }
+
+    /**
+     * Change status to SAVED and then delete
+     */
+    private void forceDelete(ClientId clientId) throws ActionNotPossibleException,
+            ClientService.CannotDeleteOwnerException, ClientNotFoundException {
+        ClientType client = clientService.getLocalClient(clientId);
+        client.setClientStatus(STATUS_SAVED);
+        clientService.deleteLocalClient(clientId);
+    }
+
+
+    @Test
+    public void deleteLocalClientNotPossible() throws Exception {
+        long startMembers = countMembers();
+        long startSubsystems = countSubsystems();
+        int startIdentifiers = countIdentifiers();
+
+        // test cases where we delete is not possible due to client status
+        /**
+         * clients_controller.rb:
+         *       :delete_enabled =>
+         *         [ClientType::STATUS_SAVED,
+         *          ClientType::STATUS_DELINPROG,
+         *          ClientType::STATUS_GLOBALERR].include?(client.clientStatus),
+         */
+        // -> delete not possible with statuses STATUS_REGINPROG and STATUS_REGISTERED
+
+        // iterate all client statuses and test create + delete
+        List<String> allStatuses = Arrays.asList(STATUS_SAVED, STATUS_REGINPROG, STATUS_REGISTERED,
+                STATUS_DELINPROG, STATUS_GLOBALERR);
+        int created = 0;
+        for (String status: allStatuses) {
+            created++;
+            ClientId memberId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status);
+            ClientId subsystemId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status
+                    + ":NEW-SUBSYSTEM");
+
+            if (status.equals(STATUS_REGISTERED) || status.equals(STATUS_REGINPROG)) {
+                // delete is not possible
+                try {
+                    addAndDeleteLocalClient(memberId, status);
+                    fail("delete should not be been possible");
+                } catch (ActionNotPossibleException expected) {
+                }
+                try {
+                    addAndDeleteLocalClient(subsystemId, status);
+                    fail("delete should not be been possible");
+                } catch (ActionNotPossibleException expected) {
+                }
+                assertNotNull(clientService.getLocalClient(memberId));
+                assertNotNull(clientService.getLocalClient(subsystemId));
+                // clean up so that we can continue adding members
+                forceDelete(memberId);
+                forceDelete(subsystemId);
+            } else {
+                // delete is possible
+                addAndDeleteLocalClient(memberId, status);
+                addAndDeleteLocalClient(subsystemId, status);
+                assertNull(clientService.getLocalClient(memberId));
+                assertNull(clientService.getLocalClient(subsystemId));
+            }
+            assertEquals(startMembers, countMembers());
+            assertEquals(startSubsystems, countSubsystems());
+            assertEquals(startIdentifiers + (created * 2), countIdentifiers());
+        }
+    }
+
+    @Test(expected = ClientService.CannotDeleteOwnerException.class)
+    public void deleteOwnerNotPossible() throws Exception {
+        clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:M1"));
     }
 
     @Test
@@ -250,7 +413,7 @@ public class ClientServiceIntegrationTest {
         int startIdentifiers = countIdentifiers();
         ClientId id = TestUtils.getClientId("FI:GOV:M3");
         ClientType added = clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
-                    IsAuthentication.SSLAUTH, false);
+                IsAuthentication.SSLAUTH, false);
         // these should have status "REGISTERED"
         assertEquals(STATUS_REGISTERED, added.getClientStatus());
         assertEquals(startMembers + 1, countMembers());
@@ -353,12 +516,11 @@ public class ClientServiceIntegrationTest {
         assertEquals(startIdentifiers, countIdentifiers());
     }
 
-
     @Test
     public void getAllLocalMembers() {
         List<ClientType> localMembers = clientService.getAllLocalMembers();
         assertEquals(1, localMembers.size());
-        assertEquals(1, (long)localMembers.iterator().next().getId());
+        assertEquals(1, (long) localMembers.iterator().next().getId());
     }
 
     /**
@@ -417,7 +579,6 @@ public class ClientServiceIntegrationTest {
         assertEquals(IsAuthentication.SSLNOAUTH.name(), loadedAdded.getIsAuthentication());
 
     }
-
 
     @Test
     public void updateConnectionType() throws Exception {
@@ -678,5 +839,134 @@ public class ClientServiceIntegrationTest {
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
         Set<ClientId> result = clientService.getLocalClientMemberIds();
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void registerClient() throws Exception {
+        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        clientService.registerClient(existingSavedClientId);
+        clientType = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void registerNonExistingClient() throws Exception {
+        clientService.registerClient(ClientId.create("non", "existing", "client", null));
+    }
+
+    @Test(expected = CodedException.class)
+    public void registerClientCodedException() throws Exception {
+        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
+        clientService.registerClient(existingSavedClientId);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void registerClientRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendClientRegisterRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.registerClient(existingSavedClientId);
+    }
+
+    @Test
+    public void unregisterClient() throws Exception {
+        ClientType clientType = clientService.getLocalClient(existingRegisteredClientId);
+        assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
+        clientService.unregisterClient(existingRegisteredClientId);
+        clientType = clientService.getLocalClient(existingRegisteredClientId);
+        assertEquals(ClientType.STATUS_DELINPROG, clientType.getClientStatus());
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void unregisterClientNotPossible() throws Exception {
+        ClientType clientType = clientService.getLocalClient(existingSavedClientId);
+        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        clientService.unregisterClient(existingSavedClientId);
+    }
+
+    @Test(expected = ClientService.CannotUnregisterOwnerException.class)
+    public void unregisterOwnerClient() throws Exception {
+        clientService.unregisterClient(ownerClientId);
+    }
+
+    @Test(expected = CodedException.class)
+    public void unregisterClientCodedException() throws Exception {
+        when(managementRequestSenderService.sendClientUnregisterRequest(any())).thenThrow(CodedException.class);
+        clientService.unregisterClient(existingRegisteredClientId);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void unregisterClientRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendClientUnregisterRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.unregisterClient(existingRegisteredClientId);
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void unregisterNonExistingClient() throws Exception {
+        clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
+    }
+
+    @Test
+    public void changeOwner() {
+        try {
+            clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                    null, IsAuthentication.SSLAUTH, false);
+            ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+            clientType.setClientStatus(STATUS_REGISTERED);
+            clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                    newOwnerClientId.getSubsystemCode());
+        } catch (Exception e) {
+            fail("should have not thrown Exception");
+        }
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void changeOwnerNewOwnerSubsystem() throws Exception {
+        // New owner ("existingClientId") is a subsystem which is not allowed
+        clientService.changeOwner(existingRegisteredClientId.getMemberClass(),
+                existingRegisteredClientId.getMemberCode(), existingRegisteredClientId.getSubsystemCode());
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void changeOwnerNonExistingClient() throws Exception {
+        clientService.changeOwner("existing", "client", null);
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void changeOwnerNewOwnerNotRegistered() throws Exception {
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
+    }
+
+    @Test(expected = ClientService.MemberAlreadyOwnerException.class)
+    public void changeOwnerNewOwnerAlreadyOwner() throws Exception {
+        clientService.changeOwner(ownerClientId.getMemberClass(), ownerClientId.getMemberCode(),
+                ownerClientId.getSubsystemCode());
+    }
+
+    @Test(expected = CodedException.class)
+    public void changeOwnerCodedException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenThrow(CodedException.class);
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+        clientType.setClientStatus(STATUS_REGISTERED);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void changeOwnerRuntimeException() throws Exception {
+        when(managementRequestSenderService.sendOwnerChangeRequest(any()))
+                .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
+        clientService.addLocalClient(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                null, IsAuthentication.SSLAUTH, false);
+        ClientType clientType = clientService.getLocalClient(newOwnerClientId);
+        clientType.setClientStatus(STATUS_REGISTERED);
+        clientService.changeOwner(newOwnerClientId.getMemberClass(), newOwnerClientId.getMemberCode(),
+                newOwnerClientId.getSubsystemCode());
     }
 }

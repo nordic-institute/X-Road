@@ -76,6 +76,41 @@
 
       <div class="edit-row">
         <div class="edit-title">
+          {{$t('services.timeoutSec')}}
+          <helpIcon :text="$t('services.timeoutTooltip')" />
+        </div>
+        <div class="edit-input">
+          <ValidationProvider
+            :rules="{ required: true, between: { min: 0, max: 1000 } }"
+            name="serviceTimeout"
+            class="validation-provider"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              v-model="service.timeout"
+              single-line
+              @input="setTouched()"
+              type="number"
+              style="max-width: 200px;"
+              name="serviceTimeout"
+              :error-messages="errors"
+              data-test="service-timeout"
+            ></v-text-field>
+          </ValidationProvider>
+          <!-- 0 - 1000 -->
+        </div>
+
+        <v-checkbox
+          @change="setTouched()"
+          v-model="timeout_all"
+          color="primary"
+          class="table-checkbox"
+          data-test="timeout-all"
+        ></v-checkbox>
+      </div>
+
+      <div class="edit-row">
+        <div class="edit-title">
           {{$t('services.verifyTls')}}
           <helpIcon :text="$t('services.tlsTooltip')" />
         </div>
@@ -283,15 +318,26 @@ export default Vue.extend({
           ssl_auth_all: this.ssl_auth_all,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'Service saved');
+          this.$store.dispatch('showSuccess', 'Service saved');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
     setTouched(): void {
       this.touched = true;
+    },
+
+    fetchData(serviceId: string): void {
+      api
+        .get(`/services/${serviceId}/access-rights`)
+        .then((res) => {
+          this.$store.dispatch('setAccessRightsSubjects', res.data);
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        });
     },
 
     showAddSubjectsDialog(): void {
@@ -310,7 +356,7 @@ export default Vue.extend({
           this.$emit('updateService', this.service.id);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -364,7 +410,7 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'accessRights.removeSubjectsSuccess');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.$emit('updateService', this.service.id);

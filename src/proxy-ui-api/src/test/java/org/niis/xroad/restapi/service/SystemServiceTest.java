@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -104,11 +103,11 @@ public class SystemServiceTest {
     @Test
     public void addConfiguredTimestampingService() throws
             SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
+        TspType tspType = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
 
         assertEquals(1, serverConfService.getConfiguredTimestampingServices().size());
 
-        systemService.addConfiguredTimestampingService(timestampingService);
+        systemService.addConfiguredTimestampingService(tspType);
 
         assertEquals(2, serverConfService.getConfiguredTimestampingServices().size());
         assertEquals(TSA_2_NAME, serverConfService.getConfiguredTimestampingServices().get(1).getName());
@@ -118,11 +117,10 @@ public class SystemServiceTest {
     @Test
     public void addConfiguredTimestampingServiceNonApproved() throws
             SystemService.DuplicateConfiguredTimestampingServiceException {
-        TimestampingService timestampingService = TestUtils
-                .createTimestampingService("http://test.com", "TSA 3");
+        TspType tspType = TestUtils.createTspType("http://test.com", "TSA 3");
 
         try {
-            systemService.addConfiguredTimestampingService(timestampingService);
+            systemService.addConfiguredTimestampingService(tspType);
             fail("should throw TimestampingServiceNotFoundException");
         } catch (TimestampingServiceNotFoundException expected) {
             // success
@@ -131,10 +129,10 @@ public class SystemServiceTest {
 
     @Test
     public void addConfiguredTimestampingServiceDuplicate() throws TimestampingServiceNotFoundException {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+        TspType tspType = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
 
         try {
-            systemService.addConfiguredTimestampingService(timestampingService);
+            systemService.addConfiguredTimestampingService(tspType);
             fail("should throw DuplicateConfiguredTimestampingServiceException");
         } catch (SystemService.DuplicateConfiguredTimestampingServiceException expected) {
             // success
@@ -143,21 +141,21 @@ public class SystemServiceTest {
 
     @Test
     public void deleteConfiguredTimestampingService() throws TimestampingServiceNotFoundException {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
+        TspType tspType = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
 
         assertEquals(1, serverConfService.getConfiguredTimestampingServices().size());
 
-        systemService.deleteConfiguredTimestampingService(timestampingService);
+        systemService.deleteConfiguredTimestampingService(tspType);
 
         assertEquals(0, serverConfService.getConfiguredTimestampingServices().size());
     }
 
     @Test
     public void deleteConfiguredTimestampingServiceNonExisting() {
-        TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
+        TspType tspType = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
 
         try {
-            systemService.deleteConfiguredTimestampingService(timestampingService);
+            systemService.deleteConfiguredTimestampingService(tspType);
             fail("should throw TimestampingServiceNotFoundException");
         } catch (TimestampingServiceNotFoundException expected) {
             // success

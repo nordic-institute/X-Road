@@ -92,10 +92,13 @@ export default Vue.extend({
           service_code: this.service.service_code,
         })
         .then((res: any) => {
-          this.$bus.$emit('show-success', 'endpoints.saveNewEndpointSuccess');
+          this.$store.dispatch(
+            'showSuccess',
+            'endpoints.saveNewEndpointSuccess',
+          );
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.isAddEndpointDialogVisible = false;

@@ -35,6 +35,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -50,6 +52,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +61,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 
 /**
  * client service
@@ -75,21 +84,24 @@ public class ClientService {
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;
     private final IdentifierRepository identifierRepository;
+    private final ManagementRequestSenderService managementRequestSenderService;
+    private final CurrentSecurityServerId currentSecurityServerId;
 
     /**
      * ClientService constructor
      */
     @Autowired
-    public ClientService(ClientRepository clientRepository,
-            GlobalConfFacade globalConfFacade,
-            ServerConfService serverConfService,
-            GlobalConfService globalConfService,
-            IdentifierRepository identifierRepository) {
+    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
+            ServerConfService serverConfService, GlobalConfService globalConfService,
+            IdentifierRepository identifierRepository, ManagementRequestSenderService managementRequestSenderService,
+            CurrentSecurityServerId currentSecurityServerId) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.globalConfService = globalConfService;
         this.identifierRepository = identifierRepository;
+        this.managementRequestSenderService = managementRequestSenderService;
+        this.currentSecurityServerId = currentSecurityServerId;
     }
 
     /**
@@ -162,7 +174,6 @@ public class ClientService {
 
     /**
      * Returns clientType.getIsCert() that has been fetched with Hibernate.init.
-     *
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
      */
@@ -178,14 +189,13 @@ public class ClientService {
     /**
      * Returns clientType.getServiceDescription() that has been fetched with Hibernate.init.
      * Also serviceDescription.services and serviceDescription.client.endpoints have been fetched.
-     *
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
      */
     public List<ServiceDescriptionType> getLocalClientServiceDescriptions(ClientId id) {
         ClientType clientType = getLocalClient(id);
         if (clientType != null) {
-            for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
+            for (ServiceDescriptionType serviceDescriptionType : clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
             }
             Hibernate.initialize(clientType.getEndpoint());
@@ -197,14 +207,13 @@ public class ClientService {
     /**
      * Returns clientType.getLocalGroup() that has been fetched with Hibernate.init.
      * Also localGroup.groupMembers have been fetched.
-     *
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
      */
     public List<LocalGroupType> getLocalClientLocalGroups(ClientId id) {
         ClientType clientType = getLocalClient(id);
         if (clientType != null) {
-            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
+            for (LocalGroupType localGroupType : clientType.getLocalGroup()) {
                 Hibernate.initialize(localGroupType.getGroupMember());
             }
             return clientType.getLocalGroup();
@@ -419,6 +428,94 @@ public class ClientService {
     }
 
     /**
+     * Registers a client
+     * @param clientId client to register
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws CannotRegisterOwnerException
+     * @throws ActionNotPossibleException
+     */
+    public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotRegisterOwnerException, ActionNotPossibleException {
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (ownerId.equals(client.getIdentifier())) {
+            throw new CannotRegisterOwnerException();
+        }
+        if (!client.getClientStatus().equals(ClientType.STATUS_SAVED)) {
+            throw new ActionNotPossibleException("Only clients with status 'saved' can be registered");
+        }
+        try {
+            managementRequestSenderService.sendClientRegisterRequest(clientId);
+            client.setClientStatus(ClientType.STATUS_REGINPROG);
+            clientRepository.saveOrUpdate(client);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Unregister a client
+     * @param clientId client to unregister
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
+     * @throws ActionNotPossibleException when trying do unregister a client that cannot be unregistered
+     */
+    public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
+        if (!allowedStatuses.contains(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
+        }
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (clientId.equals(ownerId)) {
+            throw new CannotUnregisterOwnerException();
+        }
+        try {
+            managementRequestSenderService.sendClientUnregisterRequest(clientId);
+            client.setClientStatus(STATUS_DELINPROG);
+            clientRepository.saveOrUpdate(client);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Changes Security Server owner
+     * @param memberClass member class of new owner
+     * @param memberCode member code of new owner
+     * @param subsystemCode should be null because only member can be owner
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws MemberAlreadyOwnerException
+     * @throws ActionNotPossibleException
+     */
+    public void changeOwner(String memberClass, String memberCode, String subsystemCode) throws
+            GlobalConfOutdatedException, ClientNotFoundException, MemberAlreadyOwnerException,
+            ActionNotPossibleException {
+        if (subsystemCode != null) {
+            throw new ActionNotPossibleException("Only member can be an owner");
+        }
+        ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(), memberClass, memberCode);
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (ownerId.equals(client.getIdentifier())) {
+            throw new MemberAlreadyOwnerException();
+        }
+        if (!client.getClientStatus().equals(STATUS_REGISTERED)) {
+            throw new ActionNotPossibleException("Only member with status 'registered' can become owner");
+        }
+
+        try {
+            managementRequestSenderService.sendOwnerChangeRequest(clientId);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
      * Merge two client lists into one with only unique clients. The distinct clients in the latter list
      * {@code moreClients} are favoured in the case of duplicates.
      * @param clients list of clients
@@ -478,7 +575,6 @@ public class ClientService {
      * synchronize access to this method on controller layer
      * (synchronizing this method does not help since transaction start & commit
      * are outside of this method).
-     *
      * @param memberClass member class of added client
      * @param memberCode member code of added client
      * @param subsystemCode subsystem code of added client (null if adding a member)
@@ -561,10 +657,50 @@ public class ClientService {
     }
 
     /**
+     * Delete a local client.
+     * @param clientId
+     * @throws ActionNotPossibleException if client status did not allow delete
+     * @throws CannotDeleteOwnerException if attempted to delete the owner
+     * @throws ClientNotFoundException if local client with given id was not found
+     */
+    public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
+            CannotDeleteOwnerException, ClientNotFoundException {
+        ClientType clientType = getLocalClientOrThrowNotFound(clientId);
+        // cant delete owner
+        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        if (ownerId.equals(clientType.getIdentifier())) {
+            throw new CannotDeleteOwnerException();
+        }
+        // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
+        List allowedStatuses = Arrays.asList(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
+        if (!allowedStatuses.contains(clientType.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
+        }
+
+        ServerConfType serverConfType = serverConfService.getServerConf();
+        if (!serverConfType.getClient().remove(clientType)) {
+            throw new RuntimeException("client to be deleted was somehow missing from serverconf");
+        }
+    }
+
+    /**
+     * Thrown when someone attempted to delete client who is this security
+     * server's owner member
+     */
+    public static class CannotDeleteOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_DELETE_OWNER = "cannot_delete_owner";
+
+        public CannotDeleteOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
+        }
+    }
+
+    /**
      * Thrown when client that already exists in server conf was tried to add
      */
     public static class ClientAlreadyExistsException extends ServiceException {
         public static final String ERROR_CLIENT_ALREADY_EXISTS = "client_already_exists";
+
         public ClientAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_CLIENT_ALREADY_EXISTS));
         }
@@ -576,9 +712,42 @@ public class ClientService {
      */
     public static class AdditionalMemberAlreadyExistsException extends ServiceException {
         public static final String ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS = "additional_member_already_exists";
+
         public AdditionalMemberAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS));
         }
     }
 
+    /**
+     * Thrown when trying to register the owner member
+     */
+    public static class CannotRegisterOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_REGISTER_OWNER = "cannot_register_owner";
+
+        public CannotRegisterOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_REGISTER_OWNER));
+        }
+    }
+
+    /**
+     * Thrown when trying to unregister the security server owner
+     */
+    public static class CannotUnregisterOwnerException extends ServiceException {
+        public static final String CANNOT_UNREGISTER_OWNER = "cannot_unregister_owner";
+
+        public CannotUnregisterOwnerException() {
+            super(new ErrorDeviation(CANNOT_UNREGISTER_OWNER));
+        }
+    }
+
+    /**
+     * Thrown when trying to make the current owner the new owner
+     */
+    public static class MemberAlreadyOwnerException extends ServiceException {
+        public static final String ERROR_CANNOT_MAKE_OWNER = "member_already_owner";
+
+        public MemberAlreadyOwnerException() {
+            super(new ErrorDeviation(ERROR_CANNOT_MAKE_OWNER));
+        }
+    }
 }

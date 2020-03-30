@@ -77,6 +77,7 @@ abstract class AbstractTimestampRequest {
 
     protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest,
                                       List<String> tspUrls) throws Exception {
+        log.debug("tspUrls: {}", tspUrls);
         for (String url: tspUrls) {
             try {
                 log.debug("Sending time-stamp request to {}", url);

@@ -32,7 +32,7 @@ values (3,null,3,'registered', 'SSLNOAUTH');
 INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
 values (4,null,7,'registered', 'SSLNOAUTH');
 INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
-values (5,null,8,'registered', 'SSLNOAUTH');
+values (5,null,8,'saved', 'SSLNOAUTH');
 
 
 

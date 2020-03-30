@@ -81,12 +81,12 @@ export default Vue.extend({
     },
     fetchClient(id: string) {
       this.$store.dispatch('fetchClient', id).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
     fetchSignCertificates(id: string) {
       this.$store.dispatch('fetchSignCertificates', id).catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
   },

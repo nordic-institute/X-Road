@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # The MIT License
 # Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
