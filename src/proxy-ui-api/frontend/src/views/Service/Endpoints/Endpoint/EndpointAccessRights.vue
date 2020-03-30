@@ -144,7 +144,7 @@
             this.endpoint = endpoint.data;
           })
           .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error.message);
           });
         api
           .get(`/endpoints/${this.id}/access-rights`)
@@ -152,18 +152,18 @@
             this.serviceClients = accessRights.data;
           })
           .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error.message);
           });
       },
       doRemoveSelectedSubjects(): void {
         api
           .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.subjectsToDelete })
           .then( () => {
-            this.$bus.$emit('show-success', 'accessRights.removeSubjectsSuccess');
+            this.$store.dispatch('showSuccess', 'accessRights.removeSubjectsSuccess');
             this.fetchData();
           })
           .catch( (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error.message);
           }).finally( () => {
             this.toggleConfirmDeleteDialog();
             this.subjectsToDelete = [];
@@ -173,11 +173,11 @@
         api
           .post(`/endpoints/${this.id}/access-rights`, { items: subjects})
           .then( (accessRights) => {
-            this.$bus.$emit('show-success', 'accessRights.addSubjectsSuccess');
+            this.$store.dispatch('showSuccess', 'accessRights.addSubjectsSuccess');
             this.serviceClients = accessRights.data;
           })
           .catch( (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error.message);
           })
           .finally( () => {
             this.toggleAddSubjectsDialog();

@@ -317,7 +317,7 @@ export default Vue.extend({
           url_all: this.url_all,
           ssl_auth_all: this.ssl_auth_all,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'Service saved');
         })
         .catch((error) => {
@@ -351,9 +351,9 @@ export default Vue.extend({
         .post(`/services/${this.serviceId}/access-rights`, {
           items: selected,
         })
-        .then((res) => {
-          this.$bus.$emit('show-success', 'accessRights.addSubjectsSuccess');
-          this.$emit('updateService', this.service.id);
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'accessRights.addSubjectsSuccess');
+          this.fetchData(this.serviceId);
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -407,7 +407,7 @@ export default Vue.extend({
           items: subjects,
         })
         .then(() => {
-          this.$bus.$emit('show-success', 'accessRights.removeSubjectsSuccess');
+          this.$store.dispatch('showSuccess', 'accessRights.removeSubjectsSuccess');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

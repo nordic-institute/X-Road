@@ -136,11 +136,11 @@ export default Vue.extend({
       api
         .remove(`/endpoints/${id}`)
         .then(() => {
-          this.$bus.$emit('show-success', 'endpoints.deleteSuccess');
+          this.$store.dispatch('showSuccess', 'endpoints.deleteSuccess');
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error.message);
           this.confirmDelete = false;
         });
     },
@@ -148,11 +148,11 @@ export default Vue.extend({
       api
         .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
         .then(() => {
-          this.$bus.$emit('show-success', 'endpoints.editSuccess');
+          this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error.message);
         });
     },
     fetchData(id: string): void {
@@ -162,7 +162,7 @@ export default Vue.extend({
           this.endpoint = endpoint.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error.message);
         });
     },
   },
