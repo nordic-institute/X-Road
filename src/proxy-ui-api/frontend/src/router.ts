@@ -1,5 +1,5 @@
-import Router, {NavigationGuard, Route} from 'vue-router';
-import {sync} from 'vuex-router-sync';
+import Router, { NavigationGuard, Route } from 'vue-router';
+import { sync } from 'vuex-router-sync';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AppLogin from '@/views/AppLogin.vue';
 import AppBase from '@/views/AppBase.vue';
@@ -31,7 +31,7 @@ import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vu
 import Service from '@/views/Service/Service.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
-import {Permissions, RouteName} from '@/global';
+import { Permissions, RouteName } from '@/global';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import EndpointDetails from '@/views/Service/Endpoints/Endpoint/EndpointDetails.vue';

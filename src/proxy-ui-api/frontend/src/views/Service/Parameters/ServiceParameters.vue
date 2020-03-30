@@ -1,192 +1,196 @@
 <template>
-    <div class="xrd-tab-max-width xrd-view-common">
-        <div class="apply-to-all">
-            <div class="apply-to-all-text">{{$t('services.applyToAll')}}</div>
-        </div>
-
-        <ValidationObserver ref="form" v-slot="{ validate, invalid }">
-            <div class="edit-row">
-                <div class="edit-title">
-                    {{$t('services.serviceUrl')}}
-                    <helpIcon :text="$t('services.urlTooltip')"/>
-                </div>
-
-                <div class="edit-input">
-                    <ValidationProvider
-                            rules="required|wsdlUrl"
-                            name="serviceUrl"
-                            class="validation-provider"
-                            v-slot="{ errors }"
-                    >
-                        <v-text-field
-                                v-model="service.url"
-                                @input="setTouched()"
-                                single-line
-                                class="description-input"
-                                name="serviceUrl"
-                                :error-messages="errors"
-                                data-test="service-url"
-                        ></v-text-field>
-                    </ValidationProvider>
-                </div>
-
-                <v-checkbox @change="setTouched()" v-model="url_all" color="primary"
-                            class="table-checkbox"
-                            data-test="url-all"></v-checkbox>
-            </div>
-
-            <div class="edit-row">
-                <div class="edit-title">
-                    {{$t('services.timeoutSec')}}
-                    <helpIcon :text="$t('services.timeoutTooltip')"/>
-                </div>
-                <div class="edit-input">
-                    <ValidationProvider
-                            :rules="{ required: true, between: { min: 0, max: 1000 } }"
-                            name="serviceTimeout"
-                            class="validation-provider"
-                            v-slot="{ errors }"
-                    >
-                        <v-text-field
-                                v-model="service.timeout"
-                                single-line
-                                @input="setTouched()"
-                                type="number"
-                                style="max-width: 200px;"
-                                name="serviceTimeout"
-                                :error-messages="errors"
-                                data-test="service-timeout"
-                        ></v-text-field>
-                    </ValidationProvider>
-                    <!-- 0 - 1000 -->
-                </div>
-
-                <v-checkbox
-                        @change="setTouched()"
-                        v-model="timeout_all"
-                        color="primary"
-                        class="table-checkbox"
-                        data-test="timeout-all"
-                ></v-checkbox>
-            </div>
-
-            <div class="edit-row">
-                <div class="edit-title">
-                    {{$t('services.verifyTls')}}
-                    <helpIcon :text="$t('services.tlsTooltip')"/>
-                </div>
-                <div class="edit-input">
-                    <v-checkbox
-                            :disabled="!isHttps"
-                            @change="setTouched()"
-                            v-model="service.ssl_auth"
-                            color="primary"
-                            class="table-checkbox"
-                            data-test="ssl-auth"
-                    ></v-checkbox>
-                </div>
-
-                <v-checkbox
-                        @change="setTouched()"
-                        v-model="ssl_auth_all"
-                        color="primary"
-                        class="table-checkbox"
-                        data-test="ssl-auth-all"
-                ></v-checkbox>
-            </div>
-
-            <div class="button-wrap">
-                <large-button :disabled="invalid || disableSave"
-                              @click="save()" data-test="save-service-parameters">{{$t('action.save')}}</large-button>
-            </div>
-        </ValidationObserver>
-
-        <div class="group-members-row">
-            <div class="row-title">{{$t('accessRights.title')}}</div>
-            <div class="row-buttons">
-                <large-button
-                        :disabled="!hasSubjects"
-                        outlined
-                        @click="removeAllSubjects()"
-                        data-test="remove-subjects"
-                >{{$t('action.removeAll')}}
-                </large-button>
-                <large-button
-                        outlined
-                        class="add-members-button"
-                        @click="showAddSubjectsDialog()"
-                        data-test="show-add-subjects"
-                >{{$t('accessRights.addSubjects')}}
-                </large-button>
-            </div>
-        </div>
-
-        <v-card flat>
-            <table class="xrd-table group-members-table">
-                <tr>
-                    <th>{{$t('services.memberNameGroupDesc')}}</th>
-                    <th>{{$t('services.idGroupCode')}}</th>
-                    <th>{{$t('type')}}</th>
-                    <th>{{$t('accessRights.rightsGiven')}}</th>
-                    <th></th>
-                </tr>
-                <template v-if="accessRightsSubjects">
-                    <tr v-for="subject in accessRightsSubjects" v-bind:key="subject.id">
-                        <td>{{subject.subject.member_name_group_description}}</td>
-                        <td>{{subject.subject.id}}</td>
-                        <td>{{subject.subject.subject_type}}</td>
-                        <td>{{subject.rights_given_at | formatDateTime}}</td>
-                        <td>
-                            <div class="button-wrap">
-                                <v-btn
-                                        small
-                                        outlined
-                                        rounded
-                                        color="primary"
-                                        class="xrd-small-button"
-                                        @click="removeSubject(subject)"
-                                        data-test="remove-subject"
-                                >{{$t('action.remove')}}
-                                </v-btn>
-                            </div>
-                        </td>
-                    </tr>
-                </template>
-            </table>
-
-            <div class="footer-buttons-wrap">
-                <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
-            </div>
-        </v-card>
-
-        <!-- Confirm dialog remove Access Right subject -->
-        <confirmDialog
-                :dialog="confirmMember"
-                title="localGroup.removeTitle"
-                text="localGroup.removeText"
-                @cancel="confirmMember = false"
-                @accept="doRemoveSubject()"
-        />
-
-        <!-- Confirm dialog remove all Access Right subjects -->
-        <confirmDialog
-                :dialog="confirmAllSubjects"
-                title="localGroup.removeAllTitle"
-                text="localGroup.removeAllText"
-                @cancel="confirmAllSubjects = false"
-                @accept="doRemoveAllSubjects()"
-        />
-
-        <!-- Add access right subjects dialog -->
-        <accessRightsDialog
-                :dialog="addSubjectsDialogVisible"
-                :filtered="accessRightsSubjects"
-                :clientId="clientId"
-                title="accessRights.addSubjectsTitle"
-                @cancel="closeAccessRightsDialog"
-                @subjectsAdded="doAddSubjects"
-        />
+  <div class="xrd-tab-max-width xrd-view-common">
+    <div class="apply-to-all">
+      <div class="apply-to-all-text">{{$t('services.applyToAll')}}</div>
     </div>
+
+    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+      <div class="edit-row">
+        <div class="edit-title">
+          {{$t('services.serviceUrl')}}
+          <helpIcon :text="$t('services.urlTooltip')" />
+        </div>
+
+        <div class="edit-input">
+          <ValidationProvider
+            rules="required|wsdlUrl"
+            name="serviceUrl"
+            class="validation-provider"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              v-model="service.url"
+              @input="setTouched()"
+              single-line
+              class="description-input"
+              name="serviceUrl"
+              :error-messages="errors"
+              data-test="service-url"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+
+        <v-checkbox
+          @change="setTouched()"
+          v-model="url_all"
+          color="primary"
+          class="table-checkbox"
+          data-test="url-all"
+        ></v-checkbox>
+      </div>
+
+      <div class="edit-row">
+        <div class="edit-title">
+          {{$t('services.timeoutSec')}}
+          <helpIcon :text="$t('services.timeoutTooltip')" />
+        </div>
+        <div class="edit-input">
+          <ValidationProvider
+            :rules="{ required: true, between: { min: 0, max: 1000 } }"
+            name="serviceTimeout"
+            class="validation-provider"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              v-model="service.timeout"
+              single-line
+              @input="setTouched()"
+              type="number"
+              style="max-width: 200px;"
+              name="serviceTimeout"
+              :error-messages="errors"
+              data-test="service-timeout"
+            ></v-text-field>
+          </ValidationProvider>
+          <!-- 0 - 1000 -->
+        </div>
+
+        <v-checkbox
+          @change="setTouched()"
+          v-model="timeout_all"
+          color="primary"
+          class="table-checkbox"
+          data-test="timeout-all"
+        ></v-checkbox>
+      </div>
+
+      <div class="edit-row">
+        <div class="edit-title">
+          {{$t('services.verifyTls')}}
+          <helpIcon :text="$t('services.tlsTooltip')" />
+        </div>
+        <div class="edit-input">
+          <v-checkbox
+            :disabled="!isHttps"
+            @change="setTouched()"
+            v-model="service.ssl_auth"
+            color="primary"
+            class="table-checkbox"
+            data-test="ssl-auth"
+          ></v-checkbox>
+        </div>
+
+        <v-checkbox
+          @change="setTouched()"
+          v-model="ssl_auth_all"
+          color="primary"
+          class="table-checkbox"
+          data-test="ssl-auth-all"
+        ></v-checkbox>
+      </div>
+
+      <div class="button-wrap">
+        <large-button
+          :disabled="invalid || disableSave"
+          @click="save()"
+          data-test="save-service-parameters"
+        >{{$t('action.save')}}</large-button>
+      </div>
+    </ValidationObserver>
+
+    <div class="group-members-row">
+      <div class="row-title">{{$t('accessRights.title')}}</div>
+      <div class="row-buttons">
+        <large-button
+          :disabled="!hasSubjects"
+          outlined
+          @click="removeAllSubjects()"
+          data-test="remove-subjects"
+        >{{$t('action.removeAll')}}</large-button>
+        <large-button
+          outlined
+          class="add-members-button"
+          @click="showAddSubjectsDialog()"
+          data-test="show-add-subjects"
+        >{{$t('accessRights.addSubjects')}}</large-button>
+      </div>
+    </div>
+
+    <v-card flat>
+      <table class="xrd-table group-members-table">
+        <tr>
+          <th>{{$t('services.memberNameGroupDesc')}}</th>
+          <th>{{$t('services.idGroupCode')}}</th>
+          <th>{{$t('type')}}</th>
+          <th>{{$t('accessRights.rightsGiven')}}</th>
+          <th></th>
+        </tr>
+        <template v-if="accessRightsSubjects">
+          <tr v-for="subject in accessRightsSubjects" v-bind:key="subject.id">
+            <td>{{subject.subject.member_name_group_description}}</td>
+            <td>{{subject.subject.id}}</td>
+            <td>{{subject.subject.subject_type}}</td>
+            <td>{{subject.rights_given_at | formatDateTime}}</td>
+            <td>
+              <div class="button-wrap">
+                <v-btn
+                  small
+                  outlined
+                  rounded
+                  color="primary"
+                  class="xrd-small-button"
+                  @click="removeSubject(subject)"
+                  data-test="remove-subject"
+                >{{$t('action.remove')}}</v-btn>
+              </div>
+            </td>
+          </tr>
+        </template>
+      </table>
+
+      <div class="footer-buttons-wrap">
+        <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
+      </div>
+    </v-card>
+
+    <!-- Confirm dialog remove Access Right subject -->
+    <confirmDialog
+      :dialog="confirmMember"
+      title="localGroup.removeTitle"
+      text="localGroup.removeText"
+      @cancel="confirmMember = false"
+      @accept="doRemoveSubject()"
+    />
+
+    <!-- Confirm dialog remove all Access Right subjects -->
+    <confirmDialog
+      :dialog="confirmAllSubjects"
+      title="localGroup.removeAllTitle"
+      text="localGroup.removeAllText"
+      @cancel="confirmAllSubjects = false"
+      @accept="doRemoveAllSubjects()"
+    />
+
+    <!-- Add access right subjects dialog -->
+    <accessRightsDialog
+      :dialog="addSubjectsDialogVisible"
+      :filtered="accessRightsSubjects"
+      :clientId="clientId"
+      title="accessRights.addSubjectsTitle"
+      @cancel="closeAccessRightsDialog"
+      @subjectsAdded="doAddSubjects"
+    />
+  </div>
 </template>
 
 
@@ -197,10 +201,10 @@ import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import {ServiceClient, Subject} from '@/types';
-import {ValidationObserver, ValidationProvider} from 'vee-validate';
-import {mapGetters} from 'vuex';
-import {RouteName} from '@/global';
+import { ServiceClient, Subject } from '@/types';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { mapGetters } from 'vuex';
+import { RouteName } from '@/global';
 
 type NullableSubject = undefined | ServiceClient;
 
@@ -270,7 +274,6 @@ export default Vue.extend({
   },
 
   methods: {
-
     save(): void {
       api
         .patch(`/services/${this.serviceId}`, {
@@ -357,7 +360,7 @@ export default Vue.extend({
         .post(`/services/${this.serviceId}/access-rights/delete`, {
           items: subjects,
         })
-        .then( () => {
+        .then(() => {
           this.$bus.$emit('show-success', 'accessRights.removeSubjectsSuccess');
         })
         .catch((error) => {
@@ -368,7 +371,10 @@ export default Vue.extend({
         });
     },
     close() {
-      this.$router.push({name: RouteName.SubsystemServices, params: {id: this.clientId}});
+      this.$router.push({
+        name: RouteName.SubsystemServices,
+        params: { id: this.clientId },
+      });
     },
   },
   watch: {
@@ -383,96 +389,96 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-    @import '../../../assets/colors';
-    @import '../../../assets/tables';
+@import '../../../assets/colors';
+@import '../../../assets/tables';
 
-    .apply-to-all {
-        display: flex;
-        justify-content: flex-end;
+.apply-to-all {
+  display: flex;
+  justify-content: flex-end;
 
-        .apply-to-all-text {
-            width: 100px;
-        }
-    }
+  .apply-to-all-text {
+    width: 100px;
+  }
+}
 
-    .edit-row {
-        display: flex;
-        align-items: baseline;
+.edit-row {
+  display: flex;
+  align-items: baseline;
 
-        .description-input {
-            width: 100%;
-            max-width: 450px;
-        }
+  .description-input {
+    width: 100%;
+    max-width: 450px;
+  }
 
-        .edit-title {
-            display: flex;
-            align-content: center;
-            min-width: 200px;
-            margin-right: 20px;
-        }
+  .edit-title {
+    display: flex;
+    align-content: center;
+    min-width: 200px;
+    margin-right: 20px;
+  }
 
-        .edit-input {
-            display: flex;
-            align-content: center;
-            width: 100%;
-        }
-    }
+  .edit-input {
+    display: flex;
+    align-content: center;
+    width: 100%;
+  }
+}
 
-    .edit-row > *:last-child {
-        margin-left: 20px;
-        width: 100px;
-        max-width: 100px;
-        min-width: 100px;
-        margin-left: auto;
-        margin-right: 0;
-    }
+.edit-row > *:last-child {
+  margin-left: 20px;
+  width: 100px;
+  max-width: 100px;
+  min-width: 100px;
+  margin-left: auto;
+  margin-right: 0;
+}
 
-    .group-members-row {
-        width: 100%;
-        display: flex;
-        margin-top: 70px;
-        align-items: baseline;
-    }
+.group-members-row {
+  width: 100%;
+  display: flex;
+  margin-top: 70px;
+  align-items: baseline;
+}
 
-    .row-title {
-        width: 100%;
-        justify-content: space-between;
-        color: #202020;
-        font-family: Roboto;
-        font-size: 20px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-    }
+.row-title {
+  width: 100%;
+  justify-content: space-between;
+  color: #202020;
+  font-family: Roboto;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
 
-    .row-buttons {
-        display: flex;
-    }
+.row-buttons {
+  display: flex;
+}
 
-    .add-members-button {
-        margin-left: 20px;
-    }
+.add-members-button {
+  margin-left: 20px;
+}
 
-    .group-members-table {
-        margin-top: 10px;
-        width: 100%;
+.group-members-table {
+  margin-top: 10px;
+  width: 100%;
 
-        th {
-            text-align: left;
-        }
-    }
+  th {
+    text-align: left;
+  }
+}
 
-    .button-wrap {
-        width: 100%;
-        display: flex;
-        justify-content: flex-end;
-    }
+.button-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
 
-    .footer-buttons-wrap {
-        margin-top: 48px;
-        display: flex;
-        justify-content: flex-end;
-        border-top: 1px solid $XRoad-Grey40;
-        padding-top: 20px;
-    }
+.footer-buttons-wrap {
+  margin-top: 48px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid $XRoad-Grey40;
+  padding-top: 20px;
+}
 </style>
 
