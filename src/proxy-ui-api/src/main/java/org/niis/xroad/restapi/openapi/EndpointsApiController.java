@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
-import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -162,11 +161,11 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             accessRightHoldersByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (EndpointNotFoundException e) {
+        } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
             throw new ConflictException(e);
-        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
+        } catch (IdentifierNotFoundException e) {
             throw new BadRequestException(e);
         }
 
@@ -183,8 +182,6 @@ public class EndpointsApiController implements EndpointsApi {
         HashSet<XRoadId> xRoadIds = new HashSet<>(subjectHelper.getXRoadIdsButSkipLocalGroups(subjects));
         try {
             accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds, localGroupIds);
-        } catch (LocalGroupNotFoundException e) {
-            throw new BadRequestException(e);
         } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {

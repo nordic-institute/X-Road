@@ -166,7 +166,7 @@ public class AccessRightService {
                 localGroupType));
 
         return accessRightTypes.stream()
-                .map( (accessRightType -> accessRightTypeToDto(accessRightType, localGroupMap)))
+                .map((accessRightType -> accessRightTypeToDto(accessRightType, localGroupMap)))
                 .collect(Collectors.toList());
     }
 
@@ -234,7 +234,7 @@ public class AccessRightService {
      * @throws AccessRightNotFoundException                 if at least one access right expected is not found
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds, Set<Long> localGroupIds)
-            throws LocalGroupNotFoundException, EndpointNotFoundException,
+            throws EndpointNotFoundException,
             ClientNotFoundException, AccessRightNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
@@ -256,30 +256,31 @@ public class AccessRightService {
      * @param endpointType
      * @param subjectIds
      * @param localGroupIds
-     * @throws LocalGroupNotFoundException  if localgroup is not found
      * @throws AccessRightNotFoundException if access right is not found
      */
     private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws LocalGroupNotFoundException, AccessRightNotFoundException {
+            Set<Long> localGroupIds) throws AccessRightNotFoundException {
 
         Set<XRoadId> subjectsToDelete = new HashSet<>();
         if (localGroupIds != null) {
             try {
                 subjectsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
             } catch (LocalGroupNotFoundException e) {
-                throw new AccessRightNotFoundException();
+                throw new AccessRightNotFoundException(e);
             }
         }
         if (subjectIds != null) {
             subjectsToDelete.addAll(subjectIds);
         }
 
+        // Check all local groups are found in the access right list of the client
         List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
                         && subjectsToDelete.contains(acl.getSubjectId()))
                 .collect(Collectors.toList());
         if (accessRightsToBeRemoved.size() != subjectsToDelete.size()) {
-            throw new AccessRightNotFoundException();
+            throw new AccessRightNotFoundException("All local groups identifiers + " + subjectsToDelete.toString()
+                    + " weren't found in the access rights list of the given client: " + clientType.getIdentifier());
         }
 
         clientType.getAcl().removeAll(accessRightsToBeRemoved);
@@ -295,7 +296,7 @@ public class AccessRightService {
      * @param subjectIds
      * @param localGroupIds
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
-     * @throws LocalGroupNotFoundException
+     * @throws AccessRightNotFoundException
      * @throws ClientNotFoundException
      * @throws ServiceNotFoundException
      * @throws DuplicateAccessRightException
@@ -303,7 +304,7 @@ public class AccessRightService {
      * @throws EndpointNotFoundException
      */
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-                Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
+                Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws AccessRightNotFoundException,
             ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException {
 
@@ -331,12 +332,12 @@ public class AccessRightService {
      * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException                   client for the endpoint is not found (shouldn't happen)
      * @throws IdentifierNotFoundException               Identifier is not found
-     * @throws LocalGroupNotFoundException               Local group is not found
+     * @throws AccessRightNotFoundException               Local group is not found
      * @throws DuplicateAccessRightException             Trying to add duplicate access rights
      */
     public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
-            IdentifierNotFoundException, LocalGroupNotFoundException, DuplicateAccessRightException {
+            IdentifierNotFoundException, AccessRightNotFoundException, DuplicateAccessRightException {
 
         EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
         if (endpointType == null) {
@@ -353,7 +354,7 @@ public class AccessRightService {
 
     private List<AccessRightHolderDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws IdentifierNotFoundException,
-            LocalGroupNotFoundException, DuplicateAccessRightException {
+            AccessRightNotFoundException, DuplicateAccessRightException {
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
         Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
@@ -362,7 +363,8 @@ public class AccessRightService {
         addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
 
         // Create DTOs for returning data
-        return mapAccessRightsToAccessRightHolders(clientType, endpointType);
+        List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
+        return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
     }
 
     /**
@@ -413,7 +415,7 @@ public class AccessRightService {
             try {
                 localGroupXroadIds = getLocalGroupsAsXroadIds(localGroupIds);
             } catch (LocalGroupNotFoundException e) {
-                throw new AccessRightNotFoundException();
+                throw new AccessRightNotFoundException(e);
             }
             // Get LocalGroupIds from serverconf db - or save them if they don't exist
             Set<XRoadId> txLocalGroupXroadIds = identifierService.getOrPersistXroadIds(localGroupXroadIds);
@@ -495,8 +497,12 @@ public class AccessRightService {
     public static class AccessRightNotFoundException extends NotFoundException {
         public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
 
-        public AccessRightNotFoundException() {
-            super(new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
+        public AccessRightNotFoundException(String s) {
+            super(s, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
+        }
+
+        public AccessRightNotFoundException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
         }
 
     }
