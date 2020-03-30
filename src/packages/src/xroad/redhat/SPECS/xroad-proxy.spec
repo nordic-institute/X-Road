@@ -115,6 +115,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml
+/usr/share/xroad/db/serverconf-legacy-changelog.xml
 /usr/share/xroad/db/serverconf
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy*.jar
@@ -205,7 +206,7 @@ if [ $1 -gt 1 ] ; then
       fi
 fi
 
-sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
+/usr/share/xroad/scripts/xroad-proxy-setup.sh
 
 if [ $1 -gt 1 ]; then
     # upgrade
