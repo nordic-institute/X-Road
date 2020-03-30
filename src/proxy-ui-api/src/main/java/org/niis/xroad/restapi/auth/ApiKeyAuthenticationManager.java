@@ -28,12 +28,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.REGULAR_API_WHITELIST;
 
 /**
  * AuthenticationManager which expects Authentication.principal to be
@@ -53,8 +56,14 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     @Autowired
     private GrantedAuthorityMapper permissionMapper;
 
+    // TO DO: constructor autowire this + others
+    @Autowired
+    @Qualifier(REGULAR_API_WHITELIST)
+    private AuthenticationIpWhitelist authenticationIpWhitelist;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        authenticationIpWhitelist.validateIpAddress(authentication);
         String encodedAuthenticationHeader = (String) authentication.getPrincipal();
         String apiKeyValue = authenticationHeaderDecoder.decodeApiKey(encodedAuthenticationHeader);
         PersistentApiKeyType key;

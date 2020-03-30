@@ -77,6 +77,19 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_SSL_PROPERTIES =
             PREFIX + "proxy-ui-api.ssl-properties";
 
+    /** Default whitelist for Proxy UI API's key management API (allow only localhost) */
+    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.1";
+
+    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
+    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0";
+
+    /** Property name of the whitelist for Proxy UI API's key management API */
+    public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
+            PREFIX + "proxy-ui-api.key-management-api-whitelist";
+
+    /** Property name of the whitelist for Proxy UI API's regular APIs */
+    public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
+            PREFIX + "proxy-ui-api.regular-api-whitelist";
 
 
     // Proxy ------------------------------------------------------------------
@@ -680,6 +693,22 @@ public final class SystemProperties {
     public static String getSslPropertiesFile() {
         return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
                 getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
+    }
+
+    /**
+     * @return whitelist for Proxy UI API's key management API, "127.0.0.1" by default
+     */
+    public static String getKeyManagementApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
+                DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
+    }
+
+    /**
+     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0" or "allow all" by default
+     */
+    public static String getRegularApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
+                DEFAULT_REGULAR_API_WHITELIST);
     }
 
     /**
