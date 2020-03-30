@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.36
+Version: 2.38
 Doc. ID: UG-SS
 
 ---
@@ -70,6 +70,7 @@ Doc. ID: UG-SS
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
  05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
  24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
+ 30.03.2020 | 2.38    | Added description of pre-restore backups | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1591,6 +1592,8 @@ To **restore configuration**, follow these steps.
 1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **Confirm**.
 
 2.  A window opens displaying the output of the restore script; click **OK** to close it.
+
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
 To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **Confirm**.
 
