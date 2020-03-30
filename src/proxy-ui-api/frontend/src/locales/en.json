@@ -247,6 +247,7 @@
     "status": "Status",
     "signDetailsTitle": "SIGN Key details",
     "authDetailsTitle": "AUTH Key details",
+    "detailsTitle": "Key details",
     "friendlyName": "Friendly name",
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
