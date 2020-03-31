@@ -38,8 +38,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -81,7 +81,7 @@ public class NotificationsApiControllerTest {
     @Test
     @WithMockUser
     public void checkAlertsBackupRestoreRunning() {
-        Date date = new Date();
+        OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
         AlertStatus alertStatus = new AlertStatus();
         alertStatus.setBackupRestoreRunningSince(date);
         alertStatus.setCurrentTime(date);
@@ -94,10 +94,8 @@ public class NotificationsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         AlertData alertData = response.getBody();
-        assertEquals(alertStatus.getBackupRestoreRunningSince().toInstant().atOffset(ZoneOffset.UTC),
-                alertData.getBackupRestoreRunningSince());
-        assertEquals(alertStatus.getCurrentTime().toInstant().atOffset(ZoneOffset.UTC),
-                alertData.getCurrentTime());
+        assertEquals(alertStatus.getBackupRestoreRunningSince(), alertData.getBackupRestoreRunningSince());
+        assertEquals(alertStatus.getCurrentTime(), alertData.getCurrentTime());
         assertEquals(alertStatus.getGlobalConfValid(), alertData.getGlobalConfValid());
         assertEquals(alertStatus.getSoftTokenPinEntered(), alertData.getSoftTokenPinEntered());
     }

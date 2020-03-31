@@ -29,8 +29,8 @@ import org.junit.Test;
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
 
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,7 +47,7 @@ public class AlertDataConverterTest {
 
     @Test
     public void convertAlertData() {
-        Date date = new Date();
+        OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
         AlertStatus alertStatus = new AlertStatus();
         alertStatus.setBackupRestoreRunningSince(date);
         alertStatus.setCurrentTime(date);
@@ -55,8 +55,8 @@ public class AlertDataConverterTest {
         alertStatus.setSoftTokenPinEntered(true);
 
         AlertData alertData = alertDataConverter.convert(alertStatus);
-        assertEquals(date.toInstant().atOffset(ZoneOffset.UTC), alertData.getBackupRestoreRunningSince());
-        assertEquals(date.toInstant().atOffset(ZoneOffset.UTC), alertData.getCurrentTime());
+        assertEquals(date, alertData.getBackupRestoreRunningSince());
+        assertEquals(date, alertData.getCurrentTime());
         assertEquals(true, alertData.getGlobalConfValid());
         assertEquals(true, alertData.getSoftTokenPinEntered());
     }

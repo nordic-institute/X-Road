@@ -36,7 +36,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 /**
@@ -47,7 +48,7 @@ import java.util.Optional;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class NotificationService {
-    private static volatile Date backupRestoreRunningSince;
+    private static OffsetDateTime backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
 
@@ -69,7 +70,7 @@ public class NotificationService {
         AlertStatus alertStatus = new AlertStatus();
         if (backupRestoreRunningSince != null) {
             alertStatus.setBackupRestoreRunningSince(backupRestoreRunningSince);
-            alertStatus.setCurrentTime(new Date());
+            alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
         }
         alertStatus.setGlobalConfValid(isGlobalConfValid());
         alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
@@ -107,7 +108,7 @@ public class NotificationService {
      * currently running.
      * @return
      */
-    public static Date getBackupRestoreRunningSince() {
+    public static synchronized OffsetDateTime getBackupRestoreRunningSince() {
         return backupRestoreRunningSince;
     }
 
@@ -122,6 +123,6 @@ public class NotificationService {
      * Sets backupRestoreRunningSince to current date/time.
      */
     public static synchronized void setBackupRestoreRunningSince() {
-        backupRestoreRunningSince = new Date();
+        backupRestoreRunningSince = OffsetDateTime.now(ZoneOffset.UTC);
     }
 }
