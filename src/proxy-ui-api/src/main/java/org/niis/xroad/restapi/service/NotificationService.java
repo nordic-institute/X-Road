@@ -68,8 +68,9 @@ public class NotificationService {
      */
     public AlertStatus getAlerts() {
         AlertStatus alertStatus = new AlertStatus();
-        if (backupRestoreRunningSince != null) {
-            alertStatus.setBackupRestoreRunningSince(backupRestoreRunningSince);
+        OffsetDateTime backupRestoreStartedAt = getBackupRestoreRunningSince();
+        if (backupRestoreStartedAt != null) {
+            alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
             alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
         }
         alertStatus.setGlobalConfValid(isGlobalConfValid());
