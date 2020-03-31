@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.converter;
 
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,7 +37,11 @@ public class AlertDataConverter {
 
     public AlertData convert(AlertStatus alertStatus) {
         AlertData alertData = new AlertData();
-        alertData.setIgnoreAlerts(!alertStatus.getAlertsEnabled());
+        if (alertStatus.getBackupRestoreRunningSince() != null) {
+            alertData.setBackupRestoreRunningSince(FormatUtils.fromDateToOffsetDateTime(alertStatus
+                    .getBackupRestoreRunningSince()));
+            alertData.setCurrentTime(FormatUtils.fromDateToOffsetDateTime(alertStatus.getCurrentTime()));
+        }
         alertData.setGlobalConfValid(alertStatus.getGlobalConfValid());
         alertData.setSoftTokenPinEntered(alertStatus.getSoftTokenPinEntered());
         return alertData;

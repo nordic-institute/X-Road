@@ -36,6 +36,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -46,7 +47,7 @@ import java.util.Optional;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class NotificationService {
-    private static volatile boolean alertsEnabled = true;
+    private static volatile Date backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
 
@@ -66,7 +67,10 @@ public class NotificationService {
      */
     public AlertStatus getAlerts() {
         AlertStatus alertStatus = new AlertStatus();
-        alertStatus.setAlertsEnabled(alertsEnabled);
+        if (backupRestoreRunningSince != null) {
+            alertStatus.setBackupRestoreRunningSince(backupRestoreRunningSince);
+            alertStatus.setCurrentTime(new Date());
+        }
         alertStatus.setGlobalConfValid(isGlobalConfValid());
         alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
         return alertStatus;
@@ -99,24 +103,25 @@ public class NotificationService {
     }
 
     /**
-     * Are alerts currently enabled?
+     * Get date/time since when backup/restore has been running. Returns null if backup/restore is not
+     * currently running.
      * @return
      */
-    public static boolean isAlertsEnabled() {
-        return alertsEnabled;
+    public static Date getBackupRestoreRunningSince() {
+        return backupRestoreRunningSince;
     }
 
     /**
-     * Enable alerts.
+     * Resets backupRestoreRunningSince by setting the value to null.
      */
-    public static synchronized void enableAlerts() {
-        alertsEnabled = true;
+    public static synchronized void resetBackupRestoreRunningSince() {
+        backupRestoreRunningSince = null;
     }
 
     /**
-     * Disable alerts.
+     * Sets backupRestoreRunningSince to current date/time.
      */
-    public static synchronized void disableAlerts() {
-        alertsEnabled = false;
+    public static synchronized void setBackupRestoreRunningSince() {
+        backupRestoreRunningSince = new Date();
     }
 }

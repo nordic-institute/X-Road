@@ -26,12 +26,15 @@ package org.niis.xroad.restapi.dto;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * Model for alert status
  */
 @Data
 public class AlertStatus {
-    private Boolean alertsEnabled;
+    private Date currentTime;
+    private Date backupRestoreRunningSince;
     private Boolean globalConfValid;
     private Boolean softTokenPinEntered;
 }

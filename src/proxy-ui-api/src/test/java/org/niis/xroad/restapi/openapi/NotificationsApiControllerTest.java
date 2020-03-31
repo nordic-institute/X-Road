@@ -38,6 +38,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.ZoneOffset;
+import java.util.Date;
+
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doThrow;
@@ -60,7 +63,6 @@ public class NotificationsApiControllerTest {
     @WithMockUser
     public void checkAlerts() {
         AlertStatus alertStatus = new AlertStatus();
-        alertStatus.setAlertsEnabled(true);
         alertStatus.setGlobalConfValid(true);
         alertStatus.setSoftTokenPinEntered(true);
 
@@ -70,7 +72,32 @@ public class NotificationsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         AlertData alertData = response.getBody();
-        assertEquals(!alertStatus.getAlertsEnabled(), alertData.getIgnoreAlerts());
+        assertEquals(null, alertData.getBackupRestoreRunningSince());
+        assertEquals(null, alertData.getCurrentTime());
+        assertEquals(alertStatus.getGlobalConfValid(), alertData.getGlobalConfValid());
+        assertEquals(alertStatus.getSoftTokenPinEntered(), alertData.getSoftTokenPinEntered());
+    }
+
+    @Test
+    @WithMockUser
+    public void checkAlertsBackupRestoreRunning() {
+        Date date = new Date();
+        AlertStatus alertStatus = new AlertStatus();
+        alertStatus.setBackupRestoreRunningSince(date);
+        alertStatus.setCurrentTime(date);
+        alertStatus.setGlobalConfValid(true);
+        alertStatus.setSoftTokenPinEntered(true);
+
+        when(notificationService.getAlerts()).thenReturn(alertStatus);
+
+        ResponseEntity<AlertData> response = notificationsApiController.checkAlerts();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        AlertData alertData = response.getBody();
+        assertEquals(alertStatus.getBackupRestoreRunningSince().toInstant().atOffset(ZoneOffset.UTC),
+                alertData.getBackupRestoreRunningSince());
+        assertEquals(alertStatus.getCurrentTime().toInstant().atOffset(ZoneOffset.UTC),
+                alertData.getCurrentTime());
         assertEquals(alertStatus.getGlobalConfValid(), alertData.getGlobalConfValid());
         assertEquals(alertStatus.getSoftTokenPinEntered(), alertData.getSoftTokenPinEntered());
     }
