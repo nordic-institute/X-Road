@@ -99,8 +99,6 @@ public class ServiceClientConverter {
                 break;
         }
 
-        // we don't want to show the ACTUAL AccessRights - only the clients who possess them
-        serviceClient.setAccessRights(null);
         return serviceClient;
     }
 

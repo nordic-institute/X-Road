@@ -98,6 +98,15 @@ public class AccessRightService {
         this.endpointService = endpointService;
     }
 
+    public List<AccessRightHolderDto> getAccessRightHoldersByClient(ClientType clientType) {
+        // Filter just acls that are set to service code base endpoint so they are set to 'service code level'
+        List<AccessRightType> clientServiceCodeLevelAcls = clientType.getAcl().stream()
+                .filter(acl -> acl.getEndpoint().isBaseEndpoint())
+                .collect(Collectors.toList());
+
+        return mapAccessRightsToAccessRightHolders(clientType, clientServiceCodeLevelAcls);
+    }
+
     /**
      * Get access right holders by Service
      * @param clientId

@@ -38,11 +38,13 @@ import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
+import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.converter.SubjectTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -51,6 +53,7 @@ import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
@@ -84,6 +87,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,10 +117,12 @@ public class ClientsApiController implements ClientsApi {
     private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
     private final OrphanRemovalService orphanRemovalService;
+    private final ServiceClientConverter serviceClientConverter;
 
     /**
      * ClientsApiController constructor
      */
+    @SuppressWarnings("checkstyle:ParameterNumber")
     @Autowired
     public ClientsApiController(ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
@@ -124,7 +130,7 @@ public class ClientsApiController implements ClientsApi {
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
             SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
-            OrphanRemovalService orphanRemovalService) {
+            OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -137,6 +143,7 @@ public class ClientsApiController implements ClientsApi {
         this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.orphanRemovalService = orphanRemovalService;
+        this.serviceClientConverter = serviceClientConverter;
     }
 
     /**
@@ -512,5 +519,14 @@ public class ClientsApiController implements ClientsApi {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<List<ServiceClient>> getClientServiceClients(String clientId) {
+        ClientType clientType = getClientType(clientId);
+        List<AccessRightHolderDto> accessRightHolderDto = accessRightService.getAccessRightHoldersByClient(clientType);
+        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDto);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 }

@@ -76,4 +76,8 @@ public class EndpointType {
                 && other.getMethod().equals(method)
                 && other.getPath().equals(path);
     }
+
+    public final boolean isBaseEndpoint() {
+        return this.method.equals(ANY_METHOD) && this.path.equals(ANY_PATH);
+    }
 }

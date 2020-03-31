@@ -144,8 +144,7 @@ public class EndpointService {
             throws EndpointNotFoundException {
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
-                        && endpointType.getMethod().equals(EndpointType.ANY_METHOD)
-                        && endpointType.getPath().equals(EndpointType.ANY_PATH))
+                        && endpointType.isBaseEndpoint())
                 .findFirst()
                 .orElseThrow(() -> new EndpointNotFoundException(
                         EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client"
