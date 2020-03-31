@@ -1,14 +1,5 @@
 #!/bin/bash
-
 . /usr/share/debconf/confmodule
-
-db_properties=/etc/xroad/db.properties
-
-
-if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
-
-${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
-
 
 if [ "$1" = "upgrade" ];
  then
@@ -62,27 +53,11 @@ function handle_error {
    rm -f /tmp/cert.err
 }
 
-if  [ "$1" = "reconfigure" ];
-  then
-    db_fset xroad-common/database-host seen false
-    db_fset xroad-common/admin-subject seen false
-    db_fset xroad-common/admin-altsubject seen false
-    db_fset xroad-common/service-subject seen false
-    db_fset xroad-common/service-altsubject seen false
-fi
-
-# Get database connection string from the user
-db_input critical xroad-common/database-host || true
-db_go
-RET=
-db_get xroad-common/database-host
-db_host="$RET"
-
 #check certificates and request necessary subject information from user
-HOST=`hostname -f`
+HOST=$(hostname -f)
 LIST=
-for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;
-ALT=${LIST}DNS:`hostname`,DNS:`hostname -f`
+for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+ALT="${LIST}DNS:$(hostname),DNS:$HOST"
 
 while :; do
     if [[ ! -r /etc/xroad/ssl/nginx.crt || ! -r /etc/xroad/ssl/nginx.key ]]
@@ -156,6 +131,4 @@ while :; do
     fi
 done
 
-
 db_stop
-
