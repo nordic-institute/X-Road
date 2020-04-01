@@ -15,7 +15,7 @@ The X-Road Security Server sidecar software is built from pre-built packages dow
 
 ### 1.1 Supported Platforms
 
-The Security Server sidecar can be installed both on physical and virtualized hardware. The installation script setup_security_server_sidecar.sh runs on Unix-based operating systems.
+The Security Server sidecar can be installed both on physical and virtualized hardware. The installation script setup_security_server_sidecar.sh runs on Unix-based operating systems (of the latter, Mac OS and Ubuntu have been tested).
 
 ### 1.2 Prerequisites to installation
 
@@ -28,10 +28,11 @@ Minimum recommended docker engine configuration to run the security server sidec
 - CPUs: 2
 - Memory: 2 GiB
 - Swap: 1 GiB
+- Disk space: 2 GiB
 
 ### 1.4 Reference Data
 
-*Note*: The information in empty cells should be determined before the server’s installation, by the person performing the installation.
+*Note*: The information in empty cells should be determined before the server's installation, by the person performing the installation.
 
 
  **Ref** | **Value**                                | **Explanation**
@@ -89,25 +90,25 @@ The script setup_security_server_sidecar.sh will:
 
 ## 2 Security Server Sidecar Initial Configuration
 
-### 2.1 Prerequisites to configuration
-
-The security server sidecar owner is configured as a member of the X-Road.
-
-### 2.2 Reference Data
+### 2.1 Reference Data
 
  **Ref** | **Value**                                                | **Explanation**
  ---- | ----------------------------------------------------------- | -------------------------------------------------------
  2.1  | &lt;global configuration anchor file&gt; or &lt;URL (1)&gt; | Global configuration anchor file (2)
- 2.2  | E.g.<br> COM - Commercial<br> ORG - Organisation            | Member class of the security server sidecar's owner (2)
- 2.3  | &lt;security server sidecar owner's register code&gt;       | Member code of the security server sidecar's owner (2)
- 2.4  | &lt;choose security server sidecar identificator name&gt;   | Security server sidecar's code
+ 2.2  | &lt;security server owner's member class&gt;<br>E.g.<br> COM - Commercial<br> ORG - Organisation            | Member class of the security server owner for the sidecar (2)
+ 2.3  | &lt;security server owner's member code&gt;                 | Member code of the security server owner for the sidecar (2) (3)
+ 2.4  | &lt;security server code&gt; (4)                            | Security server code for the sidecar
  2.5  | &lt;PIN for software token&gt;                              | Software token PIN code (same as ref. data 1.3)
 
-Note (1): The Central Server's download URL and TCP port 80 must be reachable from the security server sidecar network.
+Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the security server sidecar network.
 
-Note (2): Reference items 2.1 - 2.3 are provided to the security server sidecar owner by the X-Road central server’s administrator.
+Note (2): Reference items 2.1 - 2.3 are provided to the security server owner by the X-Road central server's administrator.
 
-### 2.3 Configuration
+Note (3): The security server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
+
+Note (4): The security server code uniquely identifies the security server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.
+
+### 2.2 Configuration
 
 To perform the initial configuration, navigate to the Admin UI address:
 
@@ -123,9 +124,9 @@ Upon first log-in, the system asks for the following information:
 
 Then, if the configuration is successfully downloaded, the system asks for the following information:
 
-- The security server sidecar owner’s member class (reference data: 2.2)
-- The security server sidecar owner’s member code (reference data: 2.3). If the member class and member code are correctly entered, the system displays the security server sidecar owner’s name as registered in the Central Server
-- Security server sidecar code (reference data: 2.4), it has to be unique across all the security servers belonging to the same member.
+- The security server owner's member class for the sidecar (reference data: 2.2)
+- The security server owner's member code for the sidecar (reference data: 2.3). If the member class and member code are correctly entered, the system displays the security server sidecar owner's name as registered in the Central Server
+- Security server code for the sidecar (reference data: 2.4), it has to be unique across the whole X-Road instance.
 - Software token PIN code (reference data: 2.5). The PIN will be used to protect the keys stored in the software token. The process xroad-autologin will automatically enter the PIN code after some time.
 
 ## 3 Key Points and Limitations for X-Road Security Server Sidecar Deployment
