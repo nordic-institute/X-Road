@@ -24,8 +24,8 @@
           <td>{{apiKey.id}}</td>
           <td>{{apiKey.roles | listRoles}}</td>
           <td class="actions-column">
-            <SmallButton>{{$t('apiKey.table.actions.edit')}}</SmallButton>
-            <smallButton class="ml-4">{{$t('apiKey.table.actions.revoke')}}</smallButton>
+            <small-button>{{$t('apiKey.table.actions.edit')}}</small-button>
+            <small-button class="button-spacing">{{$t('apiKey.table.actions.revoke')}}</small-button>
           </td>
         </tr>
         </tbody>
@@ -63,9 +63,9 @@ export default Vue.extend({
   },
   methods: {
     loadKeys(): void {
-      api.get('/api-key')
+      api.get('/api-keys')
         .then((resp) => this.apiKeys = resp.data)
-        .catch((error) => this.$bus.$emit('show-error', error.message));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
   },
   created(): void {
@@ -88,7 +88,6 @@ export default Vue.extend({
     display: flex;
     align-items: center;
     justify-content: flex-end;
-
   }
 
 </style>
