@@ -1354,7 +1354,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
+   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 
@@ -1986,7 +1986,7 @@ A separate REST api exists for API key management.
 API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password)
 or with session authentication (for admin web application).
 Basic authentication access is limited to localhost by default, but this can
-be changed using \[[System Parameters](#Ref_UG-SYSPAR)\].
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 #### 19.1.1 Creating new API keys
 
@@ -2077,7 +2077,7 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
 The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
 as the corresponding UI operations.
 Access to regular APIs is allowed from all IP addresses by default, but this can
-be changed using \[[System Parameters](#Ref_UG-SYSPAR)\].
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### 19.3 Correlation ID HTTP header
 
