@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.50  
+Version: 2.51  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -60,6 +60,7 @@ Doc. ID: UG-SYSPAR
 | 26.11.2019 | 2.48     | Add proxy serverconf caching parameters | Jarkko Hyöty |
 | 05.12.2019 | 2.49     | Fix broken link in Table of Contents | Tapio Jaakkola | 
 | 11.12.2019 | 2.50     | Added new Central Server parameter *ha-node-name* | Jarkko Hyöty |
+| 01.04.2020 | 2.51     | Added new management REST API parameterss *key-management-api-whitelist* and *regular-api-whitelist* | Janne Mattila |
 
 ## Table of Contents
 
@@ -374,8 +375,10 @@ the message log.
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
 | ssl-properties                                   | /etc/xroad/ssl.properties                  | Absolute path to file which overrides the default properties of the SSL connections to REST APIs. |
+| key-management-api-whitelist                     | 127.0.0.0/8, ::1                  | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management APIs using basic authentication  |
+| regular-api-whitelist                            | 0.0.0.0/0, ::/0                 | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular APIs using api key authentication |
 
-Configurable SSL parameters are those
+Configurable SSL connection parameters are those
 [Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
 that start with `server.ssl`.
 
