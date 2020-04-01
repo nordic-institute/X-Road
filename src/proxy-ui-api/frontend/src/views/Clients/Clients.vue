@@ -6,7 +6,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import ClientsDataTable from './ClientsDataTable.vue';
 export default Vue.extend({
   components: {
