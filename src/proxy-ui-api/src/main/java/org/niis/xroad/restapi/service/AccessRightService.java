@@ -43,6 +43,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.XroadInstancesApi;
+import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
@@ -53,6 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,13 +101,32 @@ public class AccessRightService {
         this.endpointService = endpointService;
     }
 
-    public List<AccessRightHolderDto> getAccessRightHoldersByClient(ClientType clientType) {
-        // Filter just acls that are set to service code base endpoint so they are set to 'service code level'
-        List<AccessRightType> clientServiceCodeLevelAcls = clientType.getAcl().stream()
+    public List<AccessRightHolderDto> getAccessRightHoldersByClient(ClientId clientId)
+            throws ClientNotFoundException {
+        ClientType clientType = clientRepository.getClient(clientId);
+
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
+        }
+
+        // Filter just acls that are set to base endpoints so they are on service code level
+        List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint())
                 .collect(Collectors.toList());
 
-        return mapAccessRightsToAccessRightHolders(clientType, clientServiceCodeLevelAcls);
+        List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
+
+        return mapAccessRightsToAccessRightHolders(clientType, distinctAccessRightTypes);
+    }
+
+    private List<AccessRightType> distinctAccessRightTypeByXroadId(List<AccessRightType> acls) {
+        HashMap<XRoadId, AccessRightType> uniqueServiceClientMap = new HashMap<>();
+        for (AccessRightType acl : acls) {
+            if (!uniqueServiceClientMap.containsKey(acl.getSubjectId())) {
+                uniqueServiceClientMap.put(acl.getSubjectId(), acl);
+            }
+        }
+        return new ArrayList(uniqueServiceClientMap.values());
     }
 
     /**

@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -523,10 +524,15 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public ResponseEntity<List<ServiceClient>> getClientServiceClients(String clientId) {
-        ClientType clientType = getClientType(clientId);
-        List<AccessRightHolderDto> accessRightHolderDto = accessRightService.getAccessRightHoldersByClient(clientType);
-        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDto);
+    public ResponseEntity<List<ServiceClient>> getClientServiceClients(String id) {
+        ClientId clientId = clientConverter.convertId(id);
+        List<ServiceClient> serviceClients = null;
+        try {
+            serviceClients = serviceClientConverter.
+                    convertAccessRightHolderDtos(accessRightService.getAccessRightHoldersByClient(clientId));
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 }
