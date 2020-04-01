@@ -7,10 +7,11 @@
         @close="close"
       />
       <subViewTitle
-        v-if="key.usage == 'AUTHENTICATION'"
+        v-else-if="key.usage == 'AUTHENTICATION'"
         :title="$t('keys.authDetailsTitle')"
         @close="close"
       />
+      <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
         <large-button
           v-if="canDelete"
