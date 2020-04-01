@@ -36,7 +36,7 @@
   import Vue from 'vue';
   import {mapGetters} from 'vuex';
   import * as api from '@/util/api';
-  import {ServiceClient} from "@/types";
+  import {ServiceClient} from '@/types';
 
   export default Vue.extend({
     components: {},
@@ -49,7 +49,7 @@
     data() {
       return {
         serviceClients: [] as ServiceClient[],
-        search: '' as String
+        search: '' as string,
       };
     },
     computed: {
@@ -68,7 +68,7 @@
     },
     created() {
       this.fetchServiceClients();
-      this.$store.dispatch('showError', 'serviceClients.serviceClientFetchFailure')
+      this.$store.dispatch('showError', 'serviceClients.serviceClientFetchFailure');
     },
   });
 </script>
