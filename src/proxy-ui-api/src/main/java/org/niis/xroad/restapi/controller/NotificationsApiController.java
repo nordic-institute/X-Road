@@ -36,8 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -64,9 +64,7 @@ public class NotificationsApiController {
      * check if a HttpSession is currently alive
      */
     @PreAuthorize("permitAll")
-    @RequestMapping(value = "/session-status",
-            produces = { "application/json" },
-            method = RequestMethod.GET)
+    @GetMapping(value = "/session-status", produces = { "application/json" })
     public ResponseEntity<StatusData> isSessionAlive(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         boolean isStillAlive = session != null;
@@ -84,9 +82,7 @@ public class NotificationsApiController {
      * check if there are alerts
      */
     @PreAuthorize("permitAll")
-    @RequestMapping(value = "/alerts",
-            produces = { "application/json" },
-            method = RequestMethod.GET)
+    @GetMapping(value = "/alerts", produces = { "application/json" })
     public ResponseEntity<AlertData> checkAlerts() {
         AlertStatus alertStatus = notificationService.getAlerts();
         return new ResponseEntity<>(alertDataConverter.convert(alertStatus), HttpStatus.OK);
