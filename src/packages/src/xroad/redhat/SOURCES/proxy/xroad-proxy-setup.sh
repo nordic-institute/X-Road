@@ -82,7 +82,7 @@ setup_database() {
     local db_addr=${hosts[0]%%:*}
     local db_port=${hosts[0]##*:}
 
-    local_psql() { su -l -c "psql -qtA $*" postgres; }
+    local_psql() { su -l -c "psql -qtA -p ${db_port:-5432} $*" postgres; }
     remote_psql() { psql -h "${db_addr:-127.0.0.1}" -p "${db_port:-5432}" -qtA "$@"; }
 
     psql_dbuser() {
