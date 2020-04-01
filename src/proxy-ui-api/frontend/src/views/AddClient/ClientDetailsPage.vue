@@ -75,7 +75,11 @@
       </div>
     </ValidationObserver>
 
-    <SelectClientDialog :dialog="showSelectClient" @cancel="showSelectClient = false" />
+    <SelectClientDialog
+      :dialog="showSelectClient"
+      @cancel="showSelectClient = false"
+      @save="saveSelectedClient"
+    />
   </div>
 </template>
 
@@ -98,7 +102,7 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['localMembers']),
+    ...mapGetters(['reservedClients']),
 
     memberClass: {
       get(): string {
@@ -142,15 +146,7 @@ export default Vue.extend({
       }
 
       if (
-        this.localMembers.some((e: Client) => {
-          if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
-            return false;
-          }
-
-          if (e.member_code.toLowerCase() !== this.memberCode.toLowerCase()) {
-            return false;
-          }
-
+        this.reservedClients.some((e: Client) => {
           if (e.subsystem_code !== this.subsystemCode) {
             return false;
           }
@@ -178,20 +174,20 @@ export default Vue.extend({
     done(): void {
       this.$emit('done');
     },
-    generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
+    saveSelectedClient(selectedMember: Client): void {
+      this.$store.dispatch('setSelectedMember', selectedMember).then(
         (response) => {
-          this.disableDone = false;
+          this.$store.dispatch('fetchReservedClients', selectedMember);
         },
         (error) => {
           this.$store.dispatch('showError', error);
         },
       );
+      this.showSelectClient = false;
     },
   },
   created() {
-    this.$store.dispatch('fetchMembers');
-    this.$store.dispatch('fetchLocalMembers');
+    this.$store.dispatch('fetchSelectableClients');
   },
 });
 </script>
