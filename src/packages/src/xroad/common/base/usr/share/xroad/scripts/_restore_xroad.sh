@@ -202,7 +202,7 @@ restart_services () {
   done
 }
 
-while getopts ":FSt:i:s:n:f:b" opt ; do
+while getopts ":RFSt:i:s:n:f:b" opt ; do
   case ${opt} in
     R)
       SKIP_REMOVAL=true
