@@ -92,13 +92,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['members']),
+    ...mapGetters(['selectableClients']),
   },
 
   methods: {
     filteredMembers() {
       if (!this.search) {
-        return this.members;
+        return this.selectableClients;
       }
 
       const tempSearch = this.search
@@ -106,10 +106,10 @@ export default Vue.extend({
         .toLowerCase()
         .trim();
       if (tempSearch === '') {
-        return this.members;
+        return this.selectableClients;
       }
 
-      return this.members.filter((member: Client) => {
+      return this.selectableClients.filter((member: Client) => {
         if (
           member.member_name &&
           member.member_name.toLowerCase().includes(tempSearch)
@@ -127,8 +127,8 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$store.dispatch('setSelectedMember', this.selectedMember);
-      this.cancel();
+      this.$emit('save', this.selectedMember);
+      this.clearForm();
     },
 
     clearForm(): void {

@@ -1,7 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Key, Token, TokenType, Client } from '@/types';
-import axios from 'axios';
+import { Token, Client } from '@/types';
 import * as api from '@/util/api';
 
 
@@ -9,24 +8,25 @@ export interface AddClientState {
   expandedTokens: string[];
   tokens: Token[];
   tokenId: string | undefined;
-  members: Client[];
-  localMembers: Client[];
+  selectableClients: Client[];
+  reservedClients: Client[];
   selectedMember: Client;
   memberClass: string;
   memberCode: string;
-  subsystemCode: string;
+  subsystemCode: string | undefined;
+
 }
 
 const getDefaultState = () => {
   return {
     expandedTokens: [],
     tokens: [],
-    members: [],
-    localMembers: [],
+    selectableClients: [],
+    reservedClients: [],
     selectedMember: { member_class: '', member_code: '', subsystem_code: '' },
     memberClass: '',
     memberCode: '',
-    subsystemCode: '',
+    subsystemCode: undefined,
     tokenId: undefined,
   };
 };
@@ -37,60 +37,50 @@ const tokensState: AddClientState = getDefaultState();
 
 export const getters: GetterTree<AddClientState, RootState> = {
 
-  members(state): Client[] {
-    return state.members;
+  selectableClients(state: AddClientState): Client[] {
+    return state.selectableClients;
   },
-  addClientLocalMembers(state): Client[] {
-    return state.localMembers;
-  },
-  memberClass(state): string {
+  memberClass(state: AddClientState): string {
     return state.memberClass;
   },
-  memberCode(state): string {
+  memberCode(state: AddClientState): string {
     return state.memberCode;
   },
-  subsystemCode(state): string {
+  subsystemCode(state: AddClientState): string | undefined {
     return state.subsystemCode;
   },
-  selectedMember(state): Client | undefined {
+  selectedMember(state: AddClientState): Client | undefined {
     return state.selectedMember;
   },
-  duplicateClient(state): boolean {
-    if (!state.selectedMember) {
-      return false;
-    }
-
-    if (state.localMembers.some((e) => e.member_class === state.selectedMember.member_class)) {
-      return true;
-    }
-    return false;
+  reservedClients(state: AddClientState): Client[] {
+    return state.reservedClients;
   },
 };
 
 export const mutations: MutationTree<AddClientState> = {
-  resetAddClientState(state) {
+  resetAddClientState(state: AddClientState) {
     Object.assign(state, getDefaultState());
   },
-  setMember(state, member: Client) {
+  setMember(state: AddClientState, member: Client) {
     state.selectedMember = member;
     state.memberClass = member.member_class;
     state.memberCode = member.member_code;
     state.subsystemCode = member.subsystem_code;
   },
-  setMemberClass(state, val: string) {
+  setMemberClass(state: AddClientState, val: string) {
     state.memberClass = val;
   },
-  setMemberCode(state, val: string) {
+  setMemberCode(state: AddClientState, val: string) {
     state.memberCode = val;
   },
-  setSubsystemCode(state, val: string) {
+  setSubsystemCode(state: AddClientState, val: string) {
     state.subsystemCode = val;
   },
-  storeMembers(state, members: Client[]) {
-    state.members = members;
+  storeMembers(state: AddClientState, clients: Client[]) {
+    state.selectableClients = clients;
   },
-  storeLocalMembers(state, members: Client[]) {
-    state.localMembers = members;
+  storeReservedClients(state: AddClientState, clients: Client[]) {
+    state.reservedClients = clients;
   },
 };
 
@@ -99,9 +89,9 @@ export const actions: ActionTree<AddClientState, RootState> = {
     commit('resetAddClientState');
   },
 
-  fetchMembers({ commit, rootGetters }, id: string) {
-    // Fetch members from backend
-    return api.get('/clients?show_members=true&internal_search=false')
+  fetchSelectableClients({ commit, rootGetters }, id: string) {
+    // Fetch clients from backend that can be selected
+    return api.get('/clients?is_not_local_client=true&member_missing_sign_cert=true')
       .then((res) => {
         commit('storeMembers', res.data);
       })
@@ -110,17 +100,16 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchLocalMembers({ commit, rootGetters }, id: string) {
-    // Fetch members from backend
-    return api.get('/clients?show_members=true&internal_search=true')
+  fetchReservedClients({ commit, rootGetters }, client: Client) {
+    // Fetch clients from backend that match the selected client without subsystem code
+    return api.get(`/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`)
       .then((res) => {
-        commit('storeLocalMembers', res.data);
+        commit('storeReservedClients', res.data);
       })
       .catch((error) => {
         throw error;
       });
   },
-
 
   setSelectedMember({ commit, rootGetters }, member: Client) {
     commit('setMember', member);

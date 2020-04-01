@@ -21,7 +21,7 @@
         @refreshList="fetchData"
         @tokenLogout="logoutDialog = true"
         @tokenLogin="loginDialog = true"
-        @addKey="addKey"
+        @addKey="addKeyDialog = true"
         :token="token"
       />
     </template>
