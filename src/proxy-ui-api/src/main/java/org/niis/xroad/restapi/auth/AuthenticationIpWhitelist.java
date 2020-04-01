@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.auth;
 import ee.ria.xroad.common.SystemProperties;
 
 import com.google.common.base.Splitter;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,9 +36,14 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
+import java.util.ArrayList;
+
 /**
- * Object that knows an IP whitelist and can validate authentication requests against the whitelist
- */
+ * Object that knows an IP whitelist and can validate authentication requests against the whitelist.
+ * Whitelist can contain individial IP addresses such as 192.168.1.1, or CIDR notation representations
+ * such as 192.168.1.0/24.
+ * Whitelist can contain ipv4 or ipv6 items, for example 127.0.0.0/8 and ::1
+ **/
 @Slf4j
 @Configuration
 public class AuthenticationIpWhitelist {
@@ -46,11 +52,36 @@ public class AuthenticationIpWhitelist {
     public static final String REGULAR_API_WHITELIST = "regularWhitelist";
     private static final String VALID_IP_ADDRESS = "127.0.0.1";
 
+    @Getter
     private Iterable<String> whitelistEntries;
 
+    /**
+     * Constructor. Whitelist is initially empty, so it will block all ip addresses.
+     * Use {@link AuthenticationIpWhitelist#setWhitelistEntries(Iterable)} or
+     * Use {@link AuthenticationIpWhitelist#setWhitelistEntriesProperty(String)} to set whitelist items.
+     */
     public AuthenticationIpWhitelist() {
+        whitelistEntries = new ArrayList<>();
     }
 
+    /**
+     * Sets whitelisted ips from a comma-separated String.
+     * Entries are trimmed for whitespace.
+     * @param entriesProperty
+     * @throws IllegalArgumentException if entriesProperty contains invalid entries
+     */
+    public AuthenticationIpWhitelist setWhitelistEntriesProperty(String entriesProperty) {
+        Iterable<String> entries = parseWhitelist(entriesProperty);
+        setWhitelistEntries(entries);
+        return this;
+    }
+
+    /**
+     * Sets whitelisted ips from an interable containing whitelist entries.
+     * Entries are not trimmed for whitespace.
+     * @param entries
+     * @throws IllegalArgumentException if entries contains invalid entries
+     */
     public AuthenticationIpWhitelist setWhitelistEntries(Iterable<String> entries) {
         validateWhitelistEntries(entries);
         this.whitelistEntries = entries;
@@ -60,14 +91,14 @@ public class AuthenticationIpWhitelist {
     @Bean(KEY_MANAGEMENT_API_WHITELIST)
     public AuthenticationIpWhitelist keyManagementWhitelist() {
         AuthenticationIpWhitelist authenticationIpWhitelist = new AuthenticationIpWhitelist();
-        authenticationIpWhitelist.setWhitelistEntries(readKeyManagementWhitelistProperties());
+        authenticationIpWhitelist.setWhitelistEntriesProperty(SystemProperties.getKeyManagementApiWhitelist());
         return authenticationIpWhitelist;
     }
 
     @Bean(REGULAR_API_WHITELIST)
     public AuthenticationIpWhitelist regularWhitelist() {
         AuthenticationIpWhitelist authenticationIpWhitelist = new AuthenticationIpWhitelist();
-        authenticationIpWhitelist.setWhitelistEntries(readRegularWhitelistProperties());
+        authenticationIpWhitelist.setWhitelistEntriesProperty(SystemProperties.getRegularApiWhitelist());
         return authenticationIpWhitelist;
     }
 
@@ -82,23 +113,33 @@ public class AuthenticationIpWhitelist {
         }
     }
 
-    // TO DO: test
     /**
-     * TO DO: proper comments
-     * If ipLimits = true, go through the whitelisted ips and check that one of them matches
-     * caller remote address. If not, throw BadRemoteAddressException
+     * Validates given authentication object against the IP whitelist.
+     * Caller's remote address is compared to IP whitelist.
+     * If whitelist blocks access, {@link BadRemoteAddressException} is thrown
      * @param authentication
-     * @throws BadRemoteAddressException if caller ip was not allowed for this authentication provider
+     * @throws BadRemoteAddressException if caller ip was not allowed in this whitelist
      */
     public void validateIpAddress(Authentication authentication) {
         WebAuthenticationDetails details = (WebAuthenticationDetails) authentication.getDetails();
         String userIp = details.getRemoteAddress();
+        validateIpAddress(userIp);
+    }
+
+    /**
+     * Validates given IP address against the IP whitelist.
+     * For testability, use {@link AuthenticationIpWhitelist#validateIpAddress(Authentication)}
+     * otherwise
+     * @param ipAddress
+     * @throws BadRemoteAddressException if caller ip was not allowed in this whitelist
+     */
+    void validateIpAddress(String ipAddress) {
         for (String whitelistEntry : whitelistEntries) {
-            if (new IpAddressMatcher(whitelistEntry).matches(userIp)) {
+            if (new IpAddressMatcher(whitelistEntry).matches(ipAddress)) {
                 return;
             }
         }
-        throw new BadRemoteAddressException("Invalid IP Address " + userIp);
+        throw new BadRemoteAddressException("Invalid IP Address " + ipAddress);
     }
 
     public static class BadRemoteAddressException extends AuthenticationException {
@@ -107,12 +148,6 @@ public class AuthenticationIpWhitelist {
         }
     }
 
-    private static Iterable<String> readKeyManagementWhitelistProperties() {
-        String whitelist = SystemProperties.getKeyManagementApiWhitelist();
-        return parseWhitelist(whitelist);
-    }
-
-    // TO DO: test
     private static Iterable<String> parseWhitelist(String whitelist) {
         return Splitter.on(",")
                 .trimResults()
@@ -120,8 +155,4 @@ public class AuthenticationIpWhitelist {
                 .split(whitelist);
     }
 
-    private static Iterable<String> readRegularWhitelistProperties() {
-        String whitelist = SystemProperties.getRegularApiWhitelist();
-        return parseWhitelist(whitelist);
-    }
 }
