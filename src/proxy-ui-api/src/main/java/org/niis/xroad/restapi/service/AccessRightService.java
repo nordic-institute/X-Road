@@ -218,7 +218,9 @@ public class AccessRightService {
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
      * @throws ClientNotFoundException
      * @throws ServiceNotFoundException
+     * @throws DuplicateAccessRightException
      * @throws EndpointNotFoundException
+     * @throws LocalGroupNotFoundException
      */
     private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException,
