@@ -2812,7 +2812,7 @@ for authentication when executing REST API calls to update server configuration.
 
 2.  SS administrator sends HTTP POST request to create a new API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden (by default)
-      - see System Parameters for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
     - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
@@ -2872,7 +2872,7 @@ for authentication when executing REST API calls to update server configuration.
 
 1.  SS administrator sends HTTP GET request to list all API keys. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden (by default)
-      - see System Parameters for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
     - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
@@ -2937,7 +2937,7 @@ for authentication when executing REST API calls to update server configuration.
 
 1.  SS administrator sends HTTP DELETE request to delete one API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden (by default)
-      - see System Parameters for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
     - 2.2 Send request to URL `https://localhost:4000/api/api-keys/{id}`,
     where `{id}` is the id of the key to be deleted.
     - 2.3 Accept REST API's self-signed SSL certificate
@@ -2981,7 +2981,7 @@ for authentication when executing REST API calls to update server configuration.
 
 1.  SS administrator sends a REST request to perform some kind of configuration action. REST client should
     - 2.1 Send request from anywhere, remote access is not forbidden (by default)
-      - see System Parameters for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
     - 2.2 Send request to URL corresponding to the desired action,
      for example `https://<security-server-address>:4000/api/clients` to list clients.
     - 2.3 Use HTTP method corresponding to the desired action,
