@@ -700,7 +700,7 @@ public final class SystemProperties {
 
     /**
      * TO DO: not correct, fix
-     * @return whitelist for Proxy UI API's key management API, "127.0.0.1" by default
+     * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
      */
     public static String getKeyManagementApiWhitelist() {
         return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
@@ -708,7 +708,7 @@ public final class SystemProperties {
     }
 
     /**
-     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0" or "allow all" by default
+     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
      */
     public static String getRegularApiWhitelist() {
         return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
