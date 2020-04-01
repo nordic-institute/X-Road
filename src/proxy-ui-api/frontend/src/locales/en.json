@@ -34,7 +34,14 @@
         "success": "Backup {file} successfully created"
       }
     },
-    "uploadBackup": "Upload backup",
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
     "action": {
       "delete": {
         "dialog": {
@@ -247,6 +254,7 @@
     "status": "Status",
     "signDetailsTitle": "SIGN Key details",
     "authDetailsTitle": "AUTH Key details",
+    "detailsTitle": "Key details",
     "friendlyName": "Friendly name",
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
