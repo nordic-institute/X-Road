@@ -77,6 +77,7 @@
 
     <SelectClientDialog
       :dialog="showSelectClient"
+      :selectableClients="selectableClients"
       @cancel="showSelectClient = false"
       @save="saveSelectedClient"
     />
@@ -102,7 +103,7 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedClients']),
+    ...mapGetters(['reservedClients', 'selectableClients']),
 
     memberClass: {
       get(): string {
