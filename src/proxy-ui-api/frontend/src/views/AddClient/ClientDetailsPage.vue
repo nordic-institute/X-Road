@@ -148,6 +148,14 @@ export default Vue.extend({
 
       if (
         this.reservedClients.some((e: Client) => {
+          if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
+            return false;
+          }
+
+          if (e.member_code.toLowerCase() !== this.memberCode.toLowerCase()) {
+            return false;
+          }
+
           if (e.subsystem_code !== this.subsystemCode) {
             return false;
           }
