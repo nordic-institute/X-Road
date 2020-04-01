@@ -12,9 +12,10 @@ Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
+Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           net-tools, policycoreutils-python, tar
+Requires:           net-tools, tar
 Requires:           xroad-base = %version-%release, xroad-nginx = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, xroad-jetty9 = %version-%release, rsyslog, postgresql-server, postgresql-contrib
 
 %define src %{_topdir}/..
@@ -114,6 +115,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml
+/usr/share/xroad/db/serverconf-legacy-changelog.xml
 /usr/share/xroad/db/serverconf
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy*.jar
@@ -204,7 +206,7 @@ if [ $1 -gt 1 ] ; then
       fi
 fi
 
-sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
+/usr/share/xroad/scripts/xroad-proxy-setup.sh
 
 if [ $1 -gt 1 ]; then
     # upgrade

@@ -252,7 +252,7 @@ export default Vue.extend({
           }
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -269,7 +269,6 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
-
   },
   created() {
     this.$store.dispatch('fetchXroadInstances');

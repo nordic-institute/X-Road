@@ -62,38 +62,62 @@ export interface Backup {
   created_at: string; // date-time
 }
 /**
- * approved certificate authority information
+ * approved certificate authority information. Only for top CAs.
  */
 export interface CertificateAuthority {
   /**
-   * common name of the CA, used also as an identifier
+   * name of the CA, as defined in global conf. Used also as an identifier
    * example:
    * X-Road Test CA CN
    */
   name: string; // text
   /**
-   * distinguished name
+   * subject distinguished name
    * example:
-   * /C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN
+   * C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
    */
-  distinguished_name: string; // text
+  subject_distinguished_name: string; // text
   /**
-   * certificate authority response
+   * issuer distinguished name
    * example:
-   * N/A
+   * C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
    */
-  response: string; // text
+  issuer_distinguished_name: string; // text
+  ocsp_response: CertificateAuthorityOcspResponse; // enum
   /**
    * certificate authority expires at
    * example:
    * 2099-12-15T00:00:00.001Z
    */
-  expires_at: string; // date-time
+  not_after: string; // date-time
+  /**
+   * if the certificate authority is top CA (instead of intermediate)
+   * example:
+   * true
+   */
+  top_ca: boolean;
+  /**
+   * encoded path string from this CA to top CA
+   * example:
+   * C=FI, O=X-Road Test Intermediate, OU=X-Road Test CA OU, CN=X-Road Test CA CN Intermediate:C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+   */
+  path: string; // text
   /**
    * if certificate authority is limited for authentication use only
    */
   authentication_only: boolean;
 }
+/**
+ * certificate authority OCSP status
+ * example:
+ * IN_USE
+ */
+export type CertificateAuthorityOcspResponse =
+  | 'NOT_AVAILABLE'
+  | 'OCSP_RESPONSE_UNKNOWN'
+  | 'OCSP_RESPONSE_GOOD'
+  | 'OCSP_RESPONSE_SUSPENDED'
+  | 'OCSP_RESPONSE_REVOKED'; // enum
 /**
  * certificate details for any kind of certificate (TLS, auth, sign)
  */
@@ -221,11 +245,17 @@ export interface Client {
    */
   readonly id?: string; // text
   /**
+   * xroad instance id
+   * example:
+   * FI
+   */
+  readonly instance_id?: string; // text
+  /**
    * member name
    * example:
    * FI
    */
-  member_name?: string; // text
+  readonly member_name?: string; // text
   /**
    * member class
    * example:
@@ -243,9 +273,15 @@ export interface Client {
    * example:
    * ABC
    */
-  subsystem_code: string; // text
+  subsystem_code?: string; // text
+  /**
+   * if this client is the owner member of this security server
+   * example:
+   * false
+   */
+  readonly owner?: boolean;
   connection_type?: ConnectionType; // enum
-  status?: ClientStatus; // enum
+  readonly status?: ClientStatus; // enum
 }
 /**
  * request to add client. Carries a Client and ignore warnings parameter
@@ -395,7 +431,7 @@ export interface Endpoint {
    * example:
    * 15
    */
-  id: string;
+  id?: string;
   /**
    * example:
    * example_service_code
@@ -406,7 +442,16 @@ export interface Endpoint {
    * example:
    * GET
    */
-  method: string;
+  method:
+    | '*'
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'PATCH'
+    | 'HEAD'
+    | 'OPTIONS'
+    | 'TRACE';
   /**
    * relative path where this endpoint is mapped to
    * example:
@@ -418,7 +463,7 @@ export interface Endpoint {
    * example:
    * true
    */
-  generated?: boolean;
+  readonly generated?: boolean;
 }
 /**
  * object returned in error cases
@@ -985,19 +1030,36 @@ export interface TimestampingService {
    * http://dev.xroad.rocks:123
    */
   url: string; // url
+}
+/**
+ * timestamping services
+ */
+export interface TimestampingServiceDiagnostics {
+  /**
+   * name of the time stamping service
+   * example:
+   * X-Road Test TSA CN
+   */
+  readonly name: string; // text
+  /**
+   * url of the time stamping service
+   * example:
+   * http://dev.xroad.rocks:123
+   */
+  readonly url: string; // url
   /**
    * last time updated
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  updated_at: string; // date-time
+  readonly updated_at: string; // date-time
   /**
    * timestamping service message
    * example:
    * ok
    */
-  message: string; // text
-  status: TimestampingStatus; // enum
+  readonly message: string; // text
+  readonly status: TimestampingStatus; // enum
 }
 /**
  * timestamping status

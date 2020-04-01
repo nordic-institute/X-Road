@@ -10,6 +10,7 @@ import { clientModule } from './modules/client';
 import { keysModule } from './modules/keys';
 import { servicesModule } from './modules/services';
 import { csrModule } from './modules/certificateSignRequest';
+import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
 
 Vue.use(Vuex);
@@ -31,6 +32,7 @@ const store: StoreOptions<RootState> = {
     keysModule,
     servicesModule,
     csrModule,
+    notificationsModule,
   },
   // @ts-ignore
   plugins: [vuexLocal.plugin],

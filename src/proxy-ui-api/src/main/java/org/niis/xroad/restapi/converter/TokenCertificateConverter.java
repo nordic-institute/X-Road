@@ -29,21 +29,14 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
-import org.bouncycastle.asn1.x509.CRLReason;
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPException;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.cert.ocsp.RevokedStatus;
-import org.bouncycastle.cert.ocsp.SingleResp;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
+import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -101,7 +94,7 @@ public class TokenCertificateConverter {
                 tokenCertificate.getCertificateDetails()));
         tokenCertificate.setSavedToConfiguration(certificateInfo.isSavedToConfiguration());
         tokenCertificate.setStatus(CertificateStatusMapping.map(certificateInfo.getStatus())
-                                           .orElse(null));
+                .orElse(null));
         return tokenCertificate;
     }
 
@@ -126,38 +119,25 @@ public class TokenCertificateConverter {
         if (info.getOcspBytes() == null || info.getOcspBytes().length == 0) {
             return CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
         }
-        CertificateStatus certificateStatus = getCertificateStatus(info.getOcspBytes());
-        if (certificateStatus == null) {
-            return CertificateOcspStatus.OCSP_RESPONSE_GOOD;
-        }
-        if (certificateStatus instanceof RevokedStatus) {
-            RevokedStatus revokedStatus = (RevokedStatus) certificateStatus;
-            if (revokedStatus.hasRevocationReason()
-                        && revokedStatus.getRevocationReason() == CRLReason.certificateHold) {
-                return CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED;
-            }
-            return CertificateOcspStatus.OCSP_RESPONSE_REVOKED;
-        }
-        return CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
-    }
-
-    /**
-     * From ee.ria.xroad.signer.console.Utils#getOcspStatus
-     * @param ocspBytes
-     * @return
-     */
-    private CertificateStatus getCertificateStatus(byte[] ocspBytes) {
+        String ocspResponseStatus = null;
         try {
-            OCSPResp response = new OCSPResp(ocspBytes);
-            BasicOCSPResp basicResponse = (BasicOCSPResp) response.getResponseObject();
-            SingleResp resp = basicResponse.getResponses()[0];
-            CertificateStatus status = resp.getCertStatus();
-            return status;
-        } catch (IOException | OCSPException e) {
-            throw new RuntimeException("Certificate OCSP response processing failed", e);
+            ocspResponseStatus = OcspUtils.getOcspResponseStatus(info.getOcspBytes());
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new RuntimeException("extracting OCSP status failed", e);
+        }
+        switch (ocspResponseStatus) {
+            case CertificateInfo.OCSP_RESPONSE_GOOD:
+                return CertificateOcspStatus.OCSP_RESPONSE_GOOD;
+            case CertificateInfo.OCSP_RESPONSE_SUSPENDED:
+                return CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED;
+            case CertificateInfo.OCSP_RESPONSE_REVOKED:
+                return CertificateOcspStatus.OCSP_RESPONSE_REVOKED;
+            case CertificateInfo.OCSP_RESPONSE_UNKNOWN:
+                return CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
+            default:
+                throw new AssertionError("unexpected ocsp response status: " + ocspResponseStatus);
         }
     }
-
 
     /**
      * Convert a group of {@link CertificateInfo certificateInfos} to a list of

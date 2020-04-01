@@ -230,7 +230,7 @@ public class ServiceDescriptionService {
             ServiceAlreadyExistsException,
             InvalidUrlException,
             WsdlUrlAlreadyExistsException, InterruptedException {
-        ClientType client = clientService.getClient(clientId);
+        ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
@@ -330,7 +330,7 @@ public class ServiceDescriptionService {
             throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
         }
 
-        ClientType client = clientService.getClient(clientId);
+        ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
@@ -449,7 +449,7 @@ public class ServiceDescriptionService {
 
         validateUrl(url);
 
-        ClientType client = clientService.getClient(clientId);
+        ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
@@ -542,8 +542,6 @@ public class ServiceDescriptionService {
 
         if (serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
             serviceDescriptionType = refreshWSDLServiceDescription(serviceDescriptionType, ignoreWarnings);
-        } else if (serviceDescriptionType.getType().equals(DescriptionType.REST)) {
-            serviceDescriptionType = refreshRESTServiceDescription(serviceDescriptionType);
         } else if (serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
             serviceDescriptionType = refreshOpenApi3ServiceDescription(serviceDescriptionType, ignoreWarnings);
         }
@@ -586,29 +584,6 @@ public class ServiceDescriptionService {
 
         // we only have two types at the moment so the type must be OPENAPI3 if we end up this far
         throw new NotImplementedException("REST ServiceDescription refresh not implemented yet");
-    }
-
-    /**
-     * Refresh REST service description
-     *
-     * @param serviceDescriptionType
-     * @return {@link ServiceDescriptionType}
-     * @throws WrongServiceDescriptionTypeException if service type is not REST
-     * @throws InvalidUrlException                  if url is invalid
-     */
-    private ServiceDescriptionType refreshRESTServiceDescription(ServiceDescriptionType serviceDescriptionType)
-            throws WrongServiceDescriptionTypeException, InvalidUrlException {
-        verifyAuthority("REFRESH_REST");
-
-        if (!serviceDescriptionType.getType().equals(DescriptionType.REST)) {
-            throw new WrongServiceDescriptionTypeException("Expected description type REST");
-        }
-
-        validateUrl(serviceDescriptionType.getUrl());
-
-        serviceDescriptionType.setRefreshedDate(new Date());
-
-        return serviceDescriptionType;
     }
 
     /**

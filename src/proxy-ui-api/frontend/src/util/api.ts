@@ -3,8 +3,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 /*
  * Wraps axios and post method calls with data
  */
-export function post(uri: string, data: any) {
-  return axios.post(uri, data);
+export function post(uri: string, data: any, config?: AxiosRequestConfig) {
+  return axios.post(uri, data, config);
 }
 
 /*

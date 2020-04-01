@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
-import org.niis.xroad.restapi.cache.SecurityServerOwner;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -54,7 +54,7 @@ import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 public class ClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
-    private final SecurityServerOwner securityServerOwner; // request scoped
+    private final CurrentSecurityServerId securityServerOwner; // request scoped
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -63,7 +63,7 @@ public class ClientConverter {
 
     @Autowired
     public ClientConverter(GlobalConfFacade globalConfFacade,
-            SecurityServerOwner securityServerOwner) {
+            CurrentSecurityServerId securityServerOwner) {
         this.globalConfFacade = globalConfFacade;
         this.securityServerOwner = securityServerOwner;
     }
@@ -76,11 +76,12 @@ public class ClientConverter {
     public Client convert(ClientType clientType) {
         Client client = new Client();
         client.setId(convertId(clientType.getIdentifier()));
+        client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfFacade.getMemberName(clientType.getIdentifier()));
-        client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getId()));
+        client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.orElse(null));
         Optional<ConnectionType> connectionTypeEnum =

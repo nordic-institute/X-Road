@@ -1,131 +1,153 @@
 <template>
-    <div class="xrd-tab-max-width xrd-view-common">
-
-        <div class="wrap-right">
-            <v-btn
-                color="primary"
-                @click="addEndpoint"
-                outlined
-                rounded
-                class="rounded-button elevation-0 rest-button"
-                data-test="endpoint-add"
-            >{{$t('endpoints.addEndpoint')}}
-            </v-btn>
-        </div>
-
-        <table class="xrd-table">
-            <thead>
-                <tr>
-                    <th>{{$t('endpoints.path')}}</th>
-                    <th>{{$t('endpoints.httpRequestMethod')}}</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody v-if="service.endpoints">
-                <template v-for="endpoint in service.endpoints">
-                    <template v-if="isBaseEndpoint(endpoint)">
-                        <tr class="generated">
-                            <td class="path-wrapper">{{service.service_code}}</td>
-                            <td class="url-wrapper">{{service.url}}</td>
-                            <td></td>
-                        </tr>
-                    </template>
-                    <template v-else>
-                        <tr v-bind:class="{generated: endpoint.generated}">
-                            <td>{{endpoint.method}}</td>
-                            <td>{{endpoint.path}}</td>
-                            <td class="wrap-right">
-                                <v-btn
-                                    v-if="!endpoint.generated"
-                                    small
-                                    outlined
-                                    rounded
-                                    color="primary"
-                                    class="xrd-small-button xrd-table-button"
-                                    data-test="endpoint-delete"
-                                    @click="deleteEndpoint(endpoint)">{{$t('action.remove')}}
-                                </v-btn>
-                                <v-btn
-                                    v-if="!endpoint.generated"
-                                    small
-                                    outlined
-                                    rounded
-                                    color="primary"
-                                    class="xrd-small-button xrd-table-button"
-                                    data-test="endpoint-edit"
-                                    @click="editEndpoint(endpoint)">{{$t('action.edit')}}
-                                </v-btn>
-                                <v-btn
-                                    small
-                                    outlined
-                                    rounded
-                                    color="primary"
-                                    class="xrd-small-button xrd-table-button"
-                                    data-test="endpoint-edit-accessrights"
-                                    @click="editAccessRights(endpoint)">{{$t('access.accessRights')}}
-                                </v-btn>
-                            </td>
-                        </tr>
-                    </template>
-                </template>
-
-            </tbody>
-        </table>
-
+  <div class="xrd-tab-max-width xrd-view-common">
+    <div class="wrap-right">
+      <v-btn
+        color="primary"
+        @click="isAddEndpointDialogVisible = true"
+        outlined
+        rounded
+        class="rounded-button elevation-0 rest-button"
+        data-test="endpoint-add"
+      >{{$t('endpoints.addEndpoint')}}</v-btn>
     </div>
+
+    <table class="xrd-table">
+      <thead>
+        <tr>
+          <th>{{$t('endpoints.httpRequestMethod')}}</th>
+          <th>{{$t('endpoints.path')}}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody v-if="service.endpoints">
+        <template v-for="endpoint in service.endpoints">
+          <template v-if="!isBaseEndpoint(endpoint)">
+            <tr v-bind:class="{generated: endpoint.generated}">
+              <td>
+                <span v-if="endpoint.method === '*'">{{$t('endpoints.all')}}</span>
+                <span v-else>{{endpoint.method}}</span>
+              </td>
+              <td>{{endpoint.path}}</td>
+              <td class="wrap-right-tight">
+                <v-btn
+                  v-if="!endpoint.generated"
+                  small
+                  outlined
+                  rounded
+                  color="primary"
+                  class="xrd-small-button xrd-table-button"
+                  data-test="endpoint-edit"
+                  @click="editEndpoint(endpoint)"
+                >{{$t('action.edit')}}</v-btn>
+                <v-btn
+                  small
+                  outlined
+                  rounded
+                  color="primary"
+                  class="xrd-small-button xrd-table-button"
+                  data-test="endpoint-edit-accessrights"
+                  @click="editAccessRights(endpoint)"
+                >{{$t('access.accessRights')}}</v-btn>
+              </td>
+            </tr>
+          </template>
+        </template>
+      </tbody>
+    </table>
+
+    <addEndpointDialog
+      :dialog="isAddEndpointDialogVisible"
+      @save="addEndpoint"
+      @cancel="cancelAddEndpoint"
+    />
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import {mapGetters} from 'vuex';
-import {Endpoint} from '@/types';
+import { mapGetters } from 'vuex';
+import { Endpoint } from '@/types';
+import * as api from '@/util/api';
+import addEndpointDialog from './AddEndpointDialog.vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
+  components: {
+    addEndpointDialog,
+  },
   computed: {
     ...mapGetters(['service']),
   },
+  data(): any {
+    return {
+      isAddEndpointDialogVisible: false,
+    };
+  },
   methods: {
-    addEndpoint(): void {
-        // NOOP
+    addEndpoint(method: string, path: string): void {
+      api
+        .post(`/services/${this.service.id}/endpoints`, {
+          method,
+          path,
+          service_code: this.service.service_code,
+        })
+        .then((res: any) => {
+          this.$store.dispatch(
+            'showSuccess',
+            'endpoints.saveNewEndpointSuccess',
+          );
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.isAddEndpointDialogVisible = false;
+          this.$emit('updateService', this.service.id);
+        });
     },
     isBaseEndpoint(endpoint: Endpoint): boolean {
       return endpoint.method === '*' && endpoint.path === '**';
     },
-    deleteEndpoint(endpoint: Endpoint): void {
-      // NOOP
-    },
     editEndpoint(endpoint: Endpoint): void {
-      // NOOP
+      this.$router.push({
+        name: RouteName.EndpointDetails,
+        params: { id: endpoint.id },
+      });
     },
     editAccessRights(endpoint: Endpoint): void {
       // NOOP
     },
+    cancelAddEndpoint(): void {
+      this.isAddEndpointDialogVisible = false;
+    },
   },
-
 });
 </script>
 
 <style lang="scss" scoped>
+@import '../../../assets/colors';
+@import '../../../assets/tables';
+@import '../../../assets/global-style';
 
-    @import '../../../assets/colors';
-    @import '../../../assets/tables';
-    @import '../../../assets/global-style';
+.path-wrapper {
+  white-space: nowrap;
+  min-width: 100px;
+}
 
-    .path-wrapper {
-        white-space: nowrap;
-        min-width: 100px;
-    }
+.url-wrapper {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
 
-    .url-wrapper {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 400px;
-    }
+.generated {
+  color: $XRoad-Grey40;
+}
 
-    .generated {
-        color: $XRoad-Grey40;
-    }
-
-
+.wrap-right-tight {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+}
 </style>

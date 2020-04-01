@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.36
+Version: 2.38
 Doc. ID: UG-SS
 
 ---
@@ -69,6 +69,8 @@ Doc. ID: UG-SS
  04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
  05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
+ 24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
+ 30.03.2020 | 2.38    | Added description of pre-restore backups | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1350,7 +1352,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that importing a new TLS certificate will restart the xroad-proxy and thus affects providing services from the security server.
+   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 
@@ -1590,6 +1592,8 @@ To **restore configuration**, follow these steps.
 1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **Confirm**.
 
 2.  A window opens displaying the output of the restore script; click **OK** to close it.
+
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
 To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **Confirm**.
 

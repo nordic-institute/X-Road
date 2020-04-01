@@ -118,15 +118,25 @@ export default Vue.extend({
           type: this.serviceType,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', this.serviceType === 'OPENAPI3' ?
-                  'services.openApi3Added' : 'services.restAdded');
-          this.$emit('save', { serviceType: this.serviceType, url: this.url, serviceCode: this.serviceCode });
+          this.$store.dispatch(
+            'showSuccess',
+            this.serviceType === 'OPENAPI3'
+              ? 'services.openApi3Added'
+              : 'services.restAdded',
+          );
+          this.$emit('save', {
+            serviceType: this.serviceType,
+            url: this.url,
+            serviceCode: this.serviceCode,
+          });
           this.clear();
         })
         .catch((error) => {
-          const errorMessage = error?.response?.data?.error?.code === 'openapi_parsing_error' ?
-                  this.$t('services.openApi3ParsingFailed') : error.message;
-          this.$bus.$emit('show-error', errorMessage);
+          const errorMessage =
+            error?.response?.data?.error?.code === 'openapi_parsing_error'
+              ? this.$t('services.openApi3ParsingFailed')
+              : error.message;
+          this.$store.dispatch('showErrorMessageRaw', errorMessage);
         });
     },
     clear(): void {
@@ -142,4 +152,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 </style>
-

@@ -161,7 +161,7 @@ public class HttpClientCreator {
         InternalSSLKey key = ServerConf.getSSLKey();
 
         if (key != null) {
-            return new KeyManager[]{new InternalKeyManager(key)};
+            return new KeyManager[]{new InternalKeyManager()};
         }
 
         return null;

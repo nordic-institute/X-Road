@@ -107,11 +107,11 @@ export default Vue.extend({
       api
         .patch(`/tokens/${this.id}`, this.token)
         .then((res) => {
-          this.$bus.$emit('show-success', 'keys.tokenSaved');
+          this.$store.dispatch('showSuccess', 'keys.tokenSaved');
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.saveBusy = false;
@@ -126,7 +126,7 @@ export default Vue.extend({
           this.token = res.data;
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         })
         .finally(() => {
           this.loading = false;
