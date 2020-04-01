@@ -29,7 +29,6 @@ import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.domain.Role;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,12 +40,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,13 +55,7 @@ import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEME
  * likely means that belongs to group shadow)
  * roles are granted with user groups, mappings in {@link Role}
  *
- * TO DO: fix comments
- *
- * if {@link PamAuthenticationProvider#setLimitIps(boolean)} is set to true,
- * allows authentication only from IP addresses defined with
- * {@link PamAuthenticationProvider#setIpWhitelist(List)}. Whitelist IPs
- * can have net mask such as 192.168.1.0/24, see {@link IpAddressMatcher}.
- *
+ * Authentication is limited with an IP whitelist.
  */
 @Slf4j
 @Configuration
@@ -81,37 +72,37 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             Arrays.asList("::/0", "0.0.0.0/0");
 
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
-
-    // TO DO: constructor inject
-    @Autowired
-    private GrantedAuthorityMapper grantedAuthorityMapper;
+    private final GrantedAuthorityMapper grantedAuthorityMapper;
 
     /**
      * constructor
+     * @param authenticationIpWhitelist whitelist that limits the authentication
      */
-    public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist) {
+    public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
+            GrantedAuthorityMapper grantedAuthorityMapper) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
+        this.grantedAuthorityMapper = grantedAuthorityMapper;
     }
 
     /**
-     * PAM authentication without IP limits TO DO: update docs
+     * PAM authentication for form login, with corresponding IP whitelist
      * @return
      */
     @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
     public PamAuthenticationProvider formLoginPamAuthentication() {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new PamAuthenticationProvider(formLoginWhitelist);
+        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper);
     }
 
     /**
-     * PAM authentication which is limited to localhost TO DO: udpate docs
+     * PAM authentication for key management API, with corresponding IP whitelist
      * @return
      */
     @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
     public PamAuthenticationProvider keyManagementWhitelist(
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new PamAuthenticationProvider(keyManagementWhitelist);
+        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper);
     }
 
     /**

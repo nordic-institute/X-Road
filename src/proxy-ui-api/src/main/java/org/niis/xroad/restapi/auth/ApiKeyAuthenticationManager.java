@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.auth;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -47,19 +46,20 @@ import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.REGULAR_API_
 @Slf4j
 public class ApiKeyAuthenticationManager implements AuthenticationManager {
 
-    @Autowired
-    private ApiKeyRepository apiKeyRepository;
+    private final ApiKeyRepository apiKeyRepository;
+    private final AuthenticationHeaderDecoder authenticationHeaderDecoder;
+    private final GrantedAuthorityMapper permissionMapper;
+    private final AuthenticationIpWhitelist authenticationIpWhitelist;
 
-    @Autowired
-    private AuthenticationHeaderDecoder authenticationHeaderDecoder;
-
-    @Autowired
-    private GrantedAuthorityMapper permissionMapper;
-
-    // TO DO: constructor autowire this + others
-    @Autowired
-    @Qualifier(REGULAR_API_WHITELIST)
-    private AuthenticationIpWhitelist authenticationIpWhitelist;
+    public ApiKeyAuthenticationManager(ApiKeyRepository apiKeyRepository,
+            AuthenticationHeaderDecoder authenticationHeaderDecoder,
+            GrantedAuthorityMapper permissionMapper,
+            @Qualifier(REGULAR_API_WHITELIST) AuthenticationIpWhitelist authenticationIpWhitelist) {
+        this.apiKeyRepository = apiKeyRepository;
+        this.authenticationHeaderDecoder = authenticationHeaderDecoder;
+        this.permissionMapper = permissionMapper;
+        this.authenticationIpWhitelist = authenticationIpWhitelist;
+    }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
