@@ -237,21 +237,18 @@ public class ServicesApiControllerIntegrationTest {
                 serviceClient.getSubject().getMemberNameGroupDescription());
         assertEquals(TestUtils.DB_GLOBALGROUP_ID, serviceClient.getSubject().getId());
         assertEquals(TestUtils.GLOBALGROUP, serviceClient.getSubject().getSubjectType().name());
-        assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, TestUtils.LOCALGROUP).get();
         assertEquals(TestUtils.DB_LOCAL_GROUP_ID_1, serviceClient.getSubject().getId());
         assertEquals(TestUtils.DB_LOCAL_GROUP_CODE, serviceClient.getSubject().getLocalGroupCode());
         assertEquals(FOO, serviceClient.getSubject().getMemberNameGroupDescription());
         assertEquals(TestUtils.LOCALGROUP, serviceClient.getSubject().getSubjectType().name());
-        assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, TestUtils.SUBSYSTEM).get();
         assertEquals(TestUtils.NAME_FOR + TestUtils.CLIENT_ID_SS2,
                 serviceClient.getSubject().getMemberNameGroupDescription());
         assertEquals(TestUtils.CLIENT_ID_SS2, serviceClient.getSubject().getId());
         assertEquals(TestUtils.SUBSYSTEM, serviceClient.getSubject().getSubjectType().name());
-        assertNull(serviceClient.getAccessRights());
 
         serviceClients = servicesApiController.getServiceAccessRights(TestUtils.SS1_CALCULATE_PRIME).getBody();
         assertTrue(serviceClients.isEmpty());
