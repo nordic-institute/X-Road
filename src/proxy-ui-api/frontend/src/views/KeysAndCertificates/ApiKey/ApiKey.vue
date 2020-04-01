@@ -5,7 +5,8 @@
         class="button-spacing"
         outlined
         data-test="api-key-create-key-button"
-      >{{$t('apiKey.createApiKey')}}</large-button>
+        @click="createApiKey"
+      >{{$t('apiKey.createApiKey.button')}}</large-button>
     </div>
 
     <v-card flat>
@@ -39,6 +40,7 @@ import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import SmallButton from '@/components/ui/SmallButton.vue';
+import { RouteName } from '@/global';
 
 interface ApiKey {
   id?: number;
@@ -66,6 +68,11 @@ export default Vue.extend({
       api.get('/api-keys')
         .then((resp) => this.apiKeys = resp.data)
         .catch((error) => this.$store.dispatch('showError', error));
+    },
+    createApiKey(): void {
+      this.$router.push({
+        name: RouteName.CreateApiKey,
+      });
     },
   },
   created(): void {

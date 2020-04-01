@@ -235,7 +235,8 @@
     "activate": "Activate",
     "deactivate": "Disable",
     "previous": "Previous",
-    "done": "Done"
+    "done": "Done",
+    "next": "Next"
   },
   "keys": {
     "token": "Token:",
@@ -432,7 +433,26 @@
     }
   },
   "apiKey": {
-    "createApiKey": "CREATE API KEY",
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "description": "Specify which roles the new API key should be linked to."
+        },
+        "keyDetails": {
+          "name": "Key Details"
+        }
+      }
+    },
     "table": {
       "header": {
         "id": "ID",
