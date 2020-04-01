@@ -76,7 +76,9 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
     public static final String FORM_LOGIN_PAM_AUTHENTICATION = "formLoginPam";
-    public static final String FORM_LOGIN_IP_WHITELIST = "0.0.0.0/0";
+    // allow all ipv4 and ipv6
+    private static final Iterable<String> FORM_LOGIN_IP_WHITELIST =
+            Arrays.asList("::/0", "0.0.0.0/0");
 
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
 
@@ -98,7 +100,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
     public PamAuthenticationProvider formLoginPamAuthentication() {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
-        formLoginWhitelist.setWhitelistEntries(Collections.singletonList(FORM_LOGIN_IP_WHITELIST));
+        formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
         return new PamAuthenticationProvider(formLoginWhitelist);
     }
 

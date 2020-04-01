@@ -77,11 +77,11 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_SSL_PROPERTIES =
             PREFIX + "proxy-ui-api.ssl-properties";
 
-    /** Default whitelist for Proxy UI API's key management API (allow only localhost) */
-    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.1";
+    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
+    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
 
     /** Default whitelist for Proxy UI API's regular APIs (allow all) */
-    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0";
+    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0, ::/0";
 
     /** Property name of the whitelist for Proxy UI API's key management API */
     public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
@@ -625,6 +625,9 @@ public final class SystemProperties {
     public static final String CONF_FILE_PROXY_UI =
             getConfPath() + "conf.d/proxy-ui.ini";
 
+    public static final String CONF_FILE_PROXY_UI_API =
+            getConfPath() + "conf.d/proxy-ui-api.ini";
+
     public static final String CONF_FILE_SIGNER =
             getConfPath() + "conf.d/signer.ini";
 
@@ -696,6 +699,7 @@ public final class SystemProperties {
     }
 
     /**
+     * TO DO: not correct, fix
      * @return whitelist for Proxy UI API's key management API, "127.0.0.1" by default
      */
     public static String getKeyManagementApiWhitelist() {
