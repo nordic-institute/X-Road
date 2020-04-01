@@ -2,6 +2,7 @@
 
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
+ROOT_PROPERTIES=/etc/xroad.properties
 GROUPNAMES="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
@@ -65,9 +66,17 @@ then
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
-# Recreate serverconf database and properties file with serverconf username and random password
+# Recreate serverconf database and properties file with serverconf username and random password on the first run
 if [ ! -f ${DB_PROPERTIES} ]
 then
+    if [[ ! -z "${XROAD_DB_PWD}" && "${XROAD_DB_HOST}" != "127.0.0.1" ]];
+    then
+        echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
+        touch /etc/xroad.properties
+        chown root:root /etc/xroad.properties
+        chmod 600 /etc/xroad.properties
+        echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
+    fi
     echo "Creating serverconf database and properties file"
     pg_ctlcluster 10 main start
     dpkg-reconfigure -fnoninteractive xroad-proxy
