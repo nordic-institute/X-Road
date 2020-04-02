@@ -29,7 +29,7 @@
                 <th>{{$t('localGroup.id')}}</th>
               </tr>
             </thead>
-            <tbody v-if="members && members.length > 0">
+            <tbody v-if="selectableClients && selectableClients.length > 0">
               <tr v-for="member in filteredMembers()" v-bind:key="member.id">
                 <td class="checkbox-column">
                   <div class="checkbox-wrap">
@@ -70,7 +70,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/types';
 
@@ -83,6 +82,10 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    selectableClients: {
+      type: Array,
+      required: true,
+    },
   },
 
   data() {
@@ -91,14 +94,10 @@ export default Vue.extend({
       selectedMember: undefined,
     };
   },
-  computed: {
-    ...mapGetters(['members']),
-  },
-
   methods: {
     filteredMembers() {
       if (!this.search) {
-        return this.members;
+        return this.selectableClients;
       }
 
       const tempSearch = this.search
@@ -106,10 +105,10 @@ export default Vue.extend({
         .toLowerCase()
         .trim();
       if (tempSearch === '') {
-        return this.members;
+        return this.selectableClients;
       }
 
-      return this.members.filter((member: Client) => {
+      return this.selectableClients.filter((member: any) => {
         if (
           member.member_name &&
           member.member_name.toLowerCase().includes(tempSearch)
@@ -127,8 +126,8 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$store.dispatch('setSelectedMember', this.selectedMember);
-      this.cancel();
+      this.$emit('save', this.selectedMember);
+      this.clearForm();
     },
 
     clearForm(): void {

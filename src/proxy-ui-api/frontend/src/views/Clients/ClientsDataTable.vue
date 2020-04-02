@@ -18,23 +18,19 @@
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
-      <v-btn
-        v-if="showAddMember()"
-        color="primary"
-        @click="addMember"
-        rounded
-        dark
-        class="ma-0 rounded-button elevation-0"
-      >{{$t('action.addMember')}}</v-btn>
-      <v-btn
-        v-if="showAddClient()"
-        color="primary"
-        @click="addClient"
-        data-test="add-client-button"
-        rounded
-        dark
-        class="ma-0 rounded-button elevation-0"
-      >{{$t('action.addClient')}}</v-btn>
+      <div>
+        <LargeButton
+          v-if="showAddMember()"
+          @click="addMember"
+          data-test="add-member-button"
+          class="add-member"
+        >{{$t('action.addMember')}}</LargeButton>
+        <LargeButton
+          v-if="showAddClient()"
+          @click="addClient"
+          data-test="add-client-button"
+        >{{$t('action.addClient')}}</LargeButton>
+      </div>
     </div>
 
     <v-data-table
@@ -119,12 +115,14 @@
  */
 import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
   components: {
     ClientStatus,
+    LargeButton,
   },
 
   data: () => ({
@@ -332,5 +330,9 @@ export default Vue.extend({
   width: 100%;
   display: flex;
   justify-content: flex-end;
+}
+
+.add-member {
+  margin-right: 20px;
 }
 </style>
