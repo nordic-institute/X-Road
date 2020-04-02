@@ -39,6 +39,8 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -79,6 +81,12 @@ public class TransactionHandlingRestTemplateTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
+
+    @MockBean
+    private ApiKeyService apiKeyService;
+
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
@@ -89,7 +97,7 @@ public class TransactionHandlingRestTemplateTest {
     private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
     @Before
-    public void setup() {
+    public void setup() throws ApiKeyService.ApiKeyNotFoundException {
         restTemplate.getRestTemplate().setInterceptors(
                 Collections.singletonList((request, body, execution) -> {
                     request.getHeaders()
@@ -110,6 +118,7 @@ public class TransactionHandlingRestTemplateTest {
         }).when(globalConfFacade).getMembers();
 
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(apiKeyRepository.getApiKey(1));
     }
 
     @Test
