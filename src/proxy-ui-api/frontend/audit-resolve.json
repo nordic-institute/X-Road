@@ -1,19 +1,9 @@
 {
   "decisions": {
-    "1179|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>mkdirp>minimist": {
-      "decision": "ignore",
-      "madeAt": 1584617040535,
-      "expiresAt": 1587209019171
-    },
     "1179|@vue/cli-plugin-e2e-nightwatch>nightwatch>optimist>minimist": {
       "decision": "ignore",
-      "madeAt": 1584617040535,
-      "expiresAt": 1587209019171
-    },
-    "1179|chromedriver>extract-zip>mkdirp>minimist": {
-      "decision": "ignore",
-      "madeAt": 1584617040535,
-      "expiresAt": 1587209019171
+      "madeAt": 1585307275814,
+      "expiresAt": 1587899249002
     }
   },
   "rules": {},

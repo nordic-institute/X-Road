@@ -78,7 +78,7 @@ public final class TestUtil {
     static final int NUM_CLIENTS = 5;
     static final int NUM_SERVICEDESCRIPTIONS = 2;
     static final int NUM_SERVICES = 4;
-    static final int NUM_TSPS = 2;
+    static final int NUM_TSPS = 5;
 
     static final String BASE64_CERT =
             "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
@@ -272,9 +272,8 @@ public final class TestUtil {
 
         for (int j = 0; j < NUM_TSPS; j++) {
             TspType tsp = new TspType();
-            tsp.setName("tsp" + j);
-            tsp.setUrl("tspUtl" + j);
-
+            tsp.setName("tspName" + j);
+            tsp.setUrl("tspUrl" + j);
             conf.getTsp().add(tsp);
         }
 
