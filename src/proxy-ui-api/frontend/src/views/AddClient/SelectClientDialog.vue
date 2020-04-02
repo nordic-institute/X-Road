@@ -29,7 +29,7 @@
                 <th>{{$t('localGroup.id')}}</th>
               </tr>
             </thead>
-            <tbody v-if="members && members.length > 0">
+            <tbody v-if="selectableClients && selectableClients.length > 0">
               <tr v-for="member in filteredMembers()" v-bind:key="member.id">
                 <td class="checkbox-column">
                   <div class="checkbox-wrap">
@@ -83,6 +83,10 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    selectableClients: {
+      type: Array,
+      required: true,
+    },
   },
 
   data() {
@@ -91,10 +95,6 @@ export default Vue.extend({
       selectedMember: undefined,
     };
   },
-  computed: {
-    ...mapGetters(['selectableClients']),
-  },
-
   methods: {
     filteredMembers() {
       if (!this.search) {
@@ -109,7 +109,7 @@ export default Vue.extend({
         return this.selectableClients;
       }
 
-      return this.selectableClients.filter((member: Client) => {
+      return this.selectableClients.filter((member: any) => {
         if (
           member.member_name &&
           member.member_name.toLowerCase().includes(tempSearch)
