@@ -5,10 +5,43 @@
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
     <td class="text-right">
       <small-button
+        @click="showEditDialog = true"
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
-        >{{ $t('apiKey.table.action.edit') }}</small-button
+        >{{ $t('apiKey.table.action.edit.button') }}</small-button
       >
+      <simpleDialog
+        :dialog="showEditDialog"
+        @save="save"
+        @cancel="showEditDialog = false"
+        save-button-text="action.save"
+        :disable-save="apiKey.roles.length === 0"
+      >
+        <span
+          slot="title"
+          class="headline"
+          :data-test="`api-key-row-${apiKey.id}-edit-dialog-title`"
+        >
+          {{ $t('apiKey.table.action.edit.dialog.title', { id: apiKey.id }) }}
+        </span>
+        <div slot="content" :data-test="`api-key-row-${apiKey.id}-edit-dialog-content`">
+          <v-row class="mt-12">
+            <v-col>
+              {{ $t('apiKey.table.action.edit.dialog.message') }}
+            </v-col>
+          </v-row>
+          <v-row no-gutters v-for="role in roles" :key="role">
+            <v-col class="checkbox-wrapper">
+              <v-checkbox
+                v-model="selectedRoles"
+                height="10px"
+                :value="role"
+                :label="$t(`apiKey.role.${role}`)"
+              />
+            </v-col>
+          </v-row>
+        </div>
+      </simpleDialog>
       <small-button
         class="ml-5"
         :data-test="`api-key-row-${apiKey.id}-revoke-button`"
@@ -36,11 +69,14 @@ import { Prop } from 'vue/types/options';
 import { ApiKey } from '@/global-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import SimpleDialog from '@/components/ui/SimpleDialog.vue';
+import { Roles } from '@/global';
 export default Vue.extend({
   name: 'ApiKeyRow',
   components: {
     SmallButton,
     ConfirmDialog,
+    SimpleDialog,
   },
   props: {
     apiKey: {
@@ -51,7 +87,11 @@ export default Vue.extend({
   data() {
     return {
       confirmRevoke: false,
+      savingChanges: false,
       removingApiKey: false,
+      showEditDialog: false,
+      roles: Roles,
+      selectedRoles: [...this.apiKey.roles] as string[],
     };
   },
   methods: {
@@ -63,7 +103,7 @@ export default Vue.extend({
     async revokeApiKey() {
       this.removingApiKey = true;
       this.confirmRevoke = false;
-      api
+      return api
         .remove(`/api-keys/${this.apiKey.id}`)
         .then(() => {
           this.$store.dispatch(
@@ -76,6 +116,23 @@ export default Vue.extend({
         })
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.removingApiKey = false));
+    },
+    async save() {
+      this.savingChanges = true;
+      return api
+        .put(`/api-keys/${this.apiKey.id}`, this.selectedRoles)
+        .then(() => {
+          this.$store.dispatch(
+            'showSuccessRaw',
+            this.$t('apiKey.table.action.edit.success', { id: this.apiKey.id }),
+          );
+          this.$emit('change');
+        })
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.savingChanges = false;
+          this.showEditDialog = false;
+        });
     },
   },
 });

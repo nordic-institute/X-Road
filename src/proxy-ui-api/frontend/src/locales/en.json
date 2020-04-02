@@ -466,7 +466,14 @@
         "roles": "Roles"
       },
       "action": {
-        "edit": "Edit",
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Linked roles:"
+          },
+          "success": "API key with ID {id} saved"
+        },
         "revoke": {
           "button": "Revoke key",
           "success": "API key with ID {id} successfully revoked",
