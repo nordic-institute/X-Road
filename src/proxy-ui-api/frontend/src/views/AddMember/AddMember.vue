@@ -9,7 +9,7 @@
     />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.clientDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
         <v-divider></v-divider>
         <v-stepper-step :complete="currentStep > 2" step="2">{{$t('wizard.token.title')}}</v-stepper-step>
         <v-divider></v-divider>

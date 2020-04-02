@@ -2,17 +2,17 @@
   <div>
     <div class="info-block">
       <div>
-        {{$t('wizard.clientInfo1')}}
+        {{$t('wizard.member.info1')}}
         <br />
         <br />
-        {{$t('wizard.clientInfo2')}}
+        {{$t('wizard.member.info2')}}
       </div>
       <div class="action-block">
         <large-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-        >{{$t('wizard.selectClient')}}</large-button>
+        >{{$t('wizard.member.select')}}</large-button>
       </div>
     </div>
 

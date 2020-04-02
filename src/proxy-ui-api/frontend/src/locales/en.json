@@ -398,6 +398,12 @@
       "todo2": "2) Once received back, import the signed CSR to the appropriate key",
       "todo3": "3) At this point you can register the new added client",
       "note": "NOTE: if you click Cancel, all data will be lost"
+    },
+    "member": {
+      "info1": "Specify the details of the Member you want to add.",
+      "info2": "If the Member is already existing, you can select it from the Global list.",
+      "select": "Select member",
+      "title": "Member details"
     }
   },
   "systemParameters": {
