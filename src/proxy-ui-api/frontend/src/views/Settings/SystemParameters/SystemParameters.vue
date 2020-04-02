@@ -94,27 +94,13 @@
               <tbody
                 data-test="system-parameters-timestamping-services-table-body"
               >
-                <tr
+                <timestamping-service-row
                   v-for="timestampingService in this
                     .configuredTimestampingServices"
                   :key="timestampingService.url"
-                >
-                  <td>{{ timestampingService.name }}</td>
-                  <td>{{ timestampingService.url }}</td>
-                  <td>
-                    <small-button
-                      data-test="system-parameters-timestamping-services-delete-button"
-                      outlined
-                      :requires-permission="permissions.DELETE_TSP"
-                    >
-                      {{
-                        $t(
-                          'systemParameters.timestampingServices.table.action.delete',
-                        )
-                      }}
-                    </small-button>
-                  </td>
-                </tr>
+                  :timestamping-service="timestampingService"
+                  @deleted="fetchConfiguredTimestampingServiced"
+                />
               </tbody>
             </table>
           </v-col>
@@ -195,10 +181,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
+import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
@@ -206,7 +192,7 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 export default Vue.extend({
   components: {
     LargeButton,
-    SmallButton,
+    TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,
   },

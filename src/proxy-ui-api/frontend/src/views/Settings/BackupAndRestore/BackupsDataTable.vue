@@ -30,16 +30,11 @@
                 data-test="backup-restore"
                 >{{ $t('action.restore') }}
               </v-btn>
-              <v-btn
-                v-if="canBackup"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
-                data-test="backup-delete"
-                >{{ $t('action.delete') }}
-              </v-btn>
+              <delete-backup-button
+                :can-backup="canBackup"
+                :backup="backup"
+                @deleted="refreshData"
+              />
             </div>
           </td>
         </tr>
@@ -54,9 +49,13 @@ import * as api from '@/util/api';
 import { Backup } from '@/types';
 import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
 import SmallButton from '@/components/ui/SmallButton.vue';
+import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
+import { Prop } from 'vue/types/options';
+
 
 export default Vue.extend({
   components: {
+    DeleteBackupButton,
     SmallButton,
   },
   props: {
@@ -69,25 +68,14 @@ export default Vue.extend({
       default: false,
       required: true,
     },
+    backups: {
+      type: Array as Prop<Backup[]>,
+      required: true,
+    },
   },
-  data: () => ({
-    backups: [] as Backup[],
-  }),
   methods: {
     filtered(): Backup[] {
       return selectedFilter(this.backups, this.filter, 'created_at');
-    },
-    fetchData(): void {
-      api
-        .get('/backups')
-        .then((res) => {
-          this.backups = res.data.sort((a: Backup, b: Backup) => {
-            return b.created_at > a.created_at;
-          });
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
     },
     async downloadBackup(fileName: string) {
       api
@@ -95,9 +83,9 @@ export default Vue.extend({
         .then((resp) => saveResponseAsFile(resp, fileName))
         .catch((error) => this.$store.dispatch('showError', error));
     },
-  },
-  created(): void {
-    this.fetchData();
+    refreshData(): void {
+      this.$emit('refresh-data');
+    },
   },
 });
 </script>
