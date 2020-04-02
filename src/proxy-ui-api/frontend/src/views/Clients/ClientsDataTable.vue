@@ -170,7 +170,7 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
     showRegister(): boolean {
-      return true;
+      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
     },
     canOpenClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);

@@ -3,7 +3,10 @@
     <v-flex mb-4 class="title-action">
       <h1 v-if="client" class="display-1 mb-3">{{client.subsystem_code}} ({{ $t('subsystem') }})</h1>
       <div>
-        <LargeButton @click="confirmUnregisterClient = true">{{$t('action.unregister')}}</LargeButton>
+        <LargeButton
+          v-if="showUnregister"
+          @click="confirmUnregisterClient = true"
+        >{{$t('action.unregister')}}</LargeButton>
       </div>
     </v-flex>
     <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
@@ -52,6 +55,15 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['client']),
+
+    showUnregister(): boolean {
+      if (this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ)) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
     tabs(): any[] {
       const allTabs = [
         {
