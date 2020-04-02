@@ -77,21 +77,13 @@ public class EndpointService {
     public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException,
             IllegalGeneratedEndpointRemoveException {
 
-        EndpointType endpoint = endpointRepository.getEndpoint(id);
-
-        if (endpoint == null) {
-            throw new EndpointNotFoundException(id.toString());
-        }
+        EndpointType endpoint = getEndpoint(id);
 
         if (endpoint.getId().equals(id) && endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointRemoveException(id.toString());
         }
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
-
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
-        }
         clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(id));
         clientType.getEndpoint().removeIf(ep -> ep.getId().equals(id));
         clientRepository.saveOrUpdate(clientType);
@@ -109,10 +101,7 @@ public class EndpointService {
     public EndpointType updateEndpoint(Long id, Endpoint endpointUpdate)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
 
-        EndpointType endpoint = endpointRepository.getEndpoint(id);
-        if (endpoint == null) {
-            throw new EndpointNotFoundException(id.toString());
-        }
+        EndpointType endpoint = getEndpoint(id);
 
         if (endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointUpdateException(id.toString());
@@ -130,13 +119,13 @@ public class EndpointService {
     /**
      * Get matching base-endpoint for the given client and service.
      *
-     * @param clientType
      * @param serviceType
      * @return
      * @throws EndpointNotFoundException
      */
-    public EndpointType getBaseEndpoint(ClientType clientType, ServiceType serviceType)
+    public EndpointType getServiceBaseEndpoint(ServiceType serviceType)
             throws EndpointNotFoundException {
+        ClientType clientType = serviceType.getServiceDescription().getClient();
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
                         && endpointType.getMethod().equals(EndpointType.ANY_METHOD)
