@@ -219,7 +219,7 @@ export default Vue.extend({
     registerSubsystem(): void {
       this.$store
         .dispatch('registerClient', {
-          memberName: this.client.member_name,
+          instanceId: this.client.instance_id,
           memberClass: this.client.member_class,
           memberCode: this.client.member_code,
           subsystemCode: this.subsystemCode,

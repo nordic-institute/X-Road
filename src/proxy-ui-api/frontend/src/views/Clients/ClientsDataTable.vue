@@ -208,7 +208,7 @@ export default Vue.extend({
     registerClient(item: Client): void {
       this.$store
         .dispatch('registerClient', {
-          memberName: item.member_name,
+          instanceId: item.instance_id,
           memberClass: item.member_class,
           memberCode: item.member_code,
           subsystemCode: item.subsystem_code,
