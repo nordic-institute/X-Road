@@ -63,6 +63,13 @@
       "saved": "SAVED",
       "registrationInProgress": "REGISTRATION IN PROGRESS"
     },
+    "action": {
+      "unregister": {
+        "success": "Client unregistered",
+        "confirmTitle": "Unregister client",
+        "confirmText": "Do you want to unregister this client?"
+      }
+    },
     "owner": "Owner",
     "memberName": "Member Name",
     "memberClass": "Member Class",

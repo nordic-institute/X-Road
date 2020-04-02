@@ -207,8 +207,8 @@ export const actions: ActionTree<ClientState, RootState> = {
     return axios.put(`/clients/${clientId}/register`, {});
   },
 
-  unregisterClient({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
-    const clientId = memberName + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
+  unregisterClient({ commit, state }, client: Client) {
+    const clientId = client.member_name + ':' + client.member_class + ':' + client.member_code + ':' + client.subsystem_code;
     return axios.put(`/clients/${clientId}/unregister`, {});
   },
 
