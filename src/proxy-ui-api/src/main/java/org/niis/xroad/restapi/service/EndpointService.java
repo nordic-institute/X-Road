@@ -37,8 +37,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
-
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
@@ -61,7 +59,6 @@ public class EndpointService {
      * @throws EndpointNotFoundException    endpoint not found with given id
      */
     public EndpointType getEndpoint(Long id) throws EndpointNotFoundException {
-        verifyAuthority("VIEW_ENDPOINT");
         EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
             throw new EndpointNotFoundException(id.toString());
@@ -79,7 +76,6 @@ public class EndpointService {
      */
     public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException,
             IllegalGeneratedEndpointRemoveException {
-        verifyAuthority("DELETE_ENDPOINT");
 
         EndpointType endpoint = endpointRepository.getEndpoint(id);
 
@@ -112,7 +108,6 @@ public class EndpointService {
      */
     public EndpointType updateEndpoint(Long id, Endpoint endpointUpdate)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
-        verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
 
         EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
