@@ -31,6 +31,8 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.User;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,6 +48,7 @@ import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
 /**
@@ -63,9 +66,16 @@ public class UserApiControllerRestTemplateTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    private ApiKeyService apiKeyService;
+
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
+
     @Before
-    public void setup() {
+    public void setup() throws ApiKeyService.ApiKeyNotFoundException {
         addApiKeyAuthorizationHeader(restTemplate);
+        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(apiKeyRepository.getApiKey(1));
     }
 
     @Test

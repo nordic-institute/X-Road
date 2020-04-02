@@ -72,8 +72,6 @@ import java.util.stream.Collectors;
 @PreAuthorize("isAuthenticated()")
 public class AccessRightService {
 
-    private static final String CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID = "Client not found for endpoint with id: ";
-
     private final LocalGroupRepository localGroupRepository;
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
@@ -143,7 +141,7 @@ public class AccessRightService {
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
+        EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
 
         List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
         return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
@@ -161,14 +159,7 @@ public class AccessRightService {
             throws EndpointNotFoundException, ClientNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
-        if (clientType == null) {
-            throw new ClientNotFoundException(CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID + id.toString());
-        }
-
-        EndpointType endpointType = endpointRepository.getEndpoint(id);
-        if (endpointType == null) {
-            throw new EndpointNotFoundException(id.toString());
-        }
+        EndpointType endpointType = endpointService.getEndpoint(id);
 
         List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
         return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
@@ -179,6 +170,8 @@ public class AccessRightService {
                 .filter(accessRightType -> accessRightType.getEndpoint().getId().equals(endpointType.getId()))
                 .collect(Collectors.toList());
     }
+
+
 
     /**
      * Get access rights for endpoint
@@ -245,7 +238,7 @@ public class AccessRightService {
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
+        EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
 
         deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
@@ -266,14 +259,7 @@ public class AccessRightService {
             ClientNotFoundException, AccessRightNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
-        if (clientType == null) {
-            throw new ClientNotFoundException(CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID + endpointId.toString());
-        }
-        EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
-        if (endpointType == null) {
-            throw new EndpointNotFoundException(endpointId.toString());
-        }
-
+        EndpointType endpointType = endpointService.getEndpoint(endpointId);
         deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
 
@@ -342,7 +328,7 @@ public class AccessRightService {
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = endpointService.getBaseEndpoint(clientType, serviceType);
+        EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
         return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
@@ -367,15 +353,9 @@ public class AccessRightService {
             Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, AccessRightNotFoundException, DuplicateAccessRightException {
 
-        EndpointType endpointType = endpointRepository.getEndpoint(endpointId);
-        if (endpointType == null) {
-            throw new EndpointNotFoundException(endpointId.toString());
-        }
+        EndpointType endpointType = endpointService.getEndpoint(endpointId);
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
-        if (clientType == null) {
-            throw new ClientNotFoundException(CLIENT_NOT_FOUND_FOR_ENDPOINT_WITH_ID + endpointId.toString());
-        }
         return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
 
     }
