@@ -22,50 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.converter;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.domain.PublicApiKeyData;
+import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Api key which is persisted in DB. Contains encoded key (instead of plaintext)
+ * Converter for api keys related data between openapi and service domain classes
  */
-@Getter
-public class PersistentApiKeyType {
-    private Long id;
-    private String plaintTextKey;
-    private String encodedKey;
-    @Setter
-    private Set<Role> roles;
+@Component
+public class PublicApiKeyDataConverter {
 
-    /**
-     * Create api key
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String encodedKey, Collection<Role> roles) {
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
+    public PublicApiKeyData convert(PersistentApiKeyType persistentApiKeyType) {
+        PublicApiKeyData publicApiKeyData = new PublicApiKeyData();
+        publicApiKeyData.setId(persistentApiKeyType.getId());
+        publicApiKeyData.setKey(persistentApiKeyType.getPlaintTextKey());
+        publicApiKeyData.setRoles(persistentApiKeyType.getRoles());
+        return publicApiKeyData;
     }
 
-    /**
-     * Create api key
-     * @param plaintTextKey
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String plaintTextKey, String encodedKey, Collection<Role> roles) {
-        this.plaintTextKey = plaintTextKey;
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    public PersistentApiKeyType() {
+    public List<PublicApiKeyData> convert(Iterable<PersistentApiKeyType> apiKeys)  {
+        return Streams.stream(apiKeys)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 }
