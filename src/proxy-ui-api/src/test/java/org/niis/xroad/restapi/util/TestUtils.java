@@ -81,6 +81,7 @@ public final class TestUtils {
     public static final String SUBSYSTEM2 = "SS2";
     public static final String SUBSYSTEM3 = "SS3";
     public static final String OWNER_ID = "FI:GOV:M1";
+    public static final String NEW_OWNER_ID = "FI:GOV:M2";
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";

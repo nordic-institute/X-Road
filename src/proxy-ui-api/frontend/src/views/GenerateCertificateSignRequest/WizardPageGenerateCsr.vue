@@ -71,7 +71,7 @@ export default Vue.extend({
           this.disableDone = false;
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },

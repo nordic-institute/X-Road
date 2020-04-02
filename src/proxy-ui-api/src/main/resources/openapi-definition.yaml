@@ -86,14 +86,27 @@ paths:
       summary: upload new backup for the security server
       operationId: uploadBackup
       description: Uploads new security server backup to the system
+      parameters:
+        - in: query
+          name: ignore_warnings
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+                    any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
+            default: false
       requestBody:
         description: backup to add
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
-              description: backup file
+              title: BackupArchive
+              type: object
+              description: security server backup archive file
+              properties:
+                file:
+                  type: string
+                  format: binary
       responses:
         '201':
           description: item created
@@ -1514,6 +1527,34 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /clients/owner:
+    put: # ok
+      tags:
+        - security server
+      summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
+      operationId: changeOwner
+      description: Administrator changes Security Server's owner.
+      requestBody:
+        description: client to be set as owner
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        '204':
+          description: client was set as owner
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/globalconf:
     get: # ok
       tags:
@@ -1558,6 +1599,18 @@ paths:
                 uniqueItems: true
                 items:
                   $ref: '#/components/schemas/OcspResponderDiagnostics'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/timestamping-services:
     get: # ok
       tags:

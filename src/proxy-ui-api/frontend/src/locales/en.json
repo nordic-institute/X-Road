@@ -28,8 +28,29 @@
     }
   },
   "backup": {
-    "backupConfiguration": "Back up config.",
-    "uploadBackup": "Upload backup"
+    "backupConfiguration": {
+      "button": "Back up config.",
+      "message": {
+        "success": "Backup {file} successfully created"
+      }
+    },
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
+    "action": {
+      "delete": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to delete backup {file}?"
+        },
+        "success": "Backup {file} deleted"
+      }
+    }
   },
   "client": {
     "name": "Name",
@@ -233,6 +254,7 @@
     "status": "Status",
     "signDetailsTitle": "SIGN Key details",
     "authDetailsTitle": "AUTH Key details",
+    "detailsTitle": "Key details",
     "friendlyName": "Friendly name",
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
@@ -348,11 +370,23 @@
       "title": "Configuration Anchor",
       "action": {
         "download": "DOWNLOAD",
-        "upload": "UPLOAD"
+        "upload": {
+          "button": "UPLOAD",
+          "dialog": {
+            "title": "Confirm configuration anchor details",
+            "info": "Configuration anchor details:",
+            "confirmation": "Continue with import?",
+            "field": {
+              "hash": "Hash (SHA-224)",
+              "generated": "Generated"
+            },
+            "success": "Configuration anchor uploaded"
+          }
+        }
       },
       "table": {
         "header": {
-          "distinguishedName": "Distinguished Name",
+          "distinguishedName": "Hash (SHA-224)",
           "generated": "Generated"
         }
       }
@@ -360,7 +394,14 @@
     "timestampingServices": {
       "title": "Timestamping Services",
       "action": {
-        "add": "ADD"
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
       },
       "table": {
         "header": {
@@ -368,7 +409,14 @@
           "serviceURL": "Service URL"
         },
         "action": {
-          "delete": "DELETE"
+          "delete": {
+            "button": "DELETE",
+            "confirmation": {
+              "title": "Are you sure?",
+              "text": "Are you sure you want to delete the timestamping service?"
+            },
+            "success": "Timestamping service successfully deleted"
+          }
         }
       }
     },
@@ -418,6 +466,7 @@
   "instance": "Instance",
   "type": "Type",
   "warning": "Warning",
+  "id": "ID",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
