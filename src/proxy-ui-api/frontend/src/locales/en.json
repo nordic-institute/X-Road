@@ -236,7 +236,8 @@
     "deactivate": "Disable",
     "previous": "Previous",
     "done": "Done",
-    "next": "Next"
+    "next": "Next",
+    "finish": "Finish"
   },
   "keys": {
     "token": "Token:",
@@ -449,9 +450,15 @@
           "description": "Specify which roles the new API key should be linked to."
         },
         "keyDetails": {
-          "name": "Key Details"
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
         }
-      }
+      },
+      "success": "API key successfully created"
     },
     "table": {
       "header": {

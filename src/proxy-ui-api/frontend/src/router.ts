@@ -7,8 +7,7 @@ import Clients from '@/views/Clients/Clients.vue';
 import Client from '@/views/Clients/Client.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
-import SSTlsCertificate
-  from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
+import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
