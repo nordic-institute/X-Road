@@ -11,7 +11,7 @@
     </div>
 
     <v-card flat>
-      <table class="xrd-table">
+      <table class="xrd-table" data-test="api-key-keys-table">
         <thead>
           <tr class="keytable-header">
             <td>&nbsp;</td>
@@ -21,21 +21,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr
+          <api-key-row
             v-for="apiKey in apiKeys"
             :key="apiKey.id"
-            class="grey--text text--darken-1"
-          >
-            <td><i class="icon-xrd_key icon"></i></td>
-            <td>{{ apiKey.id }}</td>
-            <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
-            <td class="actions-column">
-              <small-button>{{ $t('apiKey.table.actions.edit') }}</small-button>
-              <small-button class="button-spacing">{{
-                $t('apiKey.table.actions.revoke')
-              }}</small-button>
-            </td>
-          </tr>
+            :api-key="apiKey"
+            @change="loadKeys"
+          />
         </tbody>
       </table>
     </v-card>
@@ -46,14 +37,14 @@
 import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { RouteName } from '@/global';
 import { ApiKey } from '@/global-types';
+import ApiKeyRow from '@/views/KeysAndCertificates/ApiKey/ApiKeyRow.vue';
 
 export default Vue.extend({
   components: {
     LargeButton,
-    SmallButton,
+    ApiKeyRow,
   },
   data() {
     return {
@@ -72,11 +63,6 @@ export default Vue.extend({
         name: RouteName.CreateApiKey,
       });
     },
-    translateRoles(roles: string[]): string[] {
-      return !roles
-        ? []
-        : roles.map((role) => this.$t(`apiKey.role.${role}`) as string);
-    },
   },
   created(): void {
     this.loadKeys();
@@ -92,11 +78,5 @@ export default Vue.extend({
 .keytable-header {
   font-weight: 500;
   color: $XRoad-Black;
-}
-
-.actions-column {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
 }
 </style>

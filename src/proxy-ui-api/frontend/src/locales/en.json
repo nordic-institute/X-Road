@@ -465,9 +465,16 @@
         "id": "ID",
         "roles": "Roles"
       },
-      "actions": {
+      "action": {
         "edit": "Edit",
-        "revoke": "Revoke key"
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
+        }
       }
     }
   },
