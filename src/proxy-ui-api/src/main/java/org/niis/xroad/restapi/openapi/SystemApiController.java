@@ -224,10 +224,10 @@ public class SystemApiController implements SystemApi {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         try {
             systemService.uploadAnchor(anchorBytes);
-        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException
-                | ConfigurationVerifier.ConfigurationVerificationException e) {
+        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
-        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException e) {
+        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
+                | ConfigurationVerifier.ConfigurationVerificationException e) {
             throw new InternalServerErrorException(e);
         }
         return ApiUtil.createCreatedResponse("/api/system/anchor", null);
