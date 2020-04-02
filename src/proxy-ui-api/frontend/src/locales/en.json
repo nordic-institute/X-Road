@@ -510,5 +510,22 @@
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
       "companyUrlTitle": "https://niis.org/"
     }
+  },
+  "diagnostics": {
+    "status": "Status",
+    "message": "Message",
+    "previousUpdate": "Previous Update",
+    "nextUpdate": "Next Update",
+    "serviceUrl": "Service URL",
+    "globalCongiguration": {
+      "title": "Global configuration"
+    },
+    "timestamping": {
+      "title": "Timestamping"
+    },
+    "ocspResponders": {
+      "title": "OCSP Responders",
+      "certificationService": "Certification Service:"
+    }
   }
 }
