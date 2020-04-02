@@ -94,10 +94,10 @@ The script setup_security_server_sidecar.sh will:
 
  **Ref** | **Value**                                                | **Explanation**
  ---- | ----------------------------------------------------------- | -------------------------------------------------------
- 2.1  | &lt;global configuration anchor file&gt; or &lt;URL (1)&gt; | Global configuration anchor file (2)
+ 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt;     | Global configuration anchor file or provider URL (1) (2)
  2.2  | &lt;security server owner's member class&gt;<br>E.g.<br> COM - Commercial<br> ORG - Organisation            | Member class of the security server owner for the sidecar (2)
  2.3  | &lt;security server owner's member code&gt;                 | Member code of the security server owner for the sidecar (2) (3)
- 2.4  | &lt;security server code&gt; (4)                            | Security server code for the sidecar
+ 2.4  | &lt;security server code&gt;                                | Security server code for the sidecar (4)
  2.5  | &lt;PIN for software token&gt;                              | Software token PIN code (same as ref. data 1.3)
 
 Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the security server sidecar network.
@@ -126,7 +126,7 @@ Then, if the configuration is successfully downloaded, the system asks for the f
 
 - The security server owner's member class for the sidecar (reference data: 2.2)
 - The security server owner's member code for the sidecar (reference data: 2.3). If the member class and member code are correctly entered, the system displays the security server sidecar owner's name as registered in the Central Server
-- Security server code for the sidecar (reference data: 2.4), it has to be unique across the whole X-Road instance.
+- The security server code for the sidecar (reference data: 2.4), it has to be unique across the whole X-Road instance.
 - Software token PIN code (reference data: 2.5). The PIN will be used to protect the keys stored in the software token. The process xroad-autologin will automatically enter the PIN code after some time.
 
 ## 3 Key Points and Limitations for X-Road Security Server Sidecar Deployment
