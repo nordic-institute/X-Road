@@ -261,12 +261,15 @@ export default Vue.extend({
       this.showSelectClient = false;
     },
     fetchData(): void {
-      this.$store.dispatch('fetchSelectableForSubsystem');
-
       // Fetch "parent" client from backend
-      this.$store.dispatch('fetchClient', this.clientId).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      this.$store.dispatch('fetchClient', this.clientId).then(
+        (response) => {
+          this.$store.dispatch('fetchSelectableForSubsystem', this.client);
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+        },
+      );
     },
   },
 
