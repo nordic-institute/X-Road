@@ -14,6 +14,10 @@
       </v-btn>
     </div>
 
+    <button @click="func()">press</button>
+
+    {{test}}
+
     <v-card flat>
       <table class="xrd-table service-clients-table">
         <tr>
@@ -50,6 +54,7 @@
       return {
         serviceClients: [] as ServiceClient[],
         search: '' as string,
+        test: [],
       };
     },
     computed: {
@@ -64,6 +69,12 @@
       },
       addSubject(): void {
         // NOOP
+      },
+      func() {
+        api.get(`/service-clients/CS:ORG:1111:MANAGEMENT/access-rights?client_id=${this.id}`)
+        .then( (res) => {
+          this.test = res.data;
+        });
       },
     },
     created() {
