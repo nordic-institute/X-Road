@@ -30,10 +30,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.AnchorFile;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.ConfigurationVerifier.MISSING_PRIVATE_PARAMS;
@@ -81,11 +81,13 @@ public class SystemServiceTest {
     private AnchorRepository anchorRepository;
     @MockBean
     private ConfigurationVerifier configurationVerifier;
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Before
     public void setup() throws Exception {
-
         systemService.setInternalKeyPath("src/test/resources/internal.key");
+        systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
 
         TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
         TspType tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
@@ -98,7 +100,6 @@ public class SystemServiceTest {
                 .thenReturn(tsa2.getName());
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("CS", "GOV", "1111"));
-        doNothing().when(configurationVerifier).verifyInternalConfiguration(any());
     }
 
     @Test
@@ -207,7 +208,14 @@ public class SystemServiceTest {
             systemService.uploadAnchor(anchorBytes);
             fail("Should have failed");
         } catch (Exception e) {
-            assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS, (DeviationAwareRuntimeException) e);
+            assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS,
+                    (ConfigurationVerifier.ConfigurationVerificationException) e);
         }
+    }
+
+    @Test(expected = SystemService.MalformedAnchorException.class)
+    public void uploadAnchorWithBadData() throws Exception {
+        byte[] anchorBytes = new byte[8];
+        systemService.uploadAnchor(anchorBytes);
     }
 }

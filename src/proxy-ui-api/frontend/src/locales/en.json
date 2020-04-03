@@ -28,8 +28,29 @@
     }
   },
   "backup": {
-    "backupConfiguration": "Back up config.",
-    "uploadBackup": "Upload backup"
+    "backupConfiguration": {
+      "button": "Back up config.",
+      "message": {
+        "success": "Backup {file} successfully created"
+      }
+    },
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
+    "action": {
+      "delete": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to delete backup {file}?"
+        },
+        "success": "Backup {file} deleted"
+      }
+    }
   },
   "client": {
     "name": "Name",
@@ -233,6 +254,7 @@
     "status": "Status",
     "signDetailsTitle": "SIGN Key details",
     "authDetailsTitle": "AUTH Key details",
+    "detailsTitle": "Key details",
     "friendlyName": "Friendly name",
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
@@ -387,7 +409,14 @@
           "serviceURL": "Service URL"
         },
         "action": {
-          "delete": "DELETE"
+          "delete": {
+            "button": "DELETE",
+            "confirmation": {
+              "title": "Are you sure?",
+              "text": "Are you sure you want to delete the timestamping service?"
+            },
+            "success": "Timestamping service successfully deleted"
+          }
         }
       }
     },

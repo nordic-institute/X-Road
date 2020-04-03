@@ -79,3 +79,6 @@ script:
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
     args: -b -s %s -f %s
+
+url:
+  download-configuration-anchor: http://localhost:%s/execute

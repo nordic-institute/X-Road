@@ -66,7 +66,8 @@ public class ConfigurationVerifier {
      * @param anchorPath path to the configuration anchor to be verified
      * @throws ProcessNotExecutableException
      * @throws ProcessFailedException
-     * @throws InterruptedException
+     * @throws InterruptedException if the thread running the verifier is interrupted. <b>The interrupted thread has
+     * already been handled with so you can choose to ignore this exception if you so please.</b>
      * @throws ConfigurationVerificationException when a known exception happens during verification. An error code
      * is attached to this exception according to the correct exit code
      */

@@ -102,6 +102,13 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         }
     }
 
+    /**
+     * A special constructor for creating an AbstractXmlConf from bytes instead of a file on the filesystem.
+     * <b>Does not set <code>confFileChecker</code>.</b>
+     * @param objectFactory
+     * @param fileBytes
+     * @param schemaValidator
+     */
     protected AbstractXmlConf(Class<?> objectFactory, byte[] fileBytes,
             Class<? extends SchemaValidator> schemaValidator) {
         try {

@@ -22,50 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.service;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Api key which is persisted in DB. Contains encoded key (instead of plaintext)
+ * Thrown if downloading configuration from the anchor fails. Usually caused by erroneous response (500) from
+ * ConfigurationClient.
  */
-@Getter
-public class PersistentApiKeyType {
-    private Long id;
-    private String plaintTextKey;
-    private String encodedKey;
-    @Setter
-    private Set<Role> roles;
+public class ConfigurationDownloadException extends ServiceException {
+    public static final String CONF_DOWNLOAD_FAILED = "conf_download_failed";
 
-    /**
-     * Create api key
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String encodedKey, Collection<Role> roles) {
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    /**
-     * Create api key
-     * @param plaintTextKey
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String plaintTextKey, String encodedKey, Collection<Role> roles) {
-        this.plaintTextKey = plaintTextKey;
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    public PersistentApiKeyType() {
+    public ConfigurationDownloadException(String s) {
+        super(s, new ErrorDeviation(CONF_DOWNLOAD_FAILED));
     }
 }

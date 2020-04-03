@@ -24,48 +24,14 @@
  */
 package org.niis.xroad.restapi.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Api key which is persisted in DB. Contains encoded key (instead of plaintext)
- */
-@Getter
-public class PersistentApiKeyType {
+@Data
+public class PublicApiKeyData {
     private Long id;
-    private String plaintTextKey;
-    private String encodedKey;
-    @Setter
+    private String key;
     private Set<Role> roles;
 
-    /**
-     * Create api key
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String encodedKey, Collection<Role> roles) {
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    /**
-     * Create api key
-     * @param plaintTextKey
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String plaintTextKey, String encodedKey, Collection<Role> roles) {
-        this.plaintTextKey = plaintTextKey;
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    public PersistentApiKeyType() {
-    }
 }

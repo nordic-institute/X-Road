@@ -57,6 +57,9 @@ public class ConfigurationAnchorV2
     }
 
     /**
+     * A special constructor for creating a ConfigurationAnchorV2 from bytes instead of a file on the filesystem.
+     * <b>Does not set <code>confFileChecker</code>. This constructor is used e.g. for creating a preview of an
+     * anchor.</b> {@link ConfigurationAnchorV2#ConfigurationAnchorV2(String)} should usually be preferred!
      * @param fileBytes the configuration anchor file bytes
      */
     public ConfigurationAnchorV2(byte[] fileBytes) {
