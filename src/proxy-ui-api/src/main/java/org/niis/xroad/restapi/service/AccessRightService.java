@@ -41,6 +41,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -497,6 +498,36 @@ public class AccessRightService {
             localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
         }
         return localGroupXRoadIds;
+    }
+
+    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(String subjectId, ClientId clientid)
+            throws ClientNotFoundException {
+        ClientType clientType = clientRepository.getClient(clientid);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found with id: " + clientid.toShortString());
+        }
+
+        // Filter subjects access rights from the given clients acl-list
+        return clientType.getAcl().stream()
+                .filter(acl -> acl.getSubjectId().equals(subjectId)
+                        && acl.getEndpoint().isBaseEndpoint())
+                .map(acl -> ServiceClientAccessRightDto.builder()
+                    .id(subjectId)
+                    .clientId(clientid.toShortString())
+                    .serviceCode(acl.getEndpoint().getServiceCode())
+                    .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
+                    .title(getServiceTitle(clientType, acl.getEndpoint().getServiceCode()))
+                    .build())
+                .collect(Collectors.toList());
+    }
+
+    private String getServiceTitle(ClientType clientType, String serviceCode) {
+        return clientType.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
+                .map(ServiceType::getTitle)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
