@@ -74,7 +74,12 @@
         </div>
       </ValidationObserver>
 
-      <SelectClientDialog :dialog="showSelectClient" @cancel="showSelectClient = false" />
+      <SelectClientDialog
+        :dialog="showSelectClient"
+        :selectableClients="selectableClients"
+        @cancel="showSelectClient = false"
+        @save="saveSelectedClient"
+      />
     </div>
   </div>
 </template>
@@ -122,7 +127,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client', 'localMembers']),
+    ...mapGetters(['client', 'selectableClients', 'reservedClients']),
     memberClass: {
       get(): string {
         return this.$store.getters.memberClass;
@@ -165,7 +170,7 @@ export default Vue.extend({
       }
 
       if (
-        this.localMembers.some((e: Client) => {
+        this.reservedClients.some((e: Client) => {
           if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
             return false;
           }
@@ -244,9 +249,19 @@ export default Vue.extend({
       this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
+    saveSelectedClient(selectedMember: Client): void {
+      this.$store.dispatch('setSelectedMember', selectedMember).then(
+        (response) => {
+          this.$store.dispatch('fetchReservedSubsystems', selectedMember);
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+        },
+      );
+      this.showSelectClient = false;
+    },
     fetchData(): void {
-      this.$store.dispatch('fetchMembers');
-      this.$store.dispatch('fetchLocalMembers');
+      this.$store.dispatch('fetchSelectableForSubsystem');
 
       // Fetch "parent" client from backend
       this.$store.dispatch('fetchClient', this.clientId).catch((error) => {
