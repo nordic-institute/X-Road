@@ -15,7 +15,7 @@
           $t('apiKey.createApiKey.step.keyDetails.name')
         }}</v-stepper-step>
       </v-stepper-header>
-      <v-stepper-items class="stepper-items-wrapper">
+      <v-stepper-items>
         <v-stepper-content step="1" class="pa-0">
           <v-row class="mb-5">
             <v-col>
@@ -194,8 +194,6 @@ export default Vue.extend({
   margin-top: 20px;
   padding-top: 30px;
   border-top: 1px solid $XRoad-Grey40;
-}
-.stepper-items-wrapper {
 }
 .checkbox-wrapper {
   border-bottom: solid 1px $XRoad-Grey10;
