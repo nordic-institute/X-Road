@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.11
+Version: 2.11  
 Doc. ID: PR-META
 
 ---
