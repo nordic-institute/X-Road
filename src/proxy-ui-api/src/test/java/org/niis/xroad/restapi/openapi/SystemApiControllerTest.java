@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +72,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 
 /**
  * test system api
@@ -94,7 +97,7 @@ public class SystemApiControllerTest {
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
-    private  SystemService systemService;
+    private SystemService systemService;
 
     private static final String TSA_1_URL = "https://tsa.com";
 
@@ -112,8 +115,11 @@ public class SystemApiControllerTest {
     private static final Long ANCHOR_CREATED_AT_MILLIS = 1556442211841L;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
+        AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
+        anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        when(systemService.getAnchorFileFromBytes(any())).thenReturn(anchorFile);
     }
 
     @Test
@@ -309,5 +315,25 @@ public class SystemApiControllerTest {
         } catch (InternalServerErrorException expected) {
             // success
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
+    public void uploadAnchor() throws IOException {
+        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
+        ResponseEntity<Void> response = systemApiController.uploadAnchor(anchorResource);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("/api/system/anchor", response.getHeaders().getLocation().getPath());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
+    public void previewAnchor() throws IOException {
+        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
+        ResponseEntity<Anchor> response = systemApiController.previewAnchor(anchorResource);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Anchor anchor = response.getBody();
+        assertEquals(ANCHOR_HASH, anchor.getHash());
+        assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
     }
 }

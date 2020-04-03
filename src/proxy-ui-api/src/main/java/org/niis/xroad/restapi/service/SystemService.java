@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
@@ -33,6 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -44,6 +46,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.security.KeyPair;
@@ -53,6 +56,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 
 /**
  * Service that handles system services
@@ -66,9 +71,13 @@ public class SystemService {
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
     private final AnchorRepository anchorRepository;
+    private final ConfigurationVerifier configurationVerifier;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
+
+    @Setter
+    private String tempFilesPath = SystemProperties.getTempFilesPath();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -79,10 +88,12 @@ public class SystemService {
      */
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-                         AnchorRepository anchorRepository) {
+            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
+        this.configurationVerifier = configurationVerifier;
+
     }
 
     /**
@@ -185,6 +196,108 @@ public class SystemService {
     }
 
     /**
+     * Calculate the hex hash of the given anchor file. Used to verify/preview an anchor file before
+     * uploading it
+     * @param anchorBytes
+     * @return
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     * @throws MalformedAnchorException if the Anchor content is wrong
+     */
+    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes) throws InvalidAnchorInstanceException,
+            MalformedAnchorException {
+        ConfigurationAnchorV2 anchor = null;
+        try {
+            anchor = new ConfigurationAnchorV2(anchorBytes);
+        } catch (CodedException ce) {
+            if (isCausedByMalformedAnchorContent(ce)) {
+                throw new MalformedAnchorException("Anchor is invalid");
+            } else {
+                throw ce;
+            }
+        }
+        verifyAnchorInstance(anchor);
+        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
+        anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
+        return anchorFile;
+    }
+
+    /**
+     * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order to run
+     * the verification process with configuration-client module (via external script).
+     * @param anchorBytes
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     * @throws AnchorUploadException in case of external process exceptions
+     * @throws MalformedAnchorException if the Anchor content is wrong
+     */
+    // SonarQube: "InterruptedException" should not be ignored -> it has already been handled at this point
+    @SuppressWarnings("squid:S2142")
+    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
+            MalformedAnchorException, ConfigurationDownloadException,
+            ConfigurationVerifier.ConfigurationVerificationException {
+        ConfigurationAnchorV2 anchor = null;
+        try {
+            anchor = new ConfigurationAnchorV2(anchorBytes);
+        } catch (CodedException ce) {
+            if (isCausedByMalformedAnchorContent(ce)) {
+                throw new MalformedAnchorException("Anchor is invalid");
+            } else {
+                throw ce;
+            }
+        }
+        verifyAnchorInstance(anchor);
+        File tempAnchor = null;
+        try {
+            tempAnchor = createTemporaryAnchorFile(anchorBytes);
+            configurationVerifier.verifyInternalConfiguration(tempAnchor.getAbsolutePath());
+            anchorRepository.saveAndReplace(tempAnchor);
+            globalConfService.executeDownloadConfigurationFromAnchor();
+        } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {
+            throw new AnchorUploadException(e);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot upload a new anchor", e);
+        } finally {
+            if (tempAnchor != null) {
+                boolean deleted = tempAnchor.delete();
+                if (!deleted) {
+                    log.error("Temporary anchor could not be deleted: " + tempAnchor.getAbsolutePath());
+                }
+            }
+        }
+    }
+
+    /**
+     * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
+     * configuration-client module (this might be changed in the future). This method does not delete the created
+     * temporary file. Remember to delete the file after it is no longer needed.
+     * @param anchorBytes
+     * @return temporary anchor file
+     * @throws IOException if temp file creation fails
+     */
+    private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
+        String tempAnchorPrefix = "temp-internal-anchor-";
+        String tempAnchorSuffix = ".xml";
+        File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
+        File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
+        FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
+        return tempAnchor;
+    }
+
+    /**
+     * Verify that the anchor has been generated in the current instance
+     * @param anchor
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     */
+    private void verifyAnchorInstance(ConfigurationAnchorV2 anchor) throws InvalidAnchorInstanceException {
+        String anchorInstanceId = anchor.getInstanceIdentifier();
+        String ownerInstance = serverConfService.getSecurityServerOwnerId().getXRoadInstance();
+        if (!anchorInstanceId.equals(ownerInstance)) {
+            String errorMessage = String.format("Cannot upload an anchor from instance %s into instance %s",
+                    anchorInstanceId, ownerInstance);
+            throw new InvalidAnchorInstanceException(errorMessage);
+        }
+    }
+
+    /**
      * Read anchor file's content
      * @return
      * @throws AnchorNotFoundException if anchor file is not found
@@ -220,6 +333,11 @@ public class SystemService {
             throw new RuntimeException(e);
         }
     }
+
+    static boolean isCausedByMalformedAnchorContent(CodedException e) {
+        return (X_MALFORMED_GLOBALCONF).equals(e.getFaultCode());
+    }
+
     /**
      * Thrown when attempt to add timestamping service that is already configured
      */
@@ -229,6 +347,40 @@ public class SystemService {
 
         public DuplicateConfiguredTimestampingServiceException(String s) {
             super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
+        }
+    }
+
+    /**
+     * Thrown when attempting to upload an anchor from a wrong instance
+     */
+    public static class InvalidAnchorInstanceException extends ServiceException {
+        public static final String INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID
+                = "internal_anchor_upload_invalid_instance_id";
+
+        public InvalidAnchorInstanceException(String s) {
+            super(s, new ErrorDeviation(INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID));
+        }
+    }
+
+    /**
+     * Thrown when uploading a conf anchor fails
+     */
+    public static class AnchorUploadException extends ServiceException {
+        public static final String ANCHOR_UPLOAD_FAILED = "anchor_upload_failed";
+
+        public AnchorUploadException(Throwable t) {
+            super(t, new ErrorDeviation(ANCHOR_UPLOAD_FAILED));
+        }
+    }
+
+    /**
+     * Thrown e.g. if Anchor upload or preview fails because of invalid content
+     */
+    public static class MalformedAnchorException extends ServiceException {
+        public static final String MALFORMED_ANCHOR = "malformed_anchor";
+
+        public MalformedAnchorException(String s) {
+            super(s, new ErrorDeviation(MALFORMED_ANCHOR));
         }
     }
 }
