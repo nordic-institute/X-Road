@@ -44,7 +44,6 @@ Doc. ID: PR-META
 - [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
 - [4 Retrieving List of Services](#4-retrieving-list-of-services)
 - [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
-    - [X-Road protocol POST-request](#x-road-protocol-post-request)
     - [WSDL-information modifications](#wsdl-information-modifications)
 - [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
 - [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
