@@ -86,4 +86,7 @@ Vue.filter('ocspStatus', (value: string): string => {
   }
 });
 
+Vue.filter('commaSeparate', (value: string[]) => {
+  return value.join(', ');
+});
 

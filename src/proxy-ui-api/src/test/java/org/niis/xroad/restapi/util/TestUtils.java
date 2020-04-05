@@ -109,6 +109,9 @@ public final class TestUtils {
     public static final String SERVICE_XROAD_GET_RANDOM = "xroadGetRandom.v1";
     public static final String SERVICE_BMI = "bodyMassIndex.v1";
 
+    public static final File ANCHOR_FILE = TestUtils.getTestResourceFile("internal-configuration-anchor.xml");
+    public static final String ANCHOR_HASH = "B37E02C0B310497C05D938A8C4446DFA80722F97123852BA8BF20D57";
+
     private TestUtils() {
         // noop
     }
