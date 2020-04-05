@@ -51,7 +51,6 @@ import java.util.UUID;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("isAuthenticated()")
 public class ApiKeyService {
 
     // two caches
@@ -72,6 +71,7 @@ public class ApiKeyService {
      * which is cryptographically secure.
      * @return
      */
+    @PreAuthorize("isAuthenticated()")
     private String createApiKey() {
         return UUID.randomUUID().toString();
     }
@@ -79,6 +79,7 @@ public class ApiKeyService {
     /**
      * create api key with one role
      */
+    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType create(String roleName) throws InvalidRoleNameException {
         return create(Collections.singletonList(roleName));
@@ -89,6 +90,7 @@ public class ApiKeyService {
      * @return new PersistentApiKeyType that contains the new key in plain text
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
+    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType create(Collection<String> roleNames)
             throws InvalidRoleNameException {
@@ -111,6 +113,7 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
+    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType update(long id, String roleName)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
@@ -125,6 +128,7 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
+    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
@@ -141,6 +145,7 @@ public class ApiKeyService {
         return apiKeyType;
     }
 
+    @PreAuthorize("isAuthenticated()")
     private String encode(String key) {
         return passwordEncoder.encode(key);
     }
@@ -168,6 +173,7 @@ public class ApiKeyService {
      * @param key
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
+    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void remove(String key) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = get(key);
@@ -179,6 +185,7 @@ public class ApiKeyService {
      * @param id
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
+    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void removeById(long id) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
@@ -192,6 +199,7 @@ public class ApiKeyService {
      * List all keys
      * @return
      */
+    @PreAuthorize("isAuthenticated()")
     @Cacheable(LIST_ALL_KEYS_CACHE)
     public List<PersistentApiKeyType> listAll() {
         return apiKeyRepository.getAllApiKeys();
