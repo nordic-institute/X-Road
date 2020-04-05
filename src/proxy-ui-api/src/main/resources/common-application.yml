@@ -79,4 +79,6 @@ script:
 
 url:
   download-configuration-anchor: http://localhost:%s/execute
-  diagnostics-base-url: http://localhost
+  diagnostics-globalconf: http://localhost:%s/status
+  diagnostics-timestamping-services: http://localhost:%s/timestampstatus
+  diagnostics-ocsp-responders: http://localhost:%s/status

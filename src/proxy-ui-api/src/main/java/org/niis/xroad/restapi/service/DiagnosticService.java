@@ -62,18 +62,21 @@ import java.util.stream.Collectors;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
-    private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
-    private static final String CONF_CLIENT_ADMIN_PATH = "status";
-    private static final int TIMESTAMPING_SERVICE_ADMIN_PORT = PortNumbers.ADMIN_PORT;
-    private static final String TIMESTAMPING_SERVICE_ADMIN_PATH = "timestampstatus";
-    private static final int SIGNER_ADMIN_PORT = SystemProperties.getSignerAdminPort();
-    private static final String SIGNER_ADMIN_PATH = "status";
-
-    private final String diagnosticsBaseUrl;
+    private final String diagnosticsGlobalconfUrl;
+    private final String diagnosticsTimestampingServicesUrl;
+    private final String diagnosticsOcspRespondersUrl;
 
     @Autowired
-    public DiagnosticService(@Value("${url.diagnostics-base-url}") String diagnosticsBaseUrl) {
-        this.diagnosticsBaseUrl = diagnosticsBaseUrl;
+    public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
+        @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
+        @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl) {
+
+        this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
+                SystemProperties.getConfigurationClientAdminPort());
+        this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
+                PortNumbers.ADMIN_PORT);
+        this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
+                SystemProperties.getSignerAdminPort());
     }
 
     /**
@@ -82,7 +85,7 @@ public class DiagnosticService {
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
-            JsonObject json = sendGetRequest(buildUri(CONF_CLIENT_ADMIN_PORT, CONF_CLIENT_ADMIN_PATH));
+            JsonObject json = sendGetRequest(diagnosticsGlobalconfUrl);
             return new Gson().fromJson(json, DiagnosticsStatus.class);
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
@@ -95,8 +98,7 @@ public class DiagnosticService {
      */
     public List<DiagnosticsStatus> queryTimestampingStatus() {
         try {
-            JsonObject json = sendGetRequest(buildUri(TIMESTAMPING_SERVICE_ADMIN_PORT,
-                    TIMESTAMPING_SERVICE_ADMIN_PATH));
+            JsonObject json = sendGetRequest(diagnosticsTimestampingServicesUrl);
             return json.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
                     .map(this::parseTimestampingStatus).collect(Collectors.toList());
         } catch (DiagnosticRequestException e) {
@@ -110,8 +112,7 @@ public class DiagnosticService {
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         try {
-            JsonObject json = sendGetRequest(buildUri(SIGNER_ADMIN_PORT,
-                    SIGNER_ADMIN_PATH));
+            JsonObject json = sendGetRequest(diagnosticsOcspRespondersUrl);
             JsonObject certificationServiceStatusMap = json.getAsJsonObject("certificationServiceStatusMap");
             return certificationServiceStatusMap.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
                     .map(this::parseOcspResponderDiagnosticsStatus).collect(Collectors.toList());
@@ -185,18 +186,6 @@ public class DiagnosticService {
                 temp.getPrevUpdate(), temp.getNextUpdate());
         diagnosticsStatus.setDescription(json.get("url").getAsString());
         return diagnosticsStatus;
-    }
-
-    /**
-     * Build URI to send diagnostics requests (http://localhost:{port}/{path})
-     * @param port
-     * @param path
-     * @return
-     */
-    private String buildUri(int port, String path) {
-        StringBuilder sb = new StringBuilder(diagnosticsBaseUrl);
-        sb.append(":").append(port).append("/").append(path);
-        return sb.toString();
     }
 
     /**
