@@ -35,10 +35,11 @@ import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -62,6 +63,7 @@ import java.util.stream.Collectors;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
+    private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
@@ -129,8 +131,12 @@ public class DiagnosticService {
      */
     private JsonObject sendGetRequest(String address) throws DiagnosticRequestException {
         HttpGet request = new HttpGet(address);
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(HTTP_CLIENT_TIMEOUT_MS)
+                .setConnectionRequestTimeout(HTTP_CLIENT_TIMEOUT_MS)
+                .setSocketTimeout(HTTP_CLIENT_TIMEOUT_MS).build();
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
                 CloseableHttpResponse response = httpClient.execute(request)) {
             HttpEntity resEntity = response.getEntity();
             if (response.getStatusLine().getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
