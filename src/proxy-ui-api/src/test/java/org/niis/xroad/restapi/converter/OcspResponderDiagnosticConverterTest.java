@@ -50,8 +50,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test CertificateAuthorityDiagnosticConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class OcspResponderDiagnosticConverterTest {
     private OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
     private static final String CA_NAME_1 = "CN=Xroad Test CA CN, OU=Xroad Test CA OU, O=Xroad Test, C=FI";

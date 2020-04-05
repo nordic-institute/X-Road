@@ -46,8 +46,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test GlobalConfDiagnosticConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class GlobalConfDiagnosticConverterTest {
 
     private GlobalConfDiagnosticConverter globalConfDiagnosticConverter;

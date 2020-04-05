@@ -48,8 +48,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test TimestampingServiceDiagnosticConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class TimestampingServiceDiagnosticConverterTest {
     private TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
     private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
