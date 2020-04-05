@@ -63,9 +63,9 @@ public class DiagnosticsApiController implements DiagnosticsApi {
      */
     @Autowired
     public DiagnosticsApiController(DiagnosticService diagnosticService,
-        GlobalConfDiagnosticConverter globalConfDiagnosticConverter,
-        TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter,
-        OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter) {
+            GlobalConfDiagnosticConverter globalConfDiagnosticConverter,
+            TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter,
+            OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter) {
         this.diagnosticService = diagnosticService;
         this.globalConfDiagnosticConverter = globalConfDiagnosticConverter;
         this.timestampingServiceDiagnosticConverter = timestampingServiceDiagnosticConverter;

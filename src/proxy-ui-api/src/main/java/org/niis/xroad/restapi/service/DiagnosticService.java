@@ -68,8 +68,8 @@ public class DiagnosticService {
 
     @Autowired
     public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
-        @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-        @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl) {
+            @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
+            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());

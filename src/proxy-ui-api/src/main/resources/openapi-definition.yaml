@@ -4754,11 +4754,13 @@ components:
         - next_update_at
       properties:
         status_class:
-          $ref: '#/components/schemas/DiagnosticStatusClass'
           readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          $ref: '#/components/schemas/ConfigurationStatus'
           readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/ConfigurationStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -4955,11 +4957,13 @@ components:
           maxLength: 255
           readOnly: true
         status_class:
-          $ref: '#/components/schemas/DiagnosticStatusClass'
           readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          $ref: '#/components/schemas/OcspStatus'
           readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/OcspStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -5382,11 +5386,13 @@ components:
           maxLength: 255
           readOnly: true
         status_class:
-          $ref: '#/components/schemas/DiagnosticStatusClass'
           readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          $ref: '#/components/schemas/TimestampingStatus'
           readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/TimestampingStatus'
         prev_update_at:
           type: string
           format: date-time
