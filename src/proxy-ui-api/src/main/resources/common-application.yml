@@ -79,3 +79,4 @@ script:
 
 url:
   download-configuration-anchor: http://localhost:%s/execute
+  diagnostics-base-url: http://localhost

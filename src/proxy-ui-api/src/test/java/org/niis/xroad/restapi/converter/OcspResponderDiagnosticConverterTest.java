@@ -32,14 +32,11 @@ import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalTime;
 import java.util.Arrays;

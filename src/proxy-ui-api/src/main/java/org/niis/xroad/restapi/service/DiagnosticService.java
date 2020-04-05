@@ -42,6 +42,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -60,13 +62,19 @@ import java.util.stream.Collectors;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
-    private static final String DIAGNOSTICS_BASE_URL = "http://localhost";
     private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
     private static final String CONF_CLIENT_ADMIN_PATH = "status";
     private static final int TIMESTAMPING_SERVICE_ADMIN_PORT = PortNumbers.ADMIN_PORT;
     private static final String TIMESTAMPING_SERVICE_ADMIN_PATH = "timestampstatus";
     private static final int SIGNER_ADMIN_PORT = SystemProperties.getSignerAdminPort();
     private static final String SIGNER_ADMIN_PATH = "status";
+
+    private final String diagnosticsBaseUrl;
+
+    @Autowired
+    public DiagnosticService(@Value("${url.diagnostics-base-url}") String diagnosticsBaseUrl) {
+        this.diagnosticsBaseUrl = diagnosticsBaseUrl;
+    }
 
     /**
      * Query global configuration status from admin port over HTTP.
@@ -186,7 +194,7 @@ public class DiagnosticService {
      * @return
      */
     private String buildUri(int port, String path) {
-        StringBuilder sb = new StringBuilder(DIAGNOSTICS_BASE_URL);
+        StringBuilder sb = new StringBuilder(diagnosticsBaseUrl);
         sb.append(":").append(port).append("/").append(path);
         return sb.toString();
     }
