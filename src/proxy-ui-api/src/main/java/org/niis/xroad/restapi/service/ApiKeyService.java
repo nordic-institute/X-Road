@@ -47,6 +47,12 @@ import java.util.UUID;
 /**
  * ApiKey service.
  * Uses simple caching, using ConcurrentHashMaps in memory.
+ * This class uses method level authentication instead of class
+ * level authentication on purpose. Some methods are used by
+ * ApiKeyAuthenticationManager during the authentication process
+ * when the request has not been authenticated yet. Methods
+ * that are used by authenticated users are annotated with
+ * the PreAuthorize annotation.
  */
 @Slf4j
 @Service
