@@ -51,6 +51,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
  * Service that handles tokens
@@ -276,7 +277,6 @@ public class TokenService {
     static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
 
-
     /**
      * Get TokenInfo for key id
      */
@@ -332,6 +332,15 @@ public class TokenService {
         } catch (Exception other) {
             throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
         }
+    }
+
+    /**
+     * Check if there are any tokens that are not software tokens
+     * @return true if there are any other than software tokens present
+     */
+    public boolean hasHardwareTokens() {
+        List<TokenInfo> allTokens = getAllTokens();
+        return allTokens.stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
     }
 
     public static class PinIncorrectException extends ServiceException {

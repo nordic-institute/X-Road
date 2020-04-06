@@ -69,7 +69,8 @@ public class RestoreService {
     }
 
     /**
-     * Restores the security server configuration from a backup
+     * Restores the security server configuration from a backup. Any tokens that are not software tokens are logged
+     * out by the current restore script.
      * @param fileName name of the backup file
      * @throws BackupFileNotFoundException
      * @throws InterruptedException execution of the restore script was interrupted
