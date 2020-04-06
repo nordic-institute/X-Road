@@ -47,16 +47,11 @@ import java.util.UUID;
 /**
  * ApiKey service.
  * Uses simple caching, using ConcurrentHashMaps in memory.
- * This class uses method level authentication instead of class
- * level authentication on purpose. Some methods are used by
- * ApiKeyAuthenticationManager during the authentication process
- * when the request has not been authenticated yet. Methods
- * that are used by authenticated users are annotated with
- * the PreAuthorize annotation.
  */
 @Slf4j
 @Service
 @Transactional
+@PreAuthorize("isAuthenticated()")
 public class ApiKeyService {
 
     // two caches
@@ -77,7 +72,6 @@ public class ApiKeyService {
      * which is cryptographically secure.
      * @return
      */
-    @PreAuthorize("isAuthenticated()")
     private String createApiKey() {
         return UUID.randomUUID().toString();
     }
@@ -85,7 +79,6 @@ public class ApiKeyService {
     /**
      * create api key with one role
      */
-    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType create(String roleName) throws InvalidRoleNameException {
         return create(Collections.singletonList(roleName));
@@ -96,7 +89,6 @@ public class ApiKeyService {
      * @return new PersistentApiKeyType that contains the new key in plain text
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
-    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType create(Collection<String> roleNames)
             throws InvalidRoleNameException {
@@ -119,7 +111,6 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType update(long id, String roleName)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
@@ -134,7 +125,6 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
@@ -151,7 +141,6 @@ public class ApiKeyService {
         return apiKeyType;
     }
 
-    @PreAuthorize("isAuthenticated()")
     private String encode(String key) {
         return passwordEncoder.encode(key);
     }
@@ -179,7 +168,6 @@ public class ApiKeyService {
      * @param key
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void remove(String key) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = get(key);
@@ -191,7 +179,6 @@ public class ApiKeyService {
      * @param id
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @PreAuthorize("isAuthenticated()")
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void removeById(long id) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
@@ -205,7 +192,6 @@ public class ApiKeyService {
      * List all keys
      * @return
      */
-    @PreAuthorize("isAuthenticated()")
     @Cacheable(LIST_ALL_KEYS_CACHE)
     public List<PersistentApiKeyType> listAll() {
         return apiKeyRepository.getAllApiKeys();
@@ -213,7 +199,7 @@ public class ApiKeyService {
 
     public static class ApiKeyNotFoundException extends NotFoundException {
         public static final String ERROR_API_KEY_NOT_FOUND = "api_key_not_found";
-        ApiKeyNotFoundException(String s) {
+        public ApiKeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_API_KEY_NOT_FOUND));
         }
     }

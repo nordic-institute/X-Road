@@ -22,47 +22,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 /**
- * API key repository which stores encoded keys in DB.
+ * AuthenticationHelper class.
+ * This class does require authentication.
+ * Uses simple caching, using ConcurrentHashMaps in memory.
  */
 @Slf4j
-@Repository
+@Service
 @Transactional
-public class ApiKeyRepository {
-
-    private final PersistenceUtils persistenceUtils;
+public class ApiKeyAuthenticationHelper {
+    private final PasswordEncoder passwordEncoder;
+    private final ApiKeyRepository apiKeyRepository;
 
     @Autowired
-    public ApiKeyRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public ApiKeyAuthenticationHelper(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.apiKeyRepository = apiKeyRepository;
     }
 
-    public void saveOrUpdate(PersistentApiKeyType persistentApiKeyType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(persistentApiKeyType);
-    }
-
-    public void delete(PersistentApiKeyType persistentApiKeyType) {
-        persistenceUtils.getCurrentSession().delete(persistentApiKeyType);
-    }
-
-    public PersistentApiKeyType getApiKey(long id) {
-        return new PersistentApiKeyDAOImpl().findById(persistenceUtils.getCurrentSession(), id);
-    }
-
-    public List<PersistentApiKeyType> getAllApiKeys() {
-        log.debug("get all api keys from db");
-        return new PersistentApiKeyDAOImpl().findAll(persistenceUtils.getCurrentSession());
+    /**
+     * get matching key
+     * @param key
+     * @return
+     * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
+     */
+    @Cacheable(ApiKeyService.GET_KEY_CACHE)
+    public PersistentApiKeyType get(String key) throws ApiKeyService.ApiKeyNotFoundException {
+        String encodedKey = passwordEncoder.encode(key);
+        List<PersistentApiKeyType> keys = apiKeyRepository.getAllApiKeys();
+        for (PersistentApiKeyType apiKeyType : keys) {
+            if (apiKeyType.getEncodedKey().equals(encodedKey)) {
+                return apiKeyType;
+            }
+        }
+        throw new ApiKeyService.ApiKeyNotFoundException("api key not found");
     }
 }
