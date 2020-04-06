@@ -265,7 +265,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(refreshed.getRefreshedAt().isAfter(serviceDescription.getRefreshedAt()));
     }
 
-    @Test(expected = AccessDeniedException.class)
+    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "REFRESH_REST" })
     public void refreshRestServiceDescriptionWithoutRights() {
         serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarnings().ignoreWarnings(false));
