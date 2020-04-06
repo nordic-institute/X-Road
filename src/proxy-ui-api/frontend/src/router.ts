@@ -1,4 +1,4 @@
-import Router, { Route, NavigationGuard } from 'vue-router';
+import Router, { NavigationGuard, Route } from 'vue-router';
 import { sync } from 'vuex-router-sync';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AppLogin from '@/views/AppLogin.vue';
@@ -37,6 +37,7 @@ import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue'
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import EndpointDetails from '@/views/Service/Endpoints/EndpointDetails.vue';
 import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
+import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -79,6 +80,13 @@ const router = new Router({
               meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
             },
           ],
+        },
+        {
+          name: RouteName.CreateApiKey,
+          path: '/keys/apikey/create',
+          component: CreateApiKeyStepper,
+          props: true,
+          meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
         },
         {
           name: RouteName.GenerateInternalCSR,

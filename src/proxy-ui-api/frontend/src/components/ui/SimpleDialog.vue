@@ -2,7 +2,9 @@
   <v-dialog :value="dialog" :width="width" persistent>
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
-        <span data-test="dialog-title" class="headline">{{$t(title)}}</span>
+        <slot name="title">
+          <span data-test="dialog-title" class="headline">{{$t(title)}}</span>
+        </slot>
         <v-spacer />
         <i v-if="showClose" @click="cancel()" id="dlg-close-x"></i>
       </v-card-title>
@@ -41,7 +43,7 @@ export default Vue.extend({
     // Title of the dialog
     title: {
       type: String,
-      required: true,
+      required: false,
     },
     // Dialog visible / hidden
     dialog: {
