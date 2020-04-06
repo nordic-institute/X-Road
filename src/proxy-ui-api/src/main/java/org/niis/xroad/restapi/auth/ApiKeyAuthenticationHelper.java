@@ -37,8 +37,7 @@ import java.util.List;
 
 /**
  * AuthenticationHelper class.
- * This class does require authentication.
- * Uses simple caching, using ConcurrentHashMaps in memory.
+ * This class does not require authentication.
  */
 @Slf4j
 @Service
