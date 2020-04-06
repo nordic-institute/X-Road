@@ -133,7 +133,7 @@ public class BackupService {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         String filename = generateBackupFileName();
         String fullPath = backupRepository.getConfigurationBackupPath() + filename;
-        String[] args = new String[] { "-s", securityServerId.toShortString(), "-f", fullPath };
+        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
 
         try {
             log.info("Run configuration backup with command '"

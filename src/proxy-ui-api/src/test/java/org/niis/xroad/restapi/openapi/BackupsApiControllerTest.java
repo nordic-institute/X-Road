@@ -31,12 +31,13 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
-import org.niis.xroad.restapi.openapi.model.BackupFileName;
+import org.niis.xroad.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
 import org.niis.xroad.restapi.service.RestoreService;
+import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -59,6 +60,8 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -77,6 +80,8 @@ public class BackupsApiControllerTest {
     private BackupService backupService;
     @MockBean
     private RestoreService restoreService;
+    @MockBean
+    private TokenService tokenService;
 
     @Autowired
     private BackupsApiController backupsApiController;
@@ -104,6 +109,7 @@ public class BackupsApiControllerTest {
         bf2.setCreatedAt(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
         when(backupService.getBackupFiles()).thenReturn(new ArrayList<>(Arrays.asList(bf1, bf2)));
+        when(tokenService.hasHardwareTokens()).thenReturn(false);
     }
 
     @Test
@@ -149,7 +155,7 @@ public class BackupsApiControllerTest {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void deleteBackup() {
         ResponseEntity<Void> response = backupsApiController
-                .deleteBackup(new BackupFileName().filename(BACKUP_FILE_1_NAME));
+                .deleteBackup(BACKUP_FILE_1_NAME);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
     }
@@ -162,7 +168,7 @@ public class BackupsApiControllerTest {
         doThrow(new BackupFileNotFoundException("")).when(backupService).deleteBackup(filename);
 
         try {
-            ResponseEntity<Void> response = backupsApiController.deleteBackup(new BackupFileName().filename(filename));
+            ResponseEntity<Void> response = backupsApiController.deleteBackup(filename);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
@@ -176,7 +182,7 @@ public class BackupsApiControllerTest {
         when(backupService.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
 
         ResponseEntity<Resource> response = backupsApiController
-                .downloadBackup(new BackupFileName().filename(BACKUP_FILE_1_NAME));
+                .downloadBackup(BACKUP_FILE_1_NAME);
         Resource backup = response.getBody();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(bytes.length, backup.contentLength());
@@ -191,7 +197,7 @@ public class BackupsApiControllerTest {
 
         try {
             ResponseEntity<Resource> response = backupsApiController
-                    .downloadBackup(new BackupFileName().filename(filename));
+                    .downloadBackup(filename);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
@@ -279,9 +285,22 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
     public void restoreFromBackup() {
-        ResponseEntity<Void> response = backupsApiController
-                .restoreBackup(new BackupFileName().filename(BACKUP_FILE_1_NAME));
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        ResponseEntity<TokensLoggedOut> response = backupsApiController
+                .restoreBackup(BACKUP_FILE_1_NAME);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        TokensLoggedOut tokensLoggedOut = response.getBody();
+        assertFalse(tokensLoggedOut.getHsmTokensLoggedOut());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackupWithLoggedOutTokens() {
+        when(tokenService.hasHardwareTokens()).thenReturn(true);
+        ResponseEntity<TokensLoggedOut> response = backupsApiController
+                .restoreBackup(BACKUP_FILE_1_NAME);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        TokensLoggedOut tokensLoggedOut = response.getBody();
+        assertTrue(tokensLoggedOut.getHsmTokensLoggedOut());
     }
 
     @Test
@@ -289,7 +308,7 @@ public class BackupsApiControllerTest {
     public void restoreFromBackupNotFound() throws Exception {
         doThrow(new BackupFileNotFoundException("")).when(restoreService).restoreFromBackup(any());
         try {
-            backupsApiController.restoreBackup(new BackupFileName().filename(BACKUP_FILE_1_NAME));
+            backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw BadRequestException");
         } catch (BadRequestException e) {
             assertEquals(BackupFileNotFoundException.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
@@ -301,7 +320,7 @@ public class BackupsApiControllerTest {
     public void restoreFromBackupInterrupted() throws Exception {
         doThrow(new InterruptedException()).when(restoreService).restoreFromBackup(any());
         try {
-            backupsApiController.restoreBackup(new BackupFileName().filename(BACKUP_FILE_1_NAME));
+            backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException e) {
             // expected

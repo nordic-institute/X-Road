@@ -183,10 +183,12 @@ paths:
           content:
             application/json:
               schema:
+                description: response that tells if tokens were logged out during the restore process
                 title: TokensLoggedOut
                 type: object
                 properties:
                   hsm_tokens_logged_out:
+                    description: whether any hsm tokens were logged out during the restore process
                     type: boolean
                     default: false
         '400':
