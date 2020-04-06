@@ -30,6 +30,7 @@ import org.hibernate.query.Query;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test api key service caching while mocking DB
+ * Test api key service and api key authentication helper
+ * caching while mocking DB
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -65,6 +67,9 @@ public class ApiKeyServiceCachingIntegrationTest {
 
     @Autowired
     private ApiKeyService apiKeyService;
+
+    @Autowired
+    ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
 
     @MockBean
     private EntityManager entityManager;
@@ -77,10 +82,16 @@ public class ApiKeyServiceCachingIntegrationTest {
 
     @Test
     @WithMockUser
-    public void testList() {
+    public void testList() throws Exception {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         when(query.list()).thenReturn(new ArrayList());
+        // No keys
+        apiKeyService.listAll();
+        apiKeyService.listAll();
+        verify(query, times(0)).list();
+        // Create one key and then get it
+        PersistentApiKeyType key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
         apiKeyService.listAll();
         apiKeyService.listAll();
         verify(query, times(1)).list();
@@ -100,26 +111,30 @@ public class ApiKeyServiceCachingIntegrationTest {
         // then get this key
         apiKeyService.get(key.getPlaintTextKey());
         apiKeyService.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
         verify(query, times(1)).list();
 
-        // list uses a different cache
+        // list uses the same cache
         apiKeyService.listAll();
         apiKeyService.listAll();
-        verify(query, times(2)).list();
+        verify(query, times(1)).list();
 
         // create new key to force cache invalidation
         apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
         apiKeyService.listAll();
         apiKeyService.listAll();
-        verify(query, times(3)).list();
+        verify(query, times(2)).list();
 
         // revoke a key to force cache invalidation
-        // (remove(key) itself already uses query.findAll)
+        // (remove(key) itself already uses query.findAll,
+        // but it's a cache hit)
         apiKeyService.remove(key.getPlaintTextKey());
-        verify(query, times(4)).list();
+        verify(query, times(2)).list();
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
         apiKeyService.get(key.getPlaintTextKey());
         apiKeyService.get(key.getPlaintTextKey());
-        verify(query, times(5)).list();
+        verify(query, times(3)).list();
     }
 
     @Test
@@ -135,6 +150,7 @@ public class ApiKeyServiceCachingIntegrationTest {
         when(query.list()).thenReturn(listOfOne);
         // then get this key
         apiKeyService.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
         apiKeyService.get(key.getPlaintTextKey());
         verify(query, times(1)).list();
     }
