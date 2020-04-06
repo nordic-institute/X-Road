@@ -29,7 +29,6 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +59,6 @@ public class ApiKeyAuthenticationHelper {
      * @return
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @Cacheable(ApiKeyService.GET_KEY_CACHE)
     public PersistentApiKeyType get(String key) throws ApiKeyService.ApiKeyNotFoundException {
         String encodedKey = passwordEncoder.encode(key);
         List<PersistentApiKeyType> keys = apiKeyRepository.getAllApiKeys();

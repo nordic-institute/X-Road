@@ -31,8 +31,6 @@ import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,17 +44,12 @@ import java.util.UUID;
 
 /**
  * ApiKey service.
- * Uses simple caching, using ConcurrentHashMaps in memory.
  */
 @Slf4j
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class ApiKeyService {
-
-    // two caches
-    public static final String GET_KEY_CACHE = "apikey-by-keys";
-    public static final String LIST_ALL_KEYS_CACHE = "all-apikeys";
 
     private final PasswordEncoder passwordEncoder;
     private final ApiKeyRepository apiKeyRepository;
@@ -79,7 +72,6 @@ public class ApiKeyService {
     /**
      * create api key with one role
      */
-    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType create(String roleName) throws InvalidRoleNameException {
         return create(Collections.singletonList(roleName));
     }
@@ -89,7 +81,6 @@ public class ApiKeyService {
      * @return new PersistentApiKeyType that contains the new key in plain text
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
-    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType create(Collection<String> roleNames)
             throws InvalidRoleNameException {
         if (roleNames.isEmpty()) {
@@ -111,7 +102,6 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType update(long id, String roleName)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
         return update(id, Collections.singletonList(roleName));
@@ -125,7 +115,6 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
@@ -151,7 +140,6 @@ public class ApiKeyService {
      * @return
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @Cacheable(GET_KEY_CACHE)
     public PersistentApiKeyType get(String key) throws ApiKeyService.ApiKeyNotFoundException {
         String encodedKey = passwordEncoder.encode(key);
         List<PersistentApiKeyType> keys = apiKeyRepository.getAllApiKeys();
@@ -168,7 +156,6 @@ public class ApiKeyService {
      * @param key
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void remove(String key) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = get(key);
         apiKeyRepository.delete(apiKeyType);
@@ -179,7 +166,6 @@ public class ApiKeyService {
      * @param id
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void removeById(long id) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
         if (apiKeyType == null) {
@@ -192,7 +178,6 @@ public class ApiKeyService {
      * List all keys
      * @return
      */
-    @Cacheable(LIST_ALL_KEYS_CACHE)
     public List<PersistentApiKeyType> listAll() {
         return apiKeyRepository.getAllApiKeys();
     }
