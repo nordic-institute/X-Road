@@ -29,6 +29,8 @@ import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,12 +38,14 @@ import java.util.List;
 
 /**
  * API key repository which stores encoded keys in DB.
+ * Uses simple caching, using ConcurrentHashMaps in memory.
  */
 @Slf4j
 @Repository
 @Transactional
 public class ApiKeyRepository {
-
+    public static final String LIST_ALL_KEYS_CACHE = "all-apikeys";
+    public static final String GET_KEY_CACHE = "apikey-by-keys";
     private final PersistenceUtils persistenceUtils;
 
     @Autowired
@@ -49,19 +53,25 @@ public class ApiKeyRepository {
         this.persistenceUtils = persistenceUtils;
     }
 
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void saveOrUpdate(PersistentApiKeyType persistentApiKeyType) {
         persistenceUtils.getCurrentSession().saveOrUpdate(persistentApiKeyType);
     }
 
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void delete(PersistentApiKeyType persistentApiKeyType) {
         persistenceUtils.getCurrentSession().delete(persistentApiKeyType);
     }
 
+    @Cacheable(GET_KEY_CACHE)
     public PersistentApiKeyType getApiKey(long id) {
+        log.debug("get one api key from db");
         return new PersistentApiKeyDAOImpl().findById(persistenceUtils.getCurrentSession(), id);
     }
 
+    @Cacheable(LIST_ALL_KEYS_CACHE)
     public List<PersistentApiKeyType> getAllApiKeys() {
+        log.debug("get all api keys from db");
         return new PersistentApiKeyDAOImpl().findAll(persistenceUtils.getCurrentSession());
     }
 }

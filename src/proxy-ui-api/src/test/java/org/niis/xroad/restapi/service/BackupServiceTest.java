@@ -144,7 +144,7 @@ public class BackupServiceTest {
         when(backupRepository.getBackupFiles()).thenThrow(new RuntimeException());
 
         try {
-            List<BackupFile> backups = backupService.getBackupFiles();
+            backupService.getBackupFiles();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
             // success
@@ -179,7 +179,7 @@ public class BackupServiceTest {
     @Test
     public void downloadNonExistingBackup() {
         try {
-            byte[] response = backupService.readBackupFile("test_file.tar");
+            backupService.readBackupFile("test_file.tar");
             fail("should throw BackupFileNotFoundException");
         } catch (BackupFileNotFoundException expected) {
             // success
@@ -187,10 +187,10 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void addBackupFails() throws ProcessNotExecutableException, ProcessFailedException, InterruptedException {
-        when(externalProcessRunner.execute(any())).thenThrow(new RuntimeException(new ProcessFailedException("")));
+    public void addBackupFails() throws Exception {
+        when(externalProcessRunner.executeAndThrowOnFailure(any(), any())).thenThrow(new ProcessFailedException(""));
         try {
-            BackupFile backupFile = backupService.generateBackup();
+            backupService.generateBackup();
             fail("should throw ProcessFailedException");
         } catch (DeviationAwareRuntimeException expected) {
             // success

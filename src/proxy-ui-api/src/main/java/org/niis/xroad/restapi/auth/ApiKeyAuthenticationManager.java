@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
 public class ApiKeyAuthenticationManager implements AuthenticationManager {
 
     @Autowired
-    private ApiKeyService apiKeyService;
+    private ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
 
     @Autowired
     private AuthenticationHeaderDecoder authenticationHeaderDecoder;
@@ -60,7 +60,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
         PersistentApiKeyType key;
 
         try {
-            key = apiKeyService.get(apiKeyValue);
+            key = apiKeyAuthenticationHelper.get(apiKeyValue);
         } catch (ApiKeyService.ApiKeyNotFoundException notFound) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
         } catch (Exception e) {
