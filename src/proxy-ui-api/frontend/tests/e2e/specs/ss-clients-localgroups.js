@@ -112,12 +112,14 @@ module.exports = {
     clientLocalGroups.enterCode('abb');
     clientLocalGroups.confirmAddDialog();
     browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "409")]]');
+    mainPage.closeSnackbar();
  
     // Add a new group and verify
     clientLocalGroups.enterCode('abc');
     clientLocalGroups.enterDescription('addDesc');
     clientLocalGroups.confirmAddDialog();
     browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Local group added")]]');
+    mainPage.closeSnackbar();
 
     browser
       .waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)[2]//span[contains(text(),"1122")]')
@@ -274,14 +276,16 @@ module.exports = {
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,256));
     localGroupPopup.clickHeader();
-    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');;
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');
+    mainPage.closeSnackbar();
     localGroupPopup.close();
-    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]')
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]');
     clientLocalGroups.openCbbDetails();
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,255));
     localGroupPopup.clickHeader();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
+    mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "'+browser.globals.test_string_300.slice(0,255)+'")]]')
     clientLocalGroups.openCbbDetails();
@@ -289,6 +293,7 @@ module.exports = {
     localGroupPopup.changeDescription('GroupChanged');
     localGroupPopup.clickHeader();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
+    mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "GroupChanged")]]')
     browser.end();
