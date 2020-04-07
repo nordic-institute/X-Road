@@ -39,6 +39,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -272,5 +274,14 @@ public final class TestUtils {
         }
         assertNotNull(resource);
         return resource;
+    }
+
+    /**
+     * Convert date time string "yyyy-MM-ddTHH:mm:ss.SSS" to milliseconds
+     * @param dateTimeStr
+     * @return
+     */
+    public static Long fromDateTimeToMilliseconds(String dateTimeStr) {
+        return LocalDateTime.parse(dateTimeStr).atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();
     }
 }
