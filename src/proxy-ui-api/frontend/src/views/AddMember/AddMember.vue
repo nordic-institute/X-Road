@@ -7,55 +7,76 @@
       :showClose="false"
       data-test="wizard-title"
     />
+    <v-switch v-model="allSteps" />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
-      <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('wizard.token.title')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('wizard.signKey.title')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 4" step="4">{{$t('csr.csrDetails')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
-      </v-stepper-header>
+      <template v-if="addMemberMode === 'ALL'">
+        <v-stepper-header class="noshadow">
+          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 2" step="2">{{$t('wizard.token.title')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 3" step="3">{{$t('wizard.signKey.title')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 4" step="4">{{$t('csr.csrDetails')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
+        </v-stepper-header>
+      </template>
+
+      <template v-if="addMemberMode === 'CERT'">
+        <v-stepper-header class="noshadow">
+          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.csrDetails')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 3" step="3">{{$t('csr.generateCsr')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 4" step="4">{{$t('wizard.finish.title')}}</v-stepper-step>
+        </v-stepper-header>
+      </template>
+
+      <template v-if="addMemberMode === 'NONE'">
+        <v-stepper-header class="noshadow">
+          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+        </v-stepper-header>
+      </template>
 
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <MemberDetailsPage @cancel="cancel" @done="clientDetailsReady" />
+          <MemberDetailsPage @cancel="cancel" @done="currentStep++" />
         </v-stepper-content>
         <!-- Step 2 -->
-        <v-stepper-content step="2">
-          <TokenPage @cancel="cancel" @previous="tokenPrevious" @done="tokenReady" />
+        <v-stepper-content :step="tokenPageNumber">
+          <TokenPage @cancel="cancel" @previous="previousPage" @done="tokenReady" />
         </v-stepper-content>
         <!-- Step 3 -->
-        <v-stepper-content step="3">
-          <SignKeyPage @cancel="cancel" @previous="signKeyPrevious" @done="signKeyReady" />
+        <v-stepper-content :step="keyPageNumber">
+          <SignKeyPage @cancel="cancel" @previous="previousPage" @done="currentStep++" />
         </v-stepper-content>
         <!-- Step 4 -->
-        <v-stepper-content step="4">
+        <v-stepper-content :step="csrDetailsPageNumber">
           <WizardPageCsrDetails
             @cancel="cancel"
-            @previous="csrDetailsPrevious"
+            @previous="previousPage"
             @done="csrDetailsReady"
             saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 5 -->
-        <v-stepper-content step="5">
+        <v-stepper-content :step="csrGeneratePageNumber">
           <GenerateCsrPage
             @cancel="cancel"
-            @previous="generateCsrPrevious"
-            @done="generateCsrReady"
+            @previous="previousPage"
+            @done="currentStep++"
             saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 6 -->
-        <v-stepper-content step="6">
-          <FinishPage @cancel="cancel" @previous="finishPrevious" @done="done" />
+        <v-stepper-content :step="finishPageNumber">
+          <FinishPage @cancel="cancel" @previous="previousPage" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -95,27 +116,53 @@ export default Vue.extend({
   data() {
     return {
       currentStep: 1,
+      allSteps: true,
     };
   },
-  methods: {
-    save(): void {
-      this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
-          this.currentStep = 2;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+
+  computed: {
+    ...mapGetters(['addMemberMode']),
+
+    tokenPageNumber(): number {
+      if (this.addMemberMode === 'CERT') {
+        return 999;
+      }
+      return 2;
     },
+
+    keyPageNumber(): number {
+      if (this.addMemberMode === 'CERT') {
+        return 999;
+      }
+      return 3;
+    },
+    csrDetailsPageNumber(): number {
+      if (this.addMemberMode === 'CERT') {
+        return 2;
+      }
+      return 4;
+    },
+
+    csrGeneratePageNumber(): number {
+      if (this.addMemberMode === 'CERT') {
+        return 3;
+      }
+      return 5;
+    },
+
+    finishPageNumber(): number {
+      if (this.addMemberMode === 'CERT') {
+        return 4;
+      }
+      return 6;
+    },
+  },
+
+  methods: {
     cancel(): void {
       this.$store.dispatch('resetState');
       this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
-    },
-
-    clientDetailsReady(): void {
-      this.currentStep = 2;
     },
 
     tokenReady(): void {
@@ -130,40 +177,19 @@ export default Vue.extend({
       });
     },
 
-    signKeyReady(): void {
-      this.currentStep = 4;
-    },
     csrDetailsReady(): void {
       this.$store.dispatch('fetchCsrForm').then(
         (response) => {
-          this.currentStep = 5;
+          this.currentStep++;
         },
         (error) => {
           this.$store.dispatch('showError', error);
         },
       );
     },
-    generateCsrReady(): void {
-      this.currentStep = 6;
-    },
 
-    tokenPrevious(): void {
-      this.currentStep = 1;
-    },
-
-    signKeyPrevious(): void {
-      this.currentStep = 2;
-    },
-
-    csrDetailsPrevious(): void {
-      this.currentStep = 3;
-    },
-    generateCsrPrevious(): void {
-      this.currentStep = 4;
-    },
-
-    finishPrevious(): void {
-      this.currentStep = 5;
+    previousPage(): void {
+      this.currentStep--;
     },
 
     done(): void {

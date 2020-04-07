@@ -55,6 +55,19 @@ export const getters: GetterTree<AddClientState, RootState> = {
   reservedClients(state: AddClientState): Client[] {
     return state.reservedClients;
   },
+
+  addMemberMode(state: AddClientState): string {
+    if (state.memberCode === 'all') {
+      return 'ALL';
+    }
+
+    if (state.memberCode === 'cert') {
+      return 'CERT';
+    }
+
+    return 'NONE';
+  },
+
 };
 
 export const mutations: MutationTree<AddClientState> = {

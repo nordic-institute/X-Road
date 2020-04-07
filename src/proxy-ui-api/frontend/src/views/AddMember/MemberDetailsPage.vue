@@ -49,19 +49,6 @@
         </ValidationProvider>
       </div>
 
-      <div class="row-wrap">
-        <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
-
-        <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            v-model="subsystemCode"
-            data-test="subsystem-code-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
       <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
       <div class="button-footer">
         <div class="button-group">
@@ -125,15 +112,6 @@ export default Vue.extend({
       },
     },
 
-    subsystemCode: {
-      get(): string {
-        return this.$store.getters.subsystemCode;
-      },
-      set(value: string) {
-        this.$store.commit('setSubsystemCode', value);
-      },
-    },
-
     selectedMember: {
       get(): Client {
         return this.$store.getters.selectedMember;
@@ -144,7 +122,7 @@ export default Vue.extend({
     },
 
     duplicateClient(): boolean {
-      if (!this.memberClass || !this.memberCode || !this.subsystemCode) {
+      if (!this.memberClass || !this.memberCode) {
         return false;
       }
 
@@ -158,9 +136,6 @@ export default Vue.extend({
             return false;
           }
 
-          if (e.subsystem_code !== this.subsystemCode) {
-            return false;
-          }
           return true;
         })
       ) {
