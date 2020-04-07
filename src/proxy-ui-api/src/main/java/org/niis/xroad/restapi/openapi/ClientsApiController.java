@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -45,7 +44,6 @@ import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.converter.SubjectTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -88,7 +86,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
