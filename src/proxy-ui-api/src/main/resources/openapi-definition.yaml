@@ -1017,7 +1017,7 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get service clients for the selected client
+      summary: get service clients for the selected client's services
       operationId: getClientServiceClients
       description: Administrator views the service clients for the client.
       parameters:
@@ -1079,7 +1079,8 @@ paths:
                 id:
                   type: string
                   format: text
-                  description: id of the service client
+# should we also pass ServiceClientType to make this more robust?
+                  description: id of the service client, format = ServiceClient.id
                   minLength: 1
                   maxLength: 1279
       responses:
@@ -1432,13 +1433,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/subjects:
+  /clients/{id}/service-client-candidates:
     get: # ok
       tags:
         - security server
-      summary: find access right subjects
-      operationId: findSubjects
-      description: Administrator views the clients, globalgroups and localgroups of the security server as access right subjects
+      summary: find ServiceClient candidates for a specific client
+      operationId: findServiceClientCandidates
+      description: Administrator views the clients, globalgroups and localgroups, that could be added as ServiceClients for given Client's services
       parameters:
         - in: path
           name: id
@@ -1460,14 +1461,14 @@ paths:
             minLength: 0
             maxLength: 255
         - in: query
-          name: subject_type
-          description: pass an optional search string (subject_type) for looking up subjects
+          name: service_client_type
+          description: pass an optional search string (service_client_type) for looking up service clients
           required: false
           schema:
-            $ref: '#/components/schemas/SubjectType'
+            $ref: '#/components/schemas/ServiceClientType'
         - in: query
           name: instance
-          description: pass an optional search string (instance) for looking up subjects - full instance id should be used
+          description: pass an optional search string (instance) for looking up service clients - full instance id should be used
           example: GOV
           required: false
           schema:
@@ -1477,7 +1478,7 @@ paths:
             maxLength: 255
         - in: query
           name: member_class
-          description: pass an optional search string (member_class) for looking up subjects
+          description: pass an optional search string (member_class) for looking up service clients
           required: false
           schema:
             type: string
@@ -1486,7 +1487,7 @@ paths:
             maxLength: 255
         - in: query
           name: member_group_code
-          description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
+          description: pass an optional search string (member_group_code) for looking up service clients - member_code of a member or group_code of a group
           example: 1234 | Example group code
           required: false
           schema:
@@ -1496,7 +1497,7 @@ paths:
             maxLength: 255
         - in: query
           name: subsystem_code
-          description: pass an optional search string (subsystem_code) for looking up subjects
+          description: pass an optional search string (subsystem_code) for looking up service clients
           example: Subsystem1
           required: false
           schema:
@@ -1506,15 +1507,15 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: list of subjects
+          description: list of service clients
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
-                description: array of Subjects
+                description: array of ServiceClients
                 items:
-                  $ref: '#/components/schemas/Subject'
+                  $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
         '401':
@@ -2416,13 +2417,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /services/{id}/access-rights:
+  /services/{id}/service-clients:
     get: # ok
       tags:
         - security server
-      summary: get access rights for the selected service
-      operationId: getServiceAccessRights
-      description: Administrator views service access rights.
+      summary: get service clients who have access rights for the selected service
+      operationId: getServiceServiceClients
+      description: Administrator views service clients who have access to the given service
       parameters:
         - in: path
           name: id
@@ -2436,7 +2437,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: list of service client and access rights
+          description: list of service clients
           content:
             application/json:
               schema:
@@ -2460,9 +2461,9 @@ paths:
     post:
       tags:
         - security server
-      summary: add new access right for the selected service
-      operationId: addServiceAccessRight
-      description: Adds access right to the service
+      summary: add access rights to selected service for new ServiceClients
+      operationId: addServiceServiceClients
+      description: Adds access rights to selected service for new ServiceClients
       parameters:
         - in: path
           name: id
@@ -2477,7 +2478,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '201':
           description: access rights added
@@ -2503,13 +2504,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /services/{id}/access-rights/delete:
+  /services/{id}/service-clients/delete:
     post: # ok
       tags:
         - security server
-      summary: remove access right
-      operationId: deleteServiceAccessRight
-      description: Administrator removes access right from selected service.
+      summary: remove access to selected service from given ServiceClients
+      operationId: deleteServiceServiceClients
+      description: Administrator removes access to selected service from given ServiceClients
       parameters:
         - in: path
           name: id
@@ -2524,7 +2525,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '204':
           description: access right(s) deletion was successful
@@ -2646,12 +2647,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /endpoints/{id}/access-rights:
+  /endpoints/{id}/service-clients:
     get:
       tags:
         - security server
-      summary: get access rights for the selected endpoint
-      operationId: getEndpointAccessRights
+      summary: get service clients who have access rights for the selected endpoint
+      operationId: getEndpointServiceClients
       description: Administrator views endpoints access rights
       parameters:
         - in: path
@@ -2688,9 +2689,9 @@ paths:
     post:
       tags:
         - security server
-      summary: add access rights to the selected endpoint
-      operationId: addEndpointAccessRights
-      description: Administrator add access rights to the selected endpoint
+      summary: add access rights for given service clients to the selected endpoint (was addEndpointAccessRights)
+      operationId: addEndpointServiceClients
+      description: Administrator add access rights for a service clients to the selected endpoint
       parameters:
         - in: path
           name: id
@@ -2705,7 +2706,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '201':
           description: access rights added
@@ -2731,13 +2732,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /endpoints/{id}/access-rights/delete:
+  /endpoints/{id}/service-clients/delete:
     post:
       tags:
         - security server
-      summary: remove access rights from the selected endpoint
-      operationId: deleteEndpointAccessRights
-      description: Administrator removes access rights from an endpoint
+      summary: remove access rights from specified service clients to the selected endpoint
+      operationId: deleteEndpointServiceClients
+      description: Administrator removes access rights from a service clients to an endpoint
       parameters:
         - in: path
           name: id
@@ -2749,11 +2750,11 @@ paths:
             minLength: 1
             maxLength: 255
       requestBody:
-        description: list of access rights to be deleted
+        description: Service client to be removed
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '204':
           description: access right(s) deleted
@@ -2769,6 +2770,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+# I think it is more clear to have  /clients/{id}/service-clients/{id}/access-rights, I will probably change these 2 later         
   /service-clients/{id}/access-rights:
     get: # ok
       tags:
@@ -2821,9 +2823,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new access right for selected service client
-      operationId: addServiceClientAccessRight
-      description: Adds access right to the service client.
+      summary: add new access rights for selected service client
+      operationId: addServiceClientAccessRights
+      description: Adds access rights to the service client.
       parameters:
         - in: path
           name: id
@@ -2838,10 +2840,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+# same deal as with ServiceClient - do we use one AccessRight object, or do we have separate AccessRight and AccessRightCandidate / whatever, without rights_given_at etc
+              $ref: '#/components/schemas/AccessRights'
       responses:
         '201':
-          description: access right(s) added
+          description: access right that was added
           content:
             application/json:
               schema:
@@ -2868,9 +2871,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: remove access right
-      operationId: deleteServiceClientAccessRight
-      description: Administrator removes access right from selected service client.
+      summary: remove access rights
+      operationId: deleteServiceClientAccessRights
+      description: Administrator removes access rights from selected service client.
       parameters:
         - in: path
           name: id
@@ -2886,7 +2889,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/AccessRights'
       responses:
         '204':
           description: access right(s) deleted
@@ -4099,13 +4102,14 @@ components:
   schemas:
     AccessRight: # ok
       type: object
-      description: access right for clients and services
+      description: access right given for a specific subject (ServiceClient) for specific service (service_code) owner by some client (client_id). This object does not represent endpoint-level access rights
       required:
         - id
         - client_id
         - service_code
         - service_title
       properties:
+# is this key by PK or key by client_id + service_code? Latter would work, and we should prefer natural ids if we can? In that case, accessRight.id should be client_id + ":" + service_code?
         id:
           type: string
           format: text
@@ -4117,7 +4121,7 @@ components:
         client_id:
           type: string
           format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          description: id of the service's owner <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
           example: FI:GOV:123:ABC
           minLength: 1
           maxLength: 255
@@ -4130,6 +4134,7 @@ components:
           maxLength: 255
         service_title:
           type: string
+          readOnly: true
           format: text
           description: service title
           example: client deletion
@@ -4140,8 +4145,19 @@ components:
           format: date-time
           description: access right given at
           example: '2018-12-15T00:00:00.001Z'
+          readOnly: true
           minLength: 24
           maxLength: 24
+    AccessRights: # ok
+      type: object
+      description: object containing and array of AccessRights
+      properties:
+        items:
+          type: array
+          uniqueItems: true
+          description: array of AccessRights
+          items:
+            $ref: '#/components/schemas/AccessRight'
     Anchor: # ok
       type: object
       description: security server anchor
@@ -5153,22 +5169,60 @@ components:
           description: has endpoint been generated from openapi3 description
           example: true
           readOnly: true
+# consider if we need a separate ServiceClientCandidate object (without rights_given_at), or not
     ServiceClient: # ok
       type: object
-      description: service client
+      description: service client. May be a subsystem, local group, or a global group
       required:
-        - subject
-        - rights_given_at
+        - id
+        - subject_type
       properties:
-        subject:
-          $ref: '#/components/schemas/Subject'
+        id:
+          type: string
+          format: text
+          description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
+          minLength: 1
+          maxLength: 1279
+# maybe this could be just "name" and description would explain more? However, not really important
+        member_name_group_description:
+          type: string
+          format: text
+          description: name of the subject - can be the name of a member or the description of a group
+          example: Security server owners
+          readOnly: true
+          minLength: 1
+          maxLength: 255
+# I dont understand yet why we need this, when we already have id. Maybe there's a reason, did not study deeply. Could try to remove, to find out who uses. No time now though
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        service_client_type:
+          $ref: '#/components/schemas/ServiceClientType'
+# this feels a bit bad, like it should belong elsewhere. Rights given to what? At least description needs some work.
         rights_given_at:
           type: string
           format: date-time
           description: access right given at
           example: '2018-12-15T00:00:00.001Z'
+          readOnly: true
           minLength: 24
           maxLength: 24
+    ServiceClients: # ok
+      type: object
+      description: object containing and array of ServiceClients
+      properties:
+        items:
+          type: array
+          uniqueItems: true
+          description: array of ServiceClients
+          items:
+            $ref: '#/components/schemas/ServiceClient'
     ServiceDescription: # ok
       type: object
       description: WSDL/OPENAPI3/REST service
@@ -5298,39 +5352,7 @@ components:
         - WSDL
         - REST
         - OPENAPI3
-    Subject: # ok
-      type: object
-      description: subject
-      required:
-        - id
-        - subject_type
-      properties:
-        id:
-          type: string
-          format: text
-          description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
-          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          minLength: 1
-          maxLength: 1279
-        member_name_group_description:
-          type: string
-          format: text
-          description: name of the subject - can be the name of a member or the description of a group
-          example: Security server owners
-          readOnly: true
-          minLength: 1
-          maxLength: 255
-        local_group_code:
-          type: string
-          format: text
-          description: group code in case the object is a local group
-          example: My own Local group code
-          minLength: 1
-          maxLength: 255
-          readOnly: true
-        subject_type:
-          $ref: '#/components/schemas/SubjectType'
-    SubjectType: # ok
+    ServiceClientType: # ok
       type: string
       format: text
       description: subject type
@@ -5339,16 +5361,6 @@ components:
         - GLOBALGROUP
         - LOCALGROUP
         - SUBSYSTEM
-    Subjects: # ok
-      type: object
-      description: object containing and array of subject ids
-      properties:
-        items:
-          type: array
-          uniqueItems: true
-          description: array of subject ids
-          items:
-            $ref: '#/components/schemas/Subject'
     System: # ok
       type: object
       description: system parameters

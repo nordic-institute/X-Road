@@ -32,6 +32,7 @@ import java.time.OffsetDateTime;
 
 /**
  * DTO for Service and ServiceClient access rights
+ * TO DO: maybe rename? Is this ServiceClientDto?
  */
 @Data
 public class AccessRightHolderDto {

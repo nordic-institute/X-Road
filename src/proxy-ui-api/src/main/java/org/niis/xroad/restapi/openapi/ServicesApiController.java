@@ -38,8 +38,8 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
-import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
@@ -133,7 +133,8 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
-    public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String encodedServiceId) {
+    // TO DO: proper renaming across the board
+    public ResponseEntity<List<ServiceClient>> getServiceServiceClients(String encodedServiceId) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<AccessRightHolderDto> accessRightHolderDtos = null;
@@ -148,12 +149,12 @@ public class ServicesApiController implements ServicesApi {
 
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
-    public ResponseEntity<Void> deleteServiceAccessRight(String encodedServiceId, Subjects subjects) {
+    public ResponseEntity<Void> deleteServiceServiceClients(String encodedServiceId, ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         // LocalGroups with numeric ids (PK)
-        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(subjects);
-        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(subjects);
+        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(serviceClients);
+        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
@@ -167,11 +168,12 @@ public class ServicesApiController implements ServicesApi {
 
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
-    public ResponseEntity<List<ServiceClient>> addServiceAccessRight(String encodedServiceId, Subjects subjects) {
+    public ResponseEntity<List<ServiceClient>> addServiceServiceClients(String encodedServiceId,
+            ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(subjects);
-        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(subjects);
+        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(serviceClients);
+        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
         List<AccessRightHolderDto> accessRightHolderDtos;
         try {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
@@ -184,8 +186,9 @@ public class ServicesApiController implements ServicesApi {
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
         }
-        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
-        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+        List<ServiceClient> serviceClientsResult = serviceClientConverter.convertAccessRightHolderDtos(
+                accessRightHolderDtos);
+        return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 
     @Override

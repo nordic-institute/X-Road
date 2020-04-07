@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -84,6 +85,32 @@ public class SubjectConverter {
         return xRoadId;
     }
 
+    // TO DO: fix
+    public XRoadId convertId(ServiceClient serviceClient) {
+        XRoadObjectType subjectType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
+        String encodedId = serviceClient.getId();
+        int separators;
+        XRoadId xRoadId;
+        switch (subjectType) {
+            case SUBSYSTEM:
+                separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+                if (separators != ClientConverter.SUBSYSTEM_CODE_INDEX) {
+                    throw new BadRequestException("Invalid subsystem id " + encodedId);
+                }
+                xRoadId = clientConverter.convertId(encodedId);
+                break;
+            case GLOBALGROUP:
+                xRoadId = globalGroupConverter.convertId(encodedId);
+                break;
+            case LOCALGROUP:
+                xRoadId = LocalGroupId.create(serviceClient.getLocalGroupCode());
+                break;
+            default:
+                throw new BadRequestException("Invalid subject type");
+        }
+        return xRoadId;
+    }
+
     /**
      * Convert a group of {@link Subject subjects} to a list of {@link XRoadId xRoadIds}
      * @param subjects
@@ -91,6 +118,12 @@ public class SubjectConverter {
      */
     public List<XRoadId> convertId(Iterable<Subject> subjects) {
         return Streams.stream(subjects)
+                .map(this::convertId)
+                .collect(Collectors.toList());
+    }
+
+    public List<XRoadId> convertScId(Iterable<ServiceClient> serviceClients) {
+        return Streams.stream(serviceClients)
                 .map(this::convertId)
                 .collect(Collectors.toList());
     }

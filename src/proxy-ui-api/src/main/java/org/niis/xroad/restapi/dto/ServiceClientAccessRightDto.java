@@ -31,6 +31,11 @@ import java.time.OffsetDateTime;
 
 @Builder
 @Getter
+/**
+ * Access rights are given to a specific subject, for services owned by some client.
+ * ServiceClientAccessRightDto.clientId is id of the service owner
+ * (not the subject id)
+ */
 public class ServiceClientAccessRightDto {
     private String id;
     private String clientId;
