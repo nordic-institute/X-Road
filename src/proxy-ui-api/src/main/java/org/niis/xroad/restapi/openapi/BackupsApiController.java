@@ -134,7 +134,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
-    public ResponseEntity<TokensLoggedOut> restoreBackup(String filename) {
+    public synchronized ResponseEntity<TokensLoggedOut> restoreBackup(String filename) {
         boolean hasHardwareTokens = tokenService.hasHardwareTokens();
         // If hardware tokens exist prior to the restore -> they will be logged out by the restore script
         TokensLoggedOut tokensLoggedOut = new TokensLoggedOut().hsmTokensLoggedOut(hasHardwareTokens);
