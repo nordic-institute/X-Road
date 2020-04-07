@@ -29,17 +29,30 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
 @RunWith(SpringRunner.class)
@@ -53,6 +66,15 @@ public class EndpointsApiControllerTest {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private PersistenceUtils persistenceUtils;
+
+    @MockBean
+    private GlobalConfFacade globalConfFacade;
+
+    @MockBean
+    private GlobalConfService globalConfService;
 
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
@@ -126,5 +148,93 @@ public class EndpointsApiControllerTest {
         assertTrue(endpointType.getMethod().equals("*"));
         assertTrue(endpointType.getPath().equals("/test"));
     }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
+    public void getInexistingEndpointAccessRights() {
+        endpointsApiController.getEndpointAccessRights("NON_EXISTING_ENDPOINT_ID");
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
+    public void getEndpointAccesRights() {
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointAccessRights("6").getBody();
+        assertTrue(serviceClients.size() == 2);
+        assertTrue(serviceClients.stream()
+                .anyMatch(sc -> sc.getSubject().getId().equals(TestUtils.CLIENT_ID_SS6)));
+        assertTrue(serviceClients.stream()
+                .anyMatch(sc -> sc.getSubject().getId().equals("2")));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
+    public void removeExistingEndpointAccessRights() {
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointAccessRights("6").getBody();
+        assertTrue(serviceClients.size() == 2);
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS6).subjectType(SubjectType.SUBSYSTEM));
+        endpointsApiController.deleteEndpointAccessRights("6", subjects);
+        persistenceUtils.flush();
+        serviceClients = endpointsApiController.getEndpointAccessRights("6").getBody();
+        assertTrue(serviceClients.size() == 1);
+        assertTrue(serviceClients.stream().findFirst().get().getSubject().getId().equals("2"));
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
+    public void removeInexistingEndpointAccessRights() {
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointAccessRights("6").getBody();
+        assertTrue(serviceClients.size() == 2);
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS1).subjectType(SubjectType.SUBSYSTEM));
+        endpointsApiController.deleteEndpointAccessRights("6", subjects);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL"})
+    public void addExistingEndpointAccessRights() {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS6).subjectType(SubjectType.SUBSYSTEM));
+        endpointsApiController.addEndpointAccessRights("9", subjects);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL"})
+    public void addEndpointAccessRights() {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+
+        // add access rights for a subsystem and global group to endpoint
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointAccessRights("9").getBody();
+        assertTrue(serviceClients.size() == 1);
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS5).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(TestUtils.DB_GLOBALGROUP_ID).subjectType(SubjectType.GLOBALGROUP));
+        endpointsApiController.addEndpointAccessRights("9", subjects).getBody();
+        persistenceUtils.flush();
+        serviceClients = endpointsApiController.getEndpointAccessRights("9").getBody();
+
+        assertTrue(serviceClients.size() == 3);
+        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getSubject().getId().equals(TestUtils.CLIENT_ID_SS5)));
+        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getSubject().getId().equals(TestUtils.DB_GLOBALGROUP_ID)));
+
+        // add access rights for a local group to endpoint
+        List<ServiceClient> localGroupTestServiceClients = endpointsApiController
+                .getEndpointAccessRights("3").getBody();
+        assertTrue(localGroupTestServiceClients.size() == 0);
+        Subjects localGroupSubjects = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_1).subjectType(SubjectType.LOCALGROUP));
+        endpointsApiController.addEndpointAccessRights("3", localGroupSubjects).getBody();
+        persistenceUtils.flush();
+        localGroupTestServiceClients = endpointsApiController.getEndpointAccessRights("3").getBody();
+
+        assertTrue(localGroupTestServiceClients.size() == 1);
+        assertTrue(localGroupTestServiceClients.stream().anyMatch(sc -> sc.getSubject().getId()
+                .equals(TestUtils.DB_LOCAL_GROUP_ID_1)));
+    }
+
 
 }

@@ -2633,6 +2633,7 @@ paths:
       parameters:
         - in: path
           name: id
+          required: true
           description: id of the endpoint
           schema:
             type: string
@@ -2667,6 +2668,7 @@ paths:
       parameters:
         - in: path
           name: id
+          required: true
           description: id of the endpoint
           schema:
             type: string
@@ -2707,6 +2709,7 @@ paths:
       parameters:
         - in: path
           name: id
+          required: true
           description: id of the endpoint
           schema:
             type: string
@@ -2717,6 +2720,129 @@ paths:
       responses:
         '204':
           description: endpoint deleted
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /endpoints/{id}/access-rights:
+    get:
+      tags:
+        - security server
+      summary: get access rights for the selected endpoint
+      operationId: getEndpointAccessRights
+      description: Administrator views endpoints access rights
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: list of access rights
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of access right objects
+                items:
+                  $ref: '#/components/schemas/ServiceClient'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - security server
+      summary: add access rights to the selected endpoint
+      operationId: addEndpointAccessRights
+      description: Administrator add access rights to the selected endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subjects'
+      responses:
+        '201':
+          description: access rights added
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of added service client objects
+                items:
+                  $ref: '#/components/schemas/ServiceClient'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /endpoints/{id}/access-rights/delete:
+    post:
+      tags:
+        - security server
+      summary: remove access rights from the selected endpoint
+      operationId: deleteEndpointAccessRights
+      description: Administrator removes access rights from an endpoint
+      parameters:
+        - in: path
+          name: id
+          description: id of the endpoint
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        description: list of access rights to be deleted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subjects'
+      responses:
+        '204':
+          description: access right(s) deleted
         '400':
           description: request was invalid
         '401':

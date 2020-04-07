@@ -32,10 +32,11 @@ import Service from '@/views/Service/Service.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
 import { Permissions, RouteName } from '@/global';
-import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
-import EndpointDetails from '@/views/Service/Endpoints/EndpointDetails.vue';
+import EndpointDetails from '@/views/Service/Endpoints/Endpoint/EndpointDetails.vue';
+import EndpointAccessRights from '@/views/Service/Endpoints/Endpoint/EndpointAccessRights.vue';
+import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 
@@ -292,19 +293,27 @@ const router = new Router({
               props: { default: true },
             },
             {
-              name: RouteName.ServiceEndpoints,
+              name: RouteName.Endpoints,
               path: '/service/:clientId/:serviceId/endpoints',
               components: {
-                default: ServiceEndpoints,
+                default: Endpoints,
               },
             },
           ],
         },
         {
           name: RouteName.EndpointDetails,
-          path: '/endpoint/:id',
+          path: '/service/:clientId/:serviceId/endpoints/:id',
           components: {
             default: EndpointDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.EndpointAccessRights,
+          path: '/service/:clientId/:serviceId/endpoints/:id/accessrights',
+          components: {
+            default: EndpointAccessRights,
           },
           props: { default: true },
         },

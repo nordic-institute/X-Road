@@ -470,7 +470,7 @@ public class ServiceDescriptionService {
 
         // Add created endpoint to client
         EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
-                EndpointType.ANY_PATH, false);
+                EndpointType.ANY_PATH, true);
         client.getEndpoint().add(endpointType);
 
         checkDuplicateServiceCodes(serviceDescriptionType);
