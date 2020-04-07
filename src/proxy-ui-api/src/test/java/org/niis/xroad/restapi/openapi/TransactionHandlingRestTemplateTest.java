@@ -38,7 +38,6 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
-import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +60,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 
 /**
  * Test live clients api controller with rest template.
@@ -79,12 +77,6 @@ public class TransactionHandlingRestTemplateTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
-
-    @Autowired
-    private ApiKeyRepository apiKeyRepository;
-
-    @MockBean
-    private ApiKeyService apiKeyService;
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
@@ -113,7 +105,6 @@ public class TransactionHandlingRestTemplateTest {
             return members;
         }).when(globalConfFacade).getMembers();
 
-        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(apiKeyRepository.getApiKey(1));
     }
 
     @Test

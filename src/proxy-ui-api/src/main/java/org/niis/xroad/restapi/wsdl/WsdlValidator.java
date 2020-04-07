@@ -62,7 +62,8 @@ public class WsdlValidator {
      * @throws WsdlValidatorNotExecutableException when validator is not found or
      * there are errors (not warnings, cant be ignored) when trying to execute the validator
      * @throws WsdlValidationFailedException when validation itself fails.
-     * @throws InterruptedException if the thread running the validator is interrupted
+     * @throws InterruptedException if the thread running the validator is interrupted. <b>The interrupted thread has
+     * already been handled with so you can choose to ignore this exception if you so please.</b>
      */
     public List<String> executeValidator(String wsdlUrl) throws WsdlValidatorNotExecutableException,
             WsdlValidationFailedException, InterruptedException {
@@ -77,7 +78,9 @@ public class WsdlValidator {
         }
 
         try {
-            return externalProcessRunner.execute(getWsdlValidatorCommand(), wsdlUrl);
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(getWsdlValidatorCommand(), wsdlUrl);
+            return processResult.getProcessOutput();
         } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
         } catch (ProcessFailedException e) {

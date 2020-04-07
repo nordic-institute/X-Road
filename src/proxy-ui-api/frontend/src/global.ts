@@ -25,6 +25,7 @@ export enum RouteName {
   Endpoints = 'service-endpoints',
   SignAndAuthKeys = 'sign-and-auth-keys',
   ApiKey = 'api-key',
+  CreateApiKey = 'create-api-key',
   SSTlsCertificate = 'ss-tls-certificate',
   Token = 'token',
   Key = 'key',
@@ -167,4 +168,13 @@ export const mainTabs = [
     key: 'settings',
     name: 'tab.main.settings',
   },
+];
+
+// A single source of truth for roles
+export const Roles = [
+  'XROAD_SECURITY_OFFICER',
+  'XROAD_REGISTRATION_OFFICER',
+  'XROAD_SERVICE_ADMINISTRATOR',
+  'XROAD_SYSTEM_ADMINISTRATOR',
+  'XROAD_SECURITYSERVER_OBSERVER',
 ];

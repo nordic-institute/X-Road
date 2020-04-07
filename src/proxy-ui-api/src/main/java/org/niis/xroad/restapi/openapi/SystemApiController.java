@@ -39,6 +39,8 @@ import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.restapi.service.ConfigurationDownloadException;
+import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.restapi.service.InvalidCertificateException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
@@ -214,5 +216,33 @@ public class SystemApiController implements SystemApi {
         } catch (AnchorNotFoundException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ANCHOR_FILE_NOT_FOUND));
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
+    public ResponseEntity<Void> uploadAnchor(Resource anchorResource) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+        try {
+            systemService.uploadAnchor(anchorBytes);
+        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
+            throw new BadRequestException(e);
+        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
+                | ConfigurationVerifier.ConfigurationVerificationException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return ApiUtil.createCreatedResponse("/api/system/anchor", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
+    public ResponseEntity<Anchor> previewAnchor(Resource anchorResource) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+        AnchorFile anchorFile = null;
+        try {
+            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
+        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
     }
 }

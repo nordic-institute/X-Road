@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.service;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Component;
@@ -43,26 +45,29 @@ public class ExternalProcessRunner {
     private static final long TIMEOUT = 60000;
 
     /**
-     * Executes the given command with given arguments.
+     * Executes the given command with given arguments
      * @param command the command to execute
      * @param args arguments to be appended to the command. Make sure to pass your arguments in the correct order
      * (e.g. if your options have values enter them as separate consecutive args).
-     * @return the output of the executed process as a List of Strings
+     * @return {@link ProcessResult} which contains the executed command with arguments, exit code and the output of
+     * the executed process
      * @throws ProcessNotExecutableException in the case of IOException or if the process is interrupted
-     * @throws ProcessFailedException if the process' exit code is not 0
-     * @throws InterruptedException if the process running thread is interrupted
+     * @throws ProcessFailedException if the process times out
+     * @throws InterruptedException if the process running thread is interrupted. <b>The interrupted thread has already
+     * been handled with so you can choose to ignore this exception if you so please.</b>
      */
-    public List<String> execute(String command, String... args) throws ProcessNotExecutableException,
+    public ProcessResult execute(String command, String... args) throws ProcessNotExecutableException,
             ProcessFailedException, InterruptedException {
         if (StringUtils.isEmpty(command)) {
             throw new IllegalArgumentException("command cannot be null");
         }
-
         List<String> commandWithArgs = new ArrayList<>();
         commandWithArgs.add(command);
         if (args != null && args.length > 0) {
             commandWithArgs.addAll(Arrays.asList(args));
         }
+        String commandWithArgsString = String.join(" ", commandWithArgs);
+        log.info("Running an external command: " + commandWithArgsString);
         Process process;
         ProcessBuilder pb = new ProcessBuilder(commandWithArgs);
         // redirect process errors into process's input stream
@@ -104,15 +109,43 @@ public class ExternalProcessRunner {
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
         }
+        ProcessResult processResult = new ProcessResult(commandWithArgsString, exitCode, processOutput);
+        return processResult;
+    }
 
+    /**
+     * Executes the given command with given arguments and throws a {@link ProcessFailedException} if the process' exit
+     * code is not 0 or if the process times out. Used e.g. for simple script execution when there is no need to handle
+     * different exit codes
+     * @param command the command to execute
+     * @param args arguments to be appended to the command. Make sure to pass your arguments in the correct order
+     * (e.g. if your options have values enter them as separate consecutive args).
+     * @return {@link ProcessResult} which contains the executed command with arguments, exit code (always 0) and the
+     * output of the executed process
+     * @throws ProcessNotExecutableException in the case of IOException or if the process is interrupted
+     * @throws ProcessFailedException if the process' exit code is not 0 or the process times out
+     * @throws InterruptedException if the process running thread is interrupted. <b>The interrupted thread has already
+     * been handled with so you can choose to ignore this exception if you so please.</b>
+     */
+    public ProcessResult executeAndThrowOnFailure(String command, String... args) throws ProcessNotExecutableException,
+            ProcessFailedException, InterruptedException {
+        ProcessResult processResult = execute(command, args);
         // if the process fails we attach the output into the exception
-        if (exitCode != 0) {
-            String fullCommandString = String.join(" ", commandWithArgs);
-            String processOutputString = String.join("\n", processOutput);
-            String errorMsg = String.format("Failed to run command '%s' with output: \n %s", fullCommandString,
-                    processOutputString);
+        if (processResult.getExitCode() != 0) {
+            String lineSep = System.lineSeparator();
+            String processOutputString = String.join(lineSep, processResult.processOutput);
+            String errorMsg = String.format("Failed to run command '%s' with output: %n %s",
+                    processResult.commandWithArgs, processOutputString);
             throw new ProcessFailedException(errorMsg);
         }
-        return processOutput;
+        return processResult;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public class ProcessResult {
+        private String commandWithArgs;
+        private int exitCode;
+        private List<String> processOutput;
     }
 }
