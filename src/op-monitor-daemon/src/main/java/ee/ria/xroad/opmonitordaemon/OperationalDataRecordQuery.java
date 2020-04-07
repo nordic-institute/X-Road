@@ -151,7 +151,7 @@ final class OperationalDataRecordQuery {
     }
 
     void addOverflowCriteria(long monitoringDataTs) {
-        pred = cb.and(cb.equal(from.get(MONITORING_DATA_TS), monitoringDataTs));
+        pred = cb.and(pred, cb.equal(from.get(MONITORING_DATA_TS), monitoringDataTs));
     }
 
     List<OperationalDataRecord> list() {
