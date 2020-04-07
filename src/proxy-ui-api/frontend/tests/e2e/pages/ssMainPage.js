@@ -398,7 +398,7 @@ module.exports = {
           selector: '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
           locateStrategy: 'xpath' },
         localGroupCode: { 
-          selector: '//div[contains(@class, "cert-dialog-header")]//*[contains(@class, "cert-headline")]',
+          selector: '//div[contains(@class, "cert-dialog-header")]//*[contains(@class, "spacer")]',
           locateStrategy: 'xpath' },
         localGroupDescription: { 
           selector: '//div[contains(@class, "description-input")]//input',
