@@ -64,6 +64,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.util.FormatUtils.xRoadIdToEncodedId;
+
 /**
  * service class for handling access rights
  */
@@ -509,8 +511,12 @@ public class AccessRightService {
 
         // Filter subjects access rights from the given clients acl-list
         return clientType.getAcl().stream()
-                .filter(acl -> acl.getSubjectId().equals(subjectId)
-                        && acl.getEndpoint().isBaseEndpoint())
+                .filter(acl -> {
+                    boolean iseq = xRoadIdToEncodedId(acl.getSubjectId()).equals(subjectId);
+                    boolean isBaseEndpoint = acl.getEndpoint().isBaseEndpoint();
+
+                    return iseq && isBaseEndpoint;
+                })
                 .map(acl -> ServiceClientAccessRightDto.builder()
                     .id(subjectId)
                     .clientId(clientid.toShortString())
@@ -522,12 +528,14 @@ public class AccessRightService {
     }
 
     private String getServiceTitle(ClientType clientType, String serviceCode) {
-        return clientType.getServiceDescription().stream()
+        ServiceType service = clientType.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
                 .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .map(ServiceType::getTitle)
                 .findFirst()
-                .orElse(null);
+                .get();
+
+        return service == null ? null : service.getTitle();
+
     }
 
     /**

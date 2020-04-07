@@ -61,7 +61,7 @@ public class ServiceClientApiController implements ServiceClientsApi {
     @PreAuthorize("hasAuthority('VIEW_ACL_SUBJECT_OPEN_SERVICES')")
     public ResponseEntity<List<AccessRight>> getServiceClientAccessRights(String id, String clientId) {
         ClientId clientIdentifier = clientConverter.convertId(clientId);
-            List<AccessRight> accessRights = null;
+        List<AccessRight> accessRights = null;
         try {
             accessRights = accessRightConverter.convert(
                     accessRightService.getServiceClientAccessRights(id, clientIdentifier));
