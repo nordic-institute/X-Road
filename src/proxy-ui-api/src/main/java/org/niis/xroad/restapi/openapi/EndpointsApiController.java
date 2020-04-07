@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.converter.SubjectHelper;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
@@ -70,7 +71,6 @@ public class EndpointsApiController implements EndpointsApi {
     private final SubjectHelper subjectHelper;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
-
 
     @Autowired
     public EndpointsApiController(
@@ -119,13 +119,15 @@ public class EndpointsApiController implements EndpointsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3_ENDPOINT')")
-    public ResponseEntity<Endpoint> updateEndpoint(String id, Endpoint endpoint) {
+    public ResponseEntity<Endpoint> updateEndpoint(String id, EndpointUpdate endpointUpdate) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         Endpoint ep;
         try {
-            ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId, endpoint));
+            String method = endpointUpdate.getMethod() == null ? null : endpointUpdate.getMethod().toString();
+            ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId,
+                    method, endpointUpdate.getPath()));
         } catch (EndpointNotFoundException e) {
-            throw new ResourceNotFoundException(e);
+            throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
         }
