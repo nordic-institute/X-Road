@@ -20,15 +20,29 @@
           @click="createBackup"
           >{{ $t('backup.backupConfiguration.button') }}
         </large-button>
-        <v-btn
+        <input
+          v-show="false"
+          ref="backupUpload"
+          type="file"
+          accept=".tar"
+          @change="onUploadFileChanged"
+        />
+        <large-button
           v-if="canBackup"
           color="primary"
-          rounded
-          dark
-          class="button-spacing rounded-button elevation-0"
+          :loading="uploadingBackup"
+          class="button-spacing"
+          @click="$refs.backupUpload.click()"
           data-test="backup-upload"
-          >{{ $t('backup.uploadBackup') }}
-        </v-btn>
+          >{{ $t('backup.uploadBackup.button') }}
+        </large-button>
+        <confirm-dialog :dialog="needsConfirmation" title="backup.uploadBackup.confirmationDialog.title"
+                        data-test="backup-upload-confirm-overwrite-dialog"
+                        text="backup.uploadBackup.confirmationDialog.confirmation"
+                        :data="{...uploadedFile}"
+                        :loading="uploadingBackup"
+                        @cancel="needsConfirmation = false"
+                        @accept="overwriteBackup"/>
       </div>
     </div>
     <BackupsDataTable
@@ -51,16 +65,32 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { Backup } from '@/types';
 import { AxiosResponse } from 'axios';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+
+const uploadBackup = (backupFile: File, ignoreWarnings: boolean = false) => {
+  const formData = new FormData();
+  formData.set('file', backupFile, backupFile.name);
+  return api
+    .post(`/backups/upload?ignore_warnings=${ignoreWarnings}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+};
 
 export default Vue.extend({
   components: {
     BackupsDataTable,
     LargeButton,
+    ConfirmDialog,
   },
   data() {
     return {
       search: '' as string,
       creatingBackup: false,
+      uploadingBackup: false,
+      needsConfirmation: false,
+      uploadedFile: null as File | null,
       backups: [] as Backup[],
     };
   },
@@ -97,6 +127,44 @@ export default Vue.extend({
         })
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.creatingBackup = false));
+    },
+    onUploadFileChanged(event: any): void {
+      const fileList = (event.target.files ||
+        event.dataTransfer.files) as FileList;
+      if (!fileList.length) {
+        return;
+      }
+
+      this.uploadingBackup = true;
+      this.uploadedFile = fileList[0];
+      uploadBackup(fileList[0])
+        .then(() => {
+          this.fetchData();
+          this.$store.dispatch('showSuccessRaw', this.$t('backup.uploadBackup.success', {file: this.uploadedFile?.name}));
+        })
+        .catch((error) => {
+          const warnings = error.response?.data?.warnings as Array<{ code: string }>;
+          if (error.response?.status === 400
+            && warnings?.some((warning) => warning.code === 'warning_file_already_exists')) {
+            this.needsConfirmation = true;
+            return;
+          }
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => this.uploadingBackup = false);
+    },
+    async overwriteBackup() {
+      this.uploadingBackup = true;
+      return uploadBackup(this.uploadedFile!, true)
+        .then(() => {
+          this.fetchData();
+          this.$store.dispatch('showSuccessRaw', this.$t('backup.uploadBackup.success', {file: this.uploadedFile?.name}));
+        })
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.uploadingBackup = false;
+          this.needsConfirmation = false;
+        });
     },
   },
   created(): void {

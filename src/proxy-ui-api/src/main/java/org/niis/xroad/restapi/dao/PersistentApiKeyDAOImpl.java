@@ -52,4 +52,8 @@ public class PersistentApiKeyDAOImpl {
     public void delete(Session session, PersistentApiKeyType apiKeyType) {
         session.delete(apiKeyType);
     }
+
+    public void update(Session session, PersistentApiKeyType apiKeyType) {
+        session.merge(apiKeyType);
+    }
 }
