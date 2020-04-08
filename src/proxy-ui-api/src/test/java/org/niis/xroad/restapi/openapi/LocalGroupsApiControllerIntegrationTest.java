@@ -202,7 +202,7 @@ public class LocalGroupsApiControllerIntegrationTest {
         ResponseEntity<Void> deleteResponse = localGroupsApiController.deleteLocalGroupMember(
                 TestUtils.DB_LOCAL_GROUP_ID_1,
                 new Members().items(Collections.singletonList(TestUtils.CLIENT_ID_SS2)));
-        assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
         ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getLocalGroup(
                 TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(0, localGroupResponse.getBody().getMembers().size());
