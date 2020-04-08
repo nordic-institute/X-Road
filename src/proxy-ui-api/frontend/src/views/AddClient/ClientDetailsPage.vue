@@ -91,6 +91,7 @@ import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from './SelectClientDialog.vue';
 import { Client } from '@/types';
+import { containsClient } from '@/util/helpers';
 
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
@@ -142,30 +143,7 @@ export default Vue.extend({
     },
 
     duplicateClient(): boolean {
-      if (!this.memberClass || !this.memberCode || !this.subsystemCode) {
-        return false;
-      }
-
-      if (
-        this.reservedClients.some((e: Client) => {
-          if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
-            return false;
-          }
-
-          if (e.member_code.toLowerCase() !== this.memberCode.toLowerCase()) {
-            return false;
-          }
-
-          if (e.subsystem_code !== this.subsystemCode) {
-            return false;
-          }
-          return true;
-        })
-      ) {
-        return true;
-      }
-
-      return false;
+      return containsClient(this.reservedClients, this.memberClass, this.memberCode, this.subsystemCode);
     },
   },
   data() {

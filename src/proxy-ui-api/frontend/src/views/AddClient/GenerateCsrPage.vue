@@ -17,6 +17,7 @@
               v-model="item.default_value"
               :disabled="item.read_only"
               :error-messages="errors"
+              data-test="dynamic-csr-input"
             ></v-text-field>
           </ValidationProvider>
         </div>
