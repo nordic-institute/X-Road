@@ -404,8 +404,8 @@ module.exports = {
           selector: '//div[contains(@class, "description-input")]//input',
           locateStrategy: 'xpath' },
         localGroupPopupCloseButton: { 
-          selector: 'div.cert-dialog-header #close-x',
-          locateStrategy: 'css selector' }
+          selector: '//button[.//*[contains(text(), "Close")]]',
+          locateStrategy: 'xpath' }
       }
     }
   }
