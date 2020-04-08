@@ -267,7 +267,7 @@ module.exports = {
 
     // Change description
     localGroupPopup.changeDescription('');
-    localGroupPopup.clickHeader();
+    localGroupPopup.clickDescriptionLabel();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');
     mainPage.closeSnackbar();
     localGroupPopup.close();
@@ -275,7 +275,7 @@ module.exports = {
     clientLocalGroups.openCbbDetails();
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,256));
-    localGroupPopup.clickHeader();
+    localGroupPopup.clickDescriptionLabel();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');
     mainPage.closeSnackbar();
     localGroupPopup.close();
@@ -283,7 +283,7 @@ module.exports = {
     clientLocalGroups.openCbbDetails();
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,255));
-    localGroupPopup.clickHeader();
+    localGroupPopup.clickDescriptionLabel();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
     mainPage.closeSnackbar();
     localGroupPopup.close();
@@ -291,7 +291,7 @@ module.exports = {
     clientLocalGroups.openCbbDetails();
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription('GroupChanged');
-    localGroupPopup.clickHeader();
+    localGroupPopup.clickDescriptionLabel();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
     mainPage.closeSnackbar();
     localGroupPopup.close();
