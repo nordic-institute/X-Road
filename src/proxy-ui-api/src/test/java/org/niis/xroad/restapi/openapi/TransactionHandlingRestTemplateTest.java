@@ -61,6 +61,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 /**
  * Test live clients api controller with rest template.
@@ -110,7 +111,6 @@ public class TransactionHandlingRestTemplateTest {
         }).when(globalConfFacade).getMembers();
 
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
-        when(apiKeyService.get("d56e1ca7-4134-4ed4-8030-5f330bdb602a")).thenReturn(apiKeyRepository.getApiKey(1));
     }
 
     @Test
