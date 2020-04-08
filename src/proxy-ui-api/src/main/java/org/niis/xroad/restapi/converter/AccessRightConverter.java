@@ -36,8 +36,6 @@ public class AccessRightConverter {
 
     public AccessRight convert(ServiceClientAccessRightDto dto) {
         AccessRight accessRight = new AccessRight();
-        accessRight.setId(dto.getId());
-        accessRight.setClientId(dto.getClientId());
         accessRight.setServiceCode(dto.getServiceCode());
         accessRight.setRightsGivenAt(dto.getRightsGiven());
         accessRight.setServiceTitle(dto.getTitle());
