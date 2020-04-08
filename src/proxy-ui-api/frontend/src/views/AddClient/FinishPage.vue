@@ -70,7 +70,7 @@ export default Vue.extend({
       this.disableCancel = true;
 
       this.$store.dispatch('createClient').then(
-        (response) => {
+        () => {
           this.generateCsr();
         },
         (error) => {
@@ -84,7 +84,7 @@ export default Vue.extend({
       const tokenId = this.$store.getters.csrTokenId;
 
       this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-        (response) => {
+        () => {
           this.disableCancel = false;
           this.$emit('done');
         },

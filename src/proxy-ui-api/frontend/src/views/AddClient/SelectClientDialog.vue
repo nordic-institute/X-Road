@@ -110,12 +110,9 @@ export default Vue.extend({
       }
 
       return this.selectableClients.filter((member: any) => {
-        if (
-          member.member_name &&
-          member.member_name.toLowerCase().includes(tempSearch)
-        ) {
+        if (member?.member_name.toLowerCase().includes(tempSearch)) {
           return true;
-        } else if (member.id && member.id.toLowerCase().includes(tempSearch)) {
+        } else if (member?.id.toLowerCase().includes(tempSearch)) {
           return true;
         }
 

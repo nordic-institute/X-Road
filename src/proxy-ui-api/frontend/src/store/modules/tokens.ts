@@ -78,7 +78,7 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
 
     arr.forEach((token: Token) => {
       const keys = token.keys.filter((key: Key) => {
-        if (key.certificates && key.certificates.length > 0) {
+        if (key?.certificates?.length > 0) {
           return true;
         }
 
@@ -91,7 +91,7 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     });
 
     arr = arr.filter((token: Token) => {
-      if (token.keys && token.keys.length > 0) {
+      if (token?.keys?.length > 0) {
         return true;
       }
 
