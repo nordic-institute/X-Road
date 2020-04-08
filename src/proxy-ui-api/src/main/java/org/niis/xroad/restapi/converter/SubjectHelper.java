@@ -31,9 +31,6 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
-import org.niis.xroad.restapi.openapi.model.Subject;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
-import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,24 +50,10 @@ public class SubjectHelper {
         this.subjectConverter = subjectConverter;
     }
 
-    public List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
-        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        return subjectConverter.convertId(subjects.getItems());
-    }
-
     public List<XRoadId> getXRoadIdsButSkipLocalGroups(ServiceClients serviceClients) {
         // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
         serviceClients.getItems().removeIf(hasNumericIdAndIsLocalGroupSc);
         return subjectConverter.convertScId(serviceClients.getItems());
-    }
-
-    public Set<Long> getLocalGroupIds(Subjects subjects) {
-        return subjects.getItems()
-                .stream()
-                .filter(hasNumericIdAndIsLocalGroup)
-                .map(subject -> Long.parseLong(subject.getId()))
-                .collect(Collectors.toSet());
     }
 
     public Set<Long> getLocalGroupIds(ServiceClients serviceClients) {
@@ -80,20 +63,6 @@ public class SubjectHelper {
                 .map(subject -> Long.parseLong(subject.getId()))
                 .collect(Collectors.toSet());
     }
-
-    /**
-     * The client-provided Subjects only contain id and subjectType.
-     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
-     * Therefore LocalGroups need to be handled separately from other types of subjects.
-     */
-    private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
-        boolean hasNumericId = StringUtils.isNumeric(subject.getId());
-        boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
-        if (!hasNumericId && isLocalGroup) {
-            throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
-        }
-        return hasNumericId && isLocalGroup;
-    };
 
     private Predicate<ServiceClient> hasNumericIdAndIsLocalGroupSc = subject -> {
         boolean hasNumericId = StringUtils.isNumeric(subject.getId());
