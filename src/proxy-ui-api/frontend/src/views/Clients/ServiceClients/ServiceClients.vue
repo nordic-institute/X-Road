@@ -54,12 +54,11 @@
     },
     computed: {
       ...mapGetters(['client']),
-
     },
     methods: {
-      fetchServiceClients(): void {
-        api.get(`/clients/${this.id}/service-clients`)
-          .then( ( serviceClients: any ): void => this.serviceClients = serviceClients.data )
+      fetchServiceClients() {
+        api.get(`/clients/${this.id}/service-clients`, {})
+          .then( ( response: any ): void => this.serviceClients = response.data )
           .catch( (error: any) =>
             this.$store.dispatch('showError', error));
       },
@@ -77,7 +76,6 @@
     },
     created() {
       this.fetchServiceClients();
-      this.$store.dispatch('showError', 'serviceClients.serviceClientFetchFailure');
     },
   });
 </script>
