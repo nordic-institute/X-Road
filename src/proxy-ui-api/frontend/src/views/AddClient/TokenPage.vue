@@ -14,7 +14,12 @@
 
     <v-radio-group v-model="tokenGroup">
       <div class="radio-row" v-for="token in filteredTokens" :key="token.id">
-        <v-radio :label="`Token ${token.name}`" :value="token" :disabled="!token.logged_in"></v-radio>
+        <v-radio
+          :label="`Token ${token.name}`"
+          :value="token"
+          :disabled="!token.logged_in"
+          data-test="token-radio-button"
+        ></v-radio>
         <div>
           <large-button
             @click="confirmLogin(token)"
