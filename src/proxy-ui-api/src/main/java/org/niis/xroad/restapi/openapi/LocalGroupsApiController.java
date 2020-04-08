@@ -136,7 +136,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
             throw new ConflictException(e);
         }
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
