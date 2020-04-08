@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
@@ -111,31 +112,39 @@ public class EndpointsApiControllerTest {
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
-        Endpoint endpointUpdate = new Endpoint();
-        endpointUpdate.setId("10");
-        endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
-        endpointUpdate.setPath("/test");
-        endpointUpdate.setGenerated(false);
-        endpointsApiController.updateEndpoint("10", endpointUpdate);
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
+        pathAndMethod.setPath("/test");
+        endpointsApiController.updateEndpoint("10", pathAndMethod);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    public void updateEndpointWithEmptyPathString() {
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setPath("");
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    public void updateEndpointWithEmptyPathAndMethod() {
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
     @Test
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpoint() {
-        Endpoint endpointUpdate = new Endpoint();
-        endpointUpdate.setId("12");
-        endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
-        endpointUpdate.setPath("/test");
-        endpointUpdate.setGenerated(false);
-        endpointsApiController.updateEndpoint("12", endpointUpdate);
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
+        pathAndMethod.setPath("/test");
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
 
         ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         EndpointType endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 
-        assertTrue(endpointType.getServiceCode().equals("TestServiceCode"));
         assertTrue(endpointType.getMethod().equals("*"));
         assertTrue(endpointType.getPath().equals("/test"));
     }
