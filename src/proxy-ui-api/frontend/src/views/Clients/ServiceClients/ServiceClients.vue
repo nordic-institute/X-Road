@@ -14,10 +14,6 @@
       </v-btn>
     </div>
 
-    <button @click="func()">press</button>
-
-    {{test}}
-
     <v-card flat>
       <table class="xrd-table service-clients-table">
         <tr>
@@ -25,7 +21,7 @@
           <th>{{$t('serviceClients.id')}}</th>
         </tr>
         <template v-if="serviceClients.length > 0">
-          <tr v-for="sc in this.serviceClients">
+          <tr v-for="sc in this.filteredServiceClients()">
             <td>{{sc.subject.member_name_group_description}}</td>
             <td>{{sc.subject.id}}</td>
           </tr>
@@ -61,25 +57,26 @@
       ...mapGetters(['client']),
     },
     methods: {
-      fetchServiceClients(): void {
-        api.get(`/clients/${this.id}/service-clients`)
-          .then( ( serviceClients: any ): void => this.serviceClients = serviceClients.data )
+      fetchServiceClients() {
+        api.get(`/clients/${this.id}/service-clients`, {})
+          .then( ( response: any ): void => this.serviceClients = response.data )
           .catch( (error: any) =>
             this.$store.dispatch('showError', error));
       },
       addSubject(): void {
         // NOOP
       },
-      func() {
-        api.get(`/service-clients/CS:ORG:1111:MANAGEMENT/access-rights?client_id=${this.id}`)
-        .then( (res) => {
-          this.test = res.data;
+      filteredServiceClients() {
+        return this.serviceClients.filter( (sc: ServiceClient) => {
+          const memberNameOrGroupDescription = sc.subject.member_name_group_description?.toLowerCase();
+          const subjectId = sc.subject.id.toLowerCase();
+          const searchWordLowerCase = this.search.toLowerCase();
+          return memberNameOrGroupDescription?.includes(searchWordLowerCase) || subjectId.includes(searchWordLowerCase);
         });
       },
     },
     created() {
       this.fetchServiceClients();
-      this.$store.dispatch('showError', 'serviceClients.serviceClientFetchFailure');
     },
   });
 </script>
