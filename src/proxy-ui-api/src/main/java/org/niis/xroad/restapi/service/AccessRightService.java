@@ -102,18 +102,14 @@ public class AccessRightService {
     public List<AccessRightHolderDto> getAccessRightHoldersByClient(ClientId clientId)
             throws ClientNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
-
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
-
         // Filter just acls that are set to base endpoints so they are on service code level
         List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint())
                 .collect(Collectors.toList());
-
         List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
-
         return mapAccessRightsToAccessRightHolders(clientType, distinctAccessRightTypes);
     }
 
@@ -444,7 +440,7 @@ public class AccessRightService {
      * @return
      */
     private Optional<EndpointType> getEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
-                                               String endpointPath) {
+            String endpointPath) {
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
                         && endpointType.getMethod().equals(endpointMethod)
