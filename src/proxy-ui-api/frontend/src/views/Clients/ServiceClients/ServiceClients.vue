@@ -21,7 +21,7 @@
           <th>{{$t('serviceClients.id')}}</th>
         </tr>
         <template v-if="serviceClients.length > 0">
-          <tr v-for="sc in this.serviceClients">
+          <tr v-for="sc in this.filteredServiceClients()">
             <td>{{sc.subject.member_name_group_description}}</td>
             <td>{{sc.subject.id}}</td>
           </tr>
@@ -54,6 +54,7 @@
     },
     computed: {
       ...mapGetters(['client']),
+
     },
     methods: {
       fetchServiceClients(): void {
@@ -64,6 +65,14 @@
       },
       addSubject(): void {
         // NOOP
+      },
+      filteredServiceClients() {
+        return this.serviceClients.filter( (sc: ServiceClient) => {
+          const memberNameOrGroupDescription = sc.subject.member_name_group_description?.toLowerCase();
+          const subjectId = sc.subject.id.toLowerCase();
+          const searchWordLowerCase = this.search.toLowerCase();
+          return memberNameOrGroupDescription?.includes(searchWordLowerCase) || subjectId.includes(searchWordLowerCase);
+        });
       },
     },
     created() {
