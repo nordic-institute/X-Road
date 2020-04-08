@@ -206,4 +206,17 @@ public class GlobalConfFacade {
         return GlobalConf.getApprovedCA(instanceIdentifier, cert);
     }
 
+    /**
+     * {@link GlobalConf#reload()}
+     */
+    public void reload() {
+        GlobalConf.reload();
+    }
+
+    /**
+     * {@link GlobalConf#reload()}
+     */
+    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
+        return GlobalConf.getServerId(cert);
+    }
 }
