@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t('access.addSubjectsTitle')}}</span>
+        <span class="headline">{{$t('accessRights.addSubjectsTitle')}}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>

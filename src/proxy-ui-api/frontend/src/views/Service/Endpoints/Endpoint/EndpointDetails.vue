@@ -140,22 +140,19 @@ export default Vue.extend({
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.$store.dispatch('showError', error.message);
           this.confirmDelete = false;
         });
     },
     saveEndpoint(): void {
       api
-        .put(`/endpoints/${this.endpoint.id}`, {
-          method: this.endpoint.method,
-          path: this.endpoint.path,
-        })
-        .then( () => {
+        .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
+        .then(() => {
           this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
           this.$router.go(-1);
         })
-        .catch( (error) => {
-          this.$store.dispatch('showError', error);
+        .catch((error) => {
+          this.$store.dispatch('showError', error.message);
         });
     },
     fetchData(id: string): void {
@@ -165,19 +162,18 @@ export default Vue.extend({
           this.endpoint = endpoint.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.$store.dispatch('showError', error.message);
         });
     },
   },
   created(): void {
-    console.log(this.id);
     this.fetchData(this.id);
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@import 'src/assets/dialogs';
 
 .delete-wrap {
   margin-top: 50px;
