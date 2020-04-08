@@ -162,7 +162,8 @@ public class EndpointsApiControllerTest {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 2);
         ServiceClients subjects = new ServiceClients()
-                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(ServiceClientType.SUBSYSTEM));
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
+                        ServiceClientType.SUBSYSTEM));
         endpointsApiController.deleteEndpointServiceClients("6", subjects);
         persistenceUtils.flush();
         serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
@@ -176,7 +177,8 @@ public class EndpointsApiControllerTest {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 2);
         ServiceClients subjects = new ServiceClients()
-                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS1).serviceClientType(ServiceClientType.SUBSYSTEM));
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS1).serviceClientType(
+                        ServiceClientType.SUBSYSTEM));
         endpointsApiController.deleteEndpointServiceClients("6", subjects);
     }
 
@@ -187,7 +189,8 @@ public class EndpointsApiControllerTest {
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
 
         ServiceClients subjects = new ServiceClients()
-                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(ServiceClientType.SUBSYSTEM));
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
+                        ServiceClientType.SUBSYSTEM));
         endpointsApiController.addEndpointServiceClients("9", subjects);
     }
 
@@ -201,8 +204,10 @@ public class EndpointsApiControllerTest {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
         assertTrue(serviceClients.size() == 1);
         ServiceClients subjects = new ServiceClients()
-                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS5).serviceClientType(ServiceClientType.SUBSYSTEM))
-                .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(ServiceClientType.GLOBALGROUP));
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS5).serviceClientType(
+                        ServiceClientType.SUBSYSTEM))
+                .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
+                        ServiceClientType.GLOBALGROUP));
         endpointsApiController.addEndpointServiceClients("9", subjects).getBody();
         persistenceUtils.flush();
         serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
@@ -216,7 +221,8 @@ public class EndpointsApiControllerTest {
                 .getEndpointServiceClients("3").getBody();
         assertTrue(localGroupTestServiceClients.size() == 0);
         ServiceClients localGroupSubjects = new ServiceClients()
-                .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(ServiceClientType.LOCALGROUP));
+                .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
+                        ServiceClientType.LOCALGROUP));
         endpointsApiController.addEndpointServiceClients("3", localGroupSubjects).getBody();
         persistenceUtils.flush();
         localGroupTestServiceClients = endpointsApiController.getEndpointServiceClients("3").getBody();

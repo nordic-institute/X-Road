@@ -1053,57 +1053,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
-      tags:
-        - security server
-      summary: add new service client for the security server client
-      operationId: addClientServiceClient
-      description: Administrator adds a new service client for the client.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: ServiceClientId
-              type: object
-              properties:
-                id:
-                  type: string
-                  format: text
-# should we also pass ServiceClientType to make this more robust?
-                  description: id of the service client, format = ServiceClient.id
-                  minLength: 1
-                  maxLength: 1279
-      responses:
-        '201':
-          description: service client added
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceClient'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
   /clients/{id}/service-clients/{sc_id}/access-rights:
     get: # ok
       tags:
@@ -1156,7 +1105,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new access rights for selected service client
+      summary: add new access rights for selected service client. If service client did not exist yet, one is created.
       operationId: addServiceClientAccessRights
       description: Adds access rights to the service client.
       parameters:
@@ -1208,7 +1157,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/service-clients/{id}/access-rights/delete:
+  /clients/{id}/service-clients/{sc_id}/access-rights/delete:
     post: # ok
       tags:
         - security server
