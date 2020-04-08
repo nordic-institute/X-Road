@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t('access.addSubjectsTitle')}}</span>
+        <span class="headline">{{$t('accessRights.addSubjectsTitle')}}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
@@ -252,7 +252,7 @@ export default Vue.extend({
           }
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
 
@@ -269,7 +269,6 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
-
   },
   created() {
     this.$store.dispatch('fetchXroadInstances');

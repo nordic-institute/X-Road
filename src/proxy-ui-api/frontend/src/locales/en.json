@@ -28,8 +28,29 @@
     }
   },
   "backup": {
-    "backupConfiguration": "Back up config.",
-    "uploadBackup": "Upload backup"
+    "backupConfiguration": {
+      "button": "Back up config.",
+      "message": {
+        "success": "Backup {file} successfully created"
+      }
+    },
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
+    "action": {
+      "delete": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to delete backup {file}?"
+        },
+        "success": "Backup {file} deleted"
+      }
+    }
   },
   "client": {
     "name": "Name",
@@ -189,10 +210,18 @@
     "deleteEndpointText": "Are you sure that you want to delete this endpoint",
     "editSuccess": "Changes to endpoint saved successfully"
   },
-  "access": {
-    "accessRights": "Access Rights",
+  "accessRights": {
+    "title": "Access Rights",
     "addSubjects": "Add subjects",
-    "addSubjectsTitle": "Add Subjects"
+    "addSubjectsTitle": "Add Subjects",
+    "memberName": "Member Name / Group Description",
+    "id": "ID",
+    "rightsGiven": "Access Rights given",
+    "removeSuccess": "Access right removed successfully",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure that you want to remove this member?",
+    "addSubjectsSuccess": "Access rights added successfully",
+    "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -221,7 +250,9 @@
     "activate": "Activate",
     "deactivate": "Disable",
     "previous": "Previous",
-    "done": "Done"
+    "done": "Done",
+    "next": "Next",
+    "finish": "Finish"
   },
   "keys": {
     "token": "Token:",
@@ -233,6 +264,7 @@
     "status": "Status",
     "signDetailsTitle": "SIGN Key details",
     "authDetailsTitle": "AUTH Key details",
+    "detailsTitle": "Key details",
     "friendlyName": "Friendly name",
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
@@ -348,11 +380,23 @@
       "title": "Configuration Anchor",
       "action": {
         "download": "DOWNLOAD",
-        "upload": "UPLOAD"
+        "upload": {
+          "button": "UPLOAD",
+          "dialog": {
+            "title": "Confirm configuration anchor details",
+            "info": "Configuration anchor details:",
+            "confirmation": "Continue with import?",
+            "field": {
+              "hash": "Hash (SHA-224)",
+              "generated": "Generated"
+            },
+            "success": "Configuration anchor uploaded"
+          }
+        }
       },
       "table": {
         "header": {
-          "distinguishedName": "Distinguished Name",
+          "distinguishedName": "Hash (SHA-224)",
           "generated": "Generated"
         }
       }
@@ -360,7 +404,14 @@
     "timestampingServices": {
       "title": "Timestamping Services",
       "action": {
-        "add": "ADD"
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
       },
       "table": {
         "header": {
@@ -368,7 +419,14 @@
           "serviceURL": "Service URL"
         },
         "action": {
-          "delete": "DELETE"
+          "delete": {
+            "button": "DELETE",
+            "confirmation": {
+              "title": "Are you sure?",
+              "text": "Are you sure you want to delete the timestamping service?"
+            },
+            "success": "Timestamping service successfully deleted"
+          }
         }
       }
     },
@@ -386,6 +444,58 @@
           "OCSP_RESPONSE_GOOD": "Good",
           "OCSP_RESPONSE_SUSPENDED": "Suspended",
           "OCSP_RESPONSE_REVOKED": "Revoked"
+        }
+      }
+    }
+  },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "description": "Specify which roles the new API key should be linked to."
+        },
+        "keyDetails": {
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+        }
+      },
+      "success": "API key successfully created"
+    },
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Linked roles:"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
         }
       }
     }
@@ -418,6 +528,7 @@
   "instance": "Instance",
   "type": "Type",
   "warning": "Warning",
+  "id": "ID",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."

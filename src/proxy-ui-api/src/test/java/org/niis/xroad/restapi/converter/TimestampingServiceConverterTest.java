@@ -28,11 +28,8 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,8 +40,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test TimestampingServiceConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class TimestampingServiceConverterTest {
 
     private TimestampingServiceConverter timestampingServiceConverter;
@@ -90,5 +85,14 @@ public class TimestampingServiceConverterTest {
         List<TimestampingService> timestampingServices = timestampingServiceConverter.convert(tspTypes);
 
         assertEquals(2, timestampingServices.size());
+    }
+
+    @Test
+    public void convertSingleTimestampingService() {
+        TspType tspType = timestampingServiceConverter.convert(TestUtils
+                .createTimestampingService(TSA_1_URL, TSA_1_NAME));
+
+        assertEquals(TSA_1_URL, tspType.getUrl());
+        assertEquals(TSA_1_NAME, tspType.getName());
     }
 }

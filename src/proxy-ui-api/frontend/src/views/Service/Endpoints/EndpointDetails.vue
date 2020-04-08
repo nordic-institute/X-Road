@@ -1,26 +1,27 @@
 <template>
   <div class="xrd-tab-max-width">
     <div>
-      <subViewTitle
-        :title="$t('endpoints.details')"
-        @close="close"
-      />
+      <subViewTitle :title="$t('endpoints.details')" @close="close" />
       <div class="delete-wrap">
         <large-button
           v-if="showDelete"
           @click="showDeletePopup()"
           outlined
           data-test="delete-endpoint"
-        >{{$t('action.delete')}}
-        </large-button>
+        >{{$t('action.delete')}}</large-button>
       </div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
-
       <div class="dlg-edit-row">
         <div class="dlg-row-title long-row-title">{{$t('endpoints.httpRequestMethod')}}</div>
-        <v-select class="dlg-row-input" @input="touched = true" data-test="endpoint-method" v-model="endpoint.method" :items="methods"/>
+        <v-select
+          class="dlg-row-input"
+          @input="touched = true"
+          data-test="endpoint-method"
+          v-model="endpoint.method"
+          :items="methods"
+        />
       </div>
 
       <div class="dlg-edit-row">
@@ -30,7 +31,8 @@
           ref="path"
           name="path"
           class="validation-provider dlg-row-input"
-          v-slot="{ errors }">
+          v-slot="{ errors }"
+        >
           <v-text-field
             v-model="endpoint.path"
             single-line
@@ -60,11 +62,9 @@
             :loading="saveBusy"
             @click="saveEndpoint()"
             :disabled="!touched || invalid"
-          >{{$t('action.save')}}
-          </large-button>
+          >{{$t('action.save')}}</large-button>
         </div>
       </v-card>
-
     </ValidationObserver>
 
     <!-- Confirm dialog delete REST -->
@@ -75,136 +75,137 @@
       @cancel="confirmDelete = false"
       @accept="deleteEndpoint(id)"
     />
-
   </div>
 </template>
 
 <script lang="ts">
-  import Vue from 'vue';
-  import * as api from '@/util/api';
-  import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-  import {Permissions} from '@/global';
-  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-  import LargeButton from '@/components/ui/LargeButton.vue';
-  import {ValidationObserver, ValidationProvider} from 'vee-validate';
+import Vue from 'vue';
+import * as api from '@/util/api';
+import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+import { Permissions } from '@/global';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
-  export default Vue.extend({
-    components: {
-      SubViewTitle,
-      ConfirmDialog,
-      LargeButton,
-      ValidationProvider,
-      ValidationObserver,
+export default Vue.extend({
+  components: {
+    SubViewTitle,
+    ConfirmDialog,
+    LargeButton,
+    ValidationProvider,
+    ValidationObserver,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
     },
-    props: {
-      id: {
-        type: String,
-        required: true,
-      },
+  },
+  data(): any {
+    return {
+      endpoint: {},
+      confirmDelete: false,
+      saveBusy: false,
+      touched: false,
+      methods: [
+        { text: this.$t('endpoints.all'), value: '*' },
+        { text: 'GET', value: 'GET' },
+        { text: 'POST', value: 'POST' },
+        { text: 'PUT', value: 'PUT' },
+        { text: 'PATCH', value: 'PATCH' },
+        { text: 'DELETE', value: 'DELETE' },
+        { text: 'HEAD', value: 'HEAD' },
+        { text: 'OPTIONS', value: 'OPTIONS' },
+        { text: 'TRACE', value: 'TRACE' },
+      ],
+    };
+  },
+  computed: {
+    showDelete(): boolean {
+      return this.$store.getters.hasPermission(Permissions.DELETE_ENDPOINT);
     },
-    data(): any {
-      return {
-        endpoint: {},
-        confirmDelete: false,
-        saveBusy: false,
-        touched: false,
-        methods: [
-          {text: this.$t('endpoints.all'), value: '*'},
-          {text: 'GET', value: 'GET'},
-          {text: 'POST', value: 'POST'},
-          {text: 'PUT', value: 'PUT'},
-          {text: 'PATCH', value: 'PATCH'},
-          {text: 'DELETE', value: 'DELETE'},
-          {text: 'HEAD', value: 'HEAD'},
-          {text: 'OPTIONS', value: 'OPTIONS'},
-          {text: 'TRACE', value: 'TRACE'},
-        ],
-      };
+  },
+  methods: {
+    close(): void {
+      this.$router.go(-1);
     },
-    computed: {
-      showDelete(): boolean {
-        return this.$store.getters.hasPermission(Permissions.DELETE_ENDPOINT);
-      },
+    showDeletePopup(): void {
+      this.confirmDelete = true;
     },
-    methods: {
-      close(): void {
-        this.$router.go(-1);
-      },
-      showDeletePopup(): void {
-        this.confirmDelete = true;
-      },
-      deleteEndpoint(id: string): void {
-        api
-          .remove(`/endpoints/${id}`)
-          .then(() => {
-            this.$bus.$emit('show-success', 'endpoints.deleteSuccess');
-            this.$router.go(-1);
-          })
-          .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
-            this.confirmDelete = false;
-          });
-      },
-      saveEndpoint(): void {
-        api
-          .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
-          .then( () => {
-            this.$bus.$emit('show-success', 'endpoints.editSuccess');
-            this.$router.go(-1);
-          })
-          .catch( (error) => {
-            this.$bus.$emit('show-error', error.message);
-          });
-      },
-      fetchData(id: string): void {
-        api
-          .get(`/endpoints/${id}`)
-          .then((endpoint: any) => {
-            this.endpoint = endpoint.data;
-          })
-          .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
-          });
-      },
-
+    deleteEndpoint(id: string): void {
+      api
+        .remove(`/endpoints/${id}`)
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'endpoints.deleteSuccess');
+          this.$router.go(-1);
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+          this.confirmDelete = false;
+        });
     },
-    created(): void {
-      this.fetchData(this.id);
+    saveEndpoint(): void {
+      api
+        .put(`/endpoints/${this.endpoint.id}`, {
+          method: this.endpoint.method,
+          path: this.endpoint.path,
+        })
+        .then( () => {
+          this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
+          this.$router.go(-1);
+        })
+        .catch( (error) => {
+          this.$store.dispatch('showError', error);
+        });
     },
-  });
+    fetchData(id: string): void {
+      api
+        .get(`/endpoints/${id}`)
+        .then((endpoint: any) => {
+          this.endpoint = endpoint.data;
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        });
+    },
+  },
+  created(): void {
+    console.log(this.id);
+    this.fetchData(this.id);
+  },
+});
 </script>
 
 <style lang="scss" scoped>
-  @import '../../../assets/dialogs';
+@import '../../../assets/dialogs';
 
-  .delete-wrap {
-    margin-top: 50px;
-    display: flex;
-    justify-content: flex-end;
-  }
+.delete-wrap {
+  margin-top: 50px;
+  display: flex;
+  justify-content: flex-end;
+}
 
-  .dlg-edit-row .dlg-row-title {
-    min-width: 200px;
-  }
+.dlg-edit-row .dlg-row-title {
+  min-width: 200px;
+}
 
-  .dlg-row-input {
-    max-width: 400px;
-  }
+.dlg-row-input {
+  max-width: 400px;
+}
 
-  .footer-button-wrap {
-    margin-top: 48px;
-    display: flex;
-    justify-content: flex-end;
-    border-top: 1px solid $XRoad-Grey40;
-    padding-top: 20px;
-  }
+.footer-button-wrap {
+  margin-top: 48px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid $XRoad-Grey40;
+  padding-top: 20px;
+}
 
-  .save-button {
-    margin-left: 20px;
-  }
+.save-button {
+  margin-left: 20px;
+}
 
-  .helper-text {
-    color: $XRoad-Grey60;
-  }
-
+.helper-text {
+  color: $XRoad-Grey60;
+}
 </style>

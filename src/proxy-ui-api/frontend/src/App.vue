@@ -6,7 +6,7 @@
         <router-view />
       </transition>
     </v-content>
-    <snackbar ref="snackbar"></snackbar>
+    <snackbar />
     <app-footer />
   </v-app>
 </template>
@@ -14,17 +14,17 @@
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
-import SnackbarMixin from '@/components/ui/SnackbarMixin.vue';
+import Snackbar from '@/components/ui/Snackbar.vue';
 import { RouteName } from '@/global';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 
 export default Vue.extend({
   name: 'App',
-  mixins: [SnackbarMixin],
   components: {
     AppToolbar,
     AppFooter,
+    Snackbar,
   },
   created() {
     // Add a response interceptor

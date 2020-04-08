@@ -78,7 +78,7 @@ export default Vue.extend({
           this.certificate = response.data;
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },
@@ -95,10 +95,10 @@ export default Vue.extend({
         })
         .then(
           (response) => {
-            this.$bus.$emit('show-success', 'cert.certDeleted');
+            this.$store.dispatch('showSuccess', 'cert.certDeleted');
           },
           (error) => {
-            this.$bus.$emit('show-error', error.message);
+            this.$store.dispatch('showError', error);
           },
         )
         .finally(() => {
