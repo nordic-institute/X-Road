@@ -1,51 +1,40 @@
 #!/bin/bash
+get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
+abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
-DUMP_FILE=$1
-HOST=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f1)
-PORT=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f2)
+dump_file="$1"
+db_properties=/etc/xroad/db.properties
+db_host="127.0.0.1:5432"
+db_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
+db_schema="$db_user"
+db_password="$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "serverconf")"
+db_url="$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
+db_database=serverconf
+pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
 
-if  [[ -f /etc/xroad.properties && `crudini --get /etc/xroad.properties '' postgres.connection.password` != "" ]]
-then
-
-MASTER_PW=$(crudini --get /etc/xroad.properties '' postgres.connection.password)
-export PGPASSWORD=${MASTER_PW}
-
-echo "DROP DATABASE IF EXISTS serverconf_restore;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "DROP DATABASE IF EXISTS serverconf_backup;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "CREATE DATABASE serverconf_restore ENCODING 'UTF-8';" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "CREATE EXTENSION IF NOT EXISTS hstore;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres serverconf_restore
-
-PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
-USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
-PGPASSWORD=${PW:-serverconf} pg_restore -h ${HOST:-localhost} -p ${PORT:-5432} -U ${USER:-serverconf} -O -x -n public  -1 -d serverconf_restore ${DUMP_FILE}
-
-echo "revoke connect on database serverconf from serverconf;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "select pg_terminate_backend(pid) from pg_stat_activity where datname='serverconf';" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "ALTER DATABASE serverconf RENAME TO serverconf_backup;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "ALTER DATABASE serverconf_restore RENAME TO serverconf;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "grant connect on database serverconf to serverconf;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-echo "DROP DATABASE IF EXISTS serverconf_backup;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-
-else
-
-cat << EOC | su - postgres -c "psql -p ${PORT:-5432} postgres"
-DROP DATABASE IF EXISTS serverconf_restore;
-DROP DATABASE IF EXISTS serverconf_backup;
-CREATE DATABASE serverconf_restore ENCODING 'UTF-8';
-EOC
-su - postgres -c "psql -p ${PORT:-5432} -d serverconf_restore -c \"CREATE EXTENSION hstore;\""
-
-PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
-USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
-PGPASSWORD=${PW:-serverconf} pg_restore -h 127.0.0.1 -p ${PORT:-5432} -U ${USER:-serverconf} -O -x -n public  -1 -d serverconf_restore ${DUMP_FILE}
-
-cat << EOC | su - postgres -c "psql -p ${PORT:-5432} postgres"
-revoke connect on database serverconf from serverconf;
-select pg_terminate_backend(pid) from pg_stat_activity where datname='serverconf';
-ALTER DATABASE serverconf RENAME TO serverconf_backup;
-ALTER DATABASE serverconf_restore RENAME TO serverconf;
-grant connect on database serverconf to serverconf;
-DROP DATABASE IF EXISTS serverconf_backup;
-EOC
-
+pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+if [[ "$db_url" =~ $pat ]]; then
+  db_host=${BASH_REMATCH[1]:-$db_host}
+  #match 2 unused
+  db_database=${BASH_REMATCH[3]:-serverconf}
 fi
+
+IFS=',' read -ra hosts <<<"$db_host"
+db_addr=${hosts[0]%%:*}
+db_port=${hosts[0]##*:}
+
+remote_psql() {
+  psql -h "$db_addr" -p "$db_port" -qtA "$@"
+}
+
+psql_dbuser() {
+  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
+}
+
+{ cat <<EOF
+BEGIN;
+DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
+EOF
+  cat "$dump_file"
+  echo "COMMIT;"
+} | psql_dbuser || abort "Restoring database failed."

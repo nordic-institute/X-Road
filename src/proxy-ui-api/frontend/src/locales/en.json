@@ -34,7 +34,14 @@
         "success": "Backup {file} successfully created"
       }
     },
-    "uploadBackup": "Upload backup",
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
     "action": {
       "delete": {
         "dialog": {
@@ -217,10 +224,18 @@
     "deleteEndpointText": "Are you sure that you want to delete this endpoint",
     "editSuccess": "Changes to endpoint saved successfully"
   },
-  "access": {
-    "accessRights": "Access Rights",
+  "accessRights": {
+    "title": "Access Rights",
     "addSubjects": "Add subjects",
-    "addSubjectsTitle": "Add Subjects"
+    "addSubjectsTitle": "Add Subjects",
+    "memberName": "Member Name / Group Description",
+    "id": "ID",
+    "rightsGiven": "Access Rights given",
+    "removeSuccess": "Access right removed successfully",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure that you want to remove this member?",
+    "addSubjectsSuccess": "Access rights added successfully",
+    "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -252,7 +267,8 @@
     "previous": "Previous",
     "done": "Done",
     "next": "Next",
-    "submit": "Submit"
+    "submit": "Submit",
+    "finish": "Finish"
   },
   "keys": {
     "token": "Token:",
@@ -491,6 +507,58 @@
           "OCSP_RESPONSE_GOOD": "Good",
           "OCSP_RESPONSE_SUSPENDED": "Suspended",
           "OCSP_RESPONSE_REVOKED": "Revoked"
+        }
+      }
+    }
+  },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "description": "Specify which roles the new API key should be linked to."
+        },
+        "keyDetails": {
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+        }
+      },
+      "success": "API key successfully created"
+    },
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Linked roles:"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
         }
       }
     }

@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -s <security server ID> -f <path of tar archive> [-F]
+Usage: $0 -s <security server ID> -f <path of tar archive> [-F] [-R]
 
 Restore the configuration (files and database) of the X-Road security server
 from a tar archive.
@@ -21,6 +21,7 @@ OPTIONS:
     -s ID of the security server. Mandatory if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
+    -R Skip removal of old files and just copy the backup on top of the existing configuration.
 EOF
 }
 
@@ -35,6 +36,9 @@ execute_restore () {
         args="${args} -b"
       fi
     fi
+    if [ -n ${SKIP_REMOVAL} ] && [[ ${SKIP_REMOVAL} = true ]] ; then
+      args="${args} -R"
+    fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
     if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road security server"
@@ -46,11 +50,14 @@ execute_restore () {
   fi
 }
 
-while getopts ":Fs:f:bh" opt ; do
+while getopts ":RFs:f:bh" opt ; do
   case $opt in
     h)
       usage
       exit 0
+      ;;
+    R)
+      SKIP_REMOVAL=true
       ;;
     F)
       FORCE_RESTORE=true

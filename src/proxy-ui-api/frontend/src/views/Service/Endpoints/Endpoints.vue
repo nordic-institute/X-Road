@@ -47,7 +47,7 @@
                   class="xrd-small-button xrd-table-button"
                   data-test="endpoint-edit-accessrights"
                   @click="editAccessRights(endpoint)"
-                >{{$t('access.accessRights')}}</v-btn>
+                >{{$t('accessRights.title')}}</v-btn>
               </td>
             </tr>
           </template>
@@ -115,7 +115,10 @@ export default Vue.extend({
       });
     },
     editAccessRights(endpoint: Endpoint): void {
-      // NOOP
+      this.$router.push({
+        name: RouteName.EndpointAccessRights,
+        params: { id: endpoint.id },
+      });
     },
     cancelAddEndpoint(): void {
       this.isAddEndpointDialogVisible = false;
