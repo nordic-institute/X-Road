@@ -73,20 +73,20 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setMemberNameGroupDescription(globalConfFacade.getMemberName(serviceClientId));
+                serviceClient.setName(globalConfFacade.getMemberName(serviceClientId));
                 serviceClient.setId(clientConverter.convertId(serviceClientId));
                 serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                serviceClient.setMemberNameGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
+                serviceClient.setName(globalConfFacade.getGlobalGroupDescription(globalGroupId));
                 serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
                 serviceClient.setServiceClientType(ServiceClientType.GLOBALGROUP);
                 break;
             case LOCALGROUP:
                 serviceClient.setId(accessRightHolderDto.getLocalGroupId());
                 serviceClient.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
-                serviceClient.setMemberNameGroupDescription(accessRightHolderDto.getLocalGroupDescription());
+                serviceClient.setName(accessRightHolderDto.getLocalGroupDescription());
                 serviceClient.setServiceClientType(ServiceClientType.LOCALGROUP);
                 break;
             default:

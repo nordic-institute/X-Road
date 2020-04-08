@@ -233,19 +233,19 @@ public class ServicesApiControllerIntegrationTest {
 
         ServiceClient serviceClient = getServiceClientByType(serviceClients, TestUtils.GLOBALGROUP).get();
         assertEquals(TestUtils.NAME_FOR + TestUtils.DB_GLOBALGROUP_CODE,
-                serviceClient.getMemberNameGroupDescription());
+                serviceClient.getName());
         assertEquals(TestUtils.DB_GLOBALGROUP_ID, serviceClient.getId());
         assertEquals(TestUtils.GLOBALGROUP, serviceClient.getServiceClientType().name());
 
         serviceClient = getServiceClientByType(serviceClients, TestUtils.LOCALGROUP).get();
         assertEquals(TestUtils.DB_LOCAL_GROUP_ID_1, serviceClient.getId());
         assertEquals(TestUtils.DB_LOCAL_GROUP_CODE, serviceClient.getLocalGroupCode());
-        assertEquals(FOO, serviceClient.getMemberNameGroupDescription());
+        assertEquals(FOO, serviceClient.getName());
         assertEquals(TestUtils.LOCALGROUP, serviceClient.getServiceClientType().name());
 
         serviceClient = getServiceClientByType(serviceClients, TestUtils.SUBSYSTEM).get();
         assertEquals(TestUtils.NAME_FOR + TestUtils.CLIENT_ID_SS2,
-                serviceClient.getMemberNameGroupDescription());
+                serviceClient.getName());
         assertEquals(TestUtils.CLIENT_ID_SS2, serviceClient.getId());
         assertEquals(TestUtils.SUBSYSTEM, serviceClient.getServiceClientType().name());
 

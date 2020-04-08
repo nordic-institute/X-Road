@@ -4071,7 +4071,6 @@ components:
       required:
         - service_code
       properties:
-# is this key by PK or key by client_id + service_code? Latter would work, and we should prefer natural ids if we can? In that case, accessRight.id should be client_id + ":" + service_code?
         service_code:
           type: string
           format: text
@@ -5116,7 +5115,6 @@ components:
           description: has endpoint been generated from openapi3 description
           example: true
           readOnly: true
-# consider if we need a separate ServiceClientCandidate object (without rights_given_at), or not
     ServiceClient: # ok
       type: object
       description: service client. May be a subsystem, local group, or a global group
@@ -5131,16 +5129,14 @@ components:
           example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
           minLength: 1
           maxLength: 1279
-# maybe this could be just "name" and description would explain more? However, not really important
-        member_name_group_description:
+        name:
           type: string
           format: text
-          description: name of the subject - can be the name of a member or the description of a group
+          description: name of the ServiceClient - can be the name of a member or the description of a group
           example: Security server owners
           readOnly: true
           minLength: 1
           maxLength: 255
-# I dont understand yet why we need this, when we already have id. Maybe there's a reason, did not study deeply. Could try to remove, to find out who uses. No time now though
         local_group_code:
           type: string
           format: text
@@ -5151,7 +5147,7 @@ components:
           readOnly: true
         service_client_type:
           $ref: '#/components/schemas/ServiceClientType'
-# this feels a bit bad, like it should belong elsewhere. Rights given to what? At least description needs some work.
+# improve documentation, explain function better, and that it is not populated always
         rights_given_at:
           type: string
           format: date-time
