@@ -322,26 +322,27 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
-    clientLocalGroups.openCbbDetails();
-    browser.waitForElementVisible(localGroupPopup);
-
-    // Delete and cancel
-    localGroupPopup.deleteThisGroup();
-    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
-    localGroupPopup.cancelDelete();
-    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');   
-    localGroupPopup.close();
-    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
 
     // Delete and confirm
-    clientLocalGroups.openCbbDetails();
+    browser.assert.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]')
+    clientLocalGroups.openBacDetails();
     browser.waitForElementVisible(localGroupPopup);
     browser.waitForElementVisible(localGroupPopup.elements.localGroupPopupCloseButton);
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
     localGroupPopup.confirmDelete();
     browser.waitForElementVisible(clientLocalGroups);
-    browser.assert.not.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
+    browser.assert.not.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]')
+
+    // Delete and cancel
+    clientLocalGroups.openCbbDetails();
+    browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.deleteThisGroup();
+    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
+    localGroupPopup.cancelDelete();
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');   
+    localGroupPopup.close();
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
 
   }
 };
