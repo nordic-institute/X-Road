@@ -37,6 +37,7 @@ export enum RouteName {
   GenerateInternalCSR = 'generate-internal-csr',
   EndpointDetails = 'endpoint-details',
   EndpointAccessRights = 'endpoint-access-rights',
+  ServiceClientAccessRights = 'service-client-access-rights',
 }
 
 // A "single source of truth" for permission strings

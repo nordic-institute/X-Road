@@ -122,7 +122,8 @@
     "addSubject": "Add subject",
     "memberNameGroupDesc": "Member name / Group description",
     "id": "ID",
-    "searchPlaceHolder": "Service clients"
+    "searchPlaceHolder": "Service clients",
+
   },
   "localGroups": {
     "addGroup": "Add group",

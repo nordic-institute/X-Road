@@ -21,7 +21,7 @@
           <th>{{$t('serviceClients.id')}}</th>
         </tr>
         <template v-if="serviceClients.length > 0">
-          <tr v-for="sc in this.filteredServiceClients()">
+          <tr v-for="sc in this.filteredServiceClients()" @click="showAccessRights(sc.subject.id)">
             <td>{{sc.subject.member_name_group_description}}</td>
             <td>{{sc.subject.id}}</td>
           </tr>
@@ -50,7 +50,6 @@
       return {
         serviceClients: [] as ServiceClient[],
         search: '' as string,
-        test: [],
       };
     },
     computed: {
@@ -73,6 +72,9 @@
           const searchWordLowerCase = this.search.toLowerCase();
           return memberNameOrGroupDescription?.includes(searchWordLowerCase) || subjectId.includes(searchWordLowerCase);
         });
+      },
+      showAccessRights(serviceClientId: string) {
+        this.$router.push(`/serviceclients/${serviceClientId}/accessrights/${this.id}`);
       },
     },
     created() {
