@@ -148,7 +148,7 @@ public class AccessRightService {
 
     /**
      * Get access right holders for Endpoint
-     *
+     * TO DO: maybe rename? and rename lots of these....if we're talking about ServiceClients?
      * @param id
      * @return
      * @throws EndpointNotFoundException    if no endpoint is found with given id
@@ -564,6 +564,7 @@ public class AccessRightService {
     }
 
     /**
+     * TO DO: rename
      * Find access right holders by search terms
      * @param clientId
      * @param subjectType search term for subjectType. Null or empty value is considered a match

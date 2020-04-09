@@ -29,10 +29,8 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.model.Subject;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,14 +52,10 @@ public class SubjectConverter {
         this.globalGroupConverter = globalGroupConverter;
     }
 
-    /**
-     * Convert {@link Subject} to {@link XRoadId}
-     * @param subject
-     * @return {@link XRoadId}
-     */
-    public XRoadId convertId(Subject subject) {
-        XRoadObjectType subjectType = SubjectTypeMapping.map(subject.getSubjectType()).get();
-        String encodedId = subject.getId();
+    // TO DO: fix
+    public XRoadId convertId(ServiceClient serviceClient) {
+        XRoadObjectType subjectType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
+        String encodedId = serviceClient.getId();
         int separators;
         XRoadId xRoadId;
         switch (subjectType) {
@@ -76,7 +70,7 @@ public class SubjectConverter {
                 xRoadId = globalGroupConverter.convertId(encodedId);
                 break;
             case LOCALGROUP:
-                xRoadId = LocalGroupId.create(subject.getLocalGroupCode());
+                xRoadId = LocalGroupId.create(serviceClient.getLocalGroupCode());
                 break;
             default:
                 throw new BadRequestException("Invalid subject type");
@@ -84,46 +78,10 @@ public class SubjectConverter {
         return xRoadId;
     }
 
-    /**
-     * Convert a group of {@link Subject subjects} to a list of {@link XRoadId xRoadIds}
-     * @param subjects
-     * @return List of {@link XRoadId xRoadIds}
-     */
-    public List<XRoadId> convertId(Iterable<Subject> subjects) {
-        return Streams.stream(subjects)
+    public List<XRoadId> convertScId(Iterable<ServiceClient> serviceClients) {
+        return Streams.stream(serviceClients)
                 .map(this::convertId)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Convert {@link AccessRightHolderDto} to {@link Subject}
-     * @param accessRightHolderDto
-     * @return {@link Subject}
-     */
-    public Subject convert(AccessRightHolderDto accessRightHolderDto) {
-        Subject subject = new Subject();
-        String subjectsId = accessRightHolderDto.getLocalGroupId() != null
-                ? accessRightHolderDto.getLocalGroupId() : FormatUtils.xRoadIdToEncodedId(
-                accessRightHolderDto.getSubjectId());
-        subject.setId(subjectsId);
-        subject.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
-        SubjectType subjectType = SubjectTypeMapping
-                .map(accessRightHolderDto.getSubjectId().getObjectType()).orElse(null);
-        subject.setSubjectType(subjectType);
-        String memberNameOrGroupDescription = accessRightHolderDto.getMemberName() != null
-                ? accessRightHolderDto.getMemberName() : accessRightHolderDto.getLocalGroupDescription();
-        subject.setMemberNameGroupDescription(memberNameOrGroupDescription);
-        return subject;
-    }
-
-    /**
-     * Convert a group of {@link AccessRightHolderDto accessRightHolderDtos} to a list of {@link Subject subjects}
-     * @param accessRightHolderDtos
-     * @return List of {@link Subject subjects}
-     */
-    public List<Subject> convert(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
-        return Streams.stream(accessRightHolderDtos)
-                .map(this::convert)
-                .collect(Collectors.toList());
-    }
 }

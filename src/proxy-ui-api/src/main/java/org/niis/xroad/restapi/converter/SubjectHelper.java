@@ -28,9 +28,9 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.model.Subject;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
-import org.niis.xroad.restapi.openapi.model.Subjects;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.ServiceClientType;
+import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+// TO DO: redo
 @Component
 public class SubjectHelper {
 
@@ -49,16 +50,16 @@ public class SubjectHelper {
         this.subjectConverter = subjectConverter;
     }
 
-    public List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
+    public List<XRoadId> getXRoadIdsButSkipLocalGroups(ServiceClients serviceClients) {
         // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        return subjectConverter.convertId(subjects.getItems());
+        serviceClients.getItems().removeIf(hasNumericIdAndIsLocalGroupSc);
+        return subjectConverter.convertScId(serviceClients.getItems());
     }
 
-    public Set<Long> getLocalGroupIds(Subjects subjects) {
-        return subjects.getItems()
+    public Set<Long> getLocalGroupIds(ServiceClients serviceClients) {
+        return serviceClients.getItems()
                 .stream()
-                .filter(hasNumericIdAndIsLocalGroup)
+                .filter(hasNumericIdAndIsLocalGroupSc)
                 .map(subject -> Long.parseLong(subject.getId()))
                 .collect(Collectors.toSet());
     }
@@ -68,9 +69,9 @@ public class SubjectHelper {
      * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
      * Therefore LocalGroups need to be handled separately from other types of subjects.
      */
-    private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
+    private Predicate<ServiceClient> hasNumericIdAndIsLocalGroupSc = subject -> {
         boolean hasNumericId = StringUtils.isNumeric(subject.getId());
-        boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
+        boolean isLocalGroup = subject.getServiceClientType() == ServiceClientType.LOCALGROUP;
         if (!hasNumericId && isLocalGroup) {
             throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
         }
