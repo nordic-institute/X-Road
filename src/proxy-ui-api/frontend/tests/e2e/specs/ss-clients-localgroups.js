@@ -233,6 +233,7 @@ module.exports = {
 
 
     localGroupPopup.clickRemoveAll();
+    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]');
     localGroupPopup.confirmMemberRemove();
     browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]');
     browser.assert.not.elementPresent('//*[contains(text(),"TestGov")]');
@@ -268,7 +269,7 @@ module.exports = {
     // Change description
     localGroupPopup.changeDescription('');
     localGroupPopup.clickDescriptionLabel();
-    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 400');
     mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]')
@@ -276,7 +277,7 @@ module.exports = {
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.changeDescription(browser.globals.test_string_300.slice(0,256));
     localGroupPopup.clickDescriptionLabel();
-    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 500');
+    browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Request failed with status code 400');
     mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]');
@@ -306,6 +307,7 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
+
     // Open SUT and check that page is loaded
     frontPage.navigate();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -334,7 +336,7 @@ module.exports = {
     // Delete and confirm
     clientLocalGroups.openCbbDetails();
     browser.waitForElementVisible(localGroupPopup);
-
+    browser.waitForElementVisible(localGroupPopup.elements.localGroupPopupCloseButton);
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
     localGroupPopup.confirmDelete();
