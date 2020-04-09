@@ -6,17 +6,23 @@
       <v-stepper-header class="noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.generateCsr')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-divider></v-divider>
+        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('csr.generateCsr')}}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageCsrDetails @cancel="cancel" @done="save" :showPreviousButton="false" />
+          <WizardPageKeyLabel @cancel="cancel" @done="currentStep = 2" />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="done" />
+          <WizardPageCsrDetails @cancel="cancel" @previous="currentStep = 1" @done="save" />
+        </v-stepper-content>
+        <!-- Step 3 -->
+        <v-stepper-content step="3">
+          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 2" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -29,6 +35,7 @@ import { mapGetters } from 'vuex';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 
@@ -41,11 +48,12 @@ export default Vue.extend({
     HelpIcon,
     LargeButton,
     SubViewTitle,
+    WizardPageKeyLabel,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
   },
   props: {
-    keyId: {
+    tokenId: {
       type: String,
       required: true,
     },
@@ -59,7 +67,7 @@ export default Vue.extend({
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
         (response) => {
-          this.currentStep = 2;
+          this.currentStep = 3;
         },
         (error) => {
           this.$store.dispatch('showError', error);
@@ -94,8 +102,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.$store.commit('storeKeyId', this.keyId);
-    this.fetchKeyData(this.keyId);
+    this.$store.dispatch('setCsrTokenId', this.tokenId);
     this.fetchLocalMembers();
     this.fetchCertificateAuthorities();
   },
