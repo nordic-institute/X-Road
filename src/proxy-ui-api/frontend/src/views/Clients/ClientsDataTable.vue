@@ -11,6 +11,7 @@
       <v-text-field
         v-model="search"
         :label="$t('action.search')"
+        data-test="search-clients-input"
         single-line
         hide-details
         class="search-input"
@@ -21,6 +22,7 @@
         v-if="showAddClient()"
         color="primary"
         @click="addClient"
+        data-test="add-client-button"
         rounded
         dark
         class="ma-0 rounded-button elevation-0"

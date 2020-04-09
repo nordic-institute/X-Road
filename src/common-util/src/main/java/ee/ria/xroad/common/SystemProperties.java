@@ -316,14 +316,10 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
 
-    public static final String DEFAULT_ALLOW_GET_WSDL_REQUEST = "false";
-
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
-
-    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------
@@ -1514,14 +1510,6 @@ public final class SystemProperties {
     @SuppressWarnings("checkstyle:MagicNumber")
     public static long getServerConfAclCacheSize() {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
-    }
-
-
-    /**
-     * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
-     */
-    public static boolean isAllowGetWsdlRequest() {
-        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, DEFAULT_ALLOW_GET_WSDL_REQUEST));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {

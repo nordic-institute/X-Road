@@ -25,7 +25,7 @@
           <th>{{$t('serviceClients.id')}}</th>
         </tr>
         <template v-if="serviceClients.length > 0">
-          <tr v-for="sc in this.filteredServiceClients()">
+          <tr v-for="sc in this.filteredServiceClients()" @click="showAccessRights(sc.id)">
             <td>{{sc.name}}</td>
             <td>{{sc.id}}</td>
           </tr>
@@ -43,7 +43,6 @@
   import {ServiceClient} from '@/types';
 
   export default Vue.extend({
-    components: {},
     props: {
       id: {
         type: String,
@@ -54,7 +53,6 @@
       return {
         serviceClients: [] as ServiceClient[],
         search: '' as string,
-        test: [],
       };
     },
     computed: {
@@ -76,6 +74,9 @@
           return sc.name?.toLowerCase().includes(searchWordLowerCase)
             || sc.id.toLowerCase().includes(searchWordLowerCase);
         });
+      },
+      showAccessRights(serviceClientId: string) {
+        this.$router.push(`/serviceclients/${serviceClientId}/accessrights/${this.id}`);
       },
     },
     created() {

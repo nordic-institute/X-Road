@@ -24,21 +24,10 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.AccessRightConverter;
-import org.niis.xroad.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.openapi.model.AccessRight;
-import org.niis.xroad.restapi.service.AccessRightService;
-import org.niis.xroad.restapi.service.ClientNotFoundException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/api")
@@ -46,28 +35,8 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class ServiceClientApiController implements ServiceClientsApi {
 
-    private final ClientConverter clientConverter;
-    private final AccessRightService accessRightService;
-    private AccessRightConverter accessRightConverter;
+    public ServiceClientApiController() {
 
-    public ServiceClientApiController(ClientConverter clientConverter, AccessRightService accessRightService,
-            AccessRightConverter accessRightConverter) {
-        this.clientConverter = clientConverter;
-        this.accessRightService = accessRightService;
-        this.accessRightConverter = accessRightConverter;
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_ACL_SUBJECT_OPEN_SERVICES')")
-    public ResponseEntity<List<AccessRight>> getServiceClientAccessRights(String id, String clientId) {
-        ClientId clientIdentifier = clientConverter.convertId(clientId);
-        List<AccessRight> accessRights = null;
-        try {
-            accessRights = accessRightConverter.convert(
-                    accessRightService.getServiceClientAccessRights(id, clientIdentifier));
-        } catch (ClientNotFoundException e) {
-            throw new BadRequestException(e);
-        }
-        return new ResponseEntity<>(accessRights, HttpStatus.OK);
-    }
 }

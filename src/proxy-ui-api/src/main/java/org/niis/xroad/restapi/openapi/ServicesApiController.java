@@ -177,7 +177,7 @@ public class ServicesApiController implements ServicesApi {
         } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException
                 | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (IdentifierNotFoundException e) {
+        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);

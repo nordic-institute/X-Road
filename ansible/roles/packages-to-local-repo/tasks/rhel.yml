@@ -3,9 +3,8 @@
   become: yes
   copy: src={{item}} dest=/xroad/local/RPMS/ force=no
   with_fileglob:
-    - ../src/packages/build/xroad/redhat/RPMS/noarch/xroad-*rpm
-    - ../src/packages/build/xroad/redhat/RPMS/x86_64/xroad-*rpm
-    - ../src/packages/build/xroad-jetty9/redhat/RPMS/x86_64/xroad-*rpm
+    - ../src/packages/build/rhel/{{ ansible_distribution_major_version }}/noarch/xroad-*rpm
+    - ../src/packages/build/rhel/{{ ansible_distribution_major_version }}/x86_64/xroad-*rpm
 
 - name: Clear yum cache (RHEL)
   become: yes

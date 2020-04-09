@@ -740,11 +740,34 @@ export interface LocalGroup {
   members?: GroupMember[];
 }
 /**
- * request object containing an array of member ids
+ * model for adding a new LocalGroup
+ */
+export interface LocalGroupAdd {
+  /**
+   * group code
+   * example:
+   * groupcode
+   */
+  code: string; // text
+  /**
+   * group description
+   * example:
+   * description
+   */
+  description: string; // text
+}
+/**
+ * Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
  */
 export interface Members {
   /**
    * array of members to be added
+   * example:
+   * [
+   *   "FI:GOV:123",
+   *   "FI:GOV:123:SS1",
+   *   "FI:GOV:123:SS2"
+   * ]
    */
   items?: string /* text */[];
 }
