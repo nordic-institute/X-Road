@@ -235,7 +235,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
-    public ResponseEntity<Anchor> previewAnchor(Resource anchorResource) {
+    public ResponseEntity<Anchor> previewAnchor(Boolean validateInstance, Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         AnchorFile anchorFile = null;
         try {
