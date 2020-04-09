@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.scheduling;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
@@ -75,6 +77,12 @@ public class GlobalConfChecker {
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     public void updateServerConf() throws JobExecutionException {
+        // In clustered setup slave nodes may skip globalconf updates
+        if (SLAVE.equals(SystemProperties.getServerNodeType())) {
+            log.debug("This is a slave node - skip globalconf updates");
+            return;
+        }
+
         try {
             log.debug("Check globalconf for updates");
             checkGlobalConf();
@@ -95,7 +103,7 @@ public class GlobalConfChecker {
 
         try {
             if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
-                log.debug("Server owner not found in global conf - owner may have changed");
+                log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
             }
             securityServerId = buildSecurityServerId(serverConf);
