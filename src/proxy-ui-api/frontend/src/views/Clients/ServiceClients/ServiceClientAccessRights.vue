@@ -27,7 +27,7 @@ export default Vue.extend({
   data() {
     return {
       accessRights: [] as AccessRight[]
-    }
+    },
   },
   methods: {
     fetchData() {
