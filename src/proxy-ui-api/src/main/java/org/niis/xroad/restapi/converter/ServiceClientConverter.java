@@ -27,13 +27,17 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,8 +63,7 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert ServiceClientDto to ServiceClient. {@link ServiceClient#accessRights} will be set to null because
-     * only the access right holders (clients or groups) are needed
+     * Convert AccessRightHolderDto to ServiceClient.
      * @param accessRightHolderDto
      * @return {@link ServiceClient}
      */
@@ -97,7 +100,7 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert a group of ServiceClientDtos to ServiceClients
+     * Convert a group of AccessRightHolderDtos to ServiceClients
      * @param accessRightHolderDtos
      * @return
      */
@@ -106,4 +109,46 @@ public class ServiceClientConverter {
                 .map(this::convertAccessRightHolderDto)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Convert ServiceClient into XroadId (based on serviceClientType, id and localGroupCode)
+     * @param serviceClient
+     * @return
+     */
+    public XRoadId convertId(ServiceClient serviceClient) {
+        XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
+        String encodedId = serviceClient.getId();
+        int separators;
+        XRoadId xRoadId;
+        switch (serviceClientType) {
+            case SUBSYSTEM:
+                separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+                if (separators != ClientConverter.SUBSYSTEM_CODE_INDEX) {
+                    throw new BadRequestException("Invalid subsystem id " + encodedId);
+                }
+                xRoadId = clientConverter.convertId(encodedId);
+                break;
+            case GLOBALGROUP:
+                xRoadId = globalGroupConverter.convertId(encodedId);
+                break;
+            case LOCALGROUP:
+                xRoadId = LocalGroupId.create(serviceClient.getLocalGroupCode());
+                break;
+            default:
+                throw new BadRequestException("Invalid service client type");
+        }
+        return xRoadId;
+    }
+
+    /**
+     * Convert ServiceClients into XroadIds (based on serviceClientType, id and localGroupCode)
+     * @param serviceClients
+     * @return
+     */
+    public List<XRoadId> convertIds(Iterable<ServiceClient> serviceClients) {
+        return Streams.stream(serviceClients)
+                .map(this::convertId)
+                .collect(Collectors.toList());
+    }
+
 }
