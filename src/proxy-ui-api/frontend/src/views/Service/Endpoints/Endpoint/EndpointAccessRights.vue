@@ -17,7 +17,7 @@
         >{{$t('action.removeAll')}}
         </large-button>
         <large-button
-          @click="toggleAddSubjectsDialog()"
+          @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
         >{{$t('accessRights.addSubjects')}}
@@ -70,7 +70,7 @@
       :filtered="serviceClients"
       :clientId="clientId"
       title="accessRights.addSubjectsTitle"
-      @cancel="toggleAddSubjectsDialog"
+      @cancel="toggleAddServiceClientsDialog"
       @subjectsAdded="doAddSubjects"
     />
 
@@ -82,7 +82,7 @@
   import Vue from 'vue';
   import * as api from '@/util/api';
   import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-  import {Endpoint, ServiceClient, Subject} from '@/types';
+  import {Endpoint, ServiceClient} from '@/types';
   import LargeButton from '@/components/ui/LargeButton.vue';
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
   import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
@@ -110,9 +110,9 @@
         endpoint: {} as Endpoint | {},
         serviceClients: [] as ServiceClient[],
         confirmDelete: false as boolean,
-        subjectsToDelete: [] as Subject[],
+        serviceClientsToDelete: [] as ServiceClient[],
         addSubjectsDialogVisible: false as boolean,
-        subjectsToAdd: [] as Subject[],
+        serviceClientsToAdd: [] as ServiceClient[],
       };
     },
     methods: {
@@ -121,20 +121,20 @@
       },
       removeAll(): void {
         this.toggleConfirmDeleteDialog();
-        this.subjectsToDelete = this.serviceClients.map( (sc: ServiceClient) => sc.subject) as Subject[];
+        this.serviceClientsToDelete = this.serviceClients;
       },
       remove(serviceClient: ServiceClient): void {
         this.toggleConfirmDeleteDialog();
-        this.subjectsToDelete = [serviceClient.subject];
+        this.serviceClientsToDelete = [serviceClient];
       },
       resetDeletionSettings(): void {
         this.toggleConfirmDeleteDialog();
-        this.subjectsToDelete = [];
+        this.serviceClientsToDelete = [];
       },
       toggleConfirmDeleteDialog(): void {
         this.confirmDelete = !this.confirmDelete;
       },
-      toggleAddSubjectsDialog(): void {
+      toggleAddServiceClientsDialog(): void {
         this.addSubjectsDialogVisible = !this.addSubjectsDialogVisible;
       },
       fetchData(): void {
@@ -157,7 +157,7 @@
       },
       doRemoveSelectedSubjects(): void {
         api
-          .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.subjectsToDelete })
+          .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.serviceClientsToDelete })
           .then( () => {
             this.$store.dispatch('showSuccess', 'accessRights.removeSubjectsSuccess');
             this.fetchData();
@@ -166,10 +166,10 @@
             this.$store.dispatch('showError', error.message);
           }).finally( () => {
             this.toggleConfirmDeleteDialog();
-            this.subjectsToDelete = [];
+            this.serviceClientsToDelete = [];
           });
       },
-      doAddSubjects(subjects: Subject[]): void {
+      doAddSubjects(subjects: ServiceClient[]): void {
         api
           .post(`/endpoints/${this.id}/access-rights`, { items: subjects})
           .then( (accessRights) => {
@@ -180,7 +180,7 @@
             this.$store.dispatch('showError', error.message);
           })
           .finally( () => {
-            this.toggleAddSubjectsDialog();
+            this.toggleAddServiceClientsDialog();
           });
       },
     },
