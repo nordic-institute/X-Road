@@ -30,6 +30,7 @@ import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
 import Service from '@/views/Service/Service.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
+import AddKey from '@/views/AddKey/AddKey.vue';
 import store from '@/store';
 import { Permissions, RouteName } from '@/global';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
@@ -322,6 +323,14 @@ const router = new Router({
           path: '/generate-csr/:keyId',
           components: {
             default: GenerateCertificateSignRequest,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.AddKey,
+          path: '/add-key/:tokenId',
+          components: {
+            default: AddKey,
           },
           props: { default: true },
         },
