@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,10 +103,10 @@ public class LocalGroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS" })
     public void getLocalGroup() throws Exception {
         ResponseEntity<LocalGroup> response =
-                localGroupsApiController.getGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
+                localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         try {
-            localGroupsApiController.getGroup(TestUtils.INVALID_GROUP_ID);
+            localGroupsApiController.getLocalGroup(TestUtils.INVALID_GROUP_ID);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // nothing should be found
@@ -115,9 +116,10 @@ public class LocalGroupsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
     public void updateGroup() throws Exception {
-        localGroupsApiController.updateGroup(TestUtils.DB_LOCAL_GROUP_ID_1, TestUtils.GROUP_DESC);
+        localGroupsApiController.updateLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1,
+                new LocalGroupDescription().description(TestUtils.GROUP_DESC));
         ResponseEntity<LocalGroup> response =
-                localGroupsApiController.getGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
+                localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(TestUtils.GROUP_DESC, response.getBody().getDescription());
     }
@@ -126,10 +128,10 @@ public class LocalGroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "DELETE_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void deleteLocalGroup() throws Exception {
         ResponseEntity<Void> response =
-                localGroupsApiController.deleteGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
+                localGroupsApiController.deleteLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         try {
-            localGroupsApiController.getGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
+            localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
@@ -140,7 +142,7 @@ public class LocalGroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void addGroupMember() throws Exception {
         ResponseEntity<Members> response =
-                localGroupsApiController.addGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
+                localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
                         new Members().items(Collections.singletonList(TestUtils.CLIENT_ID_SS2)));
 
         List<String> addedMembers = response.getBody().getItems();
@@ -148,7 +150,7 @@ public class LocalGroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertMissingLocationHeader(response);
 
-        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getGroup(
+        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getLocalGroup(
                 TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(1, localGroupResponse.getBody().getMembers().size());
     }
@@ -158,7 +160,7 @@ public class LocalGroupsApiControllerIntegrationTest {
     public void addMultipleGroupMembers() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(TestUtils.CLIENT_ID_SS1, TestUtils.CLIENT_ID_SS2,
                 TestUtils.CLIENT_ID_SS1, TestUtils.CLIENT_ID_SS2);
-        ResponseEntity<Members> response = localGroupsApiController.addGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
+        ResponseEntity<Members> response = localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
                 new Members().items(membersToBeAdded));
         List<String> addedMembers = response.getBody().getItems();
         assertEquals(membersToBeAdded, addedMembers);
@@ -166,7 +168,7 @@ public class LocalGroupsApiControllerIntegrationTest {
         assertMissingLocationHeader(response);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getGroup(
+        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getLocalGroup(
                 TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(2, localGroupResponse.getBody().getMembers().size());
     }
@@ -175,14 +177,14 @@ public class LocalGroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void addDuplicateGroupMember() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(TestUtils.CLIENT_ID_SS1, TestUtils.CLIENT_ID_SS2);
-        ResponseEntity<Members> response = localGroupsApiController.addGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
+        ResponseEntity<Members> response = localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
                 new Members().items(membersToBeAdded));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getGroup(
+        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getLocalGroup(
                 TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(2, localGroupResponse.getBody().getMembers().size());
         try {
-            localGroupsApiController.addGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
+            localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
                     new Members().items(Collections.singletonList(TestUtils.CLIENT_ID_SS2)));
             fail("should throw ConflictException");
         } catch (ConflictException expected) {
@@ -194,13 +196,14 @@ public class LocalGroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void deleteGroupMember() throws Exception {
         ResponseEntity<Members> response =
-                localGroupsApiController.addGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1, new Members()
+                localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1, new Members()
                         .items(Collections.singletonList(TestUtils.CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<Void> deleteResponse = localGroupsApiController.deleteGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
+        ResponseEntity<Void> deleteResponse = localGroupsApiController.deleteLocalGroupMember(
+                TestUtils.DB_LOCAL_GROUP_ID_1,
                 new Members().items(Collections.singletonList(TestUtils.CLIENT_ID_SS2)));
-        assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
-        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getGroup(
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
+        ResponseEntity<LocalGroup> localGroupResponse = localGroupsApiController.getLocalGroup(
                 TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(0, localGroupResponse.getBody().getMembers().size());
     }

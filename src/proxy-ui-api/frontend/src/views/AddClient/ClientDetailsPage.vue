@@ -1,21 +1,19 @@
 <template>
   <div>
     <div class="info-block">
-      <slot>
-        <div>
-          {{$t('wizard.clientInfo1')}}
-          <br />
-          <br />
-          {{$t('wizard.clientInfo2')}}
-        </div>
-        <div class="action-block">
-          <large-button
-            @click="showSelectClient = true"
-            outlined
-            data-test="select-client-button"
-          >{{$t('wizard.selectClient')}}</large-button>
-        </div>
-      </slot>
+      <div>
+        {{$t('wizard.clientInfo1')}}
+        <br />
+        <br />
+        {{$t('wizard.clientInfo2')}}
+      </div>
+      <div class="action-block">
+        <large-button
+          @click="showSelectClient = true"
+          outlined
+          data-test="select-client-button"
+        >{{$t('wizard.selectClient')}}</large-button>
+      </div>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
@@ -51,7 +49,7 @@
         </ValidationProvider>
       </div>
 
-      <div v-if="showSubsystem" class="row-wrap">
+      <div class="row-wrap">
         <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
 
         <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
@@ -105,16 +103,6 @@ export default Vue.extend({
     ValidationProvider,
     SelectClientDialog,
   },
-  props: {
-    saveButtonText: {
-      type: String,
-      default: 'action.continue',
-    },
-    showSubsystem: {
-      type: Boolean,
-      default: true,
-    },
-  },
   computed: {
     ...mapGetters(['reservedClients', 'selectableClients']),
 
@@ -161,6 +149,8 @@ export default Vue.extend({
   data() {
     return {
       disableDone: false,
+      certificationService: undefined,
+      filteredServiceList: [],
       showSelectClient: false as boolean,
     };
   },

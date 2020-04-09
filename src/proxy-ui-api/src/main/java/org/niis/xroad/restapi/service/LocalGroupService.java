@@ -192,7 +192,8 @@ public class LocalGroupService {
                         .anyMatch(item -> item.toShortString().trim()
                                 .equals(member.getGroupMemberId().toShortString().trim())))
                 .collect(Collectors.toList());
-        if (membersToBeRemoved.isEmpty()) {
+        // do not remove members at all if even one of them was not found
+        if (membersToBeRemoved.isEmpty() || items.size() != membersToBeRemoved.size()) {
             throw new LocalGroupMemberNotFoundException("the requested group member was not found in local group");
         }
         managedLocalGroup.getGroupMember().removeAll(membersToBeRemoved);
