@@ -31,9 +31,8 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
+import org.niis.xroad.restapi.converter.ServiceClientHelper;
 import org.niis.xroad.restapi.converter.ServiceConverter;
-import org.niis.xroad.restapi.converter.SubjectConverter;
-import org.niis.xroad.restapi.converter.SubjectHelper;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -74,21 +73,19 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceClientConverter serviceClientConverter;
     private final EndpointConverter endpointConverter;
     private final ServiceService serviceService;
-    private final SubjectConverter subjectConverter;
     private final AccessRightService accessRightService;
-    private final SubjectHelper subjectHelper;
+    private final ServiceClientHelper serviceClientHelper;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
-            ServiceService serviceService, SubjectConverter subjectConverter, AccessRightService accessRightService,
-            EndpointConverter endpointConverter, SubjectHelper subjectHelper) {
+            ServiceService serviceService, AccessRightService accessRightService,
+            EndpointConverter endpointConverter, ServiceClientHelper serviceClientHelper) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
-        this.subjectConverter = subjectConverter;
         this.accessRightService = accessRightService;
         this.endpointConverter = endpointConverter;
-        this.subjectHelper = subjectHelper;
+        this.serviceClientHelper = serviceClientHelper;
     }
 
     @Override
@@ -153,8 +150,8 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         // LocalGroups with numeric ids (PK)
-        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(serviceClients);
-        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
+        Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
+        List<XRoadId> xRoadIds = serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
@@ -172,8 +169,8 @@ public class ServicesApiController implements ServicesApi {
             ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(serviceClients);
-        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
+        Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
+        List<XRoadId> xRoadIds = serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
         List<AccessRightHolderDto> accessRightHolderDtos;
         try {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,

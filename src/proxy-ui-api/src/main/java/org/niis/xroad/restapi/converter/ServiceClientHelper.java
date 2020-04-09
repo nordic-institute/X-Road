@@ -39,41 +39,40 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-// TO DO: redo
 @Component
-public class SubjectHelper {
+public class ServiceClientHelper {
 
-    private final SubjectConverter subjectConverter;
+    private final ServiceClientConverter serviceClientConverter;
 
     @Autowired
-    public SubjectHelper(SubjectConverter subjectConverter) {
-        this.subjectConverter = subjectConverter;
+    public ServiceClientHelper(ServiceClientConverter serviceClientConverter) {
+        this.serviceClientConverter = serviceClientConverter;
     }
 
     public List<XRoadId> getXRoadIdsButSkipLocalGroups(ServiceClients serviceClients) {
-        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
-        serviceClients.getItems().removeIf(hasNumericIdAndIsLocalGroupSc);
-        return subjectConverter.convertScId(serviceClients.getItems());
+        // ServiceClientConverter cannot resolve the correct XRoadId from LocalGroup ServiceClient's numeric id
+        serviceClients.getItems().removeIf(hasNumericIdAndIsLocalGroup);
+        return serviceClientConverter.convertIds(serviceClients.getItems());
     }
 
     public Set<Long> getLocalGroupIds(ServiceClients serviceClients) {
         return serviceClients.getItems()
                 .stream()
-                .filter(hasNumericIdAndIsLocalGroupSc)
-                .map(subject -> Long.parseLong(subject.getId()))
+                .filter(hasNumericIdAndIsLocalGroup)
+                .map(sc -> Long.parseLong(sc.getId()))
                 .collect(Collectors.toSet());
     }
 
     /**
-     * The client-provided Subjects only contain id and subjectType.
-     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
-     * Therefore LocalGroups need to be handled separately from other types of subjects.
+     * The client-provided ServiceClients only contain id and ServiceClientType.
+     * The id of a LocalGroup is numeric so ServiceClientConverter cannot resolve the correct XRoadId from it.
+     * Therefore LocalGroups need to be handled separately from other types of serviceClients.
      */
-    private Predicate<ServiceClient> hasNumericIdAndIsLocalGroupSc = subject -> {
-        boolean hasNumericId = StringUtils.isNumeric(subject.getId());
-        boolean isLocalGroup = subject.getServiceClientType() == ServiceClientType.LOCALGROUP;
+    private Predicate<ServiceClient> hasNumericIdAndIsLocalGroup = sc -> {
+        boolean hasNumericId = StringUtils.isNumeric(sc.getId());
+        boolean isLocalGroup = sc.getServiceClientType() == ServiceClientType.LOCALGROUP;
         if (!hasNumericId && isLocalGroup) {
-            throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
+            throw new BadRequestException("LocalGroup id is not numeric: " + sc.getId());
         }
         return hasNumericId && isLocalGroup;
     };
