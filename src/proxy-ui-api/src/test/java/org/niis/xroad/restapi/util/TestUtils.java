@@ -129,11 +129,19 @@ public final class TestUtils {
     }
 
     /**
-     * Returns a new ClientId with default parameters "FI:GOV:M1:SS1"
+     * Returns a new ClientId "FI:GOV:M1:SS1"
      * @return ClientId
      */
     public static ClientId getM1Ss1ClientId() {
         return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1);
+    }
+
+    /**
+     * Returns a new ClientId "FI:GOV:M1:SS2"
+     * @return ClientId
+     */
+    public static ClientId getM1Ss2ClientId() {
+        return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2);
     }
 
     /**
