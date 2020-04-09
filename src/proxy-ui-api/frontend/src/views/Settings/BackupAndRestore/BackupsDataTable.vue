@@ -20,16 +20,10 @@
                 @click="downloadBackup(backup.filename)"
                 >{{ $t('action.download') }}
               </small-button>
-              <v-btn
-                v-if="canBackup"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
-                data-test="backup-restore"
-                >{{ $t('action.restore') }}
-              </v-btn>
+              <restore-backup-button
+                :can-backup="canBackup"
+                :backup="backup"
+                @restored="refreshData"/>
               <delete-backup-button
                 :can-backup="canBackup"
                 :backup="backup"
@@ -51,11 +45,13 @@ import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 import { Prop } from 'vue/types/options';
+import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
 
 
 export default Vue.extend({
   components: {
     DeleteBackupButton,
+    RestoreBackupButton,
     SmallButton,
   },
   props: {
