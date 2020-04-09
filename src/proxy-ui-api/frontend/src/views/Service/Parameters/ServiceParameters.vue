@@ -135,12 +135,12 @@
           <th>{{$t('accessRights.rightsGiven')}}</th>
           <th></th>
         </tr>
-        <template v-if="accessRightsSubjects">
-          <tr v-for="subject in accessRightsSubjects" v-bind:key="subject.id">
-            <td>{{subject.subject.member_name_group_description}}</td>
-            <td>{{subject.subject.id}}</td>
-            <td>{{subject.subject.subject_type}}</td>
-            <td>{{subject.rights_given_at | formatDateTime}}</td>
+        <template v-if="serviceClients">
+          <tr v-for="sc in serviceClients" v-bind:key="subject.id">
+            <td>{{sc.name}}</td>
+            <td>{{sc.id}}</td>
+            <td>{{sc.service_client_type}}</td>
+            <td>{{sc.rights_given_at | formatDateTime}}</td>
             <td>
               <div class="button-wrap">
                 <v-btn
@@ -184,7 +184,7 @@
     <!-- Add access right subjects dialog -->
     <accessRightsDialog
       :dialog="addSubjectsDialogVisible"
-      :filtered="accessRightsSubjects"
+      :filtered="serviceClients"
       :clientId="clientId"
       title="accessRights.addSubjectsTitle"
       @cancel="closeAccessRightsDialog"
@@ -246,20 +246,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['service', 'accessRightsSubjects']),
+    ...mapGetters(['service', 'serviceClients']),
     isHttps(): boolean {
-      if (this.service.url.startsWith('https')) {
-        return true;
-      }
-      return false;
+      return this.service.url.startsWith('https');
     },
     hasSubjects(): boolean {
-      if (this.accessRightsSubjects && this.accessRightsSubjects.length > 0) {
-        return true;
-      }
-      return false;
+      return this.serviceClients?.length > 0;
     },
-
     disableSave(): boolean {
       // service is undefined --> can't save
       if (!this.service) {
@@ -300,7 +293,7 @@ export default Vue.extend({
       api
         .get(`/services/${serviceId}/service-clients`)
         .then((res) => {
-          this.$store.dispatch('setAccessRightsSubjects', res.data);
+          this.$store.dispatch('setServiceClients', res.data);
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -337,10 +330,10 @@ export default Vue.extend({
 
     doRemoveAllSubjects(): void {
       const subjects: any = [];
-      this.accessRightsSubjects.forEach((subject: any) => {
-        subjects.push({
-          id: subject.subject.id,
-          subject_type: subject.subject.subject_type,
+      this.serviceClients.forEach((sc: any) => {
+        sc.push({
+          id: sc.id,
+          subject_type: sc.service_client_type,
         });
       });
 

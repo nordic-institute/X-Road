@@ -79,8 +79,9 @@ export default Vue.extend({
         });
 
       api
-        .get(`/services/${serviceId}/access-rights`)
+        .get(`/services/${serviceId}/service-clients`)
         .then((res) => {
+          // TODO subject rename
           this.$store.dispatch('setAccessRightsSubjects', res.data);
         })
         .catch((error) => {
