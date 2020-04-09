@@ -38,6 +38,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -82,6 +83,7 @@ public class CertificateAuthorityService {
     private final GlobalConfFacade globalConfFacade;
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
+    private final CurrentSecurityServerId currentSecurityServerId;
 
     /**
      * constructor
@@ -91,12 +93,14 @@ public class CertificateAuthorityService {
             GlobalConfFacade globalConfFacade,
             ServerConfService serverConfService,
             ClientService clientService,
-            SignerProxyFacade signerProxyFacade) {
+            SignerProxyFacade signerProxyFacade,
+            CurrentSecurityServerId currentSecurityServerId) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.clientService = clientService;
         this.signerProxyFacade = signerProxyFacade;
+        this.currentSecurityServerId = currentSecurityServerId;
     }
 
     /**
@@ -290,10 +294,10 @@ public class CertificateAuthorityService {
         } catch (Exception e) {
             throw new CertificateProfileInstantiationException(e);
         }
-        SecurityServerId serverId = serverConfService.getSecurityServerId();
+        SecurityServerId serverId = currentSecurityServerId.getServerId();
 
         if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
-            String ownerName = globalConfFacade.getMemberName(serverConfService.getSecurityServerOwnerId());
+            String ownerName = globalConfFacade.getMemberName(serverId.getOwner());
             AuthCertificateProfileInfoParameters params = new AuthCertificateProfileInfoParameters(
                     serverId, ownerName);
             return provider.getAuthCertProfile(params);
