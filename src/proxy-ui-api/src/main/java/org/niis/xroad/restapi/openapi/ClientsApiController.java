@@ -387,8 +387,9 @@ public class ClientsApiController implements ClientsApi {
         XRoadObjectType xRoadObjectType = ServiceClientTypeMapping.map(serviceClientType).orElse(null);
         List<ServiceClientDto> serviceClientDtos = null;
         try {
-            serviceClientDtos = accessRightService.findAccessRightHolderCandidates(clientId, memberNameOrGroupDescription,
-                    xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
+            serviceClientDtos = accessRightService.findAccessRightHolderCandidates(clientId,
+                    memberNameOrGroupDescription, xRoadObjectType, instance, memberClass, memberGroupCode,
+                    subsystemCode);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

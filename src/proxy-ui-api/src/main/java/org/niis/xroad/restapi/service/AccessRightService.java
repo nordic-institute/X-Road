@@ -40,8 +40,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -583,9 +583,10 @@ public class AccessRightService {
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
      */
-    public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId, String memberNameOrGroupDescription,
-             XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
-             String subsystemCode) throws ClientNotFoundException {
+    public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
+            String memberNameOrGroupDescription,
+            XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
+            String subsystemCode) throws ClientNotFoundException {
         List<ServiceClientDto> dtos = new ArrayList<>();
 
         // get client

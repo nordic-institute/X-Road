@@ -116,36 +116,36 @@ public class AccessRightServiceTest {
 
     @Test
     public void findAllAccessRightHolders() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, null, null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, null, null);
         assertEquals(7, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByMemberOrGroupCode() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, "1", null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, "1", null);
         assertEquals(4, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByMemberOrGroupCodeNoResults() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, "öäöäöäöäöäöä", null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, "öäöäöäöäöäöä", null);
         assertEquals(0, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByInstance() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(), null,
-                null, TestUtils.INSTANCE_EE, null, null, null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, TestUtils.INSTANCE_EE, null, null, null);
         assertEquals(4, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(), null,
-                null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
     }
 
