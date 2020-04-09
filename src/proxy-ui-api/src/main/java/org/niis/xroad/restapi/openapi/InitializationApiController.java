@@ -25,14 +25,16 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.Client;
-import org.niis.xroad.restapi.openapi.model.InitialConfiguration;
+import org.niis.xroad.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.restapi.openapi.model.InitialServerConf;
+import org.niis.xroad.restapi.openapi.model.InitializationStatus;
+import org.niis.xroad.restapi.service.InitializationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
 
 /**
  * Init (Security Server) controller
@@ -42,13 +44,27 @@ import java.util.List;
 @Slf4j
 @PreAuthorize("denyAll")
 public class InitializationApiController implements InitializationApi {
-    @Override
-    public ResponseEntity<List<Client>> getInitialMembers() {
-        return null;
+    private final InitializationService initializationService;
+
+    @Autowired
+    public InitializationApiController(InitializationService initializationService) {
+        this.initializationService = initializationService;
     }
 
     @Override
-    public ResponseEntity<Void> initSecurityServer(InitialConfiguration initialConfiguration) {
+    @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    public ResponseEntity<InitializationStatus> getInitializationStatus() {
+        InitializationStatusDto initializationStatusDto = initializationService.getInitializationStatus();
+        InitializationStatus initializationStatus = new InitializationStatus()
+                .isGlobalconfInitialized(initializationStatusDto.isGlobalConfInitialized())
+                .isServerconfInitialized(initializationStatusDto.isServerConfInitialized())
+                .isSoftwareTokenInitialized(initializationStatusDto.isSoftwareTokenInitialized());
+        return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    public ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
         return null;
     }
 }

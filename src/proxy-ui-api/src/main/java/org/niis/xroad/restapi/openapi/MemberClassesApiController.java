@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * backups controller
+ * member classes controller
  */
 @Controller
 @RequestMapping("/api")

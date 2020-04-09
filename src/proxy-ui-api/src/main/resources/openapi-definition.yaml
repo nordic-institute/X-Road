@@ -1641,24 +1641,22 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /initialization/members:
-    get: # ok
+  /initialization:
+    post: # ok
       tags:
         - security server
-      summary: Get members in the global conf for initializing a new security server
-      operationId: getInitialMembers
-      description: Administrator views a list of all members that exist in the global conf
+      summary: Initialize a new security server with the provided initial configuration
+      operationId: initSecurityServer
+      description: Administrator initializes a new security server with the provided initial configuration
+      requestBody:
+        description: initial security server configuration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitialServerConf'
       responses:
-        '200':
-          description: array of members
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of Mmeber objects
-                items:
-                  $ref: '#/components/schemas/Client'
+        '201':
+          description: security server initialized
         '400':
           description: request was invalid
         '401':
@@ -1673,22 +1671,20 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /initialization/serverconf:
-    post: # ok
+  /initialization/status:
+    get: # ok
       tags:
         - security server
-      summary: Initialize a new security server with the provided initial configuration
-      operationId: initSecurityServer
-      description: Administrator initializes a new security server with the provided initial configuration
-      requestBody:
-        description: initial security server configuration
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/InitialConfiguration'
+      summary: Check the initialization status of the Security Server
+      operationId: getInitializationStatus
+      description: Administrator checks the initialization status of the Security Server
       responses:
-        '201':
-          description: security server initialized
+        '200':
+          description: initialization status of the Security Server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializationStatus'
         '400':
           description: request was invalid
         '401':
@@ -2314,7 +2310,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /member-name:
+  /member-names:
     get: # ok
       tags:
         - security server
@@ -2350,7 +2346,7 @@ paths:
                 type: object
                 description: member's name
                 properties:
-                  name:
+                  member_name:
                     type: string
                     format: text
         '400':
@@ -4989,7 +4985,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    InitialConfiguration: # ok
+    InitialServerConf: # ok
       type: object
       description: security server initial configuration
       required:
@@ -5156,6 +5152,19 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    InitializationStatus: # ok
+      type: object
+      description: Initialization status of the Security Server
+      properties:
+        is_globalconf_initialized:
+          type: boolean
+          description: if the globalconf has been initialized
+        is_serverconf_initialized:
+          type: boolean
+          description: if the serverconf has been initialized
+        is_software_token_initialized:
+          type: boolean
+          description: if a software token has been initialized
     KeyWithCertificateSigningRequestId: # ok
       type: object
       description: Key and TokenCertificateSigningRequest id
