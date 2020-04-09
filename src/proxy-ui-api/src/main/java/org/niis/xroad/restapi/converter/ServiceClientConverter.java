@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
@@ -63,15 +63,15 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert AccessRightHolderDto to ServiceClient.
-     * @param accessRightHolderDto
+     * Convert ServiceClientDto to ServiceClient.
+     * @param serviceClientDto
      * @return {@link ServiceClient}
      */
-    public ServiceClient convertAccessRightHolderDto(AccessRightHolderDto accessRightHolderDto) {
+    public ServiceClient convertServiceClientDto(ServiceClientDto serviceClientDto) {
         ServiceClient serviceClient = new ServiceClient();
-        serviceClient.setRightsGivenAt(accessRightHolderDto.getRightsGiven());
+        serviceClient.setRightsGivenAt(serviceClientDto.getRightsGiven());
 
-        XRoadId subjectId = accessRightHolderDto.getSubjectId();
+        XRoadId subjectId = serviceClientDto.getSubjectId();
 
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
@@ -87,9 +87,9 @@ public class ServiceClientConverter {
                 serviceClient.setServiceClientType(ServiceClientType.GLOBALGROUP);
                 break;
             case LOCALGROUP:
-                serviceClient.setId(accessRightHolderDto.getLocalGroupId());
-                serviceClient.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
-                serviceClient.setName(accessRightHolderDto.getLocalGroupDescription());
+                serviceClient.setId(serviceClientDto.getLocalGroupId());
+                serviceClient.setLocalGroupCode(serviceClientDto.getLocalGroupCode());
+                serviceClient.setName(serviceClientDto.getLocalGroupDescription());
                 serviceClient.setServiceClientType(ServiceClientType.LOCALGROUP);
                 break;
             default:
@@ -100,13 +100,13 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert a group of AccessRightHolderDtos to ServiceClients
-     * @param accessRightHolderDtos
+     * Convert a group of ServiceClientDtos to ServiceClients
+     * @param serviceClientDtos
      * @return
      */
-    public List<ServiceClient> convertAccessRightHolderDtos(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
-        return Streams.stream(accessRightHolderDtos)
-                .map(this::convertAccessRightHolderDto)
+    public List<ServiceClient> convertServiceClientDtos(Iterable<ServiceClientDto> serviceClientDtos) {
+        return Streams.stream(serviceClientDtos)
+                .map(this::convertServiceClientDto)
                 .collect(Collectors.toList());
     }
 

@@ -814,136 +814,136 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findAllSubjects() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findAllServiceClientCandidates() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 null,
                 null, null, null, null, null);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(9, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(9, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByName() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByName() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM2, null, null, null, null, null);
         // TO DO: lots of renames
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(1, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(1, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByGroupDescription() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByGroupDescription() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 TestUtils.GLOBALGROUP, null, null, null, null, null);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(3, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(3, serviceClients.size());
 
-        subjectsResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
+        serviceClientResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
                 "foo", null, null, null, null, null);
-        subjects = subjectsResponse.getBody();
-        assertEquals(2, subjects.size());
+        serviceClients = serviceClientResponse.getBody();
+        assertEquals(2, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByType() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByType() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 null, ServiceClientType.LOCALGROUP, null, null, null, null);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(2, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(2, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByInstance() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByInstance() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 null, null, TestUtils.INSTANCE_EE, null, null, null);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(5, subjects.size()); // includes localgroups
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(5, serviceClients.size()); // includes localgroups
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByMemberClass() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByMemberClass() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 null, null, null, TestUtils.MEMBER_CLASS_GOV, null, null);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(3, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(3, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByMemberOrGroupCode() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByMemberOrGroupCode() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 null, null, null, null, TestUtils.MEMBER_CODE_M1, null);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(3, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(3, serviceClients.size());
 
-        subjectsResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
+        serviceClientResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
                 null, null, null, null, "group1", null);
-        subjects = subjectsResponse.getBody();
-        assertEquals(2, subjects.size());
+        serviceClients = serviceClientResponse.getBody();
+        assertEquals(2, serviceClients.size());
 
-        subjectsResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
+        serviceClientResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
                 null, null, null, null, "group2", null);
-        subjects = subjectsResponse.getBody();
-        assertEquals(2, subjects.size());
+        serviceClients = serviceClientResponse.getBody();
+        assertEquals(2, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsBySubsystemCode() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesBySubsystemCode() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 null, null, null, null, null, TestUtils.SUBSYSTEM2);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(1, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(1, serviceClients.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsByAllSearchTerms() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesByAllSearchTerms() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM3, ServiceClientType.SUBSYSTEM,
                 TestUtils.INSTANCE_EE,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
                 TestUtils.SUBSYSTEM3);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(1, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(1, serviceClients.size());
     }
 
     @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsClientNotFound() {
+    public void findServiceClientCandidatesClientNotFound() {
         clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS4, null, null, null, null, null, null);
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
-    public void findSubjectsNoResults() {
-        ResponseEntity<List<ServiceClient>> subjectsResponse = clientsApiController.findServiceClientCandidates(
+    public void findServiceClientCandidatesNoResults() {
+        ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM3, ServiceClientType.LOCALGROUP,
                 TestUtils.INSTANCE_EE,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
                 TestUtils.SUBSYSTEM3);
-        List<ServiceClient> subjects = subjectsResponse.getBody();
-        assertEquals(0, subjects.size());
+        List<ServiceClient> serviceClients = serviceClientResponse.getBody();
+        assertEquals(0, serviceClients.size());
 
-        subjectsResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
+        serviceClientResponse = clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS1,
                 "nothing", null, null, null, "unknown-code", null);
-        subjects = subjectsResponse.getBody();
-        assertEquals(0, subjects.size());
+        serviceClients = serviceClientResponse.getBody();
+        assertEquals(0, serviceClients.size());
     }
 
     @Test

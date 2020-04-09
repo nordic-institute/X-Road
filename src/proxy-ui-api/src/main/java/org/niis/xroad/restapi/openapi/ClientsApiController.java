@@ -42,7 +42,7 @@ import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -385,14 +385,15 @@ public class ClientsApiController implements ClientsApi {
             String subsystemCode) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         XRoadObjectType xRoadObjectType = ServiceClientTypeMapping.map(serviceClientType).orElse(null);
-        List<AccessRightHolderDto> accessRightHolderDtos = null;
+        List<ServiceClientDto> serviceClientDtos = null;
         try {
-            accessRightHolderDtos = accessRightService.findAccessRightHolders(clientId, memberNameOrGroupDescription,
-                    xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
+            serviceClientDtos = accessRightService.findAccessRightHolderCandidates(clientId,
+                    memberNameOrGroupDescription, xRoadObjectType, instance, memberClass, memberGroupCode,
+                    subsystemCode);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
+        List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -523,7 +524,7 @@ public class ClientsApiController implements ClientsApi {
         List<ServiceClient> serviceClients = null;
         try {
             serviceClients = serviceClientConverter.
-                    convertAccessRightHolderDtos(accessRightService.getAccessRightHoldersByClient(clientId));
+                    convertServiceClientDtos(accessRightService.getAccessRightHoldersByClient(clientId));
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

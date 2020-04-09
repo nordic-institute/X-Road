@@ -40,8 +40,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -67,7 +67,9 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.util.FormatUtils.xRoadIdToEncodedId;
 
 /**
- * service class for handling access rights
+ * Service class for handling access rights.
+ * This service has several methods that return "access rights holders".
+ * This is a synonym for "service clients", and those methods return ServiceClientDtos
  */
 @Slf4j
 @Service
@@ -99,7 +101,13 @@ public class AccessRightService {
         this.endpointService = endpointService;
     }
 
-    public List<AccessRightHolderDto> getAccessRightHoldersByClient(ClientId clientId)
+    /**
+     * Get access right holders (serviceClients) by Client (service owner)
+     * @param clientId
+     * @return
+     * @throws ClientNotFoundException
+     */
+    public List<ServiceClientDto> getAccessRightHoldersByClient(ClientId clientId)
             throws ClientNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -124,7 +132,7 @@ public class AccessRightService {
     }
 
     /**
-     * Get access right holders by Service
+     * Get access right holders (serviceClients) by Service
      * @param clientId
      * @param fullServiceCode
      * @return
@@ -132,7 +140,7 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws EndpointNotFoundException if base endpoint for this service is not found from the client
      */
-    public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
+    public List<ServiceClientDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
             throws ClientNotFoundException, ServiceNotFoundException, EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -147,14 +155,13 @@ public class AccessRightService {
     }
 
     /**
-     * Get access right holders for Endpoint
-     * TO DO: maybe rename? and rename lots of these....if we're talking about ServiceClients?
+     * Get access right holders (serviceClients) for Endpoint
      * @param id
      * @return
      * @throws EndpointNotFoundException    if no endpoint is found with given id
      * @throws ClientNotFoundException      if client attached to endpoint is not found
      */
-    public List<AccessRightHolderDto> getAccessRightHoldersByEndpoint(Long id)
+    public List<ServiceClientDto> getAccessRightHoldersByEndpoint(Long id)
             throws EndpointNotFoundException, ClientNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
@@ -173,13 +180,13 @@ public class AccessRightService {
 
 
     /**
-     * Get access rights for endpoint
+     * Get access right holders (serviceClients) for endpoint
      *
      * @param clientType
      * @param accessRightTypes
      * @return
      */
-    private List<AccessRightHolderDto> mapAccessRightsToAccessRightHolders(ClientType clientType,
+    private List<ServiceClientDto> mapAccessRightsToAccessRightHolders(ClientType clientType,
             List<AccessRightType> accessRightTypes) {
         Map<String, LocalGroupType> localGroupMap = new HashMap<>();
         clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
@@ -191,27 +198,27 @@ public class AccessRightService {
     }
 
     /**
-     * Makes an {@link AccessRightHolderDto} out of {@link AccessRightType}
+     * Makes an {@link ServiceClientDto} out of {@link AccessRightType}
      * @param accessRightType The AccessRightType to convert from
      * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
      * their corresponding {@link LocalGroupType#groupCode}
      * @return
      */
-    private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
+    private ServiceClientDto accessRightTypeToDto(AccessRightType accessRightType,
             Map<String, LocalGroupType> localGroupMap) {
-        AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+        ServiceClientDto serviceClientDto = new ServiceClientDto();
         XRoadId subjectId = accessRightType.getSubjectId();
-        accessRightHolderDto.setRightsGiven(
+        serviceClientDto.setRightsGiven(
                 FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
-        accessRightHolderDto.setSubjectId(subjectId);
+        serviceClientDto.setSubjectId(subjectId);
         if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
             LocalGroupId localGroupId = (LocalGroupId) subjectId;
             LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
-            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
-            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
+            serviceClientDto.setLocalGroupId(localGroupType.getId().toString());
+            serviceClientDto.setLocalGroupCode(localGroupType.getGroupCode());
+            serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
         }
-        return accessRightHolderDto;
+        return serviceClientDto;
     }
 
     /**
@@ -308,7 +315,7 @@ public class AccessRightService {
      * @param fullServiceCode
      * @param subjectIds
      * @param localGroupIds
-     * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
+     * @return List of {@link ServiceClientDto AccessRightHolderDtos}
      * @throws AccessRightNotFoundException
      * @throws ClientNotFoundException
      * @throws ServiceNotFoundException
@@ -316,7 +323,7 @@ public class AccessRightService {
      * @throws IdentifierNotFoundException
      * @throws EndpointNotFoundException
      */
-    public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
+    public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
                 Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws AccessRightNotFoundException,
             ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException {
@@ -348,7 +355,7 @@ public class AccessRightService {
      * @throws AccessRightNotFoundException               Local group is not found
      * @throws DuplicateAccessRightException             Trying to add duplicate access rights
      */
-    public List<AccessRightHolderDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
+    public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, AccessRightNotFoundException, DuplicateAccessRightException {
 
@@ -359,7 +366,7 @@ public class AccessRightService {
 
     }
 
-    private List<AccessRightHolderDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
+    private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws IdentifierNotFoundException,
             AccessRightNotFoundException, DuplicateAccessRightException {
 
@@ -564,8 +571,7 @@ public class AccessRightService {
     }
 
     /**
-     * TO DO: rename
-     * Find access right holders by search terms
+     * Find access right holder (serviceClient) candidates by search terms
      * @param clientId
      * @param subjectType search term for subjectType. Null or empty value is considered a match
      * @param memberNameOrGroupDescription search term for memberName or groupDescription (depending on subject's type).
@@ -575,12 +581,13 @@ public class AccessRightService {
      * @param memberGroupCode search term for memberCode or groupCode (depending on subject's type).
      * Null or empty value is considered a match
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
-     * @return A List of {@link AccessRightHolderDto accessRightHolderDtos} or an empty List if nothing is found
+     * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
      */
-    public List<AccessRightHolderDto> findAccessRightHolders(ClientId clientId, String memberNameOrGroupDescription,
-             XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
-             String subsystemCode) throws ClientNotFoundException {
-        List<AccessRightHolderDto> dtos = new ArrayList<>();
+    public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
+            String memberNameOrGroupDescription,
+            XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
+            String subsystemCode) throws ClientNotFoundException {
+        List<ServiceClientDto> dtos = new ArrayList<>();
 
         // get client
         ClientType client = clientRepository.getClient(clientId);
@@ -589,24 +596,24 @@ public class AccessRightService {
         }
 
         // get global members
-        List<AccessRightHolderDto> globalMembers = getGlobalMembersAsDtos();
+        List<ServiceClientDto> globalMembers = getGlobalMembersAsDtos();
         if (globalMembers.size() > 0) {
             dtos.addAll(globalMembers);
         }
 
         // get global groups
-        List<AccessRightHolderDto> globalGroups = getGlobalGroupsAsDtos(instance);
+        List<ServiceClientDto> globalGroups = getGlobalGroupsAsDtos(instance);
         if (globalMembers.size() > 0) {
             dtos.addAll(globalGroups);
         }
 
         // get local groups
-        List<AccessRightHolderDto> localGroups = getLocalGroupsAsDtos(client.getLocalGroup());
+        List<ServiceClientDto> localGroups = getLocalGroupsAsDtos(client.getLocalGroup());
         if (localGroups.size() > 0) {
             dtos.addAll(localGroups);
         }
 
-        Predicate<AccessRightHolderDto> matchingSearchTerms = buildSubjectSearchPredicate(subjectType,
+        Predicate<ServiceClientDto> matchingSearchTerms = buildSubjectSearchPredicate(subjectType,
                 memberNameOrGroupDescription, instance, memberClass, memberGroupCode, subsystemCode);
 
         return dtos.stream()
@@ -614,31 +621,31 @@ public class AccessRightService {
                 .collect(Collectors.toList());
     }
 
-    private List<AccessRightHolderDto> getLocalGroupsAsDtos(List<LocalGroupType> localGroupTypes) {
+    private List<ServiceClientDto> getLocalGroupsAsDtos(List<LocalGroupType> localGroupTypes) {
         return localGroupTypes.stream()
                 .map(localGroup -> {
-                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-                    accessRightHolderDto.setLocalGroupId(localGroup.getId().toString());
-                    accessRightHolderDto.setLocalGroupCode(localGroup.getGroupCode());
-                    accessRightHolderDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
-                    accessRightHolderDto.setLocalGroupDescription(localGroup.getDescription());
-                    return accessRightHolderDto;
+                    ServiceClientDto serviceClientDto = new ServiceClientDto();
+                    serviceClientDto.setLocalGroupId(localGroup.getId().toString());
+                    serviceClientDto.setLocalGroupCode(localGroup.getGroupCode());
+                    serviceClientDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
+                    serviceClientDto.setLocalGroupDescription(localGroup.getDescription());
+                    return serviceClientDto;
                 }).collect(Collectors.toList());
     }
 
-    private List<AccessRightHolderDto> getGlobalMembersAsDtos() {
+    private List<ServiceClientDto> getGlobalMembersAsDtos() {
         return globalConfFacade.getMembers().stream()
                 .map(memberInfo -> {
-                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-                    accessRightHolderDto.setSubjectId(memberInfo.getId());
-                    accessRightHolderDto.setMemberName(memberInfo.getName());
-                    return accessRightHolderDto;
+                    ServiceClientDto serviceClientDto = new ServiceClientDto();
+                    serviceClientDto.setSubjectId(memberInfo.getId());
+                    serviceClientDto.setMemberName(memberInfo.getName());
+                    return serviceClientDto;
                 })
                 .collect(Collectors.toList());
     }
 
-    private List<AccessRightHolderDto> getGlobalGroupsAsDtos(String instance) {
-        List<AccessRightHolderDto> globalGroups = new ArrayList<>();
+    private List<ServiceClientDto> getGlobalGroupsAsDtos(String instance) {
+        List<ServiceClientDto> globalGroups = new ArrayList<>();
         List<String> globalGroupInstances = globalConfFacade.getInstanceIdentifiers();
         List<GlobalGroupInfo> globalGroupInfos = null;
         // core throws CodedException if nothing is found for the provided instance/instances
@@ -659,18 +666,18 @@ public class AccessRightService {
         }
         if (globalGroupInfos != null && globalGroupInfos.size() > 0) {
             globalGroupInfos.forEach(globalGroupInfo -> {
-                AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-                accessRightHolderDto.setSubjectId(globalGroupInfo.getId());
-                accessRightHolderDto.setLocalGroupDescription(globalGroupInfo.getDescription());
-                globalGroups.add(accessRightHolderDto);
+                ServiceClientDto serviceClientDto = new ServiceClientDto();
+                serviceClientDto.setSubjectId(globalGroupInfo.getId());
+                serviceClientDto.setLocalGroupDescription(globalGroupInfo.getDescription());
+                globalGroups.add(serviceClientDto);
             });
         }
         return globalGroups;
     }
 
     /**
-     * Composes a {@link Predicate} that will be used to filter {@link AccessRightHolderDto AccessRightHolderDtos}
-     * against the given search terms. The given AccessRightHolderDto has a {@link AccessRightHolderDto#subjectId}
+     * Composes a {@link Predicate} that will be used to filter {@link ServiceClientDto serviceClientDtos}
+     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#subjectId}
      * which can be of type {@link GlobalGroupId}, {@link LocalGroupId} or {@link ClientId}. When evaluating the
      * Predicate the type of the Subject will be taken in account for example when testing if the search term
      * {@code memberGroupCode} matches
@@ -684,11 +691,11 @@ public class AccessRightService {
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return Predicate
      */
-    private Predicate<AccessRightHolderDto> buildSubjectSearchPredicate(XRoadObjectType subjectType,
+    private Predicate<ServiceClientDto> buildSubjectSearchPredicate(XRoadObjectType subjectType,
             String memberNameOrGroupDescription, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
         // Start by assuming the search is a match. If there are no search terms --> return all
-        Predicate<AccessRightHolderDto> searchPredicate = accessRightHolderDto -> true;
+        Predicate<ServiceClientDto> searchPredicate = serviceClientDto -> true;
 
         // Ultimately members cannot have access rights to Services -> no members in the Subject search results.
         searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() != XRoadObjectType.MEMBER);
