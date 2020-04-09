@@ -1,29 +1,33 @@
 <template>
   <div>
     <div class="table-toolbar">
-      <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
+      <v-text-field v-model="search"
+                    :label="$t('serviceClients.searchPlaceHolder')"
+                    single-line
+                    hide-details
+                    class="search-input">
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <v-btn
         color="primary"
-        @click="addSubject"
+        @click="addServiceClient"
         outlined
         rounded
         class="ma-0 rounded-button elevation-0"
-      >{{$t('serviceClients.addSubject')}}
+      >{{$t('serviceClients.addServiceClient')}}
       </v-btn>
     </div>
 
     <v-card flat>
       <table class="xrd-table service-clients-table">
         <tr>
-          <th>{{$t('serviceClients.memberNameGroupDesc')}}</th>
+          <th>{{$t('serviceClients.name')}}</th>
           <th>{{$t('serviceClients.id')}}</th>
         </tr>
         <template v-if="serviceClients.length > 0">
           <tr v-for="sc in this.filteredServiceClients()">
-            <td>{{sc.subject.member_name_group_description}}</td>
-            <td>{{sc.subject.id}}</td>
+            <td>{{sc.name}}</td>
+            <td>{{sc.id}}</td>
           </tr>
         </template>
       </table>
@@ -63,15 +67,14 @@
           .catch( (error: any) =>
             this.$store.dispatch('showError', error));
       },
-      addSubject(): void {
+      addServiceClient(): void {
         // NOOP
       },
       filteredServiceClients() {
         return this.serviceClients.filter( (sc: ServiceClient) => {
-          const memberNameOrGroupDescription = sc.subject.member_name_group_description?.toLowerCase();
-          const subjectId = sc.subject.id.toLowerCase();
           const searchWordLowerCase = this.search.toLowerCase();
-          return memberNameOrGroupDescription?.includes(searchWordLowerCase) || subjectId.includes(searchWordLowerCase);
+          return sc.name?.toLowerCase().includes(searchWordLowerCase)
+            || sc.id.toLowerCase().includes(searchWordLowerCase);
         });
       },
     },

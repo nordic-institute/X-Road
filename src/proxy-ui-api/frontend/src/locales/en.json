@@ -119,8 +119,8 @@
     "disableSuccess": "Certificate has been disabled"
   },
   "serviceClients": {
-    "addSubject": "Add subject",
-    "memberNameGroupDesc": "Member name / Group description",
+    "addServiceClient": "Add subject",
+    "name": "Member name / Group description",
     "id": "ID",
     "searchPlaceHolder": "Service clients"
   },

@@ -201,12 +201,14 @@ import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ServiceClient, Subject } from '@/types';
+import { ServiceClient } from '@/types';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 
 type NullableSubject = undefined | ServiceClient;
+
+// TODO SUBJECTS renaming
 
 export default Vue.extend({
   components: {
@@ -296,7 +298,7 @@ export default Vue.extend({
 
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${serviceId}/access-rights`)
+        .get(`/services/${serviceId}/service-clients`)
         .then((res) => {
           this.$store.dispatch('setAccessRightsSubjects', res.data);
         })
@@ -351,22 +353,17 @@ export default Vue.extend({
       this.selectedMember = member;
     },
     doRemoveSubject() {
-      const subject: ServiceClient = this.selectedMember as ServiceClient;
+      const serviceClient: ServiceClient = this.selectedMember as ServiceClient;
 
-      if (subject && subject.subject.id) {
-        this.removeArrayOfSubjects([
-          {
-            id: subject.subject.id,
-            subject_type: subject.subject.subject_type,
-          },
-        ]);
+      if (serviceClient.id) {
+        this.removeArrayOfSubjects([serviceClient]);
       }
 
       this.confirmMember = false;
       this.selectedMember = undefined;
     },
 
-    removeArrayOfSubjects(subjects: Subject[]) {
+    removeArrayOfSubjects(subjects: ServiceClient[]) {
       api
         .post(`/services/${this.serviceId}/access-rights/delete`, {
           items: subjects,
