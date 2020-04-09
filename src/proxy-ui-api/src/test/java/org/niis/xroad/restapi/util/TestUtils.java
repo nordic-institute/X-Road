@@ -86,8 +86,8 @@ public final class TestUtils {
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";
     public static final String CLIENT_ID_SS4 = "FI:GOV:M1:SS4";
-    public static final String CLIENT_ID_SS5 = "FI:GOV:M1:SS5";
-    public static final String CLIENT_ID_SS6 = "FI:GOV:M1:SS6";
+    public static final String CLIENT_ID_SS5 = "FI:GOV:M2:SS5";
+    public static final String CLIENT_ID_SS6 = "FI:GOV:M2:SS6";
     public static final String CLIENT_ID_M2_SS6 = "FI:GOV:M2:SS6";
     public static final String NEW_GROUPCODE = "NEW_GROUPCODE";
     public static final String GROUP_DESC = "GROUP_DESC";
@@ -129,11 +129,19 @@ public final class TestUtils {
     }
 
     /**
-     * Returns a new ClientId with default parameters "FI:GOV:M1:SS1"
+     * Returns a new ClientId "FI:GOV:M1:SS1"
      * @return ClientId
      */
     public static ClientId getM1Ss1ClientId() {
         return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1);
+    }
+
+    /**
+     * Returns a new ClientId "FI:GOV:M1:SS2"
+     * @return ClientId
+     */
+    public static ClientId getM1Ss2ClientId() {
+        return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2);
     }
 
     /**
