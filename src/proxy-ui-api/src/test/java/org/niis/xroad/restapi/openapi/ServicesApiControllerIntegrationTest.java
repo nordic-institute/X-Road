@@ -285,11 +285,11 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
                         ServiceClientType.GLOBALGROUP));
 
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
         serviceClients = servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(2, serviceClients.size());
     }
@@ -301,13 +301,13 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
                         ServiceClientType.GLOBALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
 
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
         serviceClients = servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(1, serviceClients.size());
     }
@@ -319,13 +319,13 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
                         ServiceClientType.GLOBALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
                         ServiceClientType.GLOBALGROUP));
 
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
         serviceClients = servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(2, serviceClients.size());
     }
@@ -337,10 +337,10 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.GLOBALGROUP));
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
     }
 
     @Test(expected = BadRequestException.class)
@@ -350,10 +350,10 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.LOCALGROUP));
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
     }
 
     @Test
@@ -363,7 +363,7 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS3).serviceClientType(
@@ -371,7 +371,8 @@ public class ServicesApiControllerIntegrationTest {
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS4).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
         try {
-            servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+            servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1,
+                    deletedServiceClients).getBody();
         } catch (BadRequestException expected) {
             assertEquals(ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
@@ -384,7 +385,7 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS3).serviceClientType(
@@ -392,7 +393,8 @@ public class ServicesApiControllerIntegrationTest {
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP));
         try {
-            servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+            servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1,
+                    deletedServiceClients).getBody();
         } catch (BadRequestException expected) {
             assertEquals(ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
@@ -405,14 +407,14 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_CODE).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS3).serviceClientType(
                         ServiceClientType.SUBSYSTEM))
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP));
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
     }
 
     @Test(expected = BadRequestException.class)
@@ -422,12 +424,12 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.GLOBALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS3).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
-        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
     }
 
     @Test
@@ -439,7 +441,7 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_CALCULATE_PRIME).getBody();
         assertEquals(0, serviceClients.size());
 
-        ServiceClients subjectsToAdd = new ServiceClients()
+        ServiceClients clientsToAdd = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
@@ -448,7 +450,7 @@ public class ServicesApiControllerIntegrationTest {
                         ServiceClientType.SUBSYSTEM));
 
         List<ServiceClient> updatedServiceClients = servicesApiController
-                .addServiceServiceClients(TestUtils.SS1_CALCULATE_PRIME, subjectsToAdd).getBody();
+                .addServiceServiceClients(TestUtils.SS1_CALCULATE_PRIME, clientsToAdd).getBody();
 
         assertEquals(3, updatedServiceClients.size());
     }
@@ -462,13 +464,13 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjectsToAdd = new ServiceClients()
+        ServiceClients clientsToAdd = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
 
-        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjectsToAdd);
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
     }
 
     @Test(expected = BadRequestException.class)
@@ -480,13 +482,13 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClients subjectsToAdd = new ServiceClients()
+        ServiceClients clientsToAdd = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2 + "foo").serviceClientType(
                         ServiceClientType.SUBSYSTEM));
 
-        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, subjectsToAdd);
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
     }
 
     @Test(expected = ConflictException.class)
