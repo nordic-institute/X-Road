@@ -31,11 +31,10 @@ import lombok.Data;
 import java.time.OffsetDateTime;
 
 /**
- * DTO for Service and ServiceClient access rights
- * TO DO: maybe rename? Is this ServiceClientDto?
+ * DTO for ServiceClient data
  */
 @Data
-public class AccessRightHolderDto {
+public class ServiceClientDto {
     /**
      * primary key of a LocalGroup - NULL if not a LOCALGROUP
      */

@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientHelper;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
@@ -135,16 +135,16 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT_ACL')")
     public ResponseEntity<List<ServiceClient>> getEndpointServiceClients(String id) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        List<AccessRightHolderDto> accessRightHoldersByEndpoint;
+        List<ServiceClientDto> serviceClientsByEndpoint;
         try {
-            accessRightHoldersByEndpoint = accessRightService.getAccessRightHoldersByEndpoint(endpointId);
+            serviceClientsByEndpoint = accessRightService.getAccessRightHoldersByEndpoint(endpointId);
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter
-                .convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
+                .convertServiceClientDtos(serviceClientsByEndpoint);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -154,10 +154,10 @@ public class EndpointsApiController implements EndpointsApi {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
         List<XRoadId> xRoadIds = serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
-        List<AccessRightHolderDto> accessRightHoldersByEndpoint = null;
+        List<ServiceClientDto> serviceClientsByEndpoint = null;
 
         try {
-            accessRightHoldersByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
+            serviceClientsByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
                     new HashSet<>(xRoadIds), localGroupIds);
         } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -168,7 +168,7 @@ public class EndpointsApiController implements EndpointsApi {
         }
 
         List<ServiceClient> serviceClientsResult = serviceClientConverter
-                .convertAccessRightHolderDtos(accessRightHoldersByEndpoint);
+                .convertServiceClientDtos(serviceClientsByEndpoint);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
     }
 
