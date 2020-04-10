@@ -102,7 +102,7 @@ public class GlobalConfChecker {
         SecurityServerId securityServerId = null;
 
         try {
-            if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
+            if (GlobalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
             }
@@ -121,7 +121,7 @@ public class GlobalConfChecker {
                 ownerId.getMemberCode(), serverCode);
     }
 
-    private SecurityServerId buildSecurityServerId(ServerConfType serverConf) throws Exception {
+    private SecurityServerId buildSecurityServerId(ServerConfType serverConf) {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
@@ -144,7 +144,7 @@ public class GlobalConfChecker {
                 // Does the alternative server id exist in global conf?
                 // And does the local auth cert match with the auth cert of
                 // the alternative server from global conf?
-                if (globalConfFacade.getServerOwner(altSecurityServerId) != null
+                if (GlobalConfFacade.getServerOwner(altSecurityServerId) != null
                         && cert != null
                         && altSecurityServerId.equals(globalConfFacade.getServerId(cert))
                 ) {

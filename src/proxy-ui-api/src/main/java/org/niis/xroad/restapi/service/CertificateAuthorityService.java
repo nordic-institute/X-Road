@@ -79,7 +79,6 @@ public class CertificateAuthorityService {
     private static final int CACHE_EVICT_RATE = 60000; // 1 min
 
     private final GlobalConfService globalConfService;
-    private final ServerConfService serverConfService;
     private final GlobalConfFacade globalConfFacade;
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
@@ -91,13 +90,11 @@ public class CertificateAuthorityService {
     @Autowired
     public CertificateAuthorityService(GlobalConfService globalConfService,
             GlobalConfFacade globalConfFacade,
-            ServerConfService serverConfService,
             ClientService clientService,
             SignerProxyFacade signerProxyFacade,
             CurrentSecurityServerId currentSecurityServerId) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
-        this.serverConfService = serverConfService;
         this.clientService = clientService;
         this.signerProxyFacade = signerProxyFacade;
         this.currentSecurityServerId = currentSecurityServerId;
