@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
         <div class="label">{{$t('certificateProfile.' + item.label_key)}}</div>
@@ -17,22 +17,28 @@
               v-model="item.default_value"
               :disabled="item.read_only"
               :error-messages="errors"
+              data-test="dynamic-csr-input"
             ></v-text-field>
           </ValidationProvider>
         </div>
       </div>
-      <div class="generate-row">
-        <div>{{$t('csr.saveInfo')}}</div>
-        <large-button
-          @click="generateCsr"
-          :disabled="invalid || !disableDone"
-        >{{$t('csr.generateCsr')}}</large-button>
-      </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
+          <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
         </div>
-        <large-button @click="done" :disabled="disableDone">{{$t('action.done')}}</large-button>
+        <div>
+          <large-button
+            @click="previous"
+            outlined
+            class="previous-button"
+            data-test="previous-button"
+          >{{$t('action.previous')}}</large-button>
+          <large-button
+            @click="done"
+            :disabled="invalid"
+            data-test="save-button"
+          >{{$t(saveButtonText)}}</large-button>
+        </div>
       </div>
     </ValidationObserver>
   </div>
@@ -50,38 +56,38 @@ export default Vue.extend({
     ValidationObserver,
     ValidationProvider,
   },
+  props: {
+    saveButtonText: {
+      type: String,
+      default: 'action.done',
+    },
+    showGenerateButton: {
+      type: Boolean,
+      default: true,
+    },
+  },
   computed: {
     ...mapGetters(['csrForm']),
   },
   data() {
-    return {
-      disableDone: true,
-    };
+    return {};
   },
   methods: {
     cancel(): void {
       this.$emit('cancel');
     },
+    previous(): void {
+      this.$emit('previous');
+    },
     done(): void {
       this.$emit('done');
-    },
-    generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
+@import '../../assets/wizards';
 
 .generate-row {
   margin-top: 40px;
@@ -89,43 +95,6 @@ export default Vue.extend({
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-}
-
-.row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.label {
-  width: 230px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.form-input {
-  width: 300px;
-}
-
-.button-footer {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-  border-top: solid 1px $XRoad-Grey40;
-  margin-top: 40px;
-  padding-top: 30px;
-}
-
-.button-group {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-
-  :not(:last-child) {
-    margin-right: 20px;
-  }
 }
 </style>
 
