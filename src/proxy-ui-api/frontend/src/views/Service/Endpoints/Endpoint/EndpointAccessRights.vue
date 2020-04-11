@@ -69,7 +69,7 @@
       :dialog="addSubjectsDialogVisible"
       :filtered="serviceClients"
       :clientId="clientId"
-      title="accessRights.addSubjectsTitle"
+      title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
       @subjectsAdded="doAddSubjects"
     />

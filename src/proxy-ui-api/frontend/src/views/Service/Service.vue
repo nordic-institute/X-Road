@@ -81,8 +81,7 @@ export default Vue.extend({
       api
         .get(`/services/${serviceId}/service-clients`)
         .then((res) => {
-          // TODO subject rename
-          this.$store.dispatch('setAccessRightsSubjects', res.data);
+          this.$store.dispatch('setServiceClients', res.data);
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

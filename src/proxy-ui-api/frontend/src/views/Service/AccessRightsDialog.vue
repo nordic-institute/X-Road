@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t('accessRights.addSubjectsTitle')}}</span>
+        <span class="headline">{{$t('accessRights.addServiceClientsTitle')}}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
@@ -64,8 +64,8 @@
                     ></v-text-field>
 
                     <v-select
-                      v-model="subjectType"
-                      :items="subjectTypeItems"
+                      v-model="serviceClientType"
+                      :items="ServiceClientTypeItems"
                       label="Subject type"
                       class="flex-input"
                       clearable
@@ -91,24 +91,23 @@
               <th>{{$t('type')}}</th>
             </tr>
           </thead>
-          <tbody v-if="subjects && subjects.length > 0">
-            <tr v-for="subject in subjects" v-bind:key="subject.id">
+          <tbody v-if="serviceClientCandidates && serviceClientCandidates.length > 0">
+            <tr v-for="sc in serviceClientCandidates" v-bind:key="sc.id">
               <td class="first-column">
                 <div class="checkbox-wrap">
-                  <v-checkbox @change="checkboxChange(subject, $event)" color="primary"></v-checkbox>
+                  <v-checkbox @change="checkboxChange(sc, $event)" color="primary"></v-checkbox>
                 </div>
               </td>
-
-              <td>{{subject.member_name_group_description}}</td>
+              <td>{{sc.name}}</td>
               <td
-                v-if="subject.subject_type === subjectTypes.LOCALGROUP"
-              >{{subject.local_group_code}}</td>
-              <td v-else>{{subject.id}}</td>
-              <td>{{subject.subject_type}}</td>
+                v-if="sc.service_client_type === serviceClientTypes.LOCALGROUP"
+              >{{sc.local_group_code}}</td>
+              <td v-else>{{sc.id}}</td>
+              <td>{{sc.service_client_type}}</td>
             </tr>
           </tbody>
         </table>
-        <div v-if="subjects.length < 1 && !noResults" class="empty-row"></div>
+        <div v-if="serviceClientCandidates.length < 1 && !noResults" class="empty-row"></div>
 
         <div v-if="noResults" class="empty-row">
           <p>{{$t('localGroup.noResults')}}</p>
@@ -130,8 +129,9 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import {ServiceClient} from '@/types';
 
-enum SubjectTypes {
+enum ServiceClientTypes {
   GLOBALGROUP = 'GLOBALGROUP',
   LOCALGROUP = 'LOCALGROUP',
   SUBSYSTEM = 'SUBSYSTEM',
@@ -140,14 +140,14 @@ enum SubjectTypes {
 function initialState() {
   return {
     name: '',
-    subjectType: '',
+    serviceClientType: '',
     instance: '',
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
-    subjectTypes: SubjectTypes,
+    serviceClientTypes: ServiceClientTypes,
     expandPanel: [0],
-    subjects: [],
+    serviceClientCandidates: [],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
@@ -167,7 +167,7 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-    filtered: {
+    existingServiceClients: {
       type: Array,
     },
   },
@@ -176,27 +176,27 @@ export default Vue.extend({
     return initialState();
   },
   computed: {
-    ...mapGetters(['xroadInstances', 'memberClasses', 'accessRightsSubjects']),
+    ...mapGetters(['xroadInstances', 'memberClasses']),
     canSave(): boolean {
       if (this.selectedIds.length > 0) {
         return true;
       }
       return false;
     },
-    subjectTypeItems(): object[] {
+    ServiceClientTypeItems(): object[] {
       // Returns items for subject type select with translated texts
       return [
         {
-          text: this.$t('subjectType.globalGroup'),
-          value: SubjectTypes.GLOBALGROUP,
+          text: this.$t('serviceClientType.globalGroup'),
+          value: this.serviceClientTypes.GLOBALGROUP,
         },
         {
-          text: this.$t('subjectType.localGroup'),
-          value: SubjectTypes.LOCALGROUP,
+          text: this.$t('serviceClientType.localGroup'),
+          value: this.serviceClientTypes.LOCALGROUP,
         },
         {
-          text: this.$t('subjectType.subsystem'),
-          value: SubjectTypes.SUBSYSTEM,
+          text: this.$t('serviceClientType.subsystem'),
+          value: this.serviceClientTypes.SUBSYSTEM,
         },
       ];
     },
@@ -214,7 +214,7 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
-      let query = `/clients/${this.clientId}/subjects?member_name_group_description=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
+      let query = `/clients/${this.clientId}/service-client-candidates?name=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
 
       // These checks are needed because instance, subject type and member class (dropdowns) return undefined if they are first selected and then cleared
       if (this.instance) {
@@ -225,29 +225,27 @@ export default Vue.extend({
         query = query + `&member_class=${this.memberClass}`;
       }
 
-      if (this.subjectType) {
-        query = query + `&subject_type=${this.subjectType}`;
+      if (this.serviceClientType) {
+        query = query + `&service_client_type=${this.serviceClientType}`;
       }
+
+      const isExistingServiceClient = (sc: ServiceClient): boolean => {
+        return !this.existingServiceClients.some( (existing: any) => sc.id === existing.id
+          && sc.service_client_type === existing.service_client_type);
+      };
 
       api
         .get(query)
         .then((res) => {
-          if (this.filtered && this.filtered.length > 0) {
+          if (this.existingServiceClients?.length > 0) {
             // Filter out subjects that are already added
-            this.subjects = res.data.filter((subject: any) => {
-              return !this.filtered.find((filterItem: any) => {
-                return (
-                  filterItem.subject.id === subject.id &&
-                  filterItem.subject.subject_type === subject.subject_type
-                );
-              });
-            });
+            this.serviceClientCandidates = res.data.filter(isExistingServiceClient);
           } else {
             // Show results straight if there is nothing to filter
-            this.subjects = res.data;
+            this.serviceClientCandidates = res.data;
           }
 
-          if (this.subjects.length < 1) {
+          if (this.serviceClientCandidates.length < 1) {
             this.noResults = true;
           }
         })
@@ -261,7 +259,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('subjectsAdded', this.selectedIds);
+      this.$emit('serviceClientsAdded', this.selectedIds);
       this.clearForm();
     },
 

@@ -1,7 +1,6 @@
 <template>
   <subViewTitle :title="asdfadsf" @close="close" />
 
-  <h3>header</h3>
 </template>
 
 <script lang="ts">
