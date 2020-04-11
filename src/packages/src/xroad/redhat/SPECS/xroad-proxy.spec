@@ -202,7 +202,7 @@ if [ $1 -gt 1 ] ; then
               echo "connector-host already present in local.ini, do not update local.ini"
             else
               echo "connector-host not present in local.ini, update local.ini"
-              crudini --set ${local_ini} proxy connector-host 127.0.0.1
+              crudini --set ${local_ini} proxy connector-host 0.0.0.0
           fi
     fi
 fi
