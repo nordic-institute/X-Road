@@ -93,6 +93,7 @@ import static org.junit.Assert.assertTrue;
  */
 public final class MetaserviceTestUtil {
 
+    public static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
     private static final String NS_PRODUCER = "http://test.x-road.fi/producer";
     public static final QName REQUEST = new QName(NS_PRODUCER, "request");
     public static final QName GET_WSDL_REQUEST = new QName(NS_PRODUCER, "getWsdl");

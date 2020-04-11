@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div>
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <div class="label">
@@ -13,6 +13,7 @@
             class="form-input"
             v-model="usage"
             :disabled="isUsageReadOnly"
+            data-test="csr-usage-select"
           ></v-select>
         </ValidationProvider>
       </div>
@@ -30,6 +31,7 @@
             item-value="id"
             class="form-input"
             v-model="client"
+            data-test="csr-client-select"
           ></v-select>
         </ValidationProvider>
       </div>
@@ -47,6 +49,7 @@
             item-value="name"
             class="form-input"
             v-model="certificationService"
+            data-test="csr-certification-service-select"
           ></v-select>
         </ValidationProvider>
       </div>
@@ -63,13 +66,28 @@
             name="crs.crsFormat"
             class="form-input"
             v-model="csrFormat"
+            data-test="csr-format-select"
           ></v-select>
         </ValidationProvider>
       </div>
 
       <div class="button-footer">
-        <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
-        <large-button :disabled="invalid" @click="done">{{$t('action.continue')}}</large-button>
+        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+
+        <div>
+          <large-button
+            v-if="showPreviousButton"
+            @click="previous"
+            outlined
+            class="previous-button"
+            data-test="previous-button"
+          >{{$t('action.previous')}}</large-button>
+          <large-button
+            :disabled="invalid"
+            @click="done"
+            data-test="save-button"
+          >{{$t(saveButtonText)}}</large-button>
+        </div>
       </div>
     </ValidationObserver>
   </div>
@@ -94,7 +112,16 @@ export default Vue.extend({
     ValidationObserver,
     ValidationProvider,
   },
-  props: {},
+  props: {
+    saveButtonText: {
+      type: String,
+      default: 'action.continue',
+    },
+    showPreviousButton: {
+      type: Boolean,
+      default: true,
+    },
+  },
   data() {
     return {
       usageTypes: UsageTypes,
@@ -146,6 +173,9 @@ export default Vue.extend({
     done(): void {
       this.$emit('done');
     },
+    previous(): void {
+      this.$emit('previous');
+    },
     cancel(): void {
       this.$emit('cancel');
     },
@@ -169,39 +199,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-
-.view-wrap {
-  width: 100%;
-  max-width: 850px;
-  margin: 10px;
-}
-
-.row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.label {
-  width: 230px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.form-input {
-  width: 300px;
-}
-
-.button-footer {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-  border-top: solid 1px $XRoad-Grey40;
-  margin-top: 40px;
-  padding-top: 30px;
-}
+@import '../../assets/wizards';
 </style>
 

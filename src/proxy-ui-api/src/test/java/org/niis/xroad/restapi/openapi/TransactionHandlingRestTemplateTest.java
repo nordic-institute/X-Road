@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -84,7 +85,7 @@ public class TransactionHandlingRestTemplateTest {
     private ClientConverter clientConverter;
 
     @Before
-    public void setup() {
+    public void setup() throws ApiKeyService.ApiKeyNotFoundException {
         restTemplate.getRestTemplate().setInterceptors(
                 Collections.singletonList((request, body, execution) -> {
                     request.getHeaders()
@@ -144,7 +145,7 @@ public class TransactionHandlingRestTemplateTest {
         // delete member
         response = restTemplate.postForEntity(
                 localGroupEndpointUrl + "/members/delete", members, Object.class);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
         groupResponse = restTemplate.getForEntity(localGroupEndpointUrl,
                 LocalGroup.class);

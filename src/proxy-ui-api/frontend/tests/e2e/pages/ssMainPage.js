@@ -152,8 +152,8 @@ var localGroupPopupCommands = {
     this.click('@localGroupRemoveCancelButton');
     return this;
   },
-  clickHeader: function() {
-    this.click('@localGroupCode');
+  clickDescriptionLabel: function() {
+    this.click('@localGroupDescriptionLabel');
     return this;
   },
   close: function() {
@@ -397,15 +397,15 @@ module.exports = {
         localGroupTestOrgRemoveButton: {
           selector: '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
           locateStrategy: 'xpath' },
-        localGroupCode: { 
-          selector: '//div[contains(@class, "cert-dialog-header")]//*[contains(@class, "cert-headline")]',
+        localGroupDescriptionLabel: { 
+          selector: '//div[contains(@class, "edit-row")]//div[contains(text(), "Edit description")]',
           locateStrategy: 'xpath' },
         localGroupDescription: { 
           selector: '//div[contains(@class, "description-input")]//input',
           locateStrategy: 'xpath' },
         localGroupPopupCloseButton: { 
-          selector: 'div.cert-dialog-header #close-x',
-          locateStrategy: 'css selector' }
+          selector: '//button[.//*[contains(text(), "Close")]]',
+          locateStrategy: 'xpath' }
       }
     }
   }

@@ -39,6 +39,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -84,8 +86,8 @@ public final class TestUtils {
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";
     public static final String CLIENT_ID_SS4 = "FI:GOV:M1:SS4";
-    public static final String CLIENT_ID_SS5 = "FI:GOV:M1:SS5";
-    public static final String CLIENT_ID_SS6 = "FI:GOV:M1:SS6";
+    public static final String CLIENT_ID_SS5 = "FI:GOV:M2:SS5";
+    public static final String CLIENT_ID_SS6 = "FI:GOV:M2:SS6";
     public static final String CLIENT_ID_M2_SS6 = "FI:GOV:M2:SS6";
     public static final String NEW_GROUPCODE = "NEW_GROUPCODE";
     public static final String GROUP_DESC = "GROUP_DESC";
@@ -107,6 +109,9 @@ public final class TestUtils {
     public static final String SERVICE_XROAD_GET_RANDOM = "xroadGetRandom.v1";
     public static final String SERVICE_BMI = "bodyMassIndex.v1";
 
+    public static final File ANCHOR_FILE = TestUtils.getTestResourceFile("internal-configuration-anchor.xml");
+    public static final String ANCHOR_HASH = "B37E02C0B310497C05D938A8C4446DFA80722F97123852BA8BF20D57";
+
     private TestUtils() {
         // noop
     }
@@ -124,11 +129,19 @@ public final class TestUtils {
     }
 
     /**
-     * Returns a new ClientId with default parameters "FI:GOV:M1:SS1"
+     * Returns a new ClientId "FI:GOV:M1:SS1"
      * @return ClientId
      */
     public static ClientId getM1Ss1ClientId() {
         return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1);
+    }
+
+    /**
+     * Returns a new ClientId "FI:GOV:M1:SS2"
+     * @return ClientId
+     */
+    public static ClientId getM1Ss2ClientId() {
+        return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2);
     }
 
     /**
@@ -269,5 +282,14 @@ public final class TestUtils {
         }
         assertNotNull(resource);
         return resource;
+    }
+
+    /**
+     * Convert date time string "yyyy-MM-ddTHH:mm:ss.SSS" to milliseconds
+     * @param dateTimeStr
+     * @return
+     */
+    public static Long fromDateTimeToMilliseconds(String dateTimeStr) {
+        return LocalDateTime.parse(dateTimeStr).atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();
     }
 }
