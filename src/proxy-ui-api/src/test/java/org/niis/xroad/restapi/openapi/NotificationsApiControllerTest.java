@@ -102,6 +102,13 @@ public class NotificationsApiControllerTest {
 
     @Test
     @WithMockUser
+    public void resetBackupRestoreRunningSince() {
+        ResponseEntity<Void> response = notificationsApiController.resetBackupRestoreRunningSince();
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser
     public void checkAlertsSoftTokenNotFound() {
         doThrow(new RuntimeException("")).when(notificationService).getAlerts();
 

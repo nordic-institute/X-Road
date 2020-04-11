@@ -37,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -86,5 +87,15 @@ public class NotificationsApiController {
     public ResponseEntity<AlertData> checkAlerts() {
         AlertStatus alertStatus = notificationService.getAlerts();
         return new ResponseEntity<>(alertDataConverter.convert(alertStatus), HttpStatus.OK);
+    }
+
+    /**
+     * reset "backupRestoreRunningSince" alert
+     */
+    @PreAuthorize("permitAll")
+    @PutMapping(value = "/alerts/reset")
+    public ResponseEntity<Void> resetBackupRestoreRunningSince() {
+        NotificationService.resetBackupRestoreRunningSince();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
