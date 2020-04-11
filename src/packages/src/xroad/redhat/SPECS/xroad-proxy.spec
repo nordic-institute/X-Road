@@ -187,28 +187,6 @@ fi
 
 if [ $1 -gt 1 ] ; then
     # upgrade
-    # connector-host for upgrade installations
-    override_securityserver_ee_ini=/etc/xroad/conf.d/override-securityserver-ee.ini
-    local_ini=/etc/xroad/conf.d/local.ini
-    present_in_override_securityserver_ee_ini=$(crudini --get ${override_securityserver_ee_ini} proxy connector-host 2>/dev/null)
-    if [[ -n "$present_in_override_securityserver_ee_ini" ]];
-      then
-        echo "connector-host already present in override-securityserver-ee.ini, do not update local.ini"
-      else
-        echo "connector-host not present in override-securityserver-ee.ini"
-        present_in_local_ini=$(crudini --get ${local_ini} proxy connector-host 2>/dev/null)
-          if [[ -n "$present_in_local_ini" ]];
-            then
-              echo "connector-host already present in local.ini, do not update local.ini"
-            else
-              echo "connector-host not present in local.ini, update local.ini"
-              crudini --set ${local_ini} proxy connector-host 0.0.0.0
-          fi
-    fi
-fi
-
-if [ $1 -gt 1 ] ; then
-    # upgrade
     # migrate from client-fastest-connecting-ssl-use-uri-cache to client-fastest-connecting-ssl-uri-cache-period
     local_ini=/etc/xroad/conf.d/local.ini
     local_ini_value=$(crudini --get ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache 2>/dev/null)
