@@ -155,7 +155,7 @@
             this.$store.dispatch('showError', error.message);
           });
       },
-      doRemoveSelectedServiceClients(): void {+
+      doRemoveSelectedServiceClients(): void {
         api
           .post(`/endpoints/${this.id}/service-clients/delete`, { items: this.serviceClientsToDelete })
           .then( () => {
