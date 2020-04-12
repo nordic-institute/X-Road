@@ -250,7 +250,7 @@ Upon the first installation of the packages, the system asks for the following i
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. Both meta-packages `xroad-securityserver-ee` and `xroad-securityserver-fi` install operational data monitoring module `xroad-addon-opmonitoring`.
 
-**N.B.** In case configuration specific to Estonia (package xroad-securityserver-ee) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
+**N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 ### 2.6 Post-Installation Checks
 
