@@ -1,5 +1,4 @@
 #!/bin/bash
-. /usr/share/debconf/confmodule
 
 if [ "$1" = "upgrade" ];
   then
