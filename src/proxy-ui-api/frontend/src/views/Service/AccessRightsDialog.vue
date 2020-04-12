@@ -169,6 +169,7 @@ export default Vue.extend({
     },
     existingServiceClients: {
       type: Array,
+      required: true,
     },
   },
 

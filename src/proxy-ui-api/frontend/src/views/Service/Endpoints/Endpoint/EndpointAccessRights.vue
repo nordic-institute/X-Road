@@ -20,7 +20,7 @@
           @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
-        >{{$t('accessRights.addSubjects')}}
+        >{{$t('accessRights.addServiceClients')}}
         </large-button>
       </div>
     </div>
@@ -37,8 +37,8 @@
       <tbody>
       <template>
         <tr v-for="sc in serviceClients">
-          <td>{{ sc.subject.member_name_group_description }}</td>
-          <td>{{ sc.subject.id }}</td>
+          <td>{{ sc.name }}</td>
+          <td>{{ sc.id }}</td>
           <td>{{ sc.rights_given_at | formatDateTime }}</td>
           <td class="wrap-right-tight">
             <v-btn
@@ -61,17 +61,17 @@
       title="accessRights.removeTitle"
       text="accessRights.removeText"
       @cancel="resetDeletionSettings()"
-      @accept="doRemoveSelectedSubjects()"
+      @accept="doRemoveSelectedServiceClients()"
     />
 
     <!-- Add access right subjects dialog -->
     <accessRightsDialog
       :dialog="addSubjectsDialogVisible"
-      :filtered="serviceClients"
+      :existingServiceClients="serviceClients"
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
-      @subjectsAdded="doAddSubjects"
+      @serviceClientsAdded="doAddServiceClients"
     />
 
 
@@ -147,7 +147,7 @@
             this.$store.dispatch('showError', error.message);
           });
         api
-          .get(`/endpoints/${this.id}/access-rights`)
+          .get(`/endpoints/${this.id}/service-clients`)
           .then((accessRights) => {
             this.serviceClients = accessRights.data;
           })
@@ -155,9 +155,9 @@
             this.$store.dispatch('showError', error.message);
           });
       },
-      doRemoveSelectedSubjects(): void {
+      doRemoveSelectedServiceClients(): void {+
         api
-          .post(`/endpoints/${this.id}/access-rights/delete`, { items: this.serviceClientsToDelete })
+          .post(`/endpoints/${this.id}/service-clients/delete`, { items: this.serviceClientsToDelete })
           .then( () => {
             this.$store.dispatch('showSuccess', 'accessRights.removeSubjectsSuccess');
             this.fetchData();
@@ -169,9 +169,10 @@
             this.serviceClientsToDelete = [];
           });
       },
-      doAddSubjects(subjects: ServiceClient[]): void {
+      doAddServiceClients(serviceClients: ServiceClient[]): void {
+        console.log('here');
         api
-          .post(`/endpoints/${this.id}/access-rights`, { items: subjects})
+          .post(`/endpoints/${this.id}/service-clients`, { items: serviceClients})
           .then( (accessRights) => {
             this.$store.dispatch('showSuccess', 'accessRights.addSubjectsSuccess');
             this.serviceClients = accessRights.data;
