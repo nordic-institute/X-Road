@@ -40,12 +40,10 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +62,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.util.FormatUtils.xRoadIdToEncodedId;
-
 /**
  * Service class for handling access rights.
  * This service has several methods that return "access rights holders".
@@ -83,13 +79,12 @@ public class AccessRightService {
     private final ServiceService serviceService;
     private final IdentifierService identifierService;
     private final GlobalConfService globalConfService;
-    private final EndpointRepository endpointRepository;
     private final EndpointService endpointService;
 
     @Autowired
     public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService, EndpointRepository endpointRepository,
+            GlobalConfService globalConfService,
             EndpointService endpointService) {
         this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
@@ -97,135 +92,7 @@ public class AccessRightService {
         this.serviceService = serviceService;
         this.identifierService = identifierService;
         this.globalConfService = globalConfService;
-        this.endpointRepository = endpointRepository;
         this.endpointService = endpointService;
-    }
-
-    /**
-     * Get access right holders (serviceClients) by Client (service owner)
-     *
-     * The concept of base endpoint is used to find service level access rights in this method.
-     * Base endpoint is in other words service (code) level endpoint.
-     * Each service has one base endpoint.
-     * Base endpoint has method '*' and path '**'.
-     *
-     * @param clientId
-     * @return
-     * @throws ClientNotFoundException
-     *
-     */
-    public List<ServiceClientDto> getAccessRightHoldersByClient(ClientId clientId)
-            throws ClientNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
-
-        // Filter just acls that are set to base endpoints so they are on service code level
-        List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
-                .filter(acl -> acl.getEndpoint().isBaseEndpoint())
-                .collect(Collectors.toList());
-        List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
-        return mapAccessRightsToAccessRightHolders(clientType, distinctAccessRightTypes);
-    }
-
-    // Get unique AccessRightTypes from the given list
-    private List<AccessRightType> distinctAccessRightTypeByXroadId(List<AccessRightType> acls) {
-        HashMap<XRoadId, AccessRightType> uniqueServiceClientMap = new HashMap<>();
-        for (AccessRightType acl : acls) {
-            if (!uniqueServiceClientMap.containsKey(acl.getSubjectId())) {
-                uniqueServiceClientMap.put(acl.getSubjectId(), acl);
-            }
-        }
-        return new ArrayList(uniqueServiceClientMap.values());
-    }
-
-    /**
-     * Get access right holders (serviceClients) by Service
-     * @param clientId
-     * @param fullServiceCode
-     * @return
-     * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     * @throws EndpointNotFoundException if base endpoint for this service is not found from the client
-     */
-    public List<ServiceClientDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
-            throws ClientNotFoundException, ServiceNotFoundException, EndpointNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
-
-        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
-
-        List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
-        return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
-    }
-
-    /**
-     * Get access right holders (serviceClients) for Endpoint
-     * @param id
-     * @return
-     * @throws EndpointNotFoundException    if no endpoint is found with given id
-     * @throws ClientNotFoundException      if client attached to endpoint is not found
-     */
-    public List<ServiceClientDto> getAccessRightHoldersByEndpoint(Long id)
-            throws EndpointNotFoundException, ClientNotFoundException {
-
-        ClientType clientType = clientRepository.getClientByEndpointId(id);
-        EndpointType endpointType = endpointService.getEndpoint(id);
-
-        List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
-        return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
-    }
-
-    private List<AccessRightType> getAccessRightsByEndpoint(ClientType clientType, EndpointType endpointType) {
-        return clientType.getAcl().stream()
-                .filter(accessRightType -> accessRightType.getEndpoint().getId().equals(endpointType.getId()))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get access right holders (serviceClients) for endpoint
-     *
-     * @param clientType
-     * @param accessRightTypes
-     * @return
-     */
-    private List<ServiceClientDto> mapAccessRightsToAccessRightHolders(ClientType clientType,
-            List<AccessRightType> accessRightTypes) {
-        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
-
-        return accessRightTypes.stream()
-                .map((accessRightType -> accessRightTypeToDto(accessRightType, localGroupMap)))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Makes an {@link ServiceClientDto} out of {@link AccessRightType}
-     * @param accessRightType The AccessRightType to convert from
-     * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
-     * their corresponding {@link LocalGroupType#groupCode}
-     * @return
-     */
-    private ServiceClientDto accessRightTypeToDto(AccessRightType accessRightType,
-            Map<String, LocalGroupType> localGroupMap) {
-        ServiceClientDto serviceClientDto = new ServiceClientDto();
-        XRoadId subjectId = accessRightType.getSubjectId();
-        serviceClientDto.setRightsGiven(
-                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
-        serviceClientDto.setSubjectId(subjectId);
-        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
-            LocalGroupId localGroupId = (LocalGroupId) subjectId;
-            LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            serviceClientDto.setLocalGroupId(localGroupType.getId().toString());
-            serviceClientDto.setLocalGroupCode(localGroupType.getGroupCode());
-            serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
-        }
-        return serviceClientDto;
     }
 
     /**
@@ -386,7 +253,63 @@ public class AccessRightService {
 
         // Create DTOs for returning data
         List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
-        return mapAccessRightsToAccessRightHolders(clientType, accessRightsByEndpoint);
+        return mapAccessRightsToServiceClients(clientType, accessRightsByEndpoint);
+    }
+
+
+    /**
+     * Get access right holders (serviceClients) for endpoint
+     *
+     * @param clientType
+     * @param accessRightTypes
+     * @return
+     */
+    public List<ServiceClientDto> mapAccessRightsToServiceClients(ClientType clientType,
+            List<AccessRightType> accessRightTypes) {
+        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+                localGroupType));
+
+        return accessRightTypes.stream()
+                .map((accessRightType -> accessRightTypeToServiceClientDto(accessRightType, localGroupMap)))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Makes an {@link ServiceClientDto} out of {@link AccessRightType}
+     * @param accessRightType The AccessRightType to convert from
+     * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
+     * their corresponding {@link LocalGroupType#groupCode}
+     * @return
+     */
+    private ServiceClientDto accessRightTypeToServiceClientDto(AccessRightType accessRightType,
+            Map<String, LocalGroupType> localGroupMap) {
+        ServiceClientDto serviceClientDto = new ServiceClientDto();
+        XRoadId subjectId = accessRightType.getSubjectId();
+        serviceClientDto.setRightsGiven(
+                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+        serviceClientDto.setSubjectId(subjectId);
+        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
+            LocalGroupId localGroupId = (LocalGroupId) subjectId;
+            LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
+            serviceClientDto.setLocalGroupId(localGroupType.getId().toString());
+            serviceClientDto.setLocalGroupCode(localGroupType.getGroupCode());
+            serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
+        }
+        return serviceClientDto;
+    }
+
+    /**
+     * Get access rights of an endpoint
+     *
+     * @param clientType
+     * @param endpointType
+     * @return
+     */
+    public List<AccessRightType> getAccessRightsByEndpoint(ClientType clientType, EndpointType endpointType) {
+        return clientType.getAcl().stream()
+                .filter(accessRightType -> accessRightType.getEndpoint().getId().equals(endpointType.getId()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -461,23 +384,6 @@ public class AccessRightService {
     }
 
     /**
-     * Get matching {@link EndpointType endpoint} from {@link ClientType#endpoint client's list of endpoints}.
-     * @param clientType
-     * @param serviceType
-     * @param endpointMethod
-     * @param endpointPath
-     * @return
-     */
-    private Optional<EndpointType> getEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
-            String endpointPath) {
-        return clientType.getEndpoint().stream()
-                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
-                        && endpointType.getMethod().equals(endpointMethod)
-                        && endpointType.getPath().equals(endpointPath))
-                .findFirst();
-    }
-
-    /**
      * Verify that all identifiers are authentic, then get the existing ones from the local db and persist
      * the not-existing ones. This is a necessary step if we are changing identifier relations (such as adding
      * access rights to services)
@@ -525,41 +431,6 @@ public class AccessRightService {
             localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
         }
         return localGroupXRoadIds;
-    }
-
-    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId clientid, String subjectId)
-            throws ClientNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientid);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client not found with id: " + clientid.toShortString());
-        }
-
-        // Filter subjects access rights from the given clients acl-list
-        return clientType.getAcl().stream()
-                .filter(acl -> {
-                    boolean iseq = xRoadIdToEncodedId(acl.getSubjectId()).equals(subjectId);
-                    boolean isBaseEndpoint = acl.getEndpoint().isBaseEndpoint();
-                    return iseq && isBaseEndpoint;
-                })
-                .map(acl -> ServiceClientAccessRightDto.builder()
-                    .id(subjectId)
-                    .clientId(clientid.toShortString())
-                    .serviceCode(acl.getEndpoint().getServiceCode())
-                    .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
-                    .title(getServiceTitle(clientType, acl.getEndpoint().getServiceCode()))
-                    .build())
-                .collect(Collectors.toList());
-    }
-
-    private String getServiceTitle(ClientType clientType, String serviceCode) {
-        ServiceType service = clientType.getServiceDescription().stream()
-                .flatMap(sd -> sd.getService().stream())
-                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
-                .get();
-
-        return service == null ? null : service.getTitle();
-
     }
 
     /**

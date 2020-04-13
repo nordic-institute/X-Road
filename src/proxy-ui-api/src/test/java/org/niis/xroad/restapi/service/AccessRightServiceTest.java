@@ -96,6 +96,9 @@ public class AccessRightServiceTest {
     @MockBean
     GlobalConfService globalConfService;
 
+    @Autowired
+    ServiceClientService serviceClientService;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
@@ -244,13 +247,13 @@ public class AccessRightServiceTest {
 
     @Test(expected = ClientNotFoundException.class)
     public void getClientServiceClientsFromUnexistingClient() throws Exception {
-        accessRightService.getAccessRightHoldersByClient(ClientId.create("NO", "SUCH", "CLIENT"));
+        serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));
     }
 
     @Test
     public void getClientServiceClients() throws Exception {
         ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");
-        List<ServiceClientDto> serviceClients1 = accessRightService.getAccessRightHoldersByClient(clientId1);
+        List<ServiceClientDto> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
         assertTrue(serviceClients1.size() == 1);
 
         ServiceClientDto arh1 = serviceClients1.get(0);
@@ -261,10 +264,10 @@ public class AccessRightServiceTest {
         assertTrue(arh1.getSubjectId().getXRoadInstance().equals("FI"));
 
         ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
-        assertTrue(accessRightService.getAccessRightHoldersByClient(clientId2).isEmpty());
+        assertTrue(serviceClientService.getServiceClientsByClient(clientId2).isEmpty());
 
         ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
-        List<ServiceClientDto> serviceClients3 = accessRightService.getAccessRightHoldersByClient(clientId3);
+        List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
         assertTrue(serviceClients3.size() == 3);
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
                 .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));

@@ -71,6 +71,7 @@ import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
+import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -117,6 +118,7 @@ public class ClientsApiController implements ClientsApi {
     private final OrphanRemovalService orphanRemovalService;
     private final ServiceClientConverter serviceClientConverter;
     private final AccessRightConverter accessRightConverter;
+    private final ServiceClientService serviceClientService;
 
     /**
      * ClientsApiController constructor
@@ -130,7 +132,7 @@ public class ClientsApiController implements ClientsApi {
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
             TokenCertificateConverter tokenCertificateConverter,
             OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
-            AccessRightConverter accessRightConverter) {
+            AccessRightConverter accessRightConverter, ServiceClientService serviceClientService) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -144,6 +146,7 @@ public class ClientsApiController implements ClientsApi {
         this.orphanRemovalService = orphanRemovalService;
         this.serviceClientConverter = serviceClientConverter;
         this.accessRightConverter = accessRightConverter;
+        this.serviceClientService = serviceClientService;
     }
 
     /**
@@ -530,7 +533,7 @@ public class ClientsApiController implements ClientsApi {
         List<ServiceClient> serviceClients = null;
         try {
             serviceClients = serviceClientConverter.
-                    convertServiceClientDtos(accessRightService.getAccessRightHoldersByClient(clientId));
+                    convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
@@ -544,7 +547,7 @@ public class ClientsApiController implements ClientsApi {
         List<AccessRight> accessRights = null;
         try {
             accessRights = accessRightConverter.convert(
-                    accessRightService.getServiceClientAccessRights(clientIdentifier, scId));
+                    serviceClientService.getServiceClientAccessRights(clientIdentifier, scId));
         } catch (ClientNotFoundException e) {
             throw new BadRequestException(e);
         }

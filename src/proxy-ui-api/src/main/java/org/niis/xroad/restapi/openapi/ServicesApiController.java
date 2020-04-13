@@ -46,6 +46,7 @@ import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
@@ -75,17 +76,20 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceService serviceService;
     private final AccessRightService accessRightService;
     private final ServiceClientHelper serviceClientHelper;
+    private final ServiceClientService serviceClientService;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
             ServiceService serviceService, AccessRightService accessRightService,
-            EndpointConverter endpointConverter, ServiceClientHelper serviceClientHelper) {
+            EndpointConverter endpointConverter, ServiceClientHelper serviceClientHelper,
+            ServiceClientService serviceClientService) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
         this.accessRightService = accessRightService;
         this.endpointConverter = endpointConverter;
         this.serviceClientHelper = serviceClientHelper;
+        this.serviceClientService = serviceClientService;
     }
 
     @Override
@@ -135,7 +139,7 @@ public class ServicesApiController implements ServicesApi {
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<ServiceClientDto> serviceClientDtos = null;
         try {
-            serviceClientDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
+            serviceClientDtos = serviceClientService.getServiceClientsByService(clientId, fullServiceCode);
         } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

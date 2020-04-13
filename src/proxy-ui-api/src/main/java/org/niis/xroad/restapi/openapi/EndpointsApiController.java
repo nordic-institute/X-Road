@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +69,7 @@ public class EndpointsApiController implements EndpointsApi {
     private final AccessRightService accessRightService;
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceClientHelper serviceClientHelper;
+    private final ServiceClientService serviceClientService;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 
@@ -77,12 +79,14 @@ public class EndpointsApiController implements EndpointsApi {
             EndpointConverter endpointConverter,
             AccessRightService accessRightService,
             ServiceClientConverter serviceClientConverter,
-            ServiceClientHelper serviceClientHelper) {
+            ServiceClientHelper serviceClientHelper,
+            ServiceClientService serviceClientService) {
         this.endpointService = endpointService;
         this.endpointConverter = endpointConverter;
         this.accessRightService = accessRightService;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceClientHelper = serviceClientHelper;
+        this.serviceClientService = serviceClientService;
     }
 
     @Override
@@ -138,7 +142,7 @@ public class EndpointsApiController implements EndpointsApi {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         List<ServiceClientDto> serviceClientsByEndpoint;
         try {
-            serviceClientsByEndpoint = accessRightService.getAccessRightHoldersByEndpoint(endpointId);
+            serviceClientsByEndpoint = serviceClientService.getServiceClientsByEndpoint(endpointId);
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (ClientNotFoundException e) {
