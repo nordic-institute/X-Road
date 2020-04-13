@@ -40,4 +40,4 @@ The script setup_security_server_sidecar.sh will:
 - Update X-Road configuration on startup if the installed version on image has been updated.
 - Generate serverconf database and properties file with default username (serverconf) and random password.
 - Generate internal and admin UI TLS keys and certificates.
-- Replace 'initctl' for 'supervisorctl' in _xroad_restore.sh for start and stop the services
+- Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services
