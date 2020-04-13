@@ -31,11 +31,14 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import javax.transaction.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +47,10 @@ import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.util.FormatUtils.xRoadIdToEncodedId;
 
+@Slf4j
 @Service
+@Transactional
+@PreAuthorize("isAuthenticated()")
 public class ServiceClientService {
 
     private final ClientRepository clientRepository;
