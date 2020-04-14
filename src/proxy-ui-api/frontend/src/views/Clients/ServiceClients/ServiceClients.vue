@@ -20,15 +20,19 @@
 
     <v-card flat>
       <table class="xrd-table service-clients-table">
-        <tr>
-          <th>{{$t('serviceClients.name')}}</th>
-          <th>{{$t('serviceClients.id')}}</th>
-        </tr>
-        <template v-if="serviceClients.length > 0">
-          <tr v-for="sc in this.filteredServiceClients()" @click="showAccessRights(sc.id)">
-            <td>{{sc.name}}</td>
-            <td>{{sc.id}}</td>
+        <thead>
+          <tr>
+            <th>{{$t('serviceClients.name')}}</th>
+            <th>{{$t('serviceClients.id')}}</th>
           </tr>
+        </thead>
+        <template v-if="serviceClients.length > 0">
+          <tbody>
+            <tr v-for="sc in this.filteredServiceClients()" @click="showAccessRights(sc.id)">
+              <td>{{sc.name}}</td>
+              <td>{{sc.id}}</td>
+            </tr>
+          </tbody>
         </template>
       </table>
     </v-card>
@@ -76,7 +80,7 @@
         });
       },
       showAccessRights(serviceClientId: string) {
-        this.$router.push(`/serviceclients/${serviceClientId}/accessrights/${this.id}`);
+        this.$router.push(`/subsystem/serviceclients/${this.id}/${serviceClientId}`);
       },
     },
     created() {
@@ -87,6 +91,7 @@
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';
+@import '../../../assets/colors';
 
 .search-input {
   max-width: 300px;
@@ -94,6 +99,13 @@
 
 .service-clients-table {
   margin-top: 40px;
+
+
 }
+
+  table tbody .tr:hover {
+    cursor: pointer;
+    background-color: $XRoad-Grey10;
+  }
 
 </style>

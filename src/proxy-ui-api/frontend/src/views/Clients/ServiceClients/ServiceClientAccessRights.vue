@@ -1,6 +1,23 @@
 <template>
-  <subViewTitle :title="asdfadsf" @close="close" />
+  <div class="xrd-tab-max-width">
+    <subViewTitle :title="id" @close="close" />
 
+    <v-card flat>
+      <table class="xrd-table service-clients-table">
+        <tr>
+          <th>{{$t('serviceClients.name')}}</th>
+          <th>{{$t('serviceClients.id')}}</th>
+        </tr>
+        <tr>
+          <td>{{acl.name}}</td>
+          <td>{{acl.id}}</td>
+        </tr>
+      </table>
+    </v-card>
+
+    <h3></h3>
+
+  </div>
 </template>
 
 <script lang="ts">
@@ -18,7 +35,7 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-    client_id: {
+    serviceClientId: {
       type: String,
       required: true,
     },
@@ -30,15 +47,20 @@ export default Vue.extend({
   },
   methods: {
     fetchData() {
-      api
-        .get(`/service-client/${this.id}`)
+      api // /clients/{id}/service-clients/{sc_id}/access-rights
+        .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
         .then( (response: any) => this.accessRights = response.data)
         .catch( (error: any) =>
           this.$store.dispatch('showError', error));
+
+
+    },
+    close() {
+      this.$router.go(-1);
     },
   },
   created() {
-    // this.fetchData();
+    this.fetchData();
   },
 
 });
