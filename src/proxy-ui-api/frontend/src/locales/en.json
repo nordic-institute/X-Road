@@ -118,12 +118,6 @@
     "activateSuccess": "Certificate has been activated",
     "disableSuccess": "Certificate has been disabled"
   },
-  "serviceClients": {
-    "addSubject": "Add subject",
-    "memberNameGroupDesc": "Member name / Group description",
-    "id": "ID",
-    "searchPlaceHolder": "Service clients"
-  },
   "localGroups": {
     "addGroup": "Add group",
     "code": "Code",
@@ -632,16 +626,26 @@
     "nextUpdate": "Next Update",
     "serviceUrl": "Service URL",
     "globalCongiguration": {
-      "title": "Global configuration"
+      "title": "Global configuration",
+      "configurationStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_INTERNAL": "Internal error occurred.",
+        "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
+        "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection to global configuration provider.",
+        "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
+        "ERROR_CODE_UNINITIALIZED": "The configuration client is initializing.",
+        "UNKNOWN": "Unknown"
+      }
     },
     "timestamping": {
       "title": "Timestamping",
       "timestampingStatus": {
-        "SUCCESS": "Success",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Request timed out",
-        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed server URL",
-        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Uninitialized",
-        "ERROR_CODE_INTERNAL": "Internal error",
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
+        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
+        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
+        "ERROR_CODE_INTERNAL": "Internal error occurred",
         "UNKNOWN": "Unknown"
       }
     },
@@ -649,11 +653,11 @@
       "title": "OCSP Responders",
       "certificationService": "Certification Service:",
       "ocspStatus": {
-        "SUCCESS": "Success",
-        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Connection error",
-        "ERROR_CODE_OCSP_FAILED": "Failed",
-        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Invalid response",
-        "ERROR_CODE_OCSP_UNINITIALIZED": "Uninitialized",
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Unable to connect to the OCSP responder",
+        "ERROR_CODE_OCSP_FAILED": "Unable to fetch response from the OCSP responder",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
+        "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
         "UNKNOWN": "Unknown"
       }
     }

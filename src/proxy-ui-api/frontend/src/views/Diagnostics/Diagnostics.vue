@@ -15,9 +15,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>{{globalconf.status_class}}</td>
-              <td class="service-url" data-test="service-url">{{globalconf.status_code}}</td>
+            <tr v-if="globalconf">
+              <td>
+                <StatusIcon :status="statusIconType(globalconf.status_class)" />
+              </td>
+
+              <td>{{$t('diagnostics.globalCongiguration.configurationStatus.'+globalconf.status_code)}}</td>
               <td>{{globalconf.prev_update_at}}</td>
               <td>{{globalconf.next_update_at}}</td>
             </tr>
@@ -45,11 +48,10 @@
               v-for="timestampingService in timestapmingServices"
               v-bind:key="timestampingService.url"
             >
-              <td>{{timestampingService.status_class }}</td>
-              <td class="service-url" data-test="service-url">
-                <serviceIcon :service="service" />
-                {{timestampingService.url}}
+              <td>
+                <StatusIcon :status="statusIconType(timestampingService.status_class)" />
               </td>
+              <td class="service-url" data-test="service-url">{{timestampingService.url}}</td>
               <td>{{$t('diagnostics.timestamping.timestampingStatus.'+timestampingService.status_code)}}</td>
               <td>{{timestampingService.prev_update_at}}</td>
             </tr>
@@ -69,7 +71,6 @@
         >
           <div class="cert-service-name">
             <span>{{$t('diagnostics.ocspResponders.certificationService')}}</span>
-
             {{ocspDiags.distinguished_name}}
           </div>
           <table class="xrd-table">
@@ -84,16 +85,16 @@
             </thead>
             <tbody>
               <tr v-for="ocsp in ocspDiags.ocsp_responders" v-bind:key="ocsp.url">
-                <td>{{ocsp.status_class}}</td>
+                <td>
+                  <StatusIcon :status="statusIconType(ocsp.status_class)" />
+                </td>
                 <td class="service-url" data-test="service-url">{{ocsp.url}}</td>
                 <td>{{$t('diagnostics.ocspResponders.ocspStatus.'+ocsp.status_code)}}</td>
                 <td>{{ocsp.prev_update_at}}</td>
-
                 <td>{{ocsp.next_update_at}}</td>
               </tr>
             </tbody>
           </table>
-          {{ocsp}}
         </div>
       </v-card-text>
     </v-card>
@@ -103,25 +104,22 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
+import {
+  TimestampingServiceDiagnostics,
+  OcspResponderDiagnostics,
+  GlobalConfDiagnostics,
+} from '@/types';
+import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
-  data: () => ({
-    timestapmingServices: [],
-    globalconf: undefined,
-    ocspResponderDiagnostics: [],
-  }),
-
-  computed: {
-    ocsps() {
-      const map1 = this.ocspResponderDiagnostics
-        .map((obj) => {
-          return obj.ocsp_responders;
-        })
-        .flat();
-      return map1;
-    },
+  components: {
+    StatusIcon,
   },
-
+  data: () => ({
+    timestapmingServices: [] as TimestampingServiceDiagnostics[],
+    globalconf: undefined as GlobalConfDiagnostics | undefined,
+    ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
+  }),
   methods: {
     fetchData(): void {
       api
@@ -130,28 +128,42 @@ export default Vue.extend({
           this.timestapmingServices = res.data;
         })
         .catch((error) => {
-          throw error;
+          this.$store.dispatch('showError', error);
         });
 
       api
         .get(`/diagnostics/globalconf`)
         .then((res) => {
-          console.log(res);
           this.globalconf = res.data;
         })
         .catch((error) => {
-          throw error;
+          this.$store.dispatch('showError', error);
         });
 
       api
         .get(`/diagnostics/ocsp-responders`)
         .then((res) => {
-          console.log(res);
           this.ocspResponderDiagnostics = res.data;
         })
         .catch((error) => {
-          throw error;
+          this.$store.dispatch('showError', error);
         });
+    },
+
+    statusIconType(status: string): string {
+      if (!status) {
+        return '';
+      }
+      switch (status) {
+        case 'OK':
+          return 'green';
+        case 'WAITING':
+          return 'orange-ring';
+        case 'FAIL':
+          return 'red';
+        default:
+          return 'red';
+      }
     },
   },
   created() {
