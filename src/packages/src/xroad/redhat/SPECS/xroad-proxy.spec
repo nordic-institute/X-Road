@@ -172,21 +172,6 @@ fi
 
 if [ $1 -gt 1 ] ; then
     # upgrade
-    # allow-get-wsdl-request for upgrade installations
-    proxy_ini=/etc/xroad/conf.d/proxy.ini
-    local_ini=/etc/xroad/conf.d/local.ini
-    present_in_proxy_ini=$(crudini --get ${proxy_ini} proxy allow-get-wsdl-request 2>/dev/null)
-    if [[ -n "$present_in_proxy_ini" ]];
-      then
-        echo "allow-get-wsdl-request already present in proxy.ini, do not update local.ini"
-      else
-        echo "allow-get-wsdl-request not present in proxy.ini, update local.ini"
-        crudini --set ${local_ini} proxy allow-get-wsdl-request true
-      fi
-fi
-
-if [ $1 -gt 1 ] ; then
-    # upgrade
     # migrate from client-fastest-connecting-ssl-use-uri-cache to client-fastest-connecting-ssl-uri-cache-period
     local_ini=/etc/xroad/conf.d/local.ini
     local_ini_value=$(crudini --get ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache 2>/dev/null)

@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.51  
+Version: 2.52  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -61,6 +61,7 @@ Doc. ID: UG-SYSPAR
 | 05.12.2019 | 2.49     | Fix broken link in Table of Contents | Tapio Jaakkola | 
 | 11.12.2019 | 2.50     | Added new Central Server parameter *ha-node-name* | Jarkko Hyöty |
 | 03.04.2020 | 2.51     | Removed proxy parameter allow-get-wsdl-request. | Petteri Kivimäki |
+| 12.04.2020 | 2.52     | Updated *connector-host* property EE-package value. | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -219,7 +220,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | client-https-port                                | 443 <br/> 8443 (RHEL)                      |   |   | TCP port on which the service client's security server listens for HTTPS requests from client applications. |
 | client-timeout                                   | 30000                                      |   |   | Defines the time period (in milliseconds), for which the service client's security server tries to connect to the service provider's security server. When the timeout is reached, the service client's security server informs the service client's information system that a service timeout has occurred. |
 | configuration-anchor-file                        | /etc/xroad/configuration-anchor.xml        |   |   | Absolute file name of the configuration anchor that is used to download global configuration. |
-| connector-host                                   | 0.0.0.0                                    |   |   | IP address on which the service client's security server listens for connections from client applications. The value 0.0.0.0 allows listening on all IPv4 interfaces. |
+| connector-host                                   | 0.0.0.0                                    |   | 127.0.0.1 | IP address on which the service client's security server listens for connections from client applications. The value 0.0.0.0 allows listening on all IPv4 interfaces. The value 127.0.0.1 allows listening on localhost only. |
 | database-properties                              | /etc/xroad/db.properties                   |   |   | Absolute file name of the properties file for the configuration of the security server database. |
 | ocsp-responder-listen-address                    | 0.0.0.0                                    |   |   | IP address on which the service provider's security server listens for requests for OCSP responses from the service client's security server. The service client's security server downloads OCSP responses from the service provider's security server while establishing a secure connection between the security servers. The value 0.0.0.0 allows listening on all IPv4 interfaces. Must match the value of proxy.server-listen-address. |
 | ocsp-responder-port                              | 5577                                       |   |   | TCP port on which the service provider's security server listens for requests for OCSP responses from the service client's security server. The service client's security server downloads OCSP responses from the service provider's security server while establishing a secure connection between the security servers. |

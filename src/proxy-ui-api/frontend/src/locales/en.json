@@ -118,6 +118,12 @@
     "activateSuccess": "Certificate has been activated",
     "disableSuccess": "Certificate has been disabled"
   },
+  "serviceClients": {
+    "addSubject": "Add subject",
+    "memberNameGroupDesc": "Member name / Group description",
+    "id": "ID",
+    "searchPlaceHolder": "Service clients"
+  },
   "localGroups": {
     "addGroup": "Add group",
     "code": "Code",
