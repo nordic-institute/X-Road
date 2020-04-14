@@ -80,12 +80,14 @@ public class AccessRightService {
     private final IdentifierService identifierService;
     private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
+    private final LocalGroupService localGroupService;
 
     @Autowired
     public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
             GlobalConfService globalConfService,
-            EndpointService endpointService) {
+            EndpointService endpointService,
+            LocalGroupService localGroupService) {
         this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
@@ -93,6 +95,7 @@ public class AccessRightService {
         this.identifierService = identifierService;
         this.globalConfService = globalConfService;
         this.endpointService = endpointService;
+        this.localGroupService = localGroupService;
     }
 
     /**
@@ -158,7 +161,7 @@ public class AccessRightService {
         Set<XRoadId> subjectsToDelete = new HashSet<>();
         if (localGroupIds != null) {
             try {
-                subjectsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+                subjectsToDelete.addAll(localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds));
             } catch (LocalGroupNotFoundException e) {
                 throw new AccessRightNotFoundException(e);
             }
@@ -372,7 +375,7 @@ public class AccessRightService {
         if (localGroupIds != null && localGroupIds.size() > 0) {
             Set<XRoadId> localGroupXroadIds = null;
             try {
-                localGroupXroadIds = getLocalGroupsAsXroadIds(localGroupIds);
+                localGroupXroadIds = localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds);
             } catch (LocalGroupNotFoundException e) {
                 throw new AccessRightNotFoundException(e);
             }
@@ -415,23 +418,6 @@ public class AccessRightService {
         return identifierService.getOrPersistXroadIds(globalGroupIds);
     }
 
-    /**
-     * Verify that all given {@link Long} ids are real, then return them as {@link LocalGroupId LocalGroupIds}
-     * @param localGroupIds
-     * @return
-     * @throws LocalGroupNotFoundException
-     */
-    private Set<XRoadId> getLocalGroupsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
-        Set<XRoadId> localGroupXRoadIds = new HashSet<>();
-        for (Long groupId : localGroupIds) {
-            LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
-            if (localGroup == null) {
-                throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
-            }
-            localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
-        }
-        return localGroupXRoadIds;
-    }
 
     /**
      * If access right was not found

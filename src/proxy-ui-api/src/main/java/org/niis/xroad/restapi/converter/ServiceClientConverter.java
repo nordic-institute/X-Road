@@ -37,7 +37,6 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -118,12 +117,10 @@ public class ServiceClientConverter {
     public XRoadId convertId(ServiceClient serviceClient) {
         XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
         String encodedId = serviceClient.getId();
-        int separators;
         XRoadId xRoadId;
         switch (serviceClientType) {
             case SUBSYSTEM:
-                separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
-                if (separators != ClientConverter.SUBSYSTEM_CODE_INDEX) {
+                if (clientConverter.isEncodedSubsystemId(encodedId)) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
                 }
                 xRoadId = clientConverter.convertId(encodedId);

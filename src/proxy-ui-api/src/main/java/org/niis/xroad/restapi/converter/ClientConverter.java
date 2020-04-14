@@ -56,10 +56,10 @@ public class ClientConverter {
     private final GlobalConfFacade globalConfFacade;
     private final CurrentSecurityServerId securityServerOwner; // request scoped
 
-    public static final int INSTANCE_INDEX = 0;
-    public static final int MEMBER_CLASS_INDEX = 1;
-    public static final int MEMBER_CODE_INDEX = 2;
-    public static final int SUBSYSTEM_CODE_INDEX = 3;
+    private static final int INSTANCE_INDEX = 0;
+    private static final int MEMBER_CLASS_INDEX = 1;
+    private static final int MEMBER_CODE_INDEX = 2;
+    private static final int SUBSYSTEM_CODE_INDEX = 3;
 
     @Autowired
     public ClientConverter(GlobalConfFacade globalConfFacade,
@@ -139,8 +139,7 @@ public class ClientConverter {
      * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
-        int separators = FormatUtils.countOccurences(encodedId, ENCODED_ID_SEPARATOR);
-        if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
+        if (!isEncodedClientId(encodedId)) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
@@ -191,5 +190,19 @@ public class ClientConverter {
      */
     public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
+    }
+
+    public boolean isEncodedSubsystemId(String encodedId) {
+        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        return separators == SUBSYSTEM_CODE_INDEX;
+    }
+
+    public boolean isEncodedMemberId(String encodedId) {
+        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        return separators == MEMBER_CODE_INDEX;
+    }
+
+    public boolean isEncodedClientId(String encodedId) {
+        return isEncodedMemberId(encodedId) || isEncodedSubsystemId(encodedId);
     }
 }

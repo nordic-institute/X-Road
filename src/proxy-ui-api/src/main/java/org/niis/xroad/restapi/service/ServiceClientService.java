@@ -46,6 +46,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.util.FormatUtils.xRoadIdToEncodedId;
@@ -200,6 +201,21 @@ public class ServiceClientService {
                         .title(getServiceTitle(clientType, acl.getEndpoint().getServiceCode()))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Add access rights for services in serviceCodes to service client serviceClientId,
+     * both the services and service client in the context of subsystem clientId
+     * TO DO: test
+     * TO DO: test service != client's services
+     * TO DO: test service client != client's service clients
+     * TO DO: access right already exists -> exception
+     * @param clientId
+     * @param serviceClientId
+     * @param serviceCodes
+     */
+    public void addServiceClientAccessRights(ClientId clientId, XRoadId serviceClientId, Set<String> serviceCodes) {
+        log.debug("adding service client access rights");
     }
 
     private String getServiceTitle(ClientType clientType, String serviceCode) {

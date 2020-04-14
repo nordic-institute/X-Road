@@ -28,9 +28,19 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.Data;
 
+/**
+ * DTO carrying service client identifier, as it comes from API in a
+ * separate parameter. Either an XRoadId (for global groups, subsystems and members)
+ * or local group PK id.
+ */
 @Data
 public class ServiceClientIdentifierDto {
+    // primary key of a local group - null if not a local group
     private Long localGroupId;
+    // XRoadId for GlobalGroup, subsystem or member - null if local group
     private XRoadId xRoadId;
-    private ServiceClientIdentifierType serviceClientIdentifierType;
+
+    public boolean isLocalGroup() {
+        return localGroupId != null;
+    }
 }
