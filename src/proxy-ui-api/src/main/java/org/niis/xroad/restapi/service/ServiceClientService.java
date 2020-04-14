@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
 import javax.transaction.Transactional;
 
 import java.util.ArrayList;
