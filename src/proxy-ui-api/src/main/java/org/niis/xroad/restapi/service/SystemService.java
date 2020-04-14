@@ -199,11 +199,13 @@ public class SystemService {
      * Calculate the hex hash of the given anchor file. Used to verify/preview an anchor file before
      * uploading it
      * @param anchorBytes
+     * @param shouldVerifyAnchorInstance if the anchor instance should be verified
      * @return
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      * @throws MalformedAnchorException if the Anchor content is wrong
      */
-    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes) throws InvalidAnchorInstanceException,
+    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance) throws
+            InvalidAnchorInstanceException,
             MalformedAnchorException {
         ConfigurationAnchorV2 anchor = null;
         try {
@@ -215,7 +217,9 @@ public class SystemService {
                 throw ce;
             }
         }
-        verifyAnchorInstance(anchor);
+        if (shouldVerifyAnchorInstance) {
+            verifyAnchorInstance(anchor);
+        }
         AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
         return anchorFile;

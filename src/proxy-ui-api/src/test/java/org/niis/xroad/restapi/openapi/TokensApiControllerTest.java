@@ -75,9 +75,10 @@ public class TokensApiControllerTest {
 
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
-    private static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
-    private static final String NOT_ACTIVE_TOKEN_KEY_ID = "token-not-active-key";
     private static final String KEY_LABEL = "key-label";
+
+    public static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
+    public static final String NOT_ACTIVE_TOKEN_KEY_ID = "token-not-active-key";
 
     @MockBean
     private TokenService tokenService;

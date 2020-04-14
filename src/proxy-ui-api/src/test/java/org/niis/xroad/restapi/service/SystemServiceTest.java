@@ -178,7 +178,7 @@ public class SystemServiceTest {
     @Test
     public void getAnchorFileFromBytes() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
-        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
+        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, true);
         assertEquals(ANCHOR_HASH, anchorFile.getHash());
     }
 
@@ -186,7 +186,15 @@ public class SystemServiceTest {
     public void getAnchorFileFromBytesWrongInstance() throws Exception {
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("INVALID", "GOV", "1111"));
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
-        systemService.getAnchorFileFromBytes(anchorBytes);
+        systemService.getAnchorFileFromBytes(anchorBytes, true);
+    }
+
+    @Test
+    public void getAnchorFileFromBytesSkipVerify() throws Exception {
+        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("INVALID", "GOV", "1111"));
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, false);
+        assertEquals(ANCHOR_HASH, anchorFile.getHash());
     }
 
     @Test

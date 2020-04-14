@@ -31,7 +31,6 @@ import lombok.Data;
  */
 @Data
 public class InitializationStatusDto {
-    private boolean isGlobalConfInitialized;
-    private boolean isServerConfInitialized;
-    private boolean isSoftwareTokenInitialized;
+    private boolean isAnchorImported;
+    private boolean isInitialized;
 }

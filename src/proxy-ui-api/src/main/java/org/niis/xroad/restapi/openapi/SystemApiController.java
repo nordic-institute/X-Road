@@ -239,7 +239,7 @@ public class SystemApiController implements SystemApi {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         AnchorFile anchorFile = null;
         try {
-            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
+            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, validateInstance);
         } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
         }

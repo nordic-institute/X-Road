@@ -91,7 +91,6 @@ public class TokenService {
      * @param clientType client who's member certificates need to be
      * linked to
      * @return
-     * @throws Exception
      */
     public List<CertificateInfo> getSignCertificates(ClientType clientType) {
         return getCertificates(clientType, true);
@@ -102,7 +101,6 @@ public class TokenService {
      * @param clientType client who's member certificates need to be
      * linked to
      * @return
-     * @throws Exception
      */
     public List<CertificateInfo> getAllCertificates(ClientType clientType) {
         return getCertificates(clientType, false);

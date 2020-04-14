@@ -69,6 +69,7 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -119,7 +120,7 @@ public class SystemApiControllerTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
-        when(systemService.getAnchorFileFromBytes(any())).thenReturn(anchorFile);
+        when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
     }
 
     @Test
@@ -330,7 +331,7 @@ public class SystemApiControllerTest {
     @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
     public void previewAnchor() throws IOException {
         Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<Anchor> response = systemApiController.previewAnchor(anchorResource);
+        ResponseEntity<Anchor> response = systemApiController.previewAnchor(true, anchorResource);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Anchor anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());

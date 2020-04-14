@@ -25,9 +25,12 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.InitializationStatus;
+import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,15 +56,31 @@ public class InitializationApiController implements InitializationApi {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
-        boolean isSecurityServerInitialized = initializationService.isSecurityServerInitialized();
+        InitializationStatusDto initializationStatusDto = initializationService.isSecurityServerInitialized();
         InitializationStatus initializationStatus = new InitializationStatus();
-        initializationStatus.setIsInitialized(isSecurityServerInitialized);
+        initializationStatus.setIsAnchorImported(initializationStatusDto.isAnchorImported());
+        initializationStatus.setIsInitialized(initializationStatusDto.isInitialized());
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
+    public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
+        String securityServerCode = initialServerConf.getSecurityServerCode();
+        String ownerMemberClass = initialServerConf.getOwnerMemberClass();
+        String ownerMemberCode = initialServerConf.getOwnerMemberCode();
+        String softwareTokenPin = initialServerConf.getSoftwareTokenPin();
+        boolean ignoreWarnings = Boolean.TRUE.equals(initialServerConf.getIgnoreWarnings());
+        try {
+            initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
+                    ignoreWarnings);
+        } catch (AnchorNotFoundException e) {
+            e.printStackTrace();
+        } catch (InitializationService.InitializationException e) {
+            e.printStackTrace();
+        } catch (UnhandledWarningsException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }
