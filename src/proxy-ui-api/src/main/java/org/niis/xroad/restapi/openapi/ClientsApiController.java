@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
@@ -40,12 +41,15 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
+import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
+import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.AccessRight;
+import org.niis.xroad.restapi.openapi.model.AccessRights;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
@@ -68,6 +72,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
@@ -88,8 +93,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
@@ -119,6 +126,7 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientConverter serviceClientConverter;
     private final AccessRightConverter accessRightConverter;
     private final ServiceClientService serviceClientService;
+    private final ServiceClientIdentifierConverter serviceClientIdentifierConverter;
 
     /**
      * ClientsApiController constructor
@@ -132,7 +140,8 @@ public class ClientsApiController implements ClientsApi {
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
             TokenCertificateConverter tokenCertificateConverter,
             OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
-            AccessRightConverter accessRightConverter, ServiceClientService serviceClientService) {
+            AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
+            ServiceClientIdentifierConverter serviceClientIdentifierConverter) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -147,6 +156,7 @@ public class ClientsApiController implements ClientsApi {
         this.serviceClientConverter = serviceClientConverter;
         this.accessRightConverter = accessRightConverter;
         this.serviceClientService = serviceClientService;
+        this.serviceClientIdentifierConverter = serviceClientIdentifierConverter;
     }
 
     /**
@@ -554,4 +564,32 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
     }
 
+    // TO DO: correct permissions.
+    // TO DO: tests
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
+            String endcodedServiceClientId, AccessRights accessRights) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(endcodedServiceClientId);
+        XRoadId serviceClientId = dto.getXRoadId();
+        if (dto.isLocalGroup()) {
+            try {
+                serviceClientId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            } catch (LocalGroupNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            }
+        }
+        Set<String> serviceCodes = getServiceCodes(accessRights);
+        serviceClientService.addServiceClientAccessRights(clientId, serviceClientId, serviceCodes);
+        return null;
+    }
+
+    private Set<String> getServiceCodes(AccessRights accessRights) {
+        Set<String> serviceCodes = new HashSet<>();
+        for (AccessRight accessRight: accessRights.getItems()) {
+            serviceCodes.add(accessRight.getServiceCode());
+        }
+        return serviceCodes;
+    }
 }

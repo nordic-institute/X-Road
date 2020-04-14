@@ -28,6 +28,8 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -41,8 +43,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -198,6 +202,37 @@ public class LocalGroupService {
         }
         managedLocalGroup.getGroupMember().removeAll(membersToBeRemoved);
         localGroupRepository.saveOrUpdate(managedLocalGroup);
+    }
+
+    /**
+     * Verify that all given {@link Long} local group (PK) ids are real, then return them as
+     * {@link LocalGroupId LocalGroupIds}
+     * @param localGroupIds
+     * @return
+     * @throws LocalGroupNotFoundException if local group with given id was not found in database
+     */
+    public Set<XRoadId> getLocalGroupIdsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
+        Set<XRoadId> localGroupXRoadIds = new HashSet<>();
+        for (Long groupId : localGroupIds) {
+            LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
+            if (localGroup == null) {
+                throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
+            }
+            localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
+        }
+        return localGroupXRoadIds;
+    }
+
+    /**
+     * Verify that given {@link Long} local group id is real, then return it as {@link LocalGroupId LocalGroupId}
+     * @param localGroupId
+     * @return
+     * @throws LocalGroupNotFoundException if local group with given id was not found in database
+     */
+    public XRoadId getLocalGroupIdAsXroadId(long localGroupId) throws LocalGroupNotFoundException {
+        Set<Long> ids = new HashSet<>();
+        ids.add(localGroupId);
+        return getLocalGroupIdsAsXroadIds(ids).iterator().next();
     }
 
     /**
