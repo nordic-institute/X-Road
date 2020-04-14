@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -238,5 +240,39 @@ public class AccessRightServiceTest {
         localGroupIds.add(1L);
         accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_BMI_OLD, null,
                 localGroupIds);
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void getClientServiceClientsFromUnexistingClient() throws Exception {
+        accessRightService.getAccessRightHoldersByClient(ClientId.create("NO", "SUCH", "CLIENT"));
+    }
+
+    @Test
+    public void getClientServiceClients() throws Exception {
+        ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");
+        List<AccessRightHolderDto> accessRightHolders1 = accessRightService.getAccessRightHoldersByClient(clientId1);
+        assertTrue(accessRightHolders1.size() == 1);
+
+        AccessRightHolderDto arh1 = accessRightHolders1.get(0);
+        assertTrue(arh1.getSubjectId().getObjectType().equals(XRoadObjectType.SUBSYSTEM));
+        assertNull(arh1.getLocalGroupCode());
+        assertNull(arh1.getLocalGroupDescription());
+        assertNull(arh1.getLocalGroupId());
+        assertTrue(arh1.getSubjectId().getXRoadInstance().equals("FI"));
+
+        ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
+        assertTrue(accessRightService.getAccessRightHoldersByClient(clientId2).isEmpty());
+
+        ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
+        List<AccessRightHolderDto> accessRightHolders3 = accessRightService.getAccessRightHoldersByClient(clientId3);
+        assertTrue(accessRightHolders3.size() == 3);
+        assertTrue(accessRightHolders3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));
+        assertTrue(accessRightHolders3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.LOCALGROUP)));
+        assertTrue(accessRightHolders3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.SUBSYSTEM)
+                && arh.getSubjectId().getXRoadInstance().equals("FI")));
+
     }
 }

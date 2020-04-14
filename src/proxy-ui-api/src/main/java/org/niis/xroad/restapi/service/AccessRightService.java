@@ -97,6 +97,44 @@ public class AccessRightService {
     }
 
     /**
+     * Get AccessRightHolderDtos for given client
+     *
+     * The concept of base endpoint is used to find service level access rights in this method.
+     * Base endpoint is in other words service (code) level endpoint.
+     * Each service has one base endpoint.
+     * Base endpoint has method '*' and path '**'.
+     *
+     * @param clientId
+     * @return
+     * @throws ClientNotFoundException
+     */
+    public List<AccessRightHolderDto> getAccessRightHoldersByClient(ClientId clientId)
+            throws ClientNotFoundException {
+        ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
+        }
+
+        // Filter just acls that are set to base endpoints so they are on service code level
+        List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
+                .filter(acl -> acl.getEndpoint().isBaseEndpoint())
+                .collect(Collectors.toList());
+        List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
+        return mapAccessRightsToAccessRightHolders(clientType, distinctAccessRightTypes);
+    }
+
+    // Get unique AccessRightTypes from the given list
+    private List<AccessRightType> distinctAccessRightTypeByXroadId(List<AccessRightType> acls) {
+        HashMap<XRoadId, AccessRightType> uniqueServiceClientMap = new HashMap<>();
+        for (AccessRightType acl : acls) {
+            if (!uniqueServiceClientMap.containsKey(acl.getSubjectId())) {
+                uniqueServiceClientMap.put(acl.getSubjectId(), acl);
+            }
+        }
+        return new ArrayList(uniqueServiceClientMap.values());
+    }
+
+    /**
      * Get access right holders by Service
      * @param clientId
      * @param fullServiceCode
