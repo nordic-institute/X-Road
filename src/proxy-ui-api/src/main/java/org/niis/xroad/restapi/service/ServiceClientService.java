@@ -34,6 +34,8 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
+import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
+import org.niis.xroad.restapi.dto.ServiceClientIdentifierType;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,7 +92,7 @@ public class ServiceClientService {
         List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint())
                 .collect(Collectors.toList());
-        List<AccessRightType>   distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
+        List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
         return accessRightService.mapAccessRightsToServiceClients(clientType, distinctAccessRightTypes);
     }
 
@@ -104,6 +106,26 @@ public class ServiceClientService {
         }
         return new ArrayList(uniqueServiceClientMap.values());
     }
+
+    public ServiceClientDto getServiceClient(ClientId clientId, ServiceClientIdentifierDto dto)
+            throws ClientNotFoundException, ServiceClientNotFoundException {
+        List<ServiceClientDto> serviceClientsByClient = getServiceClientsByClient(clientId);
+        boolean isXRoadId = dto.getServiceClientIdentifierType().equals(ServiceClientIdentifierType.XROADID);
+        return serviceClientsByClient.stream()
+            .filter(scDto -> isXRoadId
+                    ? scDto.getSubjectId().equals(dto.getXRoadId())
+                    : scDto.getLocalGroupId().equals(dto.getLocalGroupId()))
+            .findFirst()
+            .orElseThrow(() -> {
+                String serviceClientIdentifier = isXRoadId
+                        ? "xRoadId: " + dto.getXRoadId().toShortString()
+                        : "Localgroup id: " + dto.getLocalGroupId();
+                return new ServiceClientNotFoundException("Service client not found for ClientId: "
+                        + clientId.toShortString() + " and " + serviceClientIdentifier);
+            });
+    }
+
+
 
     /**
      * Get access right holders (serviceClients) by Service
