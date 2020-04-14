@@ -1684,7 +1684,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InitializationStatus'
+                type: object
+                title: InitializationStatus
+                description: Initialization status of the Security Server
+                properties:
+                  is_initialized:
+                    type: boolean
+                    description: whether the security server has been initialized or not
         '400':
           description: request was invalid
         '401':
@@ -5152,19 +5158,6 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    InitializationStatus: # ok
-      type: object
-      description: Initialization status of the Security Server
-      properties:
-        is_globalconf_initialized:
-          type: boolean
-          description: if the globalconf has been initialized
-        is_serverconf_initialized:
-          type: boolean
-          description: if the serverconf has been initialized
-        is_software_token_initialized:
-          type: boolean
-          description: if a software token has been initialized
     KeyWithCertificateSigningRequestId: # ok
       type: object
       description: Key and TokenCertificateSigningRequest id

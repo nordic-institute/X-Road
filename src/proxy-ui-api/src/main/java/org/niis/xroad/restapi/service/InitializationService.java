@@ -31,7 +31,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AnchorFile;
-import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,7 @@ import java.util.Optional;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
- * services for initializing the security server
+ * service for initializing the security server
  */
 @Slf4j
 @Service
@@ -63,35 +62,61 @@ public class InitializationService {
     }
 
     /**
-     * Get the whole init status of the Security Server. The init status consists of the following:
+     * Check the whole init status of the Security Server. The init status consists of the following:
      * global conf - whether or not a configuration anchor has been imported
      * server conf - whether or not a server conf exists
      * software token - whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
      * @return
      */
-    public InitializationStatusDto getInitializationStatus() {
-        InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
-        // Is global conf initialized -> it is if whe can find a Configuration anchor
+    public boolean isSecurityServerInitialized() {
+        boolean isGlobalConfInitialized = isGlobalConfInitialized();
+        boolean isServerConfInitialized = isServerConfInitialized();
+        boolean isSoftwareTokenInitialized = isSoftwareTokenInitialized();
+        return isGlobalConfInitialized && isServerConfInitialized && isSoftwareTokenInitialized;
+    }
+
+    /**
+     * Is global conf initialized -> it is if whe can find a Configuration anchor
+     * @return
+     */
+    public boolean isGlobalConfInitialized() {
+        boolean isGlobalConfInitialized = false;
         try {
             AnchorFile anchorFile = systemService.getAnchorFile();
             if (anchorFile != null) {
-                initializationStatusDto.setGlobalConfInitialized(true);
+                isGlobalConfInitialized = true;
             }
         } catch (AnchorNotFoundException e) {
             log.info("Checking initialization status: could not find Global Configuration Anchor", e);
-            // global conf does not exist - no need to do anything
+            // global conf does not exist - good!
         }
+        return isGlobalConfInitialized;
+    }
 
+    /**
+     * Is server conf initialized -> it is if whe can find one
+     * @return
+     */
+    public boolean isServerConfInitialized() {
+        boolean isServerConfInitialized = false;
         try {
             ServerConfType serverConfType = serverConfService.getServerConf();
             if (serverConfType != null) {
-                initializationStatusDto.setServerConfInitialized(true);
+                isServerConfInitialized = true;
             }
-        } catch (CodedException ce) {
+        } catch (CodedException ce) { // -> this is X_MALFORMED_SERVERCONF, "Server conf is not initialized!"
             log.info("Checking initialization status: CodedException thrown when getting Server Conf", ce);
-            // server conf does not exist - no need to do anything
+            // server conf does not exist - nice!
         }
+        return isServerConfInitialized;
+    }
 
+    /**
+     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
+     * @return
+     */
+    public boolean isSoftwareTokenInitialized() {
+        boolean isSoftwareTokenInitialized = false;
         List<TokenInfo> tokens = tokenService.getAllTokens();
         Optional<TokenInfo> firstSoftwareToken = tokens.stream()
                 .filter(tokenInfo -> tokenInfo.getId().equals(SOFTWARE_TOKEN_ID))
@@ -99,10 +124,8 @@ public class InitializationService {
 
         if (firstSoftwareToken.isPresent()) {
             TokenInfo token = firstSoftwareToken.get();
-            boolean isInitialized = token.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
-            initializationStatusDto.setSoftwareTokenInitialized(isInitialized);
+            isSoftwareTokenInitialized = token.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
         }
-
-        return initializationStatusDto;
+        return isSoftwareTokenInitialized;
     }
 }

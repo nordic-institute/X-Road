@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.InitializationStatus;
 import org.niis.xroad.restapi.service.InitializationService;
@@ -54,11 +53,9 @@ public class InitializationApiController implements InitializationApi {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
-        InitializationStatusDto initializationStatusDto = initializationService.getInitializationStatus();
-        InitializationStatus initializationStatus = new InitializationStatus()
-                .isGlobalconfInitialized(initializationStatusDto.isGlobalConfInitialized())
-                .isServerconfInitialized(initializationStatusDto.isServerConfInitialized())
-                .isSoftwareTokenInitialized(initializationStatusDto.isSoftwareTokenInitialized());
+        boolean isSecurityServerInitialized = initializationService.isSecurityServerInitialized();
+        InitializationStatus initializationStatus = new InitializationStatus();
+        initializationStatus.setIsInitialized(isSecurityServerInitialized);
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 
