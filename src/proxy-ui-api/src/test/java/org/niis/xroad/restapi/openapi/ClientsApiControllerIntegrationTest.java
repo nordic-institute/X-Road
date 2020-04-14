@@ -46,6 +46,7 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -168,7 +169,7 @@ public class ClientsApiControllerIntegrationTest {
                         TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
                         null)
-                )
+        )
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenService.getAllTokens()).thenReturn(mockTokens);
@@ -179,6 +180,7 @@ public class ClientsApiControllerIntegrationTest {
         // mock for URL validator - FormatUtils is tested independently
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
+        when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenReturn(0);
     }
 
     @Autowired
@@ -430,8 +432,8 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
-        ResponseEntity<LocalGroup> response = clientsApiController.addClientGroup(TestUtils.CLIENT_ID_SS1,
-                createGroup(TestUtils.NEW_GROUPCODE));
+        ResponseEntity<LocalGroup> response = clientsApiController.addClientLocalGroup(TestUtils.CLIENT_ID_SS1,
+                createLocalGroupAdd(TestUtils.NEW_GROUPCODE));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         LocalGroup localGroup = response.getBody();
         assertEquals(TestUtils.NEW_GROUPCODE, localGroup.getCode());
@@ -439,19 +441,19 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS"})
+    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS" })
     public void getClientGroups() throws Exception {
         ResponseEntity<List<LocalGroup>> response =
-                clientsApiController.getClientGroups(TestUtils.CLIENT_ID_SS1);
+                clientsApiController.getClientLocalGroups(TestUtils.CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
 
-    private static LocalGroup createGroup(String groupCode) {
-        LocalGroup localGroup = new LocalGroup();
-        localGroup.setDescription(TestUtils.GROUP_DESC);
-        localGroup.setCode(groupCode);
-        return localGroup;
+    private static LocalGroupAdd createLocalGroupAdd(String groupCode) {
+        LocalGroupAdd localGroupAdd = new LocalGroupAdd();
+        localGroupAdd.setDescription(TestUtils.GROUP_DESC);
+        localGroupAdd.setCode(groupCode);
+        return localGroupAdd;
     }
 
     @Test
@@ -1021,7 +1023,6 @@ public class ClientsApiControllerIntegrationTest {
         }
     }
 
-
     @Test
     @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
     public void registerClient() {
@@ -1058,5 +1059,40 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "SEND_CLIENT_DEL_REQ" })
     public void unregisterClientWrongStatus() {
         clientsApiController.unregisterClient(TestUtils.CLIENT_ID_M2_SS6);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ", "ADD_CLIENT" })
+    public void changeOwnerNotRegistered() {
+        clientsApiController.addClient(new ClientAdd().client(createTestClient(
+                "GOV", "M2", null)).ignoreWarnings(true));
+
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M2", null));
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerCurrentOwner() {
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M1", null));
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerSubsystem() {
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "GOV", "M1", "SS1"));
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = { "SEND_OWNER_CHANGE_REQ" })
+    public void changeOwnerClientDoesNotExist() {
+        Client client = new Client();
+        client.setInstanceId("non");
+        client.setMemberClass("existing");
+        client.setMemberCode("client");
+        ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
+                "non", "existing", null));
     }
 }

@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.User;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,7 +65,7 @@ public class UserApiControllerRestTemplateTest {
     private GlobalConfFacade globalConfFacade;
 
     @Before
-    public void setup() {
+    public void setup() throws ApiKeyService.ApiKeyNotFoundException {
         addApiKeyAuthorizationHeader(restTemplate);
     }
 

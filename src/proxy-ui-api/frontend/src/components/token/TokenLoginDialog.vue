@@ -86,7 +86,7 @@ export default Vue.extend({
         })
         .then((res) => {
           this.loading = false;
-          this.$bus.$emit('show-success', 'keys.loggedIn');
+          this.$store.dispatch('showSuccess', 'keys.loggedIn');
           this.$emit('save');
         })
         .catch((error) => {
@@ -100,7 +100,7 @@ export default Vue.extend({
             >).setErrors([this.$t('keys.incorrectPin') as string]);
           }
 
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         });
 
       this.clear();
@@ -114,6 +114,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@import '../../assets/dialogs';
 </style>
 

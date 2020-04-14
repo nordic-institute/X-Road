@@ -50,6 +50,7 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -287,12 +288,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public ResponseEntity<LocalGroup> addClientGroup(String id, LocalGroup localGroup) {
+    public ResponseEntity<LocalGroup> addClientLocalGroup(String id, LocalGroupAdd localGroupAdd) {
         ClientType clientType = getClientType(id);
         LocalGroupType localGroupType = null;
         try {
             localGroupType = localGroupService.addLocalGroup(clientType.getIdentifier(),
-                    localGroupConverter.convert(localGroup));
+                    localGroupConverter.convert(localGroupAdd));
         } catch (LocalGroupService.DuplicateLocalGroupCodeException e) {
             throw new ConflictException(e);
         } catch (ClientNotFoundException e) {
@@ -304,7 +305,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
+    public ResponseEntity<List<LocalGroup>> getClientLocalGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
@@ -512,6 +513,21 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException  e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_OWNER_CHANGE_REQ')")
+    public ResponseEntity<Void> changeOwner(Client client) {
+        try {
+            clientService.changeOwner(client.getMemberClass(), client.getMemberCode(), client.getSubsystemCode());
+        } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

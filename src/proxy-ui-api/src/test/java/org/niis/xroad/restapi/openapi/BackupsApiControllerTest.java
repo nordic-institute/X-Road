@@ -29,9 +29,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
+import org.niis.xroad.restapi.service.InvalidBackupFileException;
+import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +43,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +57,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -82,6 +88,9 @@ public class BackupsApiControllerTest {
     private static final String BACKUP_FILE_2_CREATED_AT = "2020-02-12T03:15:02.684Z";
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
+
+    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "test",
+            "multipart/form-data", "content".getBytes());
 
     @Before
     public void setup() {
@@ -202,6 +211,60 @@ public class BackupsApiControllerTest {
             ResponseEntity<Backup> response = backupsApiController.addBackup();
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void uploadBackup() throws Exception {
+        BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
+
+        when(backupService.uploadBackup(any(Boolean.class), any(String.class), any())).thenReturn(backupFile);
+
+        ResponseEntity<Backup> response = backupsApiController.uploadBackup(true, mockMultipartFile);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(BACKUP_FILE_1_NAME, response.getBody().getFilename());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void uploadBackupWithInvalidFilename() throws Exception {
+        doThrow(new InvalidFilenameException("")).when(backupService)
+                .uploadBackup(any(Boolean.class), any(String.class), any());
+
+        try {
+            ResponseEntity<Backup> response = backupsApiController.uploadBackup(true, mockMultipartFile);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void uploadBackupFileAlreadyExists() throws Exception {
+        doThrow(new UnhandledWarningsException(new WarningDeviation(""))).when(backupService)
+                .uploadBackup(any(Boolean.class), any(String.class), any());
+
+        try {
+            ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
+            // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    public void uploadBackupFileInvalidBackupFile() throws Exception {
+        doThrow(new InvalidBackupFileException("")).when(backupService)
+                .uploadBackup(any(Boolean.class), any(String.class), any());
+
+        try {
+            ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
             // success
         }
     }

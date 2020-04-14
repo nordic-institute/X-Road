@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -38,7 +39,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,11 +50,9 @@ import java.util.stream.Stream;
 public class BackupRepository {
 
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
-    // Criteria for valid backup file names:
-    // 1) cannot start with ".", 2) must contain one or more word characters ([a-zA-Z_0-9]), 3) must end with ".tar"
-    private static final String BACKUP_FILENAME_PATTERN = "^(?!\\.)[\\w\\.\\-]+\\.tar$";
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
+    private static final String INVALID_BACKUP_FILENAME = "invalid backup filename";
 
     /**
      * Read backup files from configuration backup path
@@ -62,7 +60,7 @@ public class BackupRepository {
      */
     public List<File> getBackupFiles() {
         try (Stream<Path> walk = Files.walk(Paths.get(CONFIGURATION_BACKUP_PATH), DIR_MAX_DEPTH)) {
-            return walk.filter(this::isFilenameValid).map(this::getFile).collect(Collectors.toList());
+            return walk.filter(this::isValidBackupFilename).map(this::getFile).collect(Collectors.toList());
         } catch (IOException ioe) {
             log.error("can't read backup files from configuration path (" + CONFIGURATION_BACKUP_PATH + ")");
             throw new RuntimeException(ioe);
@@ -90,6 +88,9 @@ public class BackupRepository {
      * @param filename
      */
     public void deleteBackupFile(String filename) {
+        if (!FormatUtils.isValidBackupFilename(filename)) {
+            throw new RuntimeException(INVALID_BACKUP_FILENAME);
+        }
         Path path = getFilePath(filename);
         try {
             Files.deleteIfExists(path);
@@ -105,6 +106,9 @@ public class BackupRepository {
      * @return
      */
     public byte[] readBackupFile(String filename) {
+        if (!FormatUtils.isValidBackupFilename(filename)) {
+            throw new RuntimeException(INVALID_BACKUP_FILENAME);
+        }
         Path path = getFilePath(filename);
         try {
             return Files.readAllBytes(path);
@@ -114,6 +118,25 @@ public class BackupRepository {
         }
     }
 
+    /**
+     * Writes backup file's content to disk
+     * @param filename
+     * @param content
+     * @return
+     */
+    public OffsetDateTime writeBackupFile(String filename, byte[] content) {
+        if (!FormatUtils.isValidBackupFilename(filename)) {
+            throw new RuntimeException(INVALID_BACKUP_FILENAME);
+        }
+        Path path = getFilePath(filename);
+        try {
+            Files.write(path, content);
+            return getCreatedAt(path.getFileName().toString());
+        } catch (IOException ioe) {
+            log.error("can't write backup file's content (" + path.toString() + ")");
+            throw new RuntimeException(ioe);
+        }
+    }
     /**
      * Return configuration backup path with a trailing slash
      * @return
@@ -127,7 +150,7 @@ public class BackupRepository {
     }
 
     private Path getFilePath(String filename) {
-        return Paths.get(getConfigurationBackupPath() + filename);
+        return Paths.get(getConfigurationBackupPath(), filename);
     }
 
     /**
@@ -135,7 +158,16 @@ public class BackupRepository {
      * @param path
      * @return
      */
-    private boolean isFilenameValid(Path path) {
-        return Pattern.compile(BACKUP_FILENAME_PATTERN).matcher(path.getFileName().toString()).matches();
+    private boolean isValidBackupFilename(Path path) {
+        return FormatUtils.isValidBackupFilename(path.getFileName().toString());
+    }
+
+    /**
+     * Check if a backup file with the given name already exists
+     * @param filename
+     * @return
+     */
+    public boolean fileExists(String filename) {
+        return getFilePath(filename).toFile().exists();
     }
 }

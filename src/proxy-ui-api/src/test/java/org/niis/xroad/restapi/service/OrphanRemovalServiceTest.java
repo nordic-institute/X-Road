@@ -381,7 +381,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void cantDeleteOrphansForDifferentReasons() throws Exception {
         // client exists
         try {
@@ -407,7 +407,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void deleteOrphanCsrKey() throws Exception {
         // single orphan csr -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5);
@@ -424,7 +424,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void deleteOrphanCertKey() throws Exception {
         // single orphan cert -> key is deleted
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6);
@@ -441,7 +441,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "DELETE_SIGN_CERT"})
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "DELETE_SIGN_CERT" })
     public void deleteComplexOrphanSetup() throws Exception {
         // combination of orphan keys and shared keys
         orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07);

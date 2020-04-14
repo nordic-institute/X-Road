@@ -16,6 +16,8 @@ export interface CsrState {
   certificationServiceList: CertificateAuthority[];
   keyId: string;
   form: CsrSubjectFieldDescription[];
+  keyLabel: string;
+  tokenId: string | undefined;
 }
 
 const getDefaultState = () => {
@@ -28,6 +30,8 @@ const getDefaultState = () => {
     certificationServiceList: [],
     keyId: '',
     form: [],
+    keyLabel: '',
+    tokenId: undefined,
   };
 };
 
@@ -35,7 +39,7 @@ const getDefaultState = () => {
 const csrState = getDefaultState();
 
 
-export const getters: GetterTree<CsrState, RootState> = {
+export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
     return state.csrClient;
   },
@@ -60,6 +64,9 @@ export const getters: GetterTree<CsrState, RootState> = {
   keyId(state): string {
     return state.keyId;
   },
+  keyLabel(state): string {
+    return state.keyLabel;
+  },
   isUsageReadOnly(state): boolean {
     // Usage type can be selected only when the Key doesn't have already have it set
     if (state.csrKey && state.csrKey.usage) {
@@ -79,10 +86,29 @@ export const getters: GetterTree<CsrState, RootState> = {
     }
     return state.certificationServiceList;
   },
+  csrRequestBody(state) {
+    // Creates an object that can be used as body for generate CSR request
+    const subjectFieldValues: any = {};
+
+    state.form.forEach((item: any) => {
+      subjectFieldValues[item.id] = item.default_value;
+    });
+
+    return {
+      key_usage_type: state.usage,
+      ca_name: state.certificationService,
+      csr_format: state.csrFormat,
+      subject_field_values: subjectFieldValues,
+      member_id: state.csrClient,
+    };
+  },
+  csrTokenId(state): string | undefined {
+    return state.tokenId;
+  },
 };
 
 export const mutations: MutationTree<CsrState> = {
-  resetState(state) {
+  resetCsrState(state) {
     Object.assign(state, getDefaultState());
   },
   storeCsrClient(state, client: string | null) {
@@ -109,13 +135,21 @@ export const mutations: MutationTree<CsrState> = {
   storeKeyId(state, id: string) {
     state.keyId = id;
   },
+  storeKeyLabel(state, label: string) {
+    state.keyLabel = label;
+  },
+  storeCsrTokenId(state, tokenId: string) {
+    state.tokenId = tokenId;
+  },
 };
 
 export const actions: ActionTree<CsrState, RootState> = {
-  resetState({ commit }) {
-    commit('resetState');
+  resetCsrState({ commit }) {
+    commit('resetCsrState');
   },
-
+  setCsrTokenId({ commit, dispatch, rootGetters }, tokenId: string) {
+    commit('storeCsrTokenId', tokenId);
+  },
   fetchCertificateAuthorities({ commit, rootGetters }) {
     api
       .get(`/certificate-authorities`)
@@ -126,18 +160,16 @@ export const actions: ActionTree<CsrState, RootState> = {
         throw error;
       });
   },
-
   fetchCsrForm({ commit, rootGetters, state }) {
     let query = '';
 
     if (state.usage === UsageTypes.SIGNING) {
       query =
         `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
-        `&key_id=${state.keyId}&member_id=${state.csrClient}`;
+        `&member_id=${state.csrClient}`;
     } else {
       query =
-        `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
-        `&key_id=${state.keyId}`;
+        `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
     }
 
     return api
@@ -169,34 +201,57 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeCsrFormat', csrFormat);
   },
 
-  generateCsr({ commit, rootGetters, state }) {
-
-    const subjectFieldValues: any = {};
-
-    state.form.forEach((item: any) => {
-      subjectFieldValues[item.id] = item.default_value;
-    });
+  generateCsr({ commit, getters, state }) {
+    const requestBody = getters.csrRequestBody;
 
     return api
-      .post(`/keys/${state.keyId}/csrs`, {
-        key_usage_type: state.usage,
-        ca_name: state.certificationService,
-        csr_format: state.csrFormat,
-        subject_field_values: subjectFieldValues,
-        member_id: state.csrClient,
-      })
+      .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
         saveResponseAsFile(response);
       }).catch((error: any) => {
         throw error;
       });
   },
+
+  generateKeyAndCsr({ commit, getters, state }, tokenId: string) {
+    const crtObject = getters.csrRequestBody;
+
+    const body = {
+      key_label: getters.keyLabel,
+      csr_generate_request: crtObject,
+    };
+
+    return api
+      .post(`/tokens/${tokenId}/keys-with-csrs`, body)
+      .then((response) => {
+        saveResponseAsFile(response);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
+  setupSignKey({ commit, rootGetters }) {
+    // Initialize the state with sign type Key. Needed for "add client" wizard.
+    const templateKey: Key = {
+      id: '',
+      name: '',
+      label: '',
+      certificates: [],
+      certificate_signing_requests: [],
+      usage: UsageTypes.SIGNING,
+    };
+
+    commit('storeCsrKey', templateKey);
+    commit('storeUsage', UsageTypes.SIGNING);
+  },
+
 };
 
 export const csrModule: Module<CsrState, RootState> = {
   namespaced: false,
   state: csrState,
-  getters,
+  getters: crsGetters,
   actions,
   mutations,
 };

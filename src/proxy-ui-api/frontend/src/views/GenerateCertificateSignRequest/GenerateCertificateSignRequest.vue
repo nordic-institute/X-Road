@@ -12,11 +12,11 @@
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageCsrDetails @cancel="cancel" @done="save" />
+          <WizardPageCsrDetails @cancel="cancel" @done="save" :showPreviousButton="false" />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageGenerateCsr @cancel="cancel" @done="done" />
+          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -29,8 +29,8 @@ import { mapGetters } from 'vuex';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import WizardPageCsrDetails from './WizardPageCsrDetails.vue';
-import WizardPageGenerateCsr from './WizardPageGenerateCsr.vue';
+import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
+import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
@@ -52,11 +52,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentStep: 0,
+      currentStep: 1,
     };
-  },
-  computed: {
-    ...mapGetters(['localMembersIds']),
   },
   methods: {
     save(): void {
@@ -65,34 +62,34 @@ export default Vue.extend({
           this.currentStep = 2;
         },
         (error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.$store.dispatch('showError', error);
         },
       );
     },
     cancel(): void {
-      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
     done(): void {
-      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
 
     fetchKeyData(id: string): void {
       this.$store.dispatch('fetchKeyData').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 
     fetchLocalMembers(): void {
       this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
 
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$bus.$emit('show-error', error.message);
+        this.$store.dispatch('showError', error);
       });
     },
   },

@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.10  
+Version: 2.11  
 Doc. ID: PR-META
 
 ---
@@ -29,6 +29,7 @@ Doc. ID: PR-META
  30.07.2019 | 2.8     | Update listMethods and allowedMethods descriptions              | Ilkka Seppälä
  09.10.2019 | 2.9     | Remove listCentralServices from the OpenAPI definition          | Jarkko Hyöty
  07.11.2019 | 2.10    | Update getWsdl metaservice description                          | Ilkka Seppälä
+ 03.04.2020 | 2.11    | Remove getWsdl HTTP GET-request description                     | Petteri Kivimäki
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -43,8 +44,6 @@ Doc. ID: PR-META
 - [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
 - [4 Retrieving List of Services](#4-retrieving-list-of-services)
 - [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
-    - [X-Road protocol POST-request](#x-road-protocol-post-request)
-    - [HTTP GET-request](#http-get-request)
     - [WSDL-information modifications](#wsdl-information-modifications)
 - [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
 - [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
@@ -156,7 +155,8 @@ X-Road provides two methods for getting the list of SOAP services offered by an 
 
 * `allowedMethods` lists all SOAP services offered by a service provider that the caller has permission to invoke.
 
-Both methods are invoked as regular X-Road SOAP services (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road SOAP protocol).
+Both methods are invoked as regular X-Road SOAP services (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road SOAP protocol). The connection type settings of the client subsystem is used when the methods are invoked.
+
 The service SOAP header MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be either `listMethods` or `allowedMethods`.
 The body of the request MUST contain an appropriately named empty XML element (either `listMethods` or `allowedMethods`).
 Annexes [C.3](#c3-listmethods-request) and [C.5](#c5-allowedmethods-request) contain example request messages for services, respectively.
@@ -177,53 +177,15 @@ Annexes [C.4](#c4-listmethods-response) and [C.6](#c6-allowedmethods-response) c
 
 ## 5 Retrieving the WSDL of a Service
 
-Service clients are able to download WSDL-files that contain the definition of a given service by using the `getWsdl` meta-service. This can be accomplished by either sending the client security server an X-Road protocol POST-request or a parametrized HTTP GET-request.
+Service clients are able to download WSDL-files that contain the definition of a given service by using the `getWsdl` method. The method is invoked as regular X-Road SOAP service (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road SOAP protocol). The connection type settings of the client subsystem is used when the method is invoked. In addition, the following aspects should be noted:
 
-#### X-Road protocol POST-request
-
-  * the standard method for retrieving the WSDL
-  * uses the connection type settings of the client subsystem
   * WSDL is retrieved as a SOAP-attachment
-  * Fetching the WSDL obeys the service's "Verify TLS Certificate" setting
+  * fetching the WSDL obeys the service's "Verify TLS Certificate" setting.
 
-An example of a `getWsdl` X-Road protocol POST-request to the client security server is documented in annex [C.7](#c7-getwsdl-request) and the corresponding response in annexes [C.8](#c8-getwsdl-response) and [C.9](#c9-getwsdl-response-attachment).
+The service SOAP header MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be `getWsdl`.
+The body of the request MUST contain an appropriately named XML element (`getWsdl`) which contains one or two child elements (`serviceCode`, `serviceVersion`) that define the service which service description is returned. The `serviceCode` element is mandatory and the `serviceVersion` element is optional.
 
-#### HTTP GET-request
-
-  * a convenience method for retrieving the WSDL that will be phased out in future releases
-  * disabled by default in new `6.17.x` installations, availability is configured by the `allow-get-wsdl-request` system parameter \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
-  * uses the connection type settings of the owner member on the client security server
-  * WSDL is retrieved in the response body.
-  * Fetching the WSDL does not verify the server's TLS certificate
-
-The URL for the HTTP GET-request is either `http://SECURITYSERVER/wsdl` or `https://SECURITYSERVER/wsdl` depending on the connection type settings for the client owner member. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the client security server. The client MUST specify the identifier of the service using the following HTTP-parameters:
-
-* `xRoadInstance` – code that identifies the X-Road instance;
-
-* `memberClass` – code that identifies the member class;
-
-* `memberCode` – code that identifies the X-Road member;
-
-* `subsystemCode` – (optional) code that identifies a subsystem of the given member;
-
-* `serviceCode` – identifies the specific service;
-
-* `version` – version of the service.
-
-Therefore, an example HTTP GET-request URL would be:
-`http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&memberClass=MemberClass1&memberCode=ProviderId&subsystemCode=Subsystem1&serviceCode=service1&version=v1`
-
-All the special symbols (such as spaces, question marks etc.) in X-Road element names MUST be escaped.
-
-WSDL files for central services are accessed in a similar manner, in this case the query parameters MUST be:
-
-* `xRoadInstance` – code that identifies the X-Road instance;
-
-* `serviceCode` – code that identifies the central service.
-
-The resulting HTTP GET-request URL for a central service WSDL would be:
-`http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&serviceCode=centralservice1`
-
+An example of a `getWsdl` request to the client security server is documented in annex [C.7](#c7-getwsdl-request) and the corresponding response in annexes [C.8](#c8-getwsdl-response) and [C.9](#c9-getwsdl-response-attachment).
 
 #### WSDL-information modifications
 
