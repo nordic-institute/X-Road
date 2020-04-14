@@ -170,7 +170,6 @@
           });
       },
       doAddServiceClients(serviceClients: ServiceClient[]): void {
-        console.log('here');
         api
           .post(`/endpoints/${this.id}/service-clients`, { items: serviceClients})
           .then( (accessRights) => {

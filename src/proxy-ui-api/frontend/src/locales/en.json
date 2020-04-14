@@ -122,7 +122,14 @@
     "addServiceClient": "Add subject",
     "name": "Member name / Group description",
     "id": "ID",
-    "searchPlaceHolder": "Service clients"
+    "searchPlaceHolder": "Service clients",
+    "accessRights": "Access rights",
+    "serviceCode": "Service code",
+    "title": "Title",
+    "accessRightsGiven": "Access Rights Given",
+    "removeAll": "Remove all",
+    "addService": "Add service",
+    "noAccessRights": "No access rights to this client"
   },
   "localGroups": {
     "addGroup": "Add group",
