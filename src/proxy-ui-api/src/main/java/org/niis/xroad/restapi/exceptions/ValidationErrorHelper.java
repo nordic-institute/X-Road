@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.exceptions;
 
 import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
@@ -34,8 +35,12 @@ import java.util.Collections;
  * Helper class for transforming Spring validation errors into error dtos.
  * Used from {@link ExceptionTranslator} and {@link SpringInternalExceptionHandler}
  */
+@Component
 public class ValidationErrorHelper {
     public static final String VALIDATION_FAILURE_ERROR = "validation_failure";
+
+    public ValidationErrorHelper() {
+    }
 
     /**
      * Create DeviationAware error code & metadata from given org.springframework.validation.Errors.

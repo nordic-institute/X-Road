@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.LimitRequestSizesException;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -47,6 +48,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
     public static final int TEN = 10;
 
+    private final ValidationErrorHelper validationErrorHelper;
+
+    @Autowired
+    public SpringInternalExceptionHandler(ValidationErrorHelper validationErrorHelper) {
+        this.validationErrorHelper = validationErrorHelper;
+    }
+
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
@@ -56,7 +64,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
         if (causedBySizeLimitExceeded(ex)) {
             status = HttpStatus.PAYLOAD_TOO_LARGE;
         } else if (ex instanceof MethodArgumentNotValidException) {
-            errorInfo.setError(new ValidationErrorHelper().createError((MethodArgumentNotValidException) ex));
+            errorInfo.setError(validationErrorHelper.createError((MethodArgumentNotValidException) ex));
         }
         errorInfo.setStatus(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
