@@ -90,7 +90,7 @@ public class ServiceClientService {
         List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint())
                 .collect(Collectors.toList());
-        List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
+        List<AccessRightType>   distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
         return accessRightService.mapAccessRightsToServiceClients(clientType, distinctAccessRightTypes);
     }
 
@@ -147,7 +147,15 @@ public class ServiceClientService {
         return accessRightService.mapAccessRightsToServiceClients(clientType, accessRightsByEndpoint);
     }
 
-    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId clientid, String subjectId)
+    /**
+     * Get service clients access rights to given client
+     *
+     * @param clientid
+     * @param serviceClientId
+     * @return
+     * @throws ClientNotFoundException
+     */
+    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId clientid, String serviceClientId)
             throws ClientNotFoundException {
         ClientType clientType = clientRepository.getClient(clientid);
         if (clientType == null) {
@@ -157,12 +165,12 @@ public class ServiceClientService {
         // Filter subjects access rights from the given clients acl-list
         return clientType.getAcl().stream()
                 .filter(acl -> {
-                    boolean iseq = xRoadIdToEncodedId(acl.getSubjectId()).equals(subjectId);
+                    boolean iseq = xRoadIdToEncodedId(acl.getSubjectId()).equals(serviceClientId);
                     boolean isBaseEndpoint = acl.getEndpoint().isBaseEndpoint();
                     return iseq && isBaseEndpoint;
                 })
                 .map(acl -> ServiceClientAccessRightDto.builder()
-                        .id(subjectId)
+                        .id(serviceClientId)
                         .clientId(clientid.toShortString())
                         .serviceCode(acl.getEndpoint().getServiceCode())
                         .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
@@ -179,7 +187,6 @@ public class ServiceClientService {
                 .get();
 
         return service == null ? null : service.getTitle();
-
     }
 
 }

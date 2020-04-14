@@ -39,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.openapi.model.AccessRight;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
@@ -1108,4 +1109,17 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<Void> response = clientsApiController.changeOwner(createTestClient(
                 "non", "existing", null));
     }
+
+    /*
+    @Test
+    @WithMockUser(authorities = { "VIEW_ACL_SUBJECT_OPEN_SERVICES" })
+    public void getServiceClientAccessRightsTest() {
+        String serviceClientId = TestUtils.CLIENT_ID_SS1;
+        String clientId = TestUtils.CLIENT_ID_SS2;
+        List<AccessRight> accessRights = clientsApiController
+                .getServiceClientAccessRights(clientId, serviceClientId).getBody();
+
+        assertTrue(accessRights.size() == 1);
+    }
+*/
 }
