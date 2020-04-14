@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.19  
+Version: 2.20  
 Doc. ID: IG-SS
 
 ---
@@ -44,6 +44,7 @@ Doc. ID: IG-SS
  30.05.2019 | 2.17    | Added package installation instructions on chapter "[2.4 Preparing OS](#24-preparing-os)" | Raul Martinez
  11.09.2019 | 2.18    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
  20.09.2019 | 2.19    | Add instructions for using remote databases | Ilkka Seppälä
+ 12.04.2020 | 2.20    | Add note about the default value of the *connector-host* property in the EE-package | Petteri Kivimäki
   
 ## Table of Contents <!-- omit in toc -->
 
@@ -99,6 +100,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID:
+[UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
 
 ## 2 Installation
 
@@ -246,6 +250,7 @@ Upon the first installation of the packages, the system asks for the following i
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. Both meta-packages `xroad-securityserver-ee` and `xroad-securityserver-fi` install operational data monitoring module `xroad-addon-opmonitoring`.
 
+**N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 ### 2.6 Post-Installation Checks
 
