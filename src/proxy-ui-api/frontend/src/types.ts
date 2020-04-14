@@ -952,10 +952,6 @@ export interface ServiceClient {
    * 2018-12-15T00:00:00.001Z
    */
   rights_given_at: string; // date-time
-  /**
-   * list of access rights - this will be null when requested via services/{id}/access-rights endpoint
-   */
-  access_rights: AccessRight[];
 }
 /**
  * WSDL/OPENAPI3/REST service
