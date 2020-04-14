@@ -629,11 +629,27 @@
       "title": "Global configuration"
     },
     "timestamping": {
-      "title": "Timestamping"
+      "title": "Timestamping",
+      "timestampingStatus": {
+        "SUCCESS": "Success",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Request timed out",
+        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed server URL",
+        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Uninitialized",
+        "ERROR_CODE_INTERNAL": "Internal error",
+        "UNKNOWN": "Unknown"
+      }
     },
     "ocspResponders": {
       "title": "OCSP Responders",
-      "certificationService": "Certification Service:"
+      "certificationService": "Certification Service:",
+      "ocspStatus": {
+        "SUCCESS": "Success",
+        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Connection error",
+        "ERROR_CODE_OCSP_FAILED": "Failed",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Invalid response",
+        "ERROR_CODE_OCSP_UNINITIALIZED": "Uninitialized",
+        "UNKNOWN": "Unknown"
+      }
     }
   }
 }
