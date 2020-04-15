@@ -55,7 +55,11 @@
   "clients": {
     "action": {
       "register": {
-        "success": "Client registered"
+        "success": "Client registered",
+        "confirm": {
+          "title": "Register client",
+          "text": "Are you sure you want to send a client registration request?"
+        } 
       }
     }
   },

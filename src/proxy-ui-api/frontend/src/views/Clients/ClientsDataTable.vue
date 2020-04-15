@@ -101,6 +101,15 @@
         color="error"
       >{{ $t('action.emptySearch', { msg: search }) }}</v-alert>
     </v-data-table>
+
+    <ConfirmDialog
+      :dialog="confirmRegisterClient"
+      title="clients.action.register.confirm.title"
+      text="clients.action.register.confirm.text"
+      @cancel="confirmRegisterClient = false"
+      @accept="registerAccepted(selectedClient)"
+      :loading="registerClientLoading"
+    />
   </v-layout>
 </template>
 
@@ -115,11 +124,13 @@ import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Client } from '@/types';
 import SmallButton from '@/components/ui/SmallButton.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 export default Vue.extend({
   components: {
     ClientStatus,
     SmallButton,
+    ConfirmDialog,
   },
 
   data: () => ({
@@ -127,6 +138,9 @@ export default Vue.extend({
     pagination: {
       sortBy: 'sortNameAsc',
     },
+    confirmRegisterClient: false,
+    registerClientLoading: false,
+    selectedClient: undefined as undefined | Client,
   }),
 
   computed: {
@@ -208,6 +222,12 @@ export default Vue.extend({
     },
 
     registerClient(item: Client): void {
+      this.selectedClient = item;
+      this.confirmRegisterClient = true;
+    },
+
+    registerAccepted(item: Client) {
+      this.registerClientLoading = true;
       this.$store
         .dispatch('registerClient', {
           instanceId: item.instance_id,
@@ -221,9 +241,13 @@ export default Vue.extend({
               'showSuccess',
               'clients.action.register.success',
             );
+            this.confirmRegisterClient = false;
+            this.registerClientLoading = false;
           },
           (error) => {
             this.$store.dispatch('showError', error);
+            this.confirmRegisterClient = false;
+            this.registerClientLoading = false;
           },
         );
     },
