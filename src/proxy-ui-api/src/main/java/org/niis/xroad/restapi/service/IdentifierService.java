@@ -25,7 +25,6 @@
 
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -78,20 +77,5 @@ public class IdentifierService {
         return allIdsFromDb.stream()
                 .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Get the existing {@link ClientId} from the local db. If the ClientId does not exist -> it will we created.
-     * Useful e.g. when initializing a new security server
-     * @param clientId
-     * @return
-     */
-    public ClientId getOrPersistClientId(ClientId clientId) {
-        ClientId txClientId = identifierRepository.getClientId(clientId);
-        if (txClientId == null) {
-            identifierRepository.saveOrUpdate(clientId);
-            return clientId;
-        }
-        return txClientId;
     }
 }

@@ -24,8 +24,11 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
@@ -40,6 +43,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * service for initializing the security server
@@ -50,26 +54,27 @@ import java.util.List;
 @PreAuthorize("isAuthenticated()")
 public class InitializationService {
     public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
+    public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
     public static final String METADATA_SERVERCONF_EXISTS = "Serverconf exists";
     public static final String METADATA_SOFTWARE_TOKEN_INITIALIZED = "Software token already initialized";
-
-    private static final String OWNER_MEMBER_SEPARATOR = ":";
 
     private final SystemService systemService;
     private final ServerConfService serverConfService;
     private final TokenService tokenService;
     private final GlobalConfFacade globalConfFacade;
     private final IdentifierService identifierService;
+    private final ClientService clientService;
 
     @Autowired
     public InitializationService(SystemService systemService, ServerConfService serverConfService,
             TokenService tokenService, GlobalConfFacade globalConfFacade,
-            IdentifierService identifierService) {
+            IdentifierService identifierService, ClientService clientService) {
         this.systemService = systemService;
         this.serverConfService = serverConfService;
         this.tokenService = tokenService;
         this.globalConfFacade = globalConfFacade;
         this.identifierService = identifierService;
+        this.clientService = clientService;
     }
 
     /**
@@ -92,43 +97,62 @@ public class InitializationService {
 
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
             String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, InitializationException,
-            UnhandledWarningsException {
+            UnhandledWarningsException, DuplicateServerConfException, ClientService.ClientAlreadyExistsException {
         verifyInitializationPrerequisites();
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
-        ClientId ownerClientId = ClientId.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
+        ClientId ownerClientId = clientService.getPossiblyManagedEntity(ClientId.create(instanceIdentifier,
+                ownerMemberClass, ownerMemberCode));
+        // get id from db if exists - this is mainly for partial init support since no clients should yet exist
         String ownerMemberName = globalConfFacade.getMemberName(ownerClientId);
-        if (!ignoreWarnings && StringUtils.isEmpty(ownerMemberName)) {
-            WarningDeviation warning = new WarningDeviation(WARNING_INIT_UNREGISTERED_MEMBER,
-                    ownerMemberClass + OWNER_MEMBER_SEPARATOR + ownerMemberCode);
-            throw new UnhandledWarningsException(warning);
+        SecurityServerId serverId = SecurityServerId.create(ownerClientId, securityServerCode);
+        if (!ignoreWarnings) {
+            List<WarningDeviation> warnings = new ArrayList<>();
+            if (StringUtils.isEmpty(ownerMemberName)) {
+                WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_UNREGISTERED_MEMBER,
+                        ownerClientId.toShortString());
+                warnings.add(memberWarning);
+            }
+            if (globalConfFacade.existsSecurityServer(serverId)) {
+                WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_SERVER_ID_EXISTS,
+                        serverId.toShortString());
+                warnings.add(memberWarning);
+            }
+            throw new UnhandledWarningsException(warnings);
         }
         // --- Start the init ---
-        ServerConfType serverConfType = new ServerConfType();
-        try {
-            initNewOwner(serverConfType, ownerClientId);
-        } catch (ServerConfOwnerExistsException e) {
-            // This exception cannot happen since we just created the new ServerConfType
-        }
+        /* get serverconf from db if exists
+           - this is mainly for partial init support since no server confs should yet exist
+         */
+        ServerConfType serverConf = serverConfService.getOrCreateServerConf();
+        ClientType ownerClient = null;
+        // get client from db if exists - this is mainly for partial init support since no clients should yet exist
+        Optional<ClientType> foundClient = serverConf.getClient().stream()
+                .filter(clientType -> clientType.getIdentifier().equals(ownerClientId))
+                .findFirst();
+        ownerClient = foundClient.orElse(getInitialClient(ownerClientId));
+        ownerClient.setConf(serverConf);
+        // clear the clients from the serverconf - we only want one in the init phase
+        serverConf.getClient().clear();
+        serverConf.getClient().add(ownerClient);
+        serverConf.setOwner(ownerClient);
+        serverConf.setServerCode(securityServerCode);
+
     }
 
-    /**
-     * Initialize a new owner for the provided ServerConf
-     * @param serverConfType
-     * @param newOwnerClientId
-     * @throws ServerConfOwnerExistsException if the provided <code>serverConfType</code> already has an owner
-     */
-    private void initNewOwner(ServerConfType serverConfType, ClientId newOwnerClientId) throws
-            ServerConfOwnerExistsException {
-        if (serverConfType.getOwner() != null) {
-            throw new ServerConfOwnerExistsException("Cannot initialize a new owner for an existing ServerConf that " +
-                    "already has an owner");
+    private ClientType getInitialClient(ClientId clientId) {
+        ClientType localClient = clientService.getLocalClient(clientId);
+        if (localClient == null) {
+            localClient = new ClientType();
+            localClient.setIdentifier(clientId);
+            localClient.setClientStatus(ClientType.STATUS_SAVED);
+            localClient.setIsAuthentication(IsAuthentication.SSLAUTH.name());
         }
-        newOwnerClientId = identifierService.getOrPersistClientId(newOwnerClientId);
+        return localClient;
     }
 
     /**
      * Verify that the initialization process can proceed. This means verifying that an anchor has been imported,
-     * server conf does not exists and a software token has not yet been initialized
+     * server conf does not exist and a software token has not yet been initialized
      * @throws AnchorNotFoundException if anchor has not been imported
      * @throws InitializationException if server conf exists OR software token is already initialized
      */
@@ -158,17 +182,6 @@ public class InitializationService {
 
         public InitializationException(String msg, List<String> metadata) {
             super(msg, new ErrorDeviation(INITIALIZATION_FAILED, metadata));
-        }
-    }
-
-    /**
-     * If initializing a new owner when one already exists
-     */
-    public static class ServerConfOwnerExistsException extends ServiceException {
-        public static final String ERROR_OWNER_EXISTS = "serverconf_owner_exists";
-
-        public ServerConfOwnerExistsException(String msg) {
-            super(msg, new ErrorDeviation(ERROR_OWNER_EXISTS));
         }
     }
 }

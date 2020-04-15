@@ -22,36 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+public class DuplicateServerConfException extends ServiceException {
 
-/**
- * repository for working with ServerConfType / serverconf table
- */
-@Slf4j
-@Repository
-public class ServerConfRepository {
+    public static final String ERROR_DUPLICATE_SERVERCONF = "duplicate_serverconf";
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
-    }
-
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
+    public DuplicateServerConfException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_DUPLICATE_SERVERCONF));
     }
 }

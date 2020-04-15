@@ -64,6 +64,22 @@ public class ServerConfService {
     }
 
     /**
+     * Get a server conf; an existing server conf will be returned if one exists. Otherwise
+     * a new transient instance is returned.
+     * @return
+     */
+    public ServerConfType getOrCreateServerConf() {
+        ServerConfType serverConfType = null;
+        try {
+            serverConfType = getServerConf();
+        } catch (CodedException ce) {
+            // server conf doesn't exist which is fine - let's just create one
+            serverConfType = new ServerConfType();
+        }
+        return serverConfType;
+    }
+
+    /**
      * Get the Security Server's {@link SecurityServerId}
      * @return SecurityServerId
      */
@@ -105,7 +121,7 @@ public class ServerConfService {
                 isServerConfInitialized = true;
             }
         } catch (CodedException ce) { // -> this is X_MALFORMED_SERVERCONF, "Server conf is not initialized!"
-            log.info("Checking initialization status: CodedException thrown when getting Server Conf", ce);
+            log.info("ServerConfService#isServerConfInitialized: CodedException thrown when getting Server Conf", ce);
             // server conf does not exist - nice!
         }
         return isServerConfInitialized;
