@@ -21,8 +21,8 @@
               </td>
 
               <td>{{$t('diagnostics.globalCongiguration.configurationStatus.'+globalconf.status_code)}}</td>
-              <td>{{globalconf.prev_update_at}}</td>
-              <td>{{globalconf.next_update_at}}</td>
+              <td>{{globalconf.prev_update_at | formatHoursMins}}</td>
+              <td>{{globalconf.next_update_at | formatHoursMins}}</td>
             </tr>
           </tbody>
         </table>
@@ -53,7 +53,7 @@
               </td>
               <td class="service-url" data-test="service-url">{{timestampingService.url}}</td>
               <td>{{$t('diagnostics.timestamping.timestampingStatus.'+timestampingService.status_code)}}</td>
-              <td>{{timestampingService.prev_update_at}}</td>
+              <td>{{timestampingService.prev_update_at | formatHoursMins}}</td>
             </tr>
           </tbody>
         </table>
@@ -90,8 +90,8 @@
                 </td>
                 <td class="service-url" data-test="service-url">{{ocsp.url}}</td>
                 <td>{{$t('diagnostics.ocspResponders.ocspStatus.'+ocsp.status_code)}}</td>
-                <td>{{ocsp.prev_update_at}}</td>
-                <td>{{ocsp.next_update_at}}</td>
+                <td>{{ocsp.prev_update_at  | formatHoursMins}}</td>
+                <td>{{ocsp.next_update_at  | formatHoursMins}}</td>
               </tr>
             </tbody>
           </table>
