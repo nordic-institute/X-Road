@@ -168,7 +168,6 @@ Then, if the configuration is successfully downloaded, the system asks for the f
 
 - The current security server sidecar implementation is a Proof of Concept and it is meant for testing and development purposes.
 - The current security server sidecar implementation does not support message logging, operational monitoring nor environmental monitoring functionality, which is recommended for a service provider's security server role. This functionality will be included in future releases.
-- The current security server sidecar implementation does not support external database. This functionality will be included in future releases.
 - The current security server sidecar built-in configuration restore implementation fails since it does not support supervisorctl. This limitation will be fixed in future releases.
 - The security server configuration files (located in `/etc/xroad/`) are currently stored inside the sidecar container. Functionality to provide volume support will be added in future releases.
 - The security server sidecar creates and manages its own internal TLS keys and certificates and does TLS termination by itself. This configuration might not be fully compatible with the application load balancer configuration in a cloud environment.
