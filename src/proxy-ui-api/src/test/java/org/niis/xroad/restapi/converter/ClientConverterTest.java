@@ -37,7 +37,9 @@ import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * test ClientConverter
@@ -113,6 +115,24 @@ public class ClientConverterTest {
     @Test(expected = BadRequestException.class)
     public void convertBadStringId3() throws Exception {
         clientConverter.convertId("XRD2:GOV:M4:SS1::::::");
+    }
+
+    @Test
+    public void isEncodedMemberId() throws Exception {
+        assertTrue(clientConverter.isEncodedMemberId("XRD2:GOV:M4"));
+        assertFalse(clientConverter.isEncodedMemberId("XRD2:GOV:M4:SS1"));
+    }
+
+    @Test
+    public void isEncodedSubsystemId() throws Exception {
+        assertFalse(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4"));
+        assertTrue(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4:SS1"));
+    }
+
+    @Test
+    public void isEncodedClientId() throws Exception {
+        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4"));
+        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4:SS1"));
     }
 
     @Test
