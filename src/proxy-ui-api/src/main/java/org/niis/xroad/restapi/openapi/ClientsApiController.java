@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -582,8 +583,9 @@ public class ClientsApiController implements ClientsApi {
             }
         }
         Set<String> serviceCodes = getServiceCodes(accessRights);
+        List<ServiceClientAccessRightDto> accessRightTypes = null;
         try {
-            accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
+            accessRightTypes = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
         } catch (IdentifierNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (EndpointNotFoundException e) {
@@ -591,7 +593,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
         }
-        return null;
+        return new ResponseEntity<>(accessRightConverter.convert(accessRightTypes), HttpStatus.OK);
     }
 
     private Set<String> getServiceCodes(AccessRights accessRights) {

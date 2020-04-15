@@ -40,6 +40,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -275,7 +276,7 @@ public class AccessRightService {
      * @param serviceCodes serviceCodes of the services to add access rights to (without version numbers)
      * @param subjectId subject (service client) to add access rights for. Can be a local group,
      *                  global group, or a subsystem
-     * @return AccessRightTypes that were added for this service client
+     * @return ServiceClientAccessRightDtos that were added for this service client
      * @throws EndpointNotFoundException if serviceCodes had any codes that were not client's services
      * (did not have base endpoints)
      * @throws ClientNotFoundException if client matching clientId was not found
@@ -283,7 +284,7 @@ public class AccessRightService {
      * @throws IdentifierNotFoundException if service client (local group, global group, or system) matching given
      * subjectId did not exist
      */
-    public List<AccessRightType> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
+    public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
             XRoadId subjectId) throws EndpointNotFoundException,
             DuplicateAccessRightException, ClientNotFoundException, IdentifierNotFoundException {
 
@@ -391,8 +392,8 @@ public class AccessRightService {
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
-    private Map<XRoadId, List<AccessRightType>> addAccessRights(Set<XRoadId> subjectIds, ClientType clientType,
-            EndpointType endpoint)
+    private Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRights(Set<XRoadId> subjectIds,
+            ClientType clientType, EndpointType endpoint)
             throws DuplicateAccessRightException, LocalGroupNotFoundException {
         List<EndpointType> endpoints = Collections.singletonList(endpoint);
         return addAccessRights(subjectIds, clientType, endpoints);
@@ -407,8 +408,8 @@ public class AccessRightService {
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
-    private Map<XRoadId, List<AccessRightType>> addAccessRights(Set<XRoadId> subjectIds, ClientType clientType,
-            List<EndpointType> endpoints)
+    private Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRights(Set<XRoadId> subjectIds,
+            ClientType clientType, List<EndpointType> endpoints)
             throws DuplicateAccessRightException, LocalGroupNotFoundException {
         Date now = new Date();
 
@@ -421,7 +422,7 @@ public class AccessRightService {
             throw new IllegalArgumentException("missing endpoints");
         }
 
-        Map<XRoadId, List<AccessRightType>> addedAccessRights = new HashMap<>();
+        Map<XRoadId, List<ServiceClientAccessRightDto>> addedAccessRights = new HashMap<>();
 
         for (EndpointType endpoint: endpoints) {
             for (XRoadId subjectId : subjectIds) {
@@ -450,14 +451,31 @@ public class AccessRightService {
                 newAccessRight.setSubjectId(subjectId);
                 newAccessRight.setRightsGiven(now);
                 clientType.getAcl().add(newAccessRight);
-                List<AccessRightType> addedAccessRightsForSubject = addedAccessRights
+                List<ServiceClientAccessRightDto> addedAccessRightsForSubject = addedAccessRights
                         .computeIfAbsent(subjectId, k -> new ArrayList<>());
-                addedAccessRightsForSubject.add(newAccessRight);
+                ServiceClientAccessRightDto dto = ServiceClientAccessRightDto.builder()
+                        .serviceCode(endpoint.getServiceCode())
+                        .rightsGiven(FormatUtils.fromDateToOffsetDateTime(now))
+                        .title(getServiceTitle(clientType, endpoint.getServiceCode()))
+                        .build();
+                addedAccessRightsForSubject.add(dto);
             }
         }
 
         clientRepository.saveOrUpdate(clientType);
         return addedAccessRights;
+    }
+
+    // TO DO: currently duplicate with ServiceClientService, not sure if ServiceClientService will be refactored,
+    // and what is the correct place if both need this
+    private String getServiceTitle(ClientType clientType, String serviceCode) {
+        ServiceType service = clientType.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .get();
+
+        return service == null ? null : service.getTitle();
     }
 
     /**

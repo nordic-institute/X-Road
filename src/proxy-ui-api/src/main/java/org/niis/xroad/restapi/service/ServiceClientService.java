@@ -171,8 +171,6 @@ public class ServiceClientService {
                     return iseq && isBaseEndpoint;
                 })
                 .map(acl -> ServiceClientAccessRightDto.builder()
-                        .id(serviceClientId)
-                        .clientId(clientid.toShortString())
                         .serviceCode(acl.getEndpoint().getServiceCode())
                         .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
                         .title(getServiceTitle(clientType, acl.getEndpoint().getServiceCode()))
