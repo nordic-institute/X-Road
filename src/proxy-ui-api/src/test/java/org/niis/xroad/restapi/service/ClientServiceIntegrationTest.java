@@ -597,7 +597,7 @@ public class ClientServiceIntegrationTest {
         clientType = clientService.getLocalClient(id);
         assertEquals("NOSSL", clientType.getIsAuthentication());
         assertEquals(3, clientType.getLocalGroup().size());
-        
+
     }
 
     @Test

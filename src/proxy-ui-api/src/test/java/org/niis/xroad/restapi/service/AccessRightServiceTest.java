@@ -26,6 +26,8 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -55,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,6 +109,12 @@ public class AccessRightServiceTest {
 
     @Autowired
     ServiceClientService serviceClientService;
+
+    @Autowired
+    EndpointService endpointService;
+
+    @Autowired
+    ClientService clientService;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -218,8 +227,58 @@ public class AccessRightServiceTest {
             fail("should throw exception");
         } catch (AccessRightService.DuplicateAccessRightException expected) {
         }
+    }
 
-        // TO DO: read thru code path, what could break
+    @Test
+    public void addAccessRightsInternal() throws Exception {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        XRoadId localGroupId = LocalGroupId.create("group2");
+        XRoadId globalGroupId = GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        Set<XRoadId> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
+
+        ClientType ownerClient = clientService.getLocalClient(serviceOwner);
+
+        List<EndpointType> endpoints = serviceCodes.stream()
+                .map(code -> {
+                    try {
+                        return endpointService.getServiceBaseEndpoint(ownerClient, code);
+                    } catch (EndpointNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).collect(Collectors.toList());
+
+        Map<XRoadId, List<ServiceClientAccessRightDto>> dtosById = accessRightService.addAccessRightsInternal(
+                subjectIds, ownerClient, endpoints);
+
+        // should have 3 subjects with 3 identical access rights each
+        assertEquals(3, dtosById.size());
+        for (XRoadId subjectId: dtosById.keySet()) {
+            List<ServiceClientAccessRightDto> accessRights = dtosById.get(subjectId);
+            assertNotNull(accessRights);
+            assertEquals(3, accessRights.size());
+            ServiceClientAccessRightDto dto = findServiceClientAccessRightDto("calculatePrime", accessRights);
+            assertNotNull(dto);
+            assertEquals("calculatePrime-title", dto.getTitle());
+            assertNotNull(dto.getRightsGiven());
+            assertNotNull(findServiceClientAccessRightDto("openapi-servicecode", accessRights));
+            assertNotNull(findServiceClientAccessRightDto("rest-servicecode", accessRights));
+        }
+
+    }
+
+    private ServiceClientAccessRightDto findServiceClientAccessRightDto(String serviceCode,
+            List<ServiceClientAccessRightDto> accessRights) {
+        return accessRights.stream()
+                .filter(dto -> dto.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .orElse(null);
     }
 
     @Test
@@ -246,7 +305,7 @@ public class AccessRightServiceTest {
         when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
 
-        ClientId serviceOwner = TestUtils.getM1Ss1ClientId(); // ss2
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
         XRoadId memberId = TestUtils.getClientId(TestUtils.OWNER_ID);
@@ -316,9 +375,6 @@ public class AccessRightServiceTest {
             fail("should have thrown exception");
         } catch (IdentifierNotFoundException expected) {
         }
-
-        // TO DO: someone else's local group
-        // TO DO: read thru code path, what could break
     }
 
     @Test

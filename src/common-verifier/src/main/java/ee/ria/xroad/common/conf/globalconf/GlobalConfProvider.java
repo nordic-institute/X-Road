@@ -78,7 +78,7 @@ public interface GlobalConfProvider extends ConfProvider {
 
     /**
      * @param instanceIdentifiers the instance identifiers
-     * @return members and subsystems of a given instance or all members if
+     * @return members and subsystems of a given instance, or all members and subsystems if
      * no instance identifiers are specified
      */
     List<MemberInfo> getMembers(String... instanceIdentifiers);

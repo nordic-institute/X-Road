@@ -306,7 +306,7 @@ public class AccessRightService {
             throw new IllegalArgumentException("Invalid object type " + objectType);
         }
 
-        // prepare params for addAccessRights
+        // prepare params for addAccessRightsInternal
         List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(subjectId);
@@ -318,7 +318,7 @@ public class AccessRightService {
         subjectIds = identifierService.getOrPersistXroadIds(subjectIds);
 
         try {
-            return addAccessRights(subjectIds, clientType, baseEndpoints).get(subjectId);
+            return addAccessRightsInternal(subjectIds, clientType, baseEndpoints).get(subjectId);
         } catch (LocalGroupNotFoundException e) {
             // no need to handle this in more detail than the other service client types
             throw new IdentifierNotFoundException(e);
@@ -399,11 +399,13 @@ public class AccessRightService {
             ClientType clientType, EndpointType endpoint)
             throws DuplicateAccessRightException, LocalGroupNotFoundException {
         List<EndpointType> endpoints = Collections.singletonList(endpoint);
-        return addAccessRights(subjectIds, clientType, endpoints);
+        return addAccessRightsInternal(subjectIds, clientType, endpoints);
     }
 
     /**
-     * Add access rights for (possibly) multiple subjects, to (possibly) multiple endpoints
+     * Add access rights for (possibly) multiple subjects, to (possibly) multiple endpoints.
+     *
+     * This method is not intended for use from outside, but is package protected for tests.
      *
      * @param subjectIds access rights subjects to grant access for, "service clients"
      * @param clientType endpoint owner
@@ -411,7 +413,7 @@ public class AccessRightService {
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
-    private Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRights(Set<XRoadId> subjectIds,
+    Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadId> subjectIds,
             ClientType clientType, List<EndpointType> endpoints)
             throws DuplicateAccessRightException, LocalGroupNotFoundException {
         Date now = new Date();

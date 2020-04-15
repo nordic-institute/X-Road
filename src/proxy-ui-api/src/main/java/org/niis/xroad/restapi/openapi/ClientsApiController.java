@@ -593,7 +593,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
         }
-        return new ResponseEntity<>(accessRightConverter.convert(accessRightTypes), HttpStatus.OK);
+        return new ResponseEntity<>(accessRightConverter.convert(accessRightTypes), HttpStatus.CREATED);
     }
 
     private Set<String> getServiceCodes(AccessRights accessRights) {

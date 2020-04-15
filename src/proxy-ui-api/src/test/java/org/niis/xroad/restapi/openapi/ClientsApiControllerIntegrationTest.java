@@ -39,6 +39,8 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.openapi.model.AccessRight;
+import org.niis.xroad.restapi.openapi.model.AccessRights;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
@@ -81,8 +83,10 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.fail;
@@ -1109,16 +1113,55 @@ public class ClientsApiControllerIntegrationTest {
                 "non", "existing", null));
     }
 
-    /*
-    @Test
-    @WithMockUser(authorities = { "VIEW_ACL_SUBJECT_OPEN_SERVICES" })
-    public void getServiceClientAccessRightsTest() {
-        String serviceClientId = TestUtils.CLIENT_ID_SS1;
-        String clientId = TestUtils.CLIENT_ID_SS2;
-        List<AccessRight> accessRights = clientsApiController
-                .getServiceClientAccessRights(clientId, serviceClientId).getBody();
 
-        assertTrue(accessRights.size() == 1);
+    @Test
+    @WithMockUser(authorities = { "EDIT_ACL_SUBJECT_OPEN_SERVICES" })
+    public void addServiceClientAccessRights() throws Exception {
+
+        String encodedOwnerId = "FI:GOV:M1:SS1";
+        String encodedSubsystemId = "EE:GOV:M2:SS3";
+        String encodedLocalGroupId = "2"; // pk
+        String encodedGlobalGroupId = TestUtils.INSTANCE_FI + ":" + TestUtils.GLOBALGROUP;
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        AccessRights accessRights = new AccessRights();
+        accessRights.addItemsItem(new AccessRight().serviceCode("calculatePrime"));
+        accessRights.addItemsItem(new AccessRight().serviceCode("openapi-servicecode"));
+        accessRights.addItemsItem(new AccessRight().serviceCode("rest-servicecode"));
+
+        ResponseEntity<List<AccessRight>> response = clientsApiController
+                .addServiceClientAccessRights(encodedOwnerId, encodedSubsystemId, accessRights);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(3, response.getBody().size());
+        AccessRight accessRight = findAccessRight("calculatePrime", response.getBody());
+        assertNotNull(accessRight);
+        assertEquals("calculatePrime-title", accessRight.getServiceTitle());
+        assertNotNull(accessRight.getRightsGivenAt());
+        assertNotNull(findAccessRight("openapi-servicecode", response.getBody()));
+        assertNotNull(findAccessRight("rest-servicecode", response.getBody()));
+
+        response = clientsApiController.addServiceClientAccessRights(
+                encodedOwnerId, encodedLocalGroupId, accessRights);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(3, response.getBody().size());
+
+        response = clientsApiController.addServiceClientAccessRights(
+                encodedOwnerId, encodedGlobalGroupId, accessRights);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(3, response.getBody().size());
+
+        try {
+            // try to add duplicate
+            clientsApiController.addServiceClientAccessRights(encodedOwnerId, encodedGlobalGroupId, accessRights);
+            fail("should throw exception");
+        } catch (ConflictException expected) {
+        }
     }
-*/
+
+    private AccessRight findAccessRight(String serviceCode, List<AccessRight> accessRights) {
+        return accessRights.stream()
+                .filter(dto -> dto.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .orElse(null);
+    }
 }
