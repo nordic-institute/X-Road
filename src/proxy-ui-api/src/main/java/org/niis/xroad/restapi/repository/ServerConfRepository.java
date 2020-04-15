@@ -31,14 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * repository for working with ServerConfType / serverconf table
  */
 @Slf4j
 @Repository
-@Transactional
 public class ServerConfRepository {
 
     private final PersistenceUtils persistenceUtils;
