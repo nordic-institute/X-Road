@@ -236,6 +236,19 @@ public class LocalGroupService {
     }
 
     /**
+     * TO DO: check
+     * @param clientType local group owner
+     * @param identifiers identifiers to check
+     * @return whether all the local group identifiers exist for the given client
+     */
+    public boolean localGroupIdentifiersExist(ClientType clientType, List<XRoadId> identifiers) {
+        Set<LocalGroupId> clientsLocalGroupIds = clientType.getLocalGroup().stream()
+                .map(localGroup -> LocalGroupId.create(localGroup.getGroupCode()))
+                .collect(Collectors.toSet());
+        return clientsLocalGroupIds.containsAll(identifiers);
+    }
+
+    /**
      * Thrown when attempt to add member that already exists
      */
     public static class MemberAlreadyExistsException extends ServiceException {

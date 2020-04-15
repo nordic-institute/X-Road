@@ -234,7 +234,7 @@ public class AccessRightServiceTest {
         assertEquals(LocalGroupId.create(TestUtils.DB_LOCAL_GROUP_CODE), aclHolders.get(0).getSubjectId());
     }
 
-    @Test(expected = LocalGroupNotFoundException.class)
+    @Test(expected = IdentifierNotFoundException.class)
     public void addAccessRightsToOtherClientsLocalGroup() throws Throwable {
         when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
