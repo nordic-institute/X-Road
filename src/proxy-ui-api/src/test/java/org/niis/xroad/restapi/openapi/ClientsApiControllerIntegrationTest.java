@@ -446,7 +446,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<LocalGroup>> response =
                 clientsApiController.getClientLocalGroups(TestUtils.CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
+        assertEquals(3, response.getBody().size());
     }
 
     private static LocalGroupAdd createLocalGroupAdd(String groupCode) {
@@ -821,7 +821,7 @@ public class ClientsApiControllerIntegrationTest {
                 null,
                 null, null, null, null, null);
         List<ServiceClient> serviceClients = serviceClientResponse.getBody();
-        assertEquals(9, serviceClients.size());
+        assertEquals(10, serviceClients.size());
     }
 
     @Test
@@ -857,7 +857,7 @@ public class ClientsApiControllerIntegrationTest {
                 TestUtils.CLIENT_ID_SS1,
                 null, ServiceClientType.LOCALGROUP, null, null, null, null);
         List<ServiceClient> serviceClients = serviceClientResponse.getBody();
-        assertEquals(2, serviceClients.size());
+        assertEquals(3, serviceClients.size());
     }
 
     @Test
@@ -867,7 +867,7 @@ public class ClientsApiControllerIntegrationTest {
                 TestUtils.CLIENT_ID_SS1,
                 null, null, TestUtils.INSTANCE_EE, null, null, null);
         List<ServiceClient> serviceClients = serviceClientResponse.getBody();
-        assertEquals(5, serviceClients.size()); // includes localgroups
+        assertEquals(6, serviceClients.size()); // includes localgroups
     }
 
     @Test

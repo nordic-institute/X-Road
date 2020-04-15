@@ -162,7 +162,7 @@ public class EndpointService {
                         && endpointType.getPath().equals(EndpointType.ANY_PATH))
                 .findFirst()
                 .orElseThrow(() -> new EndpointNotFoundException(
-                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client"
+                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "
                         + clientType.getIdentifier() + " and servicecode " + serviceCode));
     }
 

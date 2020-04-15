@@ -40,6 +40,8 @@ INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
 values (1, 'group1', 'foo', now(), 2);
 INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
 values (2, 'group2', 'foo', now(), 2);
+INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
+values (3, 'identifier-less-group', 'group-which-is-missing-identifier-for-some-reason', now(), 2);
 
 
 INSERT INTO SERVERCONF(ID, server_code, OWNER) values (1, 'TEST-INMEM-SS', 1);
@@ -66,7 +68,7 @@ values (6, 5, 'file:src/test/resources/openapiparser/valid.yaml', true, 'disable
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (1, 1, 'getRandom', 'v1', 'getrandom-title', 'https://soapservice.com/v1/Endpoint', true, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
-values (2, 1, 'calculatePrime', 'v1', null, 'https://soapservice.com/v1/Endpoint', false, 60);
+values (2, 1, 'calculatePrime', 'v1', 'calculatePrime-title', 'https://soapservice.com/v1/Endpoint', false, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (3, 2, 'openapi-servicecode', 'v1', null, 'https://restservice.com/api/v1', true, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
