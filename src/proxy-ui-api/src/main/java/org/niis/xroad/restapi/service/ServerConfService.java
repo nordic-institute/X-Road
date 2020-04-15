@@ -126,4 +126,12 @@ public class ServerConfService {
         }
         return isServerConfInitialized;
     }
+
+    /**
+     * Save or update ServerConf
+     * @return ServerConfType
+     */
+    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
+        return serverConfRepository.saveOrUpdate(serverConfType);
+    }
 }

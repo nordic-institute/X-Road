@@ -24,17 +24,22 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.TokenPinPolicy;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -55,8 +60,10 @@ import java.util.Optional;
 public class InitializationService {
     public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
     public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
-    public static final String METADATA_SERVERCONF_EXISTS = "Serverconf exists";
-    public static final String METADATA_SOFTWARE_TOKEN_INITIALIZED = "Software token already initialized";
+    public static final String METADATA_SERVERCONF_EXISTS = "init_serverconf_exists";
+    public static final String METADATA_SOFTWARE_TOKEN_INITIALIZED = "init_software_token_initialized";
+    public static final String METADATA_PIN_MIN_LENGTH = "pin_min_length";
+    public static final String METADATA_PIN_MIN_CHAR_CLASSES = "pin_min_char_classes_count";
 
     private final SystemService systemService;
     private final ServerConfService serverConfService;
@@ -64,17 +71,23 @@ public class InitializationService {
     private final GlobalConfFacade globalConfFacade;
     private final IdentifierService identifierService;
     private final ClientService clientService;
+    private final SignerProxyFacade signerProxyFacade;
+
+    @Setter
+    private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
 
     @Autowired
     public InitializationService(SystemService systemService, ServerConfService serverConfService,
             TokenService tokenService, GlobalConfFacade globalConfFacade,
-            IdentifierService identifierService, ClientService clientService) {
+            IdentifierService identifierService, ClientService clientService,
+            SignerProxyFacade signerProxyFacade) {
         this.systemService = systemService;
         this.serverConfService = serverConfService;
         this.tokenService = tokenService;
         this.globalConfFacade = globalConfFacade;
         this.identifierService = identifierService;
         this.clientService = clientService;
+        this.signerProxyFacade = signerProxyFacade;
     }
 
     /**
@@ -97,12 +110,16 @@ public class InitializationService {
 
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
             String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, InitializationException,
-            UnhandledWarningsException, DuplicateServerConfException, ClientService.ClientAlreadyExistsException {
+            UnhandledWarningsException, WeakPinException, InvalidPinException, SoftwareTokenInitException {
+        /*
+          NOTE: verifyInitializationPrerequisites prevents the user from initing the Security Server for a second time.
+          This could be changed to a warning at some point.
+         */
         verifyInitializationPrerequisites();
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
+        // get id from db if exists - this is for partial init support since no clients should yet exist
         ClientId ownerClientId = clientService.getPossiblyManagedEntity(ClientId.create(instanceIdentifier,
                 ownerMemberClass, ownerMemberCode));
-        // get id from db if exists - this is mainly for partial init support since no clients should yet exist
         String ownerMemberName = globalConfFacade.getMemberName(ownerClientId);
         SecurityServerId serverId = SecurityServerId.create(ownerClientId, securityServerCode);
         if (!ignoreWarnings) {
@@ -117,26 +134,49 @@ public class InitializationService {
                         serverId.toShortString());
                 warnings.add(memberWarning);
             }
-            throw new UnhandledWarningsException(warnings);
+            if (!warnings.isEmpty()) {
+                throw new UnhandledWarningsException(warnings);
+            }
         }
         // --- Start the init ---
         /* get serverconf from db if exists
-           - this is mainly for partial init support since no server confs should yet exist
+           - this is for partial init support since no server confs should yet exist
          */
         ServerConfType serverConf = serverConfService.getOrCreateServerConf();
         ClientType ownerClient = null;
-        // get client from db if exists - this is mainly for partial init support since no clients should yet exist
+        // get client from db if exists - this is for partial init support since no clients should yet exist
         Optional<ClientType> foundClient = serverConf.getClient().stream()
                 .filter(clientType -> clientType.getIdentifier().equals(ownerClientId))
                 .findFirst();
         ownerClient = foundClient.orElse(getInitialClient(ownerClientId));
         ownerClient.setConf(serverConf);
-        // clear the clients from the serverconf - we only want one in the init phase
-        serverConf.getClient().clear();
-        serverConf.getClient().add(ownerClient);
+        // again for partial init support: if the client already exists there is no reason to add it again
+        if (!serverConf.getClient().contains(ownerClient)) {
+            serverConf.getClient().add(ownerClient);
+        }
         serverConf.setOwner(ownerClient);
         serverConf.setServerCode(securityServerCode);
 
+        char[] pin = softwareTokenPin.toCharArray();
+        if (isTokenPinEnforced) {
+            TokenPinPolicy.Description description = TokenPinPolicy.describe(pin);
+            if (!description.isValid()) {
+                throw new InvalidPinException("The provided pin code does not match with the pin code policy");
+            }
+            List<String> metadata = new ArrayList<>();
+            metadata.add(METADATA_PIN_MIN_LENGTH);
+            metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
+            metadata.add(METADATA_PIN_MIN_CHAR_CLASSES);
+            metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
+            throw new WeakPinException("The provided pin code was too weak", metadata);
+        }
+        try {
+            signerProxyFacade.initSoftwareToken(pin);
+        } catch (Exception e) {
+            // not good
+            throw new SoftwareTokenInitException("Error initializing software token", e);
+        }
+        serverConfService.saveOrUpdate(serverConf);
     }
 
     private ClientType getInitialClient(ClientId clientId) {
@@ -151,7 +191,8 @@ public class InitializationService {
     }
 
     /**
-     * Verify that the initialization process can proceed. This means verifying that an anchor has been imported,
+     * Verify that the initialization process can proceed and that the security server has not already been
+     * initialized. This means verifying that an anchor has been imported,
      * server conf does not exist and a software token has not yet been initialized
      * @throws AnchorNotFoundException if anchor has not been imported
      * @throws InitializationException if server conf exists OR software token is already initialized
@@ -182,6 +223,39 @@ public class InitializationService {
 
         public InitializationException(String msg, List<String> metadata) {
             super(msg, new ErrorDeviation(INITIALIZATION_FAILED, metadata));
+        }
+    }
+
+    /**
+     * If the provided pin code is not valid
+     */
+    public static class InvalidPinException extends ServiceException {
+        public static final String INVALID_PIN = "invalid_pin";
+
+        public InvalidPinException(String msg) {
+            super(msg, new ErrorDeviation(INVALID_PIN));
+        }
+    }
+
+    /**
+     * If the provided pin code is too weak
+     */
+    public static class WeakPinException extends ServiceException {
+        public static final String WEAK_PIN = "weak_pin";
+
+        public WeakPinException(String msg, List<String> metadata) {
+            super(msg, new ErrorDeviation(WEAK_PIN, metadata));
+        }
+    }
+
+    /**
+     * If the software token init fails
+     */
+    public static class SoftwareTokenInitException extends ServiceException {
+        public static final String SOFTWARE_TOKEN_INIT_FAILED = "software_token_init_failed";
+
+        public SoftwareTokenInitException(String msg, Throwable t) {
+            super(msg, t, new ErrorDeviation(SOFTWARE_TOKEN_INIT_FAILED));
         }
     }
 }

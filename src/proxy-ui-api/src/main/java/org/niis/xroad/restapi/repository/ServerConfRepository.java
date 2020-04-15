@@ -54,4 +54,13 @@ public class ServerConfRepository {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
+
+    /**
+     * Save or update ServerConf
+     * @return
+     */
+    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
+        return serverConfType;
+    }
 }
