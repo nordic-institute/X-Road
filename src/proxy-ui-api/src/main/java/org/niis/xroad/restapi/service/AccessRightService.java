@@ -59,7 +59,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -438,11 +437,13 @@ public class AccessRightService {
                         throw new LocalGroupNotFoundException(errorMsg);
                     }
                 }
-                Optional<AccessRightType> existingAccessRight = clientType.getAcl().stream()
+                // list endpoints, which this subject / service client has already been granted access to
+                Set<EndpointType> existingAccessibleEndpoints = clientType.getAcl().stream()
                         .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
-                        .findFirst();
+                        .map(accessRightType -> accessRightType.getEndpoint())
+                        .collect(Collectors.toSet());
 
-                if (existingAccessRight.isPresent() && existingAccessRight.get().getEndpoint().equals(endpoint)) {
+                if (existingAccessibleEndpoints.contains(endpoint)) {
                     throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
                             + " already has an access right for endpoint " + endpoint.getId());
                 }
