@@ -11,21 +11,56 @@ X-Road Security Server sidecar docker image contains a custom set of modules ins
 
 The X-Road Security Server sidecar software is built from pre-built packages downloaded from the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
-## Prerequisites to installation
+## 1 Security Server Sidecar Installation
 
-The X-Road Security Server Sidecar installation requires an existing installation of Docker.
+### 1.1 Supported Platforms
 
-## Requirements to the X-Road Security Server Sidecar
+The Security Server sidecar can be installed both on physical and virtualized hardware. The installation script setup_security_server_sidecar.sh runs on Unix-based operating systems (of the latter, Mac OS and Ubuntu have been tested).
 
-Minimum recommended docker engine configuration to run sidecar security server container in a local development environment:
+### 1.2 Prerequisites to installation
 
-- CPUs: 4
-- Memory: 8 GiB
-- Swap: 2 GiB
+The Security Server sidecar installation requires an existing installation of Docker.
 
-## Installation
+### 1.3 Requirements for the Security Server Sidecar
 
-Run the following script:
+Minimum recommended docker engine configuration to run the security server sidecar container:
+
+- CPUs: 2
+- Memory: 2 GiB
+- Swap: 1 GiB
+- Disk space: 2 GiB
+
+### 1.4 Reference Data
+
+*Note*: The information in empty cells should be determined before the server's installation, by the person performing the installation.
+
+
+ **Ref** | **Value**                                | **Explanation**
+ ------ | ----------------------------------------- | ----------------------------------------------------------
+ 1.1    | &lt;choose name of sidecar container&gt;  | Name of the security server sidecar container
+ 1.2    | &lt;choose port number&gt;                | Port for admin user interface
+ 1.3    | &lt;choose PIN for software token&gt;     | Software token PIN code
+ 1.4    | &lt;choose admin username and password&gt;| Admin username and password
+ 1.5    | TCP 5500                                  | Ports for inbound connections (from the external network to the security server)<br> Message exchange between security servers
+ &nbsp; | TCP 5577                                  | Ports for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
+ 1.6    | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
+ &nbsp; | TCP 5577                                  | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
+ &nbsp; | TCP 80 (1)                                | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
+ &nbsp; | TCP 80 (1),443                            | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP service
+ 1.7    | TCP 80 (1)                                | Ports for information system access points (in the local network)<br> Connections from information systems
+ &nbsp; | TCP 443                                   | Ports for information system access points (in the local network)<br> Connections from information systems
+ 1.8    | TCP 5588                                  | Port for health check (local network)
+ 1.9    | TCP 4000 (2)                              | Port for admin user interface (local network)
+ 1.10   |                                           | Internal IP address and hostname(s) for security server sidecar
+ 1.11   |                                           | Public IP address, NAT address for security server sidecar
+
+Note (1): The TCP port 80 in the container is mapped to the user-defined TCP port number provided (ref. data 1.2) plus one on the Docker host.
+
+Note (2): The TCP port 4000 in the container is mapped to the user-defined TCP port number provided (ref. data 1.2) on the Docker host.
+
+### 1.5 Installation
+
+To install the Security Server sidecar in a local development environment, run the script setup_security_server_sidecar.sh providing the parameters in the order shown (reference data 1.1, 1.2, 1.3, 1.4):
 
   ```bash
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
@@ -33,10 +68,73 @@ Run the following script:
 
 The script setup_security_server_sidecar.sh will:
 
-- Create a bridge-type network called xroad-network to provide container-to-container communication in a local development environment.
-- Build a new security server sidecar image and start a new security server sidecar container with the given arguments.
-- Configure xroad-autologin software token PIN code.
-- Configure admin username and password.
-- Update X-Road configuration on startup if the installed version on image has been updated.
-- Generate serverconf database and properties file with default username (serverconf) and random password.
-- Generate internal and admin UI TLS keys and certificates.
+- Create a docker bridge-type network called xroad-network to provide container-to-container communication.
+- Build xroad-sidecar-security-server-image performing the following configuration steps:
+  - Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.22.0 or later).
+  - Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
+  - Removes the default admin username (to be re-generated in the initial configuration script).
+  - Removes the generated internal and nginx certificates (to be re-generated in the initial configuration script).
+  - Enables health check port and interfaces (by default all available interfaces).
+  - Backs up the read-only xroad packages' configuration to allow security server sidecar configuration updates.
+  - Copies the xroad security server sidecar custom configuration files.
+  - Exposes the container ports 80 (HTTP), 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
+- Start a new security server sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
+  - Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (reference data 1.2).
+  - Maps port 5588 (proxy health check) to the same host port.
+  - Updates security server sidecar configuration on startup if the installed version of the image has been updated.
+  - Configures xroad-autologin custom software token PIN code with user-supplied PIN (reference data 1.3).
+  - Configures admin credentials with user-supplied username and password (reference data 1.4).
+  - Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
+  - Recreates serverconf database and properties file with serverconf username and random password.
+  - Starts security server sidecar services.
+
+## 2 Security Server Sidecar Initial Configuration
+
+### 2.1 Reference Data
+
+ **Ref** | **Value**                                                | **Explanation**
+ ---- | ----------------------------------------------------------- | -------------------------------------------------------
+ 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt;     | Global configuration anchor file or provider URL (1) (2)
+ 2.2  | &lt;security server owner's member class&gt;<br>E.g.<br> COM - Commercial<br> ORG - Organisation            | Member class of the security server owner for the sidecar (2)
+ 2.3  | &lt;security server owner's member code&gt;                 | Member code of the security server owner for the sidecar (2) (3)
+ 2.4  | &lt;security server code&gt;                                | Security server code for the sidecar (4)
+ 2.5  | &lt;PIN for software token&gt;                              | Software token PIN code (same as ref. data 1.3)
+
+Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the security server sidecar network.
+
+Note (2): Reference items 2.1 - 2.3 are provided to the security server owner by the X-Road central server's administrator.
+
+Note (3): The security server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
+
+Note (4): The security server code uniquely identifies the security server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.
+
+### 2.2 Configuration
+
+To perform the initial configuration, navigate to the Admin UI address:
+
+  ```bash
+    https://SECURITY_SERVER_SIDECAR_IP:ADMIN_UI_PORT/
+  ```
+
+(reference data 1.10, 1.2) and accept the self-signed certificate. To log in, use the admin username and password chosen during the installation (reference data 1.4).
+
+Upon first log-in, the system asks for the following information:
+
+- The global configuration anchor file (reference data: 2.1).
+
+Then, if the configuration is successfully downloaded, the system asks for the following information:
+
+- The security server owner's member class for the sidecar (reference data: 2.2)
+- The security server owner's member code for the sidecar (reference data: 2.3). If the member class and member code are correctly entered, the system displays the security server sidecar owner's name as registered in the Central Server
+- The security server code for the sidecar (reference data: 2.4), it has to be unique across the whole X-Road instance.
+- Software token PIN code (reference data: 2.5). The PIN will be used to protect the keys stored in the software token. The process xroad-autologin will automatically enter the PIN code after some time.
+
+## 3 Key Points and Limitations for X-Road Security Server Sidecar Deployment
+
+- The current security server sidecar implementation is a Proof of Concept and it is meant for testing and development purposes.
+- The current security server sidecar implementation does not support message logging, operational monitoring nor environmental monitoring functionality, which is recommended for a service provider's security server role. This functionality will be included in future releases.
+- The current security server sidecar implementation does not support external database. This functionality will be included in future releases.
+- The current security server sidecar built-in configuration restore implementation fails since it does not support supervisorctl. This limitation will be fixed in future releases.
+- The security server configuration files (located in `/etc/xroad/`) are currently stored inside the sidecar container. Functionality to provide volume support will be added in future releases.
+- The security server sidecar creates and manages its own internal TLS keys and certificates and does TLS termination by itself. This configuration might not be fully compatible with the application load balancer configuration in a cloud environment.
+- The xroad services are run inside the container using supervisord as root, although the processes it starts are not. To avoid potential security issues, it is possible to set up Docker so that it uses Linux user namespaces, in which case root inside the container is not root (user id 0) on the host. For more information, see <https://docs.docker.com/engine/security/userns-remap/>.
