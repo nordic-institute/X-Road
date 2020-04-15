@@ -16,6 +16,7 @@ export interface Client {
   created?: string | null;
   type?: string;
   status?: string;
+  owner: boolean;
 }
 
 export interface ClientsState {
@@ -54,7 +55,7 @@ export const getters: GetterTree<ClientsState, RootState> = {
 
     // Find the owner member (there is only one) it has member_name, but no subsystem_code
     state.clients.forEach((element, index) => {
-      if (!element.subsystem_code) {
+      if (element.owner === true) {
         const clone = _.cloneDeep(element);
         clone.type = 'owner';
         clone.subsystem_code = null;
