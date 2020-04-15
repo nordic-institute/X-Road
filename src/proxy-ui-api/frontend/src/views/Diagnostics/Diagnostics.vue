@@ -8,10 +8,10 @@
         <table class="xrd-table">
           <thead>
             <tr>
-              <th>{{$t('diagnostics.status')}}</th>
+              <th class="status-column">{{$t('diagnostics.status')}}</th>
               <th>{{$t('diagnostics.message')}}</th>
-              <th>{{$t('diagnostics.previousUpdate')}}</th>
-              <th>{{$t('diagnostics.nextUpdate')}}</th>
+              <th class="time-column">{{$t('diagnostics.previousUpdate')}}</th>
+              <th class="time-column">{{$t('diagnostics.nextUpdate')}}</th>
             </tr>
           </thead>
           <tbody>
@@ -21,8 +21,8 @@
               </td>
 
               <td>{{$t('diagnostics.globalCongiguration.configurationStatus.'+globalconf.status_code)}}</td>
-              <td>{{globalconf.prev_update_at | formatHoursMins}}</td>
-              <td>{{globalconf.next_update_at | formatHoursMins}}</td>
+              <td class="time-column">{{globalconf.prev_update_at | formatHoursMins}}</td>
+              <td class="time-column">{{globalconf.next_update_at | formatHoursMins}}</td>
             </tr>
           </tbody>
         </table>
@@ -37,10 +37,10 @@
         <table class="xrd-table">
           <thead>
             <tr>
-              <th>{{$t('diagnostics.status')}}</th>
-              <th>{{$t('diagnostics.serviceUrl')}}</th>
+              <th class="status-column">{{$t('diagnostics.status')}}</th>
+              <th class="url-column">{{$t('diagnostics.serviceUrl')}}</th>
               <th>{{$t('diagnostics.message')}}</th>
-              <th>{{$t('diagnostics.nextUpdate')}}</th>
+              <th class="time-column">{{$t('diagnostics.nextUpdate')}}</th>
             </tr>
           </thead>
           <tbody>
@@ -51,9 +51,9 @@
               <td>
                 <StatusIcon :status="statusIconType(timestampingService.status_class)" />
               </td>
-              <td class="service-url" data-test="service-url">{{timestampingService.url}}</td>
+              <td class="url-column" data-test="service-url">{{timestampingService.url}}</td>
               <td>{{$t('diagnostics.timestamping.timestampingStatus.'+timestampingService.status_code)}}</td>
-              <td>{{timestampingService.prev_update_at | formatHoursMins}}</td>
+              <td class="time-column">{{timestampingService.prev_update_at | formatHoursMins}}</td>
             </tr>
           </tbody>
         </table>
@@ -76,11 +76,11 @@
           <table class="xrd-table">
             <thead>
               <tr>
-                <th>{{$t('diagnostics.status')}}</th>
-                <th>{{$t('diagnostics.serviceUrl')}}</th>
+                <th class="status-column">{{$t('diagnostics.status')}}</th>
+                <th class="url-column">{{$t('diagnostics.serviceUrl')}}</th>
                 <th>{{$t('diagnostics.message')}}</th>
-                <th>{{$t('diagnostics.previousUpdate')}}</th>
-                <th>{{$t('diagnostics.nextUpdate')}}</th>
+                <th class="time-column">{{$t('diagnostics.previousUpdate')}}</th>
+                <th class="time-column">{{$t('diagnostics.nextUpdate')}}</th>
               </tr>
             </thead>
             <tbody>
@@ -88,10 +88,10 @@
                 <td>
                   <StatusIcon :status="statusIconType(ocsp.status_class)" />
                 </td>
-                <td class="service-url" data-test="service-url">{{ocsp.url}}</td>
+                <td class="url-column" data-test="service-url">{{ocsp.url}}</td>
                 <td>{{$t('diagnostics.ocspResponders.ocspStatus.'+ocsp.status_code)}}</td>
-                <td>{{ocsp.prev_update_at | formatHoursMins}}</td>
-                <td>{{ocsp.next_update_at | formatHoursMins}}</td>
+                <td class="time-column">{{ocsp.prev_update_at | formatHoursMins}}</td>
+                <td class="time-column">{{ocsp.next_update_at | formatHoursMins}}</td>
               </tr>
             </tbody>
           </table>
@@ -192,6 +192,18 @@ export default Vue.extend({
   }
 
   margin-bottom: 30px;
+}
+
+.status-column {
+  width: 80px;
+}
+
+.url-column {
+  width: 240px;
+}
+
+.time-column {
+  width: 160px;
 }
 
 .cert-service-name {
