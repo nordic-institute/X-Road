@@ -91,7 +91,7 @@ public class ServiceClientService {
         List<AccessRightType> serviceCodeLevelAcls = clientType.getAcl().stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint())
                 .collect(Collectors.toList());
-        List<AccessRightType>   distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
+        List<AccessRightType> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
         return accessRightService.mapAccessRightsToServiceClients(clientType, distinctAccessRightTypes);
     }
 

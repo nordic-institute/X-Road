@@ -104,7 +104,8 @@ public class AccessRightService {
     /**
      * Remove AccessRights from a Service
      *
-     * TO DO: maybe better fullServiceCode -> serviceCode
+     * Does not really need full service code, and versionless service code would be more logical parameter.
+     * But controller cannot currently extract version code from full service code, since we use dot as a separator.
      *
      * @param clientId
      * @param fullServiceCode
@@ -191,7 +192,9 @@ public class AccessRightService {
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
      *
-     * TO DO: maybe better fullServiceCode -> serviceCode
+     * Does not really need full service code, and versionless service code would be more logical parameter.
+     * But controller cannot currently extract version code from full service code, since we use dot as a separator.
+     *
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
