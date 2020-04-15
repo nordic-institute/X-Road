@@ -271,10 +271,7 @@ public class AccessRightService {
     /**
      * Add access rights for one subject (service client) to multiple services (serviceCodes)
      * of a client (clientType)
-     * TO DO: test
-     * TO DO: test service != client's services
-     * TO DO: test service client != client's service clients
-     * TO DO: access right already exists -> exception
+     *
      * @param clientId id of the client who owns the services
      * @param serviceCodes serviceCodes of the services to add access rights to (without version numbers)
      * @param subjectId subject (service client) to add access rights for. Can be a local group,
@@ -538,53 +535,20 @@ public class AccessRightService {
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
-            if (!globalConfService.globalGroupIdentifiersExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
+            if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
                 throw new IdentifierNotFoundException();
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
-            if (!globalConfService.clientIdentifiersExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
+            if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
                 throw new IdentifierNotFoundException();
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
-            if (!localGroupService.localGroupIdentifiersExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
+            if (!localGroupService.localGroupsExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
                 throw new IdentifierNotFoundException();
             }
         }
-    }
-
-
-    /**
-     * Verify that all identifiers are authentic, then get the existing ones from the local db and persist
-     * the not-existing ones. This is a necessary step if we are changing identifier relations (such as adding
-     * access rights to services)
-     * @param subsystemIds {@link GlobalGroupId} or {@link ClientId}
-     * @return List of XRoadIds ({@link GlobalGroupId} or {@link ClientId})
-     */
-    private Set<XRoadId> getOrPersistSubsystemIds(Set<XRoadId> subsystemIds)
-            throws IdentifierNotFoundException {
-        // Check that the identifiers exist in globalconf
-        // LocalGroups must be verified separately! (they do not exist in globalconf)
-        if (!globalConfService.clientIdentifiersExist(subsystemIds)) {
-            // This exception should be pretty rare since it only occurs if bogus subjects are found
-            throw new IdentifierNotFoundException();
-        }
-        return identifierService.getOrPersistXroadIds(subsystemIds);
-    }
-
-    /**
-     * @param globalGroupIds
-     * @return
-     * @throws IdentifierNotFoundException
-     * @see AccessRightService#getOrPersistSubsystemIds(Set)
-     */
-    private Set<XRoadId> getOrPersistGlobalGroupIds(Set<XRoadId> globalGroupIds)
-            throws IdentifierNotFoundException {
-        if (!globalConfService.globalGroupIdentifiersExist(globalGroupIds)) {
-            throw new IdentifierNotFoundException();
-        }
-        return identifierService.getOrPersistXroadIds(globalGroupIds);
     }
 
 

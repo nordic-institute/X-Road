@@ -435,8 +435,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addAccessRights() {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_CALCULATE_PRIME).getBody();
         assertEquals(0, serviceClients.size());
@@ -458,8 +458,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addDuplicateAccessRight() {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
@@ -476,8 +476,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addBogusAccessRight() {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.clientsExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());

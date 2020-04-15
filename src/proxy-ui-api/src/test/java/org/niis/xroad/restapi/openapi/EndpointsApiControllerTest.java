@@ -170,11 +170,10 @@ public class EndpointsApiControllerTest {
     public void removeExistingEndpointAccessRights() {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 2);
-        // TO DO: lots of renames
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedScs = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
-        endpointsApiController.deleteEndpointServiceClients("6", subjects);
+        endpointsApiController.deleteEndpointServiceClients("6", deletedScs);
         persistenceUtils.flush();
         serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 1);
@@ -186,39 +185,39 @@ public class EndpointsApiControllerTest {
     public void removeInexistingEndpointAccessRights() {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 2);
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients deletedScs = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS1).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
-        endpointsApiController.deleteEndpointServiceClients("6", subjects);
+        endpointsApiController.deleteEndpointServiceClients("6", deletedScs);
     }
 
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL"})
     public void addExistingEndpointAccessRights() {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients serviceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
-        endpointsApiController.addEndpointServiceClients("9", subjects);
+        endpointsApiController.addEndpointServiceClients("9", serviceClients);
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL"})
     public void addEndpointAccessRights() {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
         // add access rights for a subsystem and global group to endpoint
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
         assertTrue(serviceClients.size() == 1);
-        ServiceClients subjects = new ServiceClients()
+        ServiceClients added = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS5).serviceClientType(
                         ServiceClientType.SUBSYSTEM))
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
                         ServiceClientType.GLOBALGROUP));
-        endpointsApiController.addEndpointServiceClients("9", subjects).getBody();
+        endpointsApiController.addEndpointServiceClients("9", added).getBody();
         persistenceUtils.flush();
         serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
 
@@ -230,10 +229,10 @@ public class EndpointsApiControllerTest {
         List<ServiceClient> localGroupTestServiceClients = endpointsApiController
                 .getEndpointServiceClients("3").getBody();
         assertTrue(localGroupTestServiceClients.size() == 0);
-        ServiceClients localGroupSubjects = new ServiceClients()
+        ServiceClients localGroupScs = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
                         ServiceClientType.LOCALGROUP));
-        endpointsApiController.addEndpointServiceClients("3", localGroupSubjects).getBody();
+        endpointsApiController.addEndpointServiceClients("3", localGroupScs).getBody();
         persistenceUtils.flush();
         localGroupTestServiceClients = endpointsApiController.getEndpointServiceClients("3").getBody();
 

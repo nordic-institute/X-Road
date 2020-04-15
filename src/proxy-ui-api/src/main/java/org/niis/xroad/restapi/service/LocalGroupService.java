@@ -236,12 +236,12 @@ public class LocalGroupService {
     }
 
     /**
-     * TO DO: check
      * @param clientType local group owner
      * @param identifiers identifiers to check
-     * @return whether all the local group identifiers exist for the given client
+     * @return whether all the local groups exist in LOCALGROUP table for the given client.
+     * Entry in IDENTIFIER table may or may not exist
      */
-    public boolean localGroupIdentifiersExist(ClientType clientType, List<XRoadId> identifiers) {
+    public boolean localGroupsExist(ClientType clientType, List<XRoadId> identifiers) {
         Set<LocalGroupId> clientsLocalGroupIds = clientType.getLocalGroup().stream()
                 .map(localGroup -> LocalGroupId.create(localGroup.getGroupCode()))
                 .collect(Collectors.toSet());

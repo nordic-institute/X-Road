@@ -834,7 +834,6 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<ServiceClient>> serviceClientResponse = clientsApiController.findServiceClientCandidates(
                 TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM2, null, null, null, null, null);
-        // TO DO: lots of renames
         List<ServiceClient> serviceClients = serviceClientResponse.getBody();
         assertEquals(1, serviceClients.size());
     }

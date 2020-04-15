@@ -567,7 +567,6 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
     }
 
-    // TO DO: tests
     @Override
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
     public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
