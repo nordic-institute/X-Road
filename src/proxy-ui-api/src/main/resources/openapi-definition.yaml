@@ -5317,7 +5317,6 @@ components:
       required:
         - subject
         - rights_given_at
-        - access_rights
       properties:
         subject:
           $ref: '#/components/schemas/Subject'
@@ -5328,12 +5327,6 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-        access_rights:
-          type: array
-          description: list of access rights - this will be null when requested via services/{id}/access-rights endpoint
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/AccessRight'
     ServiceDescription: # ok
       type: object
       description: WSDL/OPENAPI3/REST service
