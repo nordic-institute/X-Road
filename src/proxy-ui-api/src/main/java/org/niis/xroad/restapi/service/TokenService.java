@@ -30,6 +30,7 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -51,6 +53,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
  * Service that handles tokens
@@ -274,7 +277,6 @@ public class TokenService {
     static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
 
-
     /**
      * Get TokenInfo for key id
      */
@@ -310,6 +312,24 @@ public class TokenService {
         } catch (Exception other) {
             throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
         }
+    }
+
+    /**
+     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
+     * @return
+     */
+    public boolean isSoftwareTokenInitialized() {
+        boolean isSoftwareTokenInitialized = false;
+        List<TokenInfo> tokens = getAllTokens();
+        Optional<TokenInfo> firstSoftwareToken = tokens.stream()
+                .filter(tokenInfo -> tokenInfo.getId().equals(SOFTWARE_TOKEN_ID))
+                .findFirst();
+
+        if (firstSoftwareToken.isPresent()) {
+            TokenInfo token = firstSoftwareToken.get();
+            isSoftwareTokenInitialized = token.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
+        }
+        return isSoftwareTokenInitialized;
     }
 
     /**

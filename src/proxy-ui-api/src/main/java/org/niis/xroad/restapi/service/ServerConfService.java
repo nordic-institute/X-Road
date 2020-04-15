@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -90,5 +91,23 @@ public class ServerConfService {
         List<TspType> tsp = serverConfType.getTsp();
         Hibernate.initialize(tsp);
         return tsp;
+    }
+
+    /**
+     * Is server conf initialized -> it is if whe can find one
+     * @return
+     */
+    public boolean isServerConfInitialized() {
+        boolean isServerConfInitialized = false;
+        try {
+            ServerConfType serverConfType = getServerConf();
+            if (serverConfType != null) {
+                isServerConfInitialized = true;
+            }
+        } catch (CodedException ce) { // -> this is X_MALFORMED_SERVERCONF, "Server conf is not initialized!"
+            log.info("Checking initialization status: CodedException thrown when getting Server Conf", ce);
+            // server conf does not exist - nice!
+        }
+        return isServerConfInitialized;
     }
 }

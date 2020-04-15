@@ -24,14 +24,10 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -44,9 +40,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
-import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
  * service for initializing the security server
@@ -88,67 +81,13 @@ public class InitializationService {
      * @return
      */
     public InitializationStatusDto isSecurityServerInitialized() {
-        boolean isAnchorImported = isAnchorImported();
-        boolean isServerConfInitialized = isServerConfInitialized();
-        boolean isSoftwareTokenInitialized = isSoftwareTokenInitialized();
+        boolean isAnchorImported = systemService.isAnchorImported();
+        boolean isServerConfInitialized = serverConfService.isServerConfInitialized();
+        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
         initializationStatusDto.setAnchorImported(isAnchorImported);
         initializationStatusDto.setInitialized(isServerConfInitialized && isSoftwareTokenInitialized);
         return initializationStatusDto;
-    }
-
-    /**
-     * Is global conf initialized -> it is if whe can find a Configuration anchor
-     * @return
-     */
-    public boolean isAnchorImported() {
-        boolean isGlobalConfInitialized = false;
-        try {
-            AnchorFile anchorFile = systemService.getAnchorFile();
-            if (anchorFile != null) {
-                isGlobalConfInitialized = true;
-            }
-        } catch (AnchorNotFoundException e) {
-            log.info("Checking initialization status: could not find Global Configuration Anchor", e);
-            // global conf does not exist - good!
-        }
-        return isGlobalConfInitialized;
-    }
-
-    /**
-     * Is server conf initialized -> it is if whe can find one
-     * @return
-     */
-    public boolean isServerConfInitialized() {
-        boolean isServerConfInitialized = false;
-        try {
-            ServerConfType serverConfType = serverConfService.getServerConf();
-            if (serverConfType != null) {
-                isServerConfInitialized = true;
-            }
-        } catch (CodedException ce) { // -> this is X_MALFORMED_SERVERCONF, "Server conf is not initialized!"
-            log.info("Checking initialization status: CodedException thrown when getting Server Conf", ce);
-            // server conf does not exist - nice!
-        }
-        return isServerConfInitialized;
-    }
-
-    /**
-     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
-     * @return
-     */
-    public boolean isSoftwareTokenInitialized() {
-        boolean isSoftwareTokenInitialized = false;
-        List<TokenInfo> tokens = tokenService.getAllTokens();
-        Optional<TokenInfo> firstSoftwareToken = tokens.stream()
-                .filter(tokenInfo -> tokenInfo.getId().equals(SOFTWARE_TOKEN_ID))
-                .findFirst();
-
-        if (firstSoftwareToken.isPresent()) {
-            TokenInfo token = firstSoftwareToken.get();
-            isSoftwareTokenInitialized = token.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
-        }
-        return isSoftwareTokenInitialized;
     }
 
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
@@ -194,11 +133,11 @@ public class InitializationService {
      * @throws InitializationException if server conf exists OR software token is already initialized
      */
     private void verifyInitializationPrerequisites() throws AnchorNotFoundException, InitializationException {
-        if (!isAnchorImported()) {
+        if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
-        boolean isServerConfInitialized = isServerConfInitialized();
-        boolean isSoftwareTokenInitialized = isSoftwareTokenInitialized();
+        boolean isServerConfInitialized = serverConfService.isServerConfInitialized();
+        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         List<String> metadata = new ArrayList<>();
         if (isServerConfInitialized) {
             metadata.add(METADATA_SERVERCONF_EXISTS);

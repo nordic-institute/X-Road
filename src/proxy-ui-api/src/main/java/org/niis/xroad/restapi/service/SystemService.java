@@ -270,6 +270,24 @@ public class SystemService {
     }
 
     /**
+     * Is global conf initialized -> it is if whe can find a Configuration anchor
+     * @return
+     */
+    public boolean isAnchorImported() {
+        boolean isGlobalConfInitialized = false;
+        try {
+            AnchorFile anchorFile = getAnchorFile();
+            if (anchorFile != null) {
+                isGlobalConfInitialized = true;
+            }
+        } catch (AnchorNotFoundException e) {
+            log.info("Checking initialization status: could not find Global Configuration Anchor", e);
+            // global conf does not exist - good!
+        }
+        return isGlobalConfInitialized;
+    }
+
+    /**
      * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
      * configuration-client module (this might be changed in the future). This method does not delete the created
      * temporary file. Remember to delete the file after it is no longer needed.
