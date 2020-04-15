@@ -76,6 +76,7 @@ then
         chown root:root /etc/xroad.properties
         chmod 600 /etc/xroad.properties
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
+        crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
     fi
     echo "Creating serverconf database and properties file"
     pg_ctlcluster 10 main start
