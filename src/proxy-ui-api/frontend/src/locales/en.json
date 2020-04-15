@@ -632,7 +632,7 @@
         "ERROR_CODE_INTERNAL": "Internal error occurred.",
         "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
-        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection to global configuration provider.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
         "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
         "ERROR_CODE_UNINITIALIZED": "The configuration client is initializing.",
         "UNKNOWN": "Unknown"
