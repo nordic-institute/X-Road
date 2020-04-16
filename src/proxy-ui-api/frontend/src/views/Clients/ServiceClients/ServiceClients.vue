@@ -78,7 +78,7 @@
         });
       },
       showAccessRights(serviceClientId: string) {
-        this.$router.push(`/subsystem/serviceclients/${this.id}/${serviceClientId}`);
+        this.$router.push(`/subsystem/${this.id}/serviceclients/${serviceClientId}`);
       },
     },
     created() {

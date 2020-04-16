@@ -1,6 +1,6 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
-    <subViewTitle :title="id" @close="close" />
+    <subViewTitle :title="serviceClientId" @close="close" />
 
     <v-card flat>
       <table class="xrd-table service-client-margin">
@@ -11,8 +11,8 @@
         </tr>
         </thead>
         <tr>
-          <td>name</td>
-          <td>id</td>
+          <td>{{serviceClient.name}}</td>
+          <td>{{serviceClient.id}}</td>
         </tr>
       </table>
     </v-card>
@@ -76,7 +76,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import {AccessRight} from '@/types';
+import {AccessRight, ServiceClient} from '@/types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 
@@ -98,15 +98,24 @@ export default Vue.extend({
   data() {
     return {
       accessRights: [] as AccessRight[],
+      serviceClient: {} as ServiceClient,
     };
   },
   methods: {
     fetchData() {
+
+      api
+        .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
+        .then( (response: any) => this.serviceClient = response.data)
+        .catch( (error: any) =>
+          this.$store.dispatch('showError', error));
+
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
         .then( (response: any) => this.accessRights = response.data)
         .catch( (error: any) =>
           this.$store.dispatch('showError', error));
+
     },
     close() {
       this.$router.go(-1);
