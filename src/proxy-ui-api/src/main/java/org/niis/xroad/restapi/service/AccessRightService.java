@@ -45,7 +45,6 @@ import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,7 +75,6 @@ import static java.util.stream.Collectors.groupingBy;
 @PreAuthorize("isAuthenticated()")
 public class AccessRightService {
 
-    private final LocalGroupRepository localGroupRepository;
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
@@ -86,12 +84,11 @@ public class AccessRightService {
     private final LocalGroupService localGroupService;
 
     @Autowired
-    public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
+    public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
             GlobalConfService globalConfService,
             EndpointService endpointService,
             LocalGroupService localGroupService) {
-        this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
@@ -207,10 +204,9 @@ public class AccessRightService {
      * @throws EndpointNotFoundException exception
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-                Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws ClientNotFoundException,
+            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws ClientNotFoundException,
             ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException {
-
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -736,6 +732,7 @@ public class AccessRightService {
         // Ultimately members cannot have access rights to Services -> no members in the Subject search results.
         searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() != XRoadObjectType.MEMBER);
 
+        // add subject type to condition
         if (subjectType != null) {
             searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() == subjectType);
         }

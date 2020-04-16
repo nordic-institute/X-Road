@@ -263,7 +263,7 @@ const router = new Router({
         },
         {
           name: RouteName.ServiceClientAccessRights,
-          path: '/subsystem/serviceclients/:id/:serviceClientId',
+          path: '/subsystem/:id/serviceclients/:serviceClientId',
           props: { default: true },
           components: {
             default: ServiceClientAccessRights,

@@ -1053,6 +1053,51 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /clients/{id}/service-clients/{sc_id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get single service client by client id and service client id
+      operationId: getServiceClient
+      description: Administrator views the information for a single service client
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: sc_id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: single service clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceClient'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /clients/{id}/service-clients/{sc_id}/access-rights:
     get: # ok
       tags:

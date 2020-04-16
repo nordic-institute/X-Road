@@ -5,6 +5,7 @@
                     :label="$t('serviceClients.searchPlaceHolder')"
                     single-line
                     hide-details
+                    data-test="search-service-client"
                     class="search-input">
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -13,29 +14,30 @@
         @click="addServiceClient"
         outlined
         rounded
+        data-test="add-service-client"
         class="ma-0 rounded-button elevation-0"
       >{{$t('serviceClients.addServiceClient')}}
       </v-btn>
     </div>
 
-    <v-card flat>
-      <table class="xrd-table service-clients-table">
-        <thead>
-          <tr>
-            <th>{{$t('serviceClients.name')}}</th>
-            <th>{{$t('serviceClients.id')}}</th>
+    <table class="xrd-table service-clients-table">
+      <thead>
+        <tr>
+          <th>{{$t('serviceClients.name')}}</th>
+          <th>{{$t('serviceClients.id')}}</th>
+        </tr>
+      </thead>
+      <template v-if="serviceClients.length > 0">
+        <tbody>
+          <tr v-for="sc in this.filteredServiceClients()" v-bind:key="sc.id"
+              @click="showAccessRights(sc.id)"
+              data-test="open-access-rights">
+            <td>{{sc.name}}</td>
+            <td>{{sc.id}}</td>
           </tr>
-        </thead>
-        <template v-if="serviceClients.length > 0">
-          <tbody>
-            <tr v-for="sc in this.filteredServiceClients()" @click="showAccessRights(sc.id)">
-              <td>{{sc.name}}</td>
-              <td>{{sc.id}}</td>
-            </tr>
-          </tbody>
-        </template>
-      </table>
-    </v-card>
+        </tbody>
+      </template>
+    </table>
 
   </div>
 </template>
@@ -80,7 +82,7 @@
         });
       },
       showAccessRights(serviceClientId: string) {
-        this.$router.push(`/subsystem/serviceclients/${this.id}/${serviceClientId}`);
+        this.$router.push(`/subsystem/${this.id}/serviceclients/${serviceClientId}`);
       },
     },
     created() {
@@ -99,13 +101,11 @@
 
 .service-clients-table {
   margin-top: 40px;
-
-
 }
 
-  table tbody .tr:hover {
-    cursor: pointer;
-    background-color: $XRoad-Grey10;
-  }
+table tbody tr:hover {
+  cursor: pointer;
+  background-color: $XRoad-Grey10;
+}
 
 </style>

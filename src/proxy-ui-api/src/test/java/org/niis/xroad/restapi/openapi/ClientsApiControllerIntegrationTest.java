@@ -1112,6 +1112,51 @@ public class ClientsApiControllerIntegrationTest {
                 "non", "existing", null));
     }
 
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
+    public void getServiceClientNotExist() {
+        clientsApiController.getServiceClient(TestUtils.CLIENT_ID_SS1, "NoSuchServiceClient");
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
+    public void getServiceClient() {
+        String clientId = TestUtils.CLIENT_ID_SS1;
+        String serviceClientId = TestUtils.CLIENT_ID_SS2;
+        String localGroupId = TestUtils.DB_LOCAL_GROUP_ID_1;
+
+        // Get subsystem service client
+        ServiceClient subSystemserviceClient =
+                clientsApiController.getServiceClient(clientId, serviceClientId).getBody();
+        assertTrue(ServiceClientType.SUBSYSTEM.equals(subSystemserviceClient.getServiceClientType()));
+        assertTrue("FI:GOV:M1:SS2".equals(subSystemserviceClient.getId()));
+
+        // Get localgroup service client
+        ServiceClient localGroupServiceClient = clientsApiController.getServiceClient(clientId, localGroupId).getBody();
+        assertTrue("group1".equals(localGroupServiceClient.getLocalGroupCode()));
+        assertTrue("1".equals(localGroupServiceClient.getId()));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_ACL_SUBJECT_OPEN_SERVICES" })
+    public void getServiceClientAccessRightsTest() {
+        String clientId = TestUtils.CLIENT_ID_SS1;
+        String serviceClientId = TestUtils.CLIENT_ID_SS2;
+        String localGroupId = TestUtils.DB_LOCAL_GROUP_ID_1;
+
+        // Test subsystem service client
+        List<AccessRight> accessRights = clientsApiController
+                .getServiceClientAccessRights(clientId, serviceClientId).getBody();
+        assertTrue(accessRights.size() == 2);
+        assertTrue(accessRights.stream().anyMatch(acl -> "getRandom".equals(acl.getServiceCode())));
+        assertTrue(accessRights.stream().anyMatch(acl -> "rest-servicecode".equals(acl.getServiceCode())));
+
+        // Test localgroup service client
+        List<AccessRight> groupAcls = clientsApiController
+                .getServiceClientAccessRights(clientId, localGroupId).getBody();
+        assertTrue(groupAcls.size() == 1);
+        assertTrue(groupAcls.stream().anyMatch(acl -> "getRandom".equals(acl.getServiceCode())));
+    }
 
     @Test
     @WithMockUser(authorities = { "EDIT_ACL_SUBJECT_OPEN_SERVICES" })

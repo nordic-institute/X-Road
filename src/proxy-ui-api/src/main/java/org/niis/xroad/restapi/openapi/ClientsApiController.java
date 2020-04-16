@@ -554,14 +554,35 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<ServiceClient> getServiceClient(String id, String scId) {
+        ClientId clientIdentifier = clientConverter.convertId(id);
+        ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
+        ServiceClient serviceClient = null;
+        try {
+            XRoadId serviceClientId =
+                    serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
+            serviceClient = serviceClientConverter.convertServiceClientDto(
+                    serviceClientService.getServiceClient(clientIdentifier, serviceClientId));
+        } catch (ResourceNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+
+        return new ResponseEntity<>(serviceClient, HttpStatus.OK);
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('VIEW_ACL_SUBJECT_OPEN_SERVICES')")
     public ResponseEntity<List<AccessRight>> getServiceClientAccessRights(String id, String scId) {
         ClientId clientIdentifier = clientConverter.convertId(id);
+        ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
         List<AccessRight> accessRights = null;
         try {
+            XRoadId serviceClientId =
+                    serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             accessRights = accessRightConverter.convert(
-                    serviceClientService.getServiceClientAccessRights(clientIdentifier, scId));
-        } catch (ClientNotFoundException e) {
+                    serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
+        } catch (ResourceNotFoundException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
