@@ -43,12 +43,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.openapi.TokensApiControllerTest.NOT_ACTIVE_TOKEN_ID;
 import static org.niis.xroad.restapi.openapi.TokensApiControllerTest.NOT_ACTIVE_TOKEN_KEY_ID;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
-import static org.niis.xroad.restapi.service.TokenServiceTest.GOOD_TOKEN_ID;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -80,7 +78,9 @@ public class InitializationServiceTest {
                 .active(false)
                 .key(inactiveKeyInfo)
                 .build();
-        allTokens = Arrays.asList(new TokenInfo[] {activeTokenInfo, inactiveTokenInfo});
+        allTokens = Arrays.asList(new TokenInfo[] {
+                activeTokenInfo, inactiveTokenInfo
+        });
 
         when(tokenService.getAllTokens()).thenReturn(allTokens);
     }

@@ -320,9 +320,9 @@ public class SystemApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
-    public void uploadAnchor() throws IOException {
+    public void replaceAnchor() throws IOException {
         Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<Void> response = systemApiController.uploadAnchor(anchorResource);
+        ResponseEntity<Void> response = systemApiController.replaceAnchor(anchorResource);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("/api/system/anchor", response.getHeaders().getLocation().getPath());
     }

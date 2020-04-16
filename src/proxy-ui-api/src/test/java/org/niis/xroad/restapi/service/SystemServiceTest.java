@@ -198,22 +198,22 @@ public class SystemServiceTest {
     }
 
     @Test
-    public void uploadAnchor() throws Exception {
+    public void replaceAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         try {
-            systemService.uploadAnchor(anchorBytes);
+            systemService.replaceAnchor(anchorBytes);
         } catch (Exception e) {
             fail("Should not fail");
         }
     }
 
     @Test
-    public void uploadAnchorFailVerification() throws Exception {
+    public void replaceAnchorFailVerification() throws Exception {
         doThrow(new ConfigurationVerifier.ConfigurationVerificationException(MISSING_PRIVATE_PARAMS))
                 .when(configurationVerifier).verifyInternalConfiguration(any());
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         try {
-            systemService.uploadAnchor(anchorBytes);
+            systemService.replaceAnchor(anchorBytes);
             fail("Should have failed");
         } catch (Exception e) {
             assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS,
@@ -222,8 +222,8 @@ public class SystemServiceTest {
     }
 
     @Test(expected = SystemService.MalformedAnchorException.class)
-    public void uploadAnchorWithBadData() throws Exception {
+    public void replaceAnchorWithBadData() throws Exception {
         byte[] anchorBytes = new byte[8];
-        systemService.uploadAnchor(anchorBytes);
+        systemService.replaceAnchor(anchorBytes);
     }
 }

@@ -109,7 +109,10 @@ public class InitializationService {
 
     /**
      * Initialize a new Security Server with the provided parameters. The method will throw an exception if the
-     * server has already been initialized.
+     * server has already been initialized. The method does support partial initialization (e.g. server conf has
+     * been created but software token has not) BUT taking that into use will require changing
+     * {@link #verifyInitializationPrerequisites()} to throw UnhandledWarningsException with warning metadata
+     * instead of InitializationException.
      * @param securityServerCode server code for the new Security Server
      * @param ownerMemberClass member class of the new owner member
      * @param ownerMemberCode member code of the new owner member
@@ -131,10 +134,6 @@ public class InitializationService {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
-        /*
-          NOTE: verifyInitializationPrerequisites prevents the user from initing the Security Server for a second time.
-          This could be moved into the checkForWarnings method in the future
-         */
         verifyInitializationPrerequisites();
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
         // get id from db if exists - this is for partial init support since no client ids should yet exist
@@ -251,7 +250,9 @@ public class InitializationService {
     /**
      * Verify that the initialization process can proceed and that the security server has not already been
      * initialized. This means verifying that an anchor has been imported,
-     * server conf does not exist and a software token has not yet been initialized
+     * server conf does not exist and a software token has not yet been initialized. This method could also be
+     * changed into throwing an UnhandledWarningsException with warning metadata instead of the current
+     * InitializationException if partial init needs to be supported in the future
      * @throws InitializationException if server conf exists OR software token is already initialized
      */
     private void verifyInitializationPrerequisites() throws InitializationException {
