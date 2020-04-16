@@ -28,7 +28,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TokenPinPolicy;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -44,8 +43,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -70,15 +67,14 @@ import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
 @Transactional
 @WithMockUser
 public class InitializationServiceTest {
-    public static final String INSTANCE = "CS";
-    public static final String OWNER_MEMBER_CLASS = "GOV";
-    public static final String OWNER_MEMBER_CODE = "M1";
-    public static final String SECURITY_SERVER_CODE = "SS3";
-    public static final String SOFTWARE_TOKEN_PIN = "1234";
-    public static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
-    public static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
-    public static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-
+    private static final String INSTANCE = "CS";
+    private static final String OWNER_MEMBER_CLASS = "GOV";
+    private static final String OWNER_MEMBER_CODE = "M1";
+    private static final String SECURITY_SERVER_CODE = "SS3";
+    private static final String SOFTWARE_TOKEN_PIN = "1234";
+    private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
+    private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
+    private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
     private static final ClientId CLIENT = ClientId.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
     private static final SecurityServerId SERVER = SecurityServerId.create(INSTANCE, OWNER_MEMBER_CLASS,
@@ -105,14 +101,12 @@ public class InitializationServiceTest {
     @MockBean
     private ClientService clientService;
 
-    private List<TokenInfo> allTokens;
-
     @Before
     public void setup() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(systemService.isAnchorImported()).thenReturn(true);
         when(serverConfService.isServerConfInitialized()).thenReturn(true);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn("CS");
+        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(clientService.getPossiblyManagedEntity(any())).thenReturn(CLIENT);
         initializationService.setTokenPinEnforced(false);
