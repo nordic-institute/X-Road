@@ -39,9 +39,6 @@ import java.util.Collections;
 public class ValidationErrorHelper {
     public static final String VALIDATION_FAILURE_ERROR = "validation_failure";
 
-    public ValidationErrorHelper() {
-    }
-
     /**
      * Create DeviationAware error code & metadata from given org.springframework.validation.Errors.
      * Error code = {@link ValidationErrorHelper#VALIDATION_FAILURE_ERROR}, metadata is the
