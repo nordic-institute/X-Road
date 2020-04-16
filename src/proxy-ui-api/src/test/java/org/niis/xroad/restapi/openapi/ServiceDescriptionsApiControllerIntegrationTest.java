@@ -47,7 +47,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -265,7 +264,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(refreshed.getRefreshedAt().isAfter(serviceDescription.getRefreshedAt()));
     }
 
-    @Test(expected = AccessDeniedException.class)
+    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "REFRESH_REST" })
     public void refreshRestServiceDescriptionWithoutRights() {
         serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarnings().ignoreWarnings(false));

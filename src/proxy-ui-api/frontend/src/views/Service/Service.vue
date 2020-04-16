@@ -57,7 +57,7 @@ export default Vue.extend({
           key: 'endpoints',
           name: 'tab.services.endpoints',
           to: {
-            name: RouteName.ServiceEndpoints,
+            name: RouteName.Endpoints,
           },
         },
       ];

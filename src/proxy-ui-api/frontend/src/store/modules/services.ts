@@ -1,12 +1,12 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import {Endpoint, Service, Subject} from '@/types';
+import {Endpoint, Service, ServiceClient, Subject} from '@/types';
 
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
   service: Service | {};
-  accessRightsSubjects: Subject[];
+  accessRightsSubjects: ServiceClient[];
 }
 
 export const servicesState: ServicesState = {
@@ -27,11 +27,11 @@ export const getters: GetterTree<ServicesState, RootState> = {
     return state.expandedServiceDescriptions.includes(id);
   },
 
-  accessRightsSubjects: (state: ServicesState) => {
+  accessRightsSubjects: (state: ServicesState): ServiceClient[] => {
     return state.accessRightsSubjects;
   },
 
-  service: (state: ServicesState) => {
+  service: (state: ServicesState): Service | {} => {
     return state.service;
   },
 };
@@ -39,7 +39,7 @@ export const getters: GetterTree<ServicesState, RootState> = {
 
 export const mutations: MutationTree<ServicesState> = {
 
-  setHidden(state, id: string) {
+  setHidden(state, id: string): void {
     const index = state.expandedServiceDescriptions.findIndex((element: any) => {
       return element === id;
     });
@@ -49,7 +49,7 @@ export const mutations: MutationTree<ServicesState> = {
     }
   },
 
-  setExpanded(state, id: string) {
+  setExpanded(state, id: string): void {
     const index = state.expandedServiceDescriptions.findIndex((element: any) => {
       return element === id;
     });
@@ -69,7 +69,7 @@ export const mutations: MutationTree<ServicesState> = {
     state.service = service;
   },
 
-  setAccessRightsSubjects(state, accessRights: Subject[]) {
+  setAccessRightsSubjects(state, accessRights: ServiceClient[]): void {
     state.accessRightsSubjects = accessRights;
   },
 };

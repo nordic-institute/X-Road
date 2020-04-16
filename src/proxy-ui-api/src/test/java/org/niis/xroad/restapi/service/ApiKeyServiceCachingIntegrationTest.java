@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -30,12 +30,14 @@ import org.hibernate.query.Query;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +46,6 @@ import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -54,17 +55,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test api key repository caching while mocking DB
+ * Test api key service and api key authentication helper
+ * caching while mocking DB
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
-public class ApiKeyRepositoryCachingIntegrationTest {
+public class ApiKeyServiceCachingIntegrationTest {
 
     @Autowired
-    private ApiKeyRepository apiKeyRepository;
+    private ApiKeyService apiKeyService;
+
+    @Autowired
+    ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
 
     @MockBean
     private EntityManager entityManager;
@@ -76,63 +81,77 @@ public class ApiKeyRepositoryCachingIntegrationTest {
     private Query query;
 
     @Test
-    public void testList() {
+    @WithMockUser
+    public void testList() throws Exception {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         when(query.list()).thenReturn(new ArrayList());
-        apiKeyRepository.listAll();
-        apiKeyRepository.listAll();
+        // No keys
+        apiKeyService.listAll();
+        apiKeyService.listAll();
+        verify(query, times(0)).list();
+        // Create one key and then get it
+        PersistentApiKeyType key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        apiKeyService.listAll();
+        apiKeyService.listAll();
         verify(query, times(1)).list();
     }
 
     @Test
+    @WithMockUser
     public void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
-        Map.Entry<String, PersistentApiKeyType> keyEntry =
-                apiKeyRepository.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(keyEntry.getValue());
+        PersistentApiKeyType key =
+                apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        List<PersistentApiKeyType> listOfOne = Arrays.asList(key);
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyRepository.get(keyEntry.getKey());
-        apiKeyRepository.get(keyEntry.getKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
         verify(query, times(1)).list();
 
-        // list uses a different cache
-        apiKeyRepository.listAll();
-        apiKeyRepository.listAll();
-        verify(query, times(2)).list();
+        // list uses the same cache
+        apiKeyService.listAll();
+        apiKeyService.listAll();
+        verify(query, times(1)).list();
 
         // create new key to force cache invalidation
-        apiKeyRepository.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        apiKeyRepository.listAll();
-        apiKeyRepository.listAll();
-        verify(query, times(3)).list();
+        apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        apiKeyService.listAll();
+        apiKeyService.listAll();
+        verify(query, times(2)).list();
 
         // revoke a key to force cache invalidation
-        // (remove(key) itself already uses query.findAll)
-        apiKeyRepository.remove(keyEntry.getKey());
-        verify(query, times(4)).list();
-        apiKeyRepository.get(keyEntry.getKey());
-        apiKeyRepository.get(keyEntry.getKey());
-        verify(query, times(5)).list();
+        // (remove(key) itself already uses query.findAll,
+        // but it's a cache hit)
+        apiKeyService.remove(key.getPlaintTextKey());
+        verify(query, times(2)).list();
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        verify(query, times(3)).list();
     }
 
     @Test
+    @WithMockUser
     public void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
-        Map.Entry<String, PersistentApiKeyType> keyEntry =
-                apiKeyRepository.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(keyEntry.getValue());
+        PersistentApiKeyType key =
+                apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        List<PersistentApiKeyType> listOfOne = Arrays.asList(key);
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyRepository.get(keyEntry.getKey());
-        apiKeyRepository.get(keyEntry.getKey());
+        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
+        apiKeyService.get(key.getPlaintTextKey());
         verify(query, times(1)).list();
     }
 

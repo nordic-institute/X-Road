@@ -29,22 +29,21 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
+import org.niis.xroad.restapi.converter.SubjectHelper;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
-import org.niis.xroad.restapi.openapi.model.Subject;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
+import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
@@ -61,8 +60,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * services api
@@ -79,17 +76,19 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceService serviceService;
     private final SubjectConverter subjectConverter;
     private final AccessRightService accessRightService;
+    private final SubjectHelper subjectHelper;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
             ServiceService serviceService, SubjectConverter subjectConverter, AccessRightService accessRightService,
-            EndpointConverter endpointConverter) {
+            EndpointConverter endpointConverter, SubjectHelper subjectHelper) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
         this.subjectConverter = subjectConverter;
         this.accessRightService = accessRightService;
         this.endpointConverter = endpointConverter;
+        this.subjectHelper = subjectHelper;
     }
 
     @Override
@@ -140,7 +139,7 @@ public class ServicesApiController implements ServicesApi {
         List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
             accessRightHolderDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
-        } catch (ClientNotFoundException | ServiceNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
@@ -153,12 +152,12 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         // LocalGroups with numeric ids (PK)
-        Set<Long> localGroupIds = getLocalGroupIds(subjects);
-        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
+        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(subjects);
+        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(subjects);
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
-        } catch (ServiceNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceNotFoundException | ClientNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
@@ -171,16 +170,16 @@ public class ServicesApiController implements ServicesApi {
     public ResponseEntity<List<ServiceClient>> addServiceAccessRight(String encodedServiceId, Subjects subjects) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        Set<Long> localGroupIds = getLocalGroupIds(subjects);
-        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
+        Set<Long> localGroupIds = subjectHelper.getLocalGroupIds(subjects);
+        List<XRoadId> xRoadIds = subjectHelper.getXRoadIdsButSkipLocalGroups(subjects);
         List<AccessRightHolderDto> accessRightHolderDtos;
         try {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (ClientNotFoundException | ServiceNotFoundException
-                | AccessRightService.EndpointNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException
+                | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (LocalGroupNotFoundException | IdentifierNotFoundException e) {
+        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
@@ -188,34 +187,6 @@ public class ServicesApiController implements ServicesApi {
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
-
-    private List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
-        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        return subjectConverter.convertId(subjects.getItems());
-    }
-
-    private Set<Long> getLocalGroupIds(Subjects subjects) {
-        return subjects.getItems()
-                .stream()
-                .filter(hasNumericIdAndIsLocalGroup)
-                .map(subject -> Long.parseLong(subject.getId()))
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * The client-provided Subjects only contain id and subjectType when adding or deleting access rights.
-     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
-     * Therefore LocalGroups need to be handled separately from other types of subjects.
-     */
-    private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
-        boolean hasNumericId = StringUtils.isNumeric(subject.getId());
-        boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
-        if (!hasNumericId && isLocalGroup) {
-            throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
-        }
-        return hasNumericId && isLocalGroup;
-    };
 
     @Override
     @PreAuthorize("hasAuthority('ADD_OPENAPI3_ENDPOINT')")

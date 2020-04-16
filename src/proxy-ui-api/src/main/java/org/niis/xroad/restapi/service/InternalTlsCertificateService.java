@@ -139,11 +139,13 @@ public class InternalTlsCertificateService {
     /**
      * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
-     * @throws InterruptedException if the thread running the key generator is interrupted
+     * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
+     * has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
     public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
         try {
-            externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
+            externalProcessRunner.executeAndThrowOnFailure(generateCertScriptPath,
+                    generateCertScriptArgs.split("\\s+"));
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate internal TLS key and cert", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));

@@ -1,3 +1,4 @@
+import { Client } from '@/types';
 
 // Filters an array of objects excluding specified object key
 export function selectedFilter(arr: any[], search: string, excluded?: string): any[] {
@@ -70,3 +71,31 @@ export function saveResponseAsFile(response: any, defaultFileName: string = 'cer
   document.body.removeChild(link); // cleanup
 }
 
+// Finds if an array of clients has a client with given member class, member code and subsystem code.
+export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string) {
+
+  if (!memberClass || !memberCode || !subsystemCode) {
+    return false;
+  }
+
+  if (
+    clients.some((e: Client) => {
+      if (e.member_class.toLowerCase() !== memberClass.toLowerCase()) {
+        return false;
+      }
+
+      if (e.member_code.toLowerCase() !== memberCode.toLowerCase()) {
+        return false;
+      }
+
+      if (e.subsystem_code !== subsystemCode) {
+        return false;
+      }
+      return true;
+    })
+  ) {
+    return true;
+  }
+
+  return false;
+}

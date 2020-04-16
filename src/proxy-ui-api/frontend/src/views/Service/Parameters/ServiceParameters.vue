@@ -109,7 +109,7 @@
     </ValidationObserver>
 
     <div class="group-members-row">
-      <div class="row-title">{{$t('access.accessRights')}}</div>
+      <div class="row-title">{{$t('accessRights.title')}}</div>
       <div class="row-buttons">
         <large-button
           :disabled="!hasSubjects"
@@ -122,7 +122,7 @@
           class="add-members-button"
           @click="showAddSubjectsDialog()"
           data-test="show-add-subjects"
-        >{{$t('access.addSubjects')}}</large-button>
+        >{{$t('accessRights.addSubjects')}}</large-button>
       </div>
     </div>
 
@@ -132,6 +132,7 @@
           <th>{{$t('services.memberNameGroupDesc')}}</th>
           <th>{{$t('services.idGroupCode')}}</th>
           <th>{{$t('type')}}</th>
+          <th>{{$t('accessRights.rightsGiven')}}</th>
           <th></th>
         </tr>
         <template v-if="accessRightsSubjects">
@@ -139,6 +140,7 @@
             <td>{{subject.subject.member_name_group_description}}</td>
             <td>{{subject.subject.id}}</td>
             <td>{{subject.subject.subject_type}}</td>
+            <td>{{subject.rights_given_at | formatDateTime}}</td>
             <td>
               <div class="button-wrap">
                 <v-btn
@@ -184,7 +186,7 @@
       :dialog="addSubjectsDialogVisible"
       :filtered="accessRightsSubjects"
       :clientId="clientId"
-      title="access.addSubjectsTitle"
+      title="accessRights.addSubjectsTitle"
       @cancel="closeAccessRightsDialog"
       @subjectsAdded="doAddSubjects"
     />
@@ -199,7 +201,7 @@ import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ServiceClient } from '@/types';
+import { ServiceClient, Subject } from '@/types';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
@@ -280,7 +282,7 @@ export default Vue.extend({
           url_all: this.url_all,
           ssl_auth_all: this.ssl_auth_all,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'Service saved');
         })
         .catch((error) => {
@@ -314,7 +316,8 @@ export default Vue.extend({
         .post(`/services/${this.serviceId}/access-rights`, {
           items: selected,
         })
-        .then((res) => {
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'accessRights.addSubjectsSuccess');
           this.fetchData(this.serviceId);
         })
         .catch((error) => {
@@ -363,16 +366,19 @@ export default Vue.extend({
       this.selectedMember = undefined;
     },
 
-    removeArrayOfSubjects(subjects: any) {
+    removeArrayOfSubjects(subjects: Subject[]) {
       api
         .post(`/services/${this.serviceId}/access-rights/delete`, {
           items: subjects,
+        })
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'accessRights.removeSubjectsSuccess');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
         })
         .finally(() => {
-          this.fetchData(this.serviceId);
+          this.$emit('updateService', this.service.id);
         });
     },
     close() {

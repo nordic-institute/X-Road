@@ -118,6 +118,12 @@
     "activateSuccess": "Certificate has been activated",
     "disableSuccess": "Certificate has been disabled"
   },
+  "serviceClients": {
+    "addSubject": "Add subject",
+    "memberNameGroupDesc": "Member name / Group description",
+    "id": "ID",
+    "searchPlaceHolder": "Service clients"
+  },
   "localGroups": {
     "addGroup": "Add group",
     "code": "Code",
@@ -210,10 +216,18 @@
     "deleteEndpointText": "Are you sure that you want to delete this endpoint",
     "editSuccess": "Changes to endpoint saved successfully"
   },
-  "access": {
-    "accessRights": "Access Rights",
+  "accessRights": {
+    "title": "Access Rights",
     "addSubjects": "Add subjects",
-    "addSubjectsTitle": "Add Subjects"
+    "addSubjectsTitle": "Add Subjects",
+    "memberName": "Member Name / Group Description",
+    "id": "ID",
+    "rightsGiven": "Access Rights given",
+    "removeSuccess": "Access right removed successfully",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure that you want to remove this member?",
+    "addSubjectsSuccess": "Access rights added successfully",
+    "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -242,7 +256,10 @@
     "activate": "Activate",
     "deactivate": "Disable",
     "previous": "Previous",
-    "done": "Done"
+    "done": "Done",
+    "next": "Next",
+    "submit": "Submit",
+    "finish": "Finish"
   },
   "keys": {
     "token": "Token:",
@@ -364,6 +381,46 @@
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
+  "wizard": {
+    "addClientTitle": "Add a Client",
+    "clientDetails": "Client details",
+    "clientInfo1": "Specify the details of the Client you want to add.",
+    "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
+    "memberName": "Member Name",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
+    "subsystemCode": "Subsystem Code",
+    "selectClient": "Select Client",
+    "client": {
+      "addClient": "Add Client",
+      "member": "Member",
+      "memberNameTooltip": "Name of the member organization.",
+      "memberClassTooltip": "Code identifying the member class (e.g., government agency, private enterprise etc.).",
+      "memberCodeTooltip": "Member code that uniquely identifies this X-Road member within its member class (e.g. business ID).",
+      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member.",
+      "memberExists": "Member already exists"
+    },
+    "token": {
+      "title": "Token",
+      "info": "Select to which token you want to add the new Client. Note: the token must be in Log-in state.",
+      "tokenName": "Token name",
+      "loggedIn": "Logged in"
+    },
+    "signKey": {
+      "title": "Sign Key",
+      "info": "You can define a label for the newly created Key (not mandatory)",
+      "keyLabel": "Key Label"
+    },
+    "finish": {
+      "title": "Finish",
+      "infoLine1": "All required information is collected. By clicking \"Submit\", the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.",
+      "infoLine2": "In order to register the new client, you still need to:",
+      "todo1": "1) Send the CSR to a Certificate Authority for signing",
+      "todo2": "2) Once received back, import the signed CSR to the appropriate key",
+      "todo3": "3) At this point you can register the new added client",
+      "note": "NOTE: if you click Cancel, all data will be lost"
+    }
+  },
   "systemParameters": {
     "title": "System parameters",
     "configurationAnchor": {
@@ -438,6 +495,58 @@
       }
     }
   },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "description": "Specify which roles the new API key should be linked to."
+        },
+        "keyDetails": {
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+        }
+      },
+      "success": "API key successfully created"
+    },
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Linked roles:"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
+        }
+      }
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -485,6 +594,11 @@
     "path": "path",
     "keys": {
       "friendlyName": "Friendly name"
+    },
+    "addClient": {
+      "memberClass": "Member class",
+      "subsystemCode": "Subsystem Code",
+      "memberCode": "Member Code"
     }
   },
   "certificateProfile": {
