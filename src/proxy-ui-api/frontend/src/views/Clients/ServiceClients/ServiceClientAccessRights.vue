@@ -47,7 +47,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="accessRight in accessRights">
+        <tr v-for="(accessRight, index) in accessRights" v-bind:index="index" >
           <td>{{accessRight.service_code}}</td>
           <td>{{accessRight.service_title}}</td>
           <td>{{accessRight.rights_given_at}}</td>
@@ -57,7 +57,7 @@
             rounded
             color="primary"
             class="xrd-small-button xrd-table-button"
-            data-test="endpoint-edit-accessrights"
+            data-test="access-right-remove"
             @click="remove(accessRight)"
           >{{$t('action.remove')}}</v-btn></td>
         </tr>

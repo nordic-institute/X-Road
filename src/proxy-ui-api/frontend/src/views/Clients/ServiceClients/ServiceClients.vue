@@ -5,6 +5,7 @@
                     :label="$t('serviceClients.searchPlaceHolder')"
                     single-line
                     hide-details
+                    data-test="search-service-client"
                     class="search-input">
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -13,6 +14,7 @@
         @click="addServiceClient"
         outlined
         rounded
+        data-test="add-service-client"
         class="ma-0 rounded-button elevation-0"
       >{{$t('serviceClients.addServiceClient')}}
       </v-btn>
@@ -27,7 +29,9 @@
       </thead>
       <template v-if="serviceClients.length > 0">
         <tbody>
-          <tr v-for="sc in this.filteredServiceClients()" @click="showAccessRights(sc.id)">
+          <tr v-for="sc in this.filteredServiceClients()" v-bind:key="sc.id"
+              @click="showAccessRights(sc.id)"
+              data-test="open-access-rights">
             <td>{{sc.name}}</td>
             <td>{{sc.id}}</td>
           </tr>

@@ -4,7 +4,7 @@
       <v-card-title>
         <span class="headline">{{$t('accessRights.addServiceClientsTitle')}}</span>
         <v-spacer />
-        <i @click="cancel()" id="close-x"></i>
+        <i @click="cancel()" id="close-x" data-test="cancel"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px;" class="elevation-0">
@@ -25,6 +25,7 @@
                       :label="$t('name')"
                       single-line
                       hide-details
+                      data-test="name"
                       class="flex-input"
                     ></v-text-field>
 
@@ -33,6 +34,7 @@
                       :items="xroadInstances"
                       :label="$t('instance')"
                       class="flex-input"
+                      data-test="instance"
                       clearable
                     ></v-select>
                   </div>
@@ -42,6 +44,7 @@
                       v-model="memberClass"
                       :items="memberClasses"
                       :label="$t('member_class')"
+                      data-test="memberClass"
                       class="flex-input"
                       clearable
                     ></v-select>
@@ -50,6 +53,7 @@
                       label="Member group code"
                       single-line
                       hide-details
+                      data-test="memberCode"
                       class="flex-input"
                     ></v-text-field>
                   </div>
@@ -60,6 +64,7 @@
                       :label="$t('subsystem_code')"
                       single-line
                       hide-details
+                      data-test="subsystemCode"
                       class="flex-input"
                     ></v-text-field>
 
@@ -68,13 +73,14 @@
                       :items="ServiceClientTypeItems"
                       label="Subject type"
                       class="flex-input"
+                      data-test="serviceClientType"
                       clearable
                     ></v-select>
                   </div>
                 </div>
 
                 <div class="search-wrap">
-                  <large-button @click="search()">{{$t('action.search')}}</large-button>
+                  <large-button @click="search()" data-test="search-button">{{$t('action.search')}}</large-button>
                 </div>
               </div>
             </v-expansion-panel-content>
@@ -95,7 +101,7 @@
             <tr v-for="sc in serviceClientCandidates" v-bind:key="sc.id">
               <td class="first-column">
                 <div class="checkbox-wrap">
-                  <v-checkbox @change="checkboxChange(sc, $event)" color="primary"></v-checkbox>
+                  <v-checkbox @change="checkboxChange(sc, $event)" color="primary" data-test="sc-checkbox"></v-checkbox>
                 </div>
               </td>
               <td>{{sc.name}}</td>
@@ -116,9 +122,9 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button class="button-margin" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+        <large-button class="button-margin" data-test="cancel-button" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
 
-        <large-button :disabled="!canSave" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
+        <large-button :disabled="!canSave" data-test="save" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
