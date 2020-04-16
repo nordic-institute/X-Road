@@ -60,6 +60,8 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.openapi.validator.ClientAddValidator;
+import org.niis.xroad.restapi.openapi.validator.ServiceDescriptionAddValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
@@ -84,6 +86,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
@@ -400,6 +404,19 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 
+
+    @InitBinder("clientAdd")
+    @PreAuthorize("permitAll()")
+    protected void initClientAddBinder(WebDataBinder binder) {
+        binder.addValidators(new ClientAddValidator());
+    }
+
+    @InitBinder("serviceDescriptionAdd")
+    @PreAuthorize("permitAll()")
+    protected void initServiceDescriptionAddBinder(WebDataBinder binder) {
+        binder.addValidators(new ServiceDescriptionAddValidator());
+    }
+
     /**
      * This method is synchronized (like client add in old Ruby implementation)
      * to prevent a problem with two threads both creating "first" additional members.
@@ -409,6 +426,7 @@ public class ClientsApiController implements ClientsApi {
     public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
         boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
         IsAuthentication isAuthentication = null;
+
         try {
             isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
         } catch (Exception e) {

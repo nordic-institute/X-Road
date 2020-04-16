@@ -28,11 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.LimitRequestSizesException;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -46,19 +48,29 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
     public static final int TEN = 10;
 
+    private final ValidationErrorHelper validationErrorHelper;
+
+    @Autowired
+    public SpringInternalExceptionHandler(ValidationErrorHelper validationErrorHelper) {
+        this.validationErrorHelper = validationErrorHelper;
+    }
+
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
         log.error("exception caught", ex);
+        ErrorInfo errorInfo = new ErrorInfo();
         if (causedBySizeLimitExceeded(ex)) {
             status = HttpStatus.PAYLOAD_TOO_LARGE;
+        } else if (ex instanceof MethodArgumentNotValidException) {
+            errorInfo.setError(validationErrorHelper.createError((MethodArgumentNotValidException) ex));
         }
-        ErrorInfo errorInfo = new ErrorInfo();
         errorInfo.setStatus(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
                 status, request);
     }
+
 
     /**
      * LimitRequestSizesException is typically wrapped in an HttpMessageNotReadableException
