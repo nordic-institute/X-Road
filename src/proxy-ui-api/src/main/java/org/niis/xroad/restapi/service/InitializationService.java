@@ -161,14 +161,16 @@ public class InitializationService {
         if (isTokenPinEnforced) {
             TokenPinPolicy.Description description = TokenPinPolicy.describe(pin);
             if (!description.isValid()) {
-                throw new InvalidPinException("The provided pin code does not match with the pin code policy");
+                if (description.hasInvalidCharacters()) {
+                    throw new InvalidPinException("The provided pin code does not match with the pin code policy");
+                }
+                List<String> metadata = new ArrayList<>();
+                metadata.add(METADATA_PIN_MIN_LENGTH);
+                metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
+                metadata.add(METADATA_PIN_MIN_CHAR_CLASSES);
+                metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
+                throw new WeakPinException("The provided pin code was too weak", metadata);
             }
-            List<String> metadata = new ArrayList<>();
-            metadata.add(METADATA_PIN_MIN_LENGTH);
-            metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
-            metadata.add(METADATA_PIN_MIN_CHAR_CLASSES);
-            metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
-            throw new WeakPinException("The provided pin code was too weak", metadata);
         }
         try {
             signerProxyFacade.initSoftwareToken(pin);
