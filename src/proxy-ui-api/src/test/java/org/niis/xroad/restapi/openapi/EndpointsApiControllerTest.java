@@ -158,7 +158,7 @@ public class EndpointsApiControllerTest {
     @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
     public void getEndpointAccesRights() {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
-        assertTrue(serviceClients.size() == 2);
+        assertTrue(serviceClients.size() == 3);
         assertTrue(serviceClients.stream()
                 .anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS6)));
         assertTrue(serviceClients.stream()
@@ -169,7 +169,7 @@ public class EndpointsApiControllerTest {
     @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeExistingEndpointAccessRights() {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
-        assertTrue(serviceClients.size() == 2);
+        assertTrue(serviceClients.size() == 3);
         // TO DO: lots of renames
         ServiceClients subjects = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
@@ -177,15 +177,15 @@ public class EndpointsApiControllerTest {
         endpointsApiController.deleteEndpointServiceClients("6", subjects);
         persistenceUtils.flush();
         serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
-        assertTrue(serviceClients.size() == 1);
-        assertTrue(serviceClients.stream().findFirst().get().getId().equals("2"));
+        assertTrue(serviceClients.size() == 2);
+        assertTrue(serviceClients.stream().anyMatch(sc -> "2".equals(sc.getId())));
     }
 
     @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeInexistingEndpointAccessRights() {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
-        assertTrue(serviceClients.size() == 2);
+        assertTrue(serviceClients.size() == 3);
         ServiceClients subjects = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS1).serviceClientType(
                         ServiceClientType.SUBSYSTEM));

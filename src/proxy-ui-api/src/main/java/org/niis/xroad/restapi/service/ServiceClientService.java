@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
-import org.niis.xroad.restapi.dto.ServiceClientIdentifierType;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,8 +48,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.util.FormatUtils.xRoadIdToEncodedId;
-
 @Slf4j
 @Service
 @Transactional
@@ -61,13 +58,16 @@ public class ServiceClientService {
     private final ServiceService serviceService;
     private final EndpointService endpointService;
     private final AccessRightService accessRightService;
+    private final LocalGroupService localGroupService;
 
     public ServiceClientService(ClientRepository clientRepository, ServiceService serviceService,
-            EndpointService endpointService, AccessRightService accessRightService) {
+            EndpointService endpointService, AccessRightService accessRightService,
+            LocalGroupService localGroupService) {
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.endpointService = endpointService;
         this.accessRightService = accessRightService;
+        this.localGroupService = localGroupService;
     }
 
     /**
@@ -109,25 +109,31 @@ public class ServiceClientService {
         return new ArrayList(uniqueServiceClientMap.values());
     }
 
+    /**
+     * Get single service client
+     *
+     * @param clientId
+     * @param dto
+     * @return
+     * @throws ClientNotFoundException if client with given id is not found
+     * @throws ServiceClientNotFoundException if service client with given parameters is not found
+     */
     public ServiceClientDto getServiceClient(ClientId clientId, ServiceClientIdentifierDto dto)
             throws ClientNotFoundException, ServiceClientNotFoundException {
         List<ServiceClientDto> serviceClientsByClient = getServiceClientsByClient(clientId);
-        boolean isXRoadId = dto.getServiceClientIdentifierType().equals(ServiceClientIdentifierType.XROADID);
         return serviceClientsByClient.stream()
-            .filter(scDto -> isXRoadId
-                    ? scDto.getSubjectId().equals(dto.getXRoadId())
-                    : scDto.getLocalGroupId().equals(dto.getLocalGroupId()))
+            .filter(scDto -> dto.isLocalGroup()
+                    ? dto.getLocalGroupId().toString().equals(scDto.getLocalGroupId())
+                    : dto.getXRoadId().equals(scDto.getSubjectId()))
             .findFirst()
             .orElseThrow(() -> {
-                String serviceClientIdentifier = isXRoadId
-                        ? "xRoadId: " + dto.getXRoadId().toShortString()
-                        : "Localgroup id: " + dto.getLocalGroupId();
+                String serviceClientIdentifier = dto.isLocalGroup()
+                        ? "Localgroup id: " + dto.getLocalGroupId()
+                        : "xRoadId: " + dto.getXRoadId().toShortString();
                 return new ServiceClientNotFoundException("Service client not found for ClientId: "
                         + clientId.toShortString() + " and " + serviceClientIdentifier);
             });
     }
-
-
 
     /**
      * Get access right holders (serviceClients) by Service
@@ -177,25 +183,29 @@ public class ServiceClientService {
      * @param clientid
      * @param serviceClientId
      * @return
-     * @throws ClientNotFoundException
+     * @throws ClientNotFoundException if given client is not found
+     * @throws LocalGroupNotFoundException if given local group is not found
      */
-    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId clientid, String serviceClientId)
-            throws ClientNotFoundException {
+    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId clientid,
+            ServiceClientIdentifierDto serviceClientId) throws ClientNotFoundException, LocalGroupNotFoundException {
         ClientType clientType = clientRepository.getClient(clientid);
         if (clientType == null) {
             throw new ClientNotFoundException("Client not found with id: " + clientid.toShortString());
         }
 
-        // Filter subjects access rights from the given clients acl-list
+        // Get XRoadId for the given service client
+        XRoadId scId = serviceClientId.isLocalGroup()
+                ? localGroupService.getLocalGroupIdAsXroadId(serviceClientId.getLocalGroupId())
+                : serviceClientId.getXRoadId();
+
+        // Filter service clients access rights from the given clients acl-list
         return clientType.getAcl().stream()
                 .filter(acl -> {
-                    boolean iseq = xRoadIdToEncodedId(acl.getSubjectId()).equals(serviceClientId);
+                    boolean iseq = acl.getSubjectId().equals(scId);
                     boolean isBaseEndpoint = acl.getEndpoint().isBaseEndpoint();
                     return iseq && isBaseEndpoint;
                 })
                 .map(acl -> ServiceClientAccessRightDto.builder()
-                        .id(serviceClientId)
-                        .clientId(clientid.toShortString())
                         .serviceCode(acl.getEndpoint().getServiceCode())
                         .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
                         .title(getServiceTitle(clientType, acl.getEndpoint().getServiceCode()))

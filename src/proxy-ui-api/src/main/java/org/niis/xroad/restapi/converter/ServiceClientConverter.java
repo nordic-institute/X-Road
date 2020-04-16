@@ -120,7 +120,7 @@ public class ServiceClientConverter {
         XRoadId xRoadId;
         switch (serviceClientType) {
             case SUBSYSTEM:
-                if (clientConverter.isEncodedSubsystemId(encodedId)) {
+                if (!clientConverter.isEncodedSubsystemId(encodedId)) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
                 }
                 xRoadId = clientConverter.convertId(encodedId);

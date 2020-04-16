@@ -76,6 +76,7 @@ import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
@@ -551,14 +552,31 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<ServiceClient> getServiceClient(String id, String scId) {
+        ClientId clientIdentifier = clientConverter.convertId(id);
+        ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
+        ServiceClient serviceClient = null;
+        try {
+            serviceClient = serviceClientConverter.convertServiceClientDto(
+                    serviceClientService.getServiceClient(clientIdentifier, serviceClientIdentifierDto));
+        } catch (ClientNotFoundException | ServiceClientNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+
+        return new ResponseEntity<>(serviceClient, HttpStatus.OK);
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('VIEW_ACL_SUBJECT_OPEN_SERVICES')")
     public ResponseEntity<List<AccessRight>> getServiceClientAccessRights(String id, String scId) {
         ClientId clientIdentifier = clientConverter.convertId(id);
+        ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
         List<AccessRight> accessRights = null;
         try {
             accessRights = accessRightConverter.convert(
-                    serviceClientService.getServiceClientAccessRights(clientIdentifier, scId));
-        } catch (ClientNotFoundException e) {
+                    serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientIdentifierDto));
+        } catch (ClientNotFoundException | LocalGroupNotFoundException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
