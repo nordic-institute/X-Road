@@ -68,7 +68,6 @@ public class InitializationService {
     private final ServerConfService serverConfService;
     private final TokenService tokenService;
     private final GlobalConfFacade globalConfFacade;
-    private final IdentifierService identifierService;
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
 
@@ -77,14 +76,12 @@ public class InitializationService {
 
     @Autowired
     public InitializationService(SystemService systemService, ServerConfService serverConfService,
-            TokenService tokenService, GlobalConfFacade globalConfFacade,
-            IdentifierService identifierService, ClientService clientService,
+            TokenService tokenService, GlobalConfFacade globalConfFacade, ClientService clientService,
             SignerProxyFacade signerProxyFacade) {
         this.systemService = systemService;
         this.serverConfService = serverConfService;
         this.tokenService = tokenService;
         this.globalConfFacade = globalConfFacade;
-        this.identifierService = identifierService;
         this.clientService = clientService;
         this.signerProxyFacade = signerProxyFacade;
     }
