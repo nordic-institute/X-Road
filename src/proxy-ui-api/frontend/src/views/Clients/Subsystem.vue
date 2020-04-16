@@ -57,7 +57,11 @@ export default Vue.extend({
     ...mapGetters(['client']),
 
     showUnregister(): boolean {
-      if (this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ)) {
+      if (
+        this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        (this.client.status === 'REGISTERED' ||
+          this.client.status === 'REGISTRATION_IN_PROGRESS')
+      ) {
         return true;
       } else {
         return false;
@@ -139,6 +143,7 @@ export default Vue.extend({
           },
         )
         .finally(() => {
+          this.fetchClient(this.id);
           this.confirmUnregisterClient = false;
           this.unregisterLoading = false;
         });

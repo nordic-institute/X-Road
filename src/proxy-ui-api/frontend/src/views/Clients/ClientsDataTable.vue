@@ -88,7 +88,7 @@
           >{{$t('action.addSubsystem')}}</SmallButton>
 
           <SmallButton
-            v-if="(item.type == 'client' ||item.type != 'owner' && item.status !== 'REGISTERED') && showRegister"
+            v-if="(item.type == 'client'||item.type != 'owner' && item.status === 'SAVED') && showRegister"
             @click="registerClient(item)"
           >{{$t('action.register')}}</SmallButton>
         </div>
@@ -241,15 +241,16 @@ export default Vue.extend({
               'showSuccess',
               'clients.action.register.success',
             );
-            this.confirmRegisterClient = false;
-            this.registerClientLoading = false;
           },
           (error) => {
             this.$store.dispatch('showError', error);
-            this.confirmRegisterClient = false;
-            this.registerClientLoading = false;
           },
-        );
+        )
+        .finally(() => {
+          this.fetchClients();
+          this.confirmRegisterClient = false;
+          this.registerClientLoading = false;
+        });
     },
 
     customFilter: (value: any, search: string | null, item: any): boolean => {
@@ -298,6 +299,15 @@ export default Vue.extend({
       });
       return items;
     },
+
+    fetchClients() {
+      this.$store.dispatch('fetchClients').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
+    },
+  },
+    created() {
+    this.fetchClients();
   },
 });
 </script>
