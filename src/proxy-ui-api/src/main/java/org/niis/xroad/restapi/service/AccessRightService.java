@@ -578,74 +578,110 @@ public class AccessRightService {
         // Ultimately members cannot have access rights to Services -> no members in the Subject search results.
         searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() != XRoadObjectType.MEMBER);
 
+        // add subject type to condition
         if (subjectType != null) {
             searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() == subjectType);
         }
-        // Check if the memberName or LocalGroup's description match with the search term
+
+        // add member name or group description to condition
         if (!StringUtils.isEmpty(memberNameOrGroupDescription)) {
-            searchPredicate = searchPredicate.and(dto -> {
-                String memberName = dto.getMemberName();
-                String localGroupDescription = dto.getLocalGroupDescription();
-                boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
-                        || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
-                return isMatch;
-            });
+            searchPredicate = addMemberNameOrGroupDescriptionCondition(memberNameOrGroupDescription, searchPredicate);
         }
-        // Check if the instance of the subject matches with the search term
+
+        // add instance to condition
         if (!StringUtils.isEmpty(instance)) {
-            searchPredicate = searchPredicate.and(dto -> {
-                XRoadId xRoadId = dto.getSubjectId();
-                // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
-                // -> always return
-                if (xRoadId instanceof LocalGroupId) {
-                    return true;
-                } else {
-                    return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
-                }
-            });
+            searchPredicate = addInstanceCondition(instance, searchPredicate);
         }
-        // Check if the memberClass of the subject matches with the search term
+
+        // add member class to condition
         if (!StringUtils.isEmpty(memberClass)) {
-            searchPredicate = searchPredicate.and(dto -> {
-                XRoadId xRoadId = dto.getSubjectId();
-                if (xRoadId instanceof ClientId) {
-                    String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
-                    return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
-                } else {
-                    return false;
-                }
-            });
+            searchPredicate = addMemberClassCondition(memberClass, searchPredicate);
         }
-        // Check if the subsystemCode of the subject matches with the search term
+
+        // add subsystem to condition
         if (!StringUtils.isEmpty(subsystemCode)) {
-            searchPredicate = searchPredicate.and(dto -> {
-                XRoadId xRoadId = dto.getSubjectId();
-                if (xRoadId instanceof ClientId) {
-                    String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
-                    return StringUtils.containsIgnoreCase(clientSubsystemCode, subsystemCode);
-                } else {
-                    return false;
-                }
-            });
+            searchPredicate = addSubsystemCodeCondition(subsystemCode, searchPredicate);
         }
-        // Check if the memberCode or groupCode of the subject matches with the search term
+
+        // add membergroupcode to condition
         if (!StringUtils.isEmpty(memberGroupCode)) {
-            searchPredicate = searchPredicate.and(dto -> {
-                XRoadId xRoadId = dto.getSubjectId();
-                if (xRoadId instanceof ClientId) {
-                    String clientMemberCode = ((ClientId) xRoadId).getMemberCode();
-                    return StringUtils.containsIgnoreCase(clientMemberCode, memberGroupCode);
-                } else if (xRoadId instanceof GlobalGroupId) {
-                    String globalGroupCode = ((GlobalGroupId) xRoadId).getGroupCode();
-                    return StringUtils.containsIgnoreCase(globalGroupCode, memberGroupCode);
-                } else if (xRoadId instanceof LocalGroupId) {
-                    String localGroupCode = ((LocalGroupId) xRoadId).getGroupCode();
-                    return StringUtils.containsIgnoreCase(localGroupCode, memberGroupCode);
-                } else {
-                    return false;
-                }
-            });
+            searchPredicate = addMemberGroupCodeCondition(memberGroupCode, searchPredicate);
         }
+        return searchPredicate;
+    }
+
+    // Check if the memberName or LocalGroup's description match with the search term
+    private Predicate<ServiceClientDto> addMemberNameOrGroupDescriptionCondition(String memberNameOrGroupDescription, Predicate<ServiceClientDto> searchPredicate) {
+        searchPredicate = searchPredicate.and(dto -> {
+            String memberName = dto.getMemberName();
+            String localGroupDescription = dto.getLocalGroupDescription();
+            boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
+                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
+            return isMatch;
+        });
+        return searchPredicate;
+    }
+
+    // Check if the instance of the subject matches with the search term
+    private Predicate<ServiceClientDto> addInstanceCondition(String instance, Predicate<ServiceClientDto> searchPredicate) {
+        searchPredicate = searchPredicate.and(dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
+            // -> always return
+            if (xRoadId instanceof LocalGroupId) {
+                return true;
+            } else {
+                return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
+            }
+        });
+        return searchPredicate;
+    }
+
+    // Check if the memberClass of the subject matches with the search term
+    private Predicate<ServiceClientDto> addMemberClassCondition(String memberClass, Predicate<ServiceClientDto> searchPredicate) {
+        searchPredicate = searchPredicate.and(dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            if (xRoadId instanceof ClientId) {
+                String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
+                return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
+            } else {
+                return false;
+            }
+        });
+        return searchPredicate;
+    }
+
+    // Check if the subsystemCode of the subject matches with the search term
+    private Predicate<ServiceClientDto> addSubsystemCodeCondition(String subsystemCode, Predicate<ServiceClientDto> searchPredicate) {
+        searchPredicate = searchPredicate.and(dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            if (xRoadId instanceof ClientId) {
+                String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
+                return StringUtils.containsIgnoreCase(clientSubsystemCode, subsystemCode);
+            } else {
+                return false;
+            }
+        });
+        return searchPredicate;
+    }
+
+    // Check if the memberCode or groupCode of the subject matches with the search term
+    private Predicate<ServiceClientDto> addMemberGroupCodeCondition(String memberGroupCode, Predicate<ServiceClientDto> searchPredicate) {
+        searchPredicate = searchPredicate.and(dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            if (xRoadId instanceof ClientId) {
+                String clientMemberCode = ((ClientId) xRoadId).getMemberCode();
+                return StringUtils.containsIgnoreCase(clientMemberCode, memberGroupCode);
+            } else if (xRoadId instanceof GlobalGroupId) {
+                String globalGroupCode = ((GlobalGroupId) xRoadId).getGroupCode();
+                return StringUtils.containsIgnoreCase(globalGroupCode, memberGroupCode);
+            } else if (xRoadId instanceof LocalGroupId) {
+                String localGroupCode = ((LocalGroupId) xRoadId).getGroupCode();
+                return StringUtils.containsIgnoreCase(localGroupCode, memberGroupCode);
+            } else {
+                return false;
+            }
+        });
         return searchPredicate;
     }
 }
