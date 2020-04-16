@@ -55,8 +55,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_INSTANCE_IDENTIFIER;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.DUMMY_QUERY_FILE;
+import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.PARAM_INSTANCE_IDENTIFIER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;

@@ -22,27 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.wsdl;
+package org.niis.xroad.restapi.openapi.validator;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
 
-/**
- * Thrown if WSDL was invalid
- */
-public class InvalidWsdlException extends WsdlValidationException {
+@Slf4j
+public class ServiceDescriptionUpdateValidator extends AbstractIdentifierValidator {
 
-    public static final String ERROR_INVALID_WSDL = "invalid_wsdl";
-
-    /**
-     * @param metadata describes why wsdl was invalid
-     */
-    public InvalidWsdlException(List<String> metadata) {
-        super(new ErrorDeviation(ERROR_INVALID_WSDL, metadata));
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return ServiceDescriptionUpdate.class.equals(clazz);
     }
 
-    public InvalidWsdlException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
+    @Override
+    Collection<ValidatedField> getValidatedFields(Object target) {
+        ServiceDescriptionUpdate serviceDescriptionUpdate = (ServiceDescriptionUpdate) target;
+        return Arrays.asList(
+                ValidatedField.builder()
+                        .fieldName("newRestServiceCode")
+                        .value(serviceDescriptionUpdate.getNewRestServiceCode()).build());
     }
 }
