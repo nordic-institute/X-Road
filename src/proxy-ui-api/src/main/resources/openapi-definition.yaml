@@ -3454,9 +3454,10 @@ paths:
     put: # ok
       tags:
         - security server
-      summary: upload a configuration anchor file
-      operationId: uploadAnchor
-      description: Administrator uploads a configuration anchor file
+      summary: Upload a configuration anchor file to replace an existing one. Note that this only works if there already exists an anchor that can be replaced.
+        When initalizing a new Security Server use endpoint POST /system/anchor instead
+      operationId: replaceAnchor
+      description: Administrator uploads a configuration anchor file anytime after the Security Server has been initialized
       requestBody:
         description: configuration anchor
         content:

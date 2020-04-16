@@ -220,7 +220,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
-    public ResponseEntity<Void> uploadAnchor(Resource anchorResource) {
+    public ResponseEntity<Void> replaceAnchor(Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         try {
             systemService.replaceAnchor(anchorBytes);

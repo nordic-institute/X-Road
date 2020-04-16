@@ -108,7 +108,8 @@ public class InitializationService {
     }
 
     /**
-     * Initialize a new Security Server with the provided parameters
+     * Initialize a new Security Server with the provided parameters. The method will throw an exception if the
+     * server has already been initialized.
      * @param securityServerCode server code for the new Security Server
      * @param ownerMemberClass member class of the new owner member
      * @param ownerMemberCode member code of the new owner member
