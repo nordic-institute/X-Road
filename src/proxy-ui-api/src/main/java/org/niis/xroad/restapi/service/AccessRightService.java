@@ -3,7 +3,7 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -202,7 +202,7 @@ public class AccessRightService {
      * @throws LocalGroupNotFoundException
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-                Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws AccessRightNotFoundException,
+            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws AccessRightNotFoundException,
             ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException, LocalGroupNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
@@ -611,7 +611,8 @@ public class AccessRightService {
     }
 
     // Check if the memberName or LocalGroup's description match with the search term
-    private Predicate<ServiceClientDto> addMemberNameOrGroupDescriptionCondition(String memberNameOrGroupDescription, Predicate<ServiceClientDto> searchPredicate) {
+    private Predicate<ServiceClientDto> addMemberNameOrGroupDescriptionCondition(String memberNameOrGroupDescription,
+            Predicate<ServiceClientDto> searchPredicate) {
         searchPredicate = searchPredicate.and(dto -> {
             String memberName = dto.getMemberName();
             String localGroupDescription = dto.getLocalGroupDescription();
@@ -623,7 +624,8 @@ public class AccessRightService {
     }
 
     // Check if the instance of the subject matches with the search term
-    private Predicate<ServiceClientDto> addInstanceCondition(String instance, Predicate<ServiceClientDto> searchPredicate) {
+    private Predicate<ServiceClientDto> addInstanceCondition(String instance,
+            Predicate<ServiceClientDto> searchPredicate) {
         searchPredicate = searchPredicate.and(dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
@@ -638,7 +640,8 @@ public class AccessRightService {
     }
 
     // Check if the memberClass of the subject matches with the search term
-    private Predicate<ServiceClientDto> addMemberClassCondition(String memberClass, Predicate<ServiceClientDto> searchPredicate) {
+    private Predicate<ServiceClientDto> addMemberClassCondition(String memberClass,
+            Predicate<ServiceClientDto> searchPredicate) {
         searchPredicate = searchPredicate.and(dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
@@ -652,7 +655,8 @@ public class AccessRightService {
     }
 
     // Check if the subsystemCode of the subject matches with the search term
-    private Predicate<ServiceClientDto> addSubsystemCodeCondition(String subsystemCode, Predicate<ServiceClientDto> searchPredicate) {
+    private Predicate<ServiceClientDto> addSubsystemCodeCondition(String subsystemCode,
+            Predicate<ServiceClientDto> searchPredicate) {
         searchPredicate = searchPredicate.and(dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
@@ -666,7 +670,8 @@ public class AccessRightService {
     }
 
     // Check if the memberCode or groupCode of the subject matches with the search term
-    private Predicate<ServiceClientDto> addMemberGroupCodeCondition(String memberGroupCode, Predicate<ServiceClientDto> searchPredicate) {
+    private Predicate<ServiceClientDto> addMemberGroupCodeCondition(String memberGroupCode,
+            Predicate<ServiceClientDto> searchPredicate) {
         searchPredicate = searchPredicate.and(dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
