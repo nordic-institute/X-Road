@@ -74,13 +74,14 @@ public class InitializationApiController implements InitializationApi {
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                     ignoreWarnings);
-        } catch (AnchorNotFoundException e) {
-            e.printStackTrace();
-        } catch (InitializationService.InitializationException e) {
-            e.printStackTrace();
-        } catch (UnhandledWarningsException e) {
-            e.printStackTrace();
+        } catch (AnchorNotFoundException | InitializationService.InitializationException e) {
+            throw new ConflictException(e);
+        } catch (UnhandledWarningsException | InitializationService.InvalidPinException
+                | InitializationService.WeakPinException e) {
+            throw new BadRequestException(e);
+        } catch (InitializationService.SoftwareTokenInitException e) {
+            throw new InternalServerErrorException(e);
         }
-        return null;
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

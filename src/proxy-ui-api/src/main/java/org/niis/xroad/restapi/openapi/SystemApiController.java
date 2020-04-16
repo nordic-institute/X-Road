@@ -223,7 +223,7 @@ public class SystemApiController implements SystemApi {
     public ResponseEntity<Void> uploadAnchor(Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         try {
-            systemService.uploadAnchor(anchorBytes);
+            systemService.replaceAnchor(anchorBytes);
         } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
         } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
@@ -235,14 +235,36 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
-    public ResponseEntity<Anchor> previewAnchor(Boolean validateInstance, Resource anchorResource) {
+    public ResponseEntity<Anchor> previewAnchor(Boolean verifyInstance, Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         AnchorFile anchorFile = null;
         try {
-            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, validateInstance);
+            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, verifyInstance);
         } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
+    }
+
+    /**
+     * For uploading an initial configuration anchor. The difference between this and {@link #uploadAnchor(Resource)}
+     * is that the anchor's instance does not get verified
+     * @param anchorResource
+     * @return
+     */
+    @Override
+    @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    public ResponseEntity<Void> uploadInitialAnchor(Resource anchorResource) {
+        byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
+        try {
+            systemService.uploadInitialAnchor(anchorBytes);
+        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException
+                | SystemService.AnchorAlreadyExistsException e) {
+            throw new BadRequestException(e);
+        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
+                | ConfigurationVerifier.ConfigurationVerificationException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return ApiUtil.createCreatedResponse("/api/system/anchor", null);
     }
 }

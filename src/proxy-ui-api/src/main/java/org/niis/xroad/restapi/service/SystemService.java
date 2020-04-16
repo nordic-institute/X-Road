@@ -204,19 +204,9 @@ public class SystemService {
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      * @throws MalformedAnchorException if the Anchor content is wrong
      */
-    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance) throws
-            InvalidAnchorInstanceException,
-            MalformedAnchorException {
-        ConfigurationAnchorV2 anchor = null;
-        try {
-            anchor = new ConfigurationAnchorV2(anchorBytes);
-        } catch (CodedException ce) {
-            if (isCausedByMalformedAnchorContent(ce)) {
-                throw new MalformedAnchorException("Anchor is invalid");
-            } else {
-                throw ce;
-            }
-        }
+    public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
+            throws InvalidAnchorInstanceException, MalformedAnchorException {
+        ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
         }
@@ -226,29 +216,71 @@ public class SystemService {
     }
 
     /**
-     * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order to run
-     * the verification process with configuration-client module (via external script).
+     * Upload a new configuration anchor. This method should be used when initializing a new Security Server.
+     * This method will throw {@link AnchorAlreadyExistsException} if an anchor already exists. When updating an
+     * existing anchor one should use {@link #replaceAnchor(byte[])} instead.
      * @param anchorBytes
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      * @throws AnchorUploadException in case of external process exceptions
      * @throws MalformedAnchorException if the Anchor content is wrong
+     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
+     * returns an error
+     * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
+     * @throws AnchorAlreadyExistsException if there already is an anchor -> a new one cannot be uploaded. Instead the
+     * old anchor should be updated by using {@link #uploadAnchor(byte[])}
+     * verification
+     */
+    public void uploadInitialAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
+            MalformedAnchorException, ConfigurationDownloadException,
+            ConfigurationVerifier.ConfigurationVerificationException, AnchorAlreadyExistsException {
+        if (isAnchorImported()) {
+            throw new AnchorAlreadyExistsException("Anchor already exists - cannot upload a second one");
+        }
+        uploadAnchor(anchorBytes, false);
+    }
+
+    /**
+     * Replace the current configuration anchor with a new one. When uploading the first anchor (in Security Server
+     * init phase) one should use {@link #uploadInitialAnchor(byte[])};
+     * @param anchorBytes
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     * @throws AnchorUploadException in case of external process exceptions
+     * @throws MalformedAnchorException if the Anchor content is wrong
+     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
+     * returns an error
+     * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
+     * verification
+     */
+    public void replaceAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
+            MalformedAnchorException, ConfigurationDownloadException,
+            ConfigurationVerifier.ConfigurationVerificationException {
+        uploadAnchor(anchorBytes, true);
+    }
+
+    /**
+     * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order to run
+     * the verification process with configuration-client module (via external script).
+     * @param anchorBytes
+     * @param shouldVerifyAnchorInstance whether the anchor instance should be verified or not. Usually it should
+     * always be verified (and this parameter should be true) but e.g. when initializing a new Security Server it
+     * cannot be verified (and this parameter should be set to false)
+     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
+     * @throws AnchorUploadException in case of external process exceptions
+     * @throws MalformedAnchorException if the Anchor content is wrong
+     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
+     * returns an error
+     * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
+     * verification
      */
     // SonarQube: "InterruptedException" should not be ignored -> it has already been handled at this point
     @SuppressWarnings("squid:S2142")
-    public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
-            MalformedAnchorException, ConfigurationDownloadException,
-            ConfigurationVerifier.ConfigurationVerificationException {
-        ConfigurationAnchorV2 anchor = null;
-        try {
-            anchor = new ConfigurationAnchorV2(anchorBytes);
-        } catch (CodedException ce) {
-            if (isCausedByMalformedAnchorContent(ce)) {
-                throw new MalformedAnchorException("Anchor is invalid");
-            } else {
-                throw ce;
-            }
+    private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
+            throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
+            ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
+        ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
+        if (shouldVerifyAnchorInstance) {
+            verifyAnchorInstance(anchor);
         }
-        verifyAnchorInstance(anchor);
         File tempAnchor = null;
         try {
             tempAnchor = createTemporaryAnchorFile(anchorBytes);
@@ -285,6 +317,26 @@ public class SystemService {
             // global conf does not exist - good!
         }
         return isGlobalConfInitialized;
+    }
+
+    /**
+     * Simple helper to create a ConfigurationAnchorV2 instance from bytes
+     * @param anchorBytes
+     * @return
+     * @throws MalformedAnchorException if the anchor is malformed or somehow invalid
+     */
+    private ConfigurationAnchorV2 createAnchorFromBytes(byte[] anchorBytes) throws MalformedAnchorException {
+        ConfigurationAnchorV2 anchor = null;
+        try {
+            anchor = new ConfigurationAnchorV2(anchorBytes);
+        } catch (CodedException ce) {
+            if (isCausedByMalformedAnchorContent(ce)) {
+                throw new MalformedAnchorException("Anchor is invalid");
+            } else {
+                throw ce;
+            }
+        }
+        return anchor;
     }
 
     /**
@@ -403,6 +455,17 @@ public class SystemService {
 
         public MalformedAnchorException(String s) {
             super(s, new ErrorDeviation(MALFORMED_ANCHOR));
+        }
+    }
+
+    /**
+     * Thrown if user tries to upload a new anchor instead of updating the old
+     */
+    public static class AnchorAlreadyExistsException extends ServiceException {
+        public static final String ANCHOR_EXISTS = "anchor_already_exists";
+
+        public AnchorAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ANCHOR_EXISTS));
         }
     }
 }
