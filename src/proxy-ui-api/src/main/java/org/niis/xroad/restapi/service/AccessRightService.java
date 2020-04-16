@@ -3,7 +3,7 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -44,7 +44,6 @@ import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,7 +72,6 @@ import java.util.stream.Collectors;
 @PreAuthorize("isAuthenticated()")
 public class AccessRightService {
 
-    private final LocalGroupRepository localGroupRepository;
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
@@ -83,12 +81,11 @@ public class AccessRightService {
     private final LocalGroupService localGroupService;
 
     @Autowired
-    public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
+    public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
             GlobalConfService globalConfService,
             EndpointService endpointService,
             LocalGroupService localGroupService) {
-        this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;

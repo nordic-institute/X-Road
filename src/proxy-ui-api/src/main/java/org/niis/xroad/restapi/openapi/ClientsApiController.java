@@ -76,7 +76,6 @@ import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
-import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
@@ -558,9 +557,11 @@ public class ClientsApiController implements ClientsApi {
         ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
         ServiceClient serviceClient = null;
         try {
+            XRoadId serviceClientId =
+                    serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             serviceClient = serviceClientConverter.convertServiceClientDto(
-                    serviceClientService.getServiceClient(clientIdentifier, serviceClientIdentifierDto));
-        } catch (ClientNotFoundException | ServiceClientNotFoundException e) {
+                    serviceClientService.getServiceClient(clientIdentifier, serviceClientId));
+        } catch (ResourceNotFoundException e) {
             throw new BadRequestException(e);
         }
 
@@ -574,9 +575,11 @@ public class ClientsApiController implements ClientsApi {
         ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
         List<AccessRight> accessRights = null;
         try {
+            XRoadId serviceClientId =
+                    serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             accessRights = accessRightConverter.convert(
-                    serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientIdentifierDto));
-        } catch (ClientNotFoundException | LocalGroupNotFoundException e) {
+                    serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
+        } catch (ResourceNotFoundException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
