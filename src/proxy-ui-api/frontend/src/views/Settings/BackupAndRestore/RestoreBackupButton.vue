@@ -44,12 +44,12 @@ export default Vue.extend({
   },
   data() {
     return {
-      showConfirmation: false,
-      restoring: false,
+      showConfirmation: false as boolean,
+      restoring: false as boolean,
     };
   },
   methods: {
-    async restoreBackup() {
+    restoreBackup() {
       this.restoring = true;
       api
         .put(`/backups/${this.backup.filename}/restore`, {})
