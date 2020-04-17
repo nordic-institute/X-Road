@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.InitializationStatus;
+import org.niis.xroad.restapi.openapi.validator.InitialServerConfValidator;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -36,6 +37,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -63,6 +66,12 @@ public class InitializationApiController implements InitializationApi {
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 
+    @InitBinder("initialServerConf")
+    @PreAuthorize("permitAll()")
+    protected void initInitialServerConfBinder(WebDataBinder binder) {
+        binder.addValidators(new InitialServerConfValidator());
+    }
+
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
@@ -82,6 +91,6 @@ public class InitializationApiController implements InitializationApi {
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

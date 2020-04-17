@@ -74,7 +74,7 @@ public class InitializationApiControllerTest {
     public void initSecurityServerSuccess() {
         InitialServerConf initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
         ResponseEntity<Void> response = initializationApiController.initSecurityServer(initialServerConf);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
