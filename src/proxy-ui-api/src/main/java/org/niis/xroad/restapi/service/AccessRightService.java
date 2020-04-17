@@ -149,6 +149,7 @@ public class AccessRightService {
 
     /**
      * Remove access rights from endpoint
+     * TO DO: get rid of subjectIds / localGroupIds
      *
      * @param clientType
      * @param endpointType
@@ -170,18 +171,39 @@ public class AccessRightService {
         if (subjectIds != null) {
             subjectsToDelete.addAll(subjectIds);
         }
+        deleteEndpointAccessRights(clientType, Collections.singletonList(endpointType), subjectsToDelete);
+    }
 
-        // Check all local groups are found in the access right list of the client
-        List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
-                .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
-                        && subjectsToDelete.contains(acl.getSubjectId()))
-                .collect(Collectors.toList());
-        if (accessRightsToBeRemoved.size() != subjectsToDelete.size()) {
-            throw new AccessRightNotFoundException("All local groups identifiers + " + subjectsToDelete.toString()
-                    + " weren't found in the access rights list of the given client: " + clientType.getIdentifier());
+    /**
+     * delete access rights of multiple subjectIds from one endpoint, or multiple endpoints for one subject,
+     * or multiple-for-multiple.
+     *
+     * Deleting access rights to multiple endpoints from multiple
+     * subjects will probably not be used, but if it is, all endpoints have to exist for all subjects, otherwise
+     * exception is thrown.
+     *
+     * @param clientType
+     * @param endpointTypes
+     * @param subjectIds
+     * @throws AccessRightNotFoundException if subject did not have access right that was attempted to be deleted
+     */
+    private void deleteEndpointAccessRights(ClientType clientType, List<EndpointType> endpointTypes,
+            Set<XRoadId> subjectIds) throws AccessRightNotFoundException {
+
+        for (EndpointType endpointType: endpointTypes) {
+            // check that all access rights exist and can be deleted
+            List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
+                    .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
+                            && subjectIds.contains(acl.getSubjectId()))
+                    .collect(Collectors.toList());
+            if (accessRightsToBeRemoved.size() != subjectIds.size()) {
+                throw new AccessRightNotFoundException("All local service client identifiers + "
+                        + subjectIds.toString()
+                        + " weren't found in the access rights list of the given client: "
+                        + clientType.getIdentifier());
+            }
+            clientType.getAcl().removeAll(accessRightsToBeRemoved);
         }
-
-        clientType.getAcl().removeAll(accessRightsToBeRemoved);
     }
 
     /**
@@ -287,8 +309,6 @@ public class AccessRightService {
             XRoadId subjectId) throws EndpointNotFoundException,
             DuplicateAccessRightException, ClientNotFoundException, IdentifierNotFoundException {
 
-        log.debug("Add access rights to subject", subjectId); // acl_subject_open_services_add
-
         // validate params some
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -324,15 +344,30 @@ public class AccessRightService {
     public void deleteServiceClientAccessRights(ClientId clientId,
             Set<String> serviceCodes, XRoadId subjectId) throws EndpointNotFoundException,
                 AccessRightNotFoundException, ClientNotFoundException, IdentifierNotFoundException {
-        if (true) {
-            throw new RuntimeException("not implemented");
-        } else {
-            try {
-                addServiceClientAccessRights(null, null, null);
-            } catch (DuplicateAccessRightException e) {
-                throw new AccessRightNotFoundException(e);
-            }
+
+        // validate params some
+        ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
+        if (subjectId == null) {
+            throw new IllegalArgumentException("missing subjectId");
+        }
+        XRoadObjectType objectType = subjectId.getObjectType();
+        if (!isValidServiceClientType(objectType)) {
+            throw new IllegalArgumentException("Invalid object type " + objectType);
+        }
+
+        // prepare params for addAccessRightsInternal
+        List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        Set<XRoadId> subjectIds = new HashSet<>();
+        subjectIds.add(subjectId);
+
+        // verify that given subjectId exists
+        verifyServiceClientIdentifiersExist(clientType, subjectIds);
+
+        deleteEndpointAccessRights(clientType, baseEndpoints, subjectIds);
+
     }
 
     private boolean isValidServiceClientType(XRoadObjectType objectType) {
