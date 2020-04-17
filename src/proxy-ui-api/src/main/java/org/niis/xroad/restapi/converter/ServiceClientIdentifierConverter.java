@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceClientIdentifierConverter {
 
+    public static final String ERROR_INVALID_SERVICE_CLIENT_ID = "invalid_service_client_id";
     private static final String INVALID_SERVICE_CLIENT_ID = "Invalid service client id ";
     private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
@@ -79,13 +81,18 @@ public class ServiceClientIdentifierConverter {
             try {
                 id = Long.parseLong(encodedServiceClientIdentifier);
             } catch (NumberFormatException e) {
-                throw new BadRequestException(INVALID_SERVICE_CLIENT_ID + encodedServiceClientIdentifier);
+                throw createBadServiceClientIdException(encodedServiceClientIdentifier);
             }
             dto.setLocalGroupId(id);
         } else {
-            throw new BadRequestException(INVALID_SERVICE_CLIENT_ID + encodedServiceClientIdentifier);
+            throw createBadServiceClientIdException(encodedServiceClientIdentifier);
         }
         return dto;
+    }
+
+    private BadRequestException createBadServiceClientIdException(String encodedId) {
+        return new BadRequestException(INVALID_SERVICE_CLIENT_ID + encodedId,
+                new ErrorDeviation(ERROR_INVALID_SERVICE_CLIENT_ID));
     }
 
     /**
