@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://producer.x-road.eu"
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:tns="http://producer.x-road.eu"
+        xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+        xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+        xmlns:ref="http://ws-i.org/profiles/basic/1.1/xsd"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <wsdl:types>
+        <xs:schema targetNamespace="http://producer.x-road.eu"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:import namespace="http://x-road.eu/xsd/xroad.xsd"
+                    schemaLocation="http://x-road.eu/xsd/xroad.xsd" />
+            <xs:import namespace="http://ws-i.org/profiles/basic/1.1/xsd"
+                    schemaLocation="http://ws-i.org/profiles/basic/1.1/swaref.xsd" />
+            <xs:import namespace="http://www.w3.org/2005/05/xmlmime"
+                    schemaLocation="http://www.w3.org/2005/05/xmlmime" />
+            <xs:element name="xroadGetRandom">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="seed" type="xs:decimal">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <xrd:title>Random seed</xrd:title>
+                                </xs:appinfo>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="xroadGetRandomResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="random" type="xs:decimal" minOccurs="1">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <xrd:title>Random number</xrd:title>
+                                </xs:appinfo>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="bodyMassIndex">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="weight" type="xs:float">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <xrd:title>Weight in kg</xrd:title>
+                                </xs:appinfo>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="height" type="xs:float">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <xrd:title>Height in cm</xrd:title>
+                                </xs:appinfo>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="bodyMassIndexResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="bodyMassIndex" type="xs:float" minOccurs="1">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <xrd:title>Body mass index</xrd:title>
+                                </xs:appinfo>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+		</xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="xroadGetRandom">
+        <wsdl:part name="xroadGetRandom" element="tns:xroadGetRandom" />
+    </wsdl:message>
+    <wsdl:message name="xroadGetRandomResponse">
+        <wsdl:part name="xroadGetRandomResponse" element="tns:xroadGetRandomResponse" />
+    </wsdl:message>
+
+    <wsdl:message name="bodyMassIndex">
+        <wsdl:part name="bodyMassIndex" element="tns:bodyMassIndex" />
+    </wsdl:message>
+    <wsdl:message name="bodyMassIndexResponse">
+        <wsdl:part name="bodyMassIndexResponse" element="tns:bodyMassIndexResponse" />
+    </wsdl:message>
+
+    <wsdl:message name="requestHeader">
+        <wsdl:part name="client" element="xrd:client" />
+        <wsdl:part name="service" element="xrd:service" />
+        <wsdl:part name="id" element="xrd:id" />
+        <wsdl:part name="userId" element="xrd:userId" />
+        <wsdl:part name="issue" element="xrd:issue" />
+        <wsdl:part name="protocolVersion" element="xrd:protocolVersion" />
+    </wsdl:message>
+
+    <wsdl:portType name="testServicePort">
+        <wsdl:operation name="xroadGetRandom">
+            <wsdl:input name="xroadGetRandom" message="tns:xroadGetRandom" />
+            <wsdl:output/>
+        </wsdl:operation>
+
+        <wsdl:operation name="bodyMassIndex">
+            <wsdl:documentation>
+                <xrd:title>bodyMassIndex</xrd:title>
+                <xrd:notes>Technical notes for bodyMassIndex:
+                        This is a simple SOAP service.</xrd:notes>
+            </wsdl:documentation>
+            <wsdl:input name="bodyMassIndex" message="tns:bodyMassIndex" />
+            <wsdl:output name="bodyMassIndexResponse"
+                    message="tns:bodyMassIndexResponse" />
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="xroadGetRandomPortSoap11"
+            type="tns:testServicePort">
+        <soap:binding style="document"
+                transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="xroadGetRandom">
+            <soap:operation soapAction="" style="document" />
+            <xrd:version>v1</xrd:version>
+            <wsdl:input name="xroadGetRandom">
+                <soap:body use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="client" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="service" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="id" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="userId" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="issue" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="xroadGetRandomResponse">
+                <soap:body use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="client" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="service" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="id" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="userId" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="issue" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="protocolVersion" use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+
+	</wsdl:binding>
+
+    <wsdl:binding name="bodyMassIndexPortSoap11"
+            type="tns:testServicePort">
+        <soap:binding style="document"
+                transport="http://schemas.xmlsoap.org/soap/http" />
+
+        <wsdl:operation name="bodyMassIndex">
+            <soap:operation soapAction="" style="document" />
+            <xrd:version>v1</xrd:version>
+            <wsdl:input name="bodyMassIndex">
+                <soap:body use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="client" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="service" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="id" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="userId" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="issue" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="bodyMassIndexResponse">
+                <soap:body use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="client" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="service" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="id" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="userId" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="issue" use="literal" />
+                <soap:header message="tns:requestHeader"
+                        part="protocolVersion" use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+
+	</wsdl:binding>
+
+    <wsdl:service name="xroadGetRandom">
+        <wsdl:port name="xroadGetRandomPortSoap11"
+                binding="tns:xroadGetRandomPortSoap11">
+            <soap:address location="http://xroad-lxd-web.lxd:8088/xroadGetRandom" />
+        </wsdl:port>
+    </wsdl:service>
+
+    <wsdl:service name="bodyMassIndex">
+        <wsdl:port name="bodyMassIndexPortSoap11"
+                binding="tns:bodyMassIndexPortSoap11">
+            <soap:address location="http://xroad-lxd-web.lxd:8088/bodyMassIndex" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>
