@@ -75,7 +75,6 @@ import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
-import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
@@ -594,14 +593,7 @@ public class ClientsApiController implements ClientsApi {
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(endcodedServiceClientId);
-        XRoadId serviceClientId = dto.getXRoadId();
-        if (dto.isLocalGroup()) {
-            try {
-                serviceClientId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
-            } catch (LocalGroupNotFoundException e) {
-                throw new ResourceNotFoundException(e);
-            }
-        }
+        XRoadId serviceClientId = serviceClientService.convertServiceClientIdentifierDtoToXroadId(dto);
         Set<String> serviceCodes = getServiceCodes(accessRights);
         List<ServiceClientAccessRightDto> accessRightTypes = null;
         try {
@@ -614,6 +606,26 @@ public class ClientsApiController implements ClientsApi {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(accessRightConverter.convert(accessRightTypes), HttpStatus.CREATED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
+    public ResponseEntity<Void> deleteServiceClientAccessRights(String encodedClientId,
+            String endcodedServiceClientId, AccessRights accessRights) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(endcodedServiceClientId);
+        XRoadId serviceClientId = serviceClientService.convertServiceClientIdentifierDtoToXroadId(dto);
+        Set<String> serviceCodes = getServiceCodes(accessRights);
+        try {
+            accessRightService.deleteServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
+        } catch (IdentifierNotFoundException | ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (EndpointNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (AccessRightService.AccessRightNotFoundException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     private Set<String> getServiceCodes(AccessRights accessRights) {

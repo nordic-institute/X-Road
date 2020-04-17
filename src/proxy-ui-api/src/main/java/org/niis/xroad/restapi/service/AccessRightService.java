@@ -321,6 +321,20 @@ public class AccessRightService {
         }
     }
 
+    public void deleteServiceClientAccessRights(ClientId clientId,
+            Set<String> serviceCodes, XRoadId subjectId) throws EndpointNotFoundException,
+                AccessRightNotFoundException, ClientNotFoundException, IdentifierNotFoundException {
+        if (true) {
+            throw new RuntimeException("not implemented");
+        } else {
+            try {
+                addServiceClientAccessRights(null, null, null);
+            } catch (DuplicateAccessRightException e) {
+                throw new AccessRightNotFoundException(e);
+            }
+        }
+    }
+
     private boolean isValidServiceClientType(XRoadObjectType objectType) {
         return objectType == XRoadObjectType.SUBSYSTEM
                 || objectType == XRoadObjectType.GLOBALGROUP
@@ -614,6 +628,7 @@ public class AccessRightService {
      * Null or empty value is considered a match
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
+     * @throws ClientNotFoundException if client was not found
      */
     public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
             String memberNameOrGroupDescription,
@@ -709,7 +724,7 @@ public class AccessRightService {
 
     /**
      * Composes a {@link Predicate} that will be used to filter {@link ServiceClientDto ServiceClientDtos}
-     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#subjectId}
+     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#getSubjectId()}
      * which can be of type {@link GlobalGroupId}, {@link LocalGroupId} or {@link ClientId}. When evaluating the
      * Predicate the type of the Subject will be taken in account for example when testing if the search term
      * {@code memberGroupCode} matches
