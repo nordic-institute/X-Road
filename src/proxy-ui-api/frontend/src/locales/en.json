@@ -49,6 +49,13 @@
           "confirmation": "Are you sure you want to delete backup {file}?"
         },
         "success": "Backup {file} deleted"
+      },
+      "restore": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to restore from {file}?"
+        },
+        "success": "Configuration restored from {file}"
       }
     }
   },
