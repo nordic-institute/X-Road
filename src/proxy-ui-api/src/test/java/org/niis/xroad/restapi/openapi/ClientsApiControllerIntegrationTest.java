@@ -1116,6 +1116,12 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.getServiceClient(TestUtils.CLIENT_ID_SS1, "NoSuchServiceClient");
     }
 
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
+    public void getServiceClientWithClientNotContainingGivenServiceClient() {
+        clientsApiController.getServiceClient(TestUtils.CLIENT_ID_SS5, TestUtils.CLIENT_ID_SS1);
+    }
+
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void getServiceClient() {

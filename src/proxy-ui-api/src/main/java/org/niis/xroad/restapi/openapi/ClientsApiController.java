@@ -76,6 +76,7 @@ import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
@@ -561,8 +562,8 @@ public class ClientsApiController implements ClientsApi {
                     serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             serviceClient = serviceClientConverter.convertServiceClientDto(
                     serviceClientService.getServiceClient(clientIdentifier, serviceClientId));
-        } catch (ResourceNotFoundException e) {
-            throw new BadRequestException(e);
+        } catch (ClientNotFoundException | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         }
 
         return new ResponseEntity<>(serviceClient, HttpStatus.OK);
@@ -579,8 +580,8 @@ public class ClientsApiController implements ClientsApi {
                     serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             accessRights = accessRightConverter.convert(
                     serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
-        } catch (ResourceNotFoundException e) {
-            throw new BadRequestException(e);
+        } catch (ClientNotFoundException | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
     }
