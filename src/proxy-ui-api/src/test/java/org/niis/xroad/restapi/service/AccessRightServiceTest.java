@@ -41,6 +41,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -119,6 +120,9 @@ public class AccessRightServiceTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private PersistenceUtils persistenceUtils;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
@@ -192,6 +196,7 @@ public class AccessRightServiceTest {
         List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
                 serviceOwner, serviceCodes, subsystemId);
         assertEquals(3, dtos.size());
+        persistenceUtils.flush();
 
         ServiceClientAccessRightDto accessRightDto = dtos.stream()
                 .filter(a -> a.getServiceCode().equals("calculatePrime"))
@@ -322,9 +327,10 @@ public class AccessRightServiceTest {
         when(globalConfService.clientsExist(any())).thenReturn(true);
         when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
-        ClientId serviceOwner = TestUtils.getM1Ss2ClientId();
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        // xroadGetRandomOld belongs to ss2
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
-                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+                "calculatePrime", "openapi-servicecode", "xroadGetRandomOld"));
         XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
         try {
             accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, subsystemId);
@@ -333,6 +339,7 @@ public class AccessRightServiceTest {
         }
 
         XRoadId localGroupId = LocalGroupId.create("group2");
+        //SS2 does not have local group group2
         try {
             accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, localGroupId);
             fail("should have thrown exception");

@@ -34,7 +34,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,11 +62,21 @@ public class IdentifierService {
      * @return List of XRoadIds
      */
     public Set<XRoadId> getOrPersistXroadIds(Set<XRoadId> xRoadIds) {
-        Set<XRoadId> txEntities = getXroadIds(xRoadIds);
-        xRoadIds.removeAll(txEntities); // remove the persistent ones
-        identifierRepository.saveOrUpdate(xRoadIds); // persist the non-persisted
-        txEntities.addAll(xRoadIds); // add the newly persisted ids into the collection of already existing ids
-        return txEntities;
+        Set<XRoadId> idsToPersist = new HashSet<>(xRoadIds);
+        Set<XRoadId> managedEntities = getXroadIds(idsToPersist);
+        idsToPersist.removeAll(managedEntities); // remove the persistent ones
+        identifierRepository.saveOrUpdate(idsToPersist); // persist the non-persisted
+        managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
+        return managedEntities;
+    }
+
+    /**
+     * Get the existing {@link XRoadId xRoadId} from the local db or persist it if it did not exist in db yet.
+     * @param xRoadId
+     * @return managed XRoadId which exists in IDENTIFIER table
+     */
+    public XRoadId getOrPersistXroadId(XRoadId xRoadId) {
+        return getOrPersistXroadIds(new HashSet<>(Arrays.asList(xRoadId))).iterator().next();
     }
 
     /**

@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -309,42 +310,37 @@ public class AccessRightService {
             XRoadId subjectId) throws EndpointNotFoundException,
             DuplicateAccessRightException, ClientNotFoundException, IdentifierNotFoundException {
 
-        // validate params some
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
-        if (subjectId == null) {
-            throw new IllegalArgumentException("missing subjectId");
-        }
-        XRoadObjectType objectType = subjectId.getObjectType();
-        if (!isValidServiceClientType(objectType)) {
-            throw new IllegalArgumentException("Invalid object type " + objectType);
-        }
+        ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
 
         // prepare params for addAccessRightsInternal
         List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
-        Set<XRoadId> subjectIds = new HashSet<>();
-        subjectIds.add(subjectId);
 
-        // verify that given subjectId exists
-        verifyServiceClientIdentifiersExist(clientType, subjectIds);
-
-        // make sure subject id exists in serverconf db IDENTIFIER table
-        subjectIds = identifierService.getOrPersistXroadIds(subjectIds);
+        // make sure subject id exists in serverconf db IDENTIFIER table, and use a managed entity
+        XRoadId managedSubjectId = identifierService.getOrPersistXroadId(subjectId);
 
         try {
-            return addAccessRightsInternal(subjectIds, clientType, baseEndpoints).get(subjectId);
+            return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
+                    .get(managedSubjectId);
         } catch (LocalGroupNotFoundException e) {
             // no need to handle this in more detail than the other service client types
             throw new IdentifierNotFoundException(e);
         }
     }
-
     public void deleteServiceClientAccessRights(ClientId clientId,
             Set<String> serviceCodes, XRoadId subjectId) throws EndpointNotFoundException,
                 AccessRightNotFoundException, ClientNotFoundException, IdentifierNotFoundException {
 
+        ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
+
+        // prepare params for addAccessRightsInternal
+        List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+
+        deleteEndpointAccessRights(clientType, baseEndpoints, new HashSet<>(Arrays.asList((subjectId))));
+
+    }
+
+    private ClientType validateServiceClientAccessRightsParameters(ClientId clientId, XRoadId subjectId)
+            throws ClientNotFoundException, IdentifierNotFoundException {
         // validate params some
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -358,17 +354,12 @@ public class AccessRightService {
             throw new IllegalArgumentException("Invalid object type " + objectType);
         }
 
-        // prepare params for addAccessRightsInternal
-        List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
-        Set<XRoadId> subjectIds = new HashSet<>();
-        subjectIds.add(subjectId);
-
         // verify that given subjectId exists
-        verifyServiceClientIdentifiersExist(clientType, subjectIds);
+        verifyServiceClientIdentifiersExist(clientType, new HashSet(Arrays.asList(subjectId)));
 
-        deleteEndpointAccessRights(clientType, baseEndpoints, subjectIds);
-
+        return clientType;
     }
+
 
     private boolean isValidServiceClientType(XRoadObjectType objectType) {
         return objectType == XRoadObjectType.SUBSYSTEM
