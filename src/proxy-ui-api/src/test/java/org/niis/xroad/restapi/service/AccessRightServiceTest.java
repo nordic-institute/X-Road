@@ -53,11 +53,13 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -558,4 +560,18 @@ public class AccessRightServiceTest {
                 && arh.getSubjectId().getXRoadInstance().equals("FI")));
 
     }
+
+    @Test
+    public void getClientServiceClientsHasCorrectRightsGiven() throws Exception {
+        ClientId clientId = ClientId.create("FI", "GOV", "M1", "SS1");
+        List<ServiceClientDto> serviceClients = serviceClientService.getServiceClientsByClient(clientId);
+        XRoadId globalGroupId = GlobalGroupId.create("FI", "test-globalgroup");
+        Optional<ServiceClientDto> groupServiceClient = serviceClients.stream()
+                .filter(dto -> dto.getSubjectId().equals(globalGroupId))
+                .findFirst();
+        assertTrue(groupServiceClient.isPresent());
+        OffsetDateTime correctRightsGiven = OffsetDateTime.parse("2020-01-01T10:07:30Z");
+        assertEquals(correctRightsGiven, groupServiceClient.get().getRightsGiven());
+    }
+
 }
