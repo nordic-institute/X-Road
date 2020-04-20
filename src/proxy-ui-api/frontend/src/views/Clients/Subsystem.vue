@@ -58,6 +58,7 @@ export default Vue.extend({
 
     showUnregister(): boolean {
       if (
+        this.client &&
         this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
         (this.client.status === 'REGISTERED' ||
           this.client.status === 'REGISTRATION_IN_PROGRESS')
