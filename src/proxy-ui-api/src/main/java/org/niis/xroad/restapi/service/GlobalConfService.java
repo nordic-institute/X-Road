@@ -103,6 +103,30 @@ public class GlobalConfService {
     }
 
     /**
+     * @param identifiers global group identifiers
+     * @return whether the global groups exist in global configuration
+     * Global groups may or may not have entries in IDENTIFIER table
+     */
+    public boolean globalGroupsExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
+                .map(GlobalGroupInfo::getId)
+                .collect(Collectors.toList());
+        return existingIdentifiers.containsAll(identifiers);
+    }
+
+    /**
+     * @param identifiers client identifiers
+     * @return whether the clients exist in global configuration.
+     * Clients may or may not have entries in IDENTIFIER table
+     */
+    public boolean clientsExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
+                .map(MemberInfo::getId)
+                .collect(Collectors.toList());
+        return existingIdentifiers.containsAll(identifiers);
+    }
+
+    /**
      * @param identifiers
      * @return whether the global group identifiers exist in global configuration
      */

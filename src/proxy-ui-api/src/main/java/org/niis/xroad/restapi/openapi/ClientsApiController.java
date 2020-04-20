@@ -71,6 +71,7 @@ import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
@@ -580,7 +581,8 @@ public class ClientsApiController implements ClientsApi {
                     serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             accessRights = accessRightConverter.convert(
                     serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
-        } catch (ClientNotFoundException | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+        } catch (IdentifierNotFoundException | ClientNotFoundException
+                | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
