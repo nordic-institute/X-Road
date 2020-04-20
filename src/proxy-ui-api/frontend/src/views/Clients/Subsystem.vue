@@ -129,6 +129,7 @@ export default Vue.extend({
       });
     },
     unregisterClient(): void {
+      this.unregisterLoading = true;
       this.$store
         .dispatch('unregisterClient', this.client)
         .then(
