@@ -100,7 +100,7 @@ public class InitializationService {
         boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
         initializationStatusDto.setAnchorImported(isAnchorImported);
-        initializationStatusDto.setInitialized(isServerConfInitialized && isSoftwareTokenInitialized);
+        initializationStatusDto.setServerConfInitialized(isServerConfInitialized && isSoftwareTokenInitialized);
         return initializationStatusDto;
     }
 

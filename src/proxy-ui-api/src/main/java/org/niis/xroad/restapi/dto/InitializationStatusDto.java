@@ -32,5 +32,5 @@ import lombok.Data;
 @Data
 public class InitializationStatusDto {
     private boolean isAnchorImported;
-    private boolean isInitialized;
+    private boolean isServerConfInitialized;
 }

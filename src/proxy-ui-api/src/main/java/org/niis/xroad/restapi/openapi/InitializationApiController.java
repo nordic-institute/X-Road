@@ -62,7 +62,7 @@ public class InitializationApiController implements InitializationApi {
         InitializationStatusDto initializationStatusDto = initializationService.isSecurityServerInitialized();
         InitializationStatus initializationStatus = new InitializationStatus();
         initializationStatus.setIsAnchorImported(initializationStatusDto.isAnchorImported());
-        initializationStatus.setIsInitialized(initializationStatusDto.isInitialized());
+        initializationStatus.setIsServerConfInitialized(initializationStatusDto.isServerConfInitialized());
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 

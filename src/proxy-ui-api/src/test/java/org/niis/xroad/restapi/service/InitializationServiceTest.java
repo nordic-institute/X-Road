@@ -116,7 +116,7 @@ public class InitializationServiceTest {
     public void isSecurityServerInitialized() {
         InitializationStatusDto initStatus = initializationService.isSecurityServerInitialized();
         assertTrue(initStatus.isAnchorImported());
-        assertTrue(initStatus.isInitialized());
+        assertTrue(initStatus.isServerConfInitialized());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         InitializationStatusDto initStatus = initializationService.isSecurityServerInitialized();
         assertTrue(initStatus.isAnchorImported());
-        assertFalse(initStatus.isInitialized());
+        assertFalse(initStatus.isServerConfInitialized());
     }
 
     @Test
@@ -132,7 +132,7 @@ public class InitializationServiceTest {
         when(serverConfService.isServerConfInitialized()).thenReturn(false);
         InitializationStatusDto initStatus = initializationService.isSecurityServerInitialized();
         assertTrue(initStatus.isAnchorImported());
-        assertFalse(initStatus.isInitialized());
+        assertFalse(initStatus.isServerConfInitialized());
     }
 
     @Test
@@ -141,7 +141,7 @@ public class InitializationServiceTest {
         when(systemService.isAnchorImported()).thenReturn(false);
         InitializationStatusDto initStatus = initializationService.isSecurityServerInitialized();
         assertFalse(initStatus.isAnchorImported());
-        assertFalse(initStatus.isInitialized());
+        assertFalse(initStatus.isServerConfInitialized());
     }
 
     @Test

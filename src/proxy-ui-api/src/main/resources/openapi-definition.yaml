@@ -1691,9 +1691,9 @@ paths:
                   is_anchor_imported:
                     type: boolean
                     description: whether a configuration anchor has been imported or not
-                  is_initialized:
+                  is_server_conf_initialized:
                     type: boolean
-                    description: whether the security server has been initialized or not
+                    description: whether the server conf of the security server has been initialized or not
         '400':
           description: request was invalid
         '401':
