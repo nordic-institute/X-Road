@@ -52,10 +52,12 @@ import java.util.List;
  * Controller for rest apis for api key operations
  */
 @RestController
-@RequestMapping("/api/api-key")
+@RequestMapping(ApiKeysController.API_KEYS_PATH)
 @Slf4j
 @PreAuthorize("hasRole('XROAD_SYSTEM_ADMINISTRATOR')")
-public class ApiKeyController {
+public class ApiKeysController {
+
+    public static final String API_KEYS_PATH = "/api/api-keys";
 
     @Autowired
     private ApiKeyService apiKeyService;

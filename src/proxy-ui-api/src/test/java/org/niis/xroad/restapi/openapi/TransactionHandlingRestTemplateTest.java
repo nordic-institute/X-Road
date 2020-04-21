@@ -151,7 +151,7 @@ public class TransactionHandlingRestTemplateTest {
         // delete member
         response = restTemplate.postForEntity(
                 localGroupEndpointUrl + "/members/delete", members, Object.class);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
         groupResponse = restTemplate.getForEntity(localGroupEndpointUrl,
                 LocalGroup.class);

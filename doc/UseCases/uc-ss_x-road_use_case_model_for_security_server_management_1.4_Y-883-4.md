@@ -2811,13 +2811,13 @@ for authentication when executing REST API calls to update server configuration.
 
 2.  SS administrator sends HTTP POST request to create a new API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key`
+    - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
     - 2.5 Provide roles to link to API key, with message body containing the role names in a JSON array of strings
     - 2.6 Define correct content type with HTTP header `Content-Type: application/json`
-    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
+    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-keys --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
 
 3.  System creates a new API key and responds with a JSON message containing details of the key:
     - 3.1 API key id with name `id`
@@ -2870,11 +2870,11 @@ for authentication when executing REST API calls to update server configuration.
 
 1.  SS administrator sends HTTP GET request to list all API keys. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key`
+    - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-key -k`
+    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-keys -k`
 
 2.  System returns list of API keys in an JSON array containing items with details of the keys:
     - 3.1 API key id with name `id`
@@ -2999,12 +2999,12 @@ for authentication when executing REST API calls to update server configuration.
 
 1.  SS administrator sends HTTP DELETE request to delete one API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key/{id}`,
+    - 2.2 Send request to URL `https://localhost:4000/api/api-keys/{id}`,
     where `{id}` is the id of the key to be deleted.
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/63 -k`
+    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-keys/63 -k`
 
 2.  System deletes the key and it cannot be used for authentication anymore. System responds with HTTP 200.
 

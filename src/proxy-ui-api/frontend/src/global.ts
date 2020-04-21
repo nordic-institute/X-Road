@@ -1,5 +1,5 @@
 
-// A "single source of thuth" for route names
+// A "single source of truth" for route names
 export enum RouteName {
   Keys = 'keys',
   Diagnostics = 'diagnostics',
@@ -37,6 +37,7 @@ export enum RouteName {
   GenerateInternalCSR = 'generate-internal-csr',
   EndpointDetails = 'endpoint-details',
   EndpointAccessRights = 'endpoint-access-rights',
+  ServiceClientAccessRights = 'service-client-access-rights',
 }
 
 // A "single source of truth" for permission strings

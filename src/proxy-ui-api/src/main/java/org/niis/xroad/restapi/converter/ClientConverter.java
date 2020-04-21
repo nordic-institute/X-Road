@@ -68,7 +68,6 @@ public class ClientConverter {
     public static final int SUBSYSTEM_CODE_INDEX = 3;
     public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local signed certificate";
 
-
     @Autowired
     public ClientConverter(GlobalConfFacade globalConfFacade,
             CurrentSecurityServerId securityServerOwner,
@@ -159,8 +158,7 @@ public class ClientConverter {
      * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
-        int separators = FormatUtils.countOccurences(encodedId, ENCODED_ID_SEPARATOR);
-        if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
+        if (!isEncodedClientId(encodedId)) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
@@ -211,5 +209,19 @@ public class ClientConverter {
      */
     public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
+    }
+
+    public boolean isEncodedSubsystemId(String encodedId) {
+        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        return separators == SUBSYSTEM_CODE_INDEX;
+    }
+
+    public boolean isEncodedMemberId(String encodedId) {
+        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        return separators == MEMBER_CODE_INDEX;
+    }
+
+    public boolean isEncodedClientId(String encodedId) {
+        return isEncodedMemberId(encodedId) || isEncodedSubsystemId(encodedId);
     }
 }

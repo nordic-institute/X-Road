@@ -22,35 +22,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dto;
+package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.identifier.XRoadId;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.ClientAdd;
 
-import lombok.Data;
+import java.util.Arrays;
+import java.util.Collection;
 
-import java.time.OffsetDateTime;
+@Slf4j
+public class ClientAddValidator extends AbstractIdentifierValidator {
 
-/**
- * DTO for Service and ServiceClient access rights
- */
-@Data
-public class AccessRightHolderDto {
-    /**
-     * primary key of a LocalGroup - NULL if not a LOCALGROUP
-     */
-    private String localGroupId;
-    /**
-     * localGroupCode - NULL if not a LOCALGROUP
-     */
-    private String localGroupCode;
-    /**
-     * localGroupDescription - NULL if not a LOCALGROUP
-     */
-    private String localGroupDescription;
-    /**
-     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
-     */
-    private String memberName;
-    private XRoadId subjectId;
-    private OffsetDateTime rightsGiven;
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return ClientAdd.class.equals(clazz);
+    }
+
+    @Override
+    Collection<ValidatedField> getValidatedFields(Object target) {
+        ClientAdd clientAdd = (ClientAdd) target;
+        return Arrays.asList(
+                ValidatedField.builder()
+                        .fieldName("client.memberCode")
+                        .value(clientAdd.getClient().getMemberCode()).build(),
+                ValidatedField.builder()
+                        .fieldName("client.subsystemCode")
+                        .value(clientAdd.getClient().getSubsystemCode()).build());
+    }
 }
