@@ -88,6 +88,7 @@ The script setup_security_server_sidecar.sh will:
   - Recreates serverconf database and properties file with serverconf username and random password.
   - Optionally configures the security server sidecar to use a remote database server.
   - Starts security server sidecar services.
+  - Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services. 
 
 ## 1.6 Installation with remote server configuration database
 
