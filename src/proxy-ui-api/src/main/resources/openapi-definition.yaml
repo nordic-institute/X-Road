@@ -5369,7 +5369,7 @@ components:
         rights_given_at:
           type: string
           format: date-time
-          description: time when access right were given at. Contains meaningful value when listing service clients that have been granted access to a specific endpoint or service.
+          description: time when access right were given at. When listing client's service clients without specifying the service, the time when first service access right was given to this service client for any service. When listing service clients for a specific service, time when service client was added permission to that service.
           example: '2018-12-15T00:00:00.001Z'
           readOnly: true
           minLength: 24
