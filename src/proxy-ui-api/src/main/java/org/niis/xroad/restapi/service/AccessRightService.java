@@ -62,8 +62,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
-
 /**
  * Service class for handling access rights.
  * This service has several methods that return "access rights holders".
@@ -308,7 +306,7 @@ public class AccessRightService {
         subjectIds.add(subjectId);
 
         // verify that given subjectId exists
-        verifyServiceClientIdentifiersExist(clientType, subjectIds);
+        identifierService.verifyServiceClientIdentifiersExist(clientType, subjectIds);
 
         // make sure subject id exists in serverconf db IDENTIFIER table
         subjectIds = identifierService.getOrPersistXroadIds(subjectIds);
@@ -532,46 +530,12 @@ public class AccessRightService {
         }
 
         // verify that all ids actually exist
-        verifyServiceClientIdentifiersExist(clientType, transientIds);
+        identifierService.verifyServiceClientIdentifiersExist(clientType, transientIds);
 
         // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
         Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(transientIds);
         return managedIds;
     }
-
-    /**
-     * Verify that service client XRoadIds do exist
-     * @param clientType owner of (possible) local groups
-     * @param serviceClientIds service client ids to check
-     * @return
-     * @throws IdentifierNotFoundException if there were identifiers that could not be found
-     */
-    private void verifyServiceClientIdentifiersExist(ClientType clientType, Set<XRoadId> serviceClientIds)
-            throws IdentifierNotFoundException {
-        Map<XRoadObjectType, List<XRoadId>> idsPerType = serviceClientIds.stream()
-                .collect(groupingBy(XRoadId::getObjectType));
-        for (XRoadObjectType type: idsPerType.keySet()) {
-            if (!isValidServiceClientType(type)) {
-                throw new IllegalArgumentException("Invalid service client subject object type " + type);
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
-            if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
-                throw new IdentifierNotFoundException();
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
-            if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
-                throw new IdentifierNotFoundException();
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
-            if (!localGroupService.localGroupsExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
-                throw new IdentifierNotFoundException();
-            }
-        }
-    }
-
 
     /**
      * If access right was not found
