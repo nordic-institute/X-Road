@@ -583,7 +583,8 @@ public class ClientsApiController implements ClientsApi {
                     serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
             accessRights = accessRightConverter.convert(
                     serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
-        } catch (ClientNotFoundException | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+        } catch (IdentifierNotFoundException | ClientNotFoundException
+                | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
