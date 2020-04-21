@@ -184,16 +184,18 @@ public class ClientServiceIntegrationTest {
                 new CertificateTestUtils.CertificateInfoBuilder();
 
         // Create cert with good ocsp response status
-        ClientId clientId1 = ClientId.create("FI", "GOV", "M1");
+        ClientId clientId1 = ClientId.create("FI", "GOV", "M1", "SS1");
         certificateInfoBuilder.clientId(clientId1);
         CertificateInfo cert1 = certificateInfoBuilder.build();
 
         // Create cert with revoked ocsp response status
-        certificateInfoBuilder.ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold));
+        ClientId clientId2 = ClientId.create("FI", "GOV", "M1", "SS2");
+        certificateInfoBuilder.clientId(clientId2).ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold));
         CertificateInfo cert2 = certificateInfoBuilder.build();
 
         // Create cert with unknown ocsp response status
-        certificateInfoBuilder.ocspStatus(new UnknownStatus());
+        ClientId clientId3 = ClientId.create("FI", "GOV", "M2", "SS5");
+        certificateInfoBuilder.clientId(clientId3).ocspStatus(new UnknownStatus());
         CertificateInfo cert3 = certificateInfoBuilder.build();
 
         certificateInfos.addAll(Arrays.asList(cert2, cert3, cert1));
@@ -715,11 +717,6 @@ public class ClientServiceIntegrationTest {
     }
 
     /* Test findClients search */
-    @Test(expected = BadRequestException.class)
-    public void findClientsWithBadParameters() {
-        clientService.findClients("TESTNAME", null, null, null, null, false, false, true, true);
-    }
-
     @Test
     public void findClientsWithOnlyLocallyMissingClients() {
         List<ClientType> allFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
@@ -809,7 +806,10 @@ public class ClientServiceIntegrationTest {
     public void findLocalClientsByOnlyLocalClientsWithValidSignCert() throws Exception {
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createCertificateInfoList());
         List<ClientType> clients = clientService.findLocalClients(null, null, null, null, null, false, true);
-        assertEquals(2, clients.size());
+        assertEquals(1, clients.size());
+        assertTrue("GOV".equals(clients.get(0).getIdentifier().getMemberClass()));
+        assertTrue("M1".equals(clients.get(0).getIdentifier().getMemberCode()));
+        assertTrue("SS1".equals(clients.get(0).getIdentifier().getSubsystemCode()));
     }
 
     /* Test GLOBAL client search */

@@ -42,7 +42,6 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.util.ClientUtils;
@@ -367,16 +366,15 @@ public class ClientService {
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
-     * @param onlyLocalClientWithValidSignCert include only local clients that have valid sign cert
+     * @param localValidSignCert include only local clients that have valid sign cert
      * @return ClientType list
      */
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
-            String subsystemCode, boolean showMembers, boolean onlyLocalClientWithValidSignCert) {
+            String subsystemCode, boolean showMembers, boolean localValidSignCert) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
                 memberCode, subsystemCode);
 
-        // predicate for filtering by valid local sign cert
-        Predicate<ClientType> validSignCertPredicate = buildValidSignCertPredicate(onlyLocalClientWithValidSignCert);
+        Predicate<ClientType> validSignCertPredicate = buildValidSignCertPredicate(localValidSignCert);
 
         List<ClientType> allLocalClients = getAllLocalClients();
 
@@ -431,28 +429,24 @@ public class ClientService {
      * @param subsystemCode
      * @param showMembers include members (without subsystemCode) in the results
      * @param internalSearch search only in the local clients
-     * @param onlyLocalClientWithValidSignCert include only local clients that have valid sign cert
-     * @param onlyLocallyMissingClients list only clients that are missing from this security server
+     * @param localValidSignCert include only local clients that have valid sign cert
+     * @param excludeLocal list only clients that are missing from this security server
      * @return ClientType list
      */
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch,
-            boolean onlyLocalClientWithValidSignCert, boolean onlyLocallyMissingClients) {
-        if ((onlyLocalClientWithValidSignCert || internalSearch) && onlyLocallyMissingClients) {
-            throw new BadRequestException("Illegally using parameters for "
-                    + "filtering local and global clients simultaneously");
-        }
+            boolean localValidSignCert, boolean excludeLocal) {
 
         List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers, onlyLocalClientWithValidSignCert);
-        if (internalSearch || onlyLocalClientWithValidSignCert) {
+                showMembers, localValidSignCert);
+        if (internalSearch || localValidSignCert) {
             return localClients;
         }
 
         List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers);
 
-        if (onlyLocallyMissingClients) {
+        if (excludeLocal) {
             return subtractLocalFromGlobalClients(globalClients, localClients);
         }
 

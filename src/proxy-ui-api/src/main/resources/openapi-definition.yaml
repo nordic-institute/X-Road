@@ -652,14 +652,14 @@ paths:
             type: boolean
             default: true
         - in: query
-          name: only_local_client_with_valid_sign_cert
+          name: local_valid_sign_cert
           description: to search only local clients with valid sign cert
           required: false
           schema:
             type: boolean
             default: false
         - in: query
-          name: only_locally_missing_clients
+          name: exclude_local
           description: to search only clients that are not added to this security server
           required: false
           schema:

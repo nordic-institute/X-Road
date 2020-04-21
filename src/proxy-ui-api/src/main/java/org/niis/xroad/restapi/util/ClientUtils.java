@@ -46,7 +46,7 @@ public final class ClientUtils {
             throws OcspUtils.OcspStatusExtractionException {
         for (CertificateInfo certificateInfo : certificateInfos) {
             String ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
-            if (clientId.memberEquals(certificateInfo.getMemberId())
+            if (clientId.equals(certificateInfo.getMemberId())
                     && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
                     && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {
                 return true;

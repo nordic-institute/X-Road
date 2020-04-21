@@ -154,12 +154,12 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-            Boolean onlyLocalClientWithValidSignCert, Boolean onlyLocallyMissingClients) {
+            Boolean localValidSignCert, Boolean excludeLocal) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
-                onlyLocalClientWithValidSignCert, onlyLocallyMissingClients));
+                localValidSignCert, excludeLocal));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
