@@ -69,6 +69,7 @@ fi
 # Recreate serverconf database and properties file with serverconf username and random password on the first run
 if [ ! -f ${DB_PROPERTIES} ]
 then
+    echo "Creating serverconf database and properties file"
     if [[ ! -z "${XROAD_DB_PWD}" && "${XROAD_DB_HOST}" != "127.0.0.1" ]];
     then
         echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
@@ -77,12 +78,14 @@ then
         chmod 600 /etc/xroad.properties
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
+        dpkg-reconfigure -fnoninteractive xroad-proxy
+        nginx -s stop
+    else
+        pg_ctlcluster 10 main start
+        dpkg-reconfigure -fnoninteractive xroad-proxy
+        pg_ctlcluster 10 main stop
+        nginx -s stop
     fi
-    echo "Creating serverconf database and properties file"
-    pg_ctlcluster 10 main start
-    dpkg-reconfigure -fnoninteractive xroad-proxy
-    pg_ctlcluster 10 main stop
-    nginx -s stop
 fi
 
 # Start services
