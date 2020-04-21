@@ -95,7 +95,7 @@ public class NotificationsApiController {
     @PreAuthorize("permitAll")
     @PutMapping(value = "/alerts/reset")
     public ResponseEntity<Void> resetBackupRestoreRunningSince() {
-        NotificationService.resetBackupRestoreRunningSince();
+        notificationService.resetBackupRestoreRunningSince();
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

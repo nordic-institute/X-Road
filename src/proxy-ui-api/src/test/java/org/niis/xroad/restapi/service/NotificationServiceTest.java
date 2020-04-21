@@ -76,8 +76,8 @@ public class NotificationServiceTest {
 
     @Test
     public void getAlertsAllOkNoBackupRestore() {
-        NotificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, NotificationService.getBackupRestoreRunningSince());
+        notificationService.resetBackupRestoreRunningSince();
+        assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
         doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
 
@@ -98,8 +98,8 @@ public class NotificationServiceTest {
 
     @Test
     public void getAlertsAllNokBackupRestoreRunning() {
-        NotificationService.setBackupRestoreRunningSince();
-        assertNotNull(null, NotificationService.getBackupRestoreRunningSince());
+        notificationService.setBackupRestoreRunningSince();
+        assertNotNull(null, notificationService.getBackupRestoreRunningSince());
 
         doThrow(new CodedException("")).when(globalConfFacade).verifyValidity();
 
@@ -117,14 +117,14 @@ public class NotificationServiceTest {
         assertEquals(false, alertStatus.getGlobalConfValid());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
 
-        NotificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, NotificationService.getBackupRestoreRunningSince());
+        notificationService.resetBackupRestoreRunningSince();
+        assertEquals(null, notificationService.getBackupRestoreRunningSince());
     }
 
     @Test
     public void getAlertsSoftTokenNotFoundException() {
-        NotificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, NotificationService.getBackupRestoreRunningSince());
+        notificationService.resetBackupRestoreRunningSince();
+        assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
         doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
 

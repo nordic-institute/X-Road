@@ -48,7 +48,7 @@ import java.util.Optional;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class NotificationService {
-    private static OffsetDateTime backupRestoreRunningSince;
+    private OffsetDateTime backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
 
@@ -109,21 +109,21 @@ public class NotificationService {
      * currently running.
      * @return
      */
-    public static synchronized OffsetDateTime getBackupRestoreRunningSince() {
+    public synchronized OffsetDateTime getBackupRestoreRunningSince() {
         return backupRestoreRunningSince;
     }
 
     /**
      * Resets backupRestoreRunningSince by setting the value to null.
      */
-    public static synchronized void resetBackupRestoreRunningSince() {
+    public synchronized void resetBackupRestoreRunningSince() {
         backupRestoreRunningSince = null;
     }
 
     /**
      * Sets backupRestoreRunningSince to current date/time.
      */
-    public static synchronized void setBackupRestoreRunningSince() {
+    public synchronized void setBackupRestoreRunningSince() {
         backupRestoreRunningSince = OffsetDateTime.now(ZoneOffset.UTC);
     }
 }

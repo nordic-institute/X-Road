@@ -22,11 +22,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.controller;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.controller.NotificationsApiController;
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
 import org.niis.xroad.restapi.service.NotificationService;
