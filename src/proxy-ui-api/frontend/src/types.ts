@@ -1,19 +1,7 @@
 /**
- * access right for clients and services
+ * access right given for a specific subject (ServiceClient) for specific service (service_code) owned by some client. This object does not represent endpoint-level access rights
  */
 export interface AccessRight {
-  /**
-   * access right id
-   * example:
-   * 123
-   */
-  readonly id: string; // text
-  /**
-   * <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
-   * example:
-   * FI:GOV:123:ABC
-   */
-  client_id: string; // text
   /**
    * service code
    * example:
@@ -25,7 +13,22 @@ export interface AccessRight {
    * example:
    * client deletion
    */
-  service_title: string; // text
+  readonly service_title?: string; // text
+  /**
+   * access right given at
+   * example:
+   * 2018-12-15T00:00:00.001Z
+   */
+  readonly rights_given_at?: string; // date-time
+}
+/**
+ * object containing and array of AccessRights
+ */
+export interface AccessRights {
+  /**
+   * array of AccessRights
+   */
+  items?: AccessRight[];
 }
 /**
  * security server anchor
@@ -326,12 +329,13 @@ export interface CodeWithMetadata {
  */
 export type ConfigurationStatus =
   | 'SUCCESS'
-  | 'CONFCLIENT_STATUS_FAILED'
   | 'ERROR_CODE_INTERNAL'
   | 'ERROR_CODE_INVALID_SIGNATURE_VALUE'
   | 'ERROR_CODE_EXPIRED_CONF'
   | 'ERROR_CODE_CANNOT_DOWNLOAD_CONF'
-  | 'ERROR_CODE_MISSING_PRIVATE_PARAM'; // enum
+  | 'ERROR_CODE_MISSING_PRIVATE_PARAMS'
+  | 'ERROR_CODE_UNINITIALIZED'
+  | 'UNKNOWN'; // enum
 /**
  * connection type
  * example:
@@ -423,6 +427,12 @@ export interface CsrSubjectFieldDescription {
   readonly localized: boolean;
 }
 /**
+ * diagnostics status class
+ * example:
+ * OK
+ */
+export type DiagnosticStatusClass = 'OK' | 'WAITING' | 'FAIL'; // enum
+/**
  * Endpoint for a service
  */
 export interface Endpoint {
@@ -438,7 +448,7 @@ export interface Endpoint {
    */
   service_code: string;
   /**
-   * http method mapeed to this endpoint
+   * http method mapped to this endpoint
    * example:
    * GET
    */
@@ -466,6 +476,32 @@ export interface Endpoint {
   readonly generated?: boolean;
 }
 /**
+ * Object for updating endpoints method and/or path
+ */
+export interface EndpointUpdate {
+  /**
+   * http method mapped to this endpoint
+   * example:
+   * GET
+   */
+  method?:
+    | '*'
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'PATCH'
+    | 'HEAD'
+    | 'OPTIONS'
+    | 'TRACE';
+  /**
+   * relative path where this endpoint is mapped to
+   * example:
+   * /foo
+   */
+  path?: string;
+}
+/**
  * object returned in error cases
  */
 export interface ErrorInfo {
@@ -480,6 +516,43 @@ export interface ErrorInfo {
    * warnings that could be ignored
    */
   warnings?: CodeWithMetadata[];
+}
+/**
+ * global configuration diagnostics
+ */
+export interface GlobalConfDiagnostics {
+  /**
+   * diagnostics status class
+   * example:
+   * OK
+   */
+  readonly status_class: 'OK' | 'WAITING' | 'FAIL'; // enum
+  /**
+   * configuration status
+   * example:
+   * SUCCESS
+   */
+  readonly status_code:
+    | 'SUCCESS'
+    | 'ERROR_CODE_INTERNAL'
+    | 'ERROR_CODE_INVALID_SIGNATURE_VALUE'
+    | 'ERROR_CODE_EXPIRED_CONF'
+    | 'ERROR_CODE_CANNOT_DOWNLOAD_CONF'
+    | 'ERROR_CODE_MISSING_PRIVATE_PARAMS'
+    | 'ERROR_CODE_UNINITIALIZED'
+    | 'UNKNOWN'; // enum
+  /**
+   * last time updated
+   * example:
+   * 2018-12-15T00:00:00.001Z
+   */
+  readonly prev_update_at: string; // date-time
+  /**
+   * last time updated
+   * example:
+   * 2018-12-15T00:00:00.001Z
+   */
+  readonly next_update_at: string; // date-time
 }
 /**
  * global configuration
@@ -667,37 +740,89 @@ export interface LocalGroup {
   members?: GroupMember[];
 }
 /**
- * request object containing an array of member ids
+ * model for adding a new LocalGroup
+ */
+export interface LocalGroupAdd {
+  /**
+   * group code
+   * example:
+   * groupcode
+   */
+  code: string; // text
+  /**
+   * group description
+   * example:
+   * description
+   */
+  description: string; // text
+}
+/**
+ * Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
  */
 export interface Members {
   /**
    * array of members to be added
+   * example:
+   * [
+   *   "FI:GOV:123",
+   *   "FI:GOV:123:SS1",
+   *   "FI:GOV:123:SS2"
+   * ]
    */
   items?: string /* text */[];
 }
 /**
- * ocsp responce
+ * OCSP responder diagnostics
  */
-export interface OcspResponders {
+export interface OcspResponder {
   /**
-   * service url
+   * url of the OCSP responder
    * example:
-   * https://domain.com/service
+   * http://dev.xroad.rocks:123
    */
-  url: string; // url
-  status: OcspStatus; // enum
+  readonly url: string; // url
+  /**
+   * diagnostics status class
+   * example:
+   * OK
+   */
+  readonly status_class: 'OK' | 'WAITING' | 'FAIL'; // enum
+  /**
+   * OCSP responder status
+   * example:
+   * SUCCESS
+   */
+  readonly status_code:
+    | 'SUCCESS'
+    | 'ERROR_CODE_OCSP_CONNECTION_ERROR'
+    | 'ERROR_CODE_OCSP_FAILED'
+    | 'ERROR_CODE_OCSP_RESPONSE_INVALID'
+    | 'ERROR_CODE_OCSP_UNINITIALIZED'
+    | 'UNKNOWN'; // enum
   /**
    * last time updated
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  updated_at: string; // date-time
+  readonly prev_update_at?: string; // date-time
   /**
-   * last time updated
+   * next time updated
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  next_update_at: string; // date-time
+  readonly next_update_at: string; // date-time
+}
+/**
+ * Ocsp responder diagnostics
+ */
+export interface OcspResponderDiagnostics {
+  /**
+   * CA distinguished name
+   * example:
+   * C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+   */
+  readonly distinguished_name: string; // text
+  readonly ocsp_responders: OcspResponder[];
 }
 /**
  * OCSP responder status
@@ -709,7 +834,8 @@ export type OcspStatus =
   | 'ERROR_CODE_OCSP_CONNECTION_ERROR'
   | 'ERROR_CODE_OCSP_FAILED'
   | 'ERROR_CODE_OCSP_RESPONSE_INVALID'
-  | 'ERROR_CODE_OCSP_UNINITIALIZED'; // enum
+  | 'ERROR_CODE_OCSP_UNINITIALIZED'
+  | 'UNKNOWN'; // enum
 /**
  * an action to change state or edit token, key, cert or csr
  * example:
@@ -819,20 +945,49 @@ export interface Service {
   endpoints?: Endpoint[];
 }
 /**
- * service client
+ * service client. May be a subsystem, local group, or a global group
  */
 export interface ServiceClient {
-  subject: Subject;
+  /**
+   * subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+   * example:
+   * DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
+   */
+  id: string; // text
+  /**
+   * name of the ServiceClient - can be the name of a member or the description of a group
+   * example:
+   * Security server owners
+   */
+  readonly name?: string; // text
+  /**
+   * group code in case the object is a local group
+   * example:
+   * My own Local group code
+   */
+  readonly local_group_code?: string; // text
+  service_client_type?: ServiceClientType; // text
   /**
    * access right given at
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  rights_given_at: string; // date-time
+  readonly rights_given_at?: string; // date-time
+}
+/**
+ * subject type
+ * example:
+ * GLOBALGROUP
+ */
+export type ServiceClientType = 'GLOBALGROUP' | 'LOCALGROUP' | 'SUBSYSTEM'; // text
+/**
+ * object containing and array of ServiceClients
+ */
+export interface ServiceClients {
   /**
-   * list of access rights - this will be null when requested via services/{id}/access-rights endpoint
+   * array of ServiceClients
    */
-  access_rights: AccessRight[];
+  items?: ServiceClient[];
 }
 /**
  * WSDL/OPENAPI3/REST service
@@ -961,60 +1116,6 @@ export interface ServiceUpdate {
   ssl_auth_all?: boolean;
 }
 /**
- * subject
- */
-export interface Subject {
-  /**
-   * subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
-   * example:
-   * DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-   */
-  id: string; // text
-  /**
-   * name of the subject - can be the name of a member or the description of a group
-   * example:
-   * Security server owners
-   */
-  readonly member_name_group_description?: string; // text
-  /**
-   * group code in case the object is a local group
-   * example:
-   * My own Local group code
-   */
-  readonly local_group_code?: string; // text
-  subject_type: SubjectType; // text
-}
-/**
- * subject type
- * example:
- * GLOBALGROUP
- */
-export type SubjectType = 'GLOBALGROUP' | 'LOCALGROUP' | 'SUBSYSTEM'; // text
-/**
- * object containing and array of subject ids
- */
-export interface Subjects {
-  /**
-   * array of subject ids
-   */
-  items?: Subject[];
-}
-/**
- * system parameters
- */
-export interface System {
-  anchor: Anchor;
-  configuration: GlobalConfiguration;
-  timestamping_services: TimestampingService[];
-  ocsp_responders: OcspResponders;
-  /**
-   * system certificate authorities
-   */
-  certificate_authorities: CertificateAuthority[];
-  tls_certificate: CertificateDetails;
-  version: Version;
-}
-/**
  * timestamping services
  */
 export interface TimestampingService {
@@ -1032,15 +1133,9 @@ export interface TimestampingService {
   url: string; // url
 }
 /**
- * timestamping services
+ * timestamping service diagnostics
  */
 export interface TimestampingServiceDiagnostics {
-  /**
-   * name of the time stamping service
-   * example:
-   * X-Road Test TSA CN
-   */
-  readonly name: string; // text
   /**
    * url of the time stamping service
    * example:
@@ -1048,18 +1143,29 @@ export interface TimestampingServiceDiagnostics {
    */
   readonly url: string; // url
   /**
+   * diagnostics status class
+   * example:
+   * OK
+   */
+  readonly status_class: 'OK' | 'WAITING' | 'FAIL'; // enum
+  /**
+   * timestamping status
+   * example:
+   * SUCCESS
+   */
+  readonly status_code:
+    | 'SUCCESS'
+    | 'ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT'
+    | 'ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL'
+    | 'ERROR_CODE_TIMESTAMP_UNINITIALIZED'
+    | 'ERROR_CODE_INTERNAL'
+    | 'UNKNOWN'; // enum
+  /**
    * last time updated
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  readonly updated_at: string; // date-time
-  /**
-   * timestamping service message
-   * example:
-   * ok
-   */
-  readonly message: string; // text
-  readonly status: TimestampingStatus; // enum
+  readonly prev_update_at: string; // date-time
 }
 /**
  * timestamping status
@@ -1070,10 +1176,9 @@ export type TimestampingStatus =
   | 'SUCCESS'
   | 'ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT'
   | 'ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL'
-  | 'ERROR_CODE_UNKNOWN'
-  | 'ERROR_CODE_UNINITIALIZED'
   | 'ERROR_CODE_TIMESTAMP_UNINITIALIZED'
-  | 'ERROR_CODE_CONNECTION_FAILED'; // enum
+  | 'ERROR_CODE_INTERNAL'
+  | 'UNKNOWN'; // enum
 /**
  * token
  */

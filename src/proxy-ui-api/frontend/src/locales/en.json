@@ -126,10 +126,17 @@
     "disableSuccess": "Certificate has been disabled"
   },
   "serviceClients": {
-    "addSubject": "Add subject",
-    "memberNameGroupDesc": "Member name / Group description",
+    "addServiceClient": "Add subject",
+    "name": "Member name / Group description",
     "id": "ID",
-    "searchPlaceHolder": "Service clients"
+    "searchPlaceHolder": "Service clients",
+    "accessRights": "Access rights",
+    "serviceCode": "Service code",
+    "title": "Title",
+    "accessRightsGiven": "Access Rights Given",
+    "removeAll": "Remove all",
+    "addService": "Add service",
+    "noAccessRights": "No access rights to this client"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -225,16 +232,16 @@
   },
   "accessRights": {
     "title": "Access Rights",
-    "addSubjects": "Add subjects",
-    "addSubjectsTitle": "Add Subjects",
+    "addServiceClients": "Add subjects",
+    "addServiceClientsTitle": "Add Subjects",
     "memberName": "Member Name / Group Description",
     "id": "ID",
     "rightsGiven": "Access Rights given",
     "removeSuccess": "Access right removed successfully",
     "removeTitle": "Remove member?",
     "removeText": "Are you sure that you want to remove this member?",
-    "addSubjectsSuccess": "Access rights added successfully",
-    "removeSubjectsSuccess": "Access rights removed successfully"
+    "addServiceClientsSuccess": "Access rights added successfully",
+    "removeServiceClientsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -568,7 +575,7 @@
     "invalidWsdl": "WSDL URL is not valid",
     "invalidUrl": "URL is not valid"
   },
-  "subjectType": {
+  "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
     "localGroup": "LOCALGROUP",
     "subsystem": "SUBSYSTEM"

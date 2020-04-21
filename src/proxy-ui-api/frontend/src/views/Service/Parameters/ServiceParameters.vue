@@ -112,17 +112,17 @@
       <div class="row-title">{{$t('accessRights.title')}}</div>
       <div class="row-buttons">
         <large-button
-          :disabled="!hasSubjects"
+          :disabled="!hasServiceClients"
           outlined
-          @click="removeAllSubjects()"
+          @click="removeAllServiceClients()"
           data-test="remove-subjects"
         >{{$t('action.removeAll')}}</large-button>
         <large-button
           outlined
           class="add-members-button"
-          @click="showAddSubjectsDialog()"
+          @click="showAddServiceClientDialog()"
           data-test="show-add-subjects"
-        >{{$t('accessRights.addSubjects')}}</large-button>
+        >{{$t('accessRights.addServiceClients')}}</large-button>
       </div>
     </div>
 
@@ -135,12 +135,12 @@
           <th>{{$t('accessRights.rightsGiven')}}</th>
           <th></th>
         </tr>
-        <template v-if="accessRightsSubjects">
-          <tr v-for="subject in accessRightsSubjects" v-bind:key="subject.id">
-            <td>{{subject.subject.member_name_group_description}}</td>
-            <td>{{subject.subject.id}}</td>
-            <td>{{subject.subject.subject_type}}</td>
-            <td>{{subject.rights_given_at | formatDateTime}}</td>
+        <template v-if="serviceClients">
+          <tr v-for="sc in serviceClients" v-bind:key="sc.id">
+            <td>{{sc.name}}</td>
+            <td>{{sc.id}}</td>
+            <td>{{sc.service_client_type}}</td>
+            <td>{{sc.rights_given_at | formatDateTime}}</td>
             <td>
               <div class="button-wrap">
                 <v-btn
@@ -149,7 +149,7 @@
                   rounded
                   color="primary"
                   class="xrd-small-button"
-                  @click="removeSubject(subject)"
+                  @click="removeServiceClient(sc)"
                   data-test="remove-subject"
                 >{{$t('action.remove')}}</v-btn>
               </div>
@@ -163,35 +163,36 @@
       </div>
     </v-card>
 
-    <!-- Confirm dialog remove Access Right subject -->
+    <!-- Confirm dialog remove Access Right service clients -->
     <confirmDialog
       :dialog="confirmMember"
       title="localGroup.removeTitle"
       text="localGroup.removeText"
       @cancel="confirmMember = false"
-      @accept="doRemoveSubject()"
+      @accept="doRemoveServiceClient()"
     />
 
-    <!-- Confirm dialog remove all Access Right subjects -->
+    <!-- Confirm dialog remove all Access Right service clients -->
     <confirmDialog
-      :dialog="confirmAllSubjects"
+      :dialog="confirmAllServiceClients"
       title="localGroup.removeAllTitle"
       text="localGroup.removeAllText"
-      @cancel="confirmAllSubjects = false"
-      @accept="doRemoveAllSubjects()"
+      @cancel="confirmAllServiceClients = false"
+      @accept="doRemoveAllServiveClient()"
     />
 
-    <!-- Add access right subjects dialog -->
+    <!-- Add access right service clients dialog -->
     <accessRightsDialog
-      :dialog="addSubjectsDialogVisible"
-      :filtered="accessRightsSubjects"
+      :dialog="addServiceClientDialogVisible"
+      :existingServiceClients="serviceClients"
       :clientId="clientId"
-      title="accessRights.addSubjectsTitle"
+      title="accessRights.addServiceClientsTitle"
       @cancel="closeAccessRightsDialog"
-      @subjectsAdded="doAddSubjects"
+      @serviceClientsAdded="doAddServiceClient"
     />
   </div>
 </template>
+
 
 
 <script lang="ts">
@@ -201,12 +202,12 @@ import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ServiceClient, Subject } from '@/types';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
+import {ServiceClient} from '@/types';
 
-type NullableSubject = undefined | ServiceClient;
+type NullableServiceClient = undefined | ServiceClient;
 
 export default Vue.extend({
   components: {
@@ -232,11 +233,11 @@ export default Vue.extend({
       touched: false,
       confirmGroup: false,
       confirmMember: false,
-      confirmAllSubjects: false,
-      selectedMember: undefined as NullableSubject,
+      confirmAllServiceClients: false,
+      selectedMember: undefined as NullableServiceClient,
       description: undefined,
       url: '',
-      addSubjectsDialogVisible: false,
+      addServiceClientDialogVisible: false,
       timeout: 23,
       url_all: false,
       timeout_all: false,
@@ -244,32 +245,16 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['service', 'accessRightsSubjects']),
+    ...mapGetters(['service', 'serviceClients']),
     isHttps(): boolean {
-      if (this.service.url.startsWith('https')) {
-        return true;
-      }
-      return false;
+      return this.service.url.startsWith('https');
     },
-    hasSubjects(): boolean {
-      if (this.accessRightsSubjects && this.accessRightsSubjects.length > 0) {
-        return true;
-      }
-      return false;
+    hasServiceClients(): boolean {
+      return this.serviceClients?.length > 0;
     },
-
     disableSave(): boolean {
-      // service is undefined --> can't save
-      if (!this.service) {
-        return true;
-      }
-
-      // inputs are not touched
-      if (!this.touched) {
-        return true;
-      }
-
-      return false;
+      // service is undefined --> can't save OR inputs are not touched
+      return !this.service || !this.touched;
     },
   },
 
@@ -296,28 +281,28 @@ export default Vue.extend({
 
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${serviceId}/access-rights`)
+        .get(`/services/${serviceId}/service-clients`)
         .then((res) => {
-          this.$store.dispatch('setAccessRightsSubjects', res.data);
+          this.$store.dispatch('setServiceClients', res.data);
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
         });
     },
 
-    showAddSubjectsDialog(): void {
-      this.addSubjectsDialogVisible = true;
+    showAddServiceClientDialog(): void {
+      this.addServiceClientDialogVisible = true;
     },
 
-    doAddSubjects(selected: any[]): void {
-      this.addSubjectsDialogVisible = false;
+    doAddServiceClient(selected: any[]): void {
+      this.addServiceClientDialogVisible = false;
 
       api
-        .post(`/services/${this.serviceId}/access-rights`, {
+        .post(`/services/${this.serviceId}/service-clients`, {
           items: selected,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'accessRights.addSubjectsSuccess');
+          this.$store.dispatch('showSuccess', 'accessRights.addServiceClientsSuccess');
           this.fetchData(this.serviceId);
         })
         .catch((error) => {
@@ -326,53 +311,44 @@ export default Vue.extend({
     },
 
     closeAccessRightsDialog(): void {
-      this.addSubjectsDialogVisible = false;
+      this.addServiceClientDialogVisible = false;
     },
 
-    removeAllSubjects(): void {
-      this.confirmAllSubjects = true;
+    removeAllServiceClients(): void {
+      this.confirmAllServiceClients = true;
     },
 
-    doRemoveAllSubjects(): void {
-      const subjects: any = [];
-      this.accessRightsSubjects.forEach((subject: any) => {
-        subjects.push({
-          id: subject.subject.id,
-          subject_type: subject.subject.subject_type,
-        });
-      });
+    doRemoveAllServiveClient(): void {
+      const items: any[] = this.serviceClients.map( (sc: ServiceClient) => ({
+        id: sc.id,
+        service_client_type: sc.service_client_type,
+      }));
 
-      this.removeArrayOfSubjects(subjects);
-      this.confirmAllSubjects = false;
+      this.removeServiceClients(items);
+      this.confirmAllServiceClients = false;
     },
-
-    removeSubject(member: any): void {
+    removeServiceClient(member: any): void {
       this.confirmMember = true;
       this.selectedMember = member;
     },
-    doRemoveSubject() {
-      const subject: ServiceClient = this.selectedMember as ServiceClient;
+    doRemoveServiceClient() {
+      const serviceClient: ServiceClient = this.selectedMember as ServiceClient;
 
-      if (subject && subject.subject.id) {
-        this.removeArrayOfSubjects([
-          {
-            id: subject.subject.id,
-            subject_type: subject.subject.subject_type,
-          },
-        ]);
+      if (serviceClient.id) {
+        this.removeServiceClients([serviceClient]);
       }
 
       this.confirmMember = false;
       this.selectedMember = undefined;
     },
 
-    removeArrayOfSubjects(subjects: Subject[]) {
+    removeServiceClients(serviceClients: ServiceClient[]) {
       api
-        .post(`/services/${this.serviceId}/access-rights/delete`, {
-          items: subjects,
+        .post(`/services/${this.serviceId}/service-clients/delete`, {
+          items: serviceClients,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'accessRights.removeSubjectsSuccess');
+          this.$store.dispatch('showSuccess', 'accessRights.removeServiceClientsSuccess');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

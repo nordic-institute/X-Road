@@ -24,33 +24,22 @@
  */
 package org.niis.xroad.restapi.dto;
 
-import ee.ria.xroad.common.identifier.XRoadId;
-
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.OffsetDateTime;
 
+@Builder
+@Getter
 /**
- * DTO for Service and ServiceClient access rights
+ * Access rights are given to a specific subject, for services owned by some client.
+ * ServiceClientAccessRightDto.clientId is id of the service owner
+ * (not the subject id)
  */
-@Data
-public class AccessRightHolderDto {
-    /**
-     * primary key of a LocalGroup - NULL if not a LOCALGROUP
-     */
-    private String localGroupId;
-    /**
-     * localGroupCode - NULL if not a LOCALGROUP
-     */
-    private String localGroupCode;
-    /**
-     * localGroupDescription - NULL if not a LOCALGROUP
-     */
-    private String localGroupDescription;
-    /**
-     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
-     */
-    private String memberName;
-    private XRoadId subjectId;
+public class ServiceClientAccessRightDto {
+    private String id;
+    private String clientId;
+    private String serviceCode;
+    private String title;
     private OffsetDateTime rightsGiven;
 }
