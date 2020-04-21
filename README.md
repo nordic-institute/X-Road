@@ -63,7 +63,7 @@ Note (2): The TCP port 4000 in the container is mapped to the user-defined TCP p
 To install the Security Server sidecar in a local development environment, run the script setup_security_server_sidecar.sh providing the parameters in the order shown (reference data 1.1, 1.2, 1.3, 1.4):
 
   ```bash
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> (<remote database server hostname> <remote database server port>)
   ```
 
 The script setup_security_server_sidecar.sh will:
@@ -86,7 +86,42 @@ The script setup_security_server_sidecar.sh will:
   - Configures admin credentials with user-supplied username and password (reference data 1.4).
   - Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
   - Recreates serverconf database and properties file with serverconf username and random password.
+  - Optionally configures the security server sidecar to use a remote database server.
   - Starts security server sidecar services.
+
+## 1.6 Installation with remote server configuration database
+
+It is possible to configure the security server sidecar to use a remote database, instead of the default locally installed one. To do that, you need to provide the remote database server hostname and port number as arguments when running the setup_security_server_sidecar.sh script in the order described below. Before running the script, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password:
+
+  ```bash
+  export XROAD_DB_PASSWORD=<remote database administrator master password>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port>
+  ```
+
+The following configuration is needed on the remote database server to allow external access to the remote PostgreSQL database from the security server sidecar:
+
+- Edit the PostgreSQL configuration file in `/etc/postgresql/10/main/postgresql.conf` to enable listening on external addresses and to verify the port. NOTE: If you change these settings, the postgresql service must be restarted.
+
+  ```bash
+  [...]
+    # - Connection Settings -
+
+    listen_addresses = '*'  # what IP address(es) to listen on;
+                            # comma-separated list of addresses;
+                            # defaults to 'localhost'; use '*' for all
+                            # (change requires restart)
+    port = 5432             # (change requires restart)
+  [...]
+  ```
+
+- Edit the PostgreSQL client authentication configuration file in `pg_hba.conf` to enable connections from outside localhost. Replace the IP `127.0.0.1/32` with `0.0.0.0/0`.
+
+  ```bash
+  [...]
+  # IPv4 local connections:
+  host    all             all             0.0.0.0/0            md5
+  [...]
+  ```
 
 ## 2 Security Server Sidecar Initial Configuration
 
@@ -133,7 +168,6 @@ Then, if the configuration is successfully downloaded, the system asks for the f
 
 - The current security server sidecar implementation is a Proof of Concept and it is meant for testing and development purposes.
 - The current security server sidecar implementation does not support message logging, operational monitoring nor environmental monitoring functionality, which is recommended for a service provider's security server role. This functionality will be included in future releases.
-- The current security server sidecar implementation does not support external database. This functionality will be included in future releases.
 - The current security server sidecar built-in configuration restore implementation fails since it does not support supervisorctl. This limitation will be fixed in future releases.
 - The security server configuration files (located in `/etc/xroad/`) are currently stored inside the sidecar container. Functionality to provide volume support will be added in future releases.
 - The security server sidecar creates and manages its own internal TLS keys and certificates and does TLS termination by itself. This configuration might not be fully compatible with the application load balancer configuration in a cloud environment.
