@@ -52,6 +52,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -150,6 +151,10 @@ public class AccessRightServiceTest {
         return JdbcTestUtils.countRowsInTable(jdbcTemplate, "identifier");
     }
 
+    private int countAccessRights() {
+        return JdbcTestUtils.countRowsInTable(jdbcTemplate, "accessright");
+    }
+
 
     @Test
     public void findAllAccessRightHolders() throws Throwable {
@@ -185,6 +190,114 @@ public class AccessRightServiceTest {
                 null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
     }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) // without transaction
+    public void removeServiceClientAccessRightsOrphanRemovalWorks() throws Exception {
+        // remove items from addServiceClientAccessRights
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        int initialServiceClients = serviceClientService.getServiceClientsByClient(serviceOwner).size();
+        int initialAccessRights = countAccessRights();
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        assertEquals(3, dtos.size());
+        assertEquals(initialServiceClients + 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights + 3, countAccessRights());
+
+        // delete 2/3 added
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("openapi-servicecode", "rest-servicecode")),
+                subsystemId);
+        assertEquals(initialServiceClients + 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights + 1, countAccessRights());
+
+        // delete 1/3 remaining added
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("calculatePrime")),
+                subsystemId);
+        assertEquals(initialServiceClients, serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights, countAccessRights());
+    }
+
+    @Test
+    public void removeServiceClientAccessRights() throws Exception {
+        // remove items from addServiceClientAccessRights
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        int initialServiceClients = serviceClientService.getServiceClientsByClient(serviceOwner).size();
+        int initialAccessRights = countAccessRights();
+        int initialAclSize = clientService.getLocalClient(serviceOwner).getAcl().size();
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        assertEquals(3, dtos.size());
+        assertEquals(initialServiceClients + 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights + 3, countAccessRights());
+        assertEquals(initialAclSize + 3, clientService.getLocalClient(serviceOwner).getAcl().size());
+
+        // delete 2/3 of the added
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("openapi-servicecode", "rest-servicecode")),
+                subsystemId);
+        persistenceUtils.flush();
+        assertEquals(initialServiceClients + 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAclSize + 1, clientService.getLocalClient(serviceOwner).getAcl().size());
+        assertEquals(initialAccessRights + 1, countAccessRights());
+
+        // delete 1/3 remaining added
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("calculatePrime")),
+                subsystemId);
+        persistenceUtils.flush();
+        assertEquals(initialServiceClients, serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights, countAccessRights());
+    }
+
+    @Test
+    public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
+        // removes base and other endpoints, leaves other subjects intact
+    }
+
+
+    @Test
+    public void removeServiceClientAccessRightDoesNotExist() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightForOtherClientsLocalGroup() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightWrongObjectType() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightFromWrongServiceOwner() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightDuplicateServiceCode() throws Exception {
+        // should remove it only once
+    }
+
 
     @Test
     public void addServiceClientAccessRights() throws Exception {
@@ -407,6 +520,20 @@ public class AccessRightServiceTest {
             fail("should throw exception");
         } catch (AccessRightService.DuplicateAccessRightException expected) {
         }
+    }
+
+    @Test
+    public void addServiceClientAccessRightsDuplicateServiceCodes() throws Exception {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList("calculatePrime", "calculatePrime", "calculatePrime"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        // should add this only once
+        assertEquals(1, dtos.size());
     }
 
 
