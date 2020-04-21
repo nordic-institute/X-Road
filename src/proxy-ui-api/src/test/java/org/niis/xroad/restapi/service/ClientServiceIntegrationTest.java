@@ -43,7 +43,6 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
