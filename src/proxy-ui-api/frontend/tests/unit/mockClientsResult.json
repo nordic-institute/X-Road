@@ -75,7 +75,6 @@
     "owner": false,
     "sortNameAsc": "unknown memberGOV2000",
     "sortNameDesc": "unknown memberGOV2000!",
-    "status": undefined,
     "subsystem_code": null,
     "type": "client"
   },
@@ -89,7 +88,6 @@
     "owner": false,
     "sortNameAsc": "unknown memberGOV3000",
     "sortNameDesc": "unknown memberGOV3000!",
-    "status": undefined,
     "subsystem_code": null,
     "type": "client"
   }
