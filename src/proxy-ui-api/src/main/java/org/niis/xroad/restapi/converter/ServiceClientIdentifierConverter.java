@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * converter for ServiceClient and related objects
+ * Converter for ServiceClient
  */
 @Component
 public class ServiceClientIdentifierConverter {

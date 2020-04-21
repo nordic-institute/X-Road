@@ -228,7 +228,7 @@ public class EndpointsApiControllerTest {
         // add access rights for a local group to endpoint
         List<ServiceClient> localGroupTestServiceClients = endpointsApiController
                 .getEndpointServiceClients("3").getBody();
-        assertTrue(localGroupTestServiceClients.size() == 0);
+        assertTrue(localGroupTestServiceClients.size() == 1);
         ServiceClients localGroupScs = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
                         ServiceClientType.LOCALGROUP));
@@ -236,7 +236,7 @@ public class EndpointsApiControllerTest {
         persistenceUtils.flush();
         localGroupTestServiceClients = endpointsApiController.getEndpointServiceClients("3").getBody();
 
-        assertTrue(localGroupTestServiceClients.size() == 1);
+        assertTrue(localGroupTestServiceClients.size() == 2);
         assertTrue(localGroupTestServiceClients.stream().anyMatch(sc -> sc.getId()
                 .equals(TestUtils.DB_LOCAL_GROUP_ID_1)));
     }

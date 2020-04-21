@@ -54,11 +54,15 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -453,7 +457,7 @@ public class AccessRightServiceTest {
         localGroupIds.add(2L);
         List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
-        assertEquals(3, dtos.size());
+        assertEquals(4, dtos.size());
     }
 
     @Test
@@ -472,7 +476,7 @@ public class AccessRightServiceTest {
         localGroupIds.add(2L);
         List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
-        assertEquals(3, dtos.size());
+        assertEquals(4, dtos.size());
         ServiceClientDto persistedSs3 = dtos.stream()
                 .filter(accessRightHolderDto -> accessRightHolderDto.getSubjectId().equals(ss3))
                 .findFirst().get();
@@ -518,7 +522,12 @@ public class AccessRightServiceTest {
         localGroupIds.add(1L); // this is a LocalGroup with groupCode 'group1' in data.sql
         List<ServiceClientDto> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, null, localGroupIds);
-        assertEquals(LocalGroupId.create(TestUtils.DB_LOCAL_GROUP_CODE), aclHolders.get(0).getSubjectId());
+        Optional<ServiceClientDto> addedLocalGroupServiceClient = aclHolders.stream()
+                .filter(s -> String.valueOf(localGroupIds.iterator().next()).equals(s.getLocalGroupId()))
+                .findFirst();
+        assertTrue(addedLocalGroupServiceClient.isPresent());
+        assertEquals(LocalGroupId.create(TestUtils.DB_LOCAL_GROUP_CODE), addedLocalGroupServiceClient.get()
+                .getSubjectId());
     }
 
     @Test(expected = IdentifierNotFoundException.class)
@@ -555,7 +564,7 @@ public class AccessRightServiceTest {
 
         ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
         List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
-        assertTrue(serviceClients3.size() == 3);
+        assertTrue(serviceClients3.size() == 4);
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
                 .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
@@ -565,4 +574,20 @@ public class AccessRightServiceTest {
                 && arh.getSubjectId().getXRoadInstance().equals("FI")));
 
     }
+
+    @Test
+    public void getClientServiceClientsHasCorrectRightsGiven() throws Exception {
+        ClientId clientId = ClientId.create("FI", "GOV", "M1", "SS1");
+        List<ServiceClientDto> serviceClients = serviceClientService.getServiceClientsByClient(clientId);
+        XRoadId globalGroupId = GlobalGroupId.create("FI", "test-globalgroup");
+        Optional<ServiceClientDto> groupServiceClient = serviceClients.stream()
+                .filter(dto -> dto.getSubjectId().equals(globalGroupId))
+                .findFirst();
+        assertTrue(groupServiceClient.isPresent());
+        // data.sql populates times in local time zone
+        ZonedDateTime correctRightsGiven = LocalDateTime.parse("2020-01-01T09:07:22").atZone(ZoneId.systemDefault());
+        // persistence layer gives times in utc time zone, so compare instants
+        assertEquals(correctRightsGiven.toInstant(), groupServiceClient.get().getRightsGiven().toInstant());
+    }
+
 }
