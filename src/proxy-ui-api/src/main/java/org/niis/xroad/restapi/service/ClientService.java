@@ -372,16 +372,13 @@ public class ClientService {
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean localValidSignCert) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode);
-
-        Predicate<ClientType> validSignCertPredicate = buildValidSignCertPredicate(localValidSignCert);
+                memberCode, subsystemCode, localValidSignCert);
 
         List<ClientType> allLocalClients = getAllLocalClients();
 
         return allLocalClients.stream()
                 .filter(matchingSearchTerms)
                 .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
-                .filter(validSignCertPredicate)
                 .collect(Collectors.toList());
     }
 
@@ -398,7 +395,7 @@ public class ClientService {
     public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode);
+                memberCode, subsystemCode, false);
         return getAllGlobalClients().stream()
                 .filter(matchingSearchTerms)
                 .filter(clientType -> showMembers || clientType.getIdentifier().getSubsystemCode() != null)
@@ -578,7 +575,7 @@ public class ClientService {
     }
 
     private Predicate<ClientType> buildClientSearchPredicate(String name, String instance,
-            String memberClass, String memberCode, String subsystemCode) {
+            String memberClass, String memberCode, String subsystemCode, boolean localValidSignCert) {
         Predicate<ClientType> clientTypePredicate = clientType -> true;
         if (!StringUtils.isEmpty(name)) {
             clientTypePredicate = clientTypePredicate.and(ct -> {
@@ -602,25 +599,10 @@ public class ClientService {
             clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
-        return clientTypePredicate;
-    }
-
-    /**
-     * Create predicate function for filtering by valid local sign cert
-     *
-     * @param onlyLocalClientWithValidSignCert
-     * @return
-     */
-    private Predicate<ClientType> buildValidSignCertPredicate(boolean onlyLocalClientWithValidSignCert) {
-
-        if (onlyLocalClientWithValidSignCert) {
-            Predicate<ClientType> validSignCertPredicate = clientType -> false;
-            validSignCertPredicate = validSignCertPredicate.or(this::hasValidLocalSignCertCheck);
-            return validSignCertPredicate;
+        if (localValidSignCert) {
+            clientTypePredicate = clientTypePredicate.and(this::hasValidLocalSignCertCheck);
         }
-
-        // if onlyLocalClientWithValidSignCert is false or null return predicate which is always true
-        return clientType -> true;
+        return clientTypePredicate;
     }
 
     /**
