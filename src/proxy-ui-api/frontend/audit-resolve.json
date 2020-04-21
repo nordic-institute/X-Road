@@ -2,8 +2,8 @@
   "decisions": {
     "1179|@vue/cli-plugin-e2e-nightwatch>nightwatch>optimist>minimist": {
       "decision": "ignore",
-      "madeAt": 1585307275814,
-      "expiresAt": 1587899249002
+      "madeAt": 1585851470638,
+      "expiresAt": 1588443462112
     }
   },
   "rules": {},
