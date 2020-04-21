@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.25"
+  version: "1.0.26"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -1017,7 +1017,7 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get service clients for the selected client
+      summary: get service clients for the selected client's services
       operationId: getClientServiceClients
       description: Administrator views the service clients for the client.
       parameters:
@@ -1053,12 +1053,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+  /clients/{id}/service-clients/{sc_id}:
+    get: # ok
       tags:
         - security server
-      summary: add new service client for the security server client
-      operationId: addClientServiceClient
-      description: Administrator adds a new service client for the client.
+      summary: get single service client by client id and service client id
+      operationId: getServiceClient
+      description: Administrator views the information for a single service client
       parameters:
         - in: path
           name: id
@@ -1069,26 +1070,173 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: ServiceClientId
-              type: object
-              properties:
-                id:
-                  type: string
-                  format: text
-                  description: id of the service client
-                  minLength: 1
-                  maxLength: 1279
+        - in: path
+          name: sc_id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
       responses:
-        '201':
-          description: service client added
+        '200':
+          description: single service clients
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceClient'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /clients/{id}/service-clients/{sc_id}/access-rights:
+    get: # ok
+      tags:
+        - security server
+      summary: get access rights for the selected service client.
+      operationId: getServiceClientAccessRights
+      description: Administrator views service client's access rights.
+      parameters:
+        - in: path
+          name: id
+          description: id of the client who owns the services
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: sc_id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1279
+      responses:
+        '200':
+          description: list of access rights
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of access right objects
+                items:
+                  $ref: '#/components/schemas/AccessRight'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: add new access rights for selected service client. If service client did not exist yet, one is created.
+      operationId: addServiceClientAccessRights
+      description: Adds access rights to the service client.
+      parameters:
+        - in: path
+          name: id
+          description: id of the client who owns the services
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: sc_id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1279
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessRights'
+      responses:
+        '201':
+          description: access right that was added
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of added access right objects
+                items:
+                  $ref: '#/components/schemas/AccessRight'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /clients/{id}/service-clients/{sc_id}/access-rights/delete:
+    post: # ok
+      tags:
+        - security server
+      summary: remove access rights
+      operationId: deleteServiceClientAccessRights
+      description: Administrator removes access rights from selected service client.
+      parameters:
+        - in: path
+          name: id
+          description: id of the client who owns the services
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: sc_id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1279
+      requestBody:
+        description: list of access rights to be deleted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessRights'
+      responses:
+        '204':
+          description: access right(s) deleted
         '400':
           description: request was invalid
         '401':
@@ -1432,13 +1580,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/subjects:
+  /clients/{id}/service-client-candidates:
     get: # ok
       tags:
         - security server
-      summary: find access right subjects
-      operationId: findSubjects
-      description: Administrator views the clients, globalgroups and localgroups of the security server as access right subjects
+      summary: find ServiceClient candidates for a specific client
+      operationId: findServiceClientCandidates
+      description: Administrator views the clients, globalgroups and localgroups, that could be added as ServiceClients for given Client's services
       parameters:
         - in: path
           name: id
@@ -1460,14 +1608,14 @@ paths:
             minLength: 0
             maxLength: 255
         - in: query
-          name: subject_type
-          description: pass an optional search string (subject_type) for looking up subjects
+          name: service_client_type
+          description: pass an optional search string (service_client_type) for looking up service clients
           required: false
           schema:
-            $ref: '#/components/schemas/SubjectType'
+            $ref: '#/components/schemas/ServiceClientType'
         - in: query
           name: instance
-          description: pass an optional search string (instance) for looking up subjects - full instance id should be used
+          description: pass an optional search string (instance) for looking up service clients - full instance id should be used
           example: GOV
           required: false
           schema:
@@ -1477,7 +1625,7 @@ paths:
             maxLength: 255
         - in: query
           name: member_class
-          description: pass an optional search string (member_class) for looking up subjects
+          description: pass an optional search string (member_class) for looking up service clients
           required: false
           schema:
             type: string
@@ -1486,7 +1634,7 @@ paths:
             maxLength: 255
         - in: query
           name: member_group_code
-          description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
+          description: pass an optional search string (member_group_code) for looking up service clients - member_code of a member or group_code of a group
           example: 1234 | Example group code
           required: false
           schema:
@@ -1496,7 +1644,7 @@ paths:
             maxLength: 255
         - in: query
           name: subsystem_code
-          description: pass an optional search string (subsystem_code) for looking up subjects
+          description: pass an optional search string (subsystem_code) for looking up service clients
           example: Subsystem1
           required: false
           schema:
@@ -1506,15 +1654,15 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: list of subjects
+          description: list of service clients
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
-                description: array of Subjects
+                description: array of ServiceClients
                 items:
-                  $ref: '#/components/schemas/Subject'
+                  $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
         '401':
@@ -2510,13 +2658,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /services/{id}/access-rights:
+  /services/{id}/service-clients:
     get: # ok
       tags:
         - security server
-      summary: get access rights for the selected service
-      operationId: getServiceAccessRights
-      description: Administrator views service access rights.
+      summary: get service clients who have access rights for the selected service
+      operationId: getServiceServiceClients
+      description: Administrator views service clients who have access to the given service
       parameters:
         - in: path
           name: id
@@ -2530,7 +2678,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: list of service client and access rights
+          description: list of service clients
           content:
             application/json:
               schema:
@@ -2554,9 +2702,9 @@ paths:
     post:
       tags:
         - security server
-      summary: add new access right for the selected service
-      operationId: addServiceAccessRight
-      description: Adds access right to the service
+      summary: add access rights to selected service for new ServiceClients
+      operationId: addServiceServiceClients
+      description: Adds access rights to selected service for new ServiceClients
       parameters:
         - in: path
           name: id
@@ -2571,7 +2719,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '201':
           description: access rights added
@@ -2597,13 +2745,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /services/{id}/access-rights/delete:
+  /services/{id}/service-clients/delete:
     post: # ok
       tags:
         - security server
-      summary: remove access right
-      operationId: deleteServiceAccessRight
-      description: Administrator removes access right from selected service.
+      summary: remove access to selected service from given ServiceClients
+      operationId: deleteServiceServiceClients
+      description: Administrator removes access to selected service from given ServiceClients
       parameters:
         - in: path
           name: id
@@ -2618,7 +2766,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '204':
           description: access right(s) deletion was successful
@@ -2643,6 +2791,7 @@ paths:
           name: id
           required: true
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2678,6 +2827,7 @@ paths:
           name: id
           required: true
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2719,6 +2869,7 @@ paths:
           name: id
           required: true
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2740,12 +2891,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /endpoints/{id}/access-rights:
+  /endpoints/{id}/service-clients:
     get:
       tags:
         - security server
-      summary: get access rights for the selected endpoint
-      operationId: getEndpointAccessRights
+      summary: get service clients who have access rights for the selected endpoint
+      operationId: getEndpointServiceClients
       description: Administrator views endpoints access rights
       parameters:
         - in: path
@@ -2782,9 +2933,9 @@ paths:
     post:
       tags:
         - security server
-      summary: add access rights to the selected endpoint
-      operationId: addEndpointAccessRights
-      description: Administrator add access rights to the selected endpoint
+      summary: add access rights for given service clients to the selected endpoint
+      operationId: addEndpointServiceClients
+      description: Administrator add access rights for a service clients to the selected endpoint
       parameters:
         - in: path
           name: id
@@ -2799,7 +2950,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '201':
           description: access rights added
@@ -2825,13 +2976,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /endpoints/{id}/access-rights/delete:
+  /endpoints/{id}/service-clients/delete:
     post:
       tags:
         - security server
-      summary: remove access rights from the selected endpoint
-      operationId: deleteEndpointAccessRights
-      description: Administrator removes access rights from an endpoint
+      summary: remove access rights from specified service clients to the selected endpoint
+      operationId: deleteEndpointServiceClients
+      description: Administrator removes access rights from a service clients to an endpoint
       parameters:
         - in: path
           name: id
@@ -2843,11 +2994,11 @@ paths:
             minLength: 1
             maxLength: 255
       requestBody:
-        description: list of access rights to be deleted
+        description: Service client to be removed
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subjects'
+              $ref: '#/components/schemas/ServiceClients'
       responses:
         '204':
           description: access right(s) deleted
@@ -2861,132 +3012,6 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
-        '500':
-          description: internal server error
-  /service-clients/{id}/access-rights:
-    get: # ok
-      tags:
-        - security server
-      summary: get access rights for the selected service client.
-      operationId: getServiceClientAccessRights
-      description: Administrator views service client's access rights.
-      parameters:
-        - in: path
-          name: id
-          description: id of the service client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1279
-      responses:
-        '200':
-          description: list of access rights
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of access right objects
-                items:
-                  $ref: '#/components/schemas/AccessRight'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    post: # ok
-      tags:
-        - security server
-      summary: add new access right for selected service client
-      operationId: addServiceClientAccessRight
-      description: Adds access right to the service client.
-      parameters:
-        - in: path
-          name: id
-          description: id of the service client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1279
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Subjects'
-      responses:
-        '201':
-          description: access right(s) added
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of added access right objects
-                items:
-                  $ref: '#/components/schemas/AccessRight'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /service-clients/{id}/access-rights/delete:
-    post: # ok
-      tags:
-        - security server
-      summary: remove access right
-      operationId: deleteServiceClientAccessRight
-      description: Administrator removes access right from selected service client.
-      parameters:
-        - in: path
-          name: id
-          description: id of the service client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1279
-      requestBody:
-        description: list of access rights to be deleted
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Subjects'
-      responses:
-        '204':
-          description: access right(s) deleted
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
         '500':
           description: internal server error
   /service-descriptions/{id}:
@@ -4158,28 +4183,10 @@ components:
   schemas:
     AccessRight: # ok
       type: object
-      description: access right for clients and services
+      description: access right given for a specific subject (ServiceClient) for specific service (service_code) owned by some client. This object does not represent endpoint-level access rights
       required:
-        - id
-        - client_id
         - service_code
-        - service_title
       properties:
-        id:
-          type: string
-          format: text
-          description: access right id
-          example: 123
-          minLength: 1
-          maxLength: 255
-          readOnly: true
-        client_id:
-          type: string
-          format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
-          example: FI:GOV:123:ABC
-          minLength: 1
-          maxLength: 255
         service_code:
           type: string
           format: text
@@ -4189,11 +4196,30 @@ components:
           maxLength: 255
         service_title:
           type: string
+          readOnly: true
           format: text
           description: service title
           example: client deletion
           minLength: 1
           maxLength: 255
+        rights_given_at:
+          type: string
+          format: date-time
+          description: access right given at
+          example: '2018-12-15T00:00:00.001Z'
+          readOnly: true
+          minLength: 24
+          maxLength: 24
+    AccessRights: # ok
+      type: object
+      description: object containing and array of AccessRights
+      properties:
+        items:
+          type: array
+          uniqueItems: true
+          description: array of AccessRights
+          items:
+            $ref: '#/components/schemas/AccessRight'
     Anchor: # ok
       type: object
       description: security server anchor
@@ -5313,27 +5339,55 @@ components:
           example: '/foo'
     ServiceClient: # ok
       type: object
-      description: service client
+      description: service client. May be a subsystem, local group, or a global group
       required:
-        - subject
-        - rights_given_at
-        - access_rights
+        - id
+        - subject_type
       properties:
-        subject:
-          $ref: '#/components/schemas/Subject'
+        id:
+          type: string
+          format: text
+          description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
+          minLength: 1
+          maxLength: 1279
+        name:
+          type: string
+          format: text
+          description: name of the ServiceClient - can be the name of a member or the description of a group
+          example: Security server owners
+          readOnly: true
+          minLength: 1
+          maxLength: 255
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        service_client_type:
+          $ref: '#/components/schemas/ServiceClientType'
+        # TO DO: improve documentation, explain function better, and that it is not populated always
         rights_given_at:
           type: string
           format: date-time
           description: access right given at
           example: '2018-12-15T00:00:00.001Z'
+          readOnly: true
           minLength: 24
           maxLength: 24
-        access_rights:
+    ServiceClients: # ok
+      type: object
+      description: object containing and array of ServiceClients
+      properties:
+        items:
           type: array
-          description: list of access rights - this will be null when requested via services/{id}/access-rights endpoint
           uniqueItems: true
+          description: array of ServiceClients
           items:
-            $ref: '#/components/schemas/AccessRight'
+            $ref: '#/components/schemas/ServiceClient'
     ServiceDescription: # ok
       type: object
       description: WSDL/OPENAPI3/REST service
@@ -5463,39 +5517,7 @@ components:
         - WSDL
         - REST
         - OPENAPI3
-    Subject: # ok
-      type: object
-      description: subject
-      required:
-        - id
-        - subject_type
-      properties:
-        id:
-          type: string
-          format: text
-          description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
-          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          minLength: 1
-          maxLength: 1279
-        member_name_group_description:
-          type: string
-          format: text
-          description: name of the subject - can be the name of a member or the description of a group
-          example: Security server owners
-          readOnly: true
-          minLength: 1
-          maxLength: 255
-        local_group_code:
-          type: string
-          format: text
-          description: group code in case the object is a local group
-          example: My own Local group code
-          minLength: 1
-          maxLength: 255
-          readOnly: true
-        subject_type:
-          $ref: '#/components/schemas/SubjectType'
-    SubjectType: # ok
+    ServiceClientType: # ok
       type: string
       format: text
       description: subject type
@@ -5504,16 +5526,6 @@ components:
         - GLOBALGROUP
         - LOCALGROUP
         - SUBSYSTEM
-    Subjects: # ok
-      type: object
-      description: object containing and array of subject ids
-      properties:
-        items:
-          type: array
-          uniqueItems: true
-          description: array of subject ids
-          items:
-            $ref: '#/components/schemas/Subject'
     TimestampingService: # ok
       type: object
       description: timestamping services
