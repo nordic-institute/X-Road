@@ -81,13 +81,15 @@ public class AccessRightService {
     private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
     private final LocalGroupService localGroupService;
+    private final ServiceDescriptionService serviceDescriptionService;
 
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
             GlobalConfService globalConfService,
             EndpointService endpointService,
-            LocalGroupService localGroupService) {
+            LocalGroupService localGroupService,
+            ServiceDescriptionService serviceDescriptionService) {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
@@ -95,6 +97,7 @@ public class AccessRightService {
         this.globalConfService = globalConfService;
         this.endpointService = endpointService;
         this.localGroupService = localGroupService;
+        this.serviceDescriptionService = serviceDescriptionService;
     }
 
     /**
@@ -524,21 +527,9 @@ public class AccessRightService {
         ServiceClientAccessRightDto dto = ServiceClientAccessRightDto.builder()
                 .serviceCode(endpoint.getServiceCode())
                 .rightsGiven(FormatUtils.fromDateToOffsetDateTime(rightsGiven))
-                .title(getServiceTitle(clientType, endpoint.getServiceCode()))
+                .title(serviceDescriptionService.getServiceTitle(clientType, endpoint.getServiceCode()))
                 .build();
         return dto;
-    }
-
-    // TO DO: currently duplicate with ServiceClientService, not sure if ServiceClientService will be refactored,
-    // and what is the correct place if both need this
-    private String getServiceTitle(ClientType clientType, String serviceCode) {
-        ServiceType service = clientType.getServiceDescription().stream()
-                .flatMap(sd -> sd.getService().stream())
-                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
-                .get();
-
-        return service == null ? null : service.getTitle();
     }
 
     /**

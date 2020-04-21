@@ -47,7 +47,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,16 +61,19 @@ public class ServiceClientService {
     private final AccessRightService accessRightService;
     private final LocalGroupService localGroupService;
     private final IdentifierService identifierService;
+    private final ServiceDescriptionService serviceDescriptionService;
 
     public ServiceClientService(ClientRepository clientRepository, ServiceService serviceService,
             EndpointService endpointService, AccessRightService accessRightService,
-            LocalGroupService localGroupService, IdentifierService identifierService) {
+            LocalGroupService localGroupService, IdentifierService identifierService,
+            ServiceDescriptionService serviceDescriptionService) {
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.endpointService = endpointService;
         this.accessRightService = accessRightService;
         this.localGroupService = localGroupService;
         this.identifierService = identifierService;
+        this.serviceDescriptionService = serviceDescriptionService;
     }
 
     /**
@@ -209,7 +211,7 @@ public class ServiceClientService {
                 .map(acl -> ServiceClientAccessRightDto.builder()
                         .serviceCode(acl.getEndpoint().getServiceCode())
                         .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
-                        .title(getServiceTitle(owner, acl.getEndpoint().getServiceCode()))
+                        .title(serviceDescriptionService.getServiceTitle(owner, acl.getEndpoint().getServiceCode()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -236,31 +238,6 @@ public class ServiceClientService {
         }
 
         return xRoadId;
-    }
-
-    /**
-     * Add access rights for services in serviceCodes to service client serviceClientId,
-     * both the services and service client in the context of subsystem clientId
-     * TO DO: test
-     * TO DO: test service != client's services
-     * TO DO: test service client != client's service clients
-     * TO DO: access right already exists -> exception
-     * @param clientId
-     * @param serviceClientId
-     * @param serviceCodes
-     */
-    public void addServiceClientAccessRights(ClientId clientId, XRoadId serviceClientId, Set<String> serviceCodes) {
-        log.debug("adding service client access rights");
-    }
-
-    private String getServiceTitle(ClientType clientType, String serviceCode) {
-        ServiceType service = clientType.getServiceDescription().stream()
-                .flatMap(sd -> sd.getService().stream())
-                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
-                .get();
-
-        return service == null ? null : service.getTitle();
     }
 
 }
