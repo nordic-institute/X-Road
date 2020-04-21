@@ -583,7 +583,7 @@ public class ClientsApiController implements ClientsApi {
             accessRights = accessRightConverter.convert(
                     serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
         } catch (IdentifierNotFoundException | ClientNotFoundException
-                | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+                | LocalGroupNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
