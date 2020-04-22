@@ -49,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -114,16 +113,15 @@ public class AccessRightServiceTest {
     GlobalConfService globalConfService;
 
     @Autowired
+    // TO DO: does not belong in this test
     ServiceClientService serviceClientService;
 
     @Autowired
     EndpointService endpointService;
 
     @Autowired
+    // TO DO: does not belong in this test
     ClientService clientService;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private PersistenceUtils persistenceUtils;
@@ -234,7 +232,31 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
-        // removes base and other endpoints, leaves other subjects intact
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        // openapi3-test has endpoints 8 (base), 9, 10, 11, 12
+        // subject 8 = M2 / SS6 has access to 8, 9, 10, 11
+        // add another service client access to some endpoints, then remove sc 8
+        long initialAccessRights = countAccessRights();
+        ClientId serviceOwner = ClientId.create("FI", "GOV", "M2", "SS6");
+        int initialServiceClients = serviceClientService.getServiceClientsByClient(serviceOwner).size();
+
+        // add access to test-globalgroup
+        Set<XRoadId> globalGroupSubject = new HashSet<>(Arrays.asList(
+                GlobalGroupId.create("FI", "test-globalgroup")));
+        accessRightService.addEndpointAccessRights(11L, globalGroupSubject, null);
+        accessRightService.addEndpointAccessRights(12L, globalGroupSubject, null);
+        assertEquals(initialAccessRights + 2, countAccessRights());
+
+        XRoadId ss6Id = serviceOwner;
+
+        // remove access from ss6
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("openapi3-test")), ss6Id);
+        assertEquals(initialAccessRights + 2 - 4, countAccessRights());
+        assertEquals(initialServiceClients - 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
     }
 
 
@@ -638,6 +660,7 @@ public class AccessRightServiceTest {
         serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));
     }
 
+    // TO DO: does not belong in this test
     @Test
     public void getClientServiceClients() throws Exception {
         ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");

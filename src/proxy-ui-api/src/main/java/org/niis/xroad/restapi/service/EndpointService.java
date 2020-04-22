@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -179,6 +180,18 @@ public class EndpointService {
             baseEndpoints.add(getServiceBaseEndpoint(clientType, serviceCode));
         }
         return baseEndpoints;
+    }
+
+    /**
+     * Get all endpoints (base and others) for the given client and service code.
+     * @param clientType
+     * @param serviceCodes
+     */
+    public List<EndpointType> getServiceEndpoints(ClientType clientType, Set<String> serviceCodes) {
+        // TO DO: refactor others to use this
+        return clientType.getEndpoint().stream()
+                .filter(endpointType -> serviceCodes.contains(endpointType.getServiceCode()))
+                .collect(Collectors.toList());
     }
 
 

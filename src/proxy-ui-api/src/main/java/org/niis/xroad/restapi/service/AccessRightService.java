@@ -327,17 +327,42 @@ public class AccessRightService {
             throw new IdentifierNotFoundException(e);
         }
     }
+
+    // TO DO: comments
     public void deleteServiceClientAccessRights(ClientId clientId,
-            Set<String> serviceCodes, XRoadId subjectId) throws EndpointNotFoundException,
-                AccessRightNotFoundException, ClientNotFoundException, IdentifierNotFoundException {
+            Set<String> serviceCodes, XRoadId subjectId) throws AccessRightNotFoundException, ClientNotFoundException,
+            IdentifierNotFoundException, EndpointNotFoundException {
 
         ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
 
-        // prepare params for addAccessRightsInternal
+        // first delete base endpoint access rights. These all need to exist, otherwise AccessRightNotFoundException
         List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        Set<XRoadId> subjectIds = new HashSet<>(Arrays.asList((subjectId)));
+        deleteEndpointAccessRights(clientType, baseEndpoints, subjectIds);
 
-        deleteEndpointAccessRights(clientType, baseEndpoints, new HashSet<>(Arrays.asList((subjectId))));
+        // then delete all non-base endpoint access rights, for this subject. If there's none, that's fine
+        List<EndpointType> allEndpoints = endpointService.getServiceEndpoints(clientType, serviceCodes);
+        List<AccessRightType> remainingAccessRights = getEndpointAccessRights(clientType, allEndpoints, subjectIds);
+        if (!remainingAccessRights.isEmpty()) {
+            Set<EndpointType> endpointsWithAccessRights = remainingAccessRights.stream()
+                    .map(a -> a.getEndpoint())
+                    .collect(Collectors.toSet());
+            deleteEndpointAccessRights(clientType, new ArrayList<>(endpointsWithAccessRights), subjectIds);
+        }
+    }
 
+    /**
+     * Get client's acl entries that match endpointTypes and subjects
+     */
+    private List<AccessRightType> getEndpointAccessRights(ClientType clientType, List<EndpointType> endpointTypes,
+            Set<XRoadId> subjectIds) {
+
+        List<Long> endpointIds = endpointTypes.stream().map(e -> e.getId()).collect(Collectors.toList());
+        List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
+                .filter(acl -> endpointIds.contains(acl.getEndpoint().getId())
+                        && subjectIds.contains(acl.getSubjectId()))
+                .collect(Collectors.toList());
+        return accessRightsToBeRemoved;
     }
 
     private ClientType validateServiceClientAccessRightsParameters(ClientId clientId, XRoadId subjectId)
