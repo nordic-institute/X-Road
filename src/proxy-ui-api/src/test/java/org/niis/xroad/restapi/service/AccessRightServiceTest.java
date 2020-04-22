@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -41,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,6 +130,9 @@ public class AccessRightServiceTest {
     @Autowired
     private PersistenceUtils persistenceUtils;
 
+    @Autowired
+    private PersistenceTestUtil persistenceTestUtil;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
@@ -191,6 +196,7 @@ public class AccessRightServiceTest {
         assertEquals(1, dtos.size());
     }
 
+    // no need for this after all, since new implementation of removeServiceClientAccessRights works
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED) // without transaction
     public void removeServiceClientAccessRightsOrphanRemovalWorks() throws Exception {
@@ -227,6 +233,10 @@ public class AccessRightServiceTest {
         assertEquals(initialAccessRights, countAccessRights());
     }
 
+    private long jpaCountAccessRights() {
+        return persistenceTestUtil.countRows(AccessRightType.class);
+    }
+
     @Test
     public void removeServiceClientAccessRights() throws Exception {
         // remove items from addServiceClientAccessRights
@@ -238,34 +248,33 @@ public class AccessRightServiceTest {
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
         XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
         int initialServiceClients = serviceClientService.getServiceClientsByClient(serviceOwner).size();
-        int initialAccessRights = countAccessRights();
+        long initialAccessRights = jpaCountAccessRights();
         int initialAclSize = clientService.getLocalClient(serviceOwner).getAcl().size();
         List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
                 serviceOwner, serviceCodes, subsystemId);
         assertEquals(3, dtos.size());
         assertEquals(initialServiceClients + 1,
                 serviceClientService.getServiceClientsByClient(serviceOwner).size());
-        assertEquals(initialAccessRights + 3, countAccessRights());
+        assertEquals(initialAccessRights + 3, jpaCountAccessRights());
         assertEquals(initialAclSize + 3, clientService.getLocalClient(serviceOwner).getAcl().size());
 
         // delete 2/3 of the added
         accessRightService.deleteServiceClientAccessRights(serviceOwner,
                 new HashSet<>(Arrays.asList("openapi-servicecode", "rest-servicecode")),
                 subsystemId);
-        persistenceUtils.flush();
         assertEquals(initialServiceClients + 1,
                 serviceClientService.getServiceClientsByClient(serviceOwner).size());
         assertEquals(initialAclSize + 1, clientService.getLocalClient(serviceOwner).getAcl().size());
-        assertEquals(initialAccessRights + 1, countAccessRights());
+        assertEquals(initialAccessRights + 1, jpaCountAccessRights());
 
         // delete 1/3 remaining added
         accessRightService.deleteServiceClientAccessRights(serviceOwner,
                 new HashSet<>(Arrays.asList("calculatePrime")),
                 subsystemId);
-        persistenceUtils.flush();
         assertEquals(initialServiceClients, serviceClientService.getServiceClientsByClient(serviceOwner).size());
-        assertEquals(initialAccessRights, countAccessRights());
+        assertEquals(initialAccessRights, jpaCountAccessRights());
     }
+
 
     @Test
     public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
