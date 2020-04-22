@@ -30,7 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientHelper;
+import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
+import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
@@ -40,6 +42,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
 
@@ -156,13 +160,12 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<List<ServiceClient>> addEndpointServiceClients(String id, ServiceClients serviceClients) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
-        List<XRoadId> xRoadIds = serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
+        Set<XRoadId> xRoadIds = processServiceClientXRoadIds(serviceClients);
         List<ServiceClientDto> serviceClientsByEndpoint = null;
 
         try {
             serviceClientsByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
-                    new HashSet<>(xRoadIds), localGroupIds);
+                    new HashSet<>(xRoadIds));
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
@@ -180,18 +183,40 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<Void> deleteEndpointServiceClients(String id, ServiceClients serviceClients) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
-        HashSet<XRoadId> xRoadIds = new HashSet<>(serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients));
+        Set<XRoadId> xRoadIds = processServiceClientXRoadIds(serviceClients);
         try {
-            accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds, localGroupIds);
+            accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds);
         } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
+        } catch (IdentifierNotFoundException e) {
+            throw new BadRequestException(e);
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Autowired
+    private ServiceClientIdentifierConverter serviceClientIdentifierConverter;
+
+    // translate ServiceClients object to set of XRoadIds with help of serviceClientService
+    // and serviceClientIdentifierConverter
+    // TO DO: document exceptions (see ClientsApiController), move to better shared place
+    private Set<XRoadId> processServiceClientXRoadIds(ServiceClients serviceClients) {
+        return serviceClients.getItems().stream()
+                .map(s -> processServiceClientXRoadId(s.getId()))
+                .collect(Collectors.toSet());
+    }
+    private XRoadId processServiceClientXRoadId(String encodedServiceClientId) {
+        ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(encodedServiceClientId);
+        XRoadId serviceClientId = null;
+        try {
+            serviceClientId = serviceClientService.convertServiceClientIdentifierDtoToXroadId(dto);
+        } catch (LocalGroupNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return serviceClientId;
+    }
 
 }

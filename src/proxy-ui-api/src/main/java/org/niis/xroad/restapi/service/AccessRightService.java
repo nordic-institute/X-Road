@@ -109,16 +109,15 @@ public class AccessRightService {
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
-     * @param localGroupIds
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
      * was not found
      * @throws EndpointNotFoundException if the base endpoint for the service is not found
      */
-    public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws ClientNotFoundException, AccessRightNotFoundException,
-            ServiceNotFoundException {
+    public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
+            throws ClientNotFoundException, AccessRightNotFoundException,
+            ServiceNotFoundException, IdentifierNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -126,14 +125,15 @@ public class AccessRightService {
 
         EndpointType endpointType = getBaseEndpointType(fullServiceCode, clientType);
 
-        deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
+        deleteEndpointAccessRights(clientType, endpointType, subjectIds);
     }
 
     /**
      * Get base endpoint for given client and full service code
      * @throws ServiceNotFoundException if no match was found
      */
-    private EndpointType getBaseEndpointType(String fullServiceCode, ClientType clientType) throws ServiceNotFoundException {
+    private EndpointType getBaseEndpointType(String fullServiceCode, ClientType clientType)
+            throws ServiceNotFoundException {
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
         try {
             return endpointService.getServiceBaseEndpoint(serviceType);
@@ -147,19 +147,18 @@ public class AccessRightService {
      *
      * @param endpointId
      * @param subjectIds
-     * @param localGroupIds
      * @throws LocalGroupNotFoundException if localgroups is not found
      * @throws EndpointNotFoundException if endpoint by given id is not found
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
      */
-    public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds, Set<Long> localGroupIds)
+    public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
             throws EndpointNotFoundException,
-            ClientNotFoundException, AccessRightNotFoundException {
+            ClientNotFoundException, AccessRightNotFoundException, IdentifierNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
-        deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
+        deleteEndpointAccessRights(clientType, endpointType, subjectIds);
     }
 
     /**
@@ -169,24 +168,18 @@ public class AccessRightService {
      * @param clientType
      * @param endpointType
      * @param subjectIds
-     * @param localGroupIds
      * @throws AccessRightNotFoundException if access right is not found
      */
-    private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws AccessRightNotFoundException {
+    private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds)
+            throws AccessRightNotFoundException, IdentifierNotFoundException {
 
-        Set<XRoadId> subjectsToDelete = new HashSet<>();
-        if (localGroupIds != null) {
-            try {
-                subjectsToDelete.addAll(localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds));
-            } catch (LocalGroupNotFoundException e) {
-                throw new AccessRightNotFoundException(e);
-            }
-        }
-        if (subjectIds != null) {
-            subjectsToDelete.addAll(subjectIds);
-        }
-        deleteEndpointAccessRights(clientType, Collections.singletonList(endpointType), subjectsToDelete);
+        // verify that all subject ids exist
+        identifierService.verifyServiceClientIdentifiersExist(clientType, subjectIds);
+
+        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
+        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
+
+        deleteEndpointAccessRights(clientType, Collections.singletonList(endpointType), subjectIds);
     }
 
     /**
@@ -232,7 +225,6 @@ public class AccessRightService {
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
-     * @param localGroupIds
      * @return List of {@link ServiceClientDto AccessRightHolderDtos}
      * @throws ClientNotFoundException exception
      * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
@@ -241,7 +233,7 @@ public class AccessRightService {
      * @throws IdentifierNotFoundException if subjectIds or localGroupIds identifier was not found
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws ClientNotFoundException,
+            Set<XRoadId> subjectIds) throws ClientNotFoundException,
             ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
@@ -252,7 +244,7 @@ public class AccessRightService {
         EndpointType endpointType = getBaseEndpointType(fullServiceCode, clientType);
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
-        return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
+        return addEndpointAccessRights(clientType, endpointType, subjectIds);
     }
 
     /**
@@ -262,21 +254,20 @@ public class AccessRightService {
      *
      * @param endpointId
      * @param subjectIds
-     * @param localGroupIds
      * @return
      * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException client for the endpoint is not found (shouldn't happen)
      * @throws IdentifierNotFoundException Identifier from subjectIds is not found
      * @throws DuplicateAccessRightException Trying to add duplicate access rights
      */
-    public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
+    public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
+            throws EndpointNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, DuplicateAccessRightException {
 
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
-        return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
+        return addEndpointAccessRights(clientType, endpointType, subjectIds);
 
     }
 
@@ -285,15 +276,18 @@ public class AccessRightService {
      * @throws DuplicateAccessRightException
      */
     private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
-            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws IdentifierNotFoundException,
+            Set<XRoadId> subjectIds) throws IdentifierNotFoundException,
             DuplicateAccessRightException {
 
-        // Combine subject ids and localgroup ids to a single list of XRoadIds
-        Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(clientType, subjectIds, localGroupIds);
+        // verify that all subject ids exist
+        identifierService.verifyServiceClientIdentifiersExist(clientType, subjectIds);
+
+        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
+        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
 
         // Add access rights to endpoint
         try {
-            addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
+            addAccessRights(managedIds, clientType, endpointType);
         } catch (LocalGroupNotFoundException e) {
             throw new IdentifierNotFoundException(e);
         }
@@ -436,7 +430,7 @@ public class AccessRightService {
      * @param accessRightTypes
      * @return
      */
-    public List<ServiceClientDto> mapAccessRightsToServiceClients(ClientType clientType,
+    List<ServiceClientDto> mapAccessRightsToServiceClients(ClientType clientType,
             List<AccessRightType> accessRightTypes) {
         Map<String, LocalGroupType> localGroupMap = new HashMap<>();
         clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
@@ -603,31 +597,31 @@ public class AccessRightService {
      * @return
      * @throws IdentifierNotFoundException subjectIds identifier was not found
      */
-    private Set<XRoadId> mergeSubjectIdsWithLocalgroups(ClientType clientType, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds)
-            throws IdentifierNotFoundException {
-
-        // subjectIds + localGroupIds => transientIds
-        Set<XRoadId> transientIds = new HashSet<>();
-        if (subjectIds != null) {
-            transientIds.addAll(subjectIds);
-        }
-        if (localGroupIds != null && localGroupIds.size() > 0) {
-            try {
-                Set<XRoadId> localGroupXroadIds = localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds);
-                transientIds.addAll(localGroupXroadIds); // not actually transient, but does not matter
-            } catch (LocalGroupNotFoundException e) {
-                throw new IdentifierNotFoundException(e);
-            }
-        }
-
-        // verify that all ids actually exist
-        identifierService.verifyServiceClientIdentifiersExist(clientType, transientIds);
-
-        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
-        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(transientIds);
-        return managedIds;
-    }
+//    private Set<XRoadId> mergeSubjectIdsWithLocalgroups(ClientType clientType, Set<XRoadId> subjectIds,
+//            Set<Long> localGroupIds)
+//            throws IdentifierNotFoundException {
+//
+//        // subjectIds + localGroupIds => transientIds
+//        Set<XRoadId> transientIds = new HashSet<>();
+//        if (subjectIds != null) {
+//            transientIds.addAll(subjectIds);
+//        }
+//        if (localGroupIds != null && localGroupIds.size() > 0) {
+//            try {
+//                Set<XRoadId> localGroupXroadIds = localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds);
+//                transientIds.addAll(localGroupXroadIds); // not actually transient, but does not matter
+//            } catch (LocalGroupNotFoundException e) {
+//                throw new IdentifierNotFoundException(e);
+//            }
+//        }
+//
+//        // verify that all ids actually exist
+//        identifierService.verifyServiceClientIdentifiersExist(clientType, transientIds);
+//
+//        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
+//        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(transientIds);
+//        return managedIds;
+//    }
 
     /**
      * If access right was not found
