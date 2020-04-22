@@ -43,7 +43,6 @@ import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.PersistenceTestUtil;
-import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -116,9 +115,6 @@ public class AccessRightServiceTest {
     ClientRepository clientRepository;
 
     @Autowired
-    private PersistenceUtils persistenceUtils;
-
-    @Autowired
     private PersistenceTestUtil persistenceTestUtil;
 
     @Before
@@ -138,6 +134,11 @@ public class AccessRightServiceTest {
                             .contains(globalGroupInfo.getId().getXRoadInstance()))
                     .collect(Collectors.toList());
         });
+
+        // note that these do not match globalConfFacade.getMembers and
+        // globalConfFacade.getGlobalGroups mocks
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
     }
 
     private long countIdentifiers() {
@@ -193,8 +194,6 @@ public class AccessRightServiceTest {
     @Test
     public void removeServiceClientAccessRights() throws Exception {
         // remove items from addServiceClientAccessRights
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
@@ -229,9 +228,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         // openapi3-test has endpoints 8 (base), 9, 10, 11, 12
         // subject 8 = M2 / SS6 has access to 8, 9, 10, 11
         // add another service client access to some endpoints, then remove sc 8
@@ -259,9 +255,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientServiceDoesNotExist() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         long initialAccessRights = countAccessRights();
         ClientId serviceOwner = ClientId.create("FI", "GOV", "M2", "SS6");
         int initialServiceClientsSs6 = countServiceClients(serviceOwner);
@@ -281,8 +274,7 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightDoesNotExistSimple() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
 
         ClientId serviceOwner = ClientId.create("FI", "GOV", "M2", "SS6");
         XRoadId ss6Id = serviceOwner;
@@ -300,9 +292,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientOneAccessRightDoesNotExist() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         long initialAccessRights = countAccessRights();
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
 
@@ -330,8 +319,7 @@ public class AccessRightServiceTest {
         // test that remove succeeds when we dont try to remove openapi-servicecode
         // separate test since previous deleteServiceClientAccessRights
         // is not rolled back if in same test
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
 
         long initialAccessRights = countAccessRights();
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
@@ -358,8 +346,6 @@ public class AccessRightServiceTest {
     @Test
     public void removeServiceClientAccessRightForOtherClientsLocalGroup() throws Exception {
         // try to remove access rights from a local group that belongs to some other client than service owner
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
         String localGroupCode = "group2";
         // ss6 has service openapi3-test
@@ -379,9 +365,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightWrongObjectType() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
@@ -395,8 +378,7 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightFromWrongServiceOwner() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
 
         // bodyMassIndexOld belongs to ss2
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
@@ -414,10 +396,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addServiceClientAccessRights() throws Exception {
-        // TO DO: can these when's be global?
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         long identifiers = countIdentifiers();
 
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
@@ -466,9 +444,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addAccessRightsInternal() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
@@ -520,8 +495,6 @@ public class AccessRightServiceTest {
     public void addServiceClientAccessRightsForOtherClientsLocalGroup() throws Exception {
         // if we try to add access right to client X's service for client Y's local group,
         // we should get IdentifierNotFoundException
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
         ClientId serviceOwner = TestUtils.getM1Ss2ClientId(); // ss2
         Set<String> serviceCodes = new HashSet<>(Arrays.asList("bodyMassIndexOld")); // belongs to ss2
@@ -535,9 +508,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addServiceClientAccessRightsWrongObjectType() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
@@ -552,9 +522,6 @@ public class AccessRightServiceTest {
     @Test
     public void addServiceClientAccessRightsForWrongServiceOwner() throws Exception {
         // if service owner does not match, should receive EndpointNotFoundExceptions
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         // bodyMassIndexOld belongs to ss2, calculatePrime and openapi-servicecode to ss1
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
@@ -614,9 +581,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addServiceClientAccessRightsDuplicate() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList("calculatePrime"));
         XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
@@ -635,9 +599,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addServiceClientAccessRightsAddsNewIdentifiers() throws Throwable {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
-
         long identifiers = countIdentifiers();
 
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
@@ -669,8 +630,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addAccessRights() throws Throwable {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -685,8 +644,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addAccessRightsForNonLocalSubsystem() throws Throwable {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         ClientId ss3 = ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -738,8 +695,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void addAccessRightsToLocalGroup() throws Throwable {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L); // this is a LocalGroup with groupCode 'group1' in data.sql
@@ -755,8 +710,6 @@ public class AccessRightServiceTest {
 
     @Test(expected = IdentifierNotFoundException.class)
     public void addAccessRightsToOtherClientsLocalGroup() throws Throwable {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss2ClientId();
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L);
