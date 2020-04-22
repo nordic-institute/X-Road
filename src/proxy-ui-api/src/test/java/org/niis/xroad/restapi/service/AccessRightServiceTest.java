@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -41,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +52,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,6 +128,9 @@ public class AccessRightServiceTest {
     @Autowired
     private PersistenceUtils persistenceUtils;
 
+    @Autowired
+    private PersistenceTestUtil persistenceTestUtil;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
@@ -146,10 +150,13 @@ public class AccessRightServiceTest {
         });
     }
 
-    private int countIdentifiers() {
-        return JdbcTestUtils.countRowsInTable(jdbcTemplate, "identifier");
+    private long countIdentifiers() {
+        return persistenceTestUtil.countRows(XRoadId.class);
     }
 
+    private long countAccessRights() {
+        return persistenceTestUtil.countRows(AccessRightType.class);
+    }
 
     @Test
     public void findAllAccessRightHolders() throws Throwable {
@@ -187,11 +194,82 @@ public class AccessRightServiceTest {
     }
 
     @Test
+    public void removeServiceClientAccessRights() throws Exception {
+        // remove items from addServiceClientAccessRights
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        int initialServiceClients = serviceClientService.getServiceClientsByClient(serviceOwner).size();
+        long initialAccessRights = countAccessRights();
+        int initialAclSize = clientService.getLocalClient(serviceOwner).getAcl().size();
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        assertEquals(3, dtos.size());
+        assertEquals(initialServiceClients + 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights + 3, countAccessRights());
+        assertEquals(initialAclSize + 3, clientService.getLocalClient(serviceOwner).getAcl().size());
+
+        // delete 2/3 of the added
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("openapi-servicecode", "rest-servicecode")),
+                subsystemId);
+        assertEquals(initialServiceClients + 1,
+                serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAclSize + 1, clientService.getLocalClient(serviceOwner).getAcl().size());
+        assertEquals(initialAccessRights + 1, countAccessRights());
+
+        // delete 1/3 remaining added
+        accessRightService.deleteServiceClientAccessRights(serviceOwner,
+                new HashSet<>(Arrays.asList("calculatePrime")),
+                subsystemId);
+        assertEquals(initialServiceClients, serviceClientService.getServiceClientsByClient(serviceOwner).size());
+        assertEquals(initialAccessRights, countAccessRights());
+    }
+
+
+    @Test
+    public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
+        // removes base and other endpoints, leaves other subjects intact
+    }
+
+
+    @Test
+    public void removeServiceClientAccessRightDoesNotExist() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightForOtherClientsLocalGroup() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightWrongObjectType() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightFromWrongServiceOwner() throws Exception {
+        // remove items from addServiceClientAccessRights
+    }
+
+    @Test
+    public void removeServiceClientAccessRightDuplicateServiceCode() throws Exception {
+        // should remove it only once
+    }
+
+
+    @Test
     public void addServiceClientAccessRights() throws Exception {
         when(globalConfService.clientsExist(any())).thenReturn(true);
         when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
-        int identifiers = countIdentifiers();
+        long identifiers = countIdentifiers();
 
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
@@ -409,13 +487,27 @@ public class AccessRightServiceTest {
         }
     }
 
+    @Test
+    public void addServiceClientAccessRightsDuplicateServiceCodes() throws Exception {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList("calculatePrime", "calculatePrime", "calculatePrime"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        // should add this only once
+        assertEquals(1, dtos.size());
+    }
+
 
     @Test
     public void addServiceClientAccessRightsAddsNewIdentifiers() throws Throwable {
         when(globalConfService.clientsExist(any())).thenReturn(true);
         when(globalConfService.globalGroupsExist(any())).thenReturn(true);
 
-        int identifiers = countIdentifiers();
+        long identifiers = countIdentifiers();
 
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
