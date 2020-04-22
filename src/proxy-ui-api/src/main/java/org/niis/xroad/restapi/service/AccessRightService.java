@@ -124,15 +124,22 @@ public class AccessRightService {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
+        EndpointType endpointType = getBaseEndpointType(fullServiceCode, clientType);
+
+        deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
+    }
+
+    /**
+     * Get base endpoint for given client and full service code
+     * @throws ServiceNotFoundException if no match was found
+     */
+    private EndpointType getBaseEndpointType(String fullServiceCode, ClientType clientType) throws ServiceNotFoundException {
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = null;
         try {
-            endpointType = endpointService.getServiceBaseEndpoint(serviceType);
+            return endpointService.getServiceBaseEndpoint(serviceType);
         } catch (EndpointNotFoundException e) {
             throw new ServiceNotFoundException(e);
         }
-
-        deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
 
     /**
@@ -242,13 +249,7 @@ public class AccessRightService {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
-        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = null;
-        try {
-            endpointType = endpointService.getServiceBaseEndpoint(serviceType);
-        } catch (EndpointNotFoundException e) {
-            throw new ServiceNotFoundException(e);
-        }
+        EndpointType endpointType = getBaseEndpointType(fullServiceCode, clientType);
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
         return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
@@ -304,7 +305,7 @@ public class AccessRightService {
 
     /**
      * Add access rights for one subject (service client) to multiple services (serviceCodes)
-     * of a client (clientType)
+     * of a client (clientType). Access rights are added only to the base endpoint of given service.
      *
      * @param clientId id of the client who owns the services
      * @param serviceCodes serviceCodes of the services to add access rights to (without version numbers)
@@ -344,7 +345,21 @@ public class AccessRightService {
         }
     }
 
-    // TO DO: comments
+    /**
+     * Removes access rights from one subject (service client) to multiple services (serviceCodes)
+     * of a client. Access rights are removed from base endpoint and also from non-base endpoints with
+     * given serviceCode.
+     *
+     * @param clientId id of the client who owns the services
+     * @param serviceCodes serviceCodes of the services to remove access rights to (without version numbers)
+     * @param subjectId subject (service client) to remove access rights from. Can be a local group,
+     *                  global group, or a subsystem
+     * @throws AccessRightNotFoundException if trying to remove (any) access rights that did not exist
+     * @throws ClientNotFoundException if client matching clientId was not found
+     * @throws IdentifierNotFoundException if service client (local group, global group, or system) matching given
+     * subjectId did not exist
+     * @throws ServiceNotFoundException if given client did not have services with given serviceCodes
+     */
     public void deleteServiceClientAccessRights(ClientId clientId,
             Set<String> serviceCodes, XRoadId subjectId) throws AccessRightNotFoundException, ClientNotFoundException,
             IdentifierNotFoundException, ServiceNotFoundException {

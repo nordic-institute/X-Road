@@ -188,7 +188,6 @@ public class EndpointService {
      * @param serviceCodes
      */
     public List<EndpointType> getServiceEndpoints(ClientType clientType, Set<String> serviceCodes) {
-        // TO DO: refactor others to use this
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> serviceCodes.contains(endpointType.getServiceCode()))
                 .collect(Collectors.toList());
