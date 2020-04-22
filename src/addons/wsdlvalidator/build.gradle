@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.apache.cxf:cxf-tools-validator:3.3.5"
+    compile "org.apache.cxf:cxf-tools-validator:3.3.6"
 }
 
 shadowJar {
