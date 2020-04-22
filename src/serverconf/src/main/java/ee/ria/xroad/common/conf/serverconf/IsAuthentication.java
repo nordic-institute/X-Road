@@ -90,10 +90,18 @@ public enum IsAuthentication {
                         "Client (%s) has no IS certificates", client);
             }
 
-            if (!isCerts.contains(auth.getCert())) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) TLS certificate does not match any"
-                                + " IS certificates", client);
+            X509Certificate isCert = isCerts.stream()
+                    .filter(c -> Objects.equals(c, auth.getCert()))
+                    .findFirst()
+                    .orElseThrow(() -> new CodedException(X_SSL_AUTH_FAILED,
+                    "Client (%s) TLS certificate does not match any"
+                                    + " IS certificates", client));
+            try {
+                isCert.checkValidity();
+            } catch (CertificateExpiredException e) {
+                log.warn("Client {} TLS certificate is expired", client);
+            } catch (CertificateNotYetValidException e) {
+                log.warn("Client {} TLS certificate is not yet valid", client);
             }
         }
     }
