@@ -130,9 +130,12 @@ const router = new Router({
         },
         {
           name: RouteName.AddSubsystem,
-          path: '/add-subsystem',
+          path: '/add-subsystem/:clientId',
           components: {
             default: AddSubsystem,
+          },
+          props: {
+            default: true,
           },
         },
         {

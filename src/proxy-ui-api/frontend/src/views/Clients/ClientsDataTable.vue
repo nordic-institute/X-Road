@@ -19,7 +19,7 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <v-btn
-        v-if="showAddClient()"
+        v-if="showAddClient"
         color="primary"
         @click="addClient"
         data-test="add-client-button"
@@ -48,7 +48,7 @@
         <template v-if="item.type == 'owner'">
           <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open</v-icon>
           <span
-            v-if="canOpenClient()"
+            v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openClient(item)"
           >{{item.name}} ({{ $t("client.owner") }})</span>
@@ -68,7 +68,7 @@
             :class="{ 'icon-subsystem': treeMode }"
           >mdi-card-bulleted-outline</v-icon>
           <span
-            v-if="canOpenClient()"
+            v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openSubsystem(item)"
           >{{item.name}}</span>
@@ -82,15 +82,15 @@
 
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
-          <v-btn
-            v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient()"
-            small
-            outlined
-            rounded
-            color="primary"
-            class="xrd-small-button xrd-table-button"
+          <SmallButton
+            v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient"
             @click="addSubsystem(item)"
-          >{{$t('action.addSubsystem')}}</v-btn>
+          >{{$t('action.addSubsystem')}}</SmallButton>
+
+          <SmallButton
+            v-if="(item.type == 'client'||item.type != 'owner' && item.status === 'SAVED') && showRegister"
+            @click="registerClient(item)"
+          >{{$t('action.register')}}</SmallButton>
         </div>
       </template>
 
@@ -101,6 +101,15 @@
         color="error"
       >{{ $t('action.emptySearch', { msg: search }) }}</v-alert>
     </v-data-table>
+
+    <ConfirmDialog
+      :dialog="confirmRegisterClient"
+      title="clients.action.register.confirm.title"
+      text="clients.action.register.confirm.text"
+      @cancel="confirmRegisterClient = false"
+      @accept="registerAccepted(selectedClient)"
+      :loading="registerClientLoading"
+    />
   </v-layout>
 </template>
 
@@ -113,10 +122,15 @@ import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
+import { Client } from '@/types';
+import SmallButton from '@/components/ui/SmallButton.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 export default Vue.extend({
   components: {
     ClientStatus,
+    SmallButton,
+    ConfirmDialog,
   },
 
   data: () => ({
@@ -124,6 +138,9 @@ export default Vue.extend({
     pagination: {
       sortBy: 'sortNameAsc',
     },
+    confirmRegisterClient: false,
+    registerClientLoading: false,
+    selectedClient: undefined as undefined | Client,
   }),
 
   computed: {
@@ -165,16 +182,18 @@ export default Vue.extend({
         },
       ];
     },
-  },
-
-  methods: {
     showAddClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
+    },
+    showRegister(): boolean {
+      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
     },
     canOpenClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
+  },
 
+  methods: {
     openClient(item: any): void {
       this.$router.push({
         name: RouteName.Client,
@@ -198,7 +217,40 @@ export default Vue.extend({
     addSubsystem(item: any): void {
       this.$router.push({
         name: RouteName.AddSubsystem,
+        params: { clientId: item.id },
       });
+    },
+
+    registerClient(item: Client): void {
+      this.selectedClient = item;
+      this.confirmRegisterClient = true;
+    },
+
+    registerAccepted(item: Client) {
+      this.registerClientLoading = true;
+      this.$store
+        .dispatch('registerClient', {
+          instanceId: item.instance_id,
+          memberClass: item.member_class,
+          memberCode: item.member_code,
+          subsystemCode: item.subsystem_code,
+        })
+        .then(
+          (response) => {
+            this.$store.dispatch(
+              'showSuccess',
+              'clients.action.register.success',
+            );
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
+          this.fetchClients();
+          this.confirmRegisterClient = false;
+          this.registerClientLoading = false;
+        });
     },
 
     customFilter: (value: any, search: string | null, item: any): boolean => {
@@ -247,6 +299,15 @@ export default Vue.extend({
       });
       return items;
     },
+
+    fetchClients() {
+      this.$store.dispatch('fetchClients').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
+    },
+  },
+    created() {
+    this.fetchClients();
   },
 });
 </script>

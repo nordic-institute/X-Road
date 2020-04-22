@@ -3,15 +3,7 @@ import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-
-export interface Client {
-  id: string;
-  name: string;
-  type?: string;
-  status?: string;
-  subsystem?: Client[];
-  connection_type?: string;
-}
+import { Client } from '@/types';
 
 export interface ClientState {
   client: Client | null;
@@ -208,6 +200,33 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('setLoading', false);
       });
 
+  },
+
+  registerClient({ commit, state }, { instanceId, memberClass, memberCode, subsystemCode }) {
+    const clientId = instanceId + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
+    return axios.put(`/clients/${clientId}/register`, {});
+  },
+
+  unregisterClient({ commit, state }, client: Client) {
+    const clientId = client.instance_id + ':' + client.member_class + ':' + client.member_code + ':' + client.subsystem_code;
+    return axios.put(`/clients/${clientId}/unregister`, {});
+  },
+
+  addSubsystem({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
+    const body = {
+      client: {
+        member_name: memberName,
+        member_class: memberClass,
+        member_code: memberCode,
+        subsystem_code: subsystemCode,
+      },
+      ignore_warnings: false,
+    };
+
+    return axios.post('/clients', body)
+      .catch((error) => {
+        throw error;
+      });
   },
 
   clearData({ commit, rootGetters }) {
