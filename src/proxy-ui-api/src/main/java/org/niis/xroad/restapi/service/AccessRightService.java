@@ -114,6 +114,8 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
      * was not found
      * @throws EndpointNotFoundException if the base endpoint for the service is not found
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * subjectId did not exist
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException,
@@ -147,7 +149,8 @@ public class AccessRightService {
      *
      * @param endpointId
      * @param subjectIds
-     * @throws LocalGroupNotFoundException if localgroups is not found
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * subjectId did not exist
      * @throws EndpointNotFoundException if endpoint by given id is not found
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
@@ -163,12 +166,13 @@ public class AccessRightService {
 
     /**
      * Remove access rights from endpoint
-     * TO DO: get rid of subjectIds / localGroupIds
      *
      * @param clientType
      * @param endpointType
      * @param subjectIds
      * @throws AccessRightNotFoundException if access right is not found
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * subjectId did not exist
      */
     private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds)
             throws AccessRightNotFoundException, IdentifierNotFoundException {
@@ -230,7 +234,8 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
      * was not found
      * @throws DuplicateAccessRightException exception
-     * @throws IdentifierNotFoundException if subjectIds or localGroupIds identifier was not found
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * subjectId did not exist
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException,
@@ -257,7 +262,8 @@ public class AccessRightService {
      * @return
      * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException client for the endpoint is not found (shouldn't happen)
-     * @throws IdentifierNotFoundException Identifier from subjectIds is not found
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * subjectId did not exist
      * @throws DuplicateAccessRightException Trying to add duplicate access rights
      */
     public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
@@ -272,7 +278,8 @@ public class AccessRightService {
     }
 
     /**
-     * @throws IdentifierNotFoundException if subjectIds or localGroupIds were not found
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * subjectId did not exist
      * @throws DuplicateAccessRightException
      */
     private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
@@ -310,7 +317,7 @@ public class AccessRightService {
      * (did not have base endpoints)
      * @throws ClientNotFoundException if client matching clientId was not found
      * @throws DuplicateAccessRightException if trying to add existing access right
-     * @throws IdentifierNotFoundException if service client (local group, global group, or system) matching given
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      */
     public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
@@ -350,7 +357,7 @@ public class AccessRightService {
      *                  global group, or a subsystem
      * @throws AccessRightNotFoundException if trying to remove (any) access rights that did not exist
      * @throws ClientNotFoundException if client matching clientId was not found
-     * @throws IdentifierNotFoundException if service client (local group, global group, or system) matching given
+     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      * @throws ServiceNotFoundException if given client did not have services with given serviceCodes
      */
@@ -586,42 +593,6 @@ public class AccessRightService {
                 .build();
         return dto;
     }
-
-    /**
-     * Go through given service client ids (subjectIds), verify that they match existing items,
-     * and ensure that SERVERCONF.IDENTIFIER table has rows for all of them. Return managed
-     * entities
-     * @param clientType owner client of the (possible) local groups
-     * @param subjectIds
-     * @param localGroupIds
-     * @return
-     * @throws IdentifierNotFoundException subjectIds identifier was not found
-     */
-//    private Set<XRoadId> mergeSubjectIdsWithLocalgroups(ClientType clientType, Set<XRoadId> subjectIds,
-//            Set<Long> localGroupIds)
-//            throws IdentifierNotFoundException {
-//
-//        // subjectIds + localGroupIds => transientIds
-//        Set<XRoadId> transientIds = new HashSet<>();
-//        if (subjectIds != null) {
-//            transientIds.addAll(subjectIds);
-//        }
-//        if (localGroupIds != null && localGroupIds.size() > 0) {
-//            try {
-//                Set<XRoadId> localGroupXroadIds = localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds);
-//                transientIds.addAll(localGroupXroadIds); // not actually transient, but does not matter
-//            } catch (LocalGroupNotFoundException e) {
-//                throw new IdentifierNotFoundException(e);
-//            }
-//        }
-//
-//        // verify that all ids actually exist
-//        identifierService.verifyServiceClientIdentifiersExist(clientType, transientIds);
-//
-//        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
-//        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(transientIds);
-//        return managedIds;
-//    }
 
     /**
      * If access right was not found

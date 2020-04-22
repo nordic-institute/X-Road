@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -48,7 +47,7 @@ public class ServiceClientIdentifierConverterTest {
     }
 
     @Test
-    public void convertLocalGroup() {
+    public void convertLocalGroup() throws Exception {
         ServiceClientIdentifierDto dto = converter.convertId("1234");
         assertEquals(true, dto.isLocalGroup());
         assertEquals(new Long("1234"), dto.getLocalGroupId());
@@ -56,7 +55,7 @@ public class ServiceClientIdentifierConverterTest {
     }
 
     @Test
-    public void convertGlobalGroup() {
+    public void convertGlobalGroup() throws Exception {
         ServiceClientIdentifierDto dto = converter.convertId("DEV:security-server-owners");
         assertEquals(false, dto.isLocalGroup());
         assertEquals(null, dto.getLocalGroupId());
@@ -68,7 +67,7 @@ public class ServiceClientIdentifierConverterTest {
     }
 
     @Test
-    public void convertSubsystem() {
+    public void convertSubsystem() throws Exception {
         ServiceClientIdentifierDto dto = converter.convertId("DEV:ORG:1234:Subsystem");
         assertEquals(false, dto.isLocalGroup());
         assertEquals(null, dto.getLocalGroupId());
@@ -81,13 +80,13 @@ public class ServiceClientIdentifierConverterTest {
         assertEquals("Subsystem", clientId.getSubsystemCode());
     }
 
-    @Test(expected = BadRequestException.class)
-    public void convertMember() {
+    @Test(expected = ServiceClientIdentifierConverter.BadServiceClientIdentifierException.class)
+    public void convertMember() throws Exception {
         ServiceClientIdentifierDto dto = converter.convertId("DEV:ORG:1234");
     }
 
-    @Test(expected = BadRequestException.class)
-    public void convertNonNumeric() {
+    @Test(expected = ServiceClientIdentifierConverter.BadServiceClientIdentifierException.class)
+    public void convertNonNumeric() throws Exception {
         ServiceClientIdentifierDto dto = converter.convertId("foobar");
     }
 }

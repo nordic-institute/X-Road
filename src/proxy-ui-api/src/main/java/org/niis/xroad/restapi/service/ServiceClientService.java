@@ -221,10 +221,10 @@ public class ServiceClientService {
      *
      * @param dto
      * @return
-     * @throws LocalGroupNotFoundException if given dto contains local group that is not found
+     * @throws IdentifierNotFoundException if given dto contains local group that is not found
      */
     public XRoadId convertServiceClientIdentifierDtoToXroadId(ServiceClientIdentifierDto dto)
-            throws LocalGroupNotFoundException {
+            throws IdentifierNotFoundException {
 
         if (dto.getXRoadId() == null && dto.getLocalGroupId() == null) {
             // should never happen, as long as dto is from ServiceClientIdentifierConverter
@@ -234,7 +234,11 @@ public class ServiceClientService {
         // Get XRoadId for the given service client
         XRoadId xRoadId = dto.getXRoadId();
         if (dto.isLocalGroup()) {
-            xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            try {
+                xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            } catch (LocalGroupNotFoundException e) {
+                throw new IdentifierNotFoundException(e);
+            }
         }
 
         return xRoadId;
