@@ -157,7 +157,7 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
-        } catch (ServiceNotFoundException | ClientNotFoundException | EndpointNotFoundException e) {
+        } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
@@ -177,7 +177,7 @@ public class ServicesApiController implements ServicesApi {
         try {
             serviceClientDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (IdentifierNotFoundException e) {
             throw new BadRequestException(e);

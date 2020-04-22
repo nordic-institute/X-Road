@@ -112,19 +112,25 @@ public class AccessRightService {
      * @param localGroupIds
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
      * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode was not found
+     * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
+     * was not found
      * @throws EndpointNotFoundException if the base endpoint for the service is not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws ClientNotFoundException, AccessRightNotFoundException,
-            ServiceNotFoundException, EndpointNotFoundException {
+            ServiceNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
+        EndpointType endpointType = null;
+        try {
+            endpointType = endpointService.getServiceBaseEndpoint(serviceType);
+        } catch (EndpointNotFoundException e) {
+            throw new ServiceNotFoundException(e);
+        }
 
         deleteEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
     }
@@ -222,22 +228,27 @@ public class AccessRightService {
      * @param localGroupIds
      * @return List of {@link ServiceClientDto AccessRightHolderDtos}
      * @throws ClientNotFoundException exception
-     * @throws ServiceNotFoundException exception
+     * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
+     * was not found
      * @throws DuplicateAccessRightException exception
      * @throws IdentifierNotFoundException if subjectIds or localGroupIds identifier was not found
-     * @throws EndpointNotFoundException exception
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws ClientNotFoundException,
             ServiceNotFoundException, DuplicateAccessRightException,
-            IdentifierNotFoundException, EndpointNotFoundException {
+            IdentifierNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
-        EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
+        EndpointType endpointType = null;
+        try {
+            endpointType = endpointService.getServiceBaseEndpoint(serviceType);
+        } catch (EndpointNotFoundException e) {
+            throw new ServiceNotFoundException(e);
+        }
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
         return addEndpointAccessRights(clientType, endpointType, subjectIds, localGroupIds);
@@ -300,7 +311,7 @@ public class AccessRightService {
      * @param subjectId subject (service client) to add access rights for. Can be a local group,
      *                  global group, or a subsystem
      * @return ServiceClientAccessRightDtos that were added for this service client
-     * @throws EndpointNotFoundException if serviceCodes had any codes that were not client's services
+     * @throws ServiceNotFoundException if serviceCodes had any codes that were not client's services
      * (did not have base endpoints)
      * @throws ClientNotFoundException if client matching clientId was not found
      * @throws DuplicateAccessRightException if trying to add existing access right
@@ -308,13 +319,18 @@ public class AccessRightService {
      * subjectId did not exist
      */
     public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
-            XRoadId subjectId) throws EndpointNotFoundException,
+            XRoadId subjectId) throws ServiceNotFoundException,
             DuplicateAccessRightException, ClientNotFoundException, IdentifierNotFoundException {
 
         ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
 
         // prepare params for addAccessRightsInternal
-        List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        List<EndpointType> baseEndpoints = null;
+        try {
+            baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        } catch (EndpointNotFoundException e) {
+            throw new ServiceNotFoundException(e);
+        }
 
         // make sure subject id exists in serverconf db IDENTIFIER table, and use a managed entity
         XRoadId managedSubjectId = identifierService.getOrPersistXroadId(subjectId);
@@ -331,12 +347,17 @@ public class AccessRightService {
     // TO DO: comments
     public void deleteServiceClientAccessRights(ClientId clientId,
             Set<String> serviceCodes, XRoadId subjectId) throws AccessRightNotFoundException, ClientNotFoundException,
-            IdentifierNotFoundException, EndpointNotFoundException {
+            IdentifierNotFoundException, ServiceNotFoundException {
 
         ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
 
         // first delete base endpoint access rights. These all need to exist, otherwise AccessRightNotFoundException
-        List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        List<EndpointType> baseEndpoints = null;
+        try {
+            baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        } catch (EndpointNotFoundException e) {
+            throw new ServiceNotFoundException(e);
+        }
         Set<XRoadId> subjectIds = new HashSet<>(Arrays.asList((subjectId)));
         deleteEndpointAccessRights(clientType, baseEndpoints, subjectIds);
 

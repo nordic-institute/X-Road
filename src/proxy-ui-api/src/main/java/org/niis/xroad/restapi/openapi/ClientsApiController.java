@@ -71,7 +71,6 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
@@ -82,6 +81,7 @@ import org.niis.xroad.restapi.service.OrphanRemovalService;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
@@ -597,7 +597,7 @@ public class ClientsApiController implements ClientsApi {
             accessRightTypes = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
         } catch (IdentifierNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (EndpointNotFoundException e) {
+        } catch (ServiceNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
@@ -616,7 +616,7 @@ public class ClientsApiController implements ClientsApi {
             accessRightService.deleteServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
         } catch (IdentifierNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (EndpointNotFoundException e) {
+        } catch (ServiceNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.AccessRightNotFoundException e) {
             throw new ConflictException(e);
