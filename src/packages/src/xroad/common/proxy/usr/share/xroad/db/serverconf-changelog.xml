@@ -6,5 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
   <include file="serverconf/000-baseline.xml"/>
+  <include file="serverconf/001-apikeys.xml"/>
 
 </databaseChangeLog>
