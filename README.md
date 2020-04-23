@@ -88,7 +88,8 @@ The script setup_security_server_sidecar.sh will:
   - Recreates serverconf database and properties file with serverconf username and random password.
   - Optionally configures the security server sidecar to use a remote database server.
   - Starts security server sidecar services.
-  - Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services. 
+  - Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services.
+  - Create sidecar-config directory on the host and mount it into the /etc/xroad config directory on the container.
 
 ## 1.6 Installation with remote server configuration database
 
@@ -124,6 +125,19 @@ The following configuration is needed on the remote database server to allow ext
   [...]
   ```
 
+## 1.7 Volume support
+
+It is possible to configure security server sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
+For adding volume support we have to modify the docker run sentence inside the setup_security_server_sidecar.sh script and add the volume support:
+
+`-v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main`
+
+For example:
+  ```bash
+  [...]
+    docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
+  [...]
+  ```
 ## 2 Security Server Sidecar Initial Configuration
 
 ### 2.1 Reference Data
@@ -169,7 +183,5 @@ Then, if the configuration is successfully downloaded, the system asks for the f
 
 - The current security server sidecar implementation is a Proof of Concept and it is meant for testing and development purposes.
 - The current security server sidecar implementation does not support message logging, operational monitoring nor environmental monitoring functionality, which is recommended for a service provider's security server role. This functionality will be included in future releases.
-- The current security server sidecar built-in configuration restore implementation fails since it does not support supervisorctl. This limitation will be fixed in future releases.
-- The security server configuration files (located in `/etc/xroad/`) are currently stored inside the sidecar container. Functionality to provide volume support will be added in future releases.
 - The security server sidecar creates and manages its own internal TLS keys and certificates and does TLS termination by itself. This configuration might not be fully compatible with the application load balancer configuration in a cloud environment.
 - The xroad services are run inside the container using supervisord as root, although the processes it starts are not. To avoid potential security issues, it is possible to set up Docker so that it uses Linux user namespaces, in which case root inside the container is not root (user id 0) on the host. For more information, see <https://docs.docker.com/engine/security/userns-remap/>.
