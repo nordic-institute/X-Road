@@ -5246,6 +5246,14 @@ components:
           example: 60
           minimum: 0
           maximum: 1000
+        title:
+          type: string
+          readOnly: true
+          format: text
+          description: service title
+          example: client deletion
+          minLength: 1
+          maxLength: 255
         ssl_auth:
           type: boolean
           description: service ssl auth

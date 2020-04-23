@@ -93,6 +93,7 @@ public class ServiceConverter {
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
+        service.setTitle(serviceType.getTitle());
 
         List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
                 serviceType.getServiceDescription().getClient());
