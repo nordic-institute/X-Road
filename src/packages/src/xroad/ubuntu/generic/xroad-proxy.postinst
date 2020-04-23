@@ -87,8 +87,12 @@ setup_database() {
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
         db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        db_conn_user="${db_master_user}"
+        if [[ $(get_prop ${root_properties} postgres.connection.user.suffix) != "" ]]; then
+            db_conn_user="${db_master_user}$(get_prop ${root_properties} postgres.connection.user.suffix)"
+        fi
         function psql_master() {
-            PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
+            PGPASSWORD="${db_master_passwd}" PGUSER="${db_conn_user}" remote_psql "$@"
         }
     else
         function psql_master() { local_psql "$@"; }
@@ -97,7 +101,7 @@ setup_database() {
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
     else
-        psql_master <<EOF || die "Creating database '${db_database}' on '${db_host}' failed."
+        psql_master -d postgres <<EOF || die "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 DO \$\$
