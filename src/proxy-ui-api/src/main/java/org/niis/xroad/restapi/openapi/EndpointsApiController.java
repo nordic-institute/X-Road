@@ -40,7 +40,7 @@ import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
-import org.niis.xroad.restapi.service.IdentifierNotFoundException;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -167,7 +167,7 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
             throw new ConflictException(e);
-        } catch (IdentifierNotFoundException e) {
+        } catch (ServiceClientNotFoundException e) {
             throw new BadRequestException(e);
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
@@ -189,7 +189,7 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
-        } catch (IdentifierNotFoundException e) {
+        } catch (ServiceClientNotFoundException e) {
             throw new BadRequestException(e);
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);

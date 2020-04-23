@@ -32,7 +32,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
-import org.niis.xroad.restapi.service.IdentifierNotFoundException;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -63,10 +63,11 @@ public class ServiceClientHelper {
      *
      * @throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException if any encoded service client id
      * was badly formatted
-     * @throws IdentifierNotFoundException if any local group with given ID (PK) does not exist
+     * @throws ServiceClientNotFoundException if any local group with given ID (PK) does not exist
      */
     public Set<XRoadId> processServiceClientXRoadIds(ServiceClients serviceClients)
-            throws IdentifierNotFoundException, ServiceClientIdentifierConverter.BadServiceClientIdentifierException {
+            throws ServiceClientNotFoundException,
+            ServiceClientIdentifierConverter.BadServiceClientIdentifierException {
         Set<XRoadId> ids = new HashSet<>();
         for (ServiceClient serviceClient : serviceClients.getItems()) {
             ids.add(processServiceClientXRoadId(serviceClient.getId()));
@@ -80,10 +81,11 @@ public class ServiceClientHelper {
      *
      * @throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException if encoded service client id
      * was badly formatted
-     * @throws IdentifierNotFoundException if a local group with given ID (PK) does not exist
+     * @throws ServiceClientNotFoundException if a local group with given ID (PK) does not exist
      */
     public XRoadId processServiceClientXRoadId(String encodedServiceClientId)
-            throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException, IdentifierNotFoundException {
+            throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException,
+            ServiceClientNotFoundException {
         ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(encodedServiceClientId);
         return serviceClientService.convertServiceClientIdentifierDtoToXroadId(dto);
     }

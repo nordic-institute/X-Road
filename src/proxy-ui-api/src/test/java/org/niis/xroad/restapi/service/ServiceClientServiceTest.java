@@ -30,11 +30,14 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,13 +49,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.restapi.service.AccessRightServiceTest.notImplemented;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_GGROUP_ID;
+import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SCS_BASE_ENDPOINT_ID;
+import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SCS_FULL_SERVICE_CODE;
+import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SCS_SERVICE_CODE;
+import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
 
 /**
  * test Service client service
@@ -77,26 +89,127 @@ public class ServiceClientServiceTest {
     @Autowired
     ClientRepository clientRepository;
 
+    @Before
+    public void setup() {
+        when(globalConfService.clientsExist(any())).thenAnswer(invocation -> {
+            Collection<XRoadId> identifiers = (Collection<XRoadId>) invocation.getArguments()[0];
+            if (identifiers == null) return true; // some further mocking later causes this null
+            return !identifiers.contains(OBSOLETE_SUBSYSTEM_ID);
+        });
+        when(globalConfService.globalGroupsExist(any())).thenAnswer(invocation -> {
+            Collection<XRoadId> identifiers = (Collection<XRoadId>) invocation.getArguments()[0];
+            if (identifiers == null) return true; // some further mocking later causes this null
+            return !identifiers.contains(OBSOLETE_GGROUP_ID);
+        });
+    }
+
     @Test(expected = ClientNotFoundException.class)
     public void getClientServiceClientsFromUnexistingClient() throws Exception {
         serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));
     }
 
+    // ACL subject identifier.IDs: 3 4 5 9 10 11 (only base endpoint ACLs count)
+    // 6 and 8 are missing?
+    public static final int SS1_SERVICE_CLIENTS = 6;
+
     @Test
     public void getObsoleteClientServiceClientsByClient() throws Exception {
-        notImplemented();
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+
+        List<ServiceClientDto> scs = serviceClientService.getServiceClientsByClient(serviceOwner);
+        assertEquals(SS1_SERVICE_CLIENTS, scs.size());
+        Set<XRoadId> scIds = scs.stream()
+                .map(dto -> dto.getSubjectId())
+                .collect(Collectors.toSet());
+        assertTrue(scIds.contains(OBSOLETE_GGROUP_ID));
+        assertTrue(scIds.contains(OBSOLETE_SUBSYSTEM_ID));
     }
+
     @Test
     public void getObsoleteClientServiceClientsByEndpoint() throws Exception {
-        notImplemented();
+        List<ServiceClientDto> scs = serviceClientService.getServiceClientsByEndpoint(OBSOLETE_SCS_BASE_ENDPOINT_ID);
+        assertEquals(2, scs.size());
+        Set<XRoadId> scIds = scs.stream()
+                .map(dto -> dto.getSubjectId())
+                .collect(Collectors.toSet());
+        assertTrue(scIds.contains(OBSOLETE_GGROUP_ID));
+        assertTrue(scIds.contains(OBSOLETE_SUBSYSTEM_ID));
     }
+
     @Test
     public void getObsoleteClientServiceClientsByService() throws Exception {
-        notImplemented();
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+
+        List<ServiceClientDto> scs = serviceClientService.getServiceClientsByService(serviceOwner,
+                OBSOLETE_SCS_FULL_SERVICE_CODE);
+        assertEquals(2, scs.size());
+        Set<XRoadId> scIds = scs.stream()
+                .map(dto -> dto.getSubjectId())
+                .collect(Collectors.toSet());
+        assertTrue(scIds.contains(OBSOLETE_GGROUP_ID));
+        assertTrue(scIds.contains(OBSOLETE_SUBSYSTEM_ID));
     }
+
     @Test
     public void getObsoleteServiceClientAccessRights() throws Exception {
-        notImplemented();
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+
+        List<ServiceClientAccessRightDto> accessRightDtos = serviceClientService.getServiceClientAccessRights(
+                serviceOwner,
+                OBSOLETE_GGROUP_ID);
+        assertTrue(findAccessRightDto(accessRightDtos, OBSOLETE_SCS_SERVICE_CODE).isPresent());
+        assertEquals(1, accessRightDtos.size());
+
+        accessRightDtos = serviceClientService.getServiceClientAccessRights(
+                serviceOwner,
+                OBSOLETE_SUBSYSTEM_ID);
+        assertTrue(findAccessRightDto(accessRightDtos, OBSOLETE_SCS_SERVICE_CODE).isPresent());
+        assertEquals(1, accessRightDtos.size());
+    }
+
+    @Test
+    public void getServiceClientAccessRights() throws Exception {
+        // get access rights for normal service client that has some
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+
+        List<ServiceClientAccessRightDto> accessRightDtos = serviceClientService.getServiceClientAccessRights(
+                serviceOwner,
+                GlobalGroupId.create("FI", "test-globalgroup"));
+        assertTrue(findAccessRightDto(accessRightDtos, "getRandom").isPresent());
+        assertTrue(findAccessRightDto(accessRightDtos, "calculatePrime").isPresent());
+        assertTrue(findAccessRightDto(accessRightDtos, "openapi-servicecode").isPresent());
+        assertEquals(3, accessRightDtos.size());
+    }
+
+    private Optional<ServiceClientAccessRightDto> findAccessRightDto(List<ServiceClientAccessRightDto> dtos,
+            String serviceCode) {
+        return dtos.stream()
+                .filter(dto -> dto.getServiceCode().equals(serviceCode))
+                .findFirst();
+    }
+
+    @Test(expected = ServiceClientNotFoundException.class)
+    public void getServiceClientMissingAccessRights() throws Exception {
+        // get access rights for normal service client that has none
+        // this is effectively the same as getClientServiceClientAccessRightsFromUnexistingClient where service client
+        // object does not exist
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+
+        List<ServiceClientAccessRightDto> accessRightDtos = serviceClientService.getServiceClientAccessRights(
+                serviceOwner,
+                serviceOwner);
+        assertEquals(0, accessRightDtos.size());
+    }
+
+    @Test(expected = ServiceClientNotFoundException.class)
+    public void getClientServiceClientAccessRightsFromUnexistingClient() throws Exception {
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        // this is not existing, not even obsolete (has no IDENTIFIER)
+        ClientId unexistingClient = ClientId.create("NO", "SUCH", "CLIENT");
+
+        serviceClientService.getServiceClientAccessRights(
+                serviceOwner,
+                unexistingClient);
     }
 
     @Test

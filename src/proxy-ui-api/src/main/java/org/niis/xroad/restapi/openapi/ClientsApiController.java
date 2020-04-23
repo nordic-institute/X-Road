@@ -72,7 +72,6 @@ import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
-import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
@@ -562,7 +561,7 @@ public class ClientsApiController implements ClientsApi {
             XRoadId serviceClientId = serviceClientHelper.processServiceClientXRoadId(scId);
             serviceClient = serviceClientConverter.convertServiceClientDto(
                     serviceClientService.getServiceClient(clientIdentifier, serviceClientId));
-        } catch (ClientNotFoundException | ServiceClientNotFoundException | IdentifierNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
@@ -580,7 +579,7 @@ public class ClientsApiController implements ClientsApi {
             XRoadId serviceClientId = serviceClientHelper.processServiceClientXRoadId(scId);
             accessRights = accessRightConverter.convert(
                     serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
-        } catch (IdentifierNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceClientNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
@@ -598,7 +597,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             XRoadId serviceClientId = serviceClientHelper.processServiceClientXRoadId(endcodedServiceClientId);
             accessRightTypes = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
-        } catch (IdentifierNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceClientNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceNotFoundException e) {
             throw new BadRequestException(e);
@@ -619,7 +618,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             XRoadId serviceClientId = serviceClientHelper.processServiceClientXRoadId(endcodedServiceClientId);
             accessRightService.deleteServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
-        } catch (IdentifierNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceClientNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceNotFoundException e) {
             throw new BadRequestException(e);

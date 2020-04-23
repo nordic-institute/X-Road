@@ -105,34 +105,37 @@ public class IdentifierService {
     }
 
     /**
-     * Verify that service client XRoadIds do exist
+     * Verify that service client objects identified by given XRoadIds do exist.
+     * Criteria in detail:
+     * - subsystem is registered in global configuration
+     * - global group exists in global configuration
+     * - local group exists and belongs to given client
      * @param clientType owner of (possible) local groups
      * @param serviceClientIds service client ids to check
-     * @return
-     * @throws IdentifierNotFoundException if there were identifiers that could not be found
+     * @throws ServiceClientNotFoundException if some service client objects could not be found
      */
-    public void verifyServiceClientIdentifiersExist(ClientType clientType, Set<XRoadId> serviceClientIds)
-            throws IdentifierNotFoundException {
+    public void verifyServiceClientObjectsExist(ClientType clientType, Set<XRoadId> serviceClientIds)
+            throws ServiceClientNotFoundException {
         Map<XRoadObjectType, List<XRoadId>> idsPerType = serviceClientIds.stream()
                 .collect(groupingBy(XRoadId::getObjectType));
         for (XRoadObjectType type: idsPerType.keySet()) {
             if (!isValidServiceClientType(type)) {
-                throw new IllegalArgumentException("Invalid service client subject object type " + type);
+                throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
             if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
-                throw new IdentifierNotFoundException();
+                throw new ServiceClientNotFoundException();
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
             if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
-                throw new IdentifierNotFoundException();
+                throw new ServiceClientNotFoundException();
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
             if (!localGroupService.localGroupsExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
-                throw new IdentifierNotFoundException();
+                throw new ServiceClientNotFoundException();
             }
         }
     }

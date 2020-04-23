@@ -114,16 +114,12 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
      * was not found
      * @throws EndpointNotFoundException if the base endpoint for the service is not found
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException,
-            ServiceNotFoundException, IdentifierNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
+            ServiceNotFoundException {
+
+        ClientType clientType = getClient(clientId);
 
         EndpointType endpointType = getBaseEndpointType(fullServiceCode, clientType);
 
@@ -149,15 +145,13 @@ public class AccessRightService {
      *
      * @param endpointId
      * @param subjectIds
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
      * @throws EndpointNotFoundException if endpoint by given id is not found
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
             throws EndpointNotFoundException,
-            ClientNotFoundException, AccessRightNotFoundException, IdentifierNotFoundException {
+            ClientNotFoundException, AccessRightNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
@@ -165,23 +159,15 @@ public class AccessRightService {
     }
 
     /**
-     * Remove access rights from endpoint
+     * Remove access rights from one endpoint
      *
      * @param clientType
      * @param endpointType
      * @param subjectIds
-     * @throws AccessRightNotFoundException if access right is not found
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
+     * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
     private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds)
-            throws AccessRightNotFoundException, IdentifierNotFoundException {
-
-        // verify that all subject ids exist
-        identifierService.verifyServiceClientIdentifiersExist(clientType, subjectIds);
-
-        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
-        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
+            throws AccessRightNotFoundException {
 
         deleteEndpointAccessRights(clientType, Collections.singletonList(endpointType), subjectIds);
     }
@@ -197,7 +183,7 @@ public class AccessRightService {
      * @param clientType
      * @param endpointTypes
      * @param subjectIds
-     * @throws AccessRightNotFoundException if subject did not have access right that was attempted to be deleted
+     * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
     private void deleteEndpointAccessRights(ClientType clientType, List<EndpointType> endpointTypes,
             Set<XRoadId> subjectIds) throws AccessRightNotFoundException {
@@ -234,17 +220,15 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
      * was not found
      * @throws DuplicateAccessRightException exception
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException,
             ServiceNotFoundException, DuplicateAccessRightException,
-            IdentifierNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
+            ServiceClientNotFoundException {
+
+        ClientType clientType = getClient(clientId);
 
         EndpointType endpointType = getBaseEndpointType(fullServiceCode, clientType);
 
@@ -262,13 +246,13 @@ public class AccessRightService {
      * @return
      * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException client for the endpoint is not found (shouldn't happen)
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      * @throws DuplicateAccessRightException Trying to add duplicate access rights
      */
     public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
             throws EndpointNotFoundException, ClientNotFoundException,
-            IdentifierNotFoundException, DuplicateAccessRightException {
+            ServiceClientNotFoundException, DuplicateAccessRightException {
 
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
 
@@ -278,16 +262,15 @@ public class AccessRightService {
     }
 
     /**
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      * @throws DuplicateAccessRightException
      */
     private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
-            Set<XRoadId> subjectIds) throws IdentifierNotFoundException,
-            DuplicateAccessRightException {
+            Set<XRoadId> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
 
         // verify that all subject ids exist
-        identifierService.verifyServiceClientIdentifiersExist(clientType, subjectIds);
+        identifierService.verifyServiceClientObjectsExist(clientType, subjectIds);
 
         // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
         Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
@@ -296,7 +279,7 @@ public class AccessRightService {
         try {
             addAccessRights(managedIds, clientType, endpointType);
         } catch (LocalGroupNotFoundException e) {
-            throw new IdentifierNotFoundException(e);
+            throw new ServiceClientNotFoundException(e);
         }
 
         // Create DTOs for returning data
@@ -317,14 +300,19 @@ public class AccessRightService {
      * (did not have base endpoints)
      * @throws ClientNotFoundException if client matching clientId was not found
      * @throws DuplicateAccessRightException if trying to add existing access right
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
+     * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      */
     public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
             XRoadId subjectId) throws ServiceNotFoundException,
-            DuplicateAccessRightException, ClientNotFoundException, IdentifierNotFoundException {
+            DuplicateAccessRightException, ClientNotFoundException, ServiceClientNotFoundException {
 
-        ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
+        ClientType clientType = getClient(clientId);
+
+        validateServiceClientObjectType(subjectId);
+
+        // verify that given service client objects exist, otherwise access cannot be added
+        identifierService.verifyServiceClientObjectsExist(clientType, new HashSet(Arrays.asList(subjectId)));
 
         // prepare params for addAccessRightsInternal
         List<EndpointType> baseEndpoints = null;
@@ -342,7 +330,7 @@ public class AccessRightService {
                     .get(managedSubjectId);
         } catch (LocalGroupNotFoundException e) {
             // no need to handle this in more detail than the other service client types
-            throw new IdentifierNotFoundException(e);
+            throw new ServiceClientNotFoundException(e);
         }
     }
 
@@ -357,15 +345,15 @@ public class AccessRightService {
      *                  global group, or a subsystem
      * @throws AccessRightNotFoundException if trying to remove (any) access rights that did not exist
      * @throws ClientNotFoundException if client matching clientId was not found
-     * @throws IdentifierNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
      * @throws ServiceNotFoundException if given client did not have services with given serviceCodes
      */
     public void deleteServiceClientAccessRights(ClientId clientId,
             Set<String> serviceCodes, XRoadId subjectId) throws AccessRightNotFoundException, ClientNotFoundException,
-            IdentifierNotFoundException, ServiceNotFoundException {
+            ServiceNotFoundException {
 
-        ClientType clientType = validateServiceClientAccessRightsParameters(clientId, subjectId);
+        ClientType clientType = getClient(clientId);
+
+        validateServiceClientObjectType(subjectId);
 
         // first delete base endpoint access rights. These all need to exist, otherwise AccessRightNotFoundException
         List<EndpointType> baseEndpoints = null;
@@ -402,13 +390,23 @@ public class AccessRightService {
         return accessRightsToBeRemoved;
     }
 
-    private ClientType validateServiceClientAccessRightsParameters(ClientId clientId, XRoadId subjectId)
-            throws ClientNotFoundException, IdentifierNotFoundException {
+    /**
+     * Get client, throw ClientNotFoundException if not found
+     */
+    private ClientType getClient(ClientId clientId) throws ClientNotFoundException {
         // validate params some
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
+        return clientType;
+    }
+
+    /**
+     * Check that subjectId has correct Object type
+     * @param subjectId
+     */
+    private void validateServiceClientObjectType(XRoadId subjectId) {
         if (subjectId == null) {
             throw new IllegalArgumentException("missing subjectId");
         }
@@ -416,11 +414,6 @@ public class AccessRightService {
         if (!isValidServiceClientType(objectType)) {
             throw new IllegalArgumentException("Invalid object type " + objectType);
         }
-
-        // verify that given subjectId exists
-        identifierService.verifyServiceClientIdentifiersExist(clientType, new HashSet(Arrays.asList(subjectId)));
-
-        return clientType;
     }
 
 
@@ -452,7 +445,7 @@ public class AccessRightService {
      * Makes an {@link ServiceClientDto} out of {@link AccessRightType}
      * @param accessRightType The AccessRightType to convert from
      * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
-     * their corresponding {@link LocalGroupType#groupCode}
+     * their corresponding {@link LocalGroupType#getGroupCode()}
      * @return
      */
     private ServiceClientDto accessRightTypeToServiceClientDto(AccessRightType accessRightType,
@@ -644,10 +637,7 @@ public class AccessRightService {
         List<ServiceClientDto> dtos = new ArrayList<>();
 
         // get client
-        ClientType client = clientRepository.getClient(clientId);
-        if (client == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
+        ClientType client = getClient(clientId);
 
         // get global members
         List<ServiceClientDto> globalMembers = getGlobalMembersAsDtos();

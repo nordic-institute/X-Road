@@ -44,8 +44,8 @@ import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
-import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
@@ -157,7 +157,7 @@ public class ServicesApiController implements ServicesApi {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds));
         } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (AccessRightService.AccessRightNotFoundException | IdentifierNotFoundException e) {
+        } catch (AccessRightService.AccessRightNotFoundException | ServiceClientNotFoundException e) {
             throw new BadRequestException(e);
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
@@ -178,7 +178,7 @@ public class ServicesApiController implements ServicesApi {
                     xRoadIds);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (IdentifierNotFoundException e) {
+        } catch (ServiceClientNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);

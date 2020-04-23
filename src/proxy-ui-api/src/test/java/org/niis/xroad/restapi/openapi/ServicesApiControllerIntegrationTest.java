@@ -340,30 +340,42 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS - 1, serviceClients.size());
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
-    public void deleteServiceAccessRightsWrongType() {
+    public void deleteServiceAccessRightsWrongTypeIgnored() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
+        // ServiceClient.id is only field that matters when passing parameters to controller,
+        // ServiceClient.serviceClientType is ignored
         ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.GLOBALGROUP));
         servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
+
+        serviceClients = servicesApiController.getServiceServiceClients(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS - 1, serviceClients.size());
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
-    public void deleteServiceAccessRightsWrongTypeLocalGroup() {
+    public void deleteServiceAccessRightsWrongTypeLocalGroupIgnored() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
+        // ServiceClient.id is only field that matters when passing parameters to controller,
+        // ServiceClient.serviceClientType is ignored
         ServiceClients deletedServiceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.LOCALGROUP));
         servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody();
+
+        serviceClients = servicesApiController.getServiceServiceClients(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS - 1, serviceClients.size());
     }
 
     @Test
