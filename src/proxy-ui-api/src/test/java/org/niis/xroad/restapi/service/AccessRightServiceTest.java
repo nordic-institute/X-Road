@@ -157,38 +157,59 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    public void findAllAccessRightHolders() throws Throwable {
+    public void findAllAccessRightHolderCandidates() throws Throwable {
         List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, null, null, null, null);
         assertEquals(10, dtos.size());
     }
 
     @Test
-    public void findAccessRightHoldersByMemberOrGroupCode() throws Throwable {
+    public void findAccessRightHolderCandidatesByMemberOrGroupCode() throws Throwable {
         List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, null, null, "1", null);
         assertEquals(6, dtos.size());
     }
 
     @Test
-    public void findAccessRightHoldersByMemberOrGroupCodeNoResults() throws Throwable {
+    public void findAccessRightHolderCandidatesByMemberOrGroupCodeNoResults() throws Throwable {
         List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, null, null, "öäöäöäöäöäöä", null);
         assertEquals(0, dtos.size());
     }
 
     @Test
-    public void findAccessRightHoldersByInstance() throws Throwable {
+    public void findAccessRightHolderCandidatesByInstance() throws Throwable {
         List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, TestUtils.INSTANCE_EE, null, null, null);
         assertEquals(5, dtos.size());
     }
 
     @Test
-    public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
+    public void findAccessRightHolderCandidatesByInstanceAndSubSystem() throws Throwable {
         List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
+    }
+
+    public static final boolean FAIL_NOT_IMPLEMENTED_ONES = false;
+    public static void notImplemented() {
+        if (FAIL_NOT_IMPLEMENTED_ONES) {
+            fail("not implemented");
+        }
+    }
+
+    @Test
+    public void removeObsoleteServiceClientAccessRights() throws Exception {
+        notImplemented();
+    }
+
+    @Test
+    public void removeObsoleteEndpointAccessRights() throws Exception {
+        notImplemented();
+    }
+    @Test
+    public void removeObsoleteSoapServiceAccessRights() throws Exception {
+        notImplemented();
     }
 
     @Test
@@ -392,6 +413,11 @@ public class AccessRightServiceTest {
             fail("should have thrown exception");
         } catch (ServiceNotFoundException expected) {
         }
+    }
+
+    @Test
+    public void addServiceClientAccessRightsForObsoleteFails() throws Exception {
+        notImplemented();
     }
 
     @Test
@@ -627,6 +653,16 @@ public class AccessRightServiceTest {
         assertEquals(3, (countIdentifiers() - identifiers));
     }
 
+
+    @Test
+    public void addSoapServiceAccessRightsForObsoleteFails() throws Exception {
+        notImplemented();
+    }
+
+    @Test
+    public void addEndpointAccessRightsForObsoleteFails() throws Exception {
+        notImplemented();
+    }
 
     @Test
     public void addAccessRights() throws Throwable {

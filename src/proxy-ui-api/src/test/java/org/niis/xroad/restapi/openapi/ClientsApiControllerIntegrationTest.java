@@ -589,7 +589,7 @@ public class ClientsApiControllerIntegrationTest {
         ServiceDescription wsdlServiceDescription = getDescription(descriptions.getBody(),
                 "https://soapservice.com/v1/Endpoint?wsdl")
                 .get();
-        assertEquals(3, wsdlServiceDescription.getServices().size());
+        assertEquals(4, wsdlServiceDescription.getServices().size());
 
         ServiceDescription serviceDescriptionTypeRest = getDescription(descriptions.getBody(),
                 "https://restservice.com/api/v1/nosuchservice").get();

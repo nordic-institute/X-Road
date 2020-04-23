@@ -52,6 +52,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.restapi.service.AccessRightServiceTest.notImplemented;
 
 /**
  * test Service client service
@@ -82,6 +83,23 @@ public class ServiceClientServiceTest {
     }
 
     @Test
+    public void getObsoleteClientServiceClientsByClient() throws Exception {
+        notImplemented();
+    }
+    @Test
+    public void getObsoleteClientServiceClientsByEndpoint() throws Exception {
+        notImplemented();
+    }
+    @Test
+    public void getObsoleteClientServiceClientsByService() throws Exception {
+        notImplemented();
+    }
+    @Test
+    public void getObsoleteServiceClientAccessRights() throws Exception {
+        notImplemented();
+    }
+
+    @Test
     public void getClientServiceClients() throws Exception {
         ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");
         List<ServiceClientDto> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
@@ -99,7 +117,7 @@ public class ServiceClientServiceTest {
 
         ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
         List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
-        assertTrue(serviceClients3.size() == 4);
+        assertEquals(6, serviceClients3.size());
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
                 .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()

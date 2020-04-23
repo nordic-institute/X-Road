@@ -196,10 +196,10 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
-        assertEquals(3, serviceIds.size());
+        assertEquals(4, serviceIds.size());
         assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM));
         assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_CALCULATE_PRIME));
-        assertEquals(3, serviceCodes.size());
+        assertEquals(4, serviceCodes.size());
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_GET_RANDOM));
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CALCULATE_PRIME));
 
@@ -280,10 +280,10 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
-        assertEquals(3, serviceIds.size());
+        assertEquals(4, serviceIds.size());
         assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM));
         assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_CALCULATE_PRIME));
-        assertEquals(3, serviceCodes.size());
+        assertEquals(4, serviceCodes.size());
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_GET_RANDOM));
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CALCULATE_PRIME));
 
@@ -307,7 +307,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
                 serviceDescriptionsApiController.getServiceDescriptionServices("1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         List<Service> services = response.getBody();
-        assertEquals(3, services.size());
+        assertEquals(4, services.size());
         Service getRandomService = getService(services, TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM);
         assertEquals("https://soapservice.com/v1/Endpoint", getRandomService.getUrl());
         assertEquals(TestUtils.SERVICE_GET_RANDOM, getRandomService.getServiceCode());
