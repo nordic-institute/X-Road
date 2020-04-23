@@ -922,6 +922,12 @@ export interface Service {
    */
   timeout: number; // uint
   /**
+   * service title
+   * example:
+   * client deletion
+   */
+  readonly title?: string; // text
+  /**
    * service ssl auth
    * example:
    * true
@@ -968,7 +974,7 @@ export interface ServiceClient {
   readonly local_group_code?: string; // text
   service_client_type?: ServiceClientType; // text
   /**
-   * access right given at
+   * time when access right were given at. Contains meaningful value when listing service clients that have been granted access to a specific endpoint or service.
    * example:
    * 2018-12-15T00:00:00.001Z
    */
