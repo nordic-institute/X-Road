@@ -7,15 +7,6 @@ die () {
     exit 1
 }
 
-local_psql() {
-  local cmd="psql -qtAU postgres $*"
-  su -l -c "$cmd" postgres
-}
-
-remote_psql() {
-  psql -h "$db_addr" -p "$db_port" -qtAU postgres "$@"
-}
-
 get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
@@ -26,11 +17,13 @@ configure() {
 
   db_name=op-monitor
   db_user=opmonitor
+  ="${db_user}"
   db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-
   db_admin=opmonitor_admin
+  db_conn_admin="${db_admin}"
   db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-
+  db_master_user=postgres
+  jdbc_user=""
   db_properties=/etc/xroad/db.properties
   root_properties=/etc/xroad.properties
 
@@ -45,10 +38,26 @@ configure() {
 
   if  [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]
   then
-    master_passwd=$(crudini --get ${root_properties} '' postgres.connection.password)
+    master_passwd=$(get_prop ${root_properties} postgres.connection.password)
     export PGPASSWORD=${master_passwd}
+    db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+    db_conn_master_user="${db_master_user}"
+    if [[ $(get_prop ${root_properties} postgres.connection.user.suffix) != "" ]]; then
+        suffix=$(get_prop ${root_properties} postgres.connection.user.suffix)
+        db_conn_user="${db_user}${suffix}"
+        db_conn_admin="${db_admin}${suffix}"
+        db_conn_master_user="${db_master_user}${suffix}"
+        jdbc_user="?user=${db_conn_user}"
+    fi
+    remote_psql() {
+      psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d postgres -qtA "$@"
+    }
     psql_cmd=remote_psql
   else
+    local_psql() {
+      local cmd="psql -qtAU postgres $*"
+      su -l -c "$cmd" postgres
+    }
     psql_cmd=local_psql
   fi
 
@@ -56,9 +65,11 @@ configure() {
   then
 
     db_url=$(get_prop ${db_properties} op-monitor.hibernate.connection.url)
+    jdbc_user=""
     db_user=$(get_prop ${db_properties} op-monitor.hibernate.connection.username "$db_user")
     db_passwd=$(get_prop ${db_properties} op-monitor.hibernate.connection.password "$db_passwd")
     tmp_admin=$(get_prop ${root_properties} op-monitor.database.admin_password)
+    db_conn_admin="${tmp_admin}${suffix}"
     db_initialized=$(get_prop ${root_properties} op-monitor.database.initialized)
 
     if [[ "$db_url" =~ jdbc:postgresql://([^/]*)/ ]]; then
@@ -111,7 +122,7 @@ configure() {
     then
       echo "database $db_name exists"
     else
-      echo "GRANT ${db_admin} to postgres" | $psql_cmd
+      echo "GRANT ${db_admin} to ${db_master_user}" | $psql_cmd
       echo "CREATE DATABASE \"$db_name\" OWNER \"$db_admin\" ENCODING 'UTF-8'" | $psql_cmd
     fi
 
@@ -120,7 +131,7 @@ configure() {
     crudini --set ${db_properties} '' op-monitor.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.batch_size 50
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}"
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}${jdbc_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
     crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
@@ -138,11 +149,11 @@ configure() {
     --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" \
     --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
     --password="${db_admin_passwd}" \
-    --username="${db_admin}" \
+    --username="${db_conn_admin}" \
     update \
     || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 
-  PGPASSWORD=$db_admin_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_admin" -d "$db_name" <<EOF
+  PGPASSWORD=$db_admin_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_admin" -d "$db_name" <<EOF
 grant usage on schema public to ${db_user};
 grant select, insert, update, delete on all tables in schema public to ${db_user};
 grant usage, select, update on all sequences in schema public to ${db_user};
