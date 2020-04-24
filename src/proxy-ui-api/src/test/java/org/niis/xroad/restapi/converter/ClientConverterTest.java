@@ -31,10 +31,13 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
+
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,7 +63,8 @@ public class ClientConverterTest {
         ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
 
-        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId));
+        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()));
     }
 
     @Test

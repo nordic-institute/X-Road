@@ -151,7 +151,7 @@ public final class TestUtils {
      * @return
      */
     public static ClientId getClientId(String encodedId) {
-        return new ClientConverter(null, null).convertId(encodedId);
+        return new ClientConverter(null, null, null).convertId(encodedId);
     }
 
     /**
