@@ -5,20 +5,18 @@
     title="serviceClients.addService"
     @save="save"
     @cancel="cancel"
-    :disableSave="selections.length === 0"
+    :disableSave="filterSelections().length === 0"
   >
     <div slot="content" v-if="this.serviceCandidates.length > 0">
 
-      <div class="table-toolbar" >
-        <v-text-field v-model="search"
-                      :label="$t('serviceClients.searchPlaceHolder')"
-                      single-line
-                      hide-details
-                      data-test="search-service-client"
-                      class="search-input">
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
-      </div>
+      <v-text-field v-model="search"
+                    :label="$t('serviceClients.searchPlaceHolder')"
+                    single-line
+                    hide-details
+                    data-test="search-service-client"
+                    class="search-input">
+        <v-icon slot="append">mdi-magnify</v-icon>
+      </v-text-field>
 
       <table class="xrd-table">
         <thead>
@@ -29,11 +27,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="service in this.searchResults()" v-bind:key="service.id">
+          <tr v-for="service in this.searchResults()"
+              v-bind:key="service.id"
+              @click="toggleService(service)"
+              class="service-row">
             <td class="selection-checkbox">
-              <div class="checkbox-wrap">
-                <v-checkbox :value="service" v-model="selections"></v-checkbox>
-              </div>
+              <input type="checkbox" v-model="selections" :value="service">
             </td>
             <td>{{service.service_code}}</td>
             <td>{{service.title}}</td>
@@ -78,7 +77,8 @@ export default Vue.extend({
   },
   methods: {
     save(): void {
-      this.$emit('save', this.selections);
+      const items = this.selections.filter( (selection: AccessRight) => selection.service_code.includes(this.search));
+      this.$emit('save', items);
       this.clear();
     },
     cancel(): void {
@@ -91,6 +91,18 @@ export default Vue.extend({
     searchResults(): any {
       return this.serviceCandidates.filter( (candidate: any) => candidate.service_code.includes(this.search));
     },
+    toggleService(ac: AccessRight): void {
+      if (this.selections.some( (selection: AccessRight) => ac.service_code === selection.service_code)) {
+        this.selections = this.selections
+          .filter( (selection: AccessRight) => ac.service_code !== selection.service_code);
+      } else {
+        this.selections.push(ac);
+      }
+    },
+    filterSelections(): AccessRight[] {
+      return this.selections.filter( (ac: AccessRight) => ac.service_code.includes(this.search));
+    }
+  }
 });
 </script>
 
@@ -101,4 +113,16 @@ export default Vue.extend({
 .selection-checkbox {
   width: 40px;
 }
+
+.search-input {
+  margin: 30px 0;
+  width: 50%;
+  min-width: 200px;
+}
+
+.service-row:hover {
+  cursor: pointer;
+  background-color: $XRoad-Grey10;
+}
+
 </style>
