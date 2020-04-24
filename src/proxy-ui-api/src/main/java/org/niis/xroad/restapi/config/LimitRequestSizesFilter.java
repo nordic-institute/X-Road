@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -48,7 +49,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 @Configuration
-@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+@Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 3)
 @Slf4j
 /**
  * Servlet filter which limits request sizes to some amount of bytes

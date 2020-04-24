@@ -40,6 +40,9 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +61,7 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.REGULAR_PAM_
 @Configuration
 @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
 public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    public static final String LOGIN_URL = "/login";
 
     @Autowired
     @Qualifier(REGULAR_PAM_AUTHENTICATION_BEAN)
@@ -66,33 +70,33 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .authorizeRequests()
+                .authorizeRequests()
                 .antMatchers("/error").permitAll()
-                .antMatchers("/login").permitAll()
+                .antMatchers(LOGIN_URL).permitAll()
                 .antMatchers("/logout").fullyAuthenticated()
                 .antMatchers("/api/**").denyAll()
                 .anyRequest().denyAll()
                 .and()
-              .csrf()
+                .csrf()
                 .ignoringAntMatchers("/login")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
                 .and()
-            .formLogin()
+                .formLogin()
                 .loginPage("/login")
                 .successHandler(formLoginStatusCodeSuccessHandler())
                 .failureHandler(statusCode401AuthenticationFailureHandler())
                 .permitAll()
                 .and()
-            .logout()
+                .logout()
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                 .permitAll();
     }
-
 
     @Override
     protected void configure(AuthenticationManagerBuilder builder) throws Exception {
         builder.authenticationProvider(authenticationProvider);
     }
+
     /**
      * authentication failure handler which does not redirect but just returns a http status code
      * @return
@@ -100,7 +104,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private static AuthenticationFailureHandler statusCode401AuthenticationFailureHandler() {
         return new SimpleUrlAuthenticationFailureHandler() {
             public void onAuthenticationFailure(HttpServletRequest request,
-                                                HttpServletResponse response, AuthenticationException exception)
+                    HttpServletResponse response, AuthenticationException exception)
                     throws IOException, ServletException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
@@ -115,11 +119,41 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private static AuthenticationSuccessHandler formLoginStatusCodeSuccessHandler() {
         return new SimpleUrlAuthenticationSuccessHandler() {
             public void onAuthenticationSuccess(HttpServletRequest request,
-                                                HttpServletResponse response, Authentication authentication)
+                    HttpServletResponse response, Authentication authentication)
                     throws IOException, ServletException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");
             }
         };
+    }
+
+    /**
+     * Wraps HttpSessionCsrfTokenRepository and CookieCsrfTokenRepository into one class. This way we get the
+     * same token in session and the csrf cookie
+     */
+    private static class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository {
+        private final HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository;
+        private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
+
+        public CookieAndSessionCsrfTokenRepository() {
+            httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
+            cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        }
+
+        @Override
+        public CsrfToken generateToken(HttpServletRequest request) {
+            return cookieCsrfTokenRepository.generateToken(request);
+        }
+
+        @Override
+        public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+            httpSessionCsrfTokenRepository.saveToken(token, request, response);
+            cookieCsrfTokenRepository.saveToken(token, request, response);
+        }
+
+        @Override
+        public CsrfToken loadToken(HttpServletRequest request) {
+            return httpSessionCsrfTokenRepository.loadToken(request);
+        }
     }
 }

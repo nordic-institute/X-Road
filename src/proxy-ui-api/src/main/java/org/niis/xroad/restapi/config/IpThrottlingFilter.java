@@ -32,6 +32,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -51,7 +52,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 4)
 @Slf4j
 /**
  * Filter which rate limits requests
@@ -98,7 +99,7 @@ public class IpThrottlingFilter extends GenericFilterBean {
         try {
             bucket = bucketCache.get(ip);
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            log.error("Could not load value from cache", e);
         }
 
         // tryConsume returns false immediately if no tokens available with the bucket
