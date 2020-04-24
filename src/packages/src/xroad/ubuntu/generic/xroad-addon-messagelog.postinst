@@ -4,6 +4,8 @@ set -x
 
 . /usr/share/debconf/confmodule
 
+db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
 db_name=messagelog
 db_user=messagelog
 db_conn_user="${db_user}"
@@ -16,8 +18,6 @@ then
 fi
 db_master_user=postgres
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad.properties
 
 RET=
 db_get xroad-common/database-host
