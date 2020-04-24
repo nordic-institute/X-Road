@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.util.Collection;
 
 /**
- * Thrown if client sent bad request.
+ * Thrown if client sent a bad request.
  * Results in http 400 BAD_REQUEST
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)

@@ -29,12 +29,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,40 +62,34 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert ServiceClientDto to ServiceClient. {@link ServiceClient#accessRights} will be set to null because
-     * only the access right holders (clients or groups) are needed
-     * @param accessRightHolderDto
+     * Convert ServiceClientDto to ServiceClient.
+     * @param serviceClientDto
      * @return {@link ServiceClient}
      */
-    public ServiceClient convertAccessRightHolderDto(AccessRightHolderDto accessRightHolderDto) {
+    public ServiceClient convertServiceClientDto(ServiceClientDto serviceClientDto) {
         ServiceClient serviceClient = new ServiceClient();
-        Subject subject = new Subject();
-        serviceClient.setRightsGivenAt(accessRightHolderDto.getRightsGiven());
+        serviceClient.setRightsGivenAt(serviceClientDto.getRightsGiven());
 
-        XRoadId subjectId = accessRightHolderDto.getSubjectId();
+        XRoadId subjectId = serviceClientDto.getSubjectId();
 
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                subject.setMemberNameGroupDescription(globalConfFacade.getMemberName(serviceClientId));
-                subject.setId(clientConverter.convertId(serviceClientId));
-                subject.setSubjectType(SubjectTypeMapping.map(serviceClientId.getObjectType()).get());
-                serviceClient.setSubject(subject);
+                serviceClient.setName(globalConfFacade.getMemberName(serviceClientId));
+                serviceClient.setId(clientConverter.convertId(serviceClientId));
+                serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                subject.setMemberNameGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
-                subject.setId(globalGroupConverter.convertId(globalGroupId));
-                subject.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
-                serviceClient.setSubject(subject);
+                serviceClient.setName(globalConfFacade.getGlobalGroupDescription(globalGroupId));
+                serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
+                serviceClient.setServiceClientType(ServiceClientType.GLOBALGROUP);
                 break;
             case LOCALGROUP:
-                LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                subject.setId(accessRightHolderDto.getLocalGroupId());
-                subject.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
-                subject.setMemberNameGroupDescription(accessRightHolderDto.getLocalGroupDescription());
-                subject.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
-                serviceClient.setSubject(subject);
+                serviceClient.setId(serviceClientDto.getLocalGroupId());
+                serviceClient.setLocalGroupCode(serviceClientDto.getLocalGroupCode());
+                serviceClient.setName(serviceClientDto.getLocalGroupDescription());
+                serviceClient.setServiceClientType(ServiceClientType.LOCALGROUP);
                 break;
             default:
                 break;
@@ -104,12 +100,52 @@ public class ServiceClientConverter {
 
     /**
      * Convert a group of ServiceClientDtos to ServiceClients
-     * @param accessRightHolderDtos
+     * @param serviceClientDtos
      * @return
      */
-    public List<ServiceClient> convertAccessRightHolderDtos(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
-        return Streams.stream(accessRightHolderDtos)
-                .map(this::convertAccessRightHolderDto)
+    public List<ServiceClient> convertServiceClientDtos(Iterable<ServiceClientDto> serviceClientDtos) {
+        return Streams.stream(serviceClientDtos)
+                .map(this::convertServiceClientDto)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Convert ServiceClient into XroadId (based on serviceClientType, id and localGroupCode)
+     * @param serviceClient
+     * @return
+     */
+    public XRoadId convertId(ServiceClient serviceClient) {
+        XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
+        String encodedId = serviceClient.getId();
+        XRoadId xRoadId;
+        switch (serviceClientType) {
+            case SUBSYSTEM:
+                if (!clientConverter.isEncodedSubsystemId(encodedId)) {
+                    throw new BadRequestException("Invalid subsystem id " + encodedId);
+                }
+                xRoadId = clientConverter.convertId(encodedId);
+                break;
+            case GLOBALGROUP:
+                xRoadId = globalGroupConverter.convertId(encodedId);
+                break;
+            case LOCALGROUP:
+                xRoadId = LocalGroupId.create(serviceClient.getLocalGroupCode());
+                break;
+            default:
+                throw new BadRequestException("Invalid service client type");
+        }
+        return xRoadId;
+    }
+
+    /**
+     * Convert ServiceClients into XroadIds (based on serviceClientType, id and localGroupCode)
+     * @param serviceClients
+     * @return
+     */
+    public List<XRoadId> convertIds(Iterable<ServiceClient> serviceClients) {
+        return Streams.stream(serviceClients)
+                .map(this::convertId)
+                .collect(Collectors.toList());
+    }
+
 }

@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.10
-28.03.2020
+Version: 1.11
+01.04.2020
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -33,6 +33,7 @@ Date       | Version | Description                                              
 27.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
 24.10.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
 28.03.2020 | 1.10    | Added edit API key use case | Petteri Kivimäki
+01.04.2020 | 1.11    | Added notes about IP whitelists for APIs | Janne Mattila
 
 <!-- tocstop -->
 
@@ -163,6 +164,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
     X-Road: Protocol for Management Services. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
 8. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+9. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
 ## 2 Overview
 
@@ -2810,14 +2813,15 @@ for authentication when executing REST API calls to update server configuration.
     - XROAD_SECURITYSERVER_OBSERVER
 
 2.  SS administrator sends HTTP POST request to create a new API key. REST client should
-    - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key`
+    - 2.1 Send request locally from the security server, remote access is forbidden (by default)
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+    - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
     - 2.5 Provide roles to link to API key, with message body containing the role names in a JSON array of strings
     - 2.6 Define correct content type with HTTP header `Content-Type: application/json`
-    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
+    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-keys --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
 
 3.  System creates a new API key and responds with a JSON message containing details of the key:
     - 3.1 API key id with name `id`
@@ -2844,7 +2848,7 @@ for authentication when executing REST API calls to update server configuration.
   role
     - 2a.1. System responds with HTTP 401 or HTTP 403
 - 2b. SS administrator sends request from a remote server
-    - 2b.1. System responds with HTTP 403
+    - 2b.1. System responds with HTTP 401 (unless remote access is allowed, see \[[UG-SYSPAR](#Ref_UG-SYSPAR)\])
 
 **Related information:** -
 
@@ -2869,12 +2873,13 @@ for authentication when executing REST API calls to update server configuration.
 **Main Success Scenario**:
 
 1.  SS administrator sends HTTP GET request to list all API keys. REST client should
-    - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key`
+    - 2.1 Send request locally from the security server, remote access is forbidden (by default)
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+    - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-key -k`
+    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-keys -k`
 
 2.  System returns list of API keys in an JSON array containing items with details of the keys:
     - 3.1 API key id with name `id`
@@ -2908,7 +2913,7 @@ for authentication when executing REST API calls to update server configuration.
   role
     - 1a.1. System responds with HTTP 401 or HTTP 403
 - 1b. SS administrator sends request from a remote server
-    - 1b.1. System responds with HTTP 403
+    - 2b.1. System responds with HTTP 401 (unless remote access is allowed, see \[[UG-SYSPAR](#Ref_UG-SYSPAR)\])
 
 **Related information:** -
 
@@ -2998,13 +3003,14 @@ for authentication when executing REST API calls to update server configuration.
 **Main Success Scenario**:
 
 1.  SS administrator sends HTTP DELETE request to delete one API key. REST client should
-    - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key/{id}`,
+    - 2.1 Send request locally from the security server, remote access is forbidden (by default)
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+    - 2.2 Send request to URL `https://localhost:4000/api/api-keys/{id}`,
     where `{id}` is the id of the key to be deleted.
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/63 -k`
+    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-keys/63 -k`
 
 2.  System deletes the key and it cannot be used for authentication anymore. System responds with HTTP 200.
 
@@ -3014,7 +3020,7 @@ for authentication when executing REST API calls to update server configuration.
   role
     - 1a.1. System responds with HTTP 401 or HTTP 403
 - 1b. SS administrator sends request from a remote server
-    - 1b.1. System responds with HTTP 403
+    - 1b.1. System responds with HTTP 401 (unless remote access is allowed, see \[[UG-SYSPAR](#Ref_UG-SYSPAR)\])
 - 1c. SS administrator tries to revoke a key that does not exist
     - 1c.1. System responds with HTTP 404
 
@@ -3041,7 +3047,8 @@ for authentication when executing REST API calls to update server configuration.
 **Main Success Scenario**:
 
 1.  SS administrator sends a REST request to perform some kind of configuration action. REST client should
-    - 2.1 Send request from anywhere, remote access is not forbidden
+    - 2.1 Send request from anywhere, remote access is not forbidden (by default)
+      - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
     - 2.2 Send request to URL corresponding to the desired action,
      for example `https://<security-server-address>:4000/api/clients` to list clients.
     - 2.3 Use HTTP method corresponding to the desired action,

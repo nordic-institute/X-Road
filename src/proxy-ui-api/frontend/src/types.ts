@@ -1,19 +1,7 @@
 /**
- * access right for clients and services
+ * access right given for a specific subject (ServiceClient) for specific service (service_code) owned by some client. This object does not represent endpoint-level access rights
  */
 export interface AccessRight {
-  /**
-   * access right id
-   * example:
-   * 123
-   */
-  readonly id: string; // text
-  /**
-   * <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
-   * example:
-   * FI:GOV:123:ABC
-   */
-  client_id: string; // text
   /**
    * service code
    * example:
@@ -25,7 +13,22 @@ export interface AccessRight {
    * example:
    * client deletion
    */
-  service_title: string; // text
+  readonly service_title?: string; // text
+  /**
+   * access right given at
+   * example:
+   * 2018-12-15T00:00:00.001Z
+   */
+  readonly rights_given_at?: string; // date-time
+}
+/**
+ * object containing and array of AccessRights
+ */
+export interface AccessRights {
+  /**
+   * array of AccessRights
+   */
+  items?: AccessRight[];
 }
 /**
  * security server anchor
@@ -942,16 +945,49 @@ export interface Service {
   endpoints?: Endpoint[];
 }
 /**
- * service client
+ * service client. May be a subsystem, local group, or a global group
  */
 export interface ServiceClient {
-  subject: Subject;
+  /**
+   * subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+   * example:
+   * DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
+   */
+  id: string; // text
+  /**
+   * name of the ServiceClient - can be the name of a member or the description of a group
+   * example:
+   * Security server owners
+   */
+  readonly name?: string; // text
+  /**
+   * group code in case the object is a local group
+   * example:
+   * My own Local group code
+   */
+  readonly local_group_code?: string; // text
+  service_client_type?: ServiceClientType; // text
   /**
    * access right given at
    * example:
    * 2018-12-15T00:00:00.001Z
    */
-  rights_given_at: string; // date-time
+  readonly rights_given_at?: string; // date-time
+}
+/**
+ * subject type
+ * example:
+ * GLOBALGROUP
+ */
+export type ServiceClientType = 'GLOBALGROUP' | 'LOCALGROUP' | 'SUBSYSTEM'; // text
+/**
+ * object containing and array of ServiceClients
+ */
+export interface ServiceClients {
+  /**
+   * array of ServiceClients
+   */
+  items?: ServiceClient[];
 }
 /**
  * WSDL/OPENAPI3/REST service
@@ -1078,45 +1114,6 @@ export interface ServiceUpdate {
    * false
    */
   ssl_auth_all?: boolean;
-}
-/**
- * subject
- */
-export interface Subject {
-  /**
-   * subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
-   * example:
-   * DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-   */
-  id: string; // text
-  /**
-   * name of the subject - can be the name of a member or the description of a group
-   * example:
-   * Security server owners
-   */
-  readonly member_name_group_description?: string; // text
-  /**
-   * group code in case the object is a local group
-   * example:
-   * My own Local group code
-   */
-  readonly local_group_code?: string; // text
-  subject_type: SubjectType; // text
-}
-/**
- * subject type
- * example:
- * GLOBALGROUP
- */
-export type SubjectType = 'GLOBALGROUP' | 'LOCALGROUP' | 'SUBSYSTEM'; // text
-/**
- * object containing and array of subject ids
- */
-export interface Subjects {
-  /**
-   * array of subject ids
-   */
-  items?: Subject[];
 }
 /**
  * timestamping services
