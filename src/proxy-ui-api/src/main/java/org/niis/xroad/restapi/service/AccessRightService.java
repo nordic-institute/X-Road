@@ -269,6 +269,8 @@ public class AccessRightService {
     private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
             Set<XRoadId> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
 
+        subjectIds.forEach(this::validateServiceClientObjectType);
+
         // verify that all subject ids exist
         identifierService.verifyServiceClientObjectsExist(clientType, subjectIds);
 
@@ -277,7 +279,7 @@ public class AccessRightService {
 
         // Add access rights to endpoint
         try {
-            addAccessRights(managedIds, clientType, endpointType);
+            addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
         } catch (LocalGroupNotFoundException e) {
             throw new ServiceClientNotFoundException(e);
         }
@@ -479,27 +481,13 @@ public class AccessRightService {
     }
 
     /**
-     * Add access rights for (possibly) multiple subjects, to a given endpoint
-     *
-     * @param subjectIds access rights subjects to grant access for, "service clients"
-     * @param clientType endpoint owner
-     * @param endpoint endpoint to add access rights to
-     * @return map, key = subjectId (service client), value = list of access rights added for the subject
-     * @throws DuplicateAccessRightException if trying to add existing access right
-     */
-    private Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRights(Set<XRoadId> subjectIds,
-            ClientType clientType, EndpointType endpoint)
-            throws DuplicateAccessRightException, LocalGroupNotFoundException {
-        List<EndpointType> endpoints = Collections.singletonList(endpoint);
-        return addAccessRightsInternal(subjectIds, clientType, endpoints);
-    }
-
-    /**
      * Add access rights for (possibly) multiple subjects, to (possibly) multiple endpoints.
      *
      * This method is not intended for use from outside, but is package protected for tests.
      *
-     * @param subjectIds access rights subjects to grant access for, "service clients"
+     * Note that subjectIds need to be managed entities.
+     *
+     * @param subjectIds *managed* access rights subjects to grant access for, "service clients"
      * @param clientType endpoint owner
      * @param endpoints endpoints to add access rights to
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
@@ -533,20 +521,25 @@ public class AccessRightService {
     }
 
     /**
-     * Add access right for a single subject (subjectId), to a single endpoint (endpoint) that belongs to clientType
+     * Add access right for a single subject (subjectId), to a single endpoint (endpoint)
+     * that belongs to clientType. Assumes parameters are already validated, service client objects
+     * for subjectId exist
      * @param clientType
      * @param rightsGiven
      * @param endpoint
      * @param subjectId
      * @return
-     * @throws LocalGroupNotFoundException if local group does not exist for given client
-     * @throws DuplicateAccessRightException if access righ already exists
+     * @throws DuplicateAccessRightException if access right already exists
      */
     private ServiceClientAccessRightDto addAccessRightInternal(ClientType clientType, Date rightsGiven,
             EndpointType endpoint, XRoadId subjectId)
-            throws LocalGroupNotFoundException, DuplicateAccessRightException {
+            throws DuplicateAccessRightException {
 
-        // A LocalGroup must belong to this client
+        // some sanity checks for the parameters. These should be covered already in earlier methods,
+        // but add some extra defensive programming
+        // Throw runtime exceptions if these checks fail
+        validateServiceClientObjectType(subjectId);
+
         List<LocalGroupType> clientLocalGroups = clientType.getLocalGroup();
 
         if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
@@ -557,7 +550,7 @@ public class AccessRightService {
             if (localGroupNotFound) {
                 String errorMsg = String.format("LocalGroup with the groupCode %s does not belong to client %s",
                         subjectId.toShortString(), clientType.getIdentifier().toShortString());
-                throw new LocalGroupNotFoundException(errorMsg);
+                throw new IllegalStateException(errorMsg);
             }
         }
 
