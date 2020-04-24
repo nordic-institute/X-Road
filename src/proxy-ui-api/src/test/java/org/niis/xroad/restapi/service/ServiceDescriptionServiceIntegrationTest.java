@@ -52,10 +52,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -274,6 +278,50 @@ public class ServiceDescriptionServiceIntegrationTest {
         ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
         ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
         assertServiceCodes(serviceDescriptionType, XROAD_GET_RANDOM_SERVICECODE);
+    }
+
+    @Test
+    public void addWsdlServiceDescriptionWithIllegalServiceCode() throws Exception {
+        try {
+            serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                    getTempWsdlFileUrl("wsdl/invalid-servicecode-colon.wsdl"), false);
+            fail("should throw exception");
+        } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
+            assertEquals(Collections.singletonList("xroadGetRandom:aa"), expected.getErrorDeviation().getMetadata());
+        }
+    }
+    @Test
+    public void addWsdlServiceDescriptionWithIllegalServiceCodeAll() throws Exception {
+        try {
+            serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                    getTempWsdlFileUrl("wsdl/invalid-servicecode-all.wsdl"), false);
+            fail("should throw exception");
+        } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
+            Set<String> invalidIdentifiers = new HashSet<>(Arrays.asList("xroadGetRandom:aa", "xroadGetRandom;aa",
+                    "xroadGetRandom\\aa", "xroadGetRandom/aa", "xroadGetRandom%aa", "xroadGetRandom/../aa"));
+            assertEquals(invalidIdentifiers, new HashSet(expected.getErrorDeviation().getMetadata()));
+            assertEquals(invalidIdentifiers.size(), expected.getErrorDeviation().getMetadata().size());
+        }
+    }
+    @Test
+    public void addWsdlServiceDescriptionWithIllegalServiceVersion() throws Exception {
+        try {
+            serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                    getTempWsdlFileUrl("wsdl/invalid-serviceversion-percent.wsdl"), false);
+            fail("should throw exception");
+        } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
+            assertEquals(Collections.singletonList("v1%234"), expected.getErrorDeviation().getMetadata());
+        }
+    }
+
+    /**
+     * Copy test resource into temp file and return url
+     */
+    private String getTempWsdlFileUrl(String testResourceFile) throws IOException {
+        File testServiceWsdl = tempFolder.newFile("test.wsdl");
+        File getRandomWsdl = TestUtils.getTestResourceFile(testResourceFile);
+        FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
+        return testServiceWsdl.toURI().toURL().toString();
     }
 
     /**

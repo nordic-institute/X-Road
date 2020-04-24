@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
@@ -1137,6 +1138,9 @@ public class ServiceDescriptionService {
         // parse wsdl
         Collection<WsdlParser.ServiceInfo> parsedServices = parseWsdl(url);
 
+        // check that service identifiers are legal
+        validateServiceIdentifierFields(parsedServices);
+
         // check if services exist
         checkForExistingServices(client, parsedServices, updatedServiceDescriptionId);
 
@@ -1156,6 +1160,42 @@ public class ServiceDescriptionService {
         result.setParsedServices(parsedServices);
         result.setWarnings(warnings);
         return result;
+    }
+
+
+    /**
+     * validate that all services have legal service code (name) and version
+     * @throws InvalidServiceIdentifierException if there was at least one
+     * invalid service code or version
+     */
+    private void validateServiceIdentifierFields(Collection<WsdlParser.ServiceInfo> serviceInfos)
+            throws InvalidServiceIdentifierException {
+        List<String> invalidIdentifierFields = new ArrayList<>();
+        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
+        for (WsdlParser.ServiceInfo serviceInfo: serviceInfos) {
+            String serviceCode = serviceInfo.name;
+            String version = serviceInfo.version;
+            if (!validator.getValidationErrors(serviceCode).isEmpty()) {
+                invalidIdentifierFields.add(serviceCode);
+            }
+            if (!validator.getValidationErrors(version).isEmpty()) {
+                invalidIdentifierFields.add(version);
+            }
+        }
+        if (!invalidIdentifierFields.isEmpty()) {
+            throw new InvalidServiceIdentifierException(invalidIdentifierFields);
+        }
+    }
+
+    /**
+     * If wsdl had service codes and / or versions with illegal identifier values, such as colons
+     */
+    public static class InvalidServiceIdentifierException extends InvalidWsdlException {
+        public static final String ERROR_INVALID_SERVICE_IDENTIFIER = "invalid_wsdl_service_identifier";
+
+        public InvalidServiceIdentifierException(List<String> invalidIdentifiers) {
+            super(new ErrorDeviation(ERROR_INVALID_SERVICE_IDENTIFIER, invalidIdentifiers));
+        }
     }
 
 

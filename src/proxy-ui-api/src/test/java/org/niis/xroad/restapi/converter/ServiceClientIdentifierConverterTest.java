@@ -42,7 +42,7 @@ public class ServiceClientIdentifierConverterTest {
     @Before
     public void setup() {
         converter = new ServiceClientIdentifierConverter(
-                new ClientConverter(null, null),
+                new ClientConverter(null, null, null),
                 new GlobalGroupConverter());
     }
 

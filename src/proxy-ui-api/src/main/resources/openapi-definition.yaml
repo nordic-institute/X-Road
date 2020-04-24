@@ -651,6 +651,20 @@ paths:
           schema:
             type: boolean
             default: true
+        - in: query
+          name: local_valid_sign_cert
+          description: to search only local clients with valid sign cert
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - in: query
+          name: exclude_local
+          description: to search only clients that are not added to this security server
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: list of clients
@@ -2791,6 +2805,7 @@ paths:
           name: id
           required: true
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2826,6 +2841,7 @@ paths:
           name: id
           required: true
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -2867,6 +2883,7 @@ paths:
           name: id
           required: true
           description: id of the endpoint
+          required: true
           schema:
             type: string
             example: 102
@@ -4632,6 +4649,11 @@ components:
         owner:
           type: boolean
           description: if this client is the owner member of this security server
+          example: false
+          readOnly: true
+        has_valid_local_sign_cert:
+          type: boolean
+          description: if this client is local and has a valid sign cert
           example: false
           readOnly: true
         connection_type:

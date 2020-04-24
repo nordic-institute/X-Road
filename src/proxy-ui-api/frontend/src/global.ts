@@ -1,5 +1,5 @@
 
-// A "single source of thuth" for route names
+// A "single source of truth" for route names
 export enum RouteName {
   Keys = 'keys',
   Diagnostics = 'diagnostics',

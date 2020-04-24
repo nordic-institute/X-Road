@@ -28,11 +28,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.SessionTimeoutFilter;
+import org.niis.xroad.restapi.converter.AlertDataConverter;
+import org.niis.xroad.restapi.domain.AlertData;
+import org.niis.xroad.restapi.dto.AlertStatus;
+import org.niis.xroad.restapi.service.NotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,16 +55,17 @@ import javax.servlet.http.HttpSession;
 @Slf4j
 @PreAuthorize("denyAll")
 public class NotificationsApiController {
-
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private AlertDataConverter alertDataConverter;
     public static final String NOTIFICATIONS_API_URL = "/api/notifications";
 
     /**
      * check if a HttpSession is currently alive
      */
     @PreAuthorize("permitAll")
-    @RequestMapping(value = "/session-status",
-            produces = { "application/json" },
-            method = RequestMethod.GET)
+    @GetMapping(value = "/session-status", produces = { "application/json" })
     public ResponseEntity<StatusData> isSessionAlive(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         boolean isStillAlive = session != null;
@@ -70,5 +77,25 @@ public class NotificationsApiController {
     @AllArgsConstructor
     private class StatusData {
         private boolean valid;
+    }
+
+    /**
+     * check if there are alerts
+     */
+    @PreAuthorize("permitAll")
+    @GetMapping(value = "/alerts", produces = { "application/json" })
+    public ResponseEntity<AlertData> checkAlerts() {
+        AlertStatus alertStatus = notificationService.getAlerts();
+        return new ResponseEntity<>(alertDataConverter.convert(alertStatus), HttpStatus.OK);
+    }
+
+    /**
+     * reset "backupRestoreRunningSince" alert
+     */
+    @PreAuthorize("permitAll")
+    @PutMapping(value = "/alerts/reset")
+    public ResponseEntity<Void> resetBackupRestoreRunningSince() {
+        notificationService.resetBackupRestoreRunningSince();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
