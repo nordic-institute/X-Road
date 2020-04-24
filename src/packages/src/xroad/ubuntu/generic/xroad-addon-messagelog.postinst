@@ -14,7 +14,7 @@ then
     db_conn_user="${db_user}${suffix}"
     jdbc_user="?user=${db_conn_user}"
 fi
-
+db_master_user=postgres
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
 root_properties=/etc/xroad.properties
@@ -52,8 +52,6 @@ else
       export PGPASSWORD=${master_passwd}
       if [[ `crudini --get ${root_properties} '' postgres.connection.user` != "" ]]; then
           db_master_user=`crudini --get ${root_properties} '' postgres.connection.user`
-      else
-          db_master_user=postgres
       fi
       db_conn_master_user="${db_master_user}"
       if [[ `crudini --get ${root_properties} '' postgres.connection.user.suffix` != "" ]]; then
@@ -79,7 +77,7 @@ else
        then
           echo "database ${db_name} exists"
       else
-          echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U $db_conn_master_user postgres
+          echo "GRANT ${db_user} to ${db_master_user}" | psql -h $db_addr -p $db_port -U $db_conn_master_user postgres
           createdb -h $db_addr -p $db_port -U $db_conn_master_user ${db_name} -O ${db_user} -E UTF-8
       fi
 
