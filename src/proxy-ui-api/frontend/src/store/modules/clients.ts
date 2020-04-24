@@ -53,7 +53,7 @@ export const getters: GetterTree<ClientsState, RootState> = {
     const subsystems: Client[] = [];
     const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
-    // Find the owner member (there is only one) it has member_name, but no subsystem_code
+    // Find the owner member (there is only one)
     state.clients.forEach((element, index) => {
       if (element.owner === true) {
         const clone = _.cloneDeep(element);
