@@ -27,15 +27,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="service in this.searchResults()"
-              v-bind:key="service.id"
-              @click="toggleService(service)"
-              class="service-row">
+          <tr v-for="accessRight in this.searchResults()"
+              v-bind:key="accessRight.id"
+              @click="toggleService(accessRight)"
+              class="service-row"
+              data-test="access-right-toggle">
             <td class="selection-checkbox">
-              <input type="checkbox" v-model="selections" :value="service">
+              <input type="checkbox"
+                     v-model="selections"
+                     :value="accessRight"
+                     data-test="access-right-checkbox-input">
             </td>
-            <td>{{service.service_code}}</td>
-            <td>{{service.title}}</td>
+            <td>{{accessRight.service_code}}</td>
+            <td>{{accessRight.title}}</td>
           </tr>
         </tbody>
       </table>
@@ -57,7 +61,7 @@ import {AccessRight} from '@/types';
 
 export default Vue.extend({
   components: {
-    SimpleDialog
+    SimpleDialog,
   },
   props: {
     dialog: {
@@ -101,8 +105,8 @@ export default Vue.extend({
     },
     filterSelections(): AccessRight[] {
       return this.selections.filter( (ac: AccessRight) => ac.service_code.includes(this.search));
-    }
-  }
+    },
+  },
 });
 </script>
 

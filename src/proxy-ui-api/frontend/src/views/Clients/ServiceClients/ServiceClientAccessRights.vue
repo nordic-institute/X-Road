@@ -163,7 +163,7 @@ export default Vue.extend({
     removeAll(): void {
       // NOOP
     },
-    serviceCandidates(): any[] {
+    serviceCandidates(): AccessRight[] {
       // returns whether given access right is for given service
       const isNotAccessRightToService = (service: Service, accessRight: AccessRight) =>
         accessRight.service_code !== service.service_code;
@@ -183,7 +183,7 @@ export default Vue.extend({
           service_code: service.service_code,
           service_title: service.title,
         }));
-    }
+    },
   },
   created() {
     this.fetchData();
