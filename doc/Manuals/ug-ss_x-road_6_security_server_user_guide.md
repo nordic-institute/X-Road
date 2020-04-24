@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.39
+Version: 2.40
 Doc. ID: UG-SS
 
 ---
@@ -70,8 +70,9 @@ Doc. ID: UG-SS
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
  05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
  24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
- 30.03.2020 | 2.38    | Added description of pre-restore backups | Ilkka Seppälä
- 01.04.2020 | 2.39    | Added notes about IP whitelists for APIs | Janne Mattila
+ 26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
+ 30.03.2020 | 2.39    | Added description of pre-restore backups | Ilkka Seppälä
+ 01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -184,8 +185,9 @@ Doc. ID: UG-SS
   - [19.1 API key management operations](#191-api-key-management-operations)
     - [19.1.1 Creating new API keys](#1911-creating-new-api-keys)
     - [19.1.2 Listing API keys](#1912-listing-api-keys)
-    - [19.1.3 Revoking API keys](#1913-revoking-api-keys)
-    - [19.1.4 API key caching](#1914-api-key-caching)
+    - [19.1.3 Updating API keys](#1913-updating-api-keys)
+    - [19.1.4 Revoking API keys](#1914-revoking-api-keys)
+    - [19.1.5 API key caching](#1915-api-key-caching)
   - [19.2 Executing REST calls](#192-executing-rest-calls)
   - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
@@ -2033,7 +2035,24 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/api-keys -k
 
 ```
 
-#### 19.1.3 Revoking API keys
+#### 19.1.3 Updating API keys
+
+An existing API key is updated with a `PUT` request to `/api/api-key/{id}`. Message body must contain the roles to be
+associated with the key. Server responds with data that contains the key id and roles associated with the key.
+
+```
+curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+{
+  "id": 60,
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER"
+  ]
+}
+
+```
+
+#### 19.1.4 Revoking API keys
 
 An API key can be revoked with a `DELETE` request to `/api/api-keys/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
@@ -2043,7 +2062,7 @@ curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-keys/60  -k
 
 ```
 
-#### 19.1.4 API key caching
+#### 19.1.5 API key caching
 
 API keys are cached in memory. In typical security server configurations this does not create problems.
 However, if you have configured a setup where multiple security servers share the same `serverconf` database,

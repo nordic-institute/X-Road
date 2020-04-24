@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
@@ -47,11 +48,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -88,6 +89,9 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @MockBean
     private UrlValidator urlValidator;
 
+    @MockBean
+    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -97,6 +101,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
                     : "test-member" + "NAME";
         });
         when(urlValidator.isValidUrl(any())).thenReturn(true);
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
     }
 
     @Test
@@ -265,7 +270,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(refreshed.getRefreshedAt().isAfter(serviceDescription.getRefreshedAt()));
     }
 
-    @Test(expected = AccessDeniedException.class)
+    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "REFRESH_REST" })
     public void refreshRestServiceDescriptionWithoutRights() {
         serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarnings().ignoreWarnings(false));

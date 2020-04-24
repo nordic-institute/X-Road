@@ -1,12 +1,12 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import {Endpoint, Service, Subject} from '@/types';
+import { Endpoint, Service, ServiceClient } from '@/types';
 
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
   service: Service | {};
-  accessRightsSubjects: Subject[];
+  serviceClients: ServiceClient[];
 }
 
 export const servicesState: ServicesState = {
@@ -19,7 +19,7 @@ export const servicesState: ServicesState = {
     ssl_auth: true,
     url: '',
   },
-  accessRightsSubjects: [],
+  serviceClients: [],
 };
 
 export const getters: GetterTree<ServicesState, RootState> = {
@@ -27,11 +27,11 @@ export const getters: GetterTree<ServicesState, RootState> = {
     return state.expandedServiceDescriptions.includes(id);
   },
 
-  accessRightsSubjects: (state: ServicesState) => {
-    return state.accessRightsSubjects;
+  serviceClients: (state: ServicesState): ServiceClient[] => {
+    return state.serviceClients;
   },
 
-  service: (state: ServicesState) => {
+  service: (state: ServicesState): Service | {} => {
     return state.service;
   },
 };
@@ -39,7 +39,7 @@ export const getters: GetterTree<ServicesState, RootState> = {
 
 export const mutations: MutationTree<ServicesState> = {
 
-  setHidden(state, id: string) {
+  setHidden(state, id: string): void {
     const index = state.expandedServiceDescriptions.findIndex((element: any) => {
       return element === id;
     });
@@ -49,7 +49,7 @@ export const mutations: MutationTree<ServicesState> = {
     }
   },
 
-  setExpanded(state, id: string) {
+  setExpanded(state, id: string): void {
     const index = state.expandedServiceDescriptions.findIndex((element: any) => {
       return element === id;
     });
@@ -69,8 +69,8 @@ export const mutations: MutationTree<ServicesState> = {
     state.service = service;
   },
 
-  setAccessRightsSubjects(state, accessRights: Subject[]) {
-    state.accessRightsSubjects = accessRights;
+  setServiceClients(state, serviceClients: ServiceClient[]): void {
+    state.serviceClients = serviceClients;
   },
 };
 
@@ -88,8 +88,8 @@ export const actions: ActionTree<ServicesState, RootState> = {
     commit('setService', service);
   },
 
-  setAccessRightsSubjects({ commit, rootGetters }, accessRights) {
-    commit('setAccessRightsSubjects', accessRights);
+  setServiceClients({ commit, rootGetters }, serviceClients) {
+    commit('setServiceClients', serviceClients);
   },
 };
 

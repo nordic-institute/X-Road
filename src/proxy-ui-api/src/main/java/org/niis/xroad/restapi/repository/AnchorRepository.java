@@ -26,10 +26,12 @@ package org.niis.xroad.restapi.repository;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.util.AtomicSave;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -68,5 +70,14 @@ public class AnchorRepository {
      */
     public ConfigurationAnchorV2 loadAnchorFromFile() {
         return new ConfigurationAnchorV2(CONFIGURATION_ANCHOR_FILENAME);
+    }
+
+    /**
+     * Save anchor. The replacing of the old anchor file is done atomically.
+     * @return
+     * @throws IOException if atomic save fails
+     */
+    public void saveAndReplace(File anchorFile) throws IOException {
+        AtomicSave.moveBetweenFilesystems(anchorFile.getAbsolutePath(), CONFIGURATION_ANCHOR_FILENAME);
     }
 }

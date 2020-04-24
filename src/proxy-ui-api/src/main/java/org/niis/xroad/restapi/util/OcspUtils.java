@@ -62,7 +62,7 @@ public final class OcspUtils {
      * e.g. CertificateInfo.OCSP_RESPONSE_GOOD.
      * Logic follows what sysparams_controller.rb and token_renderer.rb had.
      * @param ocspResponse
-     * @throw OcspStatusExtractionException if OCSP status extraction failed for some reason
+     * @throws OcspStatusExtractionException if OCSP status extraction failed for some reason
      * @return String representing the status
      */
     public static String getOcspResponseStatus(byte[] ocspResponse) throws OcspStatusExtractionException {

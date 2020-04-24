@@ -32,16 +32,20 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
+import org.niis.xroad.restapi.util.ClientUtils;
+import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -87,6 +91,9 @@ public class ClientService {
     private final ManagementRequestSenderService managementRequestSenderService;
     private final CurrentSecurityServerId currentSecurityServerId;
 
+    // request scoped contains all certificates of type sign
+    private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
     /**
      * ClientService constructor
      */
@@ -94,7 +101,8 @@ public class ClientService {
     public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
             ServerConfService serverConfService, GlobalConfService globalConfService,
             IdentifierRepository identifierRepository, ManagementRequestSenderService managementRequestSenderService,
-            CurrentSecurityServerId currentSecurityServerId) {
+            CurrentSecurityServerId currentSecurityServerId,
+            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
@@ -102,6 +110,7 @@ public class ClientService {
         this.identifierRepository = identifierRepository;
         this.managementRequestSenderService = managementRequestSenderService;
         this.currentSecurityServerId = currentSecurityServerId;
+        this.currentSecurityServerSignCertificates = currentSecurityServerSignCertificates;
     }
 
     /**
@@ -357,13 +366,17 @@ public class ClientService {
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
+     * @param localValidSignCert include only local clients that have valid sign cert
      * @return ClientType list
      */
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
-            String subsystemCode, boolean showMembers) {
+            String subsystemCode, boolean showMembers, boolean localValidSignCert) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode);
-        return getAllLocalClients().stream()
+                memberCode, subsystemCode, localValidSignCert);
+
+        List<ClientType> allLocalClients = getAllLocalClients();
+
+        return allLocalClients.stream()
                 .filter(matchingSearchTerms)
                 .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
                 .collect(Collectors.toList());
@@ -382,7 +395,7 @@ public class ClientService {
     public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode);
+                memberCode, subsystemCode, false);
         return getAllGlobalClients().stream()
                 .filter(matchingSearchTerms)
                 .filter(clientType -> showMembers || clientType.getIdentifier().getSubsystemCode() != null)
@@ -413,18 +426,45 @@ public class ClientService {
      * @param subsystemCode
      * @param showMembers include members (without subsystemCode) in the results
      * @param internalSearch search only in the local clients
+     * @param localValidSignCert include only local clients that have valid sign cert
+     * @param excludeLocal list only clients that are missing from this security server
      * @return ClientType list
      */
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
-            String subsystemCode, boolean showMembers, boolean internalSearch) {
+            String subsystemCode, boolean showMembers, boolean internalSearch,
+            boolean localValidSignCert, boolean excludeLocal) {
+
         List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers);
-        if (internalSearch) {
+                showMembers, localValidSignCert);
+        if (internalSearch || localValidSignCert) {
             return localClients;
         }
+
         List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers);
+
+        if (excludeLocal) {
+            return subtractLocalFromGlobalClients(globalClients, localClients);
+        }
+
         return mergeClientListsDistinctively(globalClients, localClients);
+    }
+
+    /**
+     * Subtract clients in a list from another list
+     *
+     * @param globalClients
+     * @param localClients
+     * @return
+     */
+    private List<ClientType> subtractLocalFromGlobalClients(List<ClientType> globalClients,
+            List<ClientType> localClients) {
+        List<String> localClientIds = localClients.stream().map(localClient ->
+                localClient.getIdentifier().toShortString()).collect(Collectors.toList());
+
+        return globalClients.stream()
+                .filter(globalClient -> !localClientIds.contains(globalClient.getIdentifier().toShortString()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -535,7 +575,7 @@ public class ClientService {
     }
 
     private Predicate<ClientType> buildClientSearchPredicate(String name, String instance,
-            String memberClass, String memberCode, String subsystemCode) {
+            String memberClass, String memberCode, String subsystemCode, boolean localValidSignCert) {
         Predicate<ClientType> clientTypePredicate = clientType -> true;
         if (!StringUtils.isEmpty(name)) {
             clientTypePredicate = clientTypePredicate.and(ct -> {
@@ -559,7 +599,26 @@ public class ClientService {
             clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
+        if (localValidSignCert) {
+            clientTypePredicate = clientTypePredicate.and(this::hasValidLocalSignCertCheck);
+        }
         return clientTypePredicate;
+    }
+
+    /**
+     * Check whether client has valid local sign cert
+     *
+     * @param clientType
+     * @return
+     */
+    private boolean hasValidLocalSignCertCheck(ClientType clientType) {
+        List<CertificateInfo> signCertificateInfos = currentSecurityServerSignCertificates
+                .getSignCertificateInfos();
+        try {
+            return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
+        } catch (OcspUtils.OcspStatusExtractionException e) {
+            throw new DeviationAwareRuntimeException("Error while extracting OCSP status from certificate", e);
+        }
     }
 
     /**
@@ -660,7 +719,7 @@ public class ClientService {
      * Delete a local client.
      * @param clientId
      * @throws ActionNotPossibleException if client status did not allow delete
-     * @throws CannotDeleteOwnerException if attempted to delete the owner
+     * @throws CannotDeleteOwnerException if attempted to delete
      * @throws ClientNotFoundException if local client with given id was not found
      */
     public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,

@@ -46,11 +46,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -78,10 +76,10 @@ public class InternalTlsCertificateServiceTest {
             new InternalTlsCertificateRepository(),
             new ExternalProcessRunner() {
                 @Override
-                public List<String> execute(String command, String... args) throws ProcessNotExecutableException,
+                public ProcessResult execute(String command, String... args) throws ProcessNotExecutableException,
                         ProcessFailedException {
                     if (command.equals(MOCK_SUCCESS_SCRIPT)) {
-                        return Collections.singletonList(SUCCESS);
+                        return new ProcessResult(command, 0, Collections.singletonList(SUCCESS));
                     }
                     if (command.equals(MOCK_FAIL_SCRIPT)) {
                         throw new ProcessFailedException("Mock error msg");
@@ -89,7 +87,7 @@ public class InternalTlsCertificateServiceTest {
                     if (command.equals(NON_EXISTING_SCRIPT)) {
                         throw new ProcessNotExecutableException(new IOException(ERROR));
                     }
-                    return new ArrayList<>();
+                    throw new RuntimeException("TEST command not supported");
                 }
             }, null, SCRIPT_ARGS);
 

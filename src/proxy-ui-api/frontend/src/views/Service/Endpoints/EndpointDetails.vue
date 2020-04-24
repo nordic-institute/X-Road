@@ -146,12 +146,15 @@ export default Vue.extend({
     },
     saveEndpoint(): void {
       api
-        .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
-        .then(() => {
+        .put(`/endpoints/${this.endpoint.id}`, {
+          method: this.endpoint.method,
+          path: this.endpoint.path,
+        })
+        .then( () => {
           this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
           this.$router.go(-1);
         })
-        .catch((error) => {
+        .catch( (error) => {
           this.$store.dispatch('showError', error);
         });
     },
@@ -167,6 +170,7 @@ export default Vue.extend({
     },
   },
   created(): void {
+    console.log(this.id);
     this.fetchData(this.id);
   },
 });
