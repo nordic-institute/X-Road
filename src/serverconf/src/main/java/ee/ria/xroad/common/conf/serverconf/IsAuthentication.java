@@ -92,7 +92,13 @@ public enum IsAuthentication {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) has no IS certificates", client);
             }
-            
+
+            if (!isCerts.contains(auth.getCert())) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate does not match any"
+                                + " IS certificates", client);
+            }
+
             try {
                 auth.getCert().checkValidity();
             } catch (CertificateExpiredException e) {
