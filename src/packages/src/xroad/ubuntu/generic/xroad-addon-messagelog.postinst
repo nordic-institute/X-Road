@@ -7,10 +7,12 @@ set -x
 db_name=messagelog
 db_user=messagelog
 db_conn_user="${db_user}"
+jdbc_user=""
 if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.user.suffix` != "" ]]
 then
     suffix=`crudini --get ${root_properties} '' postgres.connection.user.suffix`
     db_conn_user="${db_user}${suffix}"
+    jdbc_user="?user=${db_conn_user}"
 fi
 
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
@@ -114,7 +116,7 @@ else
     crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' messagelog.hibernate.jdbc.batch_size 50
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
+    crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}${jdbc_user}
     crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
     crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
 
