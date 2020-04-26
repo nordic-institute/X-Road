@@ -4,6 +4,7 @@
       <v-card-title>
         <span class="headline">{{$t('diagnostics.globalCongiguration.title')}}</span>
       </v-card-title>
+      <ProgressLinear :active="globalConfLoading" />
       <v-card-text class="pt-4">
         <table class="xrd-table">
           <thead>
@@ -15,14 +16,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-if="globalconf">
+            <tr v-if="globalConf">
               <td>
-                <StatusIcon :status="statusIconType(globalconf.status_class)" />
+                <StatusIcon :status="statusIconType(globalConf.status_class)" />
               </td>
 
-              <td>{{$t('diagnostics.globalCongiguration.configurationStatus.'+globalconf.status_code)}}</td>
-              <td class="time-column">{{globalconf.prev_update_at | formatHoursMins}}</td>
-              <td class="time-column">{{globalconf.next_update_at | formatHoursMins}}</td>
+              <td>{{$t('diagnostics.globalCongiguration.configurationStatus.'+globalConf.status_code)}}</td>
+              <td class="time-column">{{globalConf.prev_update_at | formatHoursMins}}</td>
+              <td class="time-column">{{globalConf.next_update_at | formatHoursMins}}</td>
             </tr>
           </tbody>
         </table>
@@ -33,6 +34,8 @@
       <v-card-title>
         <span class="headline">{{$t('diagnostics.timestamping.title')}}</span>
       </v-card-title>
+      <ProgressLinear :active="timestampingLoading" />
+
       <v-card-text class="pt-4">
         <table class="xrd-table">
           <thead>
@@ -45,7 +48,7 @@
           </thead>
           <tbody>
             <tr
-              v-for="timestampingService in timestapmingServices"
+              v-for="timestampingService in timestampingServices"
               v-bind:key="timestampingService.url"
             >
               <td>
@@ -64,6 +67,7 @@
       <v-card-title>
         <span class="headline">{{$t('diagnostics.ocspResponders.title')}}</span>
       </v-card-title>
+      <ProgressLinear :active="ocspLoading" />
       <v-card-text class="pt-4">
         <div
           v-for="ocspDiags in ocspResponderDiagnostics"
@@ -110,34 +114,49 @@ import {
   GlobalConfDiagnostics,
 } from '@/types';
 import StatusIcon from '@/components/ui/StatusIcon.vue';
+import ProgressLinear from '@/components/ui/ProgressLinear.vue';
 
 export default Vue.extend({
   components: {
     StatusIcon,
+    ProgressLinear,
   },
   data: () => ({
-    timestapmingServices: [] as TimestampingServiceDiagnostics[],
-    globalconf: undefined as GlobalConfDiagnostics | undefined,
+    timestampingServices: [] as TimestampingServiceDiagnostics[],
+    globalConf: undefined as GlobalConfDiagnostics | undefined,
     ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
+    globalConfLoading: false,
+    timestampingLoading: false,
+    ocspLoading: false,
   }),
   methods: {
     fetchData(): void {
+      this.globalConfLoading = true;
+      this.timestampingLoading = true;
+      this.ocspLoading = true;
+
       api
         .get(`/diagnostics/timestamping-services`)
         .then((res) => {
-          this.timestapmingServices = res.data;
+          this.timestampingServices = res.data;
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.timestampingLoading = false;
         });
 
       api
         .get(`/diagnostics/globalconf`)
         .then((res) => {
-          this.globalconf = res.data;
+          this.globalConf = res.data;
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.globalConfLoading = false;
         });
 
       api
@@ -147,6 +166,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.ocspLoading = false;
         });
     },
 
@@ -183,6 +205,7 @@ export default Vue.extend({
   }
 
   width: 100%;
+  margin-bottom: 30px;
 
   .v-card__title {
     height: 50px;
@@ -190,8 +213,6 @@ export default Vue.extend({
     font-size: 16px;
     border-bottom: solid $XRoad-Purple 1px;
   }
-
-  margin-bottom: 30px;
 }
 
 .status-column {
