@@ -28,11 +28,11 @@
 
         <div class="row-wrap">
           <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
-          <div v-if="client" data-test="selected-member-name">{{client.member_class}}</div>
+          <div v-if="client" data-test="selected-member-class">{{client.member_class}}</div>
         </div>
         <div class="row-wrap">
           <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
-          <div v-if="client" data-test="selected-member-name">{{client.member_code}}</div>
+          <div v-if="client" data-test="selected-member-code">{{client.member_code}}</div>
         </div>
 
         <div class="row-wrap">
@@ -95,6 +95,7 @@ import SelectClientDialog from '@/views/AddClient/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
+import { containsClient } from '@/util/helpers';
 import { Client } from '@/types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
@@ -117,13 +118,9 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentStep: 1,
-
-      disableDone: false,
-      certificationService: undefined,
-      filteredServiceList: [],
+      disableDone: false as boolean,
       showSelectClient: false as boolean,
-      registerChecked: true,
+      registerChecked: true as boolean,
     };
   },
   computed: {
@@ -165,30 +162,12 @@ export default Vue.extend({
     },
 
     duplicateClient(): boolean {
-      if (!this.memberClass || !this.memberCode || !this.subsystemCode) {
-        return false;
-      }
-
-      if (
-        this.reservedClients.some((e: Client) => {
-          if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
-            return false;
-          }
-
-          if (e.member_code.toLowerCase() !== this.memberCode.toLowerCase()) {
-            return false;
-          }
-
-          if (e.subsystem_code !== this.subsystemCode) {
-            return false;
-          }
-          return true;
-        })
-      ) {
-        return true;
-      }
-
-      return false;
+      return containsClient(
+        this.reservedClients,
+        this.memberClass,
+        this.memberCode,
+        this.subsystemCode,
+      );
     },
   },
   methods: {
@@ -206,7 +185,7 @@ export default Vue.extend({
           subsystemCode: this.subsystemCode,
         })
         .then(
-          (response) => {
+          () => {
             this.disableDone = false;
 
             if (this.registerChecked) {
@@ -230,7 +209,7 @@ export default Vue.extend({
           subsystemCode: this.subsystemCode,
         })
         .then(
-          (response) => {
+          () => {
             this.disableDone = false;
             this.exitView();
           },
@@ -240,10 +219,6 @@ export default Vue.extend({
         );
     },
 
-    clientDetailsReady(): void {
-      this.$store.dispatch('showSuccess', 'subsystem_code');
-    },
-
     exitView(): void {
       this.$store.dispatch('resetState');
       this.$store.dispatch('resetAddClientState');
@@ -251,7 +226,7 @@ export default Vue.extend({
     },
     saveSelectedClient(selectedMember: Client): void {
       this.$store.dispatch('setSelectedMember', selectedMember).then(
-        (response) => {
+        () => {
           this.$store.dispatch('fetchReservedSubsystems', selectedMember);
         },
         (error) => {
@@ -263,7 +238,7 @@ export default Vue.extend({
     fetchData(): void {
       // Fetch "parent" client from backend
       this.$store.dispatch('fetchClient', this.clientId).then(
-        (response) => {
+        () => {
           this.$store.dispatch('fetchSelectableForSubsystem', this.client);
         },
         (error) => {
@@ -288,30 +263,30 @@ export default Vue.extend({
   width: 100%;
   max-width: 1000px;
   margin: 10px;
-}
 
-.view-title {
-  width: 100%;
-  max-width: 100%;
-  margin-bottom: 30px;
-}
-
-.info-block {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 40px;
-
-  .action-block {
-    margin-top: 30px;
-    margin-left: auto;
-    margin-right: 0px;
+  .view-title {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 30px;
   }
-}
 
-.duplicate-warning {
-  margin-left: 230px;
-  margin-top: 10px;
-  color: #ff5252;
-  font-size: 12px;
+  .info-block {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 40px;
+
+    .action-block {
+      margin-top: 30px;
+      margin-left: auto;
+      margin-right: 0px;
+    }
+  }
+
+  .duplicate-warning {
+    margin-left: 230px;
+    margin-top: 10px;
+    color: #ff5252;
+    font-size: 12px;
+  }
 }
 </style>

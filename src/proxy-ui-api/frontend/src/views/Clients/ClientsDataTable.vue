@@ -83,12 +83,12 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <SmallButton
-            v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient"
+            v-if="(item.type === 'client' || item.type === 'owner') && showAddClient"
             @click="addSubsystem(item)"
           >{{$t('action.addSubsystem')}}</SmallButton>
 
           <SmallButton
-            v-if="(item.type == 'client'||item.type != 'owner' && item.status === 'SAVED') && showRegister"
+            v-if="(item.type === 'client'||item.type !== 'owner' && item.status === 'SAVED') && showRegister"
             @click="registerClient(item)"
           >{{$t('action.register')}}</SmallButton>
         </div>
@@ -134,12 +134,12 @@ export default Vue.extend({
   },
 
   data: () => ({
-    search: '',
+    search: '' as string,
     pagination: {
-      sortBy: 'sortNameAsc',
+      sortBy: 'sortNameAsc' as string,
     },
-    confirmRegisterClient: false,
-    registerClientLoading: false,
+    confirmRegisterClient: false as boolean,
+    registerClientLoading: false as boolean,
     selectedClient: undefined as undefined | Client,
   }),
 
@@ -306,7 +306,7 @@ export default Vue.extend({
       });
     },
   },
-    created() {
+  created() {
     this.fetchClients();
   },
 });

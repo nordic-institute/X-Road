@@ -114,7 +114,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
 
   fetchSelectableForSubsystem({ commit, rootGetters }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
-    return api.get(`/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=false&show_members=false&is_not_local_client=true`)
+    return api.get(`/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&show_members=false&exclude_local=true`)
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
