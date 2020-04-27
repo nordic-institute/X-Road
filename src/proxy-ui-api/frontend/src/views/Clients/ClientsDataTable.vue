@@ -83,12 +83,12 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <SmallButton
-            v-if="(item.type === 'client' || item.type === 'owner') && showAddClient"
+            v-if="(item.type === 'owner' || item.type === 'client') && showAddClient"
             @click="addSubsystem(item)"
           >{{$t('action.addSubsystem')}}</SmallButton>
 
           <SmallButton
-            v-if="(item.type === 'client'||item.type !== 'owner' && item.status === 'SAVED') && showRegister"
+            v-if="item.type !== 'owner' && item.type !== 'client' && item.status === 'SAVED' && showRegister"
             @click="registerClient(item)"
           >{{$t('action.register')}}</SmallButton>
         </div>
