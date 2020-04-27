@@ -47,8 +47,8 @@ import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 
 /**
- *  All test cases extending this class will be executed in a separate batch
- *  where ClientProxy and ServerProxy are started in SSL mode.
+ * All test cases extending this class will be executed in a separate batch
+ * where ClientProxy and ServerProxy are started in SSL mode.
  */
 public class SslMessageTestCase extends MessageTestCase {
 
@@ -69,6 +69,9 @@ public class SslMessageTestCase extends MessageTestCase {
                 .register("http", NoopIOSessionStrategy.INSTANCE)
                 .register("https", new SSLIOSessionStrategy(
                         SSLContexts.custom()
+                                .loadKeyMaterial(
+                                        TestCertUtil.getKeyStore("client"),
+                                        TestCertUtil.getKeyStorePassword("client"))
                                 .loadTrustMaterial((chain, authType) -> {
                                     final X509Certificate[] internalKey = TestCertUtil.getInternalKey().certChain;
                                     if (internalKey.length != chain.length) return false;
