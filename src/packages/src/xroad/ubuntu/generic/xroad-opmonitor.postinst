@@ -127,6 +127,8 @@ configure() {
       echo "CREATE DATABASE \"$db_name\" OWNER \"$db_admin\" ENCODING 'UTF-8'" | $psql_cmd
     fi
 
+    echo "drop extension if exists pg_stat_statements; drop extension if exists pg_buffercache;" | psql_cmd
+
     touch ${db_properties}
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.use_streams_for_binary true
     crudini --set ${db_properties} '' op-monitor.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
@@ -153,11 +155,6 @@ configure() {
     --username="${db_conn_admin}" \
     update \
     || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
-
-  PGPASSWORD=$master_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d "$db_name" <<EOF
-drop extension if exists pg_stat_statements;
-drop extension if exists pg_buffercache;
-EOF
 
   PGPASSWORD=$db_admin_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_admin" -d "$db_name" <<EOF
 grant usage on schema public to ${db_user};
