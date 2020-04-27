@@ -23,16 +23,16 @@
       <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
         <div class="row-wrap">
           <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-          <div v-if="client" data-test="selected-member-name">{{client.member_name}}</div>
+          <div data-test="selected-member-name">{{memberName}}</div>
         </div>
 
         <div class="row-wrap">
           <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
-          <div v-if="client" data-test="selected-member-class">{{client.member_class}}</div>
+          <div data-test="selected-member-class">{{memberClass}}</div>
         </div>
         <div class="row-wrap">
           <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
-          <div v-if="client" data-test="selected-member-code">{{client.member_code}}</div>
+          <div data-test="selected-member-code">{{memberCode}}</div>
         </div>
 
         <div class="row-wrap">
@@ -51,6 +51,7 @@
             ></v-text-field>
           </ValidationProvider>
         </div>
+        <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
 
         <div class="row-wrap">
           <FormLabel labelText="wizard.subsystem.registerSubsystem" />
@@ -61,14 +62,17 @@
             data-test="register-subsystem-checkbox"
           ></v-checkbox>
         </div>
-        <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
         <div class="button-footer">
           <div class="button-group">
-            <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+            <large-button
+              outlined
+              @click="exitView"
+              data-test="cancel-button"
+            >{{$t('action.cancel')}}</large-button>
           </div>
           <large-button
             @click="done"
-            :disabled="invalid"
+            :disabled="invalid || duplicateClient"
             data-test="submit-add-subsystem-button"
           >{{$t('action.addSubsystem')}}</large-button>
         </div>
@@ -76,7 +80,7 @@
 
       <SelectClientDialog
         :dialog="showSelectClient"
-        :selectableClients="selectableClients"
+        :selectableClients="selectableSubsystems"
         @cancel="showSelectClient = false"
         @save="saveSelectedClient"
       />
@@ -98,7 +102,6 @@ import { RouteName, UsageTypes } from '@/global';
 import { containsClient } from '@/util/helpers';
 import { Client } from '@/types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -111,7 +114,19 @@ export default Vue.extend({
     SubViewTitle,
   },
   props: {
-    clientId: {
+    instanceId: {
+      type: String,
+      required: true,
+    },
+    memberClass: {
+      type: String,
+      required: true,
+    },
+    memberCode: {
+      type: String,
+      required: true,
+    },
+    memberName: {
       type: String,
       required: true,
     },
@@ -121,49 +136,19 @@ export default Vue.extend({
       disableDone: false as boolean,
       showSelectClient: false as boolean,
       registerChecked: true as boolean,
+      existingSubsystems: [] as Client[],
+      selectableSubsystems: [] as Client[],
+      subsystemCode: undefined as undefined | string,
     };
   },
   computed: {
-    ...mapGetters(['client', 'selectableClients', 'reservedClients']),
-    memberClass: {
-      get(): string {
-        return this.$store.getters.memberClass;
-      },
-      set(value: string) {
-        this.$store.commit('setMemberClass', value);
-      },
-    },
-
-    memberCode: {
-      get(): string {
-        return this.$store.getters.memberCode;
-      },
-      set(value: string) {
-        this.$store.commit('setMemberCode', value);
-      },
-    },
-
-    subsystemCode: {
-      get(): string {
-        return this.$store.getters.subsystemCode;
-      },
-      set(value: string) {
-        this.$store.commit('setSubsystemCode', value);
-      },
-    },
-
-    selectedMember: {
-      get(): Client {
-        return this.$store.getters.selectedMember;
-      },
-      set(value: Client) {
-        this.$store.commit('setMember', value);
-      },
-    },
-
     duplicateClient(): boolean {
+      if (!this.subsystemCode) {
+        return false;
+      }
+
       return containsClient(
-        this.reservedClients,
+        this.existingSubsystems,
         this.memberClass,
         this.memberCode,
         this.subsystemCode,
@@ -171,17 +156,12 @@ export default Vue.extend({
     },
   },
   methods: {
-    cancel(): void {
-      this.$store.dispatch('resetState');
-      this.$store.dispatch('resetAddClientState');
-      this.$router.replace({ name: RouteName.Clients });
-    },
     done(): void {
       this.$store
         .dispatch('addSubsystem', {
-          memberName: this.client.member_name,
-          memberClass: this.client.member_class,
-          memberCode: this.client.member_code,
+          memberName: this.memberName,
+          memberClass: this.memberClass,
+          memberCode: this.memberCode,
           subsystemCode: this.subsystemCode,
         })
         .then(
@@ -203,9 +183,9 @@ export default Vue.extend({
     registerSubsystem(): void {
       this.$store
         .dispatch('registerClient', {
-          instanceId: this.client.instance_id,
-          memberClass: this.client.member_class,
-          memberCode: this.client.member_code,
+          instanceId: this.instanceId,
+          memberClass: this.memberClass,
+          memberCode: this.memberCode,
           subsystemCode: this.subsystemCode,
         })
         .then(
@@ -215,36 +195,43 @@ export default Vue.extend({
           },
           (error) => {
             this.$store.dispatch('showError', error);
+            this.exitView();
           },
         );
     },
 
     exitView(): void {
-      this.$store.dispatch('resetState');
-      this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
     saveSelectedClient(selectedMember: Client): void {
-      this.$store.dispatch('setSelectedMember', selectedMember).then(
-        () => {
-          this.$store.dispatch('fetchReservedSubsystems', selectedMember);
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      this.subsystemCode = selectedMember.subsystem_code;
       this.showSelectClient = false;
     },
     fetchData(): void {
-      // Fetch "parent" client from backend
-      this.$store.dispatch('fetchClient', this.clientId).then(
-        () => {
-          this.$store.dispatch('fetchSelectableForSubsystem', this.client);
-        },
-        (error) => {
+      // Fetch selectable subsystems
+      api
+        .get(
+          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true`,
+        )
+        .then((res) => {
+          this.selectableSubsystems = res.data;
+        })
+        .catch((error) => {
           this.$store.dispatch('showError', error);
-        },
-      );
+        });
+
+      // Fetch existing subsystems
+      api
+        .get(
+          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&internal_search=true`,
+        )
+        .then((res) => {
+          console.log(res.data);
+          this.existingSubsystems = res.data;
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        });
     },
   },
 

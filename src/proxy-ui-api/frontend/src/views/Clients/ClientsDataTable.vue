@@ -83,7 +83,7 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <SmallButton
-            v-if="(item.type === 'owner' || item.type === 'client') && showAddClient"
+            v-if="(item.type === 'owner' || item.type === 'client') && item.member_name && showAddClient "
             @click="addSubsystem(item)"
           >{{$t('action.addSubsystem')}}</SmallButton>
 
@@ -214,10 +214,21 @@ export default Vue.extend({
       });
     },
 
-    addSubsystem(item: any): void {
+    addSubsystem(item: Client): void {
+      if (!item.instance_id || !item.member_name) {
+        // Should not happen
+        throw new Error('Invalid client');
+      }
+
+      console.log(item);
       this.$router.push({
         name: RouteName.AddSubsystem,
-        params: { clientId: item.id },
+        params: {
+          instanceId: item.instance_id,
+          memberClass: item.member_class,
+          memberCode: item.member_code,
+          memberName: item.member_name,
+        },
       });
     },
 
