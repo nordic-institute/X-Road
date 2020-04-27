@@ -34,6 +34,7 @@
       <div class="row-buttons">
         <large-button
           :disabled="!hasMembers"
+          v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
           >{{ $t('action.removeAll') }}</large-button

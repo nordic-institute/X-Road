@@ -50,7 +50,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.REGULAR_PAM_AUTHENTICATION_BEAN;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
 
 /**
  * form login / session cookie authentication
@@ -64,7 +64,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     public static final String LOGIN_URL = "/login";
 
     @Autowired
-    @Qualifier(REGULAR_PAM_AUTHENTICATION_BEAN)
+    @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
     private AuthenticationProvider authenticationProvider;
 
     @Override

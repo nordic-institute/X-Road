@@ -66,7 +66,7 @@ const router = new Router({
               path: '',
               component: SignAndAuthKeys,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+              meta: { permission: Permissions.VIEW_KEYS },
             },
             {
               name: RouteName.ApiKey,
