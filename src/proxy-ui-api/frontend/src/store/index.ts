@@ -7,8 +7,9 @@ import { generalModule } from './modules/general';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
 import { clientModule } from './modules/client';
-import { keysModule } from './modules/keys';
+import { tokensModule } from './modules/tokens';
 import { servicesModule } from './modules/services';
+import { addClientModule } from './modules/addClient';
 import { csrModule } from './modules/certificateSignRequest';
 import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
@@ -29,9 +30,10 @@ const store: StoreOptions<RootState> = {
     mockDataModule,
     clientsModule,
     clientModule,
-    keysModule,
+    tokensModule,
     servicesModule,
     csrModule,
+    addClientModule,
     notificationsModule,
   },
   // @ts-ignore

@@ -103,7 +103,7 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
             throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
         }
     }
-    
+
     inputs.dir("frontend")
     outputs.dir("frontend")
 
@@ -202,7 +202,6 @@ dependencies {
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.apache.commons:commons-compress:1.20')
     implementation('wsdl4j:wsdl4j:1.6.3')
-    implementation('org.apache.cxf:cxf-tools-validator:3.3.5')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.4.1')
     implementation('io.swagger.parser.v3:swagger-parser:2.0.13')
 
