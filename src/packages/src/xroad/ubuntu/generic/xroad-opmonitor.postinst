@@ -127,7 +127,7 @@ configure() {
       echo "CREATE DATABASE \"$db_name\" OWNER \"$db_admin\" ENCODING 'UTF-8'" | $psql_cmd
     fi
 
-    echo "drop extension if exists pg_stat_statements; drop extension if exists pg_buffercache;" | psql_cmd
+    echo "drop extension if exists pg_stat_statements; drop extension if exists pg_buffercache;" | $psql_cmd
 
     touch ${db_properties}
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.use_streams_for_binary true
