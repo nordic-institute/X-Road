@@ -34,6 +34,7 @@ import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.RestoreInProgressException;
 import org.niis.xroad.restapi.service.RestoreService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -144,6 +145,8 @@ public class BackupsApiController implements BackupsApi {
             throw new BadRequestException(e);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(RESTORE_INTERRUPTED));
+        } catch (RestoreInProgressException e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }

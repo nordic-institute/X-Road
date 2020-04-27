@@ -41,6 +41,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -59,6 +61,8 @@ public class RestoreServiceTest {
     private RestoreService configurationRestorer;
     @MockBean
     private BackupRepository backupRepository;
+    @MockBean
+    private NotificationService notificationService;
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -71,6 +75,7 @@ public class RestoreServiceTest {
         configurationRestorer.setConfigurationRestoreScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
         when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
+        when(notificationService.getBackupRestoreRunningSince()).thenReturn(null);
     }
 
     @Test
@@ -108,6 +113,17 @@ public class RestoreServiceTest {
             fail("should have thrown an exception");
         } catch (DeviationAwareRuntimeException e) {
             assertEquals(ProcessNotExecutableException.PROCESS_NOT_EXECUTABLE, e.getErrorDeviation().getCode());
+        }
+    }
+
+    @Test
+    public void restoreFromBackupWhileRestoreInProgress() throws Exception {
+        when(notificationService.getBackupRestoreRunningSince()).thenReturn(OffsetDateTime.now(ZoneOffset.UTC));
+        try {
+            configurationRestorer.restoreFromBackup(tempBackupFilename);
+            fail("Should have thrown RestoreInProgressException");
+        } catch (RestoreInProgressException expected) {
+            // expected
         }
     }
 }

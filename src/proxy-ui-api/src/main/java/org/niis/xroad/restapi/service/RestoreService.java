@@ -54,18 +54,20 @@ public class RestoreService {
     private final ExternalProcessRunner externalProcessRunner;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final BackupRepository backupRepository;
+    private final NotificationService notificationService;
 
     @Autowired
     public RestoreService(ExternalProcessRunner externalProcessRunner,
             @Value("${script.restore-configuration.path}") String configurationRestoreScriptPath,
             @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
-            CurrentSecurityServerId currentSecurityServerId,
-            BackupRepository backupRepository) {
+            CurrentSecurityServerId currentSecurityServerId, BackupRepository backupRepository,
+            NotificationService notificationService) {
         this.externalProcessRunner = externalProcessRunner;
         this.configurationRestoreScriptPath = configurationRestoreScriptPath;
         this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
         this.currentSecurityServerId = currentSecurityServerId;
         this.backupRepository = backupRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -74,8 +76,15 @@ public class RestoreService {
      * @param fileName name of the backup file
      * @throws BackupFileNotFoundException
      * @throws InterruptedException execution of the restore script was interrupted
+     * @throws RestoreInProgressException if restore is already in progress
      */
-    public void restoreFromBackup(String fileName) throws BackupFileNotFoundException, InterruptedException {
+    public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
+            InterruptedException, RestoreInProgressException {
+        if (notificationService.getBackupRestoreRunningSince() != null) {
+            // should not happen because the method is synchronized
+            throw new RestoreInProgressException("There is a restore (started at "
+                    + notificationService.getBackupRestoreRunningSince() + ") already in progress");
+        }
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);
@@ -84,6 +93,7 @@ public class RestoreService {
         }
         String[] arguments = buildArguments(backupFilePath);
         try {
+            notificationService.setBackupRestoreRunningSince();
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
                     .executeAndThrowOnFailure(configurationRestoreScriptPath, arguments);
 
@@ -97,6 +107,8 @@ public class RestoreService {
             log.info(" --- Restore script console output - END --- ");
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
             throw new DeviationAwareRuntimeException("restoring from a backup failed", e.getErrorDeviation());
+        } finally {
+            notificationService.resetBackupRestoreRunningSince();
         }
     }
 
