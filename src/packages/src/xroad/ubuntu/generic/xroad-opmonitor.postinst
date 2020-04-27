@@ -51,7 +51,7 @@ configure() {
     fi
 
     remote_psql() {
-      psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d postgres -qtA "$@"
+      psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -qtA "$@"
     }
     psql_cmd=remote_psql
   else
@@ -86,7 +86,7 @@ configure() {
 
     if [[ -z "$tmp_admin" ]]; then
       if [[ "$db_initialized" = true ]]; then
-        echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}'" | $psql_cmd
+        echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}'" | $psql_cmd -d postgres
         crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
       fi
     else
@@ -98,36 +98,36 @@ configure() {
   if [[ "$db_initialized" != true ]]; then
     echo "no db settings detected, creating db"
 
-    if  ! $psql_cmd --list -F "' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+    if  ! $psql_cmd -d postgres --list -F "' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
     then echo -e "\n\nPostgreSQL is not UTF8 compatible."
       echo -e "Aborting installation! please fix issues and rerun\n\n"
       exit 101
     fi
 
-    if [[ $($psql_cmd <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_admin}'") = "1" ]]
+    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_admin}'") = "1" ]]
     then
-      echo "ALTER ROLE $db_admin WITH PASSWORD '${db_admin_passwd}';" | $psql_cmd
+      echo "ALTER ROLE $db_admin WITH PASSWORD '${db_admin_passwd}';" | $psql_cmd -d postgres
     else
-      echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | $psql_cmd
+      echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | $psql_cmd -d postgres
     fi
 
-    if [[ $($psql_cmd <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'") = "1" ]]
+    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'") = "1" ]]
     then
       echo  "$db_user user exists, skipping role creation"
-      echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | $psql_cmd
+      echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | $psql_cmd -d postgres
     else
-      echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | $psql_cmd
+      echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | $psql_cmd -d postgres
     fi
 
-    if [[ $($psql_cmd <<< "SELECT 1 FROM pg_database WHERE datname='${db_name}'") = "1" ]]
+    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_database WHERE datname='${db_name}'") = "1" ]]
     then
       echo "database $db_name exists"
     else
-      echo "GRANT ${db_admin} to ${db_master_user}" | $psql_cmd
-      echo "CREATE DATABASE \"$db_name\" OWNER \"$db_admin\" ENCODING 'UTF-8'" | $psql_cmd
+      echo "GRANT ${db_admin} to ${db_master_user}" | $psql_cmd -d postgres
+      echo "CREATE DATABASE \"$db_name\" OWNER \"$db_admin\" ENCODING 'UTF-8'" | $psql_cmd -d postgres
     fi
 
-    echo "drop extension if exists pg_stat_statements; drop extension if exists pg_buffercache;" | $psql_cmd
+    echo "drop extension if exists pg_stat_statements; drop extension if exists pg_buffercache;" | $psql_cmd -d "$db_name"
 
     touch ${db_properties}
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.use_streams_for_binary true
