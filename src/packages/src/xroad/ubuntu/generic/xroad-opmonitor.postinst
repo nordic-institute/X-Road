@@ -50,11 +50,6 @@ configure() {
         jdbc_user="?user=${db_conn_user}"
     fi
 
-    PGPASSWORD=$master_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d "$db_name" <<EOF
-drop extension pg_stat_statements;
-drop extension pg_buffercache;
-EOF
-
     remote_psql() {
       psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d postgres -qtA "$@"
     }
@@ -158,6 +153,11 @@ EOF
     --username="${db_conn_admin}" \
     update \
     || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+
+  PGPASSWORD=$master_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d "$db_name" <<EOF
+drop extension if exists pg_stat_statements;
+drop extension if exists pg_buffercache;
+EOF
 
   PGPASSWORD=$db_admin_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_admin" -d "$db_name" <<EOF
 grant usage on schema public to ${db_user};
