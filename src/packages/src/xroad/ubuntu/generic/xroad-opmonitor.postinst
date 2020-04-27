@@ -51,9 +51,9 @@ configure() {
     fi
 
     PGPASSWORD=$master_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d "$db_name" <<EOF
-    drop extension pg_stat_statements;
-    drop extension pg_buffercache;
-    EOF
+drop extension pg_stat_statements;
+drop extension pg_buffercache;
+EOF
 
     remote_psql() {
       psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -d postgres -qtA "$@"
