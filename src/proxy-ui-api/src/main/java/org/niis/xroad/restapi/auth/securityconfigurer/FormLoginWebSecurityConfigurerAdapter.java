@@ -70,24 +70,24 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests()
+            .authorizeRequests()
                 .antMatchers("/error").permitAll()
                 .antMatchers(LOGIN_URL).permitAll()
                 .antMatchers("/logout").fullyAuthenticated()
                 .antMatchers("/api/**").denyAll()
                 .anyRequest().denyAll()
                 .and()
-                .csrf()
+            .csrf()
                 .ignoringAntMatchers("/login")
                 .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
                 .and()
-                .formLogin()
+            .formLogin()
                 .loginPage("/login")
                 .successHandler(formLoginStatusCodeSuccessHandler())
                 .failureHandler(statusCode401AuthenticationFailureHandler())
                 .permitAll()
                 .and()
-                .logout()
+            .logout()
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                 .permitAll();
     }
