@@ -47,6 +47,7 @@ setup_database() {
     crudini --set "${db_properties}" '' port "${db_port}"
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
+    local db_conn_user=$db_user
     local db_schema=$(get_prop ${db_properties} 'schema' "$db_user")
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
@@ -56,21 +57,31 @@ setup_database() {
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
     remote_psql() { psql -h "$db_addr" -p "$db_port" -qtA "$@"; }
 
-    psql_dbuser() {
-        PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
-    }
-
-    detect_bdr()  { [[ "$(psql_dbuser -c 'select bdr.bdr_version()' 2>/dev/null)" == "1.0."* ]]; }
-
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
         db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        db_conn_master_user="${db_master_user}"
+        if [[ $(get_prop ${root_properties} postgres.connection.user.suffix) != "" ]]; then
+            suffix=$(get_prop ${root_properties} postgres.connection.user.suffix)
+            db_conn_master_user="${db_master_user}${suffix}"
+            db_conn_user="${db_user}${suffix}"
+            jdbc_user="?user=${db_conn_user}"
+            if [[ ${db_database} != *"?"* ]]; then
+                crudini --set "${db_properties}" '' database "${db_database}${jdbc_user}"
+            fi
+        fi
         function psql_master() {
-            PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
+            PGPASSWORD="${db_master_passwd}" PGUSER="${db_conn_master_user}" remote_psql "$@"
         }
     else
         function psql_master() { local_psql "$@"; }
     fi
+
+    psql_dbuser() {
+        PGDATABASE="$db_database" PGUSER="$db_conn_user" PGPASSWORD="$db_password" remote_psql "$@"
+    }
+
+    detect_bdr()  { [[ "$(psql_dbuser -c 'select bdr.bdr_version()' 2>/dev/null)" == "1.0."* ]]; }
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
