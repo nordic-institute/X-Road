@@ -59,6 +59,17 @@
       }
     }
   },
+  "clients": {
+    "action": {
+      "register": {
+        "success": "Client registered",
+        "confirm": {
+          "title": "Register client",
+          "text": "Are you sure you want to send a client registration request?"
+        } 
+      }
+    }
+  },
   "client": {
     "name": "Name",
     "id": "ID",
@@ -69,6 +80,13 @@
       "deletionInProgress": "DELETION IN PROGRESS",
       "saved": "SAVED",
       "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
+    "action": {
+      "unregister": {
+        "success": "Client unregistered",
+        "confirmTitle": "Unregister client",
+        "confirmText": "Do you want to unregister this client?"
+      }
     },
     "owner": "Owner",
     "memberName": "Member Name",
@@ -255,6 +273,7 @@
     "close": "Close",
     "cancel": "Cancel",
     "yes": "Yes",
+    "no": "No",
     "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
@@ -433,6 +452,13 @@
       "todo2": "2) Once received back, import the signed CSR to the appropriate key",
       "todo3": "3) At this point you can register the new added client",
       "note": "NOTE: if you click Cancel, all data will be lost"
+    },
+    "subsystem": {
+      "title": "Add a Subsystem",
+      "selectSubsystem": "Select Subsystem",
+      "info1": "Specify the code of the subsystem to be added.",
+      "info2": "If the subsystem is already existing, you can select it from the Global list.",
+      "registerSubsystem": "Register subsystem"
     }
   },
   "systemParameters": {
