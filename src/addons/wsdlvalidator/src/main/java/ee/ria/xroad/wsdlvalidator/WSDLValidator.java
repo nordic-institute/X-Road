@@ -26,6 +26,7 @@ package ee.ria.xroad.wsdlvalidator;
 
 import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.common.ToolContext;
+import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.validator.internal.WSDL11Validator;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -37,6 +38,7 @@ import javax.net.ssl.X509TrustManager;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -62,17 +64,21 @@ public final class WSDLValidator {
     private WSDLValidator() {
     }
 
-    static int executeValidator(String wsdlUrl) {
+    static int executeValidator(String wsdlUrl, PrintStream msg) {
         try {
             ToolContext env = new ToolContext();
             env.put(ToolConstants.CFG_WSDLURL, wsdlUrl);
             final WSDL11Validator validator = new WSDL11Validator(null, env);
             if (validator.isValid()) {
-                System.out.println("Passed Validation : Valid WSDL ");
+                return 0;
+            }
+        } catch (ToolException ex) {
+            msg.print(ex.getMessage());
+            if ((ex.getCause() == null || ex.getCause() == ex) && ex.getMessage().contains(" Failures: 0,")) {
                 return 0;
             }
         } catch (Exception ex) {
-            System.err.println("WSDLValidator Error : " + ex.getMessage());
+            msg.println(ex.getMessage());
         }
         return 1;
     }
@@ -87,7 +93,7 @@ public final class WSDLValidator {
         }
 
         setupSSL();
-        final int result = executeValidator(args[0]);
+        final int result = executeValidator(args[0], System.err);
         System.exit(result);
     }
 

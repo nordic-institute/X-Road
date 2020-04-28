@@ -185,10 +185,6 @@ export const actions: ActionTree<ClientsState, RootState> = {
         throw error;
       });
   },
-
-  clearData({ commit, rootGetters }) {
-    commit('storeClients', []);
-  },
 };
 
 export const clientsModule: Module<ClientsState, RootState> = {
