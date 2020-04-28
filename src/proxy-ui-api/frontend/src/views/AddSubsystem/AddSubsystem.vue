@@ -226,7 +226,6 @@ export default Vue.extend({
           `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&internal_search=true`,
         )
         .then((res) => {
-          console.log(res.data);
           this.existingSubsystems = res.data;
         })
         .catch((error) => {

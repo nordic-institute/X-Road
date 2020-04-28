@@ -220,7 +220,6 @@ export default Vue.extend({
         throw new Error('Invalid client');
       }
 
-      console.log(item);
       this.$router.push({
         name: RouteName.AddSubsystem,
         params: {
