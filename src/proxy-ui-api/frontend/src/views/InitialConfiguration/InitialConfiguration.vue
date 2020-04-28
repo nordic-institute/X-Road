@@ -1,0 +1,126 @@
+
+<template>
+  <div class="view-wrap">
+    <subViewTitle
+      class="view-title"
+      :title="$t('initialConfiguration.title')"
+      :showClose="false"
+      data-test="wizard-title"
+    />
+    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+      <v-stepper-header class="noshadow">
+        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('initialConfiguration.anchor.title')}}</v-stepper-step>
+        <v-divider></v-divider>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('initialConfiguration.member.title')}}</v-stepper-step>
+        <v-divider></v-divider>
+        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
+      </v-stepper-header>
+
+      <v-stepper-items class="stepper-content">
+        <!-- Step 1 -->
+        <v-stepper-content step="1">
+          <ConfigurationAnchorPage @cancel="cancel" @done="configAnchorReady" />
+        </v-stepper-content>
+        <!-- Step 2 -->
+        <v-stepper-content step="2">
+          <OwnerMemberPage @cancel="cancel" @previous="currentStep = 1" @done="ownerMemberReady" />
+        </v-stepper-content>
+        <!-- Step 3 -->
+        <v-stepper-content step="3">
+          <TokenPinPage @cancel="cancel" @previous="currentStep = 2" @done="tokenPinReady" />
+        </v-stepper-content>
+      </v-stepper-items>
+    </v-stepper>
+  </div>
+</template>
+
+<script lang="ts">
+import Vue from 'vue';
+import { mapGetters } from 'vuex';
+import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+import TokenPinPage from './TokenPinPage.vue';
+import ConfigurationAnchorPage from './ConfigurationAnchorPage.vue';
+import OwnerMemberPage from './OwnerMemberPage.vue';
+import { Key, Token } from '@/types';
+import { RouteName, UsageTypes } from '@/global';
+import * as api from '@/util/api';
+
+export default Vue.extend({
+  components: {
+    SubViewTitle,
+    TokenPinPage,
+    ConfigurationAnchorPage,
+    OwnerMemberPage,
+  },
+  props: {},
+  data() {
+    return {
+      currentStep: 1,
+    };
+  },
+  methods: {
+    save(): void {
+      this.$store.dispatch('fetchCsrForm').then(
+        () => {
+          this.currentStep = 2;
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+        },
+      );
+    },
+    cancel(): void {
+      this.$router.replace({ name: RouteName.Clients });
+    },
+
+    configAnchorReady(): void {
+      this.currentStep = 2;
+    },
+
+    ownerMemberReady(): void {
+      this.currentStep = 3;
+    },
+
+    tokenPinReady(): void {
+      console.log('READY');
+    },
+  },
+  created() {
+    this.$store.dispatch('setupSignKey');
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+@import '../../assets/colors';
+@import '../../assets/shared';
+
+.view-wrap {
+  width: 100%;
+  max-width: 850px;
+  margin: 10px;
+}
+
+.view-title {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 30px;
+}
+
+.stepper-content {
+  width: 100%;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stepper {
+  width: 100%;
+}
+
+.noshadow {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+</style>

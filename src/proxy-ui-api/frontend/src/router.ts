@@ -41,7 +41,7 @@ import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
-
+import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
 // https://github.com/vuejs/vue-router/pull/2497#issuecomment-474010032
@@ -352,6 +352,13 @@ const router = new Router({
           props: { default: true },
         },
       ],
+    },
+    {
+      name: RouteName.InitialConfiguration,
+      path: '/initial-conf',
+      components: {
+        default: InitialConfiguration,
+      },
     },
     {
       path: '/login',
