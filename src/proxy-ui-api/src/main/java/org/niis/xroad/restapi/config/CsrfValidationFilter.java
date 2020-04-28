@@ -25,21 +25,21 @@
 package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
 import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -47,26 +47,23 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Filter which adds some additional csrf token validation. The default CsrfFilter does not match the token with
- * the session's csrf
+ * Filter which adds some additional csrf token validation. Should be placed right after the default
+ * {@link org.springframework.security.web.csrf.CsrfFilter}
  */
-@Configuration
-@Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 2)
 @Slf4j
 public class CsrfValidationFilter extends OncePerRequestFilter {
     public static final String CSRF_HEADER_NAME = "X-XSRF-TOKEN";
 
-    private HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
-    private CookieCsrfTokenRepository cookieCsrfTokenRepository = new CookieCsrfTokenRepository();
+    private final CookieAndSessionCsrfTokenRepository csrfTokenRepository = new CookieAndSessionCsrfTokenRepository();
+
     private AccessDeniedHandler accessDeniedHandler = new AccessDeniedHandlerImpl();
 
-    // TODO: SUPPORT ONLY FORM LOGIN AUTH
     @Override
     protected void doFilterInternal(HttpServletRequest servletRequest,
             HttpServletResponse servletResponse, FilterChain filterChain) throws ServletException, IOException {
         HttpSession session = servletRequest.getSession(false);
-        // if there is no session -> move along
-        if (session == null) {
+        // if there is no session or the session is new (i.e. this is the login request itself) -> move along
+        if (session == null || session.isNew()) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
@@ -75,7 +72,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
         if (headerCsrfTokenValue == null) {
             String headerCsrfError = "CSRF token not found in header";
             log.error(headerCsrfError);
-            this.accessDeniedHandler.handle(servletRequest, servletResponse,
+            accessDeniedHandler.handle(servletRequest, servletResponse,
                     new CsrfException(headerCsrfError));
             return;
         }
@@ -84,7 +81,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
         if (cookieCsrfTokenValue == null) {
             String cookieCsrfError = "CSRF token not found in request cookie";
             log.error(cookieCsrfError);
-            this.accessDeniedHandler.handle(servletRequest, servletResponse,
+            accessDeniedHandler.handle(servletRequest, servletResponse,
                     new CsrfException(cookieCsrfError));
             return;
         }
@@ -93,7 +90,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
         if (sessionCsrfTokenValue == null) {
             String sessionCsrfError = "CSRF token not found in session";
             log.error(sessionCsrfError);
-            this.accessDeniedHandler.handle(servletRequest, servletResponse,
+            accessDeniedHandler.handle(servletRequest, servletResponse,
                     new CsrfException(sessionCsrfError));
             return;
         }
@@ -101,7 +98,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
         if (!sessionCsrfTokenValue.equals(headerCsrfTokenValue)) {
             String headerCsrfComparisonError = "Header CSRF value does not match with session";
             log.error(headerCsrfComparisonError);
-            this.accessDeniedHandler.handle(servletRequest, servletResponse,
+            accessDeniedHandler.handle(servletRequest, servletResponse,
                     new CsrfException(headerCsrfComparisonError));
             return;
         }
@@ -109,7 +106,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
         if (!sessionCsrfTokenValue.equals(cookieCsrfTokenValue)) {
             String cookieCsrfComparisonError = "Cookie CSRF value does not match with session";
             log.error(cookieCsrfComparisonError);
-            this.accessDeniedHandler.handle(servletRequest, servletResponse,
+            accessDeniedHandler.handle(servletRequest, servletResponse,
                     new CsrfException(cookieCsrfComparisonError));
             return;
         }
@@ -117,7 +114,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
     }
 
     private String getSessionCsrfTokenValue(HttpServletRequest servletRequest) {
-        CsrfToken sessionCsrfToken = httpSessionCsrfTokenRepository.loadToken(servletRequest);
+        CsrfToken sessionCsrfToken = csrfTokenRepository.loadToken(servletRequest);
         if (sessionCsrfToken == null || StringUtils.isEmpty(sessionCsrfToken.getToken())) {
             return null;
         }
@@ -125,11 +122,12 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
     }
 
     private String getCookieCsrfTokenValue(HttpServletRequest servletRequest) {
-        CsrfToken cookieCsrfToken = cookieCsrfTokenRepository.loadToken(servletRequest);
-        if (cookieCsrfToken == null || StringUtils.isEmpty(cookieCsrfToken.getToken())) {
+        Cookie csrfCookie = WebUtils.getCookie(servletRequest,
+                CookieAndSessionCsrfTokenRepository.DEFAULT_CSRF_COOKIE_NAME);
+        if (csrfCookie == null || StringUtils.isEmpty(csrfCookie.getValue())) {
             return null;
         }
-        return cookieCsrfToken.getToken();
+        return csrfCookie.getValue();
     }
 
     private String getHeaderCsrfTokenValue(HttpServletRequest servletRequest) {

@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
@@ -52,12 +51,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 4)
+@Order(IpThrottlingFilter.IP_THROTTLING_FILTER_ORDER)
 @Slf4j
 /**
  * Filter which rate limits requests
  */
 public class IpThrottlingFilter extends GenericFilterBean {
+    public static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
 
     @Value("${ratelimit.requests.per.second}")
     private int rateLimitRequestsPerSecond;
@@ -79,7 +79,6 @@ public class IpThrottlingFilter extends GenericFilterBean {
 
     /**
      * create a new bucket
-     *
      * @return
      */
     private Bucket createStandardBucket() {

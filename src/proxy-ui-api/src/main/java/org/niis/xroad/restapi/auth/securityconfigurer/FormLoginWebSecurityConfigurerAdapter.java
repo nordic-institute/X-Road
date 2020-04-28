@@ -39,10 +39,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
-import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -79,7 +76,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 .and()
             .csrf()
                 .ignoringAntMatchers("/login")
-                .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
+                .csrfTokenRepository(CookieAndSessionCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
             .formLogin()
                 .loginPage("/login")
@@ -125,35 +122,5 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 response.getWriter().println("OK");
             }
         };
-    }
-
-    /**
-     * Wraps HttpSessionCsrfTokenRepository and CookieCsrfTokenRepository into one class. This way we get the
-     * same token in session and the csrf cookie
-     */
-    private static class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository {
-        private final HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository;
-        private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
-
-        public CookieAndSessionCsrfTokenRepository() {
-            httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
-            cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        }
-
-        @Override
-        public CsrfToken generateToken(HttpServletRequest request) {
-            return cookieCsrfTokenRepository.generateToken(request);
-        }
-
-        @Override
-        public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
-            httpSessionCsrfTokenRepository.saveToken(token, request, response);
-            cookieCsrfTokenRepository.saveToken(token, request, response);
-        }
-
-        @Override
-        public CsrfToken loadToken(HttpServletRequest request) {
-            return httpSessionCsrfTokenRepository.loadToken(request);
-        }
     }
 }

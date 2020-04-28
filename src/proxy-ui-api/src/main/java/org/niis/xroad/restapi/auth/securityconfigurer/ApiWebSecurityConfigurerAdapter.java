@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
+import org.niis.xroad.restapi.config.CsrfValidationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,15 +35,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * custom token / session cookie authentication for rest apis
@@ -80,9 +79,12 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 .and()
             .csrf()
                 // we require csrf protection only if session cookie-authentication is used
-                .requireCsrfProtectionMatcher(request -> isSessionCookieAuthenticated(request))
-                .csrfTokenRepository(new ApiKeyAuthAwareCookieCsrfTokenRepository())
+                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::isSessionCookieAuthenticated)
+                // CsrfFilter always generates a new token in the repo -> prevent with lazy
+                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
                 .and()
+            // add a custom csrf validator right after the original one
+            .addFilterAfter(new CsrfValidationFilter(), CsrfFilter.class)
             .anonymous()
                 .disable()
             .headers()
@@ -92,42 +94,13 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
             .formLogin()
                 .disable();
     }
+
     /**
      * Checks whether session cookie auth, or some other (api key) auth was used.
      * Purely based on existence of JSESSIONID cookie.
      */
     private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
         return WebUtils.getCookie(request, "JSESSIONID") != null;
-    }
-
-    /**
-     * CookieCsrfTokenRepository (wrapper) which does not send unneeded CSRF cookies if we're
-     * using api key auth
-     */
-    private static class ApiKeyAuthAwareCookieCsrfTokenRepository implements CsrfTokenRepository {
-
-        // final class, cannot be extended
-        private CookieCsrfTokenRepository cookieCsrfTokenRepository;
-
-        ApiKeyAuthAwareCookieCsrfTokenRepository() {
-            this.cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        }
-        @Override
-        public CsrfToken generateToken(HttpServletRequest request) {
-            return cookieCsrfTokenRepository.generateToken(request);
-        }
-
-        @Override
-        public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
-            if (isSessionCookieAuthenticated(request)) {
-                cookieCsrfTokenRepository.saveToken(token, request, response);
-            }
-        }
-
-        @Override
-        public CsrfToken loadToken(HttpServletRequest request) {
-            return cookieCsrfTokenRepository.loadToken(request);
-        }
     }
 
     /**
