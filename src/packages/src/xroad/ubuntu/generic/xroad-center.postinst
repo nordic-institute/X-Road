@@ -86,7 +86,7 @@ setup_database() {
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
     else
-        psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
+        psql_master -d postgres <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 DO \$\$
