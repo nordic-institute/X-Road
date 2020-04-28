@@ -1,5 +1,4 @@
 import axios from 'axios';
-import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
@@ -8,7 +7,6 @@ import { Client } from '@/types';
 export interface ClientState {
   client: Client | null;
   signCertificates: any[];
-  loading: boolean;
   connection_type: string | null;
   tlsCertificates: any[];
   ssCertificate: any;
@@ -16,7 +14,6 @@ export interface ClientState {
 
 export const clientState: ClientState = {
   client: null,
-  loading: false,
   signCertificates: [],
   connection_type: null,
   tlsCertificates: [],
@@ -57,9 +54,6 @@ export const mutations: MutationTree<ClientState> = {
   storeSignCertificates(state, certificates: any[]) {
     state.signCertificates = certificates;
   },
-  setLoading(state, loading: boolean) {
-    state.loading = loading;
-  },
   clearAll(state) {
     state.client = null;
     state.ssCertificate = null;
@@ -75,23 +69,15 @@ export const actions: ActionTree<ClientState, RootState> = {
       throw new Error('Missing client id');
     }
 
-    commit('setLoading', true);
-
     return axios.get(`/clients/${id}`)
       .then((res) => {
         commit('storeClient', res.data);
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
   fetchSignCertificates({ commit, rootGetters }, id: string) {
-
-    commit('setLoading', true);
-
     if (!id) {
       throw new Error('Missing id');
     }
@@ -102,16 +88,10 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
 
   fetchTlsCertificates({ commit, rootGetters }, id: string) {
-
-    commit('setLoading', true);
-
     if (!id) {
       throw new Error('Missing id');
     }
@@ -122,9 +102,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
 
@@ -140,9 +117,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
 
@@ -193,11 +167,7 @@ export const actions: ActionTree<ClientState, RootState> = {
         }
       })
       .catch((error) => {
-        console.error(error);
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
 
   },
@@ -223,10 +193,7 @@ export const actions: ActionTree<ClientState, RootState> = {
       ignore_warnings: false,
     };
 
-    return axios.post('/clients', body)
-      .catch((error) => {
-        throw error;
-      });
+    return axios.post('/clients', body);
   },
 
   deleteClient({ commit, state }, clientId: string) {

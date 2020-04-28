@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,37 +22,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config;
+package org.niis.xroad.restapi.dto;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import lombok.Data;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI_API;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import java.time.OffsetDateTime;
 
 /**
- * Helper wrapper which makes sure system properties are initialized
+ * Model for alert status
  */
-public final class SystemPropertiesInitializer {
-    private SystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
-
-    /**
-     * initialize, if not yet initialized
-     */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_PROXY_UI)
-                    .with(CONF_FILE_PROXY_UI_API)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
-    }
+@Data
+public class AlertStatus {
+    private OffsetDateTime currentTime;
+    private OffsetDateTime backupRestoreRunningSince;
+    private Boolean globalConfValid;
+    private Boolean softTokenPinEntered;
 }

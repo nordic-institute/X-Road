@@ -674,5 +674,48 @@
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
       "companyUrlTitle": "https://niis.org/"
     }
+  },
+  "diagnostics": {
+    "status": "Status",
+    "message": "Message",
+    "previousUpdate": "Previous Update",
+    "nextUpdate": "Next Update",
+    "serviceUrl": "Service URL",
+    "globalCongiguration": {
+      "title": "Global configuration",
+      "configurationStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_INTERNAL": "Internal error occurred.",
+        "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
+        "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
+        "ERROR_CODE_UNINITIALIZED": "The configuration client is initializing.",
+        "UNKNOWN": "Unknown"
+      }
+    },
+    "timestamping": {
+      "title": "Timestamping",
+      "timestampingStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
+        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
+        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
+        "ERROR_CODE_INTERNAL": "Internal error occurred",
+        "UNKNOWN": "Unknown"
+      }
+    },
+    "ocspResponders": {
+      "title": "OCSP Responders",
+      "certificationService": "Certification Service:",
+      "ocspStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Unable to connect to the OCSP responder",
+        "ERROR_CODE_OCSP_FAILED": "Unable to fetch response from the OCSP responder",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
+        "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
+        "UNKNOWN": "Unknown"
+      }
+    }
   }
 }

@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,37 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import org.junit.Before;
+import org.junit.Test;
+import org.niis.xroad.restapi.domain.AlertData;
+import org.niis.xroad.restapi.dto.AlertStatus;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI_API;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Helper wrapper which makes sure system properties are initialized
+ * Test AlertDataConverter
  */
-public final class SystemPropertiesInitializer {
-    private SystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
+public class AlertDataConverterTest {
+    private AlertDataConverter alertDataConverter;
 
-    /**
-     * initialize, if not yet initialized
-     */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_PROXY_UI)
-                    .with(CONF_FILE_PROXY_UI_API)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
+    @Before
+    public void setup() {
+        alertDataConverter = new AlertDataConverter();
+    }
+
+    @Test
+    public void convertAlertData() {
+        OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
+        AlertStatus alertStatus = new AlertStatus();
+        alertStatus.setBackupRestoreRunningSince(date);
+        alertStatus.setCurrentTime(date);
+        alertStatus.setGlobalConfValid(true);
+        alertStatus.setSoftTokenPinEntered(true);
+
+        AlertData alertData = alertDataConverter.convert(alertStatus);
+        assertEquals(date, alertData.getBackupRestoreRunningSince());
+        assertEquals(date, alertData.getCurrentTime());
+        assertEquals(true, alertData.getGlobalConfValid());
+        assertEquals(true, alertData.getSoftTokenPinEntered());
     }
 }

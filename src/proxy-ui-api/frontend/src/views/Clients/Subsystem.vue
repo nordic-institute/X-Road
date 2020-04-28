@@ -53,6 +53,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
@@ -69,29 +70,25 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: null,
-      confirmUnregisterClient: false,
-      unregisterLoading: false,
-      orphansLoading: false,
-      confirmDelete: false,
-      deleteLoading: false,
-      confirmOrphans: false,
+      orphansLoading: false as boolean,
+      confirmDelete: false as boolean,
+      deleteLoading: false as boolean,
+      confirmOrphans: false as boolean,
+      tab: undefined as undefined | Tab,
+      confirmUnregisterClient: false as boolean,
+      unregisterLoading: false as boolean,
     };
   },
   computed: {
     ...mapGetters(['client']),
 
     showUnregister(): boolean {
-      if (
+      return (
         this.client &&
         this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
         (this.client.status === 'REGISTERED' ||
           this.client.status === 'REGISTRATION_IN_PROGRESS')
-      ) {
-        return true;
-      } else {
-        return false;
-      }
+      );
     },
 
     showDelete(): boolean {
@@ -113,8 +110,8 @@ export default Vue.extend({
       }
     },
 
-    tabs(): any[] {
-      const allTabs = [
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
         {
           key: 'details',
           name: 'tab.client.details',
