@@ -99,7 +99,7 @@ It is possible to configure the security server sidecar to use a remote database
   export XROAD_DB_PASSWORD=<remote database administrator master password>
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port>
   ```
-
+The user for the connection will be the default database user "postgres".
 The following configuration is needed on the remote database server to allow external access to the remote PostgreSQL database from the security server sidecar:
 
 - Edit the PostgreSQL configuration file in `/etc/postgresql/10/main/postgresql.conf` to enable listening on external addresses and to verify the port. NOTE: If you change these settings, the postgresql service must be restarted.
@@ -124,6 +124,8 @@ The following configuration is needed on the remote database server to allow ext
   host    all             all             0.0.0.0/0            md5
   [...]
   ```
+  
+- If the database is in your local machine you have to use the interface ip that uses the host to connect to the docker containers. You can check this ip by running "docker inspect container_name" and checking the gateway property.
 
 ## 1.7 Volume support
 
