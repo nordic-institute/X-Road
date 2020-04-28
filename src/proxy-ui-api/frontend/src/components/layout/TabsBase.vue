@@ -9,16 +9,19 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { Tab } from '@/ui-types';
+import { mainTabs } from '@/global';
 
 export default Vue.extend({
   data() {
     return {
-      tab: null,
+      tab: undefined as undefined | Tab,
     };
   },
   computed: {
-    ...mapGetters(['allowedTabs']),
+    allowedTabs(): Tab[] {
+      return this.$store.getters.getAllowedTabs(mainTabs);
+    },
   },
 });
 </script>
