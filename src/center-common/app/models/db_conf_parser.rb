@@ -41,6 +41,7 @@ class DbConfParser
         "username" => ini_conf.getString("username"),
         "password" => ini_conf.getString("password"),
         "database" => ini_conf.getString("database"),
+        "suffix" => ini_conf.getString("suffix"),
         "host" => ini_conf.getString("host", "localhost"),
         "port" => ini_conf.getInt("port", 5432),
         "reconnect" => ini_conf.getBoolean("reconnect", true),
@@ -56,7 +57,7 @@ class DbConfParser
                             .map { |x| x.include?(":") ? x : "#{x}:#{db_conf["port"]}" }
                             .join(",")
       db_conf["url"] =
-          "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}"
+          "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}#{db_conf["suffix"]}"
       db_conf[:properties] = {
           targetServerType: "master",
       }
