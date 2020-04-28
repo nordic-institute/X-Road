@@ -68,6 +68,7 @@ setup_database() {
             db_conn_master_user="${db_master_user}${suffix}"
             db_conn_user="${db_user}${suffix}"
             jdbc_user="?user=${db_conn_user}"
+            crudini --set "${db_properties}" '' username "${db_conn_user}"
             crudini --set "${db_properties}" '' suffix "${jdbc_user}"
         fi
         function psql_master() {
