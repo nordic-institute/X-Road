@@ -561,6 +561,28 @@
       }
     }
   },
+  "initialConfiguration": {
+    "title": "Initial configuration",
+    "anchor": {
+      "title": "Configuration Anchor",
+      "info": "Import the configuration anchor provided by the Central Server's administrator.",
+      "import": "Import",
+      "hash": "Hash (SHA-224)",
+      "generated": "Generated"
+    },
+    "member": {
+      "title": "Owner Member",
+      "info": "Define the member that will act as the Security Server owner:"
+    },
+    "pin": {
+      "title": "Token PIN",
+      "pin": "PIN",
+      "confirmPin": "Confirm PIN",
+      "info1": "The software token is the place where the Security Server’s AUTH keys is stored. Please define a PIN (4 digits) to log-in into the software token.",
+      "info2": "All required information is collected, press the Submit button to to initialise the Security Server.",
+      "info3": "Once the initialisation is done, you must complete the Security Server configuration - simply click the Configure button in the toast notification that will appear in a few moments."
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
