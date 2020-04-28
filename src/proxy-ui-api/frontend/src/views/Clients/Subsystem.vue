@@ -174,6 +174,7 @@ export default Vue.extend({
       this.deleteLoading = true;
       this.$store.dispatch('deleteClient', this.client.id).then(
         (response) => {
+          this.$store.dispatch('showSuccess', 'client.action.delete.success');
           this.checkOrphans();
         },
         (error) => {
@@ -187,8 +188,6 @@ export default Vue.extend({
     checkOrphans(): void {
       this.$store.dispatch('getOrphans', this.client.id).then(
         (response) => {
-          // this.$store.dispatch('getOrphans', this.client.id);
-          //  this.$store.dispatch('showSuccess', 'client.action.delete.success');
           this.confirmDelete = false;
           this.deleteLoading = false;
           this.confirmOrphans = true;
@@ -214,7 +213,7 @@ export default Vue.extend({
         .dispatch('deleteOrphans', this.client.id)
         .then(
           (response) => {
-            this.$store.dispatch('showSuccess', 'client.action.delete.success');
+            this.$store.dispatch('showSuccess', 'client.action.removeOrphans.success');
           },
           (error) => {
             // There was some other error, but the client is already deleted so exit the view
