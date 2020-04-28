@@ -10,10 +10,10 @@ db_name=messagelog
 db_user=messagelog
 db_conn_user="${db_user}"
 jdbc_user=""
-if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.user.suffix` != "" ]]
+if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.login.suffix` != "" ]]
 then
-    suffix=`crudini --get ${root_properties} '' postgres.connection.user.suffix`
-    db_conn_user="${db_user}${suffix}"
+    suffix=`crudini --get ${root_properties} '' postgres.connection.login.suffix`
+    db_conn_user="${db_user}@${suffix}"
     jdbc_user="?user=${db_conn_user}"
 fi
 db_master_user=postgres
@@ -54,9 +54,9 @@ else
           db_master_user=`crudini --get ${root_properties} '' postgres.connection.user`
       fi
       db_conn_master_user="${db_master_user}"
-      if [[ `crudini --get ${root_properties} '' postgres.connection.user.suffix` != "" ]]; then
-          suffix=`crudini --get ${root_properties} '' postgres.connection.user.suffix`
-          db_conn_master_user="${db_master_user}${suffix}"
+      if [[ `crudini --get ${root_properties} '' postgres.connection.login.suffix` != "" ]]; then
+          suffix=`crudini --get ${root_properties} '' postgres.connection.login.suffix`
+          db_conn_master_user="${db_master_user}@${suffix}"
       fi
 
       if  ! psql -h $db_addr -p $db_port -U $db_conn_master_user --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"

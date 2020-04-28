@@ -63,13 +63,12 @@ setup_database() {
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
         db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
         db_conn_master_user="${db_master_user}"
-        if [[ $(get_prop ${root_properties} postgres.connection.user.suffix) != "" ]]; then
-            suffix=$(get_prop ${root_properties} postgres.connection.user.suffix)
-            db_conn_master_user="${db_master_user}${suffix}"
-            db_conn_user="${db_user}${suffix}"
-            jdbc_user="?user=${db_conn_user}"
+        if [[ $(get_prop ${root_properties} postgres.connection.login.suffix) != "" ]]; then
+            suffix=$(get_prop ${root_properties} postgres.connection.login.suffix)
+            db_conn_master_user="${db_master_user}@${suffix}"
+            db_conn_user="${db_user}@${suffix}"
             crudini --set "${db_properties}" '' username "${db_conn_user}"
-            crudini --set "${db_properties}" '' suffix "${jdbc_user}"
+            crudini --set "${db_properties}" '' login-suffix "${suffix}"
         fi
         function psql_master() {
             PGPASSWORD="${db_master_passwd}" PGUSER="${db_conn_master_user}" remote_psql "$@"
