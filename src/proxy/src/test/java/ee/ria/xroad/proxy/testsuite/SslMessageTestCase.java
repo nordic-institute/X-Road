@@ -44,8 +44,8 @@ import org.apache.http.ssl.SSLContexts;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore;
 import java.security.cert.X509Certificate;
-
 /**
  * All test cases extending this class will be executed in a separate batch
  * where ClientProxy and ServerProxy are started in SSL mode.
@@ -70,8 +70,8 @@ public class SslMessageTestCase extends MessageTestCase {
                 .register("https", new SSLIOSessionStrategy(
                         SSLContexts.custom()
                                 .loadKeyMaterial(
-                                        TestCertUtil.getKeyStore("client"),
-                                        TestCertUtil.getKeyStorePassword("client"))
+                                        getKeyStore(),
+                                        getKeyStorePassword())
                                 .loadTrustMaterial((chain, authType) -> {
                                     final X509Certificate[] internalKey = TestCertUtil.getInternalKey().certChain;
                                     if (internalKey.length != chain.length) return false;
@@ -99,4 +99,11 @@ public class SslMessageTestCase extends MessageTestCase {
         return new URI("https://localhost:" + SystemProperties.getClientProxyHttpsPort());
     }
 
+    public KeyStore getKeyStore() {
+        return TestCertUtil.getKeyStore("client");
+    }
+
+    public char[] getKeyStorePassword() {
+        return TestCertUtil.getKeyStorePassword("client");
+    }
 }
