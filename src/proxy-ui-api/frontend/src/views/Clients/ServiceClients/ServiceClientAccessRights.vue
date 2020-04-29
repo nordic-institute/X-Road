@@ -22,7 +22,7 @@
       <div class="row-title">{{$t('serviceClients.accessRights')}}</div>
       <div class="row-buttons">
         <large-button
-          @click="removeAll()"
+          @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
           v-if="accessRights.length > 0"
@@ -70,6 +70,15 @@
       <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
     </div>
 
+    <!-- Confirm dialog delete group -->
+    <confirmDialog
+      :dialog="showConfirmDeleteAll"
+      title="serviceClients.removeAllTitle"
+      text="serviceClients.removeAllText"
+      @cancel="showConfirmDeleteAll = false"
+      @accept="removeAll()"
+    />
+
   </div>
 </template>
 
@@ -79,11 +88,13 @@ import * as api from '@/util/api';
 import {AccessRight, ServiceClient} from '@/types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
     LargeButton,
+    ConfirmDialog,
   },
   props: {
     id: {
@@ -99,6 +110,7 @@ export default Vue.extend({
     return {
       accessRights: [] as AccessRight[],
       serviceClient: {} as ServiceClient,
+      showConfirmDeleteAll: false as boolean,
     };
   },
   methods: {
@@ -141,6 +153,8 @@ export default Vue.extend({
       // NOOP
     },
     removeAll() {
+      this.showConfirmDeleteAll = false;
+
       api
         .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
           { items: this.accessRights.map( (item: AccessRight) => ({service_code: item.service_code}))})
