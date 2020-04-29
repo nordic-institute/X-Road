@@ -5,7 +5,7 @@
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
     <td class="text-right">
       <small-button
-        @click="showEditDialog = true"
+        @click="openEditDialog"
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
         >{{ $t('apiKey.table.action.edit.button') }}</small-button
@@ -15,7 +15,7 @@
         @save="save"
         @cancel="showEditDialog = false"
         save-button-text="action.save"
-        :disable-save="apiKey.roles.length === 0"
+        :disable-save="selectedRoles.length === 0"
       >
         <span
           slot="title"
@@ -100,6 +100,10 @@ export default Vue.extend({
         ? []
         : roles.map((role) => this.$t(`apiKey.role.${role}`) as string);
     },
+    openEditDialog(): void {
+      this.selectedRoles = [...this.apiKey.roles];
+      this.showEditDialog = true;
+    },
     async revokeApiKey() {
       this.removingApiKey = true;
       this.confirmRevoke = false;
@@ -112,10 +116,12 @@ export default Vue.extend({
               id: this.apiKey.id,
             }),
           );
-          this.$emit('change');
         })
         .catch((error) => this.$store.dispatch('showError', error))
-        .finally(() => (this.removingApiKey = false));
+        .finally(() => {
+          this.removingApiKey = false;
+          this.$emit('change');
+        });
     },
     async save() {
       this.savingChanges = true;
@@ -126,12 +132,12 @@ export default Vue.extend({
             'showSuccessRaw',
             this.$t('apiKey.table.action.edit.success', { id: this.apiKey.id }),
           );
-          this.$emit('change');
         })
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => {
           this.savingChanges = false;
           this.showEditDialog = false;
+          this.$emit('change');
         });
     },
   },
