@@ -110,24 +110,45 @@ export default Vue.extend({
         .catch( (error: any) =>
           this.$store.dispatch('showError', error));
 
+      this.fetchAccessRights();
+
+    },
+    fetchAccessRights(): void {
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
         .then( (response: any) => this.accessRights = response.data)
         .catch( (error: any) =>
           this.$store.dispatch('showError', error));
-
     },
     close() {
       this.$router.go(-1);
     },
-    remove() {
-      // NOOP
+    remove(accessRight: AccessRight) {
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          { items: [{ service_code: accessRight.service_code }]})
+        .then( () => {
+          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          if (this.accessRights.length === 1) {
+            this.accessRights = [];
+          } else {
+            this.fetchAccessRights();
+          }
+        })
+        .catch( (error: any) => this.$store.dispatch('showError', error));
     },
     addService() {
       // NOOP
     },
     removeAll() {
-      // NOOP
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          { items: this.accessRights.map( (item: AccessRight) => ({service_code: item.service_code}))})
+        .then( () => {
+          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          this.accessRights = [];
+        })
+        .catch( (error: any) => this.$store.dispatch('showError', error));
     },
   },
   created() {

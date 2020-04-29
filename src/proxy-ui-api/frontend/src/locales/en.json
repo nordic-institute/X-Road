@@ -134,6 +134,7 @@
     "serviceCode": "Service code",
     "title": "Title",
     "accessRightsGiven": "Access Rights Given",
+    "removeSuccess": "Access Rights successfully removed",
     "removeAll": "Remove all",
     "addService": "Add service",
     "noAccessRights": "No access rights to this client"
