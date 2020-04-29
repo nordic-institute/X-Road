@@ -66,7 +66,7 @@ then
     db_conn_master_user="${db_master_user}${suffix}"
   fi
   remote_psql() {
-    psql -h "$db_addr" -p "$db_port" -qtAU postgres "$@"
+    psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -qtA "$@"
   }
   psql_cmd=remote_psql
 else
