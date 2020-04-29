@@ -4,6 +4,7 @@
     name: xroad-deb-bionic
     path: ../src/packages/docker/deb-bionic
     force: yes
+  tags: deb
   when: ubuntu_releasever == "bionic"
 
 - name: build bionic deb packages in docker
@@ -22,6 +23,7 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
     command: "/workspace/src/packages/build-deb.sh bionic"
+  tags: deb
   when: ubuntu_releasever == "bionic"
 
 - name: build docker image for building RPM packages
