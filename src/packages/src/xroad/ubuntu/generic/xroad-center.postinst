@@ -67,7 +67,7 @@ setup_database() {
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-        if [ -z "${suffix}" ]; then
+        if [ -n "${suffix}" ]; then
             db_master_user="${db_master_user}${suffix}"
             crudini --set "${db_properties}" '' username "${db_user}"
         fi
