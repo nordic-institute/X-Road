@@ -17,7 +17,6 @@ configure() {
 
   db_name=op-monitor
   db_user=opmonitor
-  ="${db_user}"
   db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
   db_admin=opmonitor_admin
   db_conn_admin="${db_admin}"
@@ -132,7 +131,7 @@ configure() {
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.batch_size 50
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}"
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username "${db_conn_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
     crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
     crudini --set "$root_properties" '' op-monitor.database.initialized "true"

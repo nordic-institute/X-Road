@@ -131,7 +131,7 @@ EOF
     crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' serverconf.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
-    crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_user}"
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_conn_user}"
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password "${db_password}"
 
     if [[ $(psql_dbuser -c "select 1 from pg_tables where schemaname = 'public' and tablename='databasechangelog'" 2>/dev/null) == 1 ]]; then

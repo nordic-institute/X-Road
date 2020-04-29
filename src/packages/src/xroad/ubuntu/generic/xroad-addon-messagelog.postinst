@@ -113,7 +113,7 @@ else
     crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' messagelog.hibernate.jdbc.batch_size 50
     crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
+    crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_conn_user}
     crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
 
 fi
