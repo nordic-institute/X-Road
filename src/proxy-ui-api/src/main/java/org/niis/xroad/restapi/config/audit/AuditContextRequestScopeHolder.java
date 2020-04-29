@@ -22,41 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.config.audit;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import lombok.Getter;
+import lombok.Setter;
+import org.niis.xroad.restapi.util.UsernameHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
 /**
- * Helper for working with security and authorization
+ * Holds current audit event and related audit data in request scope
  */
-public final class SecurityHelper {
+@Getter
+@Setter
+@Component
+@Scope(SCOPE_REQUEST)
+public class AuditContextRequestScopeHolder {
 
-    private SecurityHelper() {
-        // noop
+    private RestApiAuditEvent requestScopedEvent;
+    // LinkedHashMap to make it possible to control the order of items, which can make output cleaner
+    private Map<String, Object> eventData = Collections.synchronizedMap(new LinkedHashMap<>());
+
+    // TO DO: remove after debugging that it works as expected
+    private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
+    private int instanceNumber;
+
+    @Autowired
+    public AuditContextRequestScopeHolder(UsernameHelper usernameHelper) {
+        instanceNumber = INSTANCE_COUNTER.incrementAndGet();
     }
 
-    /**
-     * Tells if current user / authentication has been granted given authority
-     * @param authority
-     * @return
-     */
-    public static boolean hasAuthority(String authority) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
-    }
-
-    /**
-     * Verifies that current user / authentication has been granted given authority.
-     * If not, throws {@link AccessDeniedException}
-     * @param authority
-     * @throws AccessDeniedException if given authority has not been granted
-     */
-    public static void verifyAuthority(String authority) throws AccessDeniedException {
-        if (!hasAuthority(authority)) {
-            throw new AccessDeniedException("Missing authority: " + authority);
-        }
+    public void addData(String propertyName, Object value) {
+        eventData.put(propertyName, value);
     }
 }

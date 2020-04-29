@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
@@ -48,6 +49,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 import java.util.List;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_CREATE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_REMOVE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_UPDATE;
+
 /**
  * Controller for rest apis for api key operations
  */
@@ -69,6 +74,7 @@ public class ApiKeysController {
      * create a new api key
      */
     @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @AuditEventMethod(event = API_KEY_CREATE)
     public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
         try {
             PersistentApiKeyType createdKeyData = apiKeyService.create(roles);
@@ -82,6 +88,7 @@ public class ApiKeysController {
      * update an existing api key
      */
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @AuditEventMethod(event = API_KEY_UPDATE)
     public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
                                                           @RequestBody List<String> roles) {
         try {
@@ -109,6 +116,7 @@ public class ApiKeysController {
      * @return
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @AuditEventMethod(event = API_KEY_REMOVE)
     public ResponseEntity revoke(@PathVariable("id") long id) {
         try {
             apiKeyService.removeById(id);

@@ -2805,7 +2805,6 @@ paths:
           name: id
           required: true
           description: id of the endpoint
-          required: true
           schema:
             type: string
             example: 102
@@ -2841,7 +2840,6 @@ paths:
           name: id
           required: true
           description: id of the endpoint
-          required: true
           schema:
             type: string
             example: 102
@@ -2883,7 +2881,6 @@ paths:
           name: id
           required: true
           description: id of the endpoint
-          required: true
           schema:
             type: string
             example: 102
@@ -5242,8 +5239,6 @@ components:
       type: object
       description: service for the service description
       required:
-        - id
-        - service_code
         - url
         - timeout
       properties:

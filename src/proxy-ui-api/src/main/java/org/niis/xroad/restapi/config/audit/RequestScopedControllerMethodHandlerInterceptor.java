@@ -22,42 +22,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.config.audit;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
+import java.lang.reflect.Method;
 
-/**
- * AuthenticationEntryPoint that returns 401
- */
 @Component
 @Slf4j
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class RequestScopedControllerMethodHandlerInterceptor implements HandlerInterceptor {
 
     @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
+    @Lazy
+    AuditEventLoggingFacade auditEventLoggingFacade;
 
-    /**
-     * @inheritDoc
-     */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (log.isDebugEnabled()) {
-            log.debug("Pre-authenticated entry point called. Rejecting access");
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+        HandlerMethod method = (HandlerMethod) handler;
+        Method javaMethod = method.getMethod();
+        if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
+            AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
+            auditEventLoggingFacade.initRequestScopedEvent(auditEventMethod.event());
         }
+        return true;
+    }
 
-        resolver.resolveException(request, response, null, exception);
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+            ModelAndView modelAndView) throws Exception {
+        auditEventLoggingFacade.auditLogSuccess();
     }
 }

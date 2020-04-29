@@ -22,42 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.config.audit;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_AUTHENTICATION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
 
-import java.io.IOException;
-
-/**
- * AuthenticationEntryPoint that returns 401
- */
 @Component
 @Slf4j
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class AuditedApplicationEventListener {
+
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
+    public AuditedApplicationEventListener(AuditEventLoggingFacade auditEventLoggingFacade) {
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
+    }
 
-    /**
-     * @inheritDoc
-     */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (log.isDebugEnabled()) {
-            log.debug("Pre-authenticated entry point called. Rejecting access");
+    @EventListener
+    void handleAuthenticationCredentialsNotFoundEvent(AuthenticationCredentialsNotFoundEvent event) {
+        // prevent double audit logging both API_KEY_AUTHENTICATION and AUTH_CREDENTIALS_DISCOVERY
+        if (!auditEventLoggingFacade.hasAlreadyLoggedForThisRequest(API_KEY_AUTHENTICATION)) {
+            auditEventLoggingFacade.auditLogFail(AUTH_CREDENTIALS_DISCOVERY,
+                    event.getCredentialsNotFoundException());
         }
-
-        resolver.resolveException(request, response, null, exception);
     }
 }

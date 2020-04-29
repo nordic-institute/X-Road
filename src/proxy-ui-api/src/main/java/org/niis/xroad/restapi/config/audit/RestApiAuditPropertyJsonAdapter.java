@@ -22,42 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.config.audit;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
 /**
- * AuthenticationEntryPoint that returns 401
+ * Adapter for RestApiAuditProperty
  */
-@Component
-@Slf4j
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class RestApiAuditPropertyJsonAdapter extends TypeAdapter<RestApiAuditProperty> {
 
-    @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
-
-    /**
-     * @inheritDoc
-     */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (log.isDebugEnabled()) {
-            log.debug("Pre-authenticated entry point called. Rejecting access");
+    @Override
+    public void write(JsonWriter out, RestApiAuditProperty value) throws IOException {
+        if (value == null) {
+            out.nullValue();
+        } else {
+            out.value(value.getPropertyName());
         }
+    }
 
-        resolver.resolveException(request, response, null, exception);
+    @Override
+    public RestApiAuditProperty read(JsonReader reader) throws IOException {
+        if (reader.peek() == JsonToken.NULL) {
+            reader.nextNull();
+            return null;
+        } else {
+            throw new UnsupportedOperationException("this adapter can only write");
+        }
     }
 }

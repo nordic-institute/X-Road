@@ -22,42 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.config.audit;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import lombok.Getter;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.io.IOException;
+import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
+
 
 /**
- * AuthenticationEntryPoint that returns 401
+ * Request scoped bean keeping track of audit events that have been logged for this request
  */
+@Getter
 @Component
-@Slf4j
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
-
-    /**
-     * @inheritDoc
-     */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (log.isDebugEnabled()) {
-            log.debug("Pre-authenticated entry point called. Rejecting access");
-        }
-
-        resolver.resolveException(request, response, null, exception);
-    }
+@Scope(SCOPE_REQUEST)
+class RequestScopeLoggedEvents {
+    private final Set<RestApiAuditEvent> events = Collections.synchronizedSet(new HashSet<>());
 }

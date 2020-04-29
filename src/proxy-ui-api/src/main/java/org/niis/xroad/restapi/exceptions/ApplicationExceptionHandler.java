@@ -25,14 +25,21 @@
 package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_AUTHENTICATION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_ACCESS_CHECK;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_AUTHENTICATION;
 
 /**
  * exception handler
@@ -44,6 +51,10 @@ public class ApplicationExceptionHandler {
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
+    @Autowired
+    @Lazy
+    private AuditEventLoggingFacade auditEventLoggingFacade;
+
     /**
      * handle exceptions
      * @param e
@@ -51,6 +62,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
+        auditEventLoggingFacade.auditLogFail(e);
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -62,6 +74,11 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
+        // prevent double audit logging with hasLoggedForThisRequestAny
+        if (!auditEventLoggingFacade.hasAlreadyLoggedForThisRequestAny(
+                API_KEY_AUTHENTICATION, AUTH_CREDENTIALS_DISCOVERY)) {
+            auditEventLoggingFacade.auditLogFail(UNSPECIFIED_AUTHENTICATION, e);
+        }
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
@@ -73,6 +90,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
+        auditEventLoggingFacade.auditLogFail(UNSPECIFIED_ACCESS_CHECK, e);
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
     }
