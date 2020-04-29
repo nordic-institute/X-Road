@@ -1,6 +1,8 @@
 #!/bin/bash
 # X-Road proxy post-install configuration
 
+set -x
+
 #
 # Create default internal certificates for nginx
 #
@@ -59,6 +61,7 @@ setup_database() {
     local db_host="127.0.0.1:5432"
     local tmp_password="$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")"
     local db_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
+    local db_conn_user="${db_user}"
     local db_schema="$db_user"
     local db_password="$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "$tmp_password")"
     local db_url="$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
@@ -85,13 +88,15 @@ setup_database() {
     local_psql() { su -l -c "psql -qtA -p ${db_port:-5432} $*" postgres; }
     remote_psql() { psql -h "${db_addr:-127.0.0.1}" -p "${db_port:-5432}" -qtA "$@"; }
 
-    psql_dbuser() {
-        PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
-    }
-
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
         db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        db_conn_master_user="${db_master_user}"
+        if [[ $(get_prop ${root_properties} postgres.connection.login_suffix) != "" ]]; then
+            suffix=$(get_prop ${root_properties} postgres.connection.login_suffix)
+            db_conn_master_user="${db_master_user}${suffix}"
+            db_conn_user="${db_user}${suffix}"
+        fi
         function psql_master() {
             PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
         }
@@ -99,10 +104,14 @@ setup_database() {
         function psql_master() { local_psql "$@"; }
     fi
 
+    psql_dbuser() {
+        PGDATABASE="$db_database" PGUSER="$db_conn_user" PGPASSWORD="$db_password" remote_psql "$@"
+    }
+
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
     else
-        psql_master <<EOF || die "Creating database '${db_database}' on '${db_host}' failed."
+        psql_master -d postgres <<EOF || die "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 DO \$\$
@@ -129,13 +138,13 @@ EOF
     crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' serverconf.hibernate.connection.url "${db_url}"
-    crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_user}"
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_conn_user}"
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password "${db_password}"
 
     if [[ $(psql_dbuser -c "select 1 from pg_tables where schemaname = 'public' and tablename='databasechangelog'" 2>/dev/null) == 1 ]]; then
 
       cd /usr/share/xroad/db/
-      /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://$db_host/$db_database?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/serverconf-legacy-changelog.xml --password="${db_password}" --username="${db_user}" update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+      /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://$db_host/$db_database?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/serverconf-legacy-changelog.xml --password="${db_password}" --username="${db_conn_user}" update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
         psql_master --single-transaction -d "$db_database" <<EOF || die "Renaming public schema to '$db_schema' failed."
 \set STOP_ON_ERROR on
 ALTER DATABASE "${db_database}" OWNER TO "${db_master_user}";
@@ -151,7 +160,7 @@ EOF
     fi
 
     cd /usr/share/xroad/db/
-    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://$db_host/$db_database?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml --defaultSchemaName="$db_schema" --password="${db_password}" --username="${db_user}"  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://$db_host/$db_database?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml --defaultSchemaName="$db_schema" --password="${db_password}" --username="${db_conn_user}"  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 
 }
 
