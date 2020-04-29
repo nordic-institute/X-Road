@@ -92,22 +92,15 @@ export default Vue.extend({
     },
 
     showDelete(): boolean {
-      if (!this.client) {
-        return false;
-      }
-
       if (
+        !this.client ||
         this.client.status === 'REGISTERED' ||
         this.client.status === 'REGISTRATION_IN_PROGRESS'
       ) {
         return false;
       }
 
-      if (this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ)) {
-        return true;
-      } else {
-        return false;
-      }
+      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ);
     },
 
     tabs(): Tab[] {
@@ -213,7 +206,10 @@ export default Vue.extend({
         .dispatch('deleteOrphans', this.client.id)
         .then(
           (response) => {
-            this.$store.dispatch('showSuccess', 'client.action.removeOrphans.success');
+            this.$store.dispatch(
+              'showSuccess',
+              'client.action.removeOrphans.success',
+            );
           },
           (error) => {
             // There was some other error, but the client is already deleted so exit the view
