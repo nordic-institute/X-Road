@@ -393,41 +393,35 @@ public class ServiceDescriptionService {
      */
     private void checkDuplicateServiceCodes(ServiceDescriptionType serviceDescription)
             throws ServiceCodeAlreadyExistsException {
+
         List<ServiceType> existingServices =
                 getClientsExistingServices(serviceDescription.getClient(), serviceDescription.getId());
 
-        Set<ServiceType> conflictedServices = serviceDescription.getService()
-                .stream()
-                .flatMap(newService -> existingServices
-                        .stream()
-                        .filter(existingService -> FormatUtils.getServiceFullName(existingService)
-                                .equalsIgnoreCase(FormatUtils.getServiceFullName(newService))))
+        Set<ServiceType> duplicateServices = serviceDescription.getService().stream()
+                .filter(candidateService -> {
+                    String candidateFullServiceCode = FormatUtils.getServiceFullName(candidateService);
+                    boolean existsByServiceCode = existingServices.stream()
+                            .map(s -> s.getServiceCode())
+                            .anyMatch(serviceCode -> serviceCode.equalsIgnoreCase(candidateService.getServiceCode()));
+                    boolean existsByFullServiceCode = existingServices.stream()
+                            .map(s -> FormatUtils.getServiceFullName(s))
+                            .anyMatch(fullServiceCode -> fullServiceCode.equalsIgnoreCase(candidateFullServiceCode));
+                    return existsByFullServiceCode || existsByServiceCode;
+                })
                 .collect(Collectors.toSet());
 
         // throw error with service metadata if conflicted
-        if (!conflictedServices.isEmpty()) {
+        if (!duplicateServices.isEmpty()) {
             List<String> errorMetadata = new ArrayList();
-            for (ServiceType conflictedService : conflictedServices) {
+            for (ServiceType service : duplicateServices) {
                 // error metadata contains service name and service description url
-                errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
-                errorMetadata.add(conflictedService.getServiceDescription().getUrl());
+                errorMetadata.add(FormatUtils.getServiceFullName(service));
+                errorMetadata.add(service.getServiceDescription().getUrl());
             }
             throw new ServiceCodeAlreadyExistsException(errorMetadata);
         }
-    }
 
-    /**
-     * Creates combination of Services ServiceCode and version
-     *
-     * @param service
-     * @return String presentation
-     */
-    private String createServiceCodeAndVersionCombination(ServiceType service) {
-        String serviceCode = service.getServiceCode();
-        String serviceVersion = service.getServiceVersion() == null ? "" : service.getServiceVersion();
-        return serviceCode + serviceVersion;
     }
-
 
     /**
      * Add a new REST ServiceDescription
