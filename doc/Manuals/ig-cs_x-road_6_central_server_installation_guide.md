@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.13  
+Version: 2.14  
 Doc. ID: IG-CS
 
 ---
@@ -31,6 +31,7 @@ Doc. ID: IG-CS
 | 04.09.2019 | 2.11    | Update ports | Petteri Kivimäki |
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
 | 26.11.2019 | 2.13    | Add instructions for using remote database | Ilkka Seppälä
+| 29.04.2020 | 2.14    | Add instructions how to use remote database located in Microsoft Azure | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -169,7 +170,12 @@ Add X-Road package repository (**reference data: 1.1**)
 
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-      postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
+      postgres.connection.password = {database superuser password}
+      postgres.connection.username = {database superuser name, postgres by default}
+
+  If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. To enable this format set the following property.
+
+      postgres.connection.login_suffix = {@server name}
 
 Issue the following commands to install the central server packages:
 
