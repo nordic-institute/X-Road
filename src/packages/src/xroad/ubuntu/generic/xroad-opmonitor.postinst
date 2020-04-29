@@ -64,9 +64,9 @@ configure() {
 
     db_url=$(get_prop ${db_properties} op-monitor.hibernate.connection.url)
     db_user=$(get_prop ${db_properties} op-monitor.hibernate.connection.username "$db_user")
+    db_conn_user="${db_user}${suffix}"
     db_passwd=$(get_prop ${db_properties} op-monitor.hibernate.connection.password "$db_passwd")
     tmp_admin=$(get_prop ${root_properties} op-monitor.database.admin_password)
-    db_conn_admin="${tmp_admin}${suffix}"
     db_initialized=$(get_prop ${root_properties} op-monitor.database.initialized)
 
     if [[ "$db_url" =~ jdbc:postgresql://([^/]*)/ ]]; then
