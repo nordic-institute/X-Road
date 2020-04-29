@@ -131,7 +131,7 @@ configure() {
     crudini --set ${db_properties} '' op-monitor.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.batch_size 50
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
     crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
