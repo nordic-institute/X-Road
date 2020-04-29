@@ -48,7 +48,8 @@ setup_database() {
     crudini --set "${db_properties}" '' host "${db_addr}"
     crudini --set "${db_properties}" '' port "${db_port}"
 
-    local db_user=$(get_prop ${db_properties} 'username' 'centerui')
+    local suffix=$(get_prop ${root_properties} postgres.connection.login_suffix "")
+    local db_user=$(get_prop ${db_properties} 'username' "centerui${suffix}")
     local db_schema=$(get_prop ${db_properties} 'schema' "$db_user")
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
@@ -74,8 +75,8 @@ setup_database() {
         function psql_master() { local_psql "$@"; }
     fi
 
-    local db_plain_user=${db_user%%@*}
-    local db_plain_master=${db_master_user%%@*}
+    local db_plain_user=${db_user%$suffix}
+    local db_plain_master=${db_master_user%$suffix}
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
