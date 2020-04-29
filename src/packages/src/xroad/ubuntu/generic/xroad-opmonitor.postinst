@@ -23,7 +23,6 @@ configure() {
   db_conn_admin="${db_admin}"
   db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
   db_master_user=postgres
-  jdbc_user=""
   db_properties=/etc/xroad/db.properties
   root_properties=/etc/xroad.properties
 
@@ -42,12 +41,11 @@ configure() {
     export PGPASSWORD=${master_passwd}
     db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
     db_conn_master_user="${db_master_user}"
-    if [[ $(get_prop ${root_properties} postgres.connection.login.suffix) != "" ]]; then
-        suffix=$(get_prop ${root_properties} postgres.connection.login.suffix)
-        db_conn_user="${db_user}@${suffix}"
-        db_conn_admin="${db_admin}@${suffix}"
-        db_conn_master_user="${db_master_user}@${suffix}"
-        jdbc_user="?user=${db_conn_user}"
+    if [[ $(get_prop ${root_properties} postgres.connection.logix_suffix) != "" ]]; then
+        suffix=$(get_prop ${root_properties} postgres.connection.logix_suffix)
+        db_conn_user="${db_user}${suffix}"
+        db_conn_admin="${db_admin}${suffix}"
+        db_conn_master_user="${db_master_user}${suffix}"
     fi
 
     remote_psql() {
@@ -66,7 +64,6 @@ configure() {
   then
 
     db_url=$(get_prop ${db_properties} op-monitor.hibernate.connection.url)
-    jdbc_user=""
     db_user=$(get_prop ${db_properties} op-monitor.hibernate.connection.username "$db_user")
     db_passwd=$(get_prop ${db_properties} op-monitor.hibernate.connection.password "$db_passwd")
     tmp_admin=$(get_prop ${root_properties} op-monitor.database.admin_password)
@@ -134,7 +131,7 @@ configure() {
     crudini --set ${db_properties} '' op-monitor.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.batch_size 50
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}${jdbc_user}"
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
     crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
