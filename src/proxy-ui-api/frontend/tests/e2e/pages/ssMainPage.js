@@ -239,12 +239,12 @@ module.exports = {
   },
   sections: {
     clientsTab: {
-      selector: '//div[contains(@class, "data-table-wrapper") and .//button[.//*[contains(text(), "add client")]]]',
+      selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Clients")]]//div[contains(@class, "base-full-width")]',
       locateStrategy: 'xpath',
       commands: [clientTabCommands],
       elements: {
         addClientButton: { 
-          selector: '//div[contains(@class, "v-btn__content") and text()="Add client"]',
+          selector: '//button[.//*[contains(text(), "add client")]]',
           locateStrategy: 'xpath' },
         listNameHeader: { 
           selector: '//th[span[contains(text(),"Name")]]', 
@@ -339,6 +339,13 @@ module.exports = {
           }      
         }
       }     
+    },
+    keysTab: {
+      selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
+      locateStrategy: 'xpath',
+      commands: [],
+      elements: {
+      }
     },
     certificatePopup: {
       selector: '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "cert-headline") and contains(text(),"Certificate")]]',
