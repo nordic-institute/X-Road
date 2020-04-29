@@ -98,7 +98,7 @@ setup_database() {
             db_conn_user="${db_user}${suffix}"
         fi
         function psql_master() {
-            PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
+            PGPASSWORD="${db_master_passwd}" PGUSER="${db_conn_master_user}" remote_psql "$@"
         }
     else
         function psql_master() { local_psql "$@"; }
