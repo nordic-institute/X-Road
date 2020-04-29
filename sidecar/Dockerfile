@@ -27,7 +27,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 RUN pg_ctlcluster 10 main start \
 && apt-get -qq update \
-&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin xroad-addon-messagelog \
+&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin \
 && su - postgres -c "psql postgres -tAc \"DROP DATABASE serverconf;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP USER serverconf;\"" \
 && apt-get -qq clean \
