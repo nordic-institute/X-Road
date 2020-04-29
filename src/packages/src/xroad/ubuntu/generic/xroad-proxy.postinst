@@ -54,10 +54,9 @@ setup_database() {
     local tmp_password="$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")"
     local db_user=$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')
     local db_conn_user="${db_user}"
-    local db_schema="$db_user"
+    local db_schema="${db_user}"
     local db_password=$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "$tmp_password")
     local db_url=$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")
-    local jdbc_user=""
     local db_master_user=postgres
     local db_database=serverconf
     local db_options=""
@@ -89,11 +88,10 @@ setup_database() {
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
         db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
         db_conn_master_user="${db_master_user}"
-        if [[ $(get_prop ${root_properties} postgres.connection.login.suffix) != "" ]]; then
-            suffix=$(get_prop ${root_properties} postgres.connection.login.suffix)
+        if [[ $(get_prop ${root_properties} postgres.connection.login_suffix) != "" ]]; then
+            suffix=$(get_prop ${root_properties} postgres.connection.login_suffix)
             db_conn_master_user="${db_master_user}@${suffix}"
             db_conn_user="${db_user}@${suffix}"
-            jdbc_user="?user=${db_conn_user}"
         fi
         function psql_master() {
             PGPASSWORD="${db_master_passwd}" PGUSER="${db_conn_master_user}" remote_psql "$@"
@@ -131,7 +129,7 @@ EOF
     crudini --set ${db_properties} '' serverconf.hibernate.jdbc.use_streams_for_binary true
     crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' serverconf.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options$jdbc_user"
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
     crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_user}"
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password "${db_password}"
 
