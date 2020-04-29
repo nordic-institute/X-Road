@@ -53,7 +53,7 @@ setup_database() {
     local db_schema=$(get_prop ${db_properties} 'schema' "$db_user")
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
-    local db_master_user=postgres
+    local db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
 
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
@@ -67,7 +67,7 @@ setup_database() {
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-        db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        db_master_user="${db_master_user}${suffix}"
         function psql_master() {
             PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
         }
