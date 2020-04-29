@@ -190,7 +190,7 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS_NONONO')")
     public ResponseEntity<Client> getClient(String id) {
         ClientType clientType = getClientType(id);
         Client client = clientConverter.convert(clientType);
