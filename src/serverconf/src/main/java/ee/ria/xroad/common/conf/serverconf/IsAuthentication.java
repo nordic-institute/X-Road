@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -101,9 +102,19 @@ public enum IsAuthentication {
             try {
                 auth.getCert().checkValidity();
             } catch (CertificateExpiredException e) {
-                log.warn("Client {} TLS certificate is expired", client);
+                if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+                    throw new CodedException(X_SSL_AUTH_FAILED,
+                            "Client (%s) TLS certificate is expired", client);
+                } else {
+                    log.warn("Client {} TLS certificate is expired", client);
+                }
             } catch (CertificateNotYetValidException e) {
-                log.warn("Client {} TLS certificate is not yet valid", client);
+                if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+                    throw new CodedException(X_SSL_AUTH_FAILED,
+                            "Client (%s) TLS certificate is not yet valid", client);
+                } else {
+                    log.warn("Client {} TLS certificate is not yet valid", client);
+                }
             }
         }
     }
