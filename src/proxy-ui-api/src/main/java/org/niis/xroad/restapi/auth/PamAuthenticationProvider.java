@@ -29,7 +29,9 @@ import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.domain.Role;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -38,7 +40,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,22 +47,63 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
+
 /**
  * PAM authentication provider.
  * Application has to be run as a user who has read access to /etc/shadow (
  * likely means that belongs to group shadow)
  * roles are granted with user groups, mappings in {@link Role}
+ *
+ * Authentication is limited with an IP whitelist.
  */
 @Slf4j
-@Component
+@Configuration
 @Profile("!devtools-test-auth")
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
 
-    @Autowired
-    private GrantedAuthorityMapper grantedAuthorityMapper;
+    public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
+    public static final String FORM_LOGIN_PAM_AUTHENTICATION = "formLoginPam";
+    // allow all ipv4 and ipv6
+    private static final Iterable<String> FORM_LOGIN_IP_WHITELIST =
+            Arrays.asList("::/0", "0.0.0.0/0");
+
+    private final AuthenticationIpWhitelist authenticationIpWhitelist;
+    private final GrantedAuthorityMapper grantedAuthorityMapper;
+
+    /**
+     * constructor
+     * @param authenticationIpWhitelist whitelist that limits the authentication
+     */
+    public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
+            GrantedAuthorityMapper grantedAuthorityMapper) {
+        this.authenticationIpWhitelist = authenticationIpWhitelist;
+        this.grantedAuthorityMapper = grantedAuthorityMapper;
+    }
+
+    /**
+     * PAM authentication for form login, with corresponding IP whitelist
+     * @return
+     */
+    @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
+    public PamAuthenticationProvider formLoginPamAuthentication() {
+        AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
+        formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
+        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper);
+    }
+
+    /**
+     * PAM authentication for key management API, with corresponding IP whitelist
+     * @return
+     */
+    @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
+    public PamAuthenticationProvider keyManagementWhitelist(
+            @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
+        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper);
+    }
 
     /**
      * users with these groups are allowed access
@@ -73,6 +115,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        authenticationIpWhitelist.validateIpAddress(authentication);
         String username = String.valueOf(authentication.getPrincipal());
         String password = String.valueOf(authentication.getCredentials());
         PAM pam;

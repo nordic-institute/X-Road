@@ -6,7 +6,8 @@
     "member_code": "2000",
     "subsystem_code": "POP1",
     "created": null,
-    "status": "global error"
+    "status": "global error",
+    "owner": false
   },
   {
     "id": "CS:GOV:3000:POP2",
@@ -15,7 +16,8 @@
     "member_code": "3000",
     "subsystem_code": "POP2",
     "created": null,
-    "status": "global error"
+    "status": "global error",
+    "owner": false
   },
   {
     "id": "CS:GOV:1234:SUBS1",
@@ -24,7 +26,8 @@
     "member_code": "1234",
     "subsystem_code": "SUBS1",
     "created": null,
-    "status": "saved"
+    "status": "saved",
+    "owner": false
   },
   {
     "id": "CS:GOV:1234:MANAGEMENT",
@@ -33,7 +36,8 @@
     "member_code": "1234",
     "subsystem_code": "MANAGEMENT",
     "created": null,
-    "status": "saved"
+    "status": "saved",
+    "owner": false
   },
   {
     "id": "CS:GOV:1234",
@@ -42,6 +46,7 @@
     "member_code": "1234",
     "subsystem_code": null,
     "created": null,
-    "status": "saved"
+    "status": "saved",
+    "owner": true
   }
 ]

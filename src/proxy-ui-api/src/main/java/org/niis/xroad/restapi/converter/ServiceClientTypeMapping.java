@@ -27,65 +27,65 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Getter;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between SubjectType in api (enum) and model (XRoadObjectType)
+ * Mapping between ServiceClientType in api (enum) and model (XRoadObjectType)
  */
 @Getter
-public enum SubjectTypeMapping {
-    SUBSYSTEM(XRoadObjectType.SUBSYSTEM, SubjectType.SUBSYSTEM),
-    LOCALGROUP(XRoadObjectType.LOCALGROUP, SubjectType.LOCALGROUP),
-    GLOBALGROUP(XRoadObjectType.GLOBALGROUP, SubjectType.GLOBALGROUP);
+public enum ServiceClientTypeMapping {
+    SUBSYSTEM(XRoadObjectType.SUBSYSTEM, ServiceClientType.SUBSYSTEM),
+    LOCALGROUP(XRoadObjectType.LOCALGROUP, ServiceClientType.LOCALGROUP),
+    GLOBALGROUP(XRoadObjectType.GLOBALGROUP, ServiceClientType.GLOBALGROUP);
 
     private final XRoadObjectType xRoadObjectType;
-    private final SubjectType subjectType;
+    private final ServiceClientType serviceClientType;
 
-    SubjectTypeMapping(XRoadObjectType xRoadObjectType, SubjectType subjectType) {
+    ServiceClientTypeMapping(XRoadObjectType xRoadObjectType, ServiceClientType serviceClientType) {
         this.xRoadObjectType = xRoadObjectType;
-        this.subjectType = subjectType;
+        this.serviceClientType = serviceClientType;
     }
 
     /**
-     * Return matching SubjectType, if any
+     * Return matching ServiceClientType, if any
      * @param xRoadObjectType
      * @return
      */
-    public static Optional<SubjectType> map(XRoadObjectType xRoadObjectType) {
-        return getFor(xRoadObjectType).map(SubjectTypeMapping::getSubjectType);
+    public static Optional<ServiceClientType> map(XRoadObjectType xRoadObjectType) {
+        return getFor(xRoadObjectType).map(ServiceClientTypeMapping::getServiceClientType);
     }
 
     /**
      * Return matching XRoadObjectType, if any
-     * @param subjectType
+     * @param serviceClientType
      * @return
      */
-    public static Optional<XRoadObjectType> map(SubjectType subjectType) {
-        return getFor(subjectType).map(SubjectTypeMapping::getXRoadObjectType);
+    public static Optional<XRoadObjectType> map(ServiceClientType serviceClientType) {
+        return getFor(serviceClientType).map(ServiceClientTypeMapping::getXRoadObjectType);
     }
 
     /**
-     * return SubjectTypeMapping matching the given xRoadObjectType, if any
+     * return ServiceClientTypeMapping matching the given xRoadObjectType, if any
      * @param xRoadObjectType
      * @return
      */
-    public static Optional<SubjectTypeMapping> getFor(XRoadObjectType xRoadObjectType) {
+    public static Optional<ServiceClientTypeMapping> getFor(XRoadObjectType xRoadObjectType) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.xRoadObjectType.equals(xRoadObjectType))
                 .findFirst();
     }
 
     /**
-     * return SubjectTypeMapping matching the given subjectType, if any
-     * @param subjectType
+     * return ServiceClientTypeMapping matching the given serviceClientType, if any
+     * @param serviceClientType
      * @return
      */
-    public static Optional<SubjectTypeMapping> getFor(SubjectType subjectType) {
+    public static Optional<ServiceClientTypeMapping> getFor(ServiceClientType serviceClientType) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.subjectType.equals(subjectType))
+                .filter(mapping -> mapping.serviceClientType.equals(serviceClientType))
                 .findFirst();
     }
 

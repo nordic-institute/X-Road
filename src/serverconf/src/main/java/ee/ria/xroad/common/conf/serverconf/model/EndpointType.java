@@ -76,4 +76,15 @@ public class EndpointType {
                 && other.getMethod().equals(method)
                 && other.getPath().equals(path);
     }
+
+    /**
+     * Return true is this endpoint is base endpoint and false otherwise.
+     *
+     * Base endpoint is in other words service (code) level endpoint.
+     * Each service has one base endpoint.
+     * Base endpoint has method '*' and path '**'.
+     */
+    public final boolean isBaseEndpoint() {
+        return this.method.equals(ANY_METHOD) && this.path.equals(ANY_PATH);
+    }
 }

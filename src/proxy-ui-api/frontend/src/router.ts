@@ -40,6 +40,7 @@ import EndpointAccessRights from '@/views/Service/Endpoints/Endpoint/EndpointAcc
 import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
+import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -65,7 +66,7 @@ const router = new Router({
               path: '',
               component: SignAndAuthKeys,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+              meta: { permission: Permissions.VIEW_KEYS },
             },
             {
               name: RouteName.ApiKey,
@@ -129,9 +130,12 @@ const router = new Router({
         },
         {
           name: RouteName.AddSubsystem,
-          path: '/add-subsystem',
+          path: '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
           components: {
             default: AddSubsystem,
+          },
+          props: {
+            default: true,
           },
         },
         {
@@ -259,6 +263,14 @@ const router = new Router({
           },
           props: { default: true },
           meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS },
+        },
+        {
+          name: RouteName.ServiceClientAccessRights,
+          path: '/subsystem/:id/serviceclients/:serviceClientId',
+          props: { default: true },
+          components: {
+            default: ServiceClientAccessRights,
+          },
         },
         {
           name: RouteName.LocalGroup,

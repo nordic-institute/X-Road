@@ -22,35 +22,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dto;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.identifier.XRoadId;
-
-import lombok.Data;
-
-import java.time.OffsetDateTime;
+import org.niis.xroad.restapi.domain.AlertData;
+import org.niis.xroad.restapi.dto.AlertStatus;
+import org.springframework.stereotype.Component;
 
 /**
- * DTO for Service and ServiceClient access rights
+ * Converter for AlertData related data between openapi and service domain classes
  */
-@Data
-public class AccessRightHolderDto {
-    /**
-     * primary key of a LocalGroup - NULL if not a LOCALGROUP
-     */
-    private String localGroupId;
-    /**
-     * localGroupCode - NULL if not a LOCALGROUP
-     */
-    private String localGroupCode;
-    /**
-     * localGroupDescription - NULL if not a LOCALGROUP
-     */
-    private String localGroupDescription;
-    /**
-     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
-     */
-    private String memberName;
-    private XRoadId subjectId;
-    private OffsetDateTime rightsGiven;
+@Component
+public class AlertDataConverter {
+
+    public AlertData convert(AlertStatus alertStatus) {
+        AlertData alertData = new AlertData();
+        if (alertStatus.getBackupRestoreRunningSince() != null) {
+            alertData.setBackupRestoreRunningSince(alertStatus.getBackupRestoreRunningSince());
+            alertData.setCurrentTime(alertStatus.getCurrentTime());
+        }
+        alertData.setGlobalConfValid(alertStatus.getGlobalConfValid());
+        alertData.setSoftTokenPinEntered(alertStatus.getSoftTokenPinEntered());
+        return alertData;
+    }
 }

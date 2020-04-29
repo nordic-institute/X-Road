@@ -28,10 +28,12 @@ import ee.ria.xroad.common.CodedException;
 
 import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
@@ -44,6 +46,13 @@ import java.util.List;
 public class ExceptionTranslator {
 
     public static final String CORE_CODED_EXCEPTION_PREFIX = "core.";
+
+    private final ValidationErrorHelper validationErrorHelper;
+
+    @Autowired
+    public ExceptionTranslator(ValidationErrorHelper validationErrorHelper) {
+        this.validationErrorHelper = validationErrorHelper;
+    }
 
     /**
      * Create ResponseEntity<ErrorInfo> from an Exception.
@@ -81,9 +90,12 @@ public class ExceptionTranslator {
             Deviation deviation = new Deviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(),
                     c.getFaultString());
             errorDto.setError(convert(deviation));
+        } else if (e instanceof MethodArgumentNotValidException) {
+            errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));
         }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
     }
+
 
     private CodeWithMetadata convert(Deviation deviation) {
         CodeWithMetadata result = new CodeWithMetadata();

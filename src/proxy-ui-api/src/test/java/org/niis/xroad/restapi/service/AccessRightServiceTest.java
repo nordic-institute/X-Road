@@ -30,12 +30,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -94,6 +96,9 @@ public class AccessRightServiceTest {
     @MockBean
     GlobalConfService globalConfService;
 
+    @Autowired
+    ServiceClientService serviceClientService;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
@@ -115,36 +120,36 @@ public class AccessRightServiceTest {
 
     @Test
     public void findAllAccessRightHolders() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, null, null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, null, null);
         assertEquals(7, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByMemberOrGroupCode() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, "1", null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, "1", null);
         assertEquals(4, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByMemberOrGroupCodeNoResults() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, "öäöäöäöäöäöä", null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, "öäöäöäöäöäöä", null);
         assertEquals(0, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByInstance() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, TestUtils.INSTANCE_EE, null, null, null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, TestUtils.INSTANCE_EE, null, null, null);
         assertEquals(4, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
     }
 
@@ -159,7 +164,7 @@ public class AccessRightServiceTest {
         subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        List<AccessRightHolderDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
+        List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
         assertEquals(3, dtos.size());
     }
@@ -178,10 +183,10 @@ public class AccessRightServiceTest {
         subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        List<AccessRightHolderDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
+        List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
         assertEquals(3, dtos.size());
-        AccessRightHolderDto persistedSs3 = dtos.stream()
+        ServiceClientDto persistedSs3 = dtos.stream()
                 .filter(accessRightHolderDto -> accessRightHolderDto.getSubjectId().equals(ss3))
                 .findFirst().get();
         ClientId ss3PersistedSubjectId = (ClientId) persistedSs3.getSubjectId();
@@ -224,7 +229,7 @@ public class AccessRightServiceTest {
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L); // this is a LocalGroup with groupCode 'group1' in data.sql
-        List<AccessRightHolderDto> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
+        List<ServiceClientDto> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, null, localGroupIds);
         assertEquals(LocalGroupId.create(TestUtils.DB_LOCAL_GROUP_CODE), aclHolders.get(0).getSubjectId());
     }
@@ -238,5 +243,39 @@ public class AccessRightServiceTest {
         localGroupIds.add(1L);
         accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_BMI_OLD, null,
                 localGroupIds);
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void getClientServiceClientsFromUnexistingClient() throws Exception {
+        serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));
+    }
+
+    @Test
+    public void getClientServiceClients() throws Exception {
+        ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");
+        List<ServiceClientDto> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
+        assertTrue(serviceClients1.size() == 1);
+
+        ServiceClientDto arh1 = serviceClients1.get(0);
+        assertTrue(arh1.getSubjectId().getObjectType().equals(XRoadObjectType.SUBSYSTEM));
+        assertNull(arh1.getLocalGroupCode());
+        assertNull(arh1.getLocalGroupDescription());
+        assertNull(arh1.getLocalGroupId());
+        assertTrue(arh1.getSubjectId().getXRoadInstance().equals("FI"));
+
+        ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
+        assertTrue(serviceClientService.getServiceClientsByClient(clientId2).isEmpty());
+
+        ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
+        List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
+        assertTrue(serviceClients3.size() == 3);
+        assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));
+        assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.LOCALGROUP)));
+        assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.SUBSYSTEM)
+                && arh.getSubjectId().getXRoadInstance().equals("FI")));
+
     }
 }

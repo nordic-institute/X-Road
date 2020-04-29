@@ -57,6 +57,8 @@ public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter 
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
             .csrf()
+                .disable()
+            .formLogin()
                 .disable();
     }
 }
