@@ -80,9 +80,6 @@ setup_database() {
 
     local_psql() { su -l -c "psql -qtA -p ${db_port:-5432} ${*@Q}" postgres; }
     remote_psql() { psql -h "${db_addr:-127.0.0.1}" -p "${db_port:-5432}" -qtA "$@"; }
-    psql_dbuser() {
-        PGDATABASE="${db_database}" PGUSER="${db_conn_user}" PGPASSWORD="${db_password}" remote_psql "$@"
-    }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
@@ -99,6 +96,10 @@ setup_database() {
     else
         function psql_master() { local_psql "$@"; }
     fi
+
+    psql_dbuser() {
+        PGDATABASE="${db_database}" PGUSER="${db_conn_user}" PGPASSWORD="${db_password}" remote_psql "$@"
+    }
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
