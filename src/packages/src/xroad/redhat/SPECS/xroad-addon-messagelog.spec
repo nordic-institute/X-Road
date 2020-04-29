@@ -91,7 +91,7 @@ if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' messagelog.hib
 then
     db_url=`crudini --get ${db_properties} '' messagelog.hibernate.connection.url`
     db_user=`crudini --get ${db_properties} '' messagelog.hibernate.connection.username`
-    db_conn_user="${db_user}"
+    db_conn_user="${db_user}${suffix}"
     db_passwd=`crudini --get ${db_properties} '' messagelog.hibernate.connection.password`
 fi
 
