@@ -4,6 +4,8 @@ abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
 dump_file="$1"
 db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
+
 db_host="127.0.0.1:5432"
 db_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
 db_schema="$db_user"
@@ -11,6 +13,8 @@ db_password="$(get_prop ${db_properties} 'serverconf.hibernate.connection.passwo
 db_url="$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
 db_database=serverconf
 pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
+db_admin_user=$(get_prop ${root_properties} 'serverconf.admin.username' "$db_user")
+db_admin_password=$(get_prop ${root_properties} 'serverconf.admin.password' "$db_password")
 
 pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
 if [[ "$db_url" =~ $pat ]]; then
@@ -28,13 +32,31 @@ remote_psql() {
 }
 
 psql_dbuser() {
-  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
+  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
 }
 
 { cat <<EOF
-BEGIN;
+BEGIN;                                        https://goforeoy.sharepoint.com/sites/Vuokko
 DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
 EOF
   cat "$dump_file"
   echo "COMMIT;"
 } | psql_dbuser || abort "Restoring database failed."
+
+cd /usr/share/xroad/db/
+
+context="--contexts=user"
+if [[ "$db_user" != "$db_admin_user" ]]; then
+    context="--contexts=admin"
+fi
+
+JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
+  --classpath=/usr/share/xroad/jlib/proxy.jar \
+  --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
+  --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml \
+  --password="${db_admin_password}" \
+  --username="${db_admin_user}" \
+  --defaultSchemaName="${db_schema}" \
+  $context \
+  update \
+  || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
