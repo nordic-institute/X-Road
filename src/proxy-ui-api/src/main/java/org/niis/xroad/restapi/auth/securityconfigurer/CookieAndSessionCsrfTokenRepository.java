@@ -29,7 +29,6 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -40,8 +39,10 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 /**
- * Implements functionality from both: HttpSessionCsrfTokenRepository and CookieCsrfTokenRepository.
- * This way we get the same token in session and the csrf cookie
+ * Implements (and copies) functionalities from two csrf repositories:
+ * {@link org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository HttpSessionCsrfTokenRepository}
+ * and {@link org.springframework.security.web.csrf.CookieCsrfTokenRepository CookieCsrfTokenRepository}.
+ * This way we get the same token in session and csrf cookie
  */
 public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository {
     public static final String DEFAULT_CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -73,7 +74,7 @@ public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository 
     }
 
     /**
-     * Saves a new token.
+     * Saves a new token in session and adds that token in to a response cookie
      * @param token token to be saved. The value of the token should not be empty or null
      * @param request
      * @param response
@@ -139,20 +140,14 @@ public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository 
 
     /**
      * @see org.springframework.security.web.csrf.CookieCsrfTokenRepository#setCookieHttpOnly(boolean)
+     * CookieCsrfTokenRepository#setCookieHttpOnly(boolean)
      */
     public void setCookieHttpOnly(boolean cookieHttpOnly) {
         if (cookieHttpOnly && setHttpOnlyMethod == null) {
             throw new IllegalArgumentException(
-                    "Cookie will not be marked as HttpOnly because you are using a version of Servlet less than 3.0. NOTE: The Cookie#setHttpOnly(boolean) was introduced in Servlet 3.0.");
+                    "Cookie will not be marked as HttpOnly because you are using a version of Servlet " +
+                            "less than 3.0. NOTE: The Cookie#setHttpOnly(boolean) was introduced in Servlet 3.0.");
         }
         this.cookieHttpOnly = cookieHttpOnly;
-    }
-
-    /**
-     * Checks whether session cookie auth, or some other (api key) auth was used.
-     * Purely based on existence of JSESSIONID cookie.
-     */
-    private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
-        return WebUtils.getCookie(request, "JSESSIONID") != null;
     }
 }

@@ -26,9 +26,6 @@ package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
-import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.csrf.CsrfException;
@@ -48,7 +45,7 @@ import java.io.IOException;
 
 /**
  * Filter which adds some additional csrf token validation. Should be placed right after the default
- * {@link org.springframework.security.web.csrf.CsrfFilter}
+ * {@link org.springframework.security.web.csrf.CsrfFilter CsrfFilter}
  */
 @Slf4j
 public class CsrfValidationFilter extends OncePerRequestFilter {
@@ -68,6 +65,7 @@ public class CsrfValidationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // From here on we will validate that the token exists in header, cookie and session and that they all match
         String headerCsrfTokenValue = getHeaderCsrfTokenValue(servletRequest);
         if (headerCsrfTokenValue == null) {
             String headerCsrfError = "CSRF token not found in header";

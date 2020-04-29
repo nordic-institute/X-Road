@@ -39,7 +39,6 @@ import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -78,7 +77,7 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 .authenticationEntryPoint(http401AuthenticationEntryPoint)
                 .and()
             .csrf()
-                // we require csrf protection only if session cookie-authentication is used
+                // we require csrf protection only if there is a session alive
                 .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::isSessionCookieAuthenticated)
                 // CsrfFilter always generates a new token in the repo -> prevent with lazy
                 .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
@@ -96,11 +95,10 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
     }
 
     /**
-     * Checks whether session cookie auth, or some other (api key) auth was used.
-     * Purely based on existence of JSESSIONID cookie.
+     * Check if an alive session exists
      */
     private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
-        return WebUtils.getCookie(request, "JSESSIONID") != null;
+        return request.getSession(false) != null;
     }
 
     /**
