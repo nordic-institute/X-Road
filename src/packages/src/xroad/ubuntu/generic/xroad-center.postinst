@@ -68,7 +68,6 @@ setup_database() {
             db_conn_master_user="${db_master_user}@${suffix}"
             db_conn_user="${db_user}@${suffix}"
             crudini --set "${db_properties}" '' username "${db_conn_user}"
-            crudini --set "${db_properties}" '' login-suffix "${suffix}"
         fi
         function psql_master() {
             PGPASSWORD="${db_master_passwd}" PGUSER="${db_conn_master_user}" remote_psql "$@"

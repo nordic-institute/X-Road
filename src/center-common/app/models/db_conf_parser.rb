@@ -51,17 +51,12 @@ class DbConfParser
       db_conf["url"] = ini_conf.getString("url")
     end
 
-    suffix = ""
-    if ini_conf.get_string("login-suffix")
-      suffix = "?user=" + ini_conf.get_string("username") + "@" + ini_conf.get_string("login-suffix")
-    end
-
     if db_conf["adapter"] == "postgresql" && ini_conf.get_string("secondary_hosts")
       secondary_hosts = ini_conf.get_string("secondary_hosts").split("\s*,\s*")
                             .map { |x| x.include?(":") ? x : "#{x}:#{db_conf["port"]}" }
                             .join(",")
       db_conf["url"] =
-          "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}#{suffix}"
+          "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}"
       db_conf[:properties] = {
           targetServerType: "master",
       }
