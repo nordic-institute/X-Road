@@ -1,5 +1,7 @@
 package org.niis.xroad.restapi.config.audit;
 
+import ee.ria.xroad.common.AuditLogger;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
@@ -30,4 +32,17 @@ public class AuditEventHolder {
     public void addData(String propertyName, Object value) {
         eventData.put(propertyName, value);
     }
+
+    private static final String PREFIX = "-----------------oooooooooooooo---------------- ";
+
+    public void auditLog(String s) {
+        AuditLogger.log(PREFIX + s);
+        AuditLogger.log(getEventName(), getEventData());
+    }
+
+    public void auditLogFail(String s) {
+        AuditLogger.log(PREFIX + s);
+        AuditLogger.log(getEventName() + " failed!", getEventData());
+    }
+
 }

@@ -1,7 +1,5 @@
 package org.niis.xroad.restapi.config.audit;
 
-import ee.ria.xroad.common.AuditLogger;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -33,28 +31,28 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
         } else {
             auditEventHolder.setEventName(null);
         }
-        auditLog("method handler preHandle");
+//        auditLog("method handler preHandle");
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        auditLog("method handler postHandle");
+        auditEventHolder.auditLog("method handler postHandle");
         HandlerMethod method = (HandlerMethod) handler;
-        log.info("postHandle " + method);
+//        log.info("postHandle " + method);
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        auditLog("method handler afterCompletion");
+//        auditEventHolder.auditLog("method handler afterCompletion");
         HandlerMethod method = (HandlerMethod) handler;
-        log.info("afterCompletion " + method);
+//        log.info("afterCompletion " + method);
     }
 
-    private static final String PREFIX = "-----------------oooooooooooooo---------------- ";
-
-    private void auditLog(String s) {
-        AuditLogger.log(PREFIX + s);
-        AuditLogger.log(auditEventHolder.getEventName(), auditEventHolder.getEventData());
-    }
+//    private static final String PREFIX = "-----------------oooooooooooooo---------------- ";
+//
+//    private void auditLog(String s) {
+//        AuditLogger.log(PREFIX + s);
+//        AuditLogger.log(auditEventHolder.getEventName(), auditEventHolder.getEventData());
+//    }
 }

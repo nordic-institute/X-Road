@@ -25,8 +25,10 @@
 package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventHolder;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -44,6 +46,11 @@ public class ApplicationExceptionHandler {
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
+    @Autowired
+    @Lazy
+    // TO DO: exceptions may get thrown without requests
+    private AuditEventHolder auditEventHolder;
+
     /**
      * handle exceptions
      * @param e
@@ -51,6 +58,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
+        auditEventHolder.auditLogFail("ApplicationExceptionHandler");
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -62,6 +70,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
+        auditEventHolder.auditLogFail("ApplicationExceptionHandler");
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
@@ -73,6 +82,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
+        auditEventHolder.auditLogFail("ApplicationExceptionHandler");
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
     }
