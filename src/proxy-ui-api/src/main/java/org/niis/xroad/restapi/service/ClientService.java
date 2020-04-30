@@ -45,7 +45,6 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.util.ClientUtils;
-import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -614,11 +613,7 @@ public class ClientService {
     private boolean hasValidLocalSignCertCheck(ClientType clientType) {
         List<CertificateInfo> signCertificateInfos = currentSecurityServerSignCertificates
                 .getSignCertificateInfos();
-        try {
-            return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
-        } catch (OcspUtils.OcspStatusExtractionException e) {
-            throw new DeviationAwareRuntimeException("Error while extracting OCSP status from certificate", e);
-        }
+        return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
     }
 
     /**
