@@ -88,6 +88,12 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 
+export type ServiceCandidate = {
+  service_code: string,
+  service_title?: string,
+  id: string,
+}
+
 export default Vue.extend({
   components: {
     SubViewTitle,
@@ -114,7 +120,7 @@ export default Vue.extend({
     };
   },
   methods: {
-    fetchData() {
+    fetchData(): void {
 
       this.fetchAccessRights();
 
@@ -130,7 +136,7 @@ export default Vue.extend({
         })
         .catch( (error: any) => this.$store.dispatch('showError', error));
     },
-    fetchAccessRights() {
+    fetchAccessRights(): void {
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
         .then( (response: any) => this.accessRights = response.data)
@@ -163,7 +169,7 @@ export default Vue.extend({
     removeAll(): void {
       // NOOP
     },
-    serviceCandidates(): any[] {
+    serviceCandidates(): ServiceCandidate[] {
       // returns whether given access right is for given service
       const isNotAccessRightToService = (service: Service, accessRight: AccessRight) =>
         accessRight.service_code !== service.service_code;
@@ -179,7 +185,7 @@ export default Vue.extend({
         // filter out services where this service client has access right already
         .filter( (service: Service) => noAccessRightsToService(service))
         // map to service candidates
-        .map( (service: Service) => ({
+        .map( (service: Service): ServiceCandidate => ({
           service_code: service.service_code,
           service_title: service.title,
           id: service.id, // add id for UI components to work in loop

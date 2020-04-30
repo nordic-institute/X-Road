@@ -52,6 +52,7 @@
   import Vue from 'vue';
   import SimpleDialog from '@/components/ui/SimpleDialog.vue';
   import {AccessRight} from '@/types';
+  import {ServiceCandidate} from "@/views/Clients/ServiceClients/ServiceClientAccessRights.vue";
   export default Vue.extend({
     components: {
       SimpleDialog,
@@ -88,7 +89,7 @@
       clear(): void {
         this.selections = [];
       },
-      searchResults(): any {
+      searchResults(): ServiceCandidate[] {
         return this.serviceCandidates.filter( (candidate: any) => candidate.service_code.includes(this.search));
       },
       filterSelections(): AccessRight[] {
