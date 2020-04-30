@@ -9,7 +9,7 @@ abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
 DUMP_FILE=$1
 USER=$(get_db_prop 'username' 'centerui')
-SCHEMA=$(get_db_prop 'schema' "$USER")
+SCHEMA=$(get_db_prop 'schema' 'centerui')
 PASSWORD=$(get_db_prop 'password' 'centerui')
 DATABASE=$(get_db_prop 'database' 'centerui_production')
 HOST=$(get_db_prop 'host' '127.0.0.1')
@@ -41,7 +41,7 @@ detect_bdr()  {
 
 if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
     master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-    MASTER_USER=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+    MASTER_USER=$(get_prop ${root_properties} postgres.connection.user 'postgres')$(get_prop ${root_properties} postgres.connection.login_suffix '')
     function psql_master() {
         PGUSER="$MASTER_USER" PGPASSWORD="$master_passwd" remote_psql "$@"
     }

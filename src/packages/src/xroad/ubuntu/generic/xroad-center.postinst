@@ -50,7 +50,7 @@ setup_database() {
 
     local suffix=$(get_prop ${root_properties} postgres.connection.login_suffix "")
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')"${suffix}"
-    local db_schema=$(get_prop ${db_properties} 'schema' "$db_user")
+    local db_schema=$(get_prop ${db_properties} 'schema' 'centerui')
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
     local db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
