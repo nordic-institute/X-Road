@@ -62,6 +62,7 @@ Doc. ID: UG-SYSPAR
 | 11.12.2019 | 2.50     | Added new Central Server parameter *ha-node-name* | Jarkko Hyöty |
 | 03.04.2020 | 2.51     | Removed proxy parameter allow-get-wsdl-request. | Petteri Kivimäki |
 | 12.04.2020 | 2.52     | Updated *connector-host* property EE-package value. | Petteri Kivimäki |
+| 30.04.2020 | 2.53     | Added new parameter *enforce-certificate-validity-period-check* | Märten Soo |
 
 ## Table of Contents
 
@@ -261,7 +262,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-client-cache-size                    | 100                                        |   |   | Maximum number of local clients to keep cached |
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
-
+| enforce-certificate-validity-period-check        | false                                      |   |   | Whether to throw an exception about expired or not yet valid certificates. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:
