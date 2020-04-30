@@ -38,9 +38,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.TimeZone;
 
 import static ee.ria.xroad.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
 import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
@@ -124,11 +125,9 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         if (anchorError == null) {
             System.out.println("Instance identifier: "
                     + anchor.getInstanceIdentifier());
-            SimpleDateFormat sdf =
-                    new SimpleDateFormat("z yyyy-MMM-d hh:mm:ss");
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             System.out.println("Generated at:        "
-                    + sdf.format(anchor.getGeneratedAt()));
+                    + ZonedDateTime.ofInstant(anchor.getGeneratedAt().toInstant(),
+                    ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
             System.out.println("Hash:                "
                     + anchorHash(conf));
         } else {
