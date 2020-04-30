@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -73,7 +75,19 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
     @Override
     protected void validateNormalResponse(Message receivedResponse)
             throws Exception {
-        // Normal response, nothing more to check here.
+        if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+            throw new Exception("Received normal response, fault was expected");
+        }
+    }
+
+    @Override
+    protected void validateFaultResponse(Message response) throws Exception {
+        if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+            assertErrorCode(ErrorCodes.SERVER_CLIENTPROXY_X, ErrorCodes.X_SSL_AUTH_FAILED);
+        } else {
+            throw new Exception(
+                    "Received fault response, answer was expected");
+        }
     }
 
     @Override
@@ -85,6 +99,4 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
     public char[] getKeyStorePassword() {
         return TestCertUtil.getKeyStorePassword("expiredClient");
     }
-
-
 }
