@@ -88,10 +88,10 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 
-export type ServiceCandidate = {
-  service_code: string,
-  service_title?: string,
-  id: string,
+export interface ServiceCandidate {
+  service_code: string;
+  service_title?: string;
+  id: string;
 }
 
 export default Vue.extend({
