@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,42 +45,44 @@ public class AuditAspect {
 
     @Before(value = "execution(* org.niis.xroad.restapi.service.ClientService.*(..)))")
     public void beforeAdvice(JoinPoint joinPoint) {
-        System.out.println("Before method:" + joinPoint.getSignature());
         logit("beforeAdvice");
-        log.info("beforeAdvice");
         log.info("beforeAdvice");
     }
 
     @Before(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApiController.*(..)))")
     public void beforeAdvice2(JoinPoint joinPoint) {
-        System.out.println("beforeAdvice2:" + joinPoint.getSignature());
         logit("beforeAdvice2");
-        log.info("beforeAdvice2");
         log.info("beforeAdvice2");
     }
 
     @Before(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApi.*(..)))")
     public void beforeAdvice5(JoinPoint joinPoint) {
-        System.out.println("beforeAdvice2:" + joinPoint.getSignature());
         logit("beforeAdvice2");
         log.info("beforeAdvice2");
-        log.info("beforeAdvice2");
+    }
+
+    @AfterThrowing(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApi.*(..)))")
+    public void afterThrowingClientsApi(JoinPoint joinPoint) {
+        logit("afterThrowingClientsApi");
+        log.info("afterThrowingClientsApi");
+    }
+
+    @AfterThrowing(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApiController.*(..)))")
+    public void afterThrowingClientsApiController(JoinPoint joinPoint) {
+        logit("afterThrowingClientsApiController");
+        log.info("afterThrowingClientsApiController");
     }
 
     @After(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApiController.*(..)))")
     public void afterAdvice(JoinPoint joinPoint) {
-        System.out.println("afterAdvice:" + joinPoint.getSignature());
         logit("afterAdvice");
-        log.info("afterAdvice");
         log.info("afterAdvice");
     }
 
 
     @Before(value = "within(org.niis.xroad.restapi.openapi.*)")
     public void beforeAdvice3(JoinPoint joinPoint) {
-        System.out.println("beforeAdvice3:" + joinPoint.getSignature());
         logit("beforeAdvice3");
-        log.info("beforeAdvice3");
         log.info("beforeAdvice3");
     }
 
@@ -87,17 +90,16 @@ public class AuditAspect {
     public void afterReturning(JoinPoint joinPoint) {
         logit("afterReturning");
         log.info("afterReturning");
-        log.info("afterReturning2");
     }
 
-    @AfterReturning(pointcut = "within(org.niis.xroad.restapi.openapi.*)")
+    @AfterThrowing(pointcut = "within(org.niis.xroad.restapi.openapi.*)")
     public void afterThrowing(JoinPoint joinPoint) {
         logit("afterThrowing");
-        log.info("afterThrowing");
         log.info("afterThrowing2");
     }
 
     private void logit(String s) {
+        if (true) return;
         for (int i = 0; i < 20; i++) {
             log.info("=====================================" + s);
         }
