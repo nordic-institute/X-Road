@@ -15,8 +15,6 @@
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-set -x
-
 . /usr/share/debconf/confmodule
 trap db_stop EXIT
 
