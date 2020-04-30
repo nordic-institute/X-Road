@@ -594,7 +594,10 @@
       "info": "Import the configuration anchor provided by the Central Server's administrator.",
       "import": "Import",
       "hash": "Hash (SHA-224)",
-      "generated": "Generated"
+      "generated": "Generated",
+      "dialogTitle": "Confirmation required",
+      "dialogDetails": "Configuration anchor details:",
+      "dialogQuestion": "Continue with import?"
     },
     "member": {
       "title": "Owner Member",
@@ -654,6 +657,8 @@
     "tokenPin": "Token PIN",
     "dns": "DNS",
     "path": "path",
+    "pin": "PIN",
+    "confirmPin": "Confirm PIN",
     "keys": {
       "friendlyName": "Friendly name"
     },

@@ -4,28 +4,32 @@
       {{$t('initialConfiguration.pin.info1')}}
       <div class="row-wrap">
         <div class="label">{{$t('initialConfiguration.pin.pin')}}</div>
-
-        <v-text-field
-          class="form-input"
-          name="pin"
-          type="password"
-          v-model="pin"
-          :error-messages="errors"
-          data-test="pin-input"
-        ></v-text-field>
+        <ValidationProvider rules="required|password:@confirmPin" v-slot="{ errors }">
+          <v-text-field
+            class="form-input"
+            name="pin"
+            type="password"
+            v-model="pin"
+            :error-messages="errors"
+            data-test="pin-input"
+            maxlength="4"
+          ></v-text-field>
+        </ValidationProvider>
       </div>
 
       <div class="row-wrap">
         <div class="label">{{$t('initialConfiguration.pin.confirmPin')}}</div>
-
-        <v-text-field
-          class="form-input"
-          name="confirmPin"
-          type="password"
-          v-model="pinConfirm"
-          :error-messages="errors"
-          data-test="confirm-pin-input"
-        ></v-text-field>
+        <ValidationProvider name="confirmPin" rules="required" v-slot="{ errors }">
+          <v-text-field
+            class="form-input"
+            name="confirmPin"
+            type="password"
+            v-model="pinConfirm"
+            :error-messages="errors"
+            data-test="confirm-pin-input"
+            maxlength="4"
+          ></v-text-field>
+        </ValidationProvider>
       </div>
       {{$t('initialConfiguration.pin.info2')}}
       <br />
@@ -36,7 +40,6 @@
 
         <div>
           <large-button
-            v-if="showPreviousButton"
             @click="previous"
             outlined
             class="previous-button"
@@ -46,7 +49,7 @@
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-          >{{$t(saveButtonText)}}</large-button>
+          >{{$t('action.submit')}}</large-button>
         </div>
       </div>
     </ValidationObserver>
@@ -64,6 +67,16 @@ import { Key, Token } from '@/types';
 import { CsrFormatTypes } from '@/global';
 import * as api from '@/util/api';
 
+import { extend } from 'vee-validate';
+
+extend('password', {
+  params: ['target'],
+  validate(value, { target }) {
+    return value === target;
+  },
+  message: 'Password confirmation does not match',
+});
+
 export default Vue.extend({
   components: {
     HelpIcon,
@@ -71,16 +84,6 @@ export default Vue.extend({
     SubViewTitle,
     ValidationObserver,
     ValidationProvider,
-  },
-  props: {
-    saveButtonText: {
-      type: String,
-      default: 'action.continue',
-    },
-    showPreviousButton: {
-      type: Boolean,
-      default: true,
-    },
   },
   data() {
     return {
