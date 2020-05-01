@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @Transactional
-public class GlobalConfCheckerHelper {
+class GlobalConfCheckerHelper {
     private final ServerConfRepository serverConfRepository;
 
     @Autowired
