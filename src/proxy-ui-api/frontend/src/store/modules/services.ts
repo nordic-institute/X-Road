@@ -1,12 +1,12 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import {Endpoint, Service, ServiceClient, Subject} from '@/types';
+import { Endpoint, Service, ServiceClient } from '@/types';
 
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
   service: Service | {};
-  accessRightsSubjects: ServiceClient[];
+  serviceClients: ServiceClient[];
 }
 
 export const servicesState: ServicesState = {
@@ -19,7 +19,7 @@ export const servicesState: ServicesState = {
     ssl_auth: true,
     url: '',
   },
-  accessRightsSubjects: [],
+  serviceClients: [],
 };
 
 export const getters: GetterTree<ServicesState, RootState> = {
@@ -27,8 +27,8 @@ export const getters: GetterTree<ServicesState, RootState> = {
     return state.expandedServiceDescriptions.includes(id);
   },
 
-  accessRightsSubjects: (state: ServicesState): ServiceClient[] => {
-    return state.accessRightsSubjects;
+  serviceClients: (state: ServicesState): ServiceClient[] => {
+    return state.serviceClients;
   },
 
   service: (state: ServicesState): Service | {} => {
@@ -69,8 +69,8 @@ export const mutations: MutationTree<ServicesState> = {
     state.service = service;
   },
 
-  setAccessRightsSubjects(state, accessRights: ServiceClient[]): void {
-    state.accessRightsSubjects = accessRights;
+  setServiceClients(state, serviceClients: ServiceClient[]): void {
+    state.serviceClients = serviceClients;
   },
 };
 
@@ -88,8 +88,8 @@ export const actions: ActionTree<ServicesState, RootState> = {
     commit('setService', service);
   },
 
-  setAccessRightsSubjects({ commit, rootGetters }, accessRights) {
-    commit('setAccessRightsSubjects', accessRights);
+  setServiceClients({ commit, rootGetters }, serviceClients) {
+    commit('setServiceClients', serviceClients);
   },
 };
 

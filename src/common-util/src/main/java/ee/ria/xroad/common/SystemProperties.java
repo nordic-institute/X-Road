@@ -77,6 +77,19 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_SSL_PROPERTIES =
             PREFIX + "proxy-ui-api.ssl-properties";
 
+    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
+    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
+
+    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
+    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0, ::/0";
+
+    /** Property name of the whitelist for Proxy UI API's key management API */
+    public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
+            PREFIX + "proxy-ui-api.key-management-api-whitelist";
+
+    /** Property name of the whitelist for Proxy UI API's regular APIs */
+    public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
+            PREFIX + "proxy-ui-api.regular-api-whitelist";
 
 
     // Proxy ------------------------------------------------------------------
@@ -316,14 +329,10 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
 
-    public static final String DEFAULT_ALLOW_GET_WSDL_REQUEST = "false";
-
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
-
-    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------
@@ -612,6 +621,9 @@ public final class SystemProperties {
     public static final String CONF_FILE_PROXY_UI =
             getConfPath() + "conf.d/proxy-ui.ini";
 
+    public static final String CONF_FILE_PROXY_UI_API =
+            getConfPath() + "conf.d/proxy-ui-api.ini";
+
     public static final String CONF_FILE_SIGNER =
             getConfPath() + "conf.d/signer.ini";
 
@@ -680,6 +692,23 @@ public final class SystemProperties {
     public static String getSslPropertiesFile() {
         return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
                 getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
+    }
+
+    /**
+     * TO DO: not correct, fix
+     * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
+     */
+    public static String getKeyManagementApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
+                DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
+    }
+
+    /**
+     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
+     */
+    public static String getRegularApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
+                DEFAULT_REGULAR_API_WHITELIST);
     }
 
     /**
@@ -1514,14 +1543,6 @@ public final class SystemProperties {
     @SuppressWarnings("checkstyle:MagicNumber")
     public static long getServerConfAclCacheSize() {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
-    }
-
-
-    /**
-     * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
-     */
-    public static boolean isAllowGetWsdlRequest() {
-        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, DEFAULT_ALLOW_GET_WSDL_REQUEST));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {

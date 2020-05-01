@@ -132,6 +132,7 @@ EOF
       cd /usr/share/xroad/db/
       /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://$db_host/$db_database?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/serverconf-legacy-changelog.xml --password="${db_password}" --username="${db_user}" update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
         psql_master --single-transaction -d "$db_database" <<EOF || die "Renaming public schema to '$db_schema' failed."
+\set STOP_ON_ERROR on
 ALTER DATABASE "${db_database}" OWNER TO "${db_master_user}";
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";

@@ -45,7 +45,7 @@
 import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
-import TokenLoginDialog from './TokenLoginDialog.vue';
+import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
@@ -53,7 +53,7 @@ import { mapGetters } from 'vuex';
 import { Key, Token, TokenType, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
 
-import _ from 'lodash';
+import { cloneDeep } from 'lodash';
 
 export default Vue.extend({
   components: {
@@ -78,7 +78,7 @@ export default Vue.extend({
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      let arr = _.cloneDeep(this.tokens).sort((a: Token, b: Token) => {
+      let arr = cloneDeep(this.tokens).sort((a: Token, b: Token) => {
         if (a.id < b.id) {
           return -1;
         }
@@ -167,25 +167,10 @@ export default Vue.extend({
       this.loginDialog = false;
     },
     addKey(label: string) {
-      // Send add new key request to backend
-      const request = label.length > 0 ? { label } : {};
-      const token: Token = this.$store.getters.selectedToken;
-
-      if (!token) {
-        return;
-      }
-
-      api
-        .post(`/tokens/${token.id}/keys`, request)
-        .then((res) => {
-          this.fetchData();
-          this.$store.dispatch('showSuccess', 'keys.keyAdded');
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
-
-      this.addKeyDialog = false;
+      this.$router.push({
+        name: RouteName.AddKey,
+        params: { tokenId: this.$store.getters.selectedToken.id },
+      });
     },
   },
   created() {

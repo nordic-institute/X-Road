@@ -5,15 +5,17 @@
 
       <template>
         <div class="cert-hash">
-          {{$t('localGroup.localGroup')}}
-          <large-button v-if="showDelete" @click="deleteGroup()" outlined>{{$t('action.delete')}}</large-button>
+          {{ $t('localGroup.localGroup') }}
+          <large-button v-if="showDelete" @click="deleteGroup()" outlined>{{
+            $t('action.delete')
+          }}</large-button>
         </div>
       </template>
     </div>
 
     <div class="edit-row">
       <template v-if="canEditDescription">
-        <div>{{$t('localGroup.editDesc')}}</div>
+        <div>{{ $t('localGroup.editDesc') }}</div>
         <v-text-field
           v-model="description"
           @change="saveDescription"
@@ -23,41 +25,44 @@
         ></v-text-field>
       </template>
       <template v-else>
-        <div>{{description}}</div>
+        <div>{{ description }}</div>
       </template>
     </div>
 
     <div class="group-members-row">
-      <div class="row-title">{{$t('localGroup.groupMembers')}}</div>
+      <div class="row-title">{{ $t('localGroup.groupMembers') }}</div>
       <div class="row-buttons">
         <large-button
           :disabled="!hasMembers"
+          v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
-        >{{$t('action.removeAll')}}</large-button>
+          >{{ $t('action.removeAll') }}</large-button
+        >
 
         <large-button
           class="add-members-button"
           v-if="canEditMembers"
           @click="addMembers()"
           outlined
-        >{{$t('localGroup.addMembers')}}</large-button>
+          >{{ $t('localGroup.addMembers') }}</large-button
+        >
       </div>
     </div>
 
     <v-card flat>
       <table class="xrd-table group-members-table">
         <tr>
-          <th>{{$t('localGroup.name')}}</th>
-          <th>{{$t('localGroup.id')}}</th>
-          <th>{{$t('localGroup.accessDate')}}</th>
+          <th>{{ $t('localGroup.name') }}</th>
+          <th>{{ $t('localGroup.id') }}</th>
+          <th>{{ $t('localGroup.accessDate') }}</th>
           <th></th>
         </tr>
         <template v-if="group && group.members && group.members.length > 0">
           <tr v-for="groupMember in group.members" v-bind:key="groupMember.id">
-            <td>{{groupMember.name}}</td>
-            <td>{{groupMember.id}}</td>
-            <td>{{groupMember.created_at}}</td>
+            <td>{{ groupMember.name }}</td>
+            <td>{{ groupMember.id }}</td>
+            <td>{{ groupMember.created_at }}</td>
 
             <td>
               <div class="button-wrap">
@@ -69,7 +74,8 @@
                   color="primary"
                   class="xrd-small-button"
                   @click="removeMember(groupMember)"
-                >{{$t('action.remove')}}</v-btn>
+                  >{{ $t('action.remove') }}</v-btn
+                >
               </div>
             </td>
           </tr>
@@ -77,7 +83,7 @@
       </table>
 
       <div class="close-button-wrap">
-        <large-button @click="close()">{{$t('action.close')}}</large-button>
+        <large-button @click="close()">{{ $t('action.close') }}</large-button>
       </div>
     </v-card>
 
@@ -121,7 +127,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import _ from 'lodash';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import AddMembersDialog from './AddMembersDialog.vue';
@@ -208,10 +213,9 @@ export default Vue.extend({
 
     saveDescription(): void {
       api
-        .put(
-          `/local-groups/${this.groupId}?description=${this.description}`,
-          {},
-        )
+        .patch(`/local-groups/${this.groupId}`, {
+          description: this.description,
+        })
         .then((res) => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.group = res.data;
@@ -396,4 +400,3 @@ export default Vue.extend({
   padding-top: 20px;
 }
 </style>
-
