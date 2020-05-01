@@ -39,6 +39,7 @@ import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -62,11 +63,14 @@ public class GlobalConfChecker {
     public static final int INITIAL_DELAY_MS = 30000;
     private GlobalConfCheckerHelper globalConfCheckerHelper;
     private GlobalConfFacade globalConfFacade;
+    private SignerProxyFacade signerProxyFacade;
 
     @Autowired
-    public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade) {
+    public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade,
+            SignerProxyFacade signerProxyFacade) {
         this.globalConfCheckerHelper = globalConfCheckerHelper;
         this.globalConfFacade = globalConfFacade;
+        this.signerProxyFacade = signerProxyFacade;
     }
 
     /**
@@ -215,7 +219,7 @@ public class GlobalConfChecker {
             throws Exception {
         log.debug("Updating auth cert statuses");
 
-        SignerProxy.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
+        signerProxyFacade.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
                 .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
                 .flatMap(k -> k.getCerts().stream()).forEach(certInfo -> {
                     try {
@@ -246,7 +250,7 @@ public class GlobalConfChecker {
                             CertUtils.identify(cert),
                             CertificateInfo.STATUS_REGISTERED);
 
-                    SignerProxy.setCertStatus(certInfo.getId(),
+                    signerProxyFacade.setCertStatus(certInfo.getId(),
                             CertificateInfo.STATUS_REGISTERED);
                     break;
                 default:
@@ -262,7 +266,7 @@ public class GlobalConfChecker {
                     CertUtils.identify(cert),
                     CertificateInfo.STATUS_GLOBALERR);
 
-            SignerProxy.setCertStatus(certInfo.getId(),
+            signerProxyFacade.setCertStatus(certInfo.getId(),
                     CertificateInfo.STATUS_GLOBALERR);
         }
     }
