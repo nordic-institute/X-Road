@@ -45,7 +45,7 @@ class GlobalConfCheckerHelper {
     private final ServerConfRepository serverConfRepository;
 
     @Autowired
-    public GlobalConfCheckerHelper(ServerConfRepository serverConfRepository) {
+    GlobalConfCheckerHelper(ServerConfRepository serverConfRepository) {
         this.serverConfRepository = serverConfRepository;
     }
 
@@ -53,7 +53,7 @@ class GlobalConfCheckerHelper {
      * Get the Security Server's ServerConf
      * @return ServerConfType
      */
-    public ServerConfType getServerConf() {
+    ServerConfType getServerConf() {
         return serverConfRepository.getServerConf();
     }
 }

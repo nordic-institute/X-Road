@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -164,7 +163,7 @@ public class GlobalConfChecker {
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
         log.debug("Get auth cert for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
+        AuthKeyInfo keyInfo = signerProxyFacade.execute(new GetAuthKey(serverId));
         if (keyInfo != null && keyInfo.getCert() != null) {
             return readCertificate(keyInfo.getCert().getCertificateBytes());
         }
