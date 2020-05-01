@@ -60,11 +60,15 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
-    @Autowired
     private GlobalConfCheckerHelper globalConfCheckerHelper;
-    @Autowired
     private GlobalConfFacade globalConfFacade;
 
+    @Autowired
+    public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade) {
+        this.globalConfCheckerHelper = globalConfCheckerHelper;
+        this.globalConfFacade = globalConfFacade;
+    }
+    
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
      * and server owner identity to the serverconf database. The task is scheduled at a fixed rate
