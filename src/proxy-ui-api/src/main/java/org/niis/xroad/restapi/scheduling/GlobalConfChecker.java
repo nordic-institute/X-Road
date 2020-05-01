@@ -97,7 +97,7 @@ public class GlobalConfChecker {
         }
     }
 
-    private void checkGlobalConf() throws Exception {
+    private void checkGlobalConf() {
         globalConfFacade.verifyValidity();
 
         log.debug("Reloading globalconf");
