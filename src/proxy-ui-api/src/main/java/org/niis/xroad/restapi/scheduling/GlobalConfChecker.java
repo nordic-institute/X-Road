@@ -68,7 +68,7 @@ public class GlobalConfChecker {
         this.globalConfCheckerHelper = globalConfCheckerHelper;
         this.globalConfFacade = globalConfFacade;
     }
-    
+
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
      * and server owner identity to the serverconf database. The task is scheduled at a fixed rate
@@ -106,7 +106,7 @@ public class GlobalConfChecker {
         SecurityServerId securityServerId = null;
 
         try {
-            if (GlobalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
+            if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
             }
@@ -148,7 +148,7 @@ public class GlobalConfChecker {
                 // Does the alternative server id exist in global conf?
                 // And does the local auth cert match with the auth cert of
                 // the alternative server from global conf?
-                if (GlobalConfFacade.getServerOwner(altSecurityServerId) != null
+                if (globalConfFacade.getServerOwner(altSecurityServerId) != null
                         && cert != null
                         && altSecurityServerId.equals(globalConfFacade.getServerId(cert))
                 ) {

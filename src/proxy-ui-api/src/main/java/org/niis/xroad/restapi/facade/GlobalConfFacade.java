@@ -152,7 +152,7 @@ public class GlobalConfFacade {
     /**
      * {@link GlobalConf#getServerOwner(SecurityServerId)}
      */
-    public static ClientId getServerOwner(SecurityServerId serverId) {
+    public ClientId getServerOwner(SecurityServerId serverId) {
         return GlobalConf.getServerOwner(serverId);
     }
 
