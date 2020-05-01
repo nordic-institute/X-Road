@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -40,7 +39,6 @@ import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -81,10 +79,10 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
-     * @throws JobExecutionException
+     * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
-    public void updateServerConf() throws JobExecutionException {
+    public void updateServerConf() throws Exception {
         // In clustered setup slave nodes may skip globalconf updates
         if (SLAVE.equals(SystemProperties.getServerNodeType())) {
             log.debug("This is a slave node - skip globalconf updates");
@@ -96,7 +94,7 @@ public class GlobalConfChecker {
             checkGlobalConf();
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
-            throw new JobExecutionException(e);
+            throw e;
         }
     }
 
