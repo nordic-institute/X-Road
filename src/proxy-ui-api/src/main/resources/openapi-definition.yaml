@@ -183,7 +183,7 @@ paths:
           content:
             application/json:
               schema:
-                description: response that tells if tokens were logged out during the restore process
+                description: response that tells if hsm tokens were logged out during the restore process
                 title: TokensLoggedOut
                 type: object
                 properties:

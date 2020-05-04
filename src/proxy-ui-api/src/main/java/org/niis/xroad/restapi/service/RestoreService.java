@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +75,13 @@ public class RestoreService {
      * @param fileName name of the backup file
      * @throws BackupFileNotFoundException
      * @throws InterruptedException execution of the restore script was interrupted
-     * @throws RestoreInProgressException if restore is already in progress
+     * @throws RestoreProcessFailedException if the restore script fails or does not execute
      */
     public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
-            InterruptedException, RestoreInProgressException {
+            InterruptedException, RestoreProcessFailedException {
         if (notificationService.getBackupRestoreRunningSince() != null) {
             // should not happen because the method is synchronized
-            throw new RestoreInProgressException("There is a restore (started at "
+            throw new RuntimeException("There is a restore (started at "
                     + notificationService.getBackupRestoreRunningSince() + ") already in progress");
         }
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
@@ -106,7 +105,7 @@ public class RestoreService {
             log.info(ExternalProcessRunner.processOutputToString(processResult.getProcessOutput()));
             log.info(" --- Restore script console output - END --- ");
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
-            throw new DeviationAwareRuntimeException("restoring from a backup failed", e.getErrorDeviation());
+            throw new RestoreProcessFailedException(e, "restoring from a backup failed");
         } finally {
             notificationService.resetBackupRestoreRunningSince();
         }

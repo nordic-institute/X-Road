@@ -140,7 +140,7 @@ public class ExternalProcessRunner {
             String errorMsg = String.format("Failed to run command '%s' with output: %n %s",
                     processResult.commandWithArgs, processOutputString);
             log.error(errorMsg);
-            throw new ProcessFailedException(errorMsg);
+            throw new ProcessFailedException(errorMsg, processResult.processOutput);
         }
         return processResult;
     }

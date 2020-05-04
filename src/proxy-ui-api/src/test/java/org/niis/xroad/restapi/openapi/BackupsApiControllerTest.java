@@ -36,6 +36,8 @@ import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.ProcessFailedException;
+import org.niis.xroad.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.restapi.service.RestoreService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -324,6 +326,19 @@ public class BackupsApiControllerTest {
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException e) {
             // expected
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackupFailed() throws Exception {
+        doThrow(new RestoreProcessFailedException(new ProcessFailedException("process failed"), "restore failed"))
+                .when(restoreService).restoreFromBackup(any());
+        try {
+            backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException e) {
+            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 }

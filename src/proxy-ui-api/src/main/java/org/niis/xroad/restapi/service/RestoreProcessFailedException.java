@@ -26,14 +26,10 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-/**
- * Thrown when initiating a security server restore when there already is one in progress
- */
-public class RestoreInProgressException extends ServiceException {
+public class RestoreProcessFailedException extends ServiceException {
+    public static final String RESTORE_PROCESS_FAILED = "restore_process_failed";
 
-    public static final String ERROR_RESTORE_IN_PROGRESS = "restore_in_progress";
-
-    public RestoreInProgressException(String s) {
-        super(s, new ErrorDeviation(ERROR_RESTORE_IN_PROGRESS));
+    public RestoreProcessFailedException(Throwable t, String msg) {
+        super(msg, t, new ErrorDeviation(RESTORE_PROCESS_FAILED));
     }
 }
