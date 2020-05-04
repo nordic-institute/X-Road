@@ -171,7 +171,7 @@ Add X-Road package repository (**reference data: 1.1**)
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
       postgres.connection.password = {database superuser password}
-      postgres.connection.username = {database superuser name, postgres by default}
+      postgres.connection.user = {database superuser name, postgres by default}
 
   If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. To enable this format set the following property.
 
