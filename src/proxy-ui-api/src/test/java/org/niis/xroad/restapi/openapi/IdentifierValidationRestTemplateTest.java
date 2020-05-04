@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
@@ -49,6 +50,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -77,6 +79,9 @@ public class IdentifierValidationRestTemplateTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
     @Before
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);
@@ -88,6 +93,7 @@ public class IdentifierValidationRestTemplateTest {
                     : TestUtils.NAME_FOR + "test-member";
         });
 
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
     }
 
     @Test

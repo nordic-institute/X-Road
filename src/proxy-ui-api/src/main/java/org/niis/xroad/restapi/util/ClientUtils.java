@@ -22,35 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dto;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-import java.time.OffsetDateTime;
+import java.util.List;
 
-/**
- * DTO for Service and ServiceClient access rights
- */
-@Data
-public class AccessRightHolderDto {
+@Slf4j
+public final class ClientUtils {
+
+    public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local sign certificate";
+
+    private ClientUtils() {
+        // noop
+    }
+
     /**
-     * primary key of a LocalGroup - NULL if not a LOCALGROUP
+     *
+     * @param clientId
+     * @param certificateInfos
+     * @return
      */
-    private String localGroupId;
-    /**
-     * localGroupCode - NULL if not a LOCALGROUP
-     */
-    private String localGroupCode;
-    /**
-     * localGroupDescription - NULL if not a LOCALGROUP
-     */
-    private String localGroupDescription;
-    /**
-     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
-     */
-    private String memberName;
-    private XRoadId subjectId;
-    private OffsetDateTime rightsGiven;
+    public static boolean hasValidLocalSignCert(ClientId clientId, List<CertificateInfo> certificateInfos) {
+        for (CertificateInfo certificateInfo : certificateInfos) {
+            String ocspResponseStatus = null;
+            try {
+                ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
+            } catch (OcspUtils.OcspStatusExtractionException | RuntimeException e) {
+                log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
+                return false;
+            }
+            if (clientId.equals(certificateInfo.getMemberId())
+                    && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
+                    && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

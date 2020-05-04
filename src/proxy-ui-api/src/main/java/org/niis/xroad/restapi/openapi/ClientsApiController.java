@@ -30,21 +30,26 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.AccessRightConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
+import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
+import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
-import org.niis.xroad.restapi.converter.SubjectConverter;
-import org.niis.xroad.restapi.converter.SubjectTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
+import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.model.AccessRight;
+import org.niis.xroad.restapi.openapi.model.AccessRights;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
@@ -54,11 +59,10 @@ import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.openapi.model.Subject;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.openapi.validator.ClientAddValidator;
 import org.niis.xroad.restapi.openapi.validator.ServiceDescriptionAddValidator;
@@ -69,10 +73,14 @@ import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.OrphanRemovalService;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
+import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -91,8 +99,10 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
@@ -117,10 +127,12 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceDescriptionService serviceDescriptionService;
     private final AccessRightService accessRightService;
-    private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
     private final OrphanRemovalService orphanRemovalService;
     private final ServiceClientConverter serviceClientConverter;
+    private final AccessRightConverter accessRightConverter;
+    private final ServiceClientService serviceClientService;
+    private final ServiceClientIdentifierConverter serviceClientIdentifierConverter;
 
     /**
      * ClientsApiController constructor
@@ -132,8 +144,10 @@ public class ClientsApiController implements ClientsApi {
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
-            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
-            OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter) {
+            TokenCertificateConverter tokenCertificateConverter,
+            OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
+            AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
+            ServiceClientIdentifierConverter serviceClientIdentifierConverter) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -143,10 +157,12 @@ public class ClientsApiController implements ClientsApi {
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
         this.accessRightService = accessRightService;
-        this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.orphanRemovalService = orphanRemovalService;
         this.serviceClientConverter = serviceClientConverter;
+        this.accessRightConverter = accessRightConverter;
+        this.serviceClientService = serviceClientService;
+        this.serviceClientIdentifierConverter = serviceClientIdentifierConverter;
     }
 
     /**
@@ -163,11 +179,13 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
-            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
+            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
+            Boolean localValidSignCert, Boolean excludeLocal) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
-                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
+                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
+                localValidSignCert, excludeLocal));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -388,20 +406,22 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public ResponseEntity<List<Subject>> findSubjects(String encodedClientId, String memberNameOrGroupDescription,
-            SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
+    public ResponseEntity<List<ServiceClient>> findServiceClientCandidates(String encodedClientId,
+            String memberNameOrGroupDescription,
+            ServiceClientType serviceClientType, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
-        XRoadObjectType xRoadObjectType = SubjectTypeMapping.map(subjectType).orElse(null);
-        List<AccessRightHolderDto> accessRightHolderDtos = null;
+        XRoadObjectType xRoadObjectType = ServiceClientTypeMapping.map(serviceClientType).orElse(null);
+        List<ServiceClientDto> serviceClientDtos = null;
         try {
-            accessRightHolderDtos = accessRightService.findAccessRightHolders(clientId, memberNameOrGroupDescription,
-                    xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
+            serviceClientDtos = accessRightService.findAccessRightHolderCandidates(clientId,
+                    memberNameOrGroupDescription, xRoadObjectType, instance, memberClass, memberGroupCode,
+                    subsystemCode);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
-        return new ResponseEntity<>(subjects, HttpStatus.OK);
+        List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
 
@@ -445,6 +465,7 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException(e);
         }
         Client result = clientConverter.convert(added);
+
         return createCreatedResponse("/api/clients/{id}", result, result.getId());
     }
 
@@ -545,10 +566,75 @@ public class ClientsApiController implements ClientsApi {
         List<ServiceClient> serviceClients = null;
         try {
             serviceClients = serviceClientConverter.
-                    convertAccessRightHolderDtos(accessRightService.getAccessRightHoldersByClient(clientId));
+                    convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<ServiceClient> getServiceClient(String id, String scId) {
+        ClientId clientIdentifier = clientConverter.convertId(id);
+        ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
+        ServiceClient serviceClient = null;
+        try {
+            XRoadId serviceClientId =
+                    serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
+            serviceClient = serviceClientConverter.convertServiceClientDto(
+                    serviceClientService.getServiceClient(clientIdentifier, serviceClientId));
+        } catch (ClientNotFoundException | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+
+        return new ResponseEntity<>(serviceClient, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_ACL_SUBJECT_OPEN_SERVICES')")
+    public ResponseEntity<List<AccessRight>> getServiceClientAccessRights(String id, String scId) {
+        ClientId clientIdentifier = clientConverter.convertId(id);
+        ServiceClientIdentifierDto serviceClientIdentifierDto = serviceClientIdentifierConverter.convertId(scId);
+        List<AccessRight> accessRights = null;
+        try {
+            XRoadId serviceClientId =
+                    serviceClientService.convertServiceClientIdentifierDtoToXroadId(serviceClientIdentifierDto);
+            accessRights = accessRightConverter.convert(
+                    serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
+        } catch (IdentifierNotFoundException | ClientNotFoundException
+                | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(accessRights, HttpStatus.OK);
+    }
+
+    // TO DO: correct permissions.
+    // TO DO: tests
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
+            String endcodedServiceClientId, AccessRights accessRights) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(endcodedServiceClientId);
+        XRoadId serviceClientId = dto.getXRoadId();
+        if (dto.isLocalGroup()) {
+            try {
+                serviceClientId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            } catch (LocalGroupNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            }
+        }
+        Set<String> serviceCodes = getServiceCodes(accessRights);
+        serviceClientService.addServiceClientAccessRights(clientId, serviceClientId, serviceCodes);
+        return null;
+    }
+
+    private Set<String> getServiceCodes(AccessRights accessRights) {
+        Set<String> serviceCodes = new HashSet<>();
+        for (AccessRight accessRight: accessRights.getItems()) {
+            serviceCodes.add(accessRight.getServiceCode());
+        }
+        return serviceCodes;
     }
 }

@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,26 +22,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.cache;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import org.niis.xroad.restapi.domain.AlertData;
+import org.niis.xroad.restapi.dto.AlertStatus;
+import org.springframework.stereotype.Component;
 
-import org.niis.xroad.restapi.service.ServerConfService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+/**
+ * Converter for AlertData related data between openapi and service domain classes
+ */
+@Component
+public class AlertDataConverter {
 
-import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
-import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
-
-@Configuration
-public class CurrentSecurityServerIdConfig {
-
-    @Bean
-    @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
-    public CurrentSecurityServerId securityServerOwner(ServerConfService serverConfService) {
-        SecurityServerId id = serverConfService.getSecurityServerId();
-        return new CurrentSecurityServerId(id);
+    public AlertData convert(AlertStatus alertStatus) {
+        AlertData alertData = new AlertData();
+        if (alertStatus.getBackupRestoreRunningSince() != null) {
+            alertData.setBackupRestoreRunningSince(alertStatus.getBackupRestoreRunningSince());
+            alertData.setCurrentTime(alertStatus.getCurrentTime());
+        }
+        alertData.setGlobalConfValid(alertStatus.getGlobalConfValid());
+        alertData.setSoftTokenPinEntered(alertStatus.getSoftTokenPinEntered());
+        return alertData;
     }
-
 }
