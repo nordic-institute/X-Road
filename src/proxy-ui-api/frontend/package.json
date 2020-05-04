@@ -46,7 +46,7 @@
     "npm-audit-resolver": "2.2.0",
     "sass": "^1.17.4",
     "sass-loader": "^8.0.0",
-    "ts-jest": "^25.1.0",
+    "ts-jest": "^25.4.0",
     "typescript": "3.7.5",
     "vue-cli-plugin-i18n": "^0.6.0",
     "vue-cli-plugin-vuetify": "^2.0.3",

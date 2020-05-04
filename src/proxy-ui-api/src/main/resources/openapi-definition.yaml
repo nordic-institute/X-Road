@@ -5232,11 +5232,18 @@ components:
           example: CS:ORG:Client:myService.v1
           minLength: 1
           maxLength: 1535
-        service_code:
+        full_service_code:
           type: string
           format: text
           description: encoded service code and version
           example: myService.v1
+          minLength: 1
+          maxLength: 511
+        service_code:
+          type: string
+          format: text
+          description: encoded service code and version
+          example: myService
           minLength: 1
           maxLength: 511
         timeout:

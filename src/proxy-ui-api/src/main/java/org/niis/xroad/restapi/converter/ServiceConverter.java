@@ -89,7 +89,8 @@ public class ServiceConverter {
         Service service = new Service();
 
         service.setId(convertId(serviceType, clientId));
-        service.setServiceCode(FormatUtils.getServiceFullName(serviceType));
+        service.setServiceCode(serviceType.getServiceCode());
+        service.setFullServiceCode(FormatUtils.getServiceFullName(serviceType));
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
