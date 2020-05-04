@@ -75,14 +75,14 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
     @Override
     protected void validateNormalResponse(Message receivedResponse)
             throws Exception {
-        if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+        if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
             throw new Exception("Received normal response, fault was expected");
         }
     }
 
     @Override
     protected void validateFaultResponse(Message response) throws Exception {
-        if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+        if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
             assertErrorCode(ErrorCodes.SERVER_CLIENTPROXY_X, ErrorCodes.X_SSL_AUTH_FAILED);
         } else {
             throw new Exception(

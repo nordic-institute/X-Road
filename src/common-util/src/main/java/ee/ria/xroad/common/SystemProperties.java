@@ -271,8 +271,8 @@ public final class SystemProperties {
 
     private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
 
-    private static final String ENFORCED_CERTIFICATE_VALIDITY_PERIOD_CHECK =
-            PREFIX + "proxy.enforce-certificate-validity-period-check";
+    private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
+            PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
@@ -1556,7 +1556,7 @@ public final class SystemProperties {
     /**
      * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
      */
-    public static boolean isCertificateValidityPeriodCheckEnforced() {
-        return "true".equalsIgnoreCase(System.getProperty(ENFORCED_CERTIFICATE_VALIDITY_PERIOD_CHECK, "false"));
+    public static boolean isClientIsCertValidityPeriodCheckEnforced() {
+        return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK, "false"));
     }
 }

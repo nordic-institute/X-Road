@@ -102,14 +102,14 @@ public enum IsAuthentication {
             try {
                 auth.getCert().checkValidity();
             } catch (CertificateExpiredException e) {
-                if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+                if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
                     throw new CodedException(X_SSL_AUTH_FAILED,
                             "Client (%s) TLS certificate is expired", client);
                 } else {
                     log.warn("Client {} TLS certificate is expired", client);
                 }
             } catch (CertificateNotYetValidException e) {
-                if (SystemProperties.isCertificateValidityPeriodCheckEnforced()) {
+                if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
                     throw new CodedException(X_SSL_AUTH_FAILED,
                             "Client (%s) TLS certificate is not yet valid", client);
                 } else {
