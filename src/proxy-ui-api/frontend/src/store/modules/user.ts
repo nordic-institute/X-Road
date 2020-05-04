@@ -4,6 +4,7 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { SecurityServer, Version } from '@/types';
 import { Tab } from '@/ui-types';
+import { mainTabs } from '@/global';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -27,7 +28,7 @@ export const userGetters: GetterTree<UserState, RootState> = {
     return state.authenticated;
   },
   firstAllowedTab(state, getters) {
-    return getters.allowedTabs[0];
+    return getters.getAllowedTabs(mainTabs)[0];
   },
   permissions(state) {
     return state.permissions;

@@ -16,19 +16,13 @@
         "login_pwd" : "secret",
         "login_wrong_usr" : "foo",
         "login_wrong_pwd" : "bar",
+        "login_security_officer" : "xrd-sec",
+        "login_registration_officer" : "xrd-reg",
+        "login_service_administrator" : "xrd-ser",
+        "login_system_administrator" : "xrd-sys",
+        "login_securityserver_observer" : "xrd-obs",
         "logout_timeout_ms" : 60000,
         "test_string_300": "N134567890N234567890N334567890N434567890N534567890N634567890N734567890N834567890N934567890N104567890N114567890N124567890N134567890N144567890N154567890N164567890N174567890N184567890N194567890N204567890N214567890N224567890N234567890N244567890N254567890N264567890N274567890N284567890N294567890N304567890"
-      }
-    },
-    "chrome": {
-      "desiredCapabilities" : {
-        "browserName" : "chrome",
-        "javascriptEnabled" : true,
-        "acceptSslCerts" : true,
-        "acceptInsecureCerts": true,
-        "chromeOptions" : {
-          "w3c": false
-        }
       }
     },
     "chrome": {
