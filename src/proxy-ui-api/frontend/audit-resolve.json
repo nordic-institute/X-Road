@@ -4,6 +4,26 @@
       "decision": "ignore",
       "madeAt": 1588058362447,
       "expiresAt": 1590650328259
+    },
+    "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
+      "decision": "ignore",
+      "madeAt": 1588578292034,
+      "expiresAt": 1591170276771
+    },
+    "1500|@vue/cli-service>webpack-dev-server>yargs>yargs-parser": {
+      "decision": "ignore",
+      "madeAt": 1588578292034,
+      "expiresAt": 1591170276771
+    },
+    "1500|node-sass>sass-graph>yargs>yargs-parser": {
+      "decision": "ignore",
+      "madeAt": 1588578292034,
+      "expiresAt": 1591170276771
+    },
+    "1500|npm-audit-resolver>audit-resolve-core>yargs-parser": {
+      "decision": "ignore",
+      "madeAt": 1588578292034,
+      "expiresAt": 1591170276771
     }
   },
   "rules": {},
