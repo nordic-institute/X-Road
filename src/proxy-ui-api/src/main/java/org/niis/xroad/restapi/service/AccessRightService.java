@@ -78,7 +78,6 @@ public class AccessRightService {
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
     private final IdentifierService identifierService;
-    private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
     private final LocalGroupService localGroupService;
     private final ServiceDescriptionService serviceDescriptionService;
@@ -86,7 +85,6 @@ public class AccessRightService {
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService,
             EndpointService endpointService,
             LocalGroupService localGroupService,
             ServiceDescriptionService serviceDescriptionService) {
@@ -94,7 +92,6 @@ public class AccessRightService {
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.identifierService = identifierService;
-        this.globalConfService = globalConfService;
         this.endpointService = endpointService;
         this.localGroupService = localGroupService;
         this.serviceDescriptionService = serviceDescriptionService;
@@ -621,7 +618,7 @@ public class AccessRightService {
      * Null or empty value is considered a match
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
-     * @throws ClientNotFoundException if client was not found
+     * @throws ClientNotFoundException if client with given id was not found
      */
     public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
             String memberNameOrGroupDescription,

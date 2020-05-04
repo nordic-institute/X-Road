@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.39
+Version: 2.40
 Doc. ID: UG-SS
 
 ---
@@ -72,6 +72,7 @@ Doc. ID: UG-SS
  24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
  26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
  30.03.2020 | 2.39    | Added description of pre-restore backups | Ilkka Seppälä
+ 01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -280,6 +281,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 20. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
 21. <a id="Ref_PR-MREST" class="anchor"></a>\[PR-MREST\] X-Road: Service Metadata Protocol for REST. Document ID: [PR-MREST](../Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md).
+
+22. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
 
 ## 2 User Management
@@ -1354,7 +1357,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
+   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 
@@ -1987,7 +1990,8 @@ An API key is linked to a role or roles, and grants access to the operations tha
 A separate REST api exists for API key management.
 API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password)
 or with session authentication (for admin web application).
-Basic authentication access is limited to localhost (`127.0.0.1`).
+Basic authentication access is limited to localhost by default, but this can
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 #### 19.1.1 Creating new API keys
 
@@ -2094,6 +2098,8 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
 
 The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
 as the corresponding UI operations.
+Access to regular APIs is allowed from all IP addresses by default, but this can
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### 19.3 Correlation ID HTTP header
 
