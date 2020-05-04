@@ -67,7 +67,7 @@ describe('helper functions', () => {
 
   // Find client from clients array
   it('Does array contain client', () => {
-   
+
 
     expect(Helpers.containsClient(arr, 'ORG', '8000', 'kraa')).toEqual(true);
     expect(Helpers.containsClient(arr, 'ORG', '8000', 'foo')).toEqual(false);
