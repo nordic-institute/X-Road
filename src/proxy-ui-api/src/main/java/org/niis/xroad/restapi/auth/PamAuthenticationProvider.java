@@ -24,14 +24,12 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.domain.Role;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -42,16 +40,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
 
 /**
  * PAM authentication provider.
@@ -59,11 +55,7 @@ import java.util.stream.Collectors;
  * likely means that belongs to group shadow)
  * roles are granted with user groups, mappings in {@link Role}
  *
- * if {@link PamAuthenticationProvider#setLimitIps(boolean)} is set to true,
- * allows authentication only from IP addresses defined with
- * {@link PamAuthenticationProvider#setIpWhitelist(List)}. Whitelist IPs
- * can have net mask such as 192.168.1.0/24, see {@link IpAddressMatcher}.
- *
+ * Authentication is limited with an IP whitelist.
  */
 @Slf4j
 @Configuration
@@ -73,67 +65,45 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
 
-    public static final String REGULAR_PAM_AUTHENTICATION_BEAN = "pamAuthentication";
-    public static final String LOCALHOST_PAM_AUTHENTICATION_BEAN = "localhostPamAuthentication";
+    public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
+    public static final String FORM_LOGIN_PAM_AUTHENTICATION = "formLoginPam";
+    // allow all ipv4 and ipv6
+    private static final Iterable<String> FORM_LOGIN_IP_WHITELIST =
+            Arrays.asList("::/0", "0.0.0.0/0");
 
-    private static final String LOCALHOST = "127.0.0.1";
-
-    @Getter
-    @Setter
-    // if true, only requests from ipWhitelist are allowed to authenticate
-    private boolean limitIps = false;
-    @Getter
-    @Setter
-    private List<String> ipWhitelist = new ArrayList();
+    private final AuthenticationIpWhitelist authenticationIpWhitelist;
+    private final GrantedAuthorityMapper grantedAuthorityMapper;
 
     /**
-     * PAM authentication without IP limits
+     * constructor
+     * @param authenticationIpWhitelist whitelist that limits the authentication
+     */
+    public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
+            GrantedAuthorityMapper grantedAuthorityMapper) {
+        this.authenticationIpWhitelist = authenticationIpWhitelist;
+        this.grantedAuthorityMapper = grantedAuthorityMapper;
+    }
+
+    /**
+     * PAM authentication for form login, with corresponding IP whitelist
      * @return
      */
-    @Bean(REGULAR_PAM_AUTHENTICATION_BEAN)
-    public PamAuthenticationProvider regularPamAuthentication() {
-        return new PamAuthenticationProvider();
+    @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
+    public PamAuthenticationProvider formLoginPamAuthentication() {
+        AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
+        formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
+        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper);
     }
 
     /**
-     * PAM authentication which is limited to localhost
+     * PAM authentication for key management API, with corresponding IP whitelist
      * @return
      */
-    @Bean(LOCALHOST_PAM_AUTHENTICATION_BEAN)
-    public PamAuthenticationProvider localhostPamAuthentication() {
-        PamAuthenticationProvider pam = new PamAuthenticationProvider();
-        pam.setIpWhitelist(Collections.singletonList(LOCALHOST));
-        pam.setLimitIps(true);
-        return pam;
+    @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
+    public PamAuthenticationProvider keyManagementWhitelist(
+            @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
+        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper);
     }
-
-    /**
-     * If ipLimits = true, go through the whitelisted ips and check that one of them matches
-     * caller remote address. If not, throw BadRemoteAddressException
-     * @param authentication
-     * @throws BadRemoteAddressException if caller ip was not allowed for this authentication provider
-     */
-    private void validateIpAddress(Authentication authentication) {
-        if (limitIps) {
-            WebAuthenticationDetails details = (WebAuthenticationDetails) authentication.getDetails();
-            String userIp = details.getRemoteAddress();
-            for (String whiteListedIp : ipWhitelist) {
-                if (new IpAddressMatcher(whiteListedIp).matches(userIp)) {
-                    return;
-                }
-            }
-            throw new BadRemoteAddressException("Invalid IP Address");
-        }
-    }
-
-    public static class BadRemoteAddressException extends AuthenticationException {
-        public BadRemoteAddressException(String msg) {
-            super(msg);
-        }
-    }
-
-    @Autowired
-    private GrantedAuthorityMapper grantedAuthorityMapper;
 
     /**
      * users with these groups are allowed access
@@ -145,7 +115,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        validateIpAddress(authentication);
+        authenticationIpWhitelist.validateIpAddress(authentication);
         String username = String.valueOf(authentication.getPrincipal());
         String password = String.valueOf(authentication.getCredentials());
         PAM pam;

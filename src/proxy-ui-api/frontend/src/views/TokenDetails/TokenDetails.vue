@@ -60,7 +60,6 @@
  * Component for showing the details of a token.
  */
 import Vue from 'vue';
-import _ from 'lodash';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';

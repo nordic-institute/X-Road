@@ -11,17 +11,5 @@ export default Vue.extend({
   components: {
     ClientsDataTable,
   },
-  data: () => ({}),
-
-  methods: {
-    fetchClients() {
-      this.$store.dispatch('fetchClients').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-  },
-  created() {
-    this.fetchClients();
-  },
 });
 </script>
