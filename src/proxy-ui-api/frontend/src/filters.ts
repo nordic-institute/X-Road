@@ -41,7 +41,10 @@ Vue.filter('formatDate', (value: string): string => {
   }
 
   const date = new Date(value);
-  return date.toISOString().substring(0, 10);
+
+  return date.getFullYear() + '-'
+    + date.getMonth().toString().padStart(2, '0') + '-'
+    + date.getDay().toString().padStart(2, '0');
 });
 
 // Format date string. Result YYYY-MM-DD HH:MM.
@@ -53,7 +56,25 @@ Vue.filter('formatDateTime', (value: string): string => {
   }
 
   const date = new Date(value);
-  return date.toISOString().substring(0, 10) + ' ' + date.toISOString().substring(11, 16);
+
+  return date.getFullYear() + '-'
+    + date.getMonth().toString().padStart(2, '0') + '-'
+    + date.getDay().toString().padStart(2, '0') + ' '
+    + date.getHours().toString().padStart(2, '0') + ':'
+    + date.getMinutes().toString().padStart(2, '0');
+});
+
+
+// Format date string. Result HH:MM.
+Vue.filter('formatHoursMins', (value: string): string => {
+  const timestamp = Date.parse(value);
+
+  if (isNaN(timestamp)) {
+    return '-';
+  }
+
+  const date = new Date(value);
+  return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
 });
 
 // Return readable string from OCSP status code
