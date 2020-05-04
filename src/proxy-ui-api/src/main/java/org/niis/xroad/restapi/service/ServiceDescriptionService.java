@@ -873,7 +873,7 @@ public class ServiceDescriptionService {
                 .flatMap(sd -> sd.getService().stream())
                 .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
                 .findFirst()
-                .get();
+                .orElse(null);
 
         return service == null ? null : service.getTitle();
     }

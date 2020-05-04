@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -729,6 +730,51 @@ public class ServiceDescriptionServiceIntegrationTest {
                         && ep.getMethod().equals("PUT")
                         && ep.getPath().equals("/foo")));
 
+    }
+
+    @Test
+    public void getServiceTitle() throws Exception {
+        // create a transient client for testing
+        ClientType testClient = new ClientType();
+        ServiceDescriptionType sd1 = new ServiceDescriptionType();
+        testClient.getServiceDescription().add(sd1);
+
+        // backend returns the title of the first matching service (which can be null or empty),
+        // or null if no matches
+        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().add(createServiceType("bar-title", "bar", "v2"));
+        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType(null, "foo", "v1"));
+        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType("", "foo", "v2"));
+        assertEquals("", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType(null, "foo", "v1"));
+        sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
+        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType("", "foo", "v2"));
+        sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
+        assertEquals("", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
+        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+    }
+
+    private ServiceType createServiceType(String title, String serviceCode, String serviceVersion) {
+        ServiceType serviceFooNullTitle = new ServiceType();
+        serviceFooNullTitle.setTitle(title);
+        serviceFooNullTitle.setServiceCode(serviceCode);
+        serviceFooNullTitle.setServiceVersion(serviceVersion);
+        return serviceFooNullTitle;
     }
 
 }
