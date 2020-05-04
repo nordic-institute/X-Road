@@ -77,21 +77,18 @@ public class AccessRightService {
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
     private final IdentifierService identifierService;
-    private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
     private final LocalGroupService localGroupService;
 
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService,
             EndpointService endpointService,
             LocalGroupService localGroupService) {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.identifierService = identifierService;
-        this.globalConfService = globalConfService;
         this.endpointService = endpointService;
         this.localGroupService = localGroupService;
     }
@@ -131,7 +128,6 @@ public class AccessRightService {
      * @param endpointId
      * @param subjectIds
      * @param localGroupIds
-     * @throws LocalGroupNotFoundException if localgroups is not found
      * @throws EndpointNotFoundException if endpoint by given id is not found
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
@@ -347,7 +343,7 @@ public class AccessRightService {
      * Makes an {@link ServiceClientDto} out of {@link AccessRightType}
      * @param accessRightType The AccessRightType to convert from
      * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
-     * their corresponding {@link LocalGroupType#groupCode}
+     * their corresponding {@link LocalGroupType#getGroupCode()}
      * @return
      */
     private ServiceClientDto accessRightTypeToServiceClientDto(AccessRightType accessRightType,
@@ -578,6 +574,7 @@ public class AccessRightService {
      * Null or empty value is considered a match
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
+     * @throws ClientNotFoundException if client with given id was not found
      */
     public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
             String memberNameOrGroupDescription,
@@ -673,7 +670,7 @@ public class AccessRightService {
 
     /**
      * Composes a {@link Predicate} that will be used to filter {@link ServiceClientDto ServiceClientDtos}
-     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#subjectId}
+     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#getSubjectId()}
      * which can be of type {@link GlobalGroupId}, {@link LocalGroupId} or {@link ClientId}. When evaluating the
      * Predicate the type of the Subject will be taken in account for example when testing if the search term
      * {@code memberGroupCode} matches
