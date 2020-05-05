@@ -114,7 +114,7 @@ export default Vue.extend({
     };
   },
   methods: {
-    fetchData() {
+    fetchData(): void {
 
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
@@ -132,10 +132,10 @@ export default Vue.extend({
         .catch( (error: any) =>
           this.$store.dispatch('showError', error));
     },
-    close() {
+    close(): void {
       this.$router.go(-1);
     },
-    remove(accessRight: AccessRight) {
+    remove(accessRight: AccessRight): void {
       api
         .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
           { items: [{ service_code: accessRight.service_code }]})
@@ -149,10 +149,10 @@ export default Vue.extend({
         })
         .catch( (error: any) => this.$store.dispatch('showError', error));
     },
-    addService() {
+    addService(): void {
       // NOOP
     },
-    removeAll() {
+    removeAll(): void {
       this.showConfirmDeleteAll = false;
 
       api
@@ -165,7 +165,7 @@ export default Vue.extend({
         .catch( (error: any) => this.$store.dispatch('showError', error));
     },
   },
-  created() {
+  created(): void {
     this.fetchData();
   },
 
