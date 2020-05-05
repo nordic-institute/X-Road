@@ -8,7 +8,14 @@
       data-test="wizard-title"
     />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
-      <v-stepper-header class="noshadow">
+      <!-- Headers without anchor page -->
+      <v-stepper-header v-if="anchorExists" class="noshadow">
+        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('initialConfiguration.member.title')}}</v-stepper-step>
+        <v-divider></v-divider>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
+      </v-stepper-header>
+      <!-- Headers with anchor page -->
+      <v-stepper-header v-else class="noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{$t('initialConfiguration.anchor.title')}}</v-stepper-step>
         <v-divider></v-divider>
         <v-stepper-step :complete="currentStep > 2" step="2">{{$t('initialConfiguration.member.title')}}</v-stepper-step>
@@ -16,16 +23,27 @@
         <v-stepper-step :complete="currentStep > 3" step="3">{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items class="stepper-content">
-        <!-- Step 1 -->
+      <v-stepper-items  v-if="anchorExists" class="stepper-content">
+        <!-- Member step -->
         <v-stepper-content step="1">
-          <ConfigurationAnchorPage @cancel="cancel" @done="configAnchorReady" />
+          <OwnerMemberPage @cancel="cancel" @done="ownerMemberReady" :showPreviousButton="false" />
         </v-stepper-content>
-        <!-- Step 2 -->
+        <!-- PIN step -->
+        <v-stepper-content step="2">
+          <TokenPinPage @cancel="cancel" @previous="currentStep = 1" @done="tokenPinReady" />
+        </v-stepper-content>
+      </v-stepper-items>
+
+      <v-stepper-items v-else class="stepper-content">
+        <!-- Anchor step -->
+        <v-stepper-content step="1">
+          <ConfigurationAnchorPage @cancel="cancel" @done="configAnchorReady"/>
+        </v-stepper-content>
+        <!-- Member step -->
         <v-stepper-content step="2">
           <OwnerMemberPage @cancel="cancel" @previous="currentStep = 1" @done="ownerMemberReady" />
         </v-stepper-content>
-        <!-- Step 3 -->
+        <!-- PIN step -->
         <v-stepper-content step="3">
           <TokenPinPage @cancel="cancel" @previous="currentStep = 2" @done="tokenPinReady" />
         </v-stepper-content>
@@ -56,13 +74,14 @@ export default Vue.extend({
   data() {
     return {
       currentStep: 1,
+      anchorExists: true
     };
   },
   methods: {
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
         () => {
-          this.currentStep = 2;
+          this.currentStep ++;
         },
         (error) => {
           this.$store.dispatch('showError', error);
@@ -74,11 +93,11 @@ export default Vue.extend({
     },
 
     configAnchorReady(): void {
-      this.currentStep = 2;
+      this.currentStep ++;
     },
 
     ownerMemberReady(): void {
-      this.currentStep = 3;
+      this.currentStep ++;
     },
 
     tokenPinReady(): void {
