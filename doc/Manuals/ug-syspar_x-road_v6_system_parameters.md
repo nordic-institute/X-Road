@@ -63,6 +63,7 @@ Doc. ID: UG-SYSPAR
 | 01.04.2020 | 2.51     | Added new management REST API parameters *key-management-api-whitelist* and *regular-api-whitelist* | Janne Mattila |
 | 03.04.2020 | 2.52     | Removed proxy parameter allow-get-wsdl-request. | Petteri Kivimäki |
 | 12.04.2020 | 2.53     | Updated *connector-host* property EE-package value. | Petteri Kivimäki |
+| 30.04.2020 | 2.54     | Added new parameter *enforce-client-is-cert-validity-period-check* | Märten Soo |
 
 ## Table of Contents
 
@@ -262,7 +263,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-client-cache-size                    | 100                                        |   |   | Maximum number of local clients to keep cached |
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
-
+| enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:

@@ -22,46 +22,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.util;
+package ee.ria.xroad.proxy.testsuite.testcases;
 
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
-import lombok.extern.slf4j.Slf4j;
-
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 
-@Slf4j
-public final class ClientUtils {
-
-    public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local sign certificate";
-
-    private ClientUtils() {
-        // noop
-    }
+/**
+ * The simplest case -- normal message and normal response.
+ * Result: client receives message.
+ */
+public class SslClientAuth extends SslMessageTestCase {
 
     /**
-     *
-     * @param clientId
-     * @param certificateInfos
-     * @return
+     * Constructs the test case.
      */
-    public static boolean hasValidLocalSignCert(ClientId clientId, List<CertificateInfo> certificateInfos) {
-        for (CertificateInfo certificateInfo : certificateInfos) {
-            String ocspResponseStatus = null;
-            try {
-                ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
-            } catch (OcspUtils.OcspStatusExtractionException | RuntimeException e) {
-                log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
-                return false;
+    public SslClientAuth() {
+        requestFileName = "getstate.query";
+        responseFile = "getstate.answer";
+    }
+
+    @Override
+    protected void startUp() throws Exception {
+        super.startUp();
+
+        ServerConf.reload(new TestSuiteServerConf() {
+            @Override
+            public IsAuthentication getIsAuthentication(
+                    ClientId client) {
+                return IsAuthentication.SSLAUTH;
             }
-            if (clientId.equals(certificateInfo.getMemberId())
-                    && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
-                    && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {
-                return true;
+
+            @Override
+            public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
+                return Arrays.asList(TestCertUtil.getClient().certChain[0]);
             }
-        }
-        return false;
+        });
+
+    }
+
+    @Override
+    protected void validateNormalResponse(Message receivedResponse)
+            throws Exception {
+        // Normal response, nothing more to check here.
     }
 
 }
