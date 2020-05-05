@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "rm src/types.ts && npm run generate-types && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "build:report": "vue-cli-service build --report",
     "test:unit": "vue-cli-service test:unit",
