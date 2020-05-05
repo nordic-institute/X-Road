@@ -1,19 +1,18 @@
 <template>
   <div>
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
-      {{$t('initialConfiguration.anchor.info')}}
-      <large-button
-        @click="importAnchor"
-                    outlined
-        data-test="save-button"
-      >{{$t('initialConfiguration.anchor.import')}}</large-button>
-
+      <div class="action-row">
+        <div>{{$t('initialConfiguration.anchor.info')}}</div>
+        <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" />
+      </div>
       <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>blah 1
+        <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>
+        <template v-if="configuratonAnchor">{{ configuratonAnchor.hash | colonize }}</template>
       </div>
 
       <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>blah
+        <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>
+        <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
       </div>
 
       <div class="button-footer">
@@ -22,7 +21,6 @@
         <div>
           <large-button
             :disabled="invalid"
-
             @click="done"
             data-test="save-button"
           >{{$t(saveButtonText)}}</large-button>
@@ -39,9 +37,9 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Key, Token } from '@/types';
-import { CsrFormatTypes } from '@/global';
+import { Anchor } from '@/types';
 import * as api from '@/util/api';
+import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
 export default Vue.extend({
   components: {
@@ -50,6 +48,7 @@ export default Vue.extend({
     SubViewTitle,
     ValidationObserver,
     ValidationProvider,
+    UploadConfigurationAnchorDialog,
   },
   props: {
     saveButtonText: {
@@ -63,7 +62,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      csrFormatList: Object.values(CsrFormatTypes),
+      showAnchorDialog: false as boolean,
+      configuratonAnchor: {} as Anchor,
     };
   },
   computed: {
@@ -75,8 +75,19 @@ export default Vue.extend({
     ]),
   },
   methods: {
+    async fetchConfigurationAnchor() {
+      return api
+        .get('/system/anchor')
+        .then((resp) => (this.configuratonAnchor = resp.data))
+        .catch((error) => this.$store.dispatch('showError', error));
+    },
     importAnchor(): void {
       console.log('import');
+      this.showAnchorDialog = true;
+    },
+    saveAnchor(): void {
+      console.log('saveAnchor');
+      this.showAnchorDialog = false;
     },
     done(): void {
       this.$emit('done');
@@ -85,11 +96,23 @@ export default Vue.extend({
       this.$emit('cancel');
     },
   },
+  created() {
+    this.fetchConfigurationAnchor();
+  },
 });
 </script>
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
+
+.action-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 50px;
+}
 
 .readonly-info-field {
   max-width: 300px;

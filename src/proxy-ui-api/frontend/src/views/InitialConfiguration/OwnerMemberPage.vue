@@ -3,20 +3,19 @@
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="selectedMember" data-test="selected-member-name">{{selectedMember.member_name}}</div>
+        <div v-if="initServerMemberName" data-test="selected-member-name">{{initServerMemberName}}</div>
       </div>
 
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
 
         <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
+          <v-select
             v-model="memberClass"
+            :items="memberClasses"
             data-test="member-class-input"
-          ></v-text-field>
+            class="form-input"
+          ></v-select>
         </ValidationProvider>
       </div>
       <div class="row-wrap">
@@ -33,16 +32,19 @@
         </ValidationProvider>
       </div>
 
-            <div class="row-wrap">
-        <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
+      <div class="row-wrap">
+        <FormLabel
+          labelText="fields.securityServerCode"
+          helpText="initialConfiguration.member.serverCodeHelp"
+        />
 
-        <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
+        <ValidationProvider name="securityServerCode" rules="required" v-slot="{ errors }">
           <v-text-field
             class="form-input"
             type="text"
             :error-messages="errors"
-            v-model="subsystemCode"
-            data-test="subsystem-code-input"
+            v-model="securityServerCode"
+            data-test="security-server-code-input"
           ></v-text-field>
         </ValidationProvider>
       </div>
@@ -106,27 +108,31 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
-      'filteredServiceList',
-      'isUsageReadOnly',
-      'selectedMember',
-      'usage',
-    ]),
+    ...mapGetters(['memberClasses', 'initServerMemberName']),
 
-    csrFormat: {
+    memberClass: {
       get(): string {
-        return this.$store.getters.csrFormat;
+        return this.$store.getters.initServerMemberClass;
       },
       set(value: string) {
-        this.$store.commit('storeCsrFormat', value);
+        this.$store.commit('storeInitServerMemberClass', value);
       },
     },
-    certificationService: {
+    memberCode: {
       get(): string {
-        return this.$store.getters.certificationService;
+        return this.$store.getters.initServerMemberCode;
       },
       set(value: string) {
-        this.$store.commit('storeCertificationService', value);
+        this.$store.commit('storeInitServerMemberCode', value);
+      },
+    },
+
+    securityServerCode: {
+      get(): string {
+        return this.$store.getters.initServerSSCode;
+      },
+      set(value: string) {
+        this.$store.commit('storeInitServerSSCode', value);
       },
     },
   },
@@ -143,10 +149,16 @@ export default Vue.extend({
   },
 
   watch: {
-    filteredServiceList(val) {
+    memberClasses(val) {
       // Set first certification service selected as default when the list is updated
       if (val && val.length === 1) {
-        this.certificationService = val[0].name;
+        this.$store.commit('storeInitServerMemberClass', val[0]);
+      }
+    },
+    memberClass(val) {
+      if (val) {
+        // Update member name when info changes
+        this.$store.dispatch('fetchInitServerMemberName');
       }
     },
   },
