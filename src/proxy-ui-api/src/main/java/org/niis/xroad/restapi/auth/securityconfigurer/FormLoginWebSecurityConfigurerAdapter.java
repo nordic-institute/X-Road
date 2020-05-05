@@ -75,7 +75,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 .and()
             .csrf()
                 .ignoringAntMatchers("/login")
-                .csrfTokenRepository(CookieAndSessionCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
                 .and()
             .formLogin()
                 .loginPage("/login")

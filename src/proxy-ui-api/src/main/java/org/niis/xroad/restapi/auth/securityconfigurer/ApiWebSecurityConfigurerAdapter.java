@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
-import org.niis.xroad.restapi.config.CsrfValidationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +34,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
-import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -78,12 +76,10 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 .and()
             .csrf()
                 // we require csrf protection only if there is a session alive
-                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::isSessionCookieAuthenticated)
+                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::sessionExists)
                 // CsrfFilter always generates a new token in the repo -> prevent with lazy
                 .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
                 .and()
-            // add a custom csrf validator right after the original one
-            .addFilterAfter(new CsrfValidationFilter(), CsrfFilter.class)
             .anonymous()
                 .disable()
             .headers()
@@ -97,7 +93,7 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
     /**
      * Check if an alive session exists
      */
-    private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
+    private static boolean sessionExists(HttpServletRequest request) {
         return request.getSession(false) != null;
     }
 

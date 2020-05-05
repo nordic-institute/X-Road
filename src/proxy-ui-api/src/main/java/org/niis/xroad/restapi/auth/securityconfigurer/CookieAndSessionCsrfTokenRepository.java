@@ -24,130 +24,129 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
-import org.springframework.security.web.csrf.DefaultCsrfToken;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import java.lang.reflect.Method;
-import java.util.UUID;
-
 /**
- * Implements (and copies) functionalities from two csrf repositories:
+ * Use two csrf repositories:
  * {@link org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository HttpSessionCsrfTokenRepository}
  * and {@link org.springframework.security.web.csrf.CookieCsrfTokenRepository CookieCsrfTokenRepository}.
  * This way we get the same token in session and csrf cookie
  */
+@Slf4j
 public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository {
-    public static final String DEFAULT_CSRF_COOKIE_NAME = "XSRF-TOKEN";
-    public static final String DEFAULT_CSRF_HEADER_NAME = "X-XSRF-TOKEN";
-    public static final String DEFAULT_CSRF_PARAMETER_NAME = "_csrf";
+    public static final String CSRF_HEADER_NAME = "X-XSRF-TOKEN";
 
-    private static final String DEFAULT_CSRF_TOKEN_ATTR_NAME = CookieAndSessionCsrfTokenRepository.class
-            .getName().concat(".CSRF_TOKEN");
+    private CookieCsrfTokenRepository cookieCsrfTokenRepository;
+    private HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository;
 
-    private final Method setHttpOnlyMethod;
-
-    private boolean cookieHttpOnly;
-    private String cookieName = DEFAULT_CSRF_COOKIE_NAME;
-    private String headerName = DEFAULT_CSRF_HEADER_NAME;
-    private String parameterName = DEFAULT_CSRF_PARAMETER_NAME;
-    private String sessionAttributeName = DEFAULT_CSRF_TOKEN_ATTR_NAME;
-
+    /**
+     * Creates an instance of CookieAndSessionCsrfTokenRepository which holds a instances of
+     * {@link HttpSessionCsrfTokenRepository} and {@link CookieCsrfTokenRepository} with <code>cookieHttpOnly</code>
+     * set to <code>false</code>. Also sets the CSRF header name to ensure it does not change in future Spring updates
+     */
     public CookieAndSessionCsrfTokenRepository() {
-        this.setHttpOnlyMethod = ReflectionUtils.findMethod(Cookie.class, "setHttpOnly", boolean.class);
-        if (this.setHttpOnlyMethod != null) {
-            this.cookieHttpOnly = true;
-        }
+        cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        cookieCsrfTokenRepository.setHeaderName(CSRF_HEADER_NAME);
+        httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
     }
 
     @Override
     public CsrfToken generateToken(HttpServletRequest request) {
-        return new DefaultCsrfToken(this.headerName, this.parameterName,
-                createNewToken());
+        return httpSessionCsrfTokenRepository.generateToken(request);
     }
 
     /**
      * Saves a new token in session and adds that token in to a response cookie
-     * @param token token to be saved. The value of the token should not be empty or null
+     * @param token
      * @param request
      * @param response
      */
     @Override
-    public void saveToken(CsrfToken token, HttpServletRequest request,
-            HttpServletResponse response) {
-        String tokenValue = token == null ? "" : token.getToken();
-        if (!StringUtils.isEmpty(tokenValue)) {
-            Cookie cookie = new Cookie(this.cookieName, tokenValue);
-            cookie.setSecure(request.isSecure());
-            cookie.setPath(this.getRequestContext(request));
-            if (token == null) {
-                cookie.setMaxAge(0);
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.removeAttribute(this.sessionAttributeName);
-                }
-            } else {
-                cookie.setMaxAge(-1);
-                HttpSession session = request.getSession();
-                session.setAttribute(this.sessionAttributeName, token);
-            }
-            if (cookieHttpOnly && setHttpOnlyMethod != null) {
-                ReflectionUtils.invokeMethod(setHttpOnlyMethod, cookie, Boolean.TRUE);
-            }
-            response.addCookie(cookie);
-        }
+    public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+        cookieCsrfTokenRepository.saveToken(token, request, response);
+        httpSessionCsrfTokenRepository.saveToken(token, request, response);
     }
 
     /**
-     * The de facto token that gets loaded from the session
+     * Validate and load the token if there is a session. If there is no session -> return null
      */
     @Override
     public CsrfToken loadToken(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
+        // validate csrf only if a session exists
         if (session != null) {
-            return (CsrfToken) session.getAttribute(this.sessionAttributeName);
+            return validateAndLoadToken(request);
         }
         return null;
     }
 
-    private String getRequestContext(HttpServletRequest request) {
-        String contextPath = request.getContextPath();
-        return contextPath.length() > 0 ? contextPath : "/";
-    }
-
     /**
-     * Factory method to conveniently create an instance that has
-     * {@link #setCookieHttpOnly(boolean)} set to false.
-     * @return an instance of CookieCsrfTokenRepository with
-     * {@link #setCookieHttpOnly(boolean)} set to false
+     * Validate that the token exists in header, cookie and session and that they all match
+     * @param request
+     * @return {@link CsrfToken} if validation passes - otherwise {@code null}
      */
-    public static CookieAndSessionCsrfTokenRepository withHttpOnlyFalse() {
-        CookieAndSessionCsrfTokenRepository result = new CookieAndSessionCsrfTokenRepository();
-        result.setCookieHttpOnly(false);
-        return result;
-    }
-
-    private String createNewToken() {
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * @see org.springframework.security.web.csrf.CookieCsrfTokenRepository#setCookieHttpOnly(boolean)
-     * CookieCsrfTokenRepository#setCookieHttpOnly(boolean)
-     */
-    public void setCookieHttpOnly(boolean cookieHttpOnly) {
-        if (cookieHttpOnly && setHttpOnlyMethod == null) {
-            throw new IllegalArgumentException(
-                    "Cookie will not be marked as HttpOnly because you are using a version of Servlet " +
-                            "less than 3.0. NOTE: The Cookie#setHttpOnly(boolean) was introduced in Servlet 3.0.");
+    private CsrfToken validateAndLoadToken(HttpServletRequest request) {
+        String headerCsrfTokenValue = getHeaderCsrfTokenValue(request);
+        if (headerCsrfTokenValue == null) {
+            String headerCsrfError = "CSRF token not found in header";
+            log.error(headerCsrfError);
+            return null;
         }
-        this.cookieHttpOnly = cookieHttpOnly;
+
+        String cookieCsrfTokenValue = getCookieCsrfTokenValue(request);
+        if (cookieCsrfTokenValue == null) {
+            String cookieCsrfError = "CSRF token not found in request cookie";
+            log.error(cookieCsrfError);
+            return null;
+        }
+
+        String sessionCsrfTokenValue = getSessionCsrfTokenValue(request);
+        if (sessionCsrfTokenValue == null) {
+            String sessionCsrfError = "CSRF token not found in session";
+            log.error(sessionCsrfError);
+            return null;
+        }
+
+        if (!sessionCsrfTokenValue.equals(headerCsrfTokenValue)) {
+            String headerCsrfComparisonError = "Header CSRF value does not match with session";
+            log.error(headerCsrfComparisonError);
+            return null;
+        }
+
+        if (!sessionCsrfTokenValue.equals(cookieCsrfTokenValue)) {
+            String cookieCsrfComparisonError = "Cookie CSRF value does not match with session";
+            log.error(cookieCsrfComparisonError);
+            return null;
+        }
+        return cookieCsrfTokenRepository.loadToken(request);
+    }
+
+    private String getSessionCsrfTokenValue(HttpServletRequest servletRequest) {
+        CsrfToken csrfToken = httpSessionCsrfTokenRepository.loadToken(servletRequest);
+        if (csrfToken == null || StringUtils.isEmpty(csrfToken.getToken())) {
+            return null;
+        }
+        return csrfToken.getToken();
+    }
+
+    private String getCookieCsrfTokenValue(HttpServletRequest servletRequest) {
+        CsrfToken csrfToken = cookieCsrfTokenRepository.loadToken(servletRequest);
+        if (csrfToken == null || StringUtils.isEmpty(csrfToken.getToken())) {
+            return null;
+        }
+        return csrfToken.getToken();
+    }
+
+    private String getHeaderCsrfTokenValue(HttpServletRequest servletRequest) {
+        return servletRequest.getHeader(CSRF_HEADER_NAME);
     }
 }
