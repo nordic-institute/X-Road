@@ -44,6 +44,8 @@ import javax.servlet.http.HttpSession;
 @Slf4j
 public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository {
     public static final String CSRF_HEADER_NAME = "X-XSRF-TOKEN";
+    public static final String SESSION_CSRF_TOKEN_ATTR_NAME = CookieAndSessionCsrfTokenRepository.class.getName()
+            .concat(".CSRF_TOKEN");
 
     private CookieCsrfTokenRepository cookieCsrfTokenRepository;
     private HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository;
@@ -57,6 +59,7 @@ public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository 
         cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         cookieCsrfTokenRepository.setHeaderName(CSRF_HEADER_NAME);
         httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
+        httpSessionCsrfTokenRepository.setSessionAttributeName(SESSION_CSRF_TOKEN_ATTR_NAME);
     }
 
     @Override
