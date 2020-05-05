@@ -275,11 +275,7 @@ public class AccessRightService {
         Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
 
         // Add access rights to endpoint
-        try {
-            addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
-        } catch (LocalGroupNotFoundException e) {
-            throw new ServiceClientNotFoundException(e);
-        }
+        addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
 
         // Create DTOs for returning data
         List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
@@ -324,13 +320,8 @@ public class AccessRightService {
         // make sure subject id exists in serverconf db IDENTIFIER table, and use a managed entity
         XRoadId managedSubjectId = identifierService.getOrPersistXroadId(subjectId);
 
-        try {
-            return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
+        return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
                     .get(managedSubjectId);
-        } catch (LocalGroupNotFoundException e) {
-            // no need to handle this in more detail than the other service client types
-            throw new ServiceClientNotFoundException(e);
-        }
     }
 
     /**
@@ -492,7 +483,7 @@ public class AccessRightService {
      */
     Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadId> subjectIds,
             ClientType clientType, List<EndpointType> endpoints)
-            throws DuplicateAccessRightException, LocalGroupNotFoundException {
+            throws DuplicateAccessRightException {
         Date now = new Date();
 
         if (subjectIds == null || subjectIds.isEmpty()) {
