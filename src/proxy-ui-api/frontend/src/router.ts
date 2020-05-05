@@ -354,15 +354,17 @@ const router = new Router({
           },
           props: { default: true },
         },
+
+        {
+          name: RouteName.InitialConfiguration,
+          path: '/initial-conf',
+          components: {
+            default: InitialConfiguration,
+          },
+        },
       ],
     },
-    {
-      name: RouteName.InitialConfiguration,
-      path: '/initial-conf',
-      components: {
-        default: InitialConfiguration,
-      },
-    },
+
     {
       path: '/login',
       name: RouteName.Login,

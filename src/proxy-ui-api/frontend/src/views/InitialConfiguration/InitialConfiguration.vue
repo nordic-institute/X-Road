@@ -86,7 +86,9 @@ export default Vue.extend({
     },
   },
   created() {
-    this.$store.dispatch('setupSignKey');
+    this.$store.dispatch('fetchMemberClasses');
+
+
   },
 });
 </script>

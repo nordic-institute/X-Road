@@ -601,7 +601,8 @@
     },
     "member": {
       "title": "Owner Member",
-      "info": "Define the member that will act as the Security Server owner:"
+      "info": "Define the member that will act as the Security Server owner:",
+      "serverCodeHelp": "Info SS"
     },
     "pin": {
       "title": "Token PIN",
@@ -659,6 +660,7 @@
     "path": "path",
     "pin": "PIN",
     "confirmPin": "Confirm PIN",
+    "securityServerCode": "Security Server Code",
     "keys": {
       "friendlyName": "Friendly name"
     },
