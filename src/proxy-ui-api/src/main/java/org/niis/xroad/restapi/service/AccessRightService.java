@@ -40,6 +40,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -51,12 +52,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -76,42 +77,40 @@ public class AccessRightService {
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
     private final IdentifierService identifierService;
-    private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
     private final LocalGroupService localGroupService;
 
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService,
             EndpointService endpointService,
             LocalGroupService localGroupService) {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.identifierService = identifierService;
-        this.globalConfService = globalConfService;
         this.endpointService = endpointService;
         this.localGroupService = localGroupService;
     }
 
     /**
      * Remove AccessRights from a Service
+     *
+     * Does not really need full service code, and versionless service code would be more logical parameter.
+     * But controller cannot currently extract version code from full service code, since we use dot as a separator.
+     *
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
      * @param localGroupIds
-     * @throws LocalGroupNotFoundException if tried to remove local group access right
-     * for a local group that does not exist
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws EndpointNotFoundException if the base endpoint for the service is not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException,
-            EndpointNotFoundException {
+            Set<Long> localGroupIds) throws ClientNotFoundException, AccessRightNotFoundException,
+            ServiceNotFoundException, EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -129,7 +128,6 @@ public class AccessRightService {
      * @param endpointId
      * @param subjectIds
      * @param localGroupIds
-     * @throws LocalGroupNotFoundException if localgroups is not found
      * @throws EndpointNotFoundException if endpoint by given id is not found
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
@@ -185,23 +183,24 @@ public class AccessRightService {
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
      *
+     * Does not really need full service code, and versionless service code would be more logical parameter.
+     * But controller cannot currently extract version code from full service code, since we use dot as a separator.
+     *
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
      * @param localGroupIds
      * @return List of {@link ServiceClientDto AccessRightHolderDtos}
-     * @throws AccessRightNotFoundException
-     * @throws ClientNotFoundException
-     * @throws ServiceNotFoundException
-     * @throws DuplicateAccessRightException
-     * @throws IdentifierNotFoundException
-     * @throws EndpointNotFoundException
-     * @throws LocalGroupNotFoundException
+     * @throws ClientNotFoundException exception
+     * @throws ServiceNotFoundException exception
+     * @throws DuplicateAccessRightException exception
+     * @throws IdentifierNotFoundException if subjectIds or localGroupIds identifier was not found
+     * @throws EndpointNotFoundException exception
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws AccessRightNotFoundException,
-            ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
-            IdentifierNotFoundException, EndpointNotFoundException, LocalGroupNotFoundException {
+            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws ClientNotFoundException,
+            ServiceNotFoundException, DuplicateAccessRightException,
+            IdentifierNotFoundException, EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -225,14 +224,12 @@ public class AccessRightService {
      * @return
      * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException client for the endpoint is not found (shouldn't happen)
-     * @throws IdentifierNotFoundException Identifier is not found
-     * @throws AccessRightNotFoundException Local group is not found
+     * @throws IdentifierNotFoundException Identifier from subjectIds is not found
      * @throws DuplicateAccessRightException Trying to add duplicate access rights
      */
     public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws EndpointNotFoundException, ClientNotFoundException,
-            IdentifierNotFoundException, AccessRightNotFoundException, DuplicateAccessRightException,
-            LocalGroupNotFoundException {
+            IdentifierNotFoundException, DuplicateAccessRightException {
 
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
 
@@ -241,21 +238,88 @@ public class AccessRightService {
 
     }
 
+    /**
+     * @throws IdentifierNotFoundException if subjectIds or localGroupIds were not found
+     * @throws DuplicateAccessRightException
+     */
     private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws IdentifierNotFoundException,
-            AccessRightNotFoundException, DuplicateAccessRightException, LocalGroupNotFoundException {
+            DuplicateAccessRightException {
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
-        Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(subjectIds, localGroupIds);
+        Set<XRoadId> subjectIdsToBeAdded = mergeSubjectIdsWithLocalgroups(clientType, subjectIds, localGroupIds);
 
         // Add access rights to endpoint
-        addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
+        try {
+            addAccessRights(subjectIdsToBeAdded, clientType, endpointType);
+        } catch (LocalGroupNotFoundException e) {
+            throw new IdentifierNotFoundException(e);
+        }
 
         // Create DTOs for returning data
         List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
         return mapAccessRightsToServiceClients(clientType, accessRightsByEndpoint);
     }
 
+    /**
+     * Add access rights for one subject (service client) to multiple services (serviceCodes)
+     * of a client (clientType)
+     *
+     * @param clientId id of the client who owns the services
+     * @param serviceCodes serviceCodes of the services to add access rights to (without version numbers)
+     * @param subjectId subject (service client) to add access rights for. Can be a local group,
+     *                  global group, or a subsystem
+     * @return ServiceClientAccessRightDtos that were added for this service client
+     * @throws EndpointNotFoundException if serviceCodes had any codes that were not client's services
+     * (did not have base endpoints)
+     * @throws ClientNotFoundException if client matching clientId was not found
+     * @throws DuplicateAccessRightException if trying to add existing access right
+     * @throws IdentifierNotFoundException if service client (local group, global group, or system) matching given
+     * subjectId did not exist
+     */
+    public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
+            XRoadId subjectId) throws EndpointNotFoundException,
+            DuplicateAccessRightException, ClientNotFoundException, IdentifierNotFoundException {
+
+        log.debug("Add access rights to subject", subjectId); // acl_subject_open_services_add
+
+        // validate params some
+        ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
+        }
+        if (subjectId == null) {
+            throw new IllegalArgumentException("missing subjectId");
+        }
+        XRoadObjectType objectType = subjectId.getObjectType();
+        if (!isValidServiceClientType(objectType)) {
+            throw new IllegalArgumentException("Invalid object type " + objectType);
+        }
+
+        // prepare params for addAccessRightsInternal
+        List<EndpointType> baseEndpoints = endpointService.getServiceBaseEndpoints(clientType, serviceCodes);
+        Set<XRoadId> subjectIds = new HashSet<>();
+        subjectIds.add(subjectId);
+
+        // verify that given subjectId exists
+        identifierService.verifyServiceClientIdentifiersExist(clientType, subjectIds);
+
+        // make sure subject id exists in serverconf db IDENTIFIER table
+        subjectIds = identifierService.getOrPersistXroadIds(subjectIds);
+
+        try {
+            return addAccessRightsInternal(subjectIds, clientType, baseEndpoints).get(subjectId);
+        } catch (LocalGroupNotFoundException e) {
+            // no need to handle this in more detail than the other service client types
+            throw new IdentifierNotFoundException(e);
+        }
+    }
+
+    private boolean isValidServiceClientType(XRoadObjectType objectType) {
+        return objectType == XRoadObjectType.SUBSYSTEM
+                || objectType == XRoadObjectType.GLOBALGROUP
+                || objectType == XRoadObjectType.LOCALGROUP;
+    }
 
     /**
      * Get access right holders (serviceClients) for endpoint
@@ -279,7 +343,7 @@ public class AccessRightService {
      * Makes an {@link ServiceClientDto} out of {@link AccessRightType}
      * @param accessRightType The AccessRightType to convert from
      * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
-     * their corresponding {@link LocalGroupType#groupCode}
+     * their corresponding {@link LocalGroupType#getGroupCode()}
      * @return
      */
     private ServiceClientDto accessRightTypeToServiceClientDto(AccessRightType accessRightType,
@@ -313,108 +377,161 @@ public class AccessRightService {
     }
 
     /**
-     * Add access rights to given endpoint
+     * Add access rights for (possibly) multiple subjects, to a given endpoint
      *
-     * @param subjectIds
-     * @param clientType
-     * @param endpoint
+     * @param subjectIds access rights subjects to grant access for, "service clients"
+     * @param clientType endpoint owner
+     * @param endpoint endpoint to add access rights to
+     * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
-    private void addAccessRights(Set<XRoadId> subjectIds, ClientType clientType, EndpointType endpoint)
+    private Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRights(Set<XRoadId> subjectIds,
+            ClientType clientType, EndpointType endpoint)
+            throws DuplicateAccessRightException, LocalGroupNotFoundException {
+        List<EndpointType> endpoints = Collections.singletonList(endpoint);
+        return addAccessRightsInternal(subjectIds, clientType, endpoints);
+    }
+
+    /**
+     * Add access rights for (possibly) multiple subjects, to (possibly) multiple endpoints.
+     *
+     * This method is not intended for use from outside, but is package protected for tests.
+     *
+     * @param subjectIds access rights subjects to grant access for, "service clients"
+     * @param clientType endpoint owner
+     * @param endpoints endpoints to add access rights to
+     * @return map, key = subjectId (service client), value = list of access rights added for the subject
+     * @throws DuplicateAccessRightException if trying to add existing access right
+     */
+    Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadId> subjectIds,
+            ClientType clientType, List<EndpointType> endpoints)
             throws DuplicateAccessRightException, LocalGroupNotFoundException {
         Date now = new Date();
 
-        List<LocalGroupType> clientLocalGroups = clientType.getLocalGroup();
+        if (subjectIds == null || subjectIds.isEmpty()) {
+            throw new IllegalArgumentException("missing subjectIds");
+        }
+        if (endpoints == null || endpoints.isEmpty()) {
+            throw new IllegalArgumentException("missing endpoints");
+        }
 
-        for (XRoadId subjectId : subjectIds) {
-            // A LocalGroup must belong to this client
-            if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
-                LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                boolean localGroupNotFound = clientLocalGroups.stream()
-                        .noneMatch(localGroupType -> localGroupType.getGroupCode()
-                                .equals(localGroupId.getGroupCode()));
-                if (localGroupNotFound) {
-                    String errorMsg = String.format("LocalGroup with the groupCode %s does not belong to client %s",
-                            subjectId.toShortString(), clientType.getIdentifier().toShortString());
-                    throw new LocalGroupNotFoundException(errorMsg);
-                }
-            }
-            Optional<AccessRightType> existingAccessRight = clientType.getAcl().stream()
-                    .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
-                    .findFirst();
+        Map<XRoadId, List<ServiceClientAccessRightDto>> addedAccessRights = new HashMap<>();
 
-            if (existingAccessRight.isPresent() && existingAccessRight.get().getEndpoint().equals(endpoint)) {
-                throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
-                        + " already has an access right for endpoint " + endpoint.getId());
+        for (EndpointType endpoint: endpoints) {
+            for (XRoadId subjectId : subjectIds) {
+                ServiceClientAccessRightDto dto = addAccessRightInternal(clientType, now, endpoint, subjectId);
+                List<ServiceClientAccessRightDto> addedAccessRightsForSubject = addedAccessRights
+                        .computeIfAbsent(subjectId, k -> new ArrayList<>());
+                addedAccessRightsForSubject.add(dto);
             }
-            AccessRightType newAccessRight = new AccessRightType();
-            newAccessRight.setEndpoint(endpoint);
-            newAccessRight.setSubjectId(subjectId);
-            newAccessRight.setRightsGiven(now);
-            clientType.getAcl().add(newAccessRight);
         }
 
         clientRepository.saveOrUpdate(clientType);
+        return addedAccessRights;
     }
 
-    private Set<XRoadId> mergeSubjectIdsWithLocalgroups(Set<XRoadId> subjectIds, Set<Long> localGroupIds)
-            throws IdentifierNotFoundException, AccessRightNotFoundException {
-        // Get persistent entities in order to change relations
-        Set<XRoadId> txSubjects = new HashSet<>();
-        if (subjectIds != null && !subjectIds.isEmpty()) {
-            txSubjects.addAll(getOrPersistSubsystemIds(subjectIds.stream()
-                    .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.SUBSYSTEM)
-                    .collect(Collectors.toSet())));
-            txSubjects.addAll(getOrPersistGlobalGroupIds(subjectIds.stream()
-                    .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.GLOBALGROUP)
-                    .collect(Collectors.toSet())));
+    /**
+     * Add access right for a single subject (subjectId), to a single endpoint (endpoint) that belongs to clientType
+     * @param clientType
+     * @param rightsGiven
+     * @param endpoint
+     * @param subjectId
+     * @return
+     * @throws LocalGroupNotFoundException if local group does not exist for given client
+     * @throws DuplicateAccessRightException if access righ already exists
+     */
+    private ServiceClientAccessRightDto addAccessRightInternal(ClientType clientType, Date rightsGiven,
+            EndpointType endpoint, XRoadId subjectId)
+            throws LocalGroupNotFoundException, DuplicateAccessRightException {
+
+        // A LocalGroup must belong to this client
+        List<LocalGroupType> clientLocalGroups = clientType.getLocalGroup();
+
+        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
+            LocalGroupId localGroupId = (LocalGroupId) subjectId;
+            boolean localGroupNotFound = clientLocalGroups.stream()
+                    .noneMatch(localGroupType -> localGroupType.getGroupCode()
+                            .equals(localGroupId.getGroupCode()));
+            if (localGroupNotFound) {
+                String errorMsg = String.format("LocalGroup with the groupCode %s does not belong to client %s",
+                        subjectId.toShortString(), clientType.getIdentifier().toShortString());
+                throw new LocalGroupNotFoundException(errorMsg);
+            }
+        }
+
+        // list endpoints, which this subject / service client has already been granted access to
+        Set<EndpointType> existingAccessibleEndpoints = clientType.getAcl().stream()
+                .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
+                .map(accessRightType -> accessRightType.getEndpoint())
+                .collect(Collectors.toSet());
+
+        if (existingAccessibleEndpoints.contains(endpoint)) {
+            throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
+                    + " already has an access right for endpoint " + endpoint.getId());
+        }
+
+        AccessRightType newAccessRight = new AccessRightType();
+        newAccessRight.setEndpoint(endpoint);
+        newAccessRight.setSubjectId(subjectId);
+        newAccessRight.setRightsGiven(rightsGiven);
+        clientType.getAcl().add(newAccessRight);
+
+        // return a dto
+        ServiceClientAccessRightDto dto = ServiceClientAccessRightDto.builder()
+                .serviceCode(endpoint.getServiceCode())
+                .rightsGiven(FormatUtils.fromDateToOffsetDateTime(rightsGiven))
+                .title(getServiceTitle(clientType, endpoint.getServiceCode()))
+                .build();
+        return dto;
+    }
+
+    // TO DO: currently duplicate with ServiceClientService, not sure if ServiceClientService will be refactored,
+    // and what is the correct place if both need this
+    private String getServiceTitle(ClientType clientType, String serviceCode) {
+        ServiceType service = clientType.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .get();
+
+        return service == null ? null : service.getTitle();
+    }
+
+    /**
+     * Go through given service client ids (subjectIds), verify that they match existing items,
+     * and ensure that SERVERCONF.IDENTIFIER table has rows for all of them. Return managed
+     * entities
+     * @param clientType owner client of the (possible) local groups
+     * @param subjectIds
+     * @param localGroupIds
+     * @return
+     * @throws IdentifierNotFoundException subjectIds identifier was not found
+     */
+    private Set<XRoadId> mergeSubjectIdsWithLocalgroups(ClientType clientType, Set<XRoadId> subjectIds,
+            Set<Long> localGroupIds)
+            throws IdentifierNotFoundException {
+
+        // subjectIds + localGroupIds => transientIds
+        Set<XRoadId> transientIds = new HashSet<>();
+        if (subjectIds != null) {
+            transientIds.addAll(subjectIds);
         }
         if (localGroupIds != null && localGroupIds.size() > 0) {
-            Set<XRoadId> localGroupXroadIds = null;
             try {
-                localGroupXroadIds = localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds);
+                Set<XRoadId> localGroupXroadIds = localGroupService.getLocalGroupIdsAsXroadIds(localGroupIds);
+                transientIds.addAll(localGroupXroadIds); // not actually transient, but does not matter
             } catch (LocalGroupNotFoundException e) {
-                throw new AccessRightNotFoundException(e);
+                throw new IdentifierNotFoundException(e);
             }
-            // Get LocalGroupIds from serverconf db - or save them if they don't exist
-            Set<XRoadId> txLocalGroupXroadIds = identifierService.getOrPersistXroadIds(localGroupXroadIds);
-            txSubjects.addAll(txLocalGroupXroadIds);
         }
-        return txSubjects;
-    }
 
-    /**
-     * Verify that all identifiers are authentic, then get the existing ones from the local db and persist
-     * the not-existing ones. This is a necessary step if we are changing identifier relations (such as adding
-     * access rights to services)
-     * @param subsystemIds {@link GlobalGroupId} or {@link ClientId}
-     * @return List of XRoadIds ({@link GlobalGroupId} or {@link ClientId})
-     */
-    private Set<XRoadId> getOrPersistSubsystemIds(Set<XRoadId> subsystemIds)
-            throws IdentifierNotFoundException {
-        // Check that the identifiers exist in globalconf
-        // LocalGroups must be verified separately! (they do not exist in globalconf)
-        if (!globalConfService.clientIdentifiersExist(subsystemIds)) {
-            // This exception should be pretty rare since it only occurs if bogus subjects are found
-            throw new IdentifierNotFoundException();
-        }
-        return identifierService.getOrPersistXroadIds(subsystemIds);
-    }
+        // verify that all ids actually exist
+        identifierService.verifyServiceClientIdentifiersExist(clientType, transientIds);
 
-    /**
-     * @param globalGroupIds
-     * @return
-     * @throws IdentifierNotFoundException
-     * @see AccessRightService#getOrPersistSubsystemIds(Set)
-     */
-    private Set<XRoadId> getOrPersistGlobalGroupIds(Set<XRoadId> globalGroupIds)
-            throws IdentifierNotFoundException {
-        if (!globalConfService.globalGroupIdentifiersExist(globalGroupIds)) {
-            throw new IdentifierNotFoundException();
-        }
-        return identifierService.getOrPersistXroadIds(globalGroupIds);
+        // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
+        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(transientIds);
+        return managedIds;
     }
-
 
     /**
      * If access right was not found
@@ -457,6 +574,7 @@ public class AccessRightService {
      * Null or empty value is considered a match
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
+     * @throws ClientNotFoundException if client with given id was not found
      */
     public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
             String memberNameOrGroupDescription,
@@ -552,7 +670,7 @@ public class AccessRightService {
 
     /**
      * Composes a {@link Predicate} that will be used to filter {@link ServiceClientDto ServiceClientDtos}
-     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#subjectId}
+     * against the given search terms. The given ServiceClientDto has a {@link ServiceClientDto#getSubjectId()}
      * which can be of type {@link GlobalGroupId}, {@link LocalGroupId} or {@link ClientId}. When evaluating the
      * Predicate the type of the Subject will be taken in account for example when testing if the search term
      * {@code memberGroupCode} matches
@@ -579,97 +697,32 @@ public class AccessRightService {
         if (subjectType != null) {
             searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() == subjectType);
         }
-
-        // add member name or group description to condition
+        // Check if the memberName or LocalGroup's description match with the search term
         if (!StringUtils.isEmpty(memberNameOrGroupDescription)) {
-            searchPredicate = addMemberNameOrGroupDescriptionCondition(memberNameOrGroupDescription, searchPredicate);
+            searchPredicate = searchPredicate.and(getMemberNameOrGroupDescriptionPredicate(
+                    memberNameOrGroupDescription));
         }
-
-        // add instance to condition
+        // Check if the instance of the subject matches with the search term
         if (!StringUtils.isEmpty(instance)) {
-            searchPredicate = addInstanceCondition(instance, searchPredicate);
+            searchPredicate = searchPredicate.and(getSubjectInstancePredicate(instance));
         }
-
-        // add member class to condition
+        // Check if the memberClass of the subject matches with the search term
         if (!StringUtils.isEmpty(memberClass)) {
-            searchPredicate = addMemberClassCondition(memberClass, searchPredicate);
+            searchPredicate = searchPredicate.and(getSubjectMemberClassPredicate(memberClass));
         }
-
-        // add subsystem to condition
+        // Check if the subsystemCode of the subject matches with the search term
         if (!StringUtils.isEmpty(subsystemCode)) {
-            searchPredicate = addSubsystemCodeCondition(subsystemCode, searchPredicate);
+            searchPredicate = searchPredicate.and(getSubjectSubsystemCodePredicate(subsystemCode));
         }
-
-        // add membergroupcode to condition
+        // Check if the memberCode or groupCode of the subject matches with the search term
         if (!StringUtils.isEmpty(memberGroupCode)) {
-            searchPredicate = addMemberGroupCodeCondition(memberGroupCode, searchPredicate);
+            searchPredicate = searchPredicate.and(getSubjectMemberOrGroupCodePredicate(memberGroupCode));
         }
         return searchPredicate;
     }
 
-    // Check if the memberName or LocalGroup's description match with the search term
-    private Predicate<ServiceClientDto> addMemberNameOrGroupDescriptionCondition(String memberNameOrGroupDescription,
-            Predicate<ServiceClientDto> searchPredicate) {
-        searchPredicate = searchPredicate.and(dto -> {
-            String memberName = dto.getMemberName();
-            String localGroupDescription = dto.getLocalGroupDescription();
-            boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
-                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
-            return isMatch;
-        });
-        return searchPredicate;
-    }
-
-    // Check if the instance of the subject matches with the search term
-    private Predicate<ServiceClientDto> addInstanceCondition(String instance,
-            Predicate<ServiceClientDto> searchPredicate) {
-        searchPredicate = searchPredicate.and(dto -> {
-            XRoadId xRoadId = dto.getSubjectId();
-            // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
-            // -> always return
-            if (xRoadId instanceof LocalGroupId) {
-                return true;
-            } else {
-                return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
-            }
-        });
-        return searchPredicate;
-    }
-
-    // Check if the memberClass of the subject matches with the search term
-    private Predicate<ServiceClientDto> addMemberClassCondition(String memberClass,
-            Predicate<ServiceClientDto> searchPredicate) {
-        searchPredicate = searchPredicate.and(dto -> {
-            XRoadId xRoadId = dto.getSubjectId();
-            if (xRoadId instanceof ClientId) {
-                String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
-                return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
-            } else {
-                return false;
-            }
-        });
-        return searchPredicate;
-    }
-
-    // Check if the subsystemCode of the subject matches with the search term
-    private Predicate<ServiceClientDto> addSubsystemCodeCondition(String subsystemCode,
-            Predicate<ServiceClientDto> searchPredicate) {
-        searchPredicate = searchPredicate.and(dto -> {
-            XRoadId xRoadId = dto.getSubjectId();
-            if (xRoadId instanceof ClientId) {
-                String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
-                return StringUtils.containsIgnoreCase(clientSubsystemCode, subsystemCode);
-            } else {
-                return false;
-            }
-        });
-        return searchPredicate;
-    }
-
-    // Check if the memberCode or groupCode of the subject matches with the search term
-    private Predicate<ServiceClientDto> addMemberGroupCodeCondition(String memberGroupCode,
-            Predicate<ServiceClientDto> searchPredicate) {
-        searchPredicate = searchPredicate.and(dto -> {
+    private Predicate<ServiceClientDto> getSubjectMemberOrGroupCodePredicate(String memberGroupCode) {
+        return dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
                 String clientMemberCode = ((ClientId) xRoadId).getMemberCode();
@@ -683,7 +736,53 @@ public class AccessRightService {
             } else {
                 return false;
             }
-        });
-        return searchPredicate;
+        };
+    }
+
+    private Predicate<ServiceClientDto> getSubjectSubsystemCodePredicate(String subsystemCode) {
+        return dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            if (xRoadId instanceof ClientId) {
+                String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
+                return StringUtils.containsIgnoreCase(clientSubsystemCode, subsystemCode);
+            } else {
+                return false;
+            }
+        };
+    }
+
+    private Predicate<ServiceClientDto> getSubjectMemberClassPredicate(String memberClass) {
+        return dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            if (xRoadId instanceof ClientId) {
+                String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
+                return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
+            } else {
+                return false;
+            }
+        };
+    }
+
+    private Predicate<ServiceClientDto> getSubjectInstancePredicate(String instance) {
+        return dto -> {
+            XRoadId xRoadId = dto.getSubjectId();
+            // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
+            // -> always return
+            if (xRoadId instanceof LocalGroupId) {
+                return true;
+            } else {
+                return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
+            }
+        };
+    }
+
+    private Predicate<ServiceClientDto> getMemberNameOrGroupDescriptionPredicate(String memberNameOrGroupDescription) {
+        return dto -> {
+            String memberName = dto.getMemberName();
+            String localGroupDescription = dto.getLocalGroupDescription();
+            boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
+                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
+            return isMatch;
+        };
     }
 }

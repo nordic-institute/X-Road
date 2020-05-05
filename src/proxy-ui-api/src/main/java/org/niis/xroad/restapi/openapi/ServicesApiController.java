@@ -45,7 +45,6 @@ import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
-import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
@@ -160,7 +159,7 @@ public class ServicesApiController implements ServicesApi {
                     localGroupIds);
         } catch (ServiceNotFoundException | ClientNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
+        } catch (AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -178,10 +177,9 @@ public class ServicesApiController implements ServicesApi {
         try {
             serviceClientDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException
-                | AccessRightService.AccessRightNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
+        } catch (IdentifierNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
