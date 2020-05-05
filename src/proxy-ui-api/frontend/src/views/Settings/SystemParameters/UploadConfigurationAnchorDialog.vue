@@ -129,7 +129,7 @@ export default Vue.extend({
           return;
         }
         api
-          .post('/system/anchor/preview', e.target.result, {
+          .post('/system/anchor/previews', e.target.result, {
             headers: {
               'Content-Type': 'application/octet-stream',
             },
