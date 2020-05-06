@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
-import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -164,11 +163,11 @@ public class EndpointsApiController implements EndpointsApi {
         try {
             serviceClientsByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
             throw new ConflictException(e);
-        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
+        } catch (IdentifierNotFoundException e) {
             throw new BadRequestException(e);
         }
 

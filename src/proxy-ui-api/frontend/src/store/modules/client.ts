@@ -1,22 +1,12 @@
 import axios from 'axios';
-import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-
-export interface Client {
-  id: string;
-  name: string;
-  type?: string;
-  status?: string;
-  subsystem?: Client[];
-  connection_type?: string;
-}
+import { Client } from '@/types';
 
 export interface ClientState {
   client: Client | null;
   signCertificates: any[];
-  loading: boolean;
   connection_type: string | null;
   tlsCertificates: any[];
   ssCertificate: any;
@@ -24,7 +14,6 @@ export interface ClientState {
 
 export const clientState: ClientState = {
   client: null,
-  loading: false,
   signCertificates: [],
   connection_type: null,
   tlsCertificates: [],
@@ -65,9 +54,6 @@ export const mutations: MutationTree<ClientState> = {
   storeSignCertificates(state, certificates: any[]) {
     state.signCertificates = certificates;
   },
-  setLoading(state, loading: boolean) {
-    state.loading = loading;
-  },
   clearAll(state) {
     state.client = null;
     state.ssCertificate = null;
@@ -83,23 +69,15 @@ export const actions: ActionTree<ClientState, RootState> = {
       throw new Error('Missing client id');
     }
 
-    commit('setLoading', true);
-
     return axios.get(`/clients/${id}`)
       .then((res) => {
         commit('storeClient', res.data);
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
   fetchSignCertificates({ commit, rootGetters }, id: string) {
-
-    commit('setLoading', true);
-
     if (!id) {
       throw new Error('Missing id');
     }
@@ -110,16 +88,10 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
 
   fetchTlsCertificates({ commit, rootGetters }, id: string) {
-
-    commit('setLoading', true);
-
     if (!id) {
       throw new Error('Missing id');
     }
@@ -130,9 +102,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
 
@@ -148,9 +117,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
   },
 
@@ -201,17 +167,45 @@ export const actions: ActionTree<ClientState, RootState> = {
         }
       })
       .catch((error) => {
-        console.error(error);
         throw error;
-      })
-      .finally(() => {
-        commit('setLoading', false);
       });
 
   },
 
-  clearData({ commit, rootGetters }) {
-    commit('storeClient', null);
+  registerClient({ commit, state }, { instanceId, memberClass, memberCode, subsystemCode }) {
+    const clientId = instanceId + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
+    return axios.put(`/clients/${clientId}/register`, {});
+  },
+
+  unregisterClient({ commit, state }, client: Client) {
+    const clientId = client.instance_id + ':' + client.member_class + ':' + client.member_code + ':' + client.subsystem_code;
+    return axios.put(`/clients/${clientId}/unregister`, {});
+  },
+
+  addSubsystem({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
+    const body = {
+      client: {
+        member_name: memberName,
+        member_class: memberClass,
+        member_code: memberCode,
+        subsystem_code: subsystemCode,
+      },
+      ignore_warnings: false,
+    };
+
+    return axios.post('/clients', body);
+  },
+
+  deleteClient({ commit, state }, clientId: string) {
+    return axios.delete(`/clients/${clientId}`);
+  },
+
+  getOrphans({ commit, state }, clientId: string) {
+    return axios.get(`/clients/${clientId}/orphans`);
+  },
+
+  deleteOrphans({ commit, state }, clientId: string) {
+    return axios.delete(`/clients/${clientId}/orphans`);
   },
 };
 

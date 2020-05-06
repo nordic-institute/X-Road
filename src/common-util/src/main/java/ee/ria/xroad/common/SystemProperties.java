@@ -271,6 +271,9 @@ public final class SystemProperties {
 
     private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
 
+    private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
+            PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
+
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
@@ -316,6 +319,8 @@ public final class SystemProperties {
     private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
+
+    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = "false";
 
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
@@ -1549,5 +1554,12 @@ public final class SystemProperties {
         if (version > current || version < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
+    }
+    /**
+     * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
+     */
+    public static boolean isClientIsCertValidityPeriodCheckEnforced() {
+        return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
+                DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 }

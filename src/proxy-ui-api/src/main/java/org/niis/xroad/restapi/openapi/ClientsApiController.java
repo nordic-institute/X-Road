@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -72,6 +73,7 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
@@ -603,16 +605,14 @@ public class ClientsApiController implements ClientsApi {
             accessRights = accessRightConverter.convert(
                     serviceClientService.getServiceClientAccessRights(clientIdentifier, serviceClientId));
         } catch (IdentifierNotFoundException | ClientNotFoundException
-                | ServiceClientNotFoundException | LocalGroupNotFoundException e) {
+                | LocalGroupNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(accessRights, HttpStatus.OK);
     }
 
-    // TO DO: correct permissions.
-    // TO DO: tests
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
     public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
@@ -626,8 +626,17 @@ public class ClientsApiController implements ClientsApi {
             }
         }
         Set<String> serviceCodes = getServiceCodes(accessRights);
-        serviceClientService.addServiceClientAccessRights(clientId, serviceClientId, serviceCodes);
-        return null;
+        List<ServiceClientAccessRightDto> accessRightTypes = null;
+        try {
+            accessRightTypes = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
+        } catch (IdentifierNotFoundException | ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (EndpointNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (AccessRightService.DuplicateAccessRightException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(accessRightConverter.convert(accessRightTypes), HttpStatus.CREATED);
     }
 
     private Set<String> getServiceCodes(AccessRights accessRights) {

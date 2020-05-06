@@ -21,6 +21,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
 
 export default Vue.extend({
   data() {
@@ -29,7 +30,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    tabs(): any[] {
+    tabs(): Tab[] {
       const allTabs = [
         {
           key: 'system',
