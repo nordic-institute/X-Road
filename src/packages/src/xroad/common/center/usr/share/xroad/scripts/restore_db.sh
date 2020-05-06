@@ -9,7 +9,7 @@ abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
 DUMP_FILE=$1
 USER=$(get_db_prop 'username' 'centerui')
-SCHEMA=$(get_db_prop 'schema' 'centerui')
+SCHEMA=$(get_db_prop 'schema' "$USER")
 PASSWORD=$(get_db_prop 'password' 'centerui')
 DATABASE=$(get_db_prop 'database' 'centerui_production')
 HOST=$(get_db_prop 'host' '127.0.0.1')
