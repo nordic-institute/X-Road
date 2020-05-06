@@ -156,6 +156,23 @@ public class CsrfWebMvcTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * Test getting user data for the currently logged in user. This mimics an api user request so no cookies
+     * should be returned
+     * @throws Exception
+     */
+    @Test
+    public void getUserNoSession() throws Exception {
+        User expectedUser = new User().username(username);
+        String expectedUserJsonString = new Gson().toJson(expectedUser);
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user");
+        mockMvc.perform(mockRequest)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedUserJsonString))
+                .andExpect(cookie().doesNotExist(XSRF_COOKIE));
+    }
+
     private MockHttpSession getMockSession() {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(CookieAndSessionCsrfTokenRepository.SESSION_CSRF_TOKEN_ATTR_NAME, csrfToken);
