@@ -27,9 +27,14 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 
+@Slf4j
 public final class ClientUtils {
+
+    public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local sign certificate";
 
     private ClientUtils() {
         // noop
@@ -40,12 +45,16 @@ public final class ClientUtils {
      * @param clientId
      * @param certificateInfos
      * @return
-     * @throws OcspUtils.OcspStatusExtractionException
      */
-    public static boolean hasValidLocalSignCert(ClientId clientId, List<CertificateInfo> certificateInfos)
-            throws OcspUtils.OcspStatusExtractionException {
+    public static boolean hasValidLocalSignCert(ClientId clientId, List<CertificateInfo> certificateInfos) {
         for (CertificateInfo certificateInfo : certificateInfos) {
-            String ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
+            String ocspResponseStatus = null;
+            try {
+                ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
+            } catch (OcspUtils.OcspStatusExtractionException | RuntimeException e) {
+                log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
+                return false;
+            }
             if (clientId.equals(certificateInfo.getMemberId())
                     && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
                     && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {

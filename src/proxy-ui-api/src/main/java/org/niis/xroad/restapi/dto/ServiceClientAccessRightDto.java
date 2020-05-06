@@ -37,8 +37,6 @@ import java.time.OffsetDateTime;
  * (not the subject id)
  */
 public class ServiceClientAccessRightDto {
-    private String id;
-    private String clientId;
     private String serviceCode;
     private String title;
     private OffsetDateTime rightsGiven;

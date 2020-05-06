@@ -1,7 +1,7 @@
 
 module.exports = {
   tags: ['ss', 'clients', 'clientdetails'],
-  'Security server clients list': browser => {
+  'Security server client details view': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -14,18 +14,10 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    frontPage.signinDefaultUser();
 
-    // Switch to clients tab and verify
+    // Open TestGov client details view
     mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-
-    // Click TestGov
     clientsTab.openTestGov();
     browser.waitForElementVisible(clientInfo);
     clientInfo.openDetailsTab();

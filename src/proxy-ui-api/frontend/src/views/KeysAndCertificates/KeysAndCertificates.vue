@@ -1,12 +1,6 @@
 <template>
   <div class="xrd-view-common">
-    <v-tabs
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    >
+    <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
       <v-tabs-slider color="secondary"></v-tabs-slider>
       <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>
         {{ $t(tab.name) }}
@@ -16,8 +10,7 @@
             dark
             class="help-icon"
             @click="helpClick(tab)"
-            >mdi-help-circle</v-icon
-          >
+          >mdi-help-circle</v-icon>
         </v-hover>
       </v-tab>
     </v-tabs>
@@ -38,7 +31,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
 import HelpDialog from '@/components/ui/HelpDialog.vue';
+
+interface KeysTab extends Tab {
+  helpImage: string;
+  helpTitle: string;
+  helpText: string;
+}
 
 export default Vue.extend({
   components: {
@@ -51,8 +51,8 @@ export default Vue.extend({
   }),
 
   computed: {
-    tabs(): any[] {
-      const allTabs = [
+    tabs(): KeysTab[] {
+      const allTabs: KeysTab[] = [
         {
           key: 'signAndAuthKeys',
           name: 'tab.keys.signAndAuthKeys',
