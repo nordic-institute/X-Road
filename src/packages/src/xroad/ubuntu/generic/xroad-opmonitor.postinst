@@ -49,9 +49,9 @@ configure() {
     psql_cmd=local_psql
   fi
 
-  local db_plain_user=${db_user%%@*}
-  local db_plain_admin=${db_admin%%@*}
-  local db_plain_master=${db_master_user%%@*}
+  db_plain_user=${db_user%%@*}
+  db_plain_admin=${db_admin%%@*}
+  db_plain_master=${db_master_user%%@*}
 
   if  [[ -f ${db_properties}  && $(get_prop ${db_properties} op-monitor.hibernate.connection.url) != "" ]]
   then

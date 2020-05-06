@@ -46,8 +46,8 @@ else
       master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
       export PGPASSWORD=${master_passwd}
 
-      local db_plain_user=${db_user%%@*}
-      local db_plain_master=${db_master_user%%@*}
+      db_plain_user=${db_user%%@*}
+      db_plain_master=${db_master_user%%@*}
 
       if  ! psql -h $db_addr -p $db_port -U $db_master_user --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
        then echo -e "\n\npostgreSQL is not UTF8 compatible."
