@@ -196,8 +196,16 @@ export const actions: ActionTree<ClientState, RootState> = {
     return axios.post('/clients', body);
   },
 
-  clearData({ commit, rootGetters }) {
-    commit('storeClient', null);
+  deleteClient({ commit, state }, clientId: string) {
+    return axios.delete(`/clients/${clientId}`);
+  },
+
+  getOrphans({ commit, state }, clientId: string) {
+    return axios.get(`/clients/${clientId}/orphans`);
+  },
+
+  deleteOrphans({ commit, state }, clientId: string) {
+    return axios.delete(`/clients/${clientId}/orphans`);
   },
 };
 
