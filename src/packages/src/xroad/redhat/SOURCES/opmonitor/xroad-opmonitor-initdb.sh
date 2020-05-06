@@ -28,21 +28,6 @@ init_local_postgres() {
     systemctl start $SERVICE_NAME || return 1
 }
 
-db_name=op-monitor
-db_user=opmonitor
-db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-db_admin=opmonitor_admin
-db_conn_admin="${db_admin}"
-db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-db_master_user=postgres
-db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad.properties
-
-db_addr=127.0.0.1
-db_port=5432
-db_url=jdbc:postgresql://$db_addr:$db_port/$db_name
-db_initialized=false
-
 die () {
     echo >&2 "$@"
     exit 1
@@ -52,21 +37,26 @@ get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
 
+db_name=op-monitor
+db_user=$(get_prop ${db_properties} op-monitor.hibernate.connection.username "opmonitor")
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_admin=$(get_prop ${root_properties} op-monitor.database.admin_user "opmonitor_admin")
+db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
+
+db_addr=127.0.0.1
+db_port=5432
+db_url=jdbc:postgresql://$db_addr:$db_port/$db_name
+db_initialized=false
+
 if  [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]
 then
   master_passwd=$(get_prop ${root_properties} postgres.connection.password)
   export PGPASSWORD=${master_passwd}
-
-  db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
-  db_conn_master_user="${db_master_user}"
-  if [[ $(get_prop ${root_properties} postgres.connection.login_suffix) != "" ]]; then
-    suffix=$(get_prop ${root_properties} postgres.connection.login_suffix)
-    db_conn_user="${db_user}${suffix}"
-    db_conn_admin="${db_admin}${suffix}"
-    db_conn_master_user="${db_master_user}${suffix}"
-  fi
   remote_psql() {
-    psql -h "$db_addr" -p "$db_port" -U "$db_conn_master_user" -qtA "$@"
+    psql -h "$db_addr" -p "$db_port" -U "$db_master_user" -qtA "$@"
   }
   psql_cmd=remote_psql
 else
@@ -78,12 +68,15 @@ else
   init_local_postgres
 fi
 
+db_plain_user=${db_user%%@*}
+db_plain_admin=${db_admin%%@*}
+db_plain_master=${db_master_user%%@*}
+
 if  [[ -f ${db_properties}  && $(get_prop ${db_properties} op-monitor.hibernate.connection.url) != "" ]]
 then
 
   db_url=$(get_prop ${db_properties} op-monitor.hibernate.connection.url)
   db_user=$(get_prop ${db_properties} op-monitor.hibernate.connection.username "$db_user")
-  db_conn_user="${db_user}${suffix}"
   db_passwd=$(get_prop ${db_properties} op-monitor.hibernate.connection.password "$db_passwd")
   tmp_admin=$(get_prop ${root_properties} op-monitor.database.admin_password)
   db_initialized=$(get_prop ${root_properties} op-monitor.database.initialized)
@@ -101,7 +94,7 @@ then
 
   if [[ -z "$tmp_admin" ]]; then
     if [[ "$db_initialized" = true ]]; then
-      echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}'" | $psql_cmd -d postgres
+      echo "ALTER ROLE ${db_plain_admin} WITH PASSWORD '${db_admin_passwd}'" | $psql_cmd -d postgres
       crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
     fi
   else
@@ -119,27 +112,27 @@ if [[ "$db_initialized" != true ]]; then
       exit 101
     fi
 
-    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_admin}'") = "1" ]]
+    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_plain_admin}'") = "1" ]]
     then
-      echo "ALTER ROLE $db_admin WITH PASSWORD '${db_admin_passwd}';" | $psql_cmd -d postgres
+      echo "ALTER ROLE $db_plain_admin WITH PASSWORD '${db_admin_passwd}';" | $psql_cmd -d postgres
     else
-      echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | $psql_cmd -d postgres
+      echo "CREATE ROLE $db_plain_admin LOGIN PASSWORD '${db_admin_passwd}';" | $psql_cmd -d postgres
     fi
 
-    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'") = "1" ]]
+    if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_roles WHERE rolname='${db_plain_user}'") = "1" ]]
     then
-      echo  "$db_user user exists, skipping role creation"
-      echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | $psql_cmd -d postgres
+      echo  "$db_plain_user user exists, skipping role creation"
+      echo "ALTER ROLE ${db_plain_user} WITH PASSWORD '${db_passwd}';" | $psql_cmd -d postgres
     else
-      echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | $psql_cmd -d postgres
+      echo "CREATE ROLE ${db_plain_user} LOGIN PASSWORD '${db_passwd}';" | $psql_cmd -d postgres
     fi
 
     if [[ $($psql_cmd -d postgres <<< "SELECT 1 FROM pg_database WHERE datname='${db_name}'") = "1" ]]
     then
       echo "database $db_name exists"
     else
-      echo "GRANT ${db_admin} to ${db_master_user}" | $psql_cmd -d postgres
-      echo "CREATE DATABASE \"$db_name\" OWNER \"$db_admin\" ENCODING 'UTF-8'" | $psql_cmd -d postgres
+      echo "GRANT ${db_plain_admin} to ${db_plain_master}" | $psql_cmd -d postgres
+      echo "CREATE DATABASE \"$db_name\" OWNER \"$db_plain_admin\" ENCODING 'UTF-8'" | $psql_cmd -d postgres
     fi
 
     echo "drop extension if exists pg_stat_statements; drop extension if exists pg_buffercache;" | $psql_cmd -d "$db_name"
@@ -150,7 +143,7 @@ if [[ "$db_initialized" != true ]]; then
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.batch_size 50
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}"
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username "${db_conn_user}"
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username "${db_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
     crudini --set "$root_properties" '' op-monitor.database.admin_password "$db_admin_passwd"
     crudini --set "$root_properties" '' op-monitor.database.initialized "true"
@@ -167,15 +160,15 @@ LIQUIBASE_HOME=/usr/share/xroad/db /usr/share/xroad/db/liquibase.sh \
   --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" \
   --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
   --password="${db_admin_passwd}" \
-  --username="${db_conn_admin}" \
+  --username="${db_admin}" \
   update \
   || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 
-PGPASSWORD=$db_admin_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_conn_admin" -d "$db_name" <<EOF
-grant usage on schema public to ${db_user};
-grant select, insert, update, delete on all tables in schema public to ${db_user};
-grant usage, select, update on all sequences in schema public to ${db_user};
-grant execute on all functions in schema public to ${db_user};
+PGPASSWORD=$db_admin_passwd psql -qAt -h "$db_addr" -p "$db_port" -U "$db_admin" -d "$db_name" <<EOF
+grant usage on schema public to ${db_plain_user};
+grant select, insert, update, delete on all tables in schema public to ${db_plain_user};
+grant usage, select, update on all sequences in schema public to ${db_plain_user};
+grant execute on all functions in schema public to ${db_plain_user};
 EOF
 
 exit 0

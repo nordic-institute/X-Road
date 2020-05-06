@@ -68,30 +68,28 @@ rm -rf %{buildroot}
 
 set -x
 
-db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad.properties
-db_name=messagelog
-db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
-db_user=messagelog
-db_conn_user="${db_user}"
-if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.login_suffix` != "" ]]
-then
-    suffix=`crudini --get ${root_properties} '' postgres.connection.login_suffix`
-    db_conn_user="${db_user}${suffix}"
-fi
-db_master_user=postgres
-db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-
 die () {
     echo >&2 "$@"
     exit 1
 }
 
+get_prop() {
+  local tmp="$(crudini --get "$1" '' "$2" 2>/dev/null)"
+  echo "${tmp:-$3}"
+}
+
+db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
+db_name=messagelog
+db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
+db_user=$(get_prop ${db_properties} 'messagelog.hibernate.connection.username' 'messagelog')
+db_master_user=$(get_prop ${root_properties} 'postgres.connection.user' 'postgres')
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+
 if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' messagelog.hibernate.connection.url` != "" ]]
 then
     db_url=`crudini --get ${db_properties} '' messagelog.hibernate.connection.url`
     db_user=`crudini --get ${db_properties} '' messagelog.hibernate.connection.username`
-    db_conn_user="${db_user}${suffix}"
     db_passwd=`crudini --get ${db_properties} '' messagelog.hibernate.connection.password`
 fi
 
@@ -112,35 +110,29 @@ then
         master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
         export PGPASSWORD=${master_passwd}
 
-        if [[ `crudini --get ${root_properties} '' postgres.connection.user` != "" ]]; then
-            db_master_user=`crudini --get ${root_properties} '' postgres.connection.user`
-        fi
-        db_conn_master_user="${db_master_user}"
-        if [[ `crudini --get ${root_properties} '' postgres.connection.login_suffix` != "" ]]; then
-            suffix=`crudini --get ${root_properties} '' postgres.connection.login_suffix`
-            db_conn_master_user="${db_master_user}${suffix}"
-        fi
+        db_plain_user=${db_user%%@*}
+        db_plain_master=${db_master_user%%@*}
 
-        if  ! psql -h $db_addr -p $db_port -U $db_conn_master_user --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
+        if  ! psql -h $db_addr -p $db_port -U $db_master_user --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
         then echo -e "\n\npostgreSQL is not UTF8 compatible."
             echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
             exit 101
         fi
 
-        if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
+        if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_plain_user}'"` == "1" ]]
         then
-            echo  "$db_user user exists, skipping role creation"
-            echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U $db_conn_master_user postgres
+            echo  "$db_plain_user user exists, skipping role creation"
+            echo "ALTER ROLE ${db_plain_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U $db_master_user postgres
         else
-            echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U $db_conn_master_user postgres
+            echo "CREATE ROLE ${db_plain_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U $db_master_user postgres
         fi
 
-        if [[ `psql -h $db_addr -p $db_port -U $db_conn_master_user postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
+        if [[ `psql -h $db_addr -p $db_port -U $db_master_user postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
         then
             echo "database ${db_name} exists"
         else
-            echo "GRANT ${db_user} to ${db_master_user}" | psql -h $db_addr -p $db_port -U $db_conn_master_user postgres
-            createdb -h $db_addr -p $db_port -U $db_conn_master_user ${db_name} -O ${db_user} -E UTF-8
+            echo "GRANT ${db_plain_user} to ${db_plain_master}" | psql -h $db_addr -p $db_port -U $db_master_user postgres
+            createdb -h $db_addr -p $db_port -U $db_master_user ${db_name} -O ${db_plain_user} -E UTF-8
         fi
 
         touch ${db_properties}
@@ -148,7 +140,7 @@ then
         crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
         crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
         crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
-        crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_conn_user}
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
         crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
         crudini --set ${root_properties} '' messagelog.database.initialized true
 
@@ -176,19 +168,19 @@ else
             exit 101
         fi
 
-        if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
+        if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_plain_user'\" "` == "1" ]]
         then
-            echo  "$db_user exists, skipping schema creation"
-            echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+            echo  "$db_plain_user exists, skipping schema creation"
+            echo "ALTER ROLE ${db_plain_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
         else
-            echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
+            echo "CREATE ROLE $db_plain_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
         fi
 
         if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
         then
             echo "database $db_name exists"
         else
-            su - postgres -c "createdb $db_name -O $db_user -E UTF-8"
+            su - postgres -c "createdb $db_name -O $db_plain_user -E UTF-8"
         fi
 
         touch ${db_properties}
@@ -208,6 +200,6 @@ chmod 640 ${db_properties}
 
 echo "running ${db_name} database migrations"
 cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_conn_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
 
 %changelog
