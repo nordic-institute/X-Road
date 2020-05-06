@@ -184,15 +184,14 @@ Add X-Road package repository (**reference data: 1.1**)
 
   Then edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
 
-      serverconf.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/serverconf
-      serverconf.hibernate.connection.username = serverconf@servername
-      serverconf.hibernate.connection.password = H1nGmB3uqtU7IJ82qqEaMaH2ozXBBkh0
-      op-monitor.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/op-monitor
-      op-monitor.hibernate.connection.username = opmonitor@servername
-      op-monitor.hibernate.connection.password = V8jCARSA7RIuCQWr59Hw3UK9zNzBeP2l
-      messagelog.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/messagelog
-      messagelog.hibernate.connection.username = messagelog@servername
-      messagelog.hibernate.connection.password = 1wmJ-bK39nbA4EYcTS9MgdjyJewPpf_w
+      adapter=postgresql
+      encoding=utf8
+      username=centerui@servername
+      password=centerui
+      database=centerui_production
+      reconnect=true
+      host = servername.postgres.database.azure.com
+      port = 5432
 
 Issue the following commands to install the central server packages:
 
