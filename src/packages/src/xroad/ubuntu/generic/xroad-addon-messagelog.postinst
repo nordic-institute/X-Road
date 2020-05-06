@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 . /usr/share/debconf/confmodule
 
 db_properties=/etc/xroad/db.properties

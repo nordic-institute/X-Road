@@ -66,6 +66,8 @@ rm -rf %{buildroot}
 
 %post
 
+set -x
+
 db_properties=/etc/xroad/db.properties
 root_properties=/etc/xroad.properties
 db_name=messagelog
