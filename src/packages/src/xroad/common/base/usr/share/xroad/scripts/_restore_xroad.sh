@@ -122,9 +122,14 @@ create_pre_restore_backup () {
 }
 
 remove_old_existing_files () {
-  echo "$CONF_FILE_LIST" | xargs -I {} rm {}
-  if [ $? -ne 0 ] ; then
-    die "Failed to remove files before restore"
+  if [[ $SKIP_REMOVAL != true ]] ; then
+    echo "Removing old existing files"
+    echo "$CONF_FILE_LIST" | xargs -I {} rm {}
+    if [ $? -ne 0 ] ; then
+      die "Failed to remove files before restore"
+    fi
+  else
+    echo "Skipping existing file removal"
   fi
 }
 
@@ -159,10 +164,10 @@ restore_configuration_files () {
     Z="-Z"
   fi
 
-  cp -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
-  cp -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
+  cp -v -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
+  cp -v -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
   if [[ $SKIP_DB_RESTORE != true ]] ; then
-    cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
+    cp -v -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
   fi
 }
 
@@ -197,8 +202,11 @@ restart_services () {
   done
 }
 
-while getopts ":FSt:i:s:n:f:b" opt ; do
+while getopts ":RFSt:i:s:n:f:b" opt ; do
   case ${opt} in
+    R)
+      SKIP_REMOVAL=true
+      ;;
     F)
       FORCE_RESTORE=true
       ;;

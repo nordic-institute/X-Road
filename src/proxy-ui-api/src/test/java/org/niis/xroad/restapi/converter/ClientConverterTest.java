@@ -31,13 +31,18 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * test ClientConverter
@@ -58,7 +63,8 @@ public class ClientConverterTest {
         ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
 
-        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId));
+        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()));
     }
 
     @Test
@@ -113,6 +119,24 @@ public class ClientConverterTest {
     @Test(expected = BadRequestException.class)
     public void convertBadStringId3() throws Exception {
         clientConverter.convertId("XRD2:GOV:M4:SS1::::::");
+    }
+
+    @Test
+    public void isEncodedMemberId() throws Exception {
+        assertTrue(clientConverter.isEncodedMemberId("XRD2:GOV:M4"));
+        assertFalse(clientConverter.isEncodedMemberId("XRD2:GOV:M4:SS1"));
+    }
+
+    @Test
+    public void isEncodedSubsystemId() throws Exception {
+        assertFalse(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4"));
+        assertTrue(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4:SS1"));
+    }
+
+    @Test
+    public void isEncodedClientId() throws Exception {
+        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4"));
+        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4:SS1"));
     }
 
     @Test

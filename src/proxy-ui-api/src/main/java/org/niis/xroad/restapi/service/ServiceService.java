@@ -44,8 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
-
 /**
  * service class for handling services
  */
@@ -92,13 +90,14 @@ public class ServiceService {
     }
 
     /**
-     * Get {@link ServiceType} from a {@link ClientType} by comparing the service code (with version).
+     * Get {@link ServiceType} from a {@link ClientType} by comparing the full service code (with version).
      * @param client
      * @param fullServiceCode
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
-    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode) throws ServiceNotFoundException {
+    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode)
+            throws ServiceNotFoundException {
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)
@@ -176,7 +175,6 @@ public class ServiceService {
      */
     public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
             throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException {
-        verifyAuthority("ADD_OPENAPI3_ENDPOINT");
 
         if (serviceType.getServiceDescription().getType().equals(DescriptionType.WSDL)) {
             throw new ServiceDescriptionService.WrongServiceDescriptionTypeException("Endpoint can't be added to a "

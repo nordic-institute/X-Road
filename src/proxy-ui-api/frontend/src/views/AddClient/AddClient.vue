@@ -100,7 +100,7 @@ export default Vue.extend({
   methods: {
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
+        () => {
           this.currentStep = 2;
         },
         (error) => {
@@ -109,7 +109,7 @@ export default Vue.extend({
       );
     },
     cancel(): void {
-      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetCsrState');
       this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
@@ -135,7 +135,7 @@ export default Vue.extend({
     },
     csrDetailsReady(): void {
       this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
+        () => {
           this.currentStep = 5;
         },
         (error) => {
@@ -167,7 +167,7 @@ export default Vue.extend({
     },
 
     done(): void {
-      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetCsrState');
       this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },

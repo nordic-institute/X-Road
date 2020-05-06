@@ -34,7 +34,14 @@
         "success": "Backup {file} successfully created"
       }
     },
-    "uploadBackup": "Upload backup",
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
     "action": {
       "delete": {
         "dialog": {
@@ -42,6 +49,24 @@
           "confirmation": "Are you sure you want to delete backup {file}?"
         },
         "success": "Backup {file} deleted"
+      },
+      "restore": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to restore from {file}?"
+        },
+        "success": "Configuration restored from {file}"
+      }
+    }
+  },
+  "clients": {
+    "action": {
+      "register": {
+        "success": "Client registered",
+        "confirm": {
+          "title": "Register client",
+          "text": "Are you sure you want to send a client registration request?"
+        }
       }
     }
   },
@@ -55,6 +80,23 @@
       "deletionInProgress": "DELETION IN PROGRESS",
       "saved": "SAVED",
       "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
+    "action": {
+      "unregister": {
+        "success": "Client unregistered",
+        "confirmTitle": "Unregister client",
+        "confirmText": "Do you want to unregister this client?"
+      },
+      "delete": {
+        "success": "Client deleted",
+        "confirmTitle": "Delete client",
+        "confirmText": "Do you want to delete this client?"
+      },
+      "removeOrphans": {
+        "success": "Certificate deleted",
+        "confirmTitle": "Key and certificate deletion",
+        "confirmText": "Signature key and certificate associated with the deleted client have no users. Delete key and certificate?"
+      }
     },
     "owner": "Owner",
     "memberName": "Member Name",
@@ -110,6 +152,21 @@
     "certDeleted": "Certificate deleted",
     "activateSuccess": "Certificate has been activated",
     "disableSuccess": "Certificate has been disabled"
+  },
+  "serviceClients": {
+    "addServiceClient": "Add subject",
+    "name": "Member name / Group description",
+    "id": "ID",
+    "searchPlaceHolder": "Service clients",
+    "accessRights": "Access rights",
+    "serviceCode": "Service code",
+    "title": "Title",
+    "accessRightsGiven": "Access Rights Given",
+    "removeAll": "Remove all",
+    "addService": "Add service",
+    "noAccessRights": "No access rights to this client",
+    "addServiceClientAccessRightSuccess": "Access rights successfully added",
+    "noAvailableServices": "No available services"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -203,10 +260,18 @@
     "deleteEndpointText": "Are you sure that you want to delete this endpoint",
     "editSuccess": "Changes to endpoint saved successfully"
   },
-  "access": {
-    "accessRights": "Access Rights",
-    "addSubjects": "Add subjects",
-    "addSubjectsTitle": "Add Subjects"
+  "accessRights": {
+    "title": "Access Rights",
+    "addServiceClients": "Add subjects",
+    "addServiceClientsTitle": "Add Subjects",
+    "memberName": "Member Name / Group Description",
+    "id": "ID",
+    "rightsGiven": "Access Rights given",
+    "removeSuccess": "Access right removed successfully",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure that you want to remove this member?",
+    "addServiceClientsSuccess": "Access rights added successfully",
+    "removeServiceClientsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -221,6 +286,7 @@
     "close": "Close",
     "cancel": "Cancel",
     "yes": "Yes",
+    "no": "No",
     "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
@@ -238,7 +304,8 @@
     "previous": "Previous",
     "done": "Done",
     "next": "Next",
-    "submit": "Submit"
+    "submit": "Submit",
+    "finish": "Finish"
   },
   "keys": {
     "token": "Token:",
@@ -405,6 +472,13 @@
       "info2": "If the Member is already existing, you can select it from the Global list.",
       "select": "Select member",
       "title": "Member details"
+    },
+    "subsystem": {
+      "title": "Add a Subsystem",
+      "selectSubsystem": "Select Subsystem",
+      "info1": "Specify the code of the subsystem to be added.",
+      "info2": "If the subsystem is already existing, you can select it from the Global list.",
+      "registerSubsystem": "Register subsystem"
     }
   },
   "systemParameters": {
@@ -481,6 +555,58 @@
       }
     }
   },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "description": "Specify which roles the new API key should be linked to."
+        },
+        "keyDetails": {
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+        }
+      },
+      "success": "API key successfully created"
+    },
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Linked roles:"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
+        }
+      }
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -495,7 +621,7 @@
     "invalidWsdl": "WSDL URL is not valid",
     "invalidUrl": "URL is not valid"
   },
-  "subjectType": {
+  "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
     "localGroup": "LOCALGROUP",
     "subsystem": "SUBSYSTEM"
@@ -557,6 +683,49 @@
       "title": "Copyright",
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
       "companyUrlTitle": "https://niis.org/"
+    }
+  },
+  "diagnostics": {
+    "status": "Status",
+    "message": "Message",
+    "previousUpdate": "Previous Update",
+    "nextUpdate": "Next Update",
+    "serviceUrl": "Service URL",
+    "globalCongiguration": {
+      "title": "Global configuration",
+      "configurationStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_INTERNAL": "Internal error occurred.",
+        "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
+        "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
+        "ERROR_CODE_UNINITIALIZED": "The configuration client is initializing.",
+        "UNKNOWN": "Unknown"
+      }
+    },
+    "timestamping": {
+      "title": "Timestamping",
+      "timestampingStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
+        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
+        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
+        "ERROR_CODE_INTERNAL": "Internal error occurred",
+        "UNKNOWN": "Unknown"
+      }
+    },
+    "ocspResponders": {
+      "title": "OCSP Responders",
+      "certificationService": "Certification Service:",
+      "ocspStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Unable to connect to the OCSP responder",
+        "ERROR_CODE_OCSP_FAILED": "Unable to fetch response from the OCSP responder",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
+        "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
+        "UNKNOWN": "Unknown"
+      }
     }
   }
 }

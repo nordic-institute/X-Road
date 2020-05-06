@@ -57,7 +57,7 @@ export default Vue.extend({
           key: 'endpoints',
           name: 'tab.services.endpoints',
           to: {
-            name: RouteName.ServiceEndpoints,
+            name: RouteName.Endpoints,
           },
         },
       ];
@@ -79,9 +79,9 @@ export default Vue.extend({
         });
 
       api
-        .get(`/services/${serviceId}/access-rights`)
+        .get(`/services/${serviceId}/service-clients`)
         .then((res) => {
-          this.$store.dispatch('setAccessRightsSubjects', res.data);
+          this.$store.dispatch('setServiceClients', res.data);
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

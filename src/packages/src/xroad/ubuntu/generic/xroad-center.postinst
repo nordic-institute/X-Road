@@ -53,7 +53,7 @@ setup_database() {
     local db_master_user=postgres
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
 
-    local_psql() { su -l -c "psql -qtA ${*@Q}" postgres; }
+    local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
     remote_psql() { psql -h "$db_addr" -p "$db_port" -qtA "$@"; }
 
     psql_dbuser() {

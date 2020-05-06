@@ -26,9 +26,9 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -60,7 +62,6 @@ public class EndpointService {
      * @throws EndpointNotFoundException    endpoint not found with given id
      */
     public EndpointType getEndpoint(Long id) throws EndpointNotFoundException {
-        verifyAuthority("VIEW_ENDPOINT");
         EndpointType endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
             throw new EndpointNotFoundException(id.toString());
@@ -78,23 +79,14 @@ public class EndpointService {
      */
     public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException,
             IllegalGeneratedEndpointRemoveException {
-        verifyAuthority("DELETE_ENDPOINT");
 
-        EndpointType endpoint = endpointRepository.getEndpoint(id);
-
-        if (endpoint == null) {
-            throw new EndpointService.EndpointNotFoundException(id.toString());
-        }
+        EndpointType endpoint = getEndpoint(id);
 
         if (endpoint.getId().equals(id) && endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointRemoveException(id.toString());
         }
 
         ClientType clientType = clientRepository.getClientByEndpointId(id);
-
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
-        }
         clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(id));
         clientType.getEndpoint().removeIf(ep -> ep.getId().equals(id));
         clientRepository.saveOrUpdate(clientType);
@@ -103,42 +95,92 @@ public class EndpointService {
     /**
      * Update endpoint details
      *
-     * @param id                                        endpoint id
-     * @param endpointUpdate                            endpoint object to use for updating
+     * @param id for the endpoint to be updated
+     * @param method new value for method
+     * @param path new value for path
      * @return
      * @throws EndpointNotFoundException                endpoint not found with given id
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
+     * @throws IllegalArgumentException                 passing illegal combination of parameters
      */
-    public EndpointType updateEndpoint(Long id, Endpoint endpointUpdate)
+    public EndpointType updateEndpoint(Long id, String method, String path)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
-        verifyAuthority("EDIT_OPENAPI3_ENDPOINT");
 
-        EndpointType endpoint = endpointRepository.getEndpoint(id);
-        if (endpoint == null) {
-            throw new EndpointService.EndpointNotFoundException(id.toString());
+        if ("".equals(path)) {
+            throw new IllegalArgumentException("Path can't be empty string when updating an endpoint: "
+                + id.toString());
         }
+
+        if (method == null && path == null) {
+            throw new IllegalArgumentException("Method and path can't both be null when updating an endpoint: "
+                + id.toString());
+        }
+
+        EndpointType endpoint = getEndpoint(id);
 
         if (endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointUpdateException(id.toString());
         }
 
-        endpoint.setServiceCode(endpointUpdate.getServiceCode());
-        endpoint.setMethod(endpointUpdate.getMethod().toString());
-        endpoint.setPath(endpointUpdate.getPath());
+        if (path != null) {
+            endpoint.setPath(path);
+        }
+
+        if (method != null) {
+            endpoint.setMethod(method);
+        }
 
         endpointRepository.saveOrUpdate(endpoint);
 
         return endpoint;
     }
 
-    public static class EndpointNotFoundException extends NotFoundException {
-        public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
-        private static final String MESSAGE = "Endpoint not found with id: %s";
-
-        public EndpointNotFoundException(String id) {
-            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
-        }
+    /**
+     * Get matching base-endpoint for the given client and service.
+     *
+     * @param serviceType
+     * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
+     */
+    public EndpointType getServiceBaseEndpoint(ServiceType serviceType)
+            throws EndpointNotFoundException {
+        ClientType clientType = serviceType.getServiceDescription().getClient();
+        String serviceCode = serviceType.getServiceCode();
+        return getServiceBaseEndpoint(clientType, serviceCode);
     }
+
+    /**
+     * Get matching base-endpoint for the given client and service code.
+     * @param clientType
+     * @param serviceCode
+     * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
+     */
+    public EndpointType getServiceBaseEndpoint(ClientType clientType, String serviceCode)
+            throws EndpointNotFoundException {
+        return clientType.getEndpoint().stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(serviceCode)
+                        && endpointType.getMethod().equals(EndpointType.ANY_METHOD)
+                        && endpointType.getPath().equals(EndpointType.ANY_PATH))
+                .findFirst()
+                .orElseThrow(() -> new EndpointNotFoundException(
+                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "
+                        + clientType.getIdentifier() + " and servicecode " + serviceCode));
+    }
+
+    /**
+     * Get matching base-endpoints for the given client and service codes.
+     * @param clientType
+     * @param serviceCodes
+     * @throws EndpointNotFoundException if any base endpoint matching given parameters did not exist
+     */
+    public List<EndpointType> getServiceBaseEndpoints(ClientType clientType, Set<String> serviceCodes)
+            throws EndpointNotFoundException {
+        List<EndpointType> baseEndpoints = new ArrayList<>();
+        for (String serviceCode: serviceCodes) {
+            baseEndpoints.add(getServiceBaseEndpoint(clientType, serviceCode));
+        }
+        return baseEndpoints;
+    }
+
 
     public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
         public static final String ILLEGAL_GENERATED_ENDPOINT_UPDATE = "illegal_generated_endpoint_update";

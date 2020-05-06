@@ -29,16 +29,29 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.ServiceClientType;
+import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
 @RunWith(SpringRunner.class)
@@ -52,6 +65,15 @@ public class EndpointsApiControllerTest {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private PersistenceUtils persistenceUtils;
+
+    @MockBean
+    private GlobalConfFacade globalConfFacade;
+
+    @MockBean
+    private GlobalConfService globalConfService;
 
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
@@ -89,34 +111,135 @@ public class EndpointsApiControllerTest {
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
-        Endpoint endpointUpdate = new Endpoint();
-        endpointUpdate.setId("10");
-        endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
-        endpointUpdate.setPath("/test");
-        endpointUpdate.setGenerated(false);
-        endpointsApiController.updateEndpoint("10", endpointUpdate);
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
+        pathAndMethod.setPath("/test");
+        endpointsApiController.updateEndpoint("10", pathAndMethod);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    public void updateEndpointWithEmptyPathString() {
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setPath("");
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    public void updateEndpointWithEmptyPathAndMethod() {
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
     @Test
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpoint() {
-        Endpoint endpointUpdate = new Endpoint();
-        endpointUpdate.setId("12");
-        endpointUpdate.setServiceCode("TestServiceCode");
-        endpointUpdate.setMethod(Endpoint.MethodEnum.STAR);
-        endpointUpdate.setPath("/test");
-        endpointUpdate.setGenerated(false);
-        endpointsApiController.updateEndpoint("12", endpointUpdate);
+        EndpointUpdate pathAndMethod = new EndpointUpdate();
+        pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
+        pathAndMethod.setPath("/test");
+        endpointsApiController.updateEndpoint("12", pathAndMethod);
 
         ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         EndpointType endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 
-        assertTrue(endpointType.getServiceCode().equals("TestServiceCode"));
         assertTrue(endpointType.getMethod().equals("*"));
         assertTrue(endpointType.getPath().equals("/test"));
-
     }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
+    public void getInexistingEndpointAccessRights() {
+        endpointsApiController.getEndpointServiceClients("NON_EXISTING_ENDPOINT_ID");
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
+    public void getEndpointAccesRights() {
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        assertTrue(serviceClients.size() == 3);
+        assertTrue(serviceClients.stream()
+                .anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS6)));
+        assertTrue(serviceClients.stream()
+                .anyMatch(sc -> sc.getId().equals("2")));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
+    public void removeExistingEndpointAccessRights() {
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        assertTrue(serviceClients.size() == 3);
+        ServiceClients deletedScs = new ServiceClients()
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
+                        ServiceClientType.SUBSYSTEM));
+        endpointsApiController.deleteEndpointServiceClients("6", deletedScs);
+        persistenceUtils.flush();
+        serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        assertTrue(serviceClients.size() == 2);
+        assertTrue(serviceClients.stream().anyMatch(sc -> "2".equals(sc.getId())));
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
+    public void removeInexistingEndpointAccessRights() {
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        assertTrue(serviceClients.size() == 3);
+        ServiceClients deletedScs = new ServiceClients()
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS1).serviceClientType(
+                        ServiceClientType.SUBSYSTEM));
+        endpointsApiController.deleteEndpointServiceClients("6", deletedScs);
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL"})
+    public void addExistingEndpointAccessRights() {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ServiceClients serviceClients = new ServiceClients()
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
+                        ServiceClientType.SUBSYSTEM));
+        endpointsApiController.addEndpointServiceClients("9", serviceClients);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL"})
+    public void addEndpointAccessRights() {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        // add access rights for a subsystem and global group to endpoint
+        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
+        assertTrue(serviceClients.size() == 1);
+        ServiceClients added = new ServiceClients()
+                .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS5).serviceClientType(
+                        ServiceClientType.SUBSYSTEM))
+                .addItemsItem(new ServiceClient().id(TestUtils.DB_GLOBALGROUP_ID).serviceClientType(
+                        ServiceClientType.GLOBALGROUP));
+        endpointsApiController.addEndpointServiceClients("9", added).getBody();
+        persistenceUtils.flush();
+        serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
+
+        assertTrue(serviceClients.size() == 3);
+        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS5)));
+        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.DB_GLOBALGROUP_ID)));
+
+        // add access rights for a local group to endpoint
+        List<ServiceClient> localGroupTestServiceClients = endpointsApiController
+                .getEndpointServiceClients("3").getBody();
+        assertTrue(localGroupTestServiceClients.size() == 1);
+        ServiceClients localGroupScs = new ServiceClients()
+                .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
+                        ServiceClientType.LOCALGROUP));
+        endpointsApiController.addEndpointServiceClients("3", localGroupScs).getBody();
+        persistenceUtils.flush();
+        localGroupTestServiceClients = endpointsApiController.getEndpointServiceClients("3").getBody();
+
+        assertTrue(localGroupTestServiceClients.size() == 2);
+        assertTrue(localGroupTestServiceClients.stream().anyMatch(sc -> sc.getId()
+                .equals(TestUtils.DB_LOCAL_GROUP_ID_1)));
+    }
+
 
 }

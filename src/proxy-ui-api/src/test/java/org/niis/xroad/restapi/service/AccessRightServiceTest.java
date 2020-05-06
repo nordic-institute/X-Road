@@ -26,36 +26,50 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
+import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -69,13 +83,17 @@ import static org.mockito.Mockito.when;
 @Transactional
 @WithMockUser
 public class AccessRightServiceTest {
-
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                     TestUtils.SUBSYSTEM1),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM1)));
+                    TestUtils.SUBSYSTEM1),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                    TestUtils.SUBSYSTEM2),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                    "SS5")
+    ));
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE),
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP_CODE1),
@@ -92,6 +110,18 @@ public class AccessRightServiceTest {
 
     @MockBean
     GlobalConfService globalConfService;
+
+    @Autowired
+    ServiceClientService serviceClientService;
+
+    @Autowired
+    EndpointService endpointService;
+
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Before
     public void setup() {
@@ -112,45 +142,305 @@ public class AccessRightServiceTest {
         });
     }
 
+    private int countIdentifiers() {
+        return JdbcTestUtils.countRowsInTable(jdbcTemplate, "identifier");
+    }
+
+
     @Test
     public void findAllAccessRightHolders() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, null, null);
-        assertEquals(7, dtos.size());
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, null, null);
+        assertEquals(10, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByMemberOrGroupCode() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, "1", null);
-        assertEquals(4, dtos.size());
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, "1", null);
+        assertEquals(6, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByMemberOrGroupCodeNoResults() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, null, null, "öäöäöäöäöäöä", null);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, null, null, "öäöäöäöäöäöä", null);
         assertEquals(0, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByInstance() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, TestUtils.INSTANCE_EE, null, null, null);
-        assertEquals(4, dtos.size());
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, TestUtils.INSTANCE_EE, null, null, null);
+        assertEquals(5, dtos.size());
     }
 
     @Test
     public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
-        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
+        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+                null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
     }
 
     @Test
+    public void addServiceClientAccessRights() throws Exception {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        int identifiers = countIdentifiers();
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        assertEquals(3, dtos.size());
+
+        ServiceClientAccessRightDto accessRightDto = dtos.stream()
+                .filter(a -> a.getServiceCode().equals("calculatePrime"))
+                .findFirst().get();
+        assertEquals("calculatePrime-title", accessRightDto.getTitle());
+        assertNotNull(accessRightDto.getRightsGiven());
+
+        XRoadId localGroupId = LocalGroupId.create("group2");
+        dtos = accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, localGroupId);
+        assertEquals(3, dtos.size());
+
+        XRoadId globalGroupId = GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        dtos = accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, globalGroupId);
+        assertEquals(3, dtos.size());
+
+        // all subjects already had identifiers in DB, no new ones should have been added
+        assertEquals(identifiers, countIdentifiers());
+
+        // adding duplicates should throw exceptions
+        Set<String> duplicateServiceCode = new HashSet<>(Arrays.asList("calculatePrime"));
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, duplicateServiceCode, subsystemId);
+            fail("should throw exception");
+        } catch (AccessRightService.DuplicateAccessRightException expected) {
+        }
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, duplicateServiceCode, localGroupId);
+            fail("should throw exception");
+        } catch (AccessRightService.DuplicateAccessRightException expected) {
+        }
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, duplicateServiceCode, globalGroupId);
+            fail("should throw exception");
+        } catch (AccessRightService.DuplicateAccessRightException expected) {
+        }
+    }
+
+    @Test
+    public void addAccessRightsInternal() throws Exception {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        XRoadId localGroupId = LocalGroupId.create("group2");
+        XRoadId globalGroupId = GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        Set<XRoadId> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
+
+        ClientType ownerClient = clientService.getLocalClient(serviceOwner);
+
+        List<EndpointType> endpoints = serviceCodes.stream()
+                .map(code -> {
+                    try {
+                        return endpointService.getServiceBaseEndpoint(ownerClient, code);
+                    } catch (EndpointNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).collect(Collectors.toList());
+
+        Map<XRoadId, List<ServiceClientAccessRightDto>> dtosById = accessRightService.addAccessRightsInternal(
+                subjectIds, ownerClient, endpoints);
+
+        // should have 3 subjects with 3 identical access rights each
+        assertEquals(3, dtosById.size());
+        for (XRoadId subjectId: dtosById.keySet()) {
+            List<ServiceClientAccessRightDto> accessRights = dtosById.get(subjectId);
+            assertNotNull(accessRights);
+            assertEquals(3, accessRights.size());
+            ServiceClientAccessRightDto dto = findServiceClientAccessRightDto("calculatePrime", accessRights);
+            assertNotNull(dto);
+            assertEquals("calculatePrime-title", dto.getTitle());
+            assertNotNull(dto.getRightsGiven());
+            assertNotNull(findServiceClientAccessRightDto("openapi-servicecode", accessRights));
+            assertNotNull(findServiceClientAccessRightDto("rest-servicecode", accessRights));
+        }
+
+    }
+
+    private ServiceClientAccessRightDto findServiceClientAccessRightDto(String serviceCode,
+            List<ServiceClientAccessRightDto> accessRights) {
+        return accessRights.stream()
+                .filter(dto -> dto.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Test
+    public void addServiceClientAccessRightsForOtherClientsLocalGroup() throws Exception {
+        // if we try to add access right to client X's service for client Y's local group,
+        // we should get IdentifierNotFoundException
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss2ClientId(); // ss2
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList("bodyMassIndexOld")); // belongs to ss2
+        XRoadId localGroupId = LocalGroupId.create("group2"); // belongs to ss1
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, localGroupId);
+            fail("should have thrown exception");
+        } catch (IdentifierNotFoundException expected) {
+        }
+    }
+
+    @Test
+    public void addServiceClientAccessRightsWrongObjectType() throws Exception {
+        // if we try to add access right to client X's service for client Y's local group,
+        // we should get IdentifierNotFoundException
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId memberId = TestUtils.getClientId(TestUtils.OWNER_ID);
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, memberId);
+            fail("should have thrown exception");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    @Test
+    public void addServiceClientAccessRightsForWrongServiceOwner() throws Exception {
+        // if service owner does not match, should receive EndpointNotFoundExceptions
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss2ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, subsystemId);
+            fail("should have thrown exception");
+        } catch (EndpointNotFoundException expected) {
+        }
+
+        XRoadId localGroupId = LocalGroupId.create("group2");
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, localGroupId);
+            fail("should have thrown exception");
+        } catch (EndpointNotFoundException expected) {
+        }
+
+        XRoadId globalGroupId = GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, globalGroupId);
+            fail("should have thrown exception");
+        } catch (EndpointNotFoundException expected) {
+        }
+    }
+
+    @Test
+    public void addServiceClientAccessRightsForBadSubjects() throws Exception {
+        when(globalConfService.clientsExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, subsystemId);
+            fail("should have thrown exception");
+        } catch (IdentifierNotFoundException expected) {
+        }
+
+        XRoadId localGroupId = LocalGroupId.create("nonexistent-group");
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, localGroupId);
+            fail("should have thrown exception");
+        } catch (IdentifierNotFoundException expected) {
+        }
+
+        XRoadId globalGroupId = GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, globalGroupId);
+            fail("should have thrown exception");
+        } catch (IdentifierNotFoundException expected) {
+        }
+    }
+
+    @Test
+    public void addServiceClientAccessRightsDuplicate() throws Exception {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList("calculatePrime"));
+        XRoadId subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        assertEquals(1, dtos.size());
+
+        // duplicates are detected also when non-duplicates are also included
+        serviceCodes = new HashSet<>(Arrays.asList("openapi-servicecode", "calculatePrime"));
+        try {
+            accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, subsystemId);
+            fail("should throw exception");
+        } catch (AccessRightService.DuplicateAccessRightException expected) {
+        }
+    }
+
+
+    @Test
+    public void addServiceClientAccessRightsAddsNewIdentifiers() throws Throwable {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+
+        int identifiers = countIdentifiers();
+
+        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+        XRoadId subsystemId = TestUtils.getClientId("FI:GOV:M1:SS-NEW");
+        List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
+                serviceOwner, serviceCodes, subsystemId);
+        assertEquals(3, dtos.size());
+
+        ServiceClientAccessRightDto accessRightDto = dtos.stream()
+                .filter(a -> a.getServiceCode().equals("calculatePrime"))
+                .findFirst().get();
+        assertEquals("calculatePrime-title", accessRightDto.getTitle());
+        assertNotNull(accessRightDto.getRightsGiven());
+
+        XRoadId localGroupId = LocalGroupId.create("identifier-less-group");
+        dtos = accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, localGroupId);
+        assertEquals(3, dtos.size());
+
+        XRoadId globalGroupId = GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP_CODE1);
+        dtos = accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, globalGroupId);
+        assertEquals(3, dtos.size());
+
+        // 3 new subjects added - 3 identifiers created
+        assertEquals(3, (countIdentifiers() - identifiers));
+    }
+
+
+    @Test
     public void addAccessRights() throws Throwable {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -158,15 +448,15 @@ public class AccessRightServiceTest {
         subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        List<AccessRightHolderDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
-                TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
-        assertEquals(3, dtos.size());
+        List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
+                TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
+        assertEquals(4, dtos.size());
     }
 
     @Test
     public void addAccessRightsForNonLocalSubsystem() throws Throwable {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         ClientId ss3 = ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -177,10 +467,10 @@ public class AccessRightServiceTest {
         subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        List<AccessRightHolderDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
-                TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
-        assertEquals(3, dtos.size());
-        AccessRightHolderDto persistedSs3 = dtos.stream()
+        List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
+                TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
+        assertEquals(4, dtos.size());
+        ServiceClientDto persistedSs3 = dtos.stream()
                 .filter(accessRightHolderDto -> accessRightHolderDto.getSubjectId().equals(ss3))
                 .findFirst().get();
         ClientId ss3PersistedSubjectId = (ClientId) persistedSs3.getSubjectId();
@@ -190,29 +480,107 @@ public class AccessRightServiceTest {
 
     @Test(expected = IdentifierNotFoundException.class)
     public void addAccessRightsForNonExistingClient() throws Throwable {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.clientsExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                 "nope"));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
 
     @Test(expected = IdentifierNotFoundException.class)
     public void addDuplicateAccessRights() throws Throwable {
-        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.clientsExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                 "nope"));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L);
-        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
+
+    @Test
+    public void addAccessRightsToLocalGroup() throws Throwable {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        ClientId clientId = TestUtils.getM1Ss1ClientId();
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(1L); // this is a LocalGroup with groupCode 'group1' in data.sql
+        List<ServiceClientDto> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
+                TestUtils.FULL_SERVICE_CALCULATE_PRIME, null, localGroupIds);
+        Optional<ServiceClientDto> addedLocalGroupServiceClient = aclHolders.stream()
+                .filter(s -> String.valueOf(localGroupIds.iterator().next()).equals(s.getLocalGroupId()))
+                .findFirst();
+        assertTrue(addedLocalGroupServiceClient.isPresent());
+        assertEquals(LocalGroupId.create(TestUtils.DB_LOCAL_GROUP_CODE), addedLocalGroupServiceClient.get()
+                .getSubjectId());
+    }
+
+    @Test(expected = IdentifierNotFoundException.class)
+    public void addAccessRightsToOtherClientsLocalGroup() throws Throwable {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        ClientId clientId = TestUtils.getM1Ss2ClientId();
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(1L);
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.FULL_SERVICE_CODE_BMI_OLD, null,
+                localGroupIds);
+    }
+
+    @Test(expected = ClientNotFoundException.class)
+    public void getClientServiceClientsFromUnexistingClient() throws Exception {
+        serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));
+    }
+
+    @Test
+    public void getClientServiceClients() throws Exception {
+        ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");
+        List<ServiceClientDto> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
+        assertTrue(serviceClients1.size() == 1);
+
+        ServiceClientDto arh1 = serviceClients1.get(0);
+        assertTrue(arh1.getSubjectId().getObjectType().equals(XRoadObjectType.SUBSYSTEM));
+        assertNull(arh1.getLocalGroupCode());
+        assertNull(arh1.getLocalGroupDescription());
+        assertNull(arh1.getLocalGroupId());
+        assertTrue(arh1.getSubjectId().getXRoadInstance().equals("FI"));
+
+        ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
+        assertTrue(serviceClientService.getServiceClientsByClient(clientId2).isEmpty());
+
+        ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
+        List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
+        assertTrue(serviceClients3.size() == 4);
+        assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));
+        assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.LOCALGROUP)));
+        assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
+                .getObjectType().equals(XRoadObjectType.SUBSYSTEM)
+                && arh.getSubjectId().getXRoadInstance().equals("FI")));
+
+    }
+
+    @Test
+    public void getClientServiceClientsHasCorrectRightsGiven() throws Exception {
+        ClientId clientId = ClientId.create("FI", "GOV", "M1", "SS1");
+        List<ServiceClientDto> serviceClients = serviceClientService.getServiceClientsByClient(clientId);
+        XRoadId globalGroupId = GlobalGroupId.create("FI", "test-globalgroup");
+        Optional<ServiceClientDto> groupServiceClient = serviceClients.stream()
+                .filter(dto -> dto.getSubjectId().equals(globalGroupId))
+                .findFirst();
+        assertTrue(groupServiceClient.isPresent());
+        // data.sql populates times in local time zone
+        ZonedDateTime correctRightsGiven = LocalDateTime.parse("2020-01-01T09:07:22").atZone(ZoneId.systemDefault());
+        // persistence layer gives times in utc time zone, so compare instants
+        assertEquals(correctRightsGiven.toInstant(), groupServiceClient.get().getRightsGiven().toInstant());
+    }
+
 }

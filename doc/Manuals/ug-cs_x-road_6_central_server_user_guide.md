@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.15  
+Version: 2.16  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -41,6 +41,7 @@ Doc. ID: UG-CS
 | 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä |
 | 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty |
 | 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä |
+| 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -1074,6 +1075,8 @@ To restore configuration, follow these steps.
 2. Select a file from the list of configuration backup files and click Restore.
 3. Click Confirm to proceed.
 4. A window opens displaying the output from the restore script; click OK to close it.
+
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
 ## 13.3 Restoring the Configuration from the Command Line
 

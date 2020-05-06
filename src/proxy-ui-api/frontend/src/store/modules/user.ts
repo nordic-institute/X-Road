@@ -1,10 +1,10 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
-import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { mainTabs } from '@/global';
 import { SecurityServer, Version } from '@/types';
+import { Tab } from '@/ui-types';
+import { mainTabs } from '@/global';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -27,24 +27,8 @@ export const userGetters: GetterTree<UserState, RootState> = {
   isAuthenticated(state) {
     return state.authenticated;
   },
-  allowedTabs(state) {
-    // Returns all the tabs that the user has permission for
-    const ret = _.filter(mainTabs, (tab: any) => {
-      if (!tab || !tab.permission) {
-        // Tab does not have set permission (permission is not needed)
-        return true;
-      }
-
-      if (state.permissions.includes(tab.permission)) {
-        return true;
-      }
-      return false;
-    });
-
-    return ret;
-  },
   firstAllowedTab(state, getters) {
-    return getters.allowedTabs[0];
+    return getters.getAllowedTabs(mainTabs)[0];
   },
   permissions(state) {
     return state.permissions;
@@ -52,9 +36,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
   hasPermission: (state) => (perm: string) => {
     return state.permissions.includes(perm);
   },
-  getAllowedTabs: (state, getters) => (tabs: any[]) => {
+  getAllowedTabs: (state, getters) => (tabs: Tab[]) => {
     // returns filtered array of objects based on the 'permission' attribute
-    const filteredTabs = tabs.filter((tab) => {
+    const filteredTabs = tabs.filter((tab: Tab) => {
       if (!tab.permission) {
         return true;
       }

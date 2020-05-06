@@ -33,11 +33,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -53,6 +55,7 @@ public class LocalGroupConverterTest {
 
     private LocalGroupConverter localGroupConverter;
     private ClientConverter clientConverter;
+    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
     @Before
     public void setup() {
@@ -65,7 +68,8 @@ public class LocalGroupConverterTest {
         ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
 
-        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId));
+        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()));
         localGroupConverter = new LocalGroupConverter(clientConverter, globalConfFacade);
     }
 

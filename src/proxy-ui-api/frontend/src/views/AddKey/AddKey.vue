@@ -75,11 +75,11 @@ export default Vue.extend({
       );
     },
     cancel(): void {
-      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
     done(): void {
-      this.$store.dispatch('resetState');
+      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
 

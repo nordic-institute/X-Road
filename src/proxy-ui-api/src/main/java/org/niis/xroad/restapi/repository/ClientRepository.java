@@ -34,7 +34,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
-import org.niis.xroad.restapi.service.EndpointService;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -123,21 +124,27 @@ public class ClientRepository {
      *
      * @param id                                         id for endpoint
      * @return ClientType                                client containing id matching endpoint
-     * @throws EndpointService.EndpointNotFoundException if endpoint is not found with given id
+     * @throws EndpointNotFoundException if endpoint is not found with given id
+     * @throws ClientNotFoundException if client is not found with given endpoint id
      */
     public ClientType getClientByEndpointId(Long id)
-            throws EndpointService.EndpointNotFoundException {
+            throws EndpointNotFoundException, ClientNotFoundException {
         Session session = this.persistenceUtils.getCurrentSession();
         EndpointType endpointType = session.get(EndpointType.class, id);
 
         if (endpointType == null) {
-            throw new EndpointService.EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id.toString());
         }
 
         ClientDAOImpl clientDAO = new ClientDAOImpl();
         ClientType clientType = clientDAO.getClientByEndpointId(session, endpointType);
 
         session.refresh(clientType);
+
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
+        }
+
         return clientType;
     }
 

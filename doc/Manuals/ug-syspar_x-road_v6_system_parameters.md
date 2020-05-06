@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.50  
+Version: 2.53
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -60,6 +60,10 @@ Doc. ID: UG-SYSPAR
 | 26.11.2019 | 2.48     | Add proxy serverconf caching parameters | Jarkko Hyöty |
 | 05.12.2019 | 2.49     | Fix broken link in Table of Contents | Tapio Jaakkola | 
 | 11.12.2019 | 2.50     | Added new Central Server parameter *ha-node-name* | Jarkko Hyöty |
+| 01.04.2020 | 2.51     | Added new management REST API parameters *key-management-api-whitelist* and *regular-api-whitelist* | Janne Mattila |
+| 03.04.2020 | 2.52     | Removed proxy parameter allow-get-wsdl-request. | Petteri Kivimäki |
+| 12.04.2020 | 2.53     | Updated *connector-host* property EE-package value. | Petteri Kivimäki |
+| 30.04.2020 | 2.54     | Added new parameter *enforce-client-is-cert-validity-period-check* | Märten Soo |
 
 ## Table of Contents
 
@@ -218,7 +222,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | client-https-port                                | 443 <br/> 8443 (RHEL)                      |   |   | TCP port on which the service client's security server listens for HTTPS requests from client applications. |
 | client-timeout                                   | 30000                                      |   |   | Defines the time period (in milliseconds), for which the service client's security server tries to connect to the service provider's security server. When the timeout is reached, the service client's security server informs the service client's information system that a service timeout has occurred. |
 | configuration-anchor-file                        | /etc/xroad/configuration-anchor.xml        |   |   | Absolute file name of the configuration anchor that is used to download global configuration. |
-| connector-host                                   | 0.0.0.0                                    |   |   | IP address on which the service client's security server listens for connections from client applications. The value 0.0.0.0 allows listening on all IPv4 interfaces. |
+| connector-host                                   | 0.0.0.0                                    |   | 127.0.0.1 | IP address on which the service client's security server listens for connections from client applications. The value 0.0.0.0 allows listening on all IPv4 interfaces. The value 127.0.0.1 allows listening on localhost only. |
 | database-properties                              | /etc/xroad/db.properties                   |   |   | Absolute file name of the properties file for the configuration of the security server database. |
 | ocsp-responder-listen-address                    | 0.0.0.0                                    |   |   | IP address on which the service provider's security server listens for requests for OCSP responses from the service client's security server. The service client's security server downloads OCSP responses from the service provider's security server while establishing a secure connection between the security servers. The value 0.0.0.0 allows listening on all IPv4 interfaces. Must match the value of proxy.server-listen-address. |
 | ocsp-responder-port                              | 5577                                       |   |   | TCP port on which the service provider's security server listens for requests for OCSP responses from the service client's security server. The service client's security server downloads OCSP responses from the service provider's security server while establishing a secure connection between the security servers. |
@@ -255,12 +259,11 @@ This chapter describes the system parameters used by the components of the X-Roa
 | health-check-port                                | 0 (disabled)                               |   |   | The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.|
 | health-check-interface                           | 0.0.0.0                                    |   |   | The network interface where the health check service listens to requests. Default is all available interfaces.|
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
-| allow-get-wsdl-request                           | false                                      |   |   | Whether to allow getWsdl metaservice to be called with HTTP/HTTPS GET method. |
 | server-conf-cache-period                         | 60                                         |   |   | Number of seconds to keep selected serverconf configuration items in memory |
 | server-conf-client-cache-size                    | 100                                        |   |   | Maximum number of local clients to keep cached |
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
-
+| enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:
@@ -374,8 +377,10 @@ the message log.
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
 | ssl-properties                                   | /etc/xroad/ssl.properties                  | Absolute path to file which overrides the default properties of the SSL connections to REST APIs. |
+| key-management-api-whitelist                     | 127.0.0.0/8, ::1                  | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management APIs using basic authentication  |
+| regular-api-whitelist                            | 0.0.0.0/0, ::/0                 | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular APIs using api key authentication |
 
-Configurable SSL parameters are those
+Configurable SSL connection parameters are those
 [Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
 that start with `server.ssl`.
 

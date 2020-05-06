@@ -108,7 +108,7 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
 };
 
 export const mutations: MutationTree<CsrState> = {
-  resetState(state) {
+  resetCsrState(state) {
     Object.assign(state, getDefaultState());
   },
   storeCsrClient(state, client: string | null) {
@@ -144,8 +144,8 @@ export const mutations: MutationTree<CsrState> = {
 };
 
 export const actions: ActionTree<CsrState, RootState> = {
-  resetState({ commit }) {
-    commit('resetState');
+  resetCsrState({ commit }) {
+    commit('resetCsrState');
   },
   setCsrTokenId({ commit, dispatch, rootGetters }, tokenId: string) {
     commit('storeCsrTokenId', tokenId);

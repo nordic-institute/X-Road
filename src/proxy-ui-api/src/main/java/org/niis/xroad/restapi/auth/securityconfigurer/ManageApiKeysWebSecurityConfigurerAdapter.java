@@ -24,8 +24,10 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import org.niis.xroad.restapi.controller.ApiKeysController;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -34,28 +36,30 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
+
 /**
  * basic authentication configuration for managing api keys
- * matching url /api/api-key/**
+ * matching url /api/api-keys/**
  */
 @Configuration
 @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
 public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    @Qualifier(KEY_MANAGEMENT_PAM_AUTHENTICATION)
     private AuthenticationProvider authenticationProvider;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .antMatcher("/api/api-key/**")
+            .antMatcher(ApiKeysController.API_KEYS_PATH + "/**")
             .authorizeRequests()
-                .anyRequest().access("hasRole('"
-                + Role.XROAD_SYSTEM_ADMINISTRATOR.name()
-                + "') and hasIpAddress('127.0.0.1')")
+                .anyRequest()
+                .hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
                 .and()
             .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                 .and()
             .httpBasic()
                 .and()
@@ -66,8 +70,9 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
                 .and()
                 .and()
             .csrf()
+                .disable()
+            .formLogin()
                 .disable();
-
     }
 
     @Override

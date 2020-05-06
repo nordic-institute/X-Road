@@ -1,8 +1,10 @@
+/**
+ * Vuex store for add client/subsystem wizards
+ */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Token, Client } from '@/types';
 import * as api from '@/util/api';
-
 
 export interface AddClientState {
   expandedTokens: string[];
@@ -14,7 +16,6 @@ export interface AddClientState {
   memberClass: string;
   memberCode: string;
   subsystemCode: string | undefined;
-
 }
 
 const getDefaultState = () => {
@@ -129,7 +130,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
   },
 
   createClient({ commit, state }) {
-
     const body = {
       client: {
         member_class: state.memberClass,

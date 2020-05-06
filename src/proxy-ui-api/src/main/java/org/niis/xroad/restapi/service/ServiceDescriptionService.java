@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
@@ -62,8 +63,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * ServiceDescription service
@@ -220,7 +219,9 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException              if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
      * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
-     * @throws InterruptedException             if the thread running the WSDL validator is interrupted
+     * @throws InterruptedException             if the thread running the WSDL validator is interrupted. <b>The
+     * interrupted thread has already been handled with so you can choose to ignore this exception if you so
+     * please.</b>
      */
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
@@ -306,6 +307,7 @@ public class ServiceDescriptionService {
      * @throws MissingParameterException         if given ServiceCode is null
      * @throws InvalidUrlException               if url is invalid
      */
+    @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     public ServiceDescriptionType addOpenApi3ServiceDescription(ClientId clientId, String url,
                                                                 String serviceCode, boolean ignoreWarnings)
             throws OpenApiParser.ParsingException, ClientNotFoundException,
@@ -313,7 +315,6 @@ public class ServiceDescriptionService {
             UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException,
             MissingParameterException, InvalidUrlException {
-        verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
             throw new MissingParameterException("Missing ServiceCode");
@@ -437,11 +438,11 @@ public class ServiceDescriptionService {
      * @throws UrlAlreadyExistsException         if trying to add duplicate url
      * @throws InvalidUrlException               if url is invalid
      */
+    @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
             String serviceCode) throws
             ClientNotFoundException, MissingParameterException, ServiceCodeAlreadyExistsException,
             UrlAlreadyExistsException, InvalidUrlException {
-        verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
             throw new MissingParameterException("Missing ServiceCode");
@@ -470,7 +471,7 @@ public class ServiceDescriptionService {
 
         // Add created endpoint to client
         EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
-                EndpointType.ANY_PATH, false);
+                EndpointType.ANY_PATH, true);
         client.getEndpoint().add(endpointType);
 
         checkDuplicateServiceCodes(serviceDescriptionType);
@@ -495,7 +496,9 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException                  if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
-     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted
+     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
+     * interrupted thread has already been handled with so you can choose to ignore this exception if you so
+     * please.</b>
      */
     public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -563,15 +566,17 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException                  if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
-     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted
+     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
+     * interrupted thread has already been handled with so you can choose to ignore this exception if you so
+     * please.</b>
      */
+    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
     private ServiceDescriptionType refreshWSDLServiceDescription(ServiceDescriptionType serviceDescriptionType,
             boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
             WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
             WsdlUrlAlreadyExistsException, InterruptedException {
-        verifyAuthority("REFRESH_WSDL");
 
         if (!serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
             throw new WrongServiceDescriptionTypeException("Expected description type WSDL");
@@ -597,11 +602,10 @@ public class ServiceDescriptionService {
      * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
      * @throws InvalidUrlException                  if url is invalid
      */
+    @PreAuthorize("hasAuthority('REFRESH_OPENAPI3')")
     private ServiceDescriptionType refreshOpenApi3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
             boolean ignoreWarnings) throws WrongServiceDescriptionTypeException,
             UnhandledWarningsException, OpenApiParser.ParsingException, InvalidUrlException {
-
-        verifyAuthority("REFRESH_OPENAPI3");
 
         if (!serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
@@ -638,11 +642,11 @@ public class ServiceDescriptionService {
      * @throws ServiceDescriptionNotFoundException if ServiceDescription not found
      * @throws InvalidUrlException                 if url is invalid
      */
+    @PreAuthorize("hasAuthority('EDIT_REST')")
     public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String restServiceCode,
             String newRestServiceCode)
             throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, ServiceDescriptionNotFoundException,
             WrongServiceDescriptionTypeException, InvalidUrlException {
-        verifyAuthority("EDIT_REST");
 
         if (newRestServiceCode == null) {
             newRestServiceCode = restServiceCode;
@@ -692,13 +696,13 @@ public class ServiceDescriptionService {
      * @throws OpenApiParser.ParsingException    if openapi3 parser finds errors in the parsed document
      * @throws InvalidUrlException               if url is invalid
      */
+    @PreAuthorize("hasAuthority('EDIT_OPENAPI3')")
     public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
             String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
             WrongServiceDescriptionTypeException, ServiceDescriptionNotFoundException,
             InvalidUrlException {
 
-        verifyAuthority("EDIT_OPENAPI3");
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
 
         if (serviceDescription == null) {
@@ -1114,6 +1118,9 @@ public class ServiceDescriptionService {
         // parse wsdl
         Collection<WsdlParser.ServiceInfo> parsedServices = parseWsdl(url);
 
+        // check that service identifiers are legal
+        validateServiceIdentifierFields(parsedServices);
+
         // check if services exist
         checkForExistingServices(client, parsedServices, updatedServiceDescriptionId);
 
@@ -1134,6 +1141,42 @@ public class ServiceDescriptionService {
         result.setWarnings(warnings);
         return result;
     }
+
+    /**
+     * validate that all services have legal service code (name) and version
+     * @throws InvalidServiceIdentifierException if there was at least one
+     * invalid service code or version
+     */
+    private void validateServiceIdentifierFields(Collection<WsdlParser.ServiceInfo> serviceInfos)
+            throws InvalidServiceIdentifierException {
+        List<String> invalidIdentifierFields = new ArrayList<>();
+        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
+        for (WsdlParser.ServiceInfo serviceInfo: serviceInfos) {
+            String serviceCode = serviceInfo.name;
+            String version = serviceInfo.version;
+            if (!validator.getValidationErrors(serviceCode).isEmpty()) {
+                invalidIdentifierFields.add(serviceCode);
+            }
+            if (!validator.getValidationErrors(version).isEmpty()) {
+                invalidIdentifierFields.add(version);
+            }
+        }
+        if (!invalidIdentifierFields.isEmpty()) {
+            throw new InvalidServiceIdentifierException(invalidIdentifierFields);
+        }
+    }
+
+    /**
+     * If wsdl had service codes and / or versions with illegal identifier values, such as colons
+     */
+    public static class InvalidServiceIdentifierException extends InvalidWsdlException {
+        public static final String ERROR_INVALID_SERVICE_IDENTIFIER = "invalid_wsdl_service_identifier";
+
+        public InvalidServiceIdentifierException(List<String> invalidIdentifiers) {
+            super(new ErrorDeviation(ERROR_INVALID_SERVICE_IDENTIFIER, invalidIdentifiers));
+        }
+    }
+
 
     /**
      * If trying to add a service that already exists
