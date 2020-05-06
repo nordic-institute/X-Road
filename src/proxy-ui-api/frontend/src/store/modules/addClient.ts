@@ -1,5 +1,5 @@
 /**
- * Vuex store for add client wizard
+ * Vuex store for add client/subsystem wizards
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
@@ -117,7 +117,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
   },
 
   createClient({ commit, state }) {
-
     const body = {
       client: {
         member_class: state.memberClass,
