@@ -44,7 +44,7 @@ detect_bdr()  {
 
 if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
     master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-    MASTER_USER=$(get_prop ${root_properties} postgres.connection.user 'postgres')$(get_prop ${root_properties} postgres.connection.login_suffix '')
+    MASTER_USER=$(get_prop ${root_properties} postgres.connection.user 'postgres')
     function psql_master() {
         PGUSER="$MASTER_USER" PGPASSWORD="$master_passwd" remote_psql "$@"
     }
