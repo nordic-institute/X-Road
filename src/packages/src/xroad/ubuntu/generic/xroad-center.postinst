@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -x
+
 # postinst script for xroad-center
 #
 # see: dh_installdeb(1)
@@ -14,8 +17,6 @@
 #          <conflicting-package> <version>
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
-
-set -x
 
 . /usr/share/debconf/confmodule
 trap db_stop EXIT
@@ -48,12 +49,11 @@ setup_database() {
     crudini --set "${db_properties}" '' host "${db_addr}"
     crudini --set "${db_properties}" '' port "${db_port}"
 
-    local suffix=$(get_prop ${root_properties} postgres.connection.login_suffix "")
-    local db_user=$(get_prop ${db_properties} 'username' 'centerui')"${suffix}"
-    local db_schema=$(get_prop ${db_properties} 'schema' 'centerui')
+    local db_user=$(get_prop ${db_properties} 'username' 'centerui')
+    local db_schema=$(get_prop ${db_properties} 'schema' "$db_user")
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
-    local db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+    local db_master_user=postgres
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
 
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
@@ -67,10 +67,7 @@ setup_database() {
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-        if [ -n "${suffix}" ]; then
-            db_master_user="${db_master_user}${suffix}"
-            crudini --set "${db_properties}" '' username "${db_user}"
-        fi
+        db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
         function psql_master() {
             PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
         }
@@ -78,8 +75,8 @@ setup_database() {
         function psql_master() { local_psql "$@"; }
     fi
 
-    local db_plain_user=${db_user%$suffix}
-    local db_plain_master=${db_master_user%$suffix}
+    local db_plain_user=${db_user%%@*}
+    local db_plain_master=${db_master_user%%@*}
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
