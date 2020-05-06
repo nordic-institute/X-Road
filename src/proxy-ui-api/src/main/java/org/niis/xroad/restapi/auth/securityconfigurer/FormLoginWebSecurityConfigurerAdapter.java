@@ -74,11 +74,11 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 .anyRequest().denyAll()
                 .and()
             .csrf()
-                .ignoringAntMatchers("/login")
+                .ignoringAntMatchers(LOGIN_URL)
                 .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
                 .and()
             .formLogin()
-                .loginPage("/login")
+                .loginPage(LOGIN_URL)
                 .successHandler(formLoginStatusCodeSuccessHandler())
                 .failureHandler(statusCode401AuthenticationFailureHandler())
                 .permitAll()
@@ -89,7 +89,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder builder) throws Exception {
+    protected void configure(AuthenticationManagerBuilder builder) {
         builder.authenticationProvider(authenticationProvider);
     }
 
