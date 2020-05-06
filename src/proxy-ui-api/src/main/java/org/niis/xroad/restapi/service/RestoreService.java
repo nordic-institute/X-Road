@@ -54,19 +54,21 @@ public class RestoreService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final BackupRepository backupRepository;
     private final NotificationService notificationService;
+    private final ApiKeyService apiKeyService;
 
     @Autowired
     public RestoreService(ExternalProcessRunner externalProcessRunner,
             @Value("${script.restore-configuration.path}") String configurationRestoreScriptPath,
             @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
             CurrentSecurityServerId currentSecurityServerId, BackupRepository backupRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService, ApiKeyService apiKeyService) {
         this.externalProcessRunner = externalProcessRunner;
         this.configurationRestoreScriptPath = configurationRestoreScriptPath;
         this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
         this.currentSecurityServerId = currentSecurityServerId;
         this.backupRepository = backupRepository;
         this.notificationService = notificationService;
+        this.apiKeyService = apiKeyService;
     }
 
     /**
@@ -108,6 +110,8 @@ public class RestoreService {
             throw new RestoreProcessFailedException(e, "restoring from a backup failed");
         } finally {
             notificationService.resetBackupRestoreRunningSince();
+            apiKeyService.clearApiKeyCaches();
+            log.info("Cleared api key caches");
         }
     }
 
