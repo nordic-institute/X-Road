@@ -36,6 +36,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -72,6 +73,7 @@ public class SystemService {
     private final ServerConfService serverConfService;
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
+    private final CurrentSecurityServerId currentSecurityServerId;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -88,12 +90,13 @@ public class SystemService {
      */
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier) {
+            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier,
+            CurrentSecurityServerId currentSecurityServerId) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
         this.configurationVerifier = configurationVerifier;
-
+        this.currentSecurityServerId = currentSecurityServerId;
     }
 
     /**
@@ -363,7 +366,7 @@ public class SystemService {
      */
     private void verifyAnchorInstance(ConfigurationAnchorV2 anchor) throws InvalidAnchorInstanceException {
         String anchorInstanceId = anchor.getInstanceIdentifier();
-        String ownerInstance = serverConfService.getSecurityServerOwnerId().getXRoadInstance();
+        String ownerInstance = currentSecurityServerId.getServerId().getOwner().getXRoadInstance();
         if (!anchorInstanceId.equals(ownerInstance)) {
             String errorMessage = String.format("Cannot upload an anchor from instance %s into instance %s",
                     anchorInstanceId, ownerInstance);

@@ -22,22 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dto;
+package org.niis.xroad.restapi.scheduling;
 
-import lombok.Builder;
-import lombok.Getter;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
-import java.time.OffsetDateTime;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.repository.ServerConfRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Builder
-@Getter
 /**
- * Access rights are given to a specific subject, for services owned by some client.
- * ServiceClientAccessRightDto.clientId is id of the service owner
- * (not the subject id)
+ * Helper class for GlobalConfChecker.
+ * This class does not require authentication, because its
+ * methods are accessed from a scheduled job that's run
+ * unauthenticated.
  */
-public class ServiceClientAccessRightDto {
-    private String serviceCode;
-    private String title;
-    private OffsetDateTime rightsGiven;
+@Slf4j
+@Service
+@Transactional
+class GlobalConfCheckerHelper {
+    private final ServerConfRepository serverConfRepository;
+
+    @Autowired
+    GlobalConfCheckerHelper(ServerConfRepository serverConfRepository) {
+        this.serverConfRepository = serverConfRepository;
+    }
+
+    /**
+     * Get the Security Server's ServerConf
+     * @return ServerConfType
+     */
+    ServerConfType getServerConf() {
+        return serverConfRepository.getServerConf();
+    }
 }

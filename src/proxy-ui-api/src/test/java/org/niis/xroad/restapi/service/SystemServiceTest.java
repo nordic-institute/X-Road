@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -35,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -83,6 +85,8 @@ public class SystemServiceTest {
     private AnchorRepository anchorRepository;
     @MockBean
     private ConfigurationVerifier configurationVerifier;
+    @MockBean
+    private CurrentSecurityServerId currentSecurityServerId;
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -101,7 +105,10 @@ public class SystemServiceTest {
         when(globalConfService.getApprovedTspName(TSA_2_URL))
                 .thenReturn(tsa2.getName());
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("CS", "GOV", "1111"));
+        ClientId ownerId = ClientId.create("CS", "GOV", "1111");
+        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ownerId);
+        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
+        when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
     }
 
     @Test
@@ -186,7 +193,9 @@ public class SystemServiceTest {
 
     @Test(expected = SystemService.InvalidAnchorInstanceException.class)
     public void getAnchorFileFromBytesWrongInstance() throws Exception {
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("INVALID", "GOV", "1111"));
+        ClientId ownerId = ClientId.create("INVALID", "GOV", "1111");
+        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
+        when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         systemService.getAnchorFileFromBytes(anchorBytes, true);
     }

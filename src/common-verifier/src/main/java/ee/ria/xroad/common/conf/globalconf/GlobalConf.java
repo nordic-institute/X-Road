@@ -236,7 +236,7 @@ public final class GlobalConf {
 
     /**
      * @param instanceIdentifiers the instance identifiers
-     * @return members and subsystems of a given instance or all members if
+     * @return members and subsystems of a given instance, or all members and subsystems if
      * no instance identifiers are specified
      */
     public static List<MemberInfo> getMembers(String... instanceIdentifiers) {

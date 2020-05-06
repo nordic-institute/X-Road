@@ -654,7 +654,7 @@ public class ClientService {
                 subsystemCode);
 
         ClientType existingLocalClient = getLocalClient(clientId);
-        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (existingLocalClient != null) {
             throw new ClientAlreadyExistsException("client " + clientId + " already exists");
         }
@@ -721,7 +721,7 @@ public class ClientService {
             CannotDeleteOwnerException, ClientNotFoundException {
         ClientType clientType = getLocalClientOrThrowNotFound(clientId);
         // cant delete owner
-        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(clientType.getIdentifier())) {
             throw new CannotDeleteOwnerException();
         }
