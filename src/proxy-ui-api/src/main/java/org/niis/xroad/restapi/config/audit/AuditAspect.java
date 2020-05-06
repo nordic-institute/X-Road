@@ -45,74 +45,48 @@ public class AuditAspect {
 
     @Before(value = "execution(* org.niis.xroad.restapi.service.ClientService.*(..)))")
     public void beforeAdvice(JoinPoint joinPoint) {
-        logit("beforeAdvice");
         log.info("beforeAdvice");
     }
 
     @Before(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApiController.*(..)))")
     public void beforeAdvice2(JoinPoint joinPoint) {
-        logit("beforeAdvice2");
         log.info("beforeAdvice2");
     }
 
     @Before(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApi.*(..)))")
     public void beforeAdvice5(JoinPoint joinPoint) {
-        logit("beforeAdvice2");
         log.info("beforeAdvice2");
     }
 
     @AfterThrowing(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApi.*(..)))")
     public void afterThrowingClientsApi(JoinPoint joinPoint) {
-        logit("afterThrowingClientsApi");
         log.info("afterThrowingClientsApi");
     }
 
     @AfterThrowing(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApiController.*(..)))")
     public void afterThrowingClientsApiController(JoinPoint joinPoint) {
-        logit("afterThrowingClientsApiController");
         log.info("afterThrowingClientsApiController");
     }
 
     @After(value = "execution(* org.niis.xroad.restapi.openapi.ClientsApiController.*(..)))")
     public void afterAdvice(JoinPoint joinPoint) {
-        logit("afterAdvice");
         log.info("afterAdvice");
     }
 
 
     @Before(value = "within(org.niis.xroad.restapi.openapi.*)")
     public void beforeAdvice3(JoinPoint joinPoint) {
-        logit("beforeAdvice3");
         log.info("beforeAdvice3");
     }
 
     @AfterReturning(pointcut = "within(org.niis.xroad.restapi.openapi.*)")
     public void afterReturning(JoinPoint joinPoint) {
-        logit("afterReturning");
         log.info("afterReturning");
     }
 
     @AfterThrowing(pointcut = "within(org.niis.xroad.restapi.openapi.*)")
     public void afterThrowing(JoinPoint joinPoint) {
-        logit("afterThrowing");
         log.info("afterThrowing2");
     }
 
-    private void logit(String s) {
-        if (true) return;
-        for (int i = 0; i < 20; i++) {
-            log.info("=====================================" + s);
-        }
-    }
-
-//    @AfterReturning(pointcut = "execution(@com.company.MyAnnotation * *(..)) && @annotation(myAnnotation) && args(request,..)", returning = "result")
-//    public void afterReturning(JoinPoint joinPoint, Object result, MyAnnotation myAnnotation, HttpServletRequest request) {
-//        // do logging
-//    }
-//
-//    @AfterThrowing(pointcut = "execution(@com.company.MyAnnotation * *(..)) && @annotation(myAnnotation) && args(request,..)", throwing = "exception")
-//    public void afterThrowing(JoinPoint joinPoint, Throwable exception, MyAnnotation myAnnotation, HttpServletRequest request) {
-//        // do logging
-//    }
-//
 }

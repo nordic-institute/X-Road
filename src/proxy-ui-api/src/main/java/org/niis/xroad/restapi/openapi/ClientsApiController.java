@@ -35,8 +35,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.AuditEventHolder;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AccessRightConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
