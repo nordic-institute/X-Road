@@ -193,6 +193,8 @@ Add X-Road package repository (**reference data: 1.1**)
       host = servername.postgres.database.azure.com
       port = 5432
 
+  In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
 Issue the following commands to install the central server packages:
 
   ```

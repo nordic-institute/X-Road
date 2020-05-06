@@ -217,9 +217,25 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
         postgres.connection.password = {database superuser password}
         postgres.connection.user = {database superuser name, postgres by default}
 
-    If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. To enable this format set the following property.
+    If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. Therefore you need to precreate also db.properties file as follows. First create the directory and file.
 
-        postgres.connection.login_suffix = {@server name}
+      sudo mkdir /etc/xroad
+      sudo chown xroad:xroad /etc/xroad
+      sudo chmod 751 /etc/xroad
+      sudo touch /etc/xroad/db.properties
+      sudo chown xroad:xroad /etc/xroad/db.properties
+      sudo chmod 640 /etc/xroad/db.properties
+
+    Then edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
+
+      serverconf.hibernate.connection.username = serverconf@servername
+      serverconf.hibernate.connection.password = H1nGmB3uqtU7IJ82qqEaMaH2ozXBBkh0
+      op-monitor.hibernate.connection.username = opmonitor@servername
+      op-monitor.hibernate.connection.password = V8jCARSA7RIuCQWr59Hw3UK9zNzBeP2l
+      messagelog.hibernate.connection.username = messagelog@servername
+      messagelog.hibernate.connection.password = 1wmJ-bK39nbA4EYcTS9MgdjyJewPpf_w
+
+    In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
 4.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 

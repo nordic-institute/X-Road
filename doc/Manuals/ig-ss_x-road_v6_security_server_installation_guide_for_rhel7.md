@@ -198,11 +198,7 @@ To install the X-Road security server software on *RHEL7* operating system, foll
       postgres.connection.password = {database superuser password}
       postgres.connection.user = {database superuser name, postgres by default}
 
-    If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. To enable this format set the following property.
-
-      postgres.connection.login_suffix = {@server name}
-
-    Edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
+    If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. Edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
 
         serverconf.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/serverconf
         serverconf.hibernate.connection.username = serverconf

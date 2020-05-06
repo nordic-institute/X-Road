@@ -37,14 +37,14 @@ get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
 
+db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
 db_name=op-monitor
 db_user=$(get_prop ${db_properties} op-monitor.hibernate.connection.username "opmonitor")
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_admin=$(get_prop ${root_properties} op-monitor.database.admin_user "opmonitor_admin")
 db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
-db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad.properties
 
 db_addr=127.0.0.1
 db_port=5432

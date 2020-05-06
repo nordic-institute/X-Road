@@ -97,7 +97,7 @@ setup_database() {
     fi
 
     local db_plain_user=${db_user%%@*}
-    local db_plain_master=${db_plain_master%%@*}
+    local db_plain_master=${db_master_user%%@*}
 
     psql_dbuser() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
