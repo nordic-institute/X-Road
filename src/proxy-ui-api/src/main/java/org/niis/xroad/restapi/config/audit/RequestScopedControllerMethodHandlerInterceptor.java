@@ -56,30 +56,18 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
         } else {
             auditEventHolder.setEventName(null);
         }
-//        auditLog("method handler preHandle");
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
             ModelAndView modelAndView) throws Exception {
-        auditEventHolder.auditLog("method handler postHandle");
-        HandlerMethod method = (HandlerMethod) handler;
-//        log.info("postHandle " + method);
+        auditEventHolder.auditLogSuccess();
     }
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-            Exception ex) throws Exception {
-//        auditEventHolder.auditLog("method handler afterCompletion");
-        HandlerMethod method = (HandlerMethod) handler;
-//        log.info("afterCompletion " + method);
-    }
-
-//    private static final String PREFIX = "-----------------oooooooooooooo---------------- ";
-//
-//    private void auditLog(String s) {
-//        AuditLogger.log(PREFIX + s);
-//        AuditLogger.log(auditEventHolder.getEventName(), auditEventHolder.getEventData());
+//    @Override
+//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+//            Exception ex) throws Exception {
+//        HandlerMethod method = (HandlerMethod) handler;
 //    }
 }

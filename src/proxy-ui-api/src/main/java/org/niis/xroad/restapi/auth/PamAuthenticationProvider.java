@@ -24,11 +24,14 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import ee.ria.xroad.common.AuditLogger;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.domain.Role;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,7 +63,7 @@ import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEME
 @Slf4j
 @Configuration
 @Profile("!devtools-test-auth")
-public class PamAuthenticationProvider implements AuthenticationProvider {
+public class PamAuthenticationProvider implements AuthenticationProvider, BeanNameAware {
 
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
@@ -115,9 +118,27 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        authenticationIpWhitelist.validateIpAddress(authentication);
-        String username = String.valueOf(authentication.getPrincipal());
+        boolean success = false;
+        String username = "unknown user";
+        try {
+            username = String.valueOf(authentication.getPrincipal());
+            Authentication result = doAuthenticateInternal(authentication, username);
+            success = true;
+            return result;
+        } finally {
+            if (success) {
+                AuditLogger.log(debugBeanName + " " + "Log in user", username, null);
+            } else {
+                AuditLogger.log(debugBeanName + " " + "Log in user failed", username, null);
+            }
+        }
+    }
+
+    // TO DO: auditlog logout
+
+    private Authentication doAuthenticateInternal(Authentication authentication, String username) {
         String password = String.valueOf(authentication.getCredentials());
+        authenticationIpWhitelist.validateIpAddress(authentication);
         PAM pam;
         try {
             pam = new PAM(PAM_SERVICE_NAME);
@@ -144,10 +165,17 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             pam.dispose();
         }
     }
+
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(
                 UsernamePasswordAuthenticationToken.class);
+    }
+
+    private String debugBeanName;
+    @Override
+    public void setBeanName(String name) {
+        this.debugBeanName = name;
     }
 }
 

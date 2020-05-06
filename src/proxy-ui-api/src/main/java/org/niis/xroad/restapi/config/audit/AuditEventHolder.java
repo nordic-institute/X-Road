@@ -31,7 +31,6 @@ import lombok.Setter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,22 +57,20 @@ public class AuditEventHolder {
         eventData.put(propertyName, value);
     }
 
-    private static final String PREFIX = "*** audit log *** ";
-
-    public void auditLog(String s) {
-        AuditLogger.log(PREFIX + 1 + s + new Date());
-        AuditLogger.log(PREFIX + 2 + getDatedEventName(), getEventData());
-        AuditLogger.log(PREFIX + (2 + 1) + getEventName(), getEventData());
+    public void auditLogSuccess() {
+        AuditLogger.log(getEventName(), getEventData());
+//        AuditLogger.log(getDatedEventName(), getEventData());
     }
 
-    public void auditLogFail(String s) {
-        AuditLogger.log(PREFIX + 1 +  s + new Date());
-        AuditLogger.log(PREFIX + 2 + getDatedEventName(), getEventData());
-        AuditLogger.log(PREFIX + (2 + 1) + getEventName() + " failed!", getEventData());
+    // TO DO: need current user
+
+    public void auditLogFail() {
+        AuditLogger.log(getEventName() + " failed!", getEventData());
+//        AuditLogger.log(getDatedEventName() + " failed!", getEventData());
     }
 
-    public String getDatedEventName() {
-        return getEventName() + " " + new Date();
-    }
+//    public String getDatedEventName() {
+//        return getEventName() + " " + new Date();
+//    }
 
 }

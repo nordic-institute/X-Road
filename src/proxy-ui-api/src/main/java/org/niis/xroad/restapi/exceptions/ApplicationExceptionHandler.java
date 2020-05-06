@@ -58,7 +58,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
-        auditEventHolder.auditLogFail("ApplicationExceptionHandler");
+        auditEventHolder.auditLogFail();
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -70,7 +70,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
-        auditEventHolder.auditLogFail("ApplicationExceptionHandler");
+        auditEventHolder.auditLogFail();
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
@@ -82,7 +82,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
-        auditEventHolder.auditLogFail("ApplicationExceptionHandler");
+        auditEventHolder.auditLogFail();
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
     }

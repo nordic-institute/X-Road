@@ -65,7 +65,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
-        auditEventHolder.auditLogFail("SpringInternalExceptionHandler");
+        auditEventHolder.auditLogFail();
         log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo();
         if (causedBySizeLimitExceeded(ex)) {
