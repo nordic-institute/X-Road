@@ -449,7 +449,7 @@ public class AccessRightServiceTest {
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
         List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
-                TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
+                TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
         assertEquals(4, dtos.size());
     }
 
@@ -468,7 +468,7 @@ public class AccessRightServiceTest {
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
         List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
-                TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
+                TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
         assertEquals(4, dtos.size());
         ServiceClientDto persistedSs3 = dtos.stream()
                 .filter(accessRightHolderDto -> accessRightHolderDto.getSubjectId().equals(ss3))
@@ -488,7 +488,7 @@ public class AccessRightServiceTest {
                 "nope"));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
 
@@ -502,7 +502,7 @@ public class AccessRightServiceTest {
                 "nope"));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L);
-        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
 
@@ -514,7 +514,7 @@ public class AccessRightServiceTest {
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L); // this is a LocalGroup with groupCode 'group1' in data.sql
         List<ServiceClientDto> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
-                TestUtils.SERVICE_CALCULATE_PRIME, null, localGroupIds);
+                TestUtils.FULL_SERVICE_CALCULATE_PRIME, null, localGroupIds);
         Optional<ServiceClientDto> addedLocalGroupServiceClient = aclHolders.stream()
                 .filter(s -> String.valueOf(localGroupIds.iterator().next()).equals(s.getLocalGroupId()))
                 .findFirst();
@@ -530,7 +530,7 @@ public class AccessRightServiceTest {
         ClientId clientId = TestUtils.getM1Ss2ClientId();
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L);
-        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_BMI_OLD, null,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.FULL_SERVICE_CODE_BMI_OLD, null,
                 localGroupIds);
     }
 
