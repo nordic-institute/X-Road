@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.39
+Version: 2.40
 Doc. ID: UG-SS
 
 ---
@@ -72,6 +72,7 @@ Doc. ID: UG-SS
  24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
  26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
  30.03.2020 | 2.39    | Added description of pre-restore backups | Ilkka Seppälä
+ 01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -280,6 +281,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 20. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
 21. <a id="Ref_PR-MREST" class="anchor"></a>\[PR-MREST\] X-Road: Service Metadata Protocol for REST. Document ID: [PR-MREST](../Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md).
+
+22. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
 
 ## 2 User Management
@@ -1354,7 +1357,7 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with [System Parameters](ug-syspar_x-road_v6_system_parameters.md)
+   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 
@@ -1985,17 +1988,19 @@ PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB
 
 An API key is linked to a role or roles, and grants access to the operations that are allowed for that role/roles.
 A separate REST api exists for API key management.
-Access to API key management is limited to localhost (`127.0.0.1`).
-API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password).
+API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password)
+or with session authentication (for admin web application).
+Basic authentication access is limited to localhost by default, but this can
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 #### 19.1.1 Creating new API keys
 
-A new API key is created with a `POST` request to `/api/api-key`. Message body must contain the roles to be
+A new API key is created with a `POST` request to `/api/api-keys`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the actual API key. After this point the key
 cannot be retrieved, as it is not stored in plaintext.
 
 ```
-curl -X POST -u <user>:<password> https://localhost:4000/api/api-key --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+curl -X POST -u <user>:<password> https://localhost:4000/api/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
@@ -2011,10 +2016,10 @@ In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
 
 #### 19.1.2 Listing API keys
 
-Existing API keys can be listed with a `GET` request to `/api/api-key`. This lists all keys, regardless of who has created them.
+Existing API keys can be listed with a `GET` request to `/api/api-keys`. This lists all keys, regardless of who has created them.
 
 ```
-curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
+curl -X GET -u <user>:<password> https://localhost:4000/api/api-keys -k
 [
   {
     "id": 59,
@@ -2049,11 +2054,11 @@ curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '[
 
 #### 19.1.4 Revoking API keys
 
-An API key can be revoked with a `DELETE` request to `/api/api-key/{id}`. Server responds with `HTTP 200` if
+An API key can be revoked with a `DELETE` request to `/api/api-keys/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
 
 ```
-curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-key/60  -k
+curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-keys/60  -k
 
 ```
 
@@ -2093,6 +2098,8 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
 
 The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
 as the corresponding UI operations.
+Access to regular APIs is allowed from all IP addresses by default, but this can
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### 19.3 Correlation ID HTTP header
 

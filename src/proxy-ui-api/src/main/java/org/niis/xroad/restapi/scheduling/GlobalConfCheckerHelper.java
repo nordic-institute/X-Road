@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,26 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.cache;
+package org.niis.xroad.restapi.scheduling;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
-import org.niis.xroad.restapi.service.ServerConfService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.repository.ServerConfRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
-import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
+/**
+ * Helper class for GlobalConfChecker.
+ * This class does not require authentication, because its
+ * methods are accessed from a scheduled job that's run
+ * unauthenticated.
+ */
+@Slf4j
+@Service
+@Transactional
+class GlobalConfCheckerHelper {
+    private final ServerConfRepository serverConfRepository;
 
-@Configuration
-public class CurrentSecurityServerIdConfig {
-
-    @Bean
-    @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
-    public CurrentSecurityServerId securityServerOwner(ServerConfService serverConfService) {
-        SecurityServerId id = serverConfService.getSecurityServerId();
-        return new CurrentSecurityServerId(id);
+    @Autowired
+    GlobalConfCheckerHelper(ServerConfRepository serverConfRepository) {
+        this.serverConfRepository = serverConfRepository;
     }
 
+    /**
+     * Get the Security Server's ServerConf
+     * @return ServerConfType
+     */
+    ServerConfType getServerConf() {
+        return serverConfRepository.getServerConf();
+    }
 }

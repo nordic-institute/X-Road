@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.facade;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
+import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -226,5 +227,12 @@ public class SignerProxyFacade {
      */
     public String[] getOcspResponses(String[] certHashes) throws Exception {
         return SignerProxy.getOcspResponses(certHashes);
+    }
+
+    /**
+     * {@link SignerClient#execute(Object message)}
+     */
+    public <T> T execute(Object message) throws Exception {
+        return SignerClient.execute(message);
     }
 }

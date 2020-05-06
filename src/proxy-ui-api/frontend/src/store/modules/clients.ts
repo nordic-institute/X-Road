@@ -1,5 +1,5 @@
 import axios from 'axios';
-import _ from 'lodash';
+import { cloneDeep } from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import i18n from './../../i18n';
@@ -16,6 +16,7 @@ export interface Client {
   created?: string | null;
   type?: string;
   status?: string;
+  owner: boolean;
 }
 
 export interface ClientsState {
@@ -52,10 +53,10 @@ export const getters: GetterTree<ClientsState, RootState> = {
     const subsystems: Client[] = [];
     const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
-    // Find the owner member (there is only one) it has member_name, but no subsystem_code
+    // Find the owner member (there is only one)
     state.clients.forEach((element, index) => {
-      if (!element.subsystem_code) {
-        const clone = _.cloneDeep(element);
+      if (element.owner === true) {
+        const clone = cloneDeep(element);
         clone.type = 'owner';
         clone.subsystem_code = null;
         clone.name = clone.member_name;
@@ -82,7 +83,7 @@ export const getters: GetterTree<ClientsState, RootState> = {
 
       if (!memberAlreadyExists) {
         // If member is not in members array, create and add it
-        const clone = _.cloneDeep(element);
+        const clone = cloneDeep(element);
         clone.type = 'client';
 
         // Create member id by removing the last part of subsystem's id
@@ -108,7 +109,7 @@ export const getters: GetterTree<ClientsState, RootState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = _.cloneDeep(element);
+        const clone = cloneDeep(element);
         clone.name = clone.subsystem_code;
 
         if (element.member_name) {
@@ -183,10 +184,6 @@ export const actions: ActionTree<ClientsState, RootState> = {
       .catch((error) => {
         throw error;
       });
-  },
-
-  clearData({ commit, rootGetters }) {
-    commit('storeClients', []);
   },
 };
 

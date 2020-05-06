@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
@@ -51,6 +52,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -87,6 +89,9 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @MockBean
     private UrlValidator urlValidator;
 
+    @MockBean
+    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -96,6 +101,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
                     : "test-member" + "NAME";
         });
         when(urlValidator.isValidUrl(any())).thenReturn(true);
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
     }
 
     @Test

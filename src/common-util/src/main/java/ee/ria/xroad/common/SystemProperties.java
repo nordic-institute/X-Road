@@ -77,6 +77,19 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_SSL_PROPERTIES =
             PREFIX + "proxy-ui-api.ssl-properties";
 
+    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
+    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
+
+    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
+    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0, ::/0";
+
+    /** Property name of the whitelist for Proxy UI API's key management API */
+    public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
+            PREFIX + "proxy-ui-api.key-management-api-whitelist";
+
+    /** Property name of the whitelist for Proxy UI API's regular APIs */
+    public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
+            PREFIX + "proxy-ui-api.regular-api-whitelist";
 
 
     // Proxy ------------------------------------------------------------------
@@ -258,6 +271,9 @@ public final class SystemProperties {
 
     private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
 
+    private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
+            PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
+
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
@@ -303,6 +319,8 @@ public final class SystemProperties {
     private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
+
+    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = "false";
 
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
@@ -608,6 +626,9 @@ public final class SystemProperties {
     public static final String CONF_FILE_PROXY_UI =
             getConfPath() + "conf.d/proxy-ui.ini";
 
+    public static final String CONF_FILE_PROXY_UI_API =
+            getConfPath() + "conf.d/proxy-ui-api.ini";
+
     public static final String CONF_FILE_SIGNER =
             getConfPath() + "conf.d/signer.ini";
 
@@ -676,6 +697,23 @@ public final class SystemProperties {
     public static String getSslPropertiesFile() {
         return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
                 getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
+    }
+
+    /**
+     * TO DO: not correct, fix
+     * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
+     */
+    public static String getKeyManagementApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
+                DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
+    }
+
+    /**
+     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
+     */
+    public static String getRegularApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
+                DEFAULT_REGULAR_API_WHITELIST);
     }
 
     /**
@@ -1516,5 +1554,12 @@ public final class SystemProperties {
         if (version > current || version < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
+    }
+    /**
+     * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
+     */
+    public static boolean isClientIsCertValidityPeriodCheckEnforced() {
+        return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
+                DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 }

@@ -31,11 +31,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.util.ClientUtils;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -55,21 +57,25 @@ public class ClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
     private final CurrentSecurityServerId securityServerOwner; // request scoped
+    // request scoped contains all certificates of type sign
+    private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
-    private static final int INSTANCE_INDEX = 0;
-    private static final int MEMBER_CLASS_INDEX = 1;
-    private static final int MEMBER_CODE_INDEX = 2;
-    private static final int SUBSYSTEM_CODE_INDEX = 3;
+    public static final int INSTANCE_INDEX = 0;
+    public static final int MEMBER_CLASS_INDEX = 1;
+    public static final int MEMBER_CODE_INDEX = 2;
+    public static final int SUBSYSTEM_CODE_INDEX = 3;
 
     @Autowired
     public ClientConverter(GlobalConfFacade globalConfFacade,
-            CurrentSecurityServerId securityServerOwner) {
+            CurrentSecurityServerId securityServerOwner,
+            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates) {
         this.globalConfFacade = globalConfFacade;
         this.securityServerOwner = securityServerOwner;
+        this.currentSecurityServerSignCertificates = currentSecurityServerSignCertificates;
     }
 
     /**
-     * convert ClientType into openapi Client class
+     *
      * @param clientType
      * @return
      */
@@ -82,6 +88,8 @@ public class ClientConverter {
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfFacade.getMemberName(clientType.getIdentifier()));
         client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
+        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
+                currentSecurityServerSignCertificates.getSignCertificateInfos()));
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.orElse(null));
         Optional<ConnectionType> connectionTypeEnum =
