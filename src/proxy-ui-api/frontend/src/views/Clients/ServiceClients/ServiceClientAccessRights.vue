@@ -17,7 +17,6 @@
       </table>
     </v-card>
 
-
     <div class="group-members-row">
       <div class="row-title">{{$t('serviceClients.accessRights')}}</div>
       <div class="row-buttons">
@@ -29,7 +28,7 @@
         >{{$t('serviceClients.removeAll')}}
         </large-button>
         <large-button
-          @click="addService()"
+          @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
         >{{$t('serviceClients.addService')}}
@@ -70,6 +69,14 @@
       <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
     </div>
 
+    <AddServiceClientServiceDialog
+      v-if="isAddServiceDialogVisible"
+      :dialog="isAddServiceDialogVisible"
+      :serviceCandidates="serviceCandidates()"
+      @save="addService"
+      @cancel="hideAddService">
+    </AddServiceClientServiceDialog>
+
     <!-- Confirm dialog delete group -->
     <confirmDialog
       :dialog="showConfirmDeleteAll"
@@ -85,15 +92,23 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import {AccessRight, ServiceClient} from '@/types';
+import {AccessRight, AccessRights, Service, ServiceClient, ServiceDescription} from '@/types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
+
+export interface ServiceCandidate {
+  service_code: string;
+  service_title?: string;
+  id: string;
+}
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
     LargeButton,
+    AddServiceClientServiceDialog,
     ConfirmDialog,
   },
   props: {
@@ -110,27 +125,36 @@ export default Vue.extend({
     return {
       accessRights: [] as AccessRight[],
       serviceClient: {} as ServiceClient,
+      isAddServiceDialogVisible: false as boolean,
+      serviceDescriptions: [] as ServiceDescription[],
+      services: [] as Service[],
       showConfirmDeleteAll: false as boolean,
     };
   },
   methods: {
     fetchData(): void {
 
+      this.fetchAccessRights();
+      this.fetchServiceDescriptions();
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
         .then( (response: any) => this.serviceClient = response.data)
-        .catch( (error: any) =>
-          this.$store.dispatch('showError', error));
+        .catch( (error: any) => this.$store.dispatch('showError', error));
 
-      this.fetchAccessRights();
-
+    },
+    fetchServiceDescriptions(): void {
+      api
+        .get(`/clients/${this.id}/service-descriptions`)
+        .then( (response: any) => {
+          this.serviceDescriptions = response.data;
+        })
+        .catch( (error: any) => this.$store.dispatch('showError', error));
     },
     fetchAccessRights(): void {
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
         .then( (response: any) => this.accessRights = response.data)
-        .catch( (error: any) =>
-          this.$store.dispatch('showError', error));
+        .catch( (error: any) => this.$store.dispatch('showError', error));
     },
     close(): void {
       this.$router.go(-1);
@@ -138,8 +162,8 @@ export default Vue.extend({
     remove(accessRight: AccessRight): void {
       api
         .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          { items: [{ service_code: accessRight.service_code }]})
-        .then( () => {
+          {items: [{service_code: accessRight.service_code}]})
+        .then(() => {
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
           if (this.accessRights.length === 1) {
             this.accessRights = [];
@@ -147,22 +171,60 @@ export default Vue.extend({
             this.fetchAccessRights();
           }
         })
+        .catch((error: any) => this.$store.dispatch('showError', error));
+    },
+    addService(accessRights: AccessRight[]): void {
+      this.hideAddService();
+
+      const accessRightsObject: AccessRights = { items: accessRights };
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`, accessRightsObject)
+        .then( (response: any) => {
+          this.$store.dispatch('showSuccess', 'serviceClients.addServiceClientAccessRightSuccess');
+          this.fetchAccessRights();
+        })
         .catch( (error: any) => this.$store.dispatch('showError', error));
     },
-    addService(): void {
-      // NOOP
+    hideAddService(): void {
+      this.isAddServiceDialogVisible = false;
+    },
+    showAddServiceDialog(): void {
+      this.isAddServiceDialogVisible = true;
     },
     removeAll(): void {
       this.showConfirmDeleteAll = false;
 
       api
         .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          { items: this.accessRights.map( (item: AccessRight) => ({service_code: item.service_code}))})
-        .then( () => {
+          {items: this.accessRights.map((item: AccessRight) => ({service_code: item.service_code}))})
+        .then(() => {
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
           this.accessRights = [];
         })
-        .catch( (error: any) => this.$store.dispatch('showError', error));
+        .catch((error: any) => this.$store.dispatch('showError', error));
+
+    },
+    serviceCandidates(): ServiceCandidate[] {
+      // returns whether given access right is for given service
+      const isNotAccessRightToService = (service: Service, accessRight: AccessRight) =>
+        accessRight.service_code !== service.service_code;
+
+      // returns whether accessrights list contains any access that is for given service
+      const noAccessRightsToService = (service: Service) =>
+        this.accessRights.every( (accessRight: AccessRight) => isNotAccessRightToService(service, accessRight));
+
+      // return services that can be added to this service client
+      return this.serviceDescriptions
+        // pick all services from service descriptions
+        .reduce( (curr: Service[], next: ServiceDescription) => curr.concat(...next.services), this.services)
+        // filter out services where this service client has access right already
+        .filter( (service: Service) => noAccessRightsToService(service))
+        // map to service candidates
+        .map( (service: Service): ServiceCandidate => ({
+          service_code: service.service_code,
+          service_title: service.title,
+          id: service.id, // add id for UI components to work in loop
+        }));
     },
   },
   created(): void {

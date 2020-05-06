@@ -42,8 +42,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.LOCALHOST_PAM_AUTHENTICATION_BEAN;
-import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.REGULAR_PAM_AUTHENTICATION_BEAN;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
 
 /**
  * Development time authentication provider, which uses hard coded users
@@ -61,7 +61,7 @@ public class DevelopmentUserDetailsAuthenticationConfiguration {
      * so that proxy-ui-api injections are satisfied
      * @return
      */
-    @Bean({LOCALHOST_PAM_AUTHENTICATION_BEAN, REGULAR_PAM_AUTHENTICATION_BEAN})
+    @Bean({FORM_LOGIN_PAM_AUTHENTICATION, KEY_MANAGEMENT_PAM_AUTHENTICATION})
     public AuthenticationProvider createDevelopmentInMemoryProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService());

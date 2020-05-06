@@ -1,7 +1,14 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
-    <v-flex mb-4>
+    <v-flex mb-4 class="title-action">
       <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} ({{ $t("client.owner") }})</h1>
+
+      <div>
+        <LargeButton
+          v-if="showUnregister"
+          @click="confirmUnregisterClient = true"
+        >{{$t('action.unregister')}}</LargeButton>
+      </div>
     </v-flex>
     <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
       <v-tabs-slider color="secondary"></v-tabs-slider>
@@ -9,6 +16,16 @@
     </v-tabs>
 
     <router-view />
+
+    <!-- Confirm dialog for unregister client -->
+    <ConfirmDialog
+      :dialog="confirmUnregisterClient"
+      :loading="unregisterLoading"
+      title="client.action.unregister.confirmTitle"
+      text="client.action.unregister.confirmText"
+      @cancel="confirmUnregisterClient = false"
+      @accept="unregisterClient()"
+    />
   </div>
 </template>
 
@@ -16,8 +33,15 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 export default Vue.extend({
+  components: {
+    LargeButton,
+    ConfirmDialog,
+  },
   props: {
     id: {
       type: String,
@@ -27,11 +51,16 @@ export default Vue.extend({
   data() {
     return {
       tab: null,
+      confirmUnregisterClient: false,
+      unregisterLoading: false,
     };
   },
   computed: {
     ...mapGetters(['client']),
-    tabs(): object[] {
+    showUnregister(): boolean {
+      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ);
+    },
+    tabs(): Tab[] {
       const allTabs = [
         {
           key: 'details',
@@ -70,6 +99,36 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
+
+    unregisterClient(): void {
+      this.unregisterLoading = true;
+      this.$store
+        .dispatch('unregisterClient', this.client)
+        .then(
+          () => {
+            this.$store.dispatch(
+              'showSuccess',
+              'client.action.unregister.success',
+            );
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
+          this.fetchClient(this.id);
+          this.confirmUnregisterClient = false;
+          this.unregisterLoading = false;
+        });
+    },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.title-action {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+</style>

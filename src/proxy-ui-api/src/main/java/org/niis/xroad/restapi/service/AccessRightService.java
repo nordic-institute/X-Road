@@ -78,7 +78,6 @@ public class AccessRightService {
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
     private final IdentifierService identifierService;
-    private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
     private final LocalGroupService localGroupService;
     private final ServiceDescriptionService serviceDescriptionService;
@@ -86,7 +85,6 @@ public class AccessRightService {
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
-            GlobalConfService globalConfService,
             EndpointService endpointService,
             LocalGroupService localGroupService,
             ServiceDescriptionService serviceDescriptionService) {
@@ -94,7 +92,6 @@ public class AccessRightService {
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.identifierService = identifierService;
-        this.globalConfService = globalConfService;
         this.endpointService = endpointService;
         this.localGroupService = localGroupService;
         this.serviceDescriptionService = serviceDescriptionService;
@@ -278,11 +275,7 @@ public class AccessRightService {
         Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
 
         // Add access rights to endpoint
-        try {
-            addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
-        } catch (LocalGroupNotFoundException e) {
-            throw new ServiceClientNotFoundException(e);
-        }
+        addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
 
         // Create DTOs for returning data
         List<AccessRightType> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
@@ -327,13 +320,8 @@ public class AccessRightService {
         // make sure subject id exists in serverconf db IDENTIFIER table, and use a managed entity
         XRoadId managedSubjectId = identifierService.getOrPersistXroadId(subjectId);
 
-        try {
-            return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
+        return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
                     .get(managedSubjectId);
-        } catch (LocalGroupNotFoundException e) {
-            // no need to handle this in more detail than the other service client types
-            throw new ServiceClientNotFoundException(e);
-        }
     }
 
     /**
@@ -495,7 +483,7 @@ public class AccessRightService {
      */
     Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadId> subjectIds,
             ClientType clientType, List<EndpointType> endpoints)
-            throws DuplicateAccessRightException, LocalGroupNotFoundException {
+            throws DuplicateAccessRightException {
         Date now = new Date();
 
         if (subjectIds == null || subjectIds.isEmpty()) {
@@ -621,7 +609,7 @@ public class AccessRightService {
      * Null or empty value is considered a match
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link ServiceClientDto serviceClientDtos} or an empty List if nothing is found
-     * @throws ClientNotFoundException if client was not found
+     * @throws ClientNotFoundException if client with given id was not found
      */
     public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
             String memberNameOrGroupDescription,

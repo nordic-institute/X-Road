@@ -36,7 +36,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 
-import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.LOCALHOST_PAM_AUTHENTICATION_BEAN;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
 
 /**
  * basic authentication configuration for managing api keys
@@ -47,7 +47,7 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.LOCALHOST_PA
 public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier(LOCALHOST_PAM_AUTHENTICATION_BEAN)
+    @Qualifier(KEY_MANAGEMENT_PAM_AUTHENTICATION)
     private AuthenticationProvider authenticationProvider;
 
     @Override
