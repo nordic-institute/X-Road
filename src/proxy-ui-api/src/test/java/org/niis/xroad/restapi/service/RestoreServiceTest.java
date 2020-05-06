@@ -30,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -98,8 +97,8 @@ public class RestoreServiceTest {
         try {
             configurationRestorer.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
-        } catch (DeviationAwareRuntimeException e) {
-            assertEquals(ProcessFailedException.PROCESS_FAILED, e.getErrorDeviation().getCode());
+        } catch (RestoreProcessFailedException e) {
+            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 
@@ -109,8 +108,8 @@ public class RestoreServiceTest {
         try {
             configurationRestorer.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
-        } catch (DeviationAwareRuntimeException e) {
-            assertEquals(ProcessNotExecutableException.PROCESS_NOT_EXECUTABLE, e.getErrorDeviation().getCode());
+        } catch (RestoreProcessFailedException e) {
+            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 }
