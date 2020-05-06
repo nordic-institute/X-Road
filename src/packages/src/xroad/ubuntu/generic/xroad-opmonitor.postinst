@@ -111,7 +111,7 @@ configure() {
     then
       echo "database $db_name exists"
     else
-      echo "GRANT ${db_plain_admin} to ${db_master_user}" | $psql_cmd -d postgres
+      echo "GRANT ${db_plain_admin} to ${db_plain_master}" | $psql_cmd -d postgres
       echo "CREATE DATABASE \"$db_name\" OWNER \"$db_plain_admin\" ENCODING 'UTF-8'" | $psql_cmd -d postgres
     fi
 
