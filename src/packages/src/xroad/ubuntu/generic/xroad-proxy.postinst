@@ -53,7 +53,7 @@ setup_database() {
 
     local tmp_password="$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")"
     local db_user=$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')
-    local db_schema="${db_user}"
+    local db_schema=serverconf
     local db_password=$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "$tmp_password")
     local db_url=$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")
     local db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
