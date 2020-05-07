@@ -1,8 +1,6 @@
 #!/bin/bash
 # X-Road proxy post-install configuration
 
-set -x
-
 #
 # Create default internal certificates for nginx
 #

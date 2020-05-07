@@ -1,7 +1,4 @@
 #!/bin/bash
-
-set -x
-
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 

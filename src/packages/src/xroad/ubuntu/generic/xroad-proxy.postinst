@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -e
 . /usr/share/debconf/confmodule
 
 #add groups

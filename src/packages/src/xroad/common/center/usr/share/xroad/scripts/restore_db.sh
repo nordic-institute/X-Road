@@ -1,7 +1,4 @@
 #!/bin/bash
-
-set -x
-
 TMP=$(mktemp -d) || exit 1
 trap 'rc=$?; rm -rf $TMP; exit $rc' EXIT
 cd "$TMP" || exit 1

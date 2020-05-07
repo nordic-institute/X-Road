@@ -2,9 +2,6 @@
 #
 # Database setup
 #
-
-set -x
-
 init_local_postgres() {
     SERVICE_NAME=postgresql
 

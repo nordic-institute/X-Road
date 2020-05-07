@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 TMP=$(mktemp)
 DUMP_FILE=$1
 HOST=$(crudini --get /etc/xroad/db.properties '' host)

@@ -1,7 +1,4 @@
 #!/bin/bash
-
-set -x
-
 # postinst script for xroad-center
 #
 # see: dh_installdeb(1)

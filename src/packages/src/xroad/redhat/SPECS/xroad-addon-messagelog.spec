@@ -66,8 +66,6 @@ rm -rf %{buildroot}
 
 %post
 
-set -x
-
 die () {
     echo >&2 "$@"
     exit 1
