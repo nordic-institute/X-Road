@@ -146,7 +146,6 @@ For example:
 
 ### 1.9 Security Server Sidecar Provider
   To install the Security Server Sidecar provider, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message loggin, both for internal or remote database (Check 1.6 step).
-  After executing the image we must wait for the xroad-addon-messagelog package to be downloaded and installed (approximately 3-5 minutes), after this wait the new database name "messagelog" will be created and the sidecar server will be ready.
   To install the Security Server Sidecar provider with finish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
 ## 2 Security Server Sidecar Initial Configuration
