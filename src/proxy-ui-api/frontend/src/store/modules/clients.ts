@@ -2,33 +2,27 @@ import axios from 'axios';
 import { cloneDeep } from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
+import { Client } from '@/types';
+import { ExtendedClient } from '@/ui-types';
+import { ClientTypes } from '@/global';
 import i18n from './../../i18n';
-
-export interface Client {
-  id: string;
-  name?: string | null;
-  sortNameAsc?: string | null;
-  sortNameDesc?: string | null;
-  member_name: string | null;
-  member_class: string;
-  member_code: string;
-  subsystem_code: string | null;
-  created?: string | null;
-  type?: string;
-  status?: string;
-  owner: boolean;
-}
 
 export interface ClientsState {
   clients: Client[];
+  formattedClients: ExtendedClient[];
   loading: boolean;
   localMembers: Client[];
+  members: ExtendedClient[];
+  subsystems: ExtendedClient[];
 }
 
 export const clientsState: ClientsState = {
   clients: [],
+  formattedClients: [],
   loading: false,
   localMembers: [],
+  members: [],
+  subsystems: [],
 };
 
 function createSortName(client: Client, sortName: string): any {
@@ -36,96 +30,19 @@ function createSortName(client: Client, sortName: string): any {
   return sortName + client.member_class + client.member_code + ' ' + client.subsystem_code;
 }
 
-function createMemberAscSortName(client: Client, sortName: string | null): any {
+function createMemberAscSortName(client: Client, sortName: string | undefined): any {
   // Create a sort id for member in form  "ACMEGOV:1234"
   return sortName + client.member_class + client.member_code;
 }
 
-function createMemberDescSortName(client: Client, sortName: any): any {
+function createMemberDescSortName(client: Client, sortName: string | undefined): any {
   // Create a sort id for member in form  "ACMEGOV:1234!"
   return sortName + client.member_class + client.member_code + '!';
 }
 
 export const getters: GetterTree<ClientsState, RootState> = {
-  clients(state): Client[] {
-    // New arrays to separate members and subsystems
-    const members: Client[] = [];
-    const subsystems: Client[] = [];
-    const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
-
-    // Find the owner member (there is only one)
-    state.clients.forEach((element, index) => {
-      if (element.owner === true) {
-        const clone = cloneDeep(element);
-        clone.type = 'owner';
-        clone.subsystem_code = null;
-        clone.name = clone.member_name;
-        clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code;
-        clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code + '!';
-        members.push(clone);
-        return;
-      }
-    });
-
-    // Pick out the members
-    state.clients.forEach((element) => {
-      // Check if the member is already in the members array
-      const memberAlreadyExists = members.find((value, index) => {
-        const cli = value as Client;
-
-        // Compare member class and member code
-        if (cli.member_class === element.member_class && cli.member_code === element.member_code) {
-          return true;
-        }
-
-        return false;
-      });
-
-      if (!memberAlreadyExists) {
-        // If member is not in members array, create and add it
-        const clone = cloneDeep(element);
-        clone.type = 'client';
-
-        // Create member id by removing the last part of subsystem's id
-        const idArray = clone.id.split(':');
-        idArray.pop();
-        clone.id = idArray.join(':');
-        clone.subsystem_code = null;
-
-        // Create a name from member_name
-        if (clone.member_name) {
-          clone.name = clone.member_name;
-          clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name);
-          clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name);
-        } else {
-          clone.name = UNKNOWN_NAME;
-          clone.sortNameAsc = createMemberAscSortName(clone, UNKNOWN_NAME);
-          clone.sortNameDesc = createMemberDescSortName(clone, UNKNOWN_NAME);
-        }
-
-        clone.status = undefined;
-        members.push(clone);
-      }
-
-      // Push subsystems to an array
-      if (element.subsystem_code) {
-        const clone = cloneDeep(element);
-        clone.name = clone.subsystem_code;
-
-        if (element.member_name) {
-          clone.sortNameAsc = createSortName(clone, element.member_name);
-          clone.sortNameDesc = createSortName(clone, element.member_name);
-        } else {
-          clone.sortNameAsc = createSortName(clone, UNKNOWN_NAME);
-          clone.sortNameDesc = createSortName(clone, UNKNOWN_NAME);
-        }
-
-        subsystems.push(clone);
-      }
-    });
-
-    // Combine the arrays
-    return [...new Set([...subsystems, ...members])];
+  clients(state): ExtendedClient[] {
+    return state.formattedClients;
   },
 
   localMembers(state): Client[] {
@@ -142,8 +59,94 @@ export const getters: GetterTree<ClientsState, RootState> = {
 };
 
 export const mutations: MutationTree<ClientsState> = {
-  storeClients(state, clients: []) {
+  storeClients(state, clients: Client[]) {
     state.clients = clients;
+
+    // New arrays to separate members and subsystems
+    const members: ExtendedClient[] = [];
+    const subsystems: ExtendedClient[] = [];
+    const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
+
+    // Find members. Owner member (there is only one) and possible other member
+    state.clients.forEach((element: Client) => {
+
+      if (!element.subsystem_code) {
+        const clone = cloneDeep(element) as ExtendedClient;
+        clone.type = ClientTypes.OWNER_MEMBER;
+        clone.subsystem_code = undefined;
+        clone.visibleName = clone.member_name;
+        clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code;
+        clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code + '!';
+
+        if (element.owner) {
+          clone.type = ClientTypes.OWNER_MEMBER;
+        } else {
+          clone.type = ClientTypes.MEMBER;
+        }
+
+        members.push(clone);
+      }
+    });
+
+    // Pick out the members
+    state.clients.forEach((element) => {
+      // Check if the member is already in the members array
+      const memberAlreadyExists = members.find((member: ExtendedClient) => {
+        // Compare member class, member code and instance id
+        if (member.member_class === element.member_class && member.member_code === element.member_code
+          && member.instance_id === element.instance_id) {
+          return true;
+        }
+
+        return false;
+      });
+
+      if (!memberAlreadyExists) {
+        // If "virtual member" is not in members array, create and add it
+        const clone = cloneDeep(element) as any;
+        clone.type = ClientTypes.VIRTUAL_MEMBER;
+
+        // Create "virtual member" id by removing the last part of subsystem's id
+        clone.id = element.instance_id + ':' + element.member_class + ':' + element.member_code;
+        clone.subsystem_code = undefined;
+
+        // Create a name from member_name
+        if (clone.member_name) {
+          clone.visibleName = clone.member_name;
+          clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name);
+          clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name);
+        } else {
+          clone.visibleName = UNKNOWN_NAME;
+          clone.sortNameAsc = createMemberAscSortName(clone, UNKNOWN_NAME);
+          clone.sortNameDesc = createMemberDescSortName(clone, UNKNOWN_NAME);
+        }
+
+        clone.status = undefined;
+        members.push(clone);
+      }
+
+      // Push subsystems to an array
+      if (element.subsystem_code) {
+        const clone = cloneDeep(element) as ExtendedClient;
+        clone.visibleName = clone.subsystem_code;
+        clone.type = ClientTypes.SUBSYSTEM;
+
+        if (element.member_name) {
+          clone.sortNameAsc = createSortName(clone, element.member_name);
+          clone.sortNameDesc = createSortName(clone, element.member_name);
+        } else {
+          clone.sortNameAsc = createSortName(clone, UNKNOWN_NAME);
+          clone.sortNameDesc = createSortName(clone, UNKNOWN_NAME);
+        }
+
+        subsystems.push(clone);
+      }
+    });
+
+    state.subsystems = subsystems;
+
+    // Combine the arrays
+    state.formattedClients = [...new Set([...subsystems, ...members])];
   },
   storeLocalMembers(state, clients: []) {
     state.localMembers = clients;

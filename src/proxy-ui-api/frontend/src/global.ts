@@ -180,3 +180,11 @@ export const Roles = [
   'XROAD_SYSTEM_ADMINISTRATOR',
   'XROAD_SECURITYSERVER_OBSERVER',
 ];
+
+// Client types used in client list
+export enum ClientTypes {
+  OWNER_MEMBER = 'OWNER_MEMBER',
+  MEMBER = 'MEMBER',
+  VIRTUAL_MEMBER = 'VIRTUAL_MEMBER',
+  SUBSYSTEM = 'SUBSYSTEM',
+}

@@ -15,9 +15,12 @@ describe('clients actions', () => {
     setDataMock = jest.fn();
 
     const state: ClientsState = {
-      clients: mockJson,
       loading: false,
       localMembers: [],
+      clients: [],
+      formattedClients: [],
+      members: [],
+      subsystems: [],
     };
 
     const clientsModule: Module<ClientsState, RootState> = {
@@ -34,12 +37,14 @@ describe('clients actions', () => {
     };
 
     store = new Vuex.Store<RootState>(storeOptions);
+
+    store.commit('storeClients', mockJson);
   });
 
   it('Get clients', () => {
     const result = store.getters.clients;
     // Check that the array has correct length
-    expect(result).toHaveLength(7);
+    expect(result).toHaveLength(8);
 
     // Compare the array to a correct result
     expect(result).toEqual(expect.arrayContaining(compareJson));

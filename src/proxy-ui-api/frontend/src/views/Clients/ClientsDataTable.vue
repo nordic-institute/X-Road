@@ -20,13 +20,13 @@
       </v-text-field>
       <div>
         <LargeButton
-          v-if="showAddMember()"
+          v-if="showAddMember"
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
         >{{$t('action.addMember')}}</LargeButton>
         <LargeButton
-          v-if="showAddClient()"
+          v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
         >{{$t('action.addClient')}}</LargeButton>
@@ -49,20 +49,20 @@
     >
       <template v-slot:item.sortNameAsc="{ item }">
         <!-- Name - Owner member -->
-        <template v-if="item.type == 'owner'">
+        <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open</v-icon>
           <span
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openClient(item)"
-          >{{item.name}} ({{ $t("client.owner") }})</span>
+          >{{item.visibleName}} ({{ $t("client.owner") }})</span>
 
-          <span v-else class="font-weight-bold name">{{item.name}} ({{ $t("client.owner") }})</span>
+          <span v-else class="font-weight-bold name">{{item.visibleName}} ({{ $t("client.owner") }})</span>
         </template>
-        <!-- Name - member -->
-        <template v-else-if="item.type == 'client'">
+        <!-- Name - virtual member -->
+        <template v-else-if="item.type === clientTypes.VIRTUAL_MEMBER || item.type === clientTypes.MEMBER">
           <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
-          <span class="font-weight-bold name-member">{{item.name}}</span>
+          <span class="font-weight-bold name-member">{{item.visibleName}}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
@@ -75,8 +75,8 @@
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openSubsystem(item)"
-          >{{item.name}}</span>
-          <span v-else class="font-weight-bold name">{{item.name}}</span>
+          >{{item.visibleName}}</span>
+          <span v-else class="font-weight-bold name">{{item.visibleName}}</span>
         </template>
       </template>
 
@@ -87,12 +87,12 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <SmallButton
-            v-if="(item.type === 'owner' || item.type === 'client') && item.member_name && showAddClient "
+            v-if="(item.type === clientTypes.OWNER_MEMBER || item.type === clientTypes.VIRTUAL_MEMBER) && item.member_name && showAddClient "
             @click="addSubsystem(item)"
           >{{$t('action.addSubsystem')}}</SmallButton>
 
           <SmallButton
-            v-if="item.type !== 'owner' && item.type !== 'client' && item.status === 'SAVED' && showRegister"
+            v-if="item.type !== clientTypes.OWNER_MEMBER && item.type !== clientTypes.VIRTUAL_MEMBER && item.status === 'SAVED' && showRegister"
             @click="registerClient(item)"
           >{{$t('action.register')}}</SmallButton>
         </div>
@@ -126,7 +126,7 @@ import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, ClientTypes } from '@/global';
 import { Client } from '@/types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -141,6 +141,7 @@ export default Vue.extend({
 
   data: () => ({
     search: '' as string,
+    clientTypes: ClientTypes,
     pagination: {
       sortBy: 'sortNameAsc' as string,
     },
@@ -228,7 +229,7 @@ export default Vue.extend({
         name: RouteName.AddMember,
       });
     },
-    
+
     addSubsystem(item: Client): void {
       if (!item.instance_id || !item.member_name) {
         // Should not happen
