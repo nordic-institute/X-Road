@@ -26,12 +26,10 @@ package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -61,7 +59,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             AuthenticationHeaderDecoder authenticationHeaderDecoder,
             GrantedAuthorityMapper permissionMapper,
             @Qualifier(REGULAR_API_WHITELIST) AuthenticationIpWhitelist authenticationIpWhitelist,
-            @Lazy AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.apiKeyAuthenticationHelper = apiKeyAuthenticationHelper;
         this.authenticationHeaderDecoder = authenticationHeaderDecoder;
         this.permissionMapper = permissionMapper;
@@ -97,8 +95,8 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             }
             if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
                 // TO DO: implement logOnlyOnce
-                auditEventLoggingFacade.log(RestApiAuditEvent.API_KEY_AUTHENTICATION,
-                        null, failureReason, null);
+//                auditEventLoggingFacade.log(RestApiAuditEvent.API_KEY_AUTHENTICATION,
+//                        null, failureReason, null);
             }
             throw e;
         }

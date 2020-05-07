@@ -30,7 +30,6 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
@@ -61,7 +60,7 @@ public class PamAuthenticationProviderConfig {
      * constructor
      */
     public PamAuthenticationProviderConfig(GrantedAuthorityMapper grantedAuthorityMapper,
-            @Lazy AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.grantedAuthorityMapper = grantedAuthorityMapper;
         this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
@@ -71,7 +70,6 @@ public class PamAuthenticationProviderConfig {
      * @return
      */
     @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
-    @Lazy
     public PamAuthenticationProvider formLoginPamAuthentication() {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
@@ -84,7 +82,6 @@ public class PamAuthenticationProviderConfig {
      * @return
      */
     @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
-    @Lazy
     public PamAuthenticationProvider keyManagementWhitelist(
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
         return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper,

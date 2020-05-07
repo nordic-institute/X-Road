@@ -64,10 +64,4 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
             ModelAndView modelAndView) throws Exception {
         auditEventHolder.auditLogSuccess();
     }
-
-//    @Override
-//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-//            Exception ex) throws Exception {
-//        HandlerMethod method = (HandlerMethod) handler;
-//    }
 }

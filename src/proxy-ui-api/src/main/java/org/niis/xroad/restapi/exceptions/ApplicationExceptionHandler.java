@@ -48,7 +48,6 @@ public class ApplicationExceptionHandler {
 
     @Autowired
     @Lazy
-    // TO DO: exceptions may get thrown without requests
     private AuditEventHolder auditEventHolder;
 
     /**

@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.config.audit;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
 import org.springframework.security.web.FilterInvocation;
@@ -45,7 +44,6 @@ public class AuditedApplicationEventListener {
     private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
-    @Lazy
     public AuditedApplicationEventListener(AuditEventLoggingFacade auditEventLoggingFacade) {
         this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
@@ -59,7 +57,6 @@ public class AuditedApplicationEventListener {
             auditEventLoggingFacade.log(AUTH_CREDENTIALS_DISCOVERY, UsernameHelper.UNKNOWN_USERNAME,
                     event.getCredentialsNotFoundException().getMessage(), data);
         }
-        System.out.println("foo");
     }
 
     private String getUrl(AuthenticationCredentialsNotFoundEvent event) {

@@ -74,7 +74,6 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private UsernameHelper usernameHelper;
 
     @Autowired
-    @Lazy
     private AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Override

@@ -54,6 +54,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
 
     @Autowired
     @Lazy
+    // audit logging should work even without requests, so wrap this in something
     private AuditEventHolder auditEventHolder;
 
     @Autowired
