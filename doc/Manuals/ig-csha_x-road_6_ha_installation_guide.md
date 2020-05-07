@@ -6,7 +6,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 6**
 
-Version: 1.11  
+Version: 1.13  
 Doc. ID: IG-CSHA
 
 ---
@@ -30,43 +30,44 @@ Doc. ID: IG-CSHA
  03.12.2019 | 1.10    | Removed dependency on BDR | Jarkko Hyöty
  30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database | Jarkko Hyöty 
  18.03.2020 | 1.12    | Add instructions for Central Server HA Migration | Ilkka Seppälä 
+ 16.04.2020 | 1.13    | Update cluster status output
  
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  - [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
-  - [1.2 Target Audience](#12-target-audience)
-  - [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
-  - [1.4 References](#14-references)
-- [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
-- [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
-  - [3.1 Requirements](#31-requirements)
-  - [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
-  - [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
-  - [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
-  - [3.5 Upgrading from a previous version of the HA cluster](#35-upgrading-from-a-previous-version-of-the-ha-cluster)
-  - [3.6 Post-Configuration Steps](#36-post-configuration-steps)
-- [4 General Installation of HA Support](#4-general-installation-of-ha-support)
-- [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
-- [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
-  - [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
-  - [6.2 One or more cental server nodes lost, backup available](#62-one-or-more-cental-server-nodes-lost-backup-available)
-  - [6.3 Some central server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
-- [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database)
-  - [Prerequisites](#prerequisites)
-  - [PostgreSQL configuration (all database servers)](#postgresql-configuration-all-database-servers)
-  - [Preparing the standby](#preparing-the-standby)
-  - [Verifying replication](#verifying-replication)
-  - [Configuring central servers](#configuring-central-servers)
-  - [Fail-over](#fail-over)
-    - [Automatic fail-over](#automatic-fail-over)
-- [Appendix B. Central Server HA Migration](#appendix-b-central-server-ha-migration)
-  - [Migrating from BDR to Cluster](#migrating-from-bdr-to-cluster)
-  - [Migrating from Standalone to HA Cluster](#migrating-from-standalone-to-ha-cluster)
+* [License](#license)
+* [1 Introduction](#1-introduction)
+  * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
+  * [1.2 Target Audience](#12-target-audience)
+  * [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
+  * [1.4 References](#14-references)
+* [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
+* [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
+  * [3.1 Requirements](#31-requirements)
+  * [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
+  * [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
+  * [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+  * [3.5 Upgrading from a previous version of the HA cluster](#35-upgrading-from-a-previous-version-of-the-ha-cluster)
+  * [3.6 Post-Configuration Steps](#36-post-configuration-steps)
+* [4 General Installation of HA Support](#4-general-installation-of-ha-support)
+* [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
+* [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
+  * [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
+  * [6.2 One or more cental server nodes lost, backup available](#62-one-or-more-cental-server-nodes-lost-backup-available)
+  * [6.3 Some central server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
+* [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database)
+  * [Prerequisites](#prerequisites)
+  * [PostgreSQL configuration (all database servers)](#postgresql-configuration-all-database-servers)
+  * [Preparing the standby](#preparing-the-standby)
+  * [Verifying replication](#verifying-replication)
+  * [Configuring central servers](#configuring-central-servers)
+  * [Fail-over](#fail-over)
+    * [Automatic fail-over](#automatic-fail-over)
+* [Appendix B. Central Server HA Migration](#appendix-b-central-server-ha-migration)
+  * [Migrating from BDR to Cluster](#migrating-from-bdr-to-cluster)
+  * [Migrating from Standalone to HA Cluster](#migrating-from-standalone-to-ha-cluster)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -225,7 +226,8 @@ curl -k https://cs1.example.org:4000/public_system_status/check_ha_cluster_statu
         "configuration_generated": "2019-12-03 14:47:02.053865",
         "status": "WARN"
       }
-    ]
+    ],
+    "all_nodes_ok": false
   }
 }
 ```
@@ -235,6 +237,8 @@ A node status is:
   * "WARN" if the timestamp is more than a global configuration generation interval in the past.
   * "ERROR" if the timestamp is older than the global configuration expriry time.
   * "UNKNOWN" if the node has not been seen at all.
+
+The combined status "all_nodes_ok" is true if the status of all nodes is "OK" and false otherwise.
 
 For a global view of the cluster status, the check should be executed on each node and compared to verify that nodes have a consistent view of the status.
 
