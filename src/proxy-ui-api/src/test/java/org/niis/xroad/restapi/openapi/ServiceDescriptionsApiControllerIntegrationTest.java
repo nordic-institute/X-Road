@@ -289,7 +289,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertEquals(4, serviceIds.size());
         assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.FULL_SERVICE_CODE_GET_RANDOM));
         assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.FULL_SERVICE_CALCULATE_PRIME));
-        assertEquals(4, serviceCodes.size());
+        assertEquals(3, serviceCodes.size());
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CODE_GET_RANDOM));
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CODE_GET_RANDOM));
 
