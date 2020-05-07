@@ -190,8 +190,9 @@ Add X-Road package repository (**reference data: 1.1**)
       password=centerui
       database=centerui_production
       reconnect=true
-      host = servername.postgres.database.azure.com
-      port = 5432
+      host=servername.postgres.database.azure.com
+      port=5432
+      schema=centerui
 
   In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
