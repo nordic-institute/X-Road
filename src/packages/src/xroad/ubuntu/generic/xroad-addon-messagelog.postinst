@@ -14,6 +14,8 @@ db_name=messagelog
 db_user=$(get_prop ${db_properties} 'messagelog.hibernate.connection.username' 'messagelog')
 db_master_user=$(get_prop ${root_properties} 'postgres.connection.user' 'postgres')
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_plain_user=${db_user%%@*}
+db_plain_master=${db_master_user%%@*}
 
 RET=
 db_get xroad-common/database-host
@@ -45,9 +47,6 @@ else
 
       master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
       export PGPASSWORD=${master_passwd}
-
-      db_plain_user=${db_user%%@*}
-      db_plain_master=${db_master_user%%@*}
 
       if  ! psql -h $db_addr -p $db_port -U $db_master_user --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
        then echo -e "\n\npostgreSQL is not UTF8 compatible."
