@@ -38,7 +38,7 @@ import java.util.Optional;
 @Slf4j
 public class UsernameHelper {
 
-    public static final String UNKNOWN_USERNAME = "unknown";
+    public static final String UNKNOWN_USERNAME = null;
 
     /**
      * String that represents value for unknown username

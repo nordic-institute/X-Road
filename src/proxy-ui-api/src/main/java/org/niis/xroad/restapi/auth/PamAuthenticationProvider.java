@@ -24,19 +24,13 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import ee.ria.xroad.common.AuditLogger;
-
 import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.util.UsernameHelper;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -51,8 +45,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
-
 /**
  * PAM authentication provider.
  * Application has to be run as a user who has read access to /etc/shadow (
@@ -62,22 +54,18 @@ import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEME
  * Authentication is limited with an IP whitelist.
  */
 @Slf4j
-@Configuration
-@Profile("!devtools-test-auth")
-public class PamAuthenticationProvider implements AuthenticationProvider, BeanNameAware {
+public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
 
     public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
     public static final String FORM_LOGIN_PAM_AUTHENTICATION = "formLoginPam";
-    // allow all ipv4 and ipv6
-    private static final Iterable<String> FORM_LOGIN_IP_WHITELIST =
-            Arrays.asList("::/0", "0.0.0.0/0");
 
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
-    private final UsernameHelper usernameHelper;
+    private final RestApiAuditEvent loginEvent; // login event to audit log
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * constructor
@@ -85,31 +73,12 @@ public class PamAuthenticationProvider implements AuthenticationProvider, BeanNa
      */
     public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
             GrantedAuthorityMapper grantedAuthorityMapper,
-            UsernameHelper usernameHelper) {
+            RestApiAuditEvent loginEvent,
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
-        this.usernameHelper = usernameHelper;
-    }
-
-    /**
-     * PAM authentication for form login, with corresponding IP whitelist
-     * @return
-     */
-    @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
-    public PamAuthenticationProvider formLoginPamAuthentication() {
-        AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
-        formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper, usernameHelper);
-    }
-
-    /**
-     * PAM authentication for key management API, with corresponding IP whitelist
-     * @return
-     */
-    @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
-    public PamAuthenticationProvider keyManagementWhitelist(
-            @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper, usernameHelper);
+        this.loginEvent = loginEvent;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     /**
@@ -124,21 +93,25 @@ public class PamAuthenticationProvider implements AuthenticationProvider, BeanNa
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         boolean success = false;
         String username = "unknown user";
+        String failureReason = "unknown";
         try {
             username = String.valueOf(authentication.getPrincipal());
             Authentication result = doAuthenticateInternal(authentication, username);
             success = true;
             return result;
+        } catch (Exception e) {
+            if (e.getMessage() != null) {
+                failureReason = e.getMessage();
+            }
+            throw e;
         } finally {
             if (success) {
-                AuditLogger.log(debugBeanName + " " + "Log in user", username, null);
+                auditEventLoggingFacade.log(loginEvent, username, null);
             } else {
-                AuditLogger.log(debugBeanName + " " + "Log in user failed", username, null);
+                auditEventLoggingFacade.log(loginEvent, username, failureReason, null);
             }
         }
     }
-
-    // TO DO: auditlog logout
 
     private Authentication doAuthenticateInternal(Authentication authentication, String username) {
         String password = String.valueOf(authentication.getCredentials());
@@ -174,12 +147,6 @@ public class PamAuthenticationProvider implements AuthenticationProvider, BeanNa
     public boolean supports(Class<?> authentication) {
         return authentication.equals(
                 UsernamePasswordAuthenticationToken.class);
-    }
-
-    private String debugBeanName;
-    @Override
-    public void setBeanName(String name) {
-        this.debugBeanName = name;
     }
 }
 

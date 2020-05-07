@@ -24,18 +24,28 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public enum RestApiAuditEvent {
 
-/**
- * Marks controller methods that are linked to a named audit event.
- * Method success / fail is audit logged.
- * Fail means method threw an exception
- */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface AuditEventMethod {
-    RestApiAuditEvent event();
+    FORM_LOGIN("Log in user"),
+    FORM_LOGOUT("Log out user"),
+    KEY_MANAGEMENT_PAM_LOGIN("Key management API log in"),
+    API_KEY_AUTHENTICATION("API key authentication"),
+    AUTH_CREDENTIALS_DISCOVERY("Auth credentials discovery"),
+    API_KEY_CREATE("API key create"),
+    API_KEY_UPDATE("API key update"),
+    API_KEY_REMOVE("API key remove"),
+    FIND_CLIENTS("FindClients"),
+    GET_CLIENT("GetClient"),
+    UPDATE_CLIENT("UpdateClient"),
+    ADD_CLIENT_SERVICE_DESCRIPTION("AddClientServiceDescription");
+
+    private final String eventName;
+
+    RestApiAuditEvent(String eventName) {
+        this.eventName = eventName;
+    }
+
+    public String getEventName() {
+        return eventName;
+    }
 }

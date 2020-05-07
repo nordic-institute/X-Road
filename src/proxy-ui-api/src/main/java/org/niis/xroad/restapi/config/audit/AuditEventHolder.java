@@ -24,8 +24,6 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
-import ee.ria.xroad.common.AuditLogger;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.restapi.util.UsernameHelper;
@@ -47,16 +45,19 @@ public class AuditEventHolder {
 
     // TO DO: remove after debugging that it works as expected
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
-    private String eventName;
+    private RestApiAuditEvent auditEvent;
     private Map<String, Object> eventData = new HashMap<>();
 
     private int instanceNumber;
-    private UsernameHelper usernameHelper;
+    private final UsernameHelper usernameHelper;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
-    public AuditEventHolder(UsernameHelper usernameHelper) {
+    public AuditEventHolder(UsernameHelper usernameHelper,
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         instanceNumber = INSTANCE_COUNTER.incrementAndGet();
         this.usernameHelper = usernameHelper;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     public void addData(String propertyName, Object value) {
@@ -64,21 +65,28 @@ public class AuditEventHolder {
     }
 
     public void auditLogSuccess() {
-        if (eventName != null) {
-            AuditLogger.log(getEventName(), usernameHelper.getUsername(), getEventData());
+        if (!auditEventLoggingFacade.hasLogged()) {
+            if (getEventName() != null) {
+                auditEventLoggingFacade.log(auditEvent, usernameHelper.getUsername(), getEventData());
+            }
         }
     }
 
     public void auditLogFail(Exception ex) {
-        if (eventName != null) {
-            String reason = ex.getMessage();
-            AuditLogger.log(getEventName(), usernameHelper.getUsername(), reason, getEventData());
+        if (!auditEventLoggingFacade.hasLogged()) {
+            if (getEventName() != null) {
+                String reason = ex.getMessage();
+                auditEventLoggingFacade.log(auditEvent, usernameHelper.getUsername(), reason, getEventData());
+            }
         }
     }
 
-
-    //    public void auditLogFail() {
-//        AuditLogger.log(getEventName() + " failed!", getEventData());
-//    }
+    public String getEventName() {
+        if (auditEvent != null) {
+            return auditEvent.getEventName();
+        } else {
+            return null;
+        }
+    }
 
 }

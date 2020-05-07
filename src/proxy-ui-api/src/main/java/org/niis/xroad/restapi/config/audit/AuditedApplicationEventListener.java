@@ -25,49 +25,54 @@
 package org.niis.xroad.restapi.config.audit;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
+import org.springframework.security.web.FilterInvocation;
 import org.springframework.stereotype.Component;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.lang.reflect.Method;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
 
 @Component
 @Slf4j
-public class RequestScopedControllerMethodHandlerInterceptor implements HandlerInterceptor {
+public class AuditedApplicationEventListener {
+
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
     @Lazy
-    AuditEventHolder auditEventHolder;
+    public AuditedApplicationEventListener(AuditEventLoggingFacade auditEventLoggingFacade) {
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
+    }
 
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
-        HandlerMethod method = (HandlerMethod) handler;
-        Method javaMethod = method.getMethod();
-        if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
-            AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
-            auditEventHolder.setAuditEvent(auditEventMethod.event());
-        } else {
-            auditEventHolder.setAuditEvent(null);
+    @EventListener
+    void handleAuthenticationCredentialsNotFoundEvent(AuthenticationCredentialsNotFoundEvent event) {
+        String url = getUrl(event);
+        Map<String, Object> data = new HashMap();
+        data.put("url", url);
+        if (!auditEventLoggingFacade.hasLogged()) {
+            auditEventLoggingFacade.log(AUTH_CREDENTIALS_DISCOVERY, UsernameHelper.UNKNOWN_USERNAME,
+                    event.getCredentialsNotFoundException().getMessage(), data);
         }
-        return true;
+        System.out.println("foo");
     }
 
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-            ModelAndView modelAndView) throws Exception {
-        auditEventHolder.auditLogSuccess();
+    private String getUrl(AuthenticationCredentialsNotFoundEvent event) {
+        String url = "unknown";
+        try {
+            if (event.getSource() instanceof FilterInvocation) {
+                FilterInvocation inv = (FilterInvocation) event.getSource();
+                url = inv.getRequest().getRequestURI();
+            }
+        } catch (Exception ex) {
+            log.error("unable to determine AuthenticationCredentialsNotFoundEvent url", ex);
+        }
+        return url;
     }
 
-//    @Override
-//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-//            Exception ex) throws Exception {
-//        HandlerMethod method = (HandlerMethod) handler;
-//    }
 }
