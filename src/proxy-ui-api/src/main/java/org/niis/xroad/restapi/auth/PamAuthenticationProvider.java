@@ -31,6 +31,7 @@ import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -76,15 +77,18 @@ public class PamAuthenticationProvider implements AuthenticationProvider, BeanNa
 
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
+    private final UsernameHelper usernameHelper;
 
     /**
      * constructor
      * @param authenticationIpWhitelist whitelist that limits the authentication
      */
     public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
-            GrantedAuthorityMapper grantedAuthorityMapper) {
+            GrantedAuthorityMapper grantedAuthorityMapper,
+            UsernameHelper usernameHelper) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
+        this.usernameHelper = usernameHelper;
     }
 
     /**
@@ -95,7 +99,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider, BeanNa
     public PamAuthenticationProvider formLoginPamAuthentication() {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper);
+        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper, usernameHelper);
     }
 
     /**
@@ -105,7 +109,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider, BeanNa
     @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
     public PamAuthenticationProvider keyManagementWhitelist(
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper);
+        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper, usernameHelper);
     }
 
     /**

@@ -28,6 +28,8 @@ import ee.ria.xroad.common.AuditLogger;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.restapi.util.UsernameHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -43,14 +45,18 @@ import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUES
 @Scope(SCOPE_REQUEST)
 public class AuditEventHolder {
 
+    // TO DO: remove after debugging that it works as expected
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
     private String eventName;
     private Map<String, Object> eventData = new HashMap<>();
 
     private int instanceNumber;
+    private UsernameHelper usernameHelper;
 
-    public AuditEventHolder() {
+    @Autowired
+    public AuditEventHolder(UsernameHelper usernameHelper) {
         instanceNumber = INSTANCE_COUNTER.incrementAndGet();
+        this.usernameHelper = usernameHelper;
     }
 
     public void addData(String propertyName, Object value) {
@@ -58,19 +64,21 @@ public class AuditEventHolder {
     }
 
     public void auditLogSuccess() {
-        AuditLogger.log(getEventName(), getEventData());
-//        AuditLogger.log(getDatedEventName(), getEventData());
+        if (eventName != null) {
+            AuditLogger.log(getEventName(), usernameHelper.getUsername(), getEventData());
+        }
     }
 
-    // TO DO: need current user
-
-    public void auditLogFail() {
-        AuditLogger.log(getEventName() + " failed!", getEventData());
-//        AuditLogger.log(getDatedEventName() + " failed!", getEventData());
+    public void auditLogFail(Exception ex) {
+        if (eventName != null) {
+            String reason = ex.getMessage();
+            AuditLogger.log(getEventName(), usernameHelper.getUsername(), reason, getEventData());
+        }
     }
 
-//    public String getDatedEventName() {
-//        return getEventName() + " " + new Date();
+
+    //    public void auditLogFail() {
+//        AuditLogger.log(getEventName() + " failed!", getEventData());
 //    }
 
 }
