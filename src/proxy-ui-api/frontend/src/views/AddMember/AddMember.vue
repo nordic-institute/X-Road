@@ -7,7 +7,6 @@
       :showClose="false"
       data-test="wizard-title"
     />
-    <v-switch v-model="allSteps" />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <template v-if="addMemberMode === 'ALL'">
         <v-stepper-header class="noshadow">
@@ -38,9 +37,11 @@
       </template>
 
       <template v-if="addMemberMode === 'NONE'">
+        
         <v-stepper-header class="noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
         </v-stepper-header>
+        
       </template>
 
       <v-stepper-items class="stepper-content">
@@ -116,7 +117,6 @@ export default Vue.extend({
   data() {
     return {
       currentStep: 1,
-      allSteps: true,
     };
   },
 
