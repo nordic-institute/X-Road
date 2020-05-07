@@ -55,7 +55,7 @@ public class AuditedApplicationEventListener {
         String url = getUrl(event);
         Map<String, Object> data = new HashMap();
         data.put("url", url);
-        if (!auditEventLoggingFacade.hasLogged()) {
+        if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
             auditEventLoggingFacade.log(AUTH_CREDENTIALS_DISCOVERY, UsernameHelper.UNKNOWN_USERNAME,
                     event.getCredentialsNotFoundException().getMessage(), data);
         }

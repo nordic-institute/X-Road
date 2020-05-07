@@ -65,7 +65,7 @@ public class AuditEventHolder {
     }
 
     public void auditLogSuccess() {
-        if (!auditEventLoggingFacade.hasLogged()) {
+        if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
             if (getEventName() != null) {
                 auditEventLoggingFacade.log(auditEvent, usernameHelper.getUsername(), getEventData());
             }
@@ -73,7 +73,7 @@ public class AuditEventHolder {
     }
 
     public void auditLogFail(Exception ex) {
-        if (!auditEventLoggingFacade.hasLogged()) {
+        if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
             if (getEventName() != null) {
                 String reason = ex.getMessage();
                 auditEventLoggingFacade.log(auditEvent, usernameHelper.getUsername(), reason, getEventData());

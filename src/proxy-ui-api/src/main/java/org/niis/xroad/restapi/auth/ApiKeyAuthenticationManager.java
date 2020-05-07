@@ -95,7 +95,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             if (e.getMessage() != null) {
                 failureReason = e.getMessage();
             }
-            if (!auditEventLoggingFacade.hasLogged()) {
+            if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
                 // TO DO: implement logOnlyOnce
                 auditEventLoggingFacade.log(RestApiAuditEvent.API_KEY_AUTHENTICATION,
                         null, failureReason, null);
