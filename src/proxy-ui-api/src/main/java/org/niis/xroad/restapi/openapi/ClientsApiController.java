@@ -211,12 +211,13 @@ public class ClientsApiController implements ClientsApi {
     }
 
     private void logMethodHolder() {
-        log.info("ClientsApiController controllerMethodHolder " + auditEventHolder.getEventName());
+        log.info("ClientsApiController controllerMethodHolder " + auditEventHolder.getRequestScopedEvent().getEventName());
         log.info("ClientsApiController controllerMethodHolder " + auditEventHolder.getInstanceNumber());
     }
 
     @Autowired
     @Lazy
+    // TO DO: get rid of this lazy
     AuditEventHolder auditEventHolder;
 
     /**
@@ -351,7 +352,7 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS-NONO')")
     public ResponseEntity<List<LocalGroup>> getClientLocalGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());

@@ -37,7 +37,9 @@ public enum RestApiAuditEvent {
     FIND_CLIENTS("FindClients"),
     GET_CLIENT("GetClient"),
     UPDATE_CLIENT("UpdateClient"),
-    ADD_CLIENT_SERVICE_DESCRIPTION("AddClientServiceDescription");
+    ADD_CLIENT_SERVICE_DESCRIPTION("AddClientServiceDescription"),
+    UNSPECIFIED_ACCESS_CHECK("Access check"), // for AccessDeniedExceptions without more specific detail
+    UNSPECIFIED_AUTHENTICATION("Authentication"); // for AuthenticationExceptions without more specific detail
 
     private final String eventName;
 

@@ -45,8 +45,8 @@ public class AuditEventHolder {
 
     // TO DO: remove after debugging that it works as expected
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
-    // TODO: no setter for auditEvent. Instead init(event) and change(event) if needed?
-    private RestApiAuditEvent auditEvent;
+    // TODO: no setter for requestScopedEvent. Instead init(event) and change(event) if needed?
+    private RestApiAuditEvent requestScopedEvent;
     private Map<String, Object> eventData = new HashMap<>();
 
     private int instanceNumber;
@@ -65,31 +65,50 @@ public class AuditEventHolder {
         eventData.put(propertyName, value);
     }
 
+    /**
+     * Audit log an event success, if there is any event. If no request bound event, do nothing.
+     * Does not check if something has already been audit logged for this request.
+     */
     public void auditLogSuccess() {
         if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
-            if (getEventName() != null) {
-                auditEventLoggingFacade.log(auditEvent, usernameHelper.getUsername(), getEventData());
+            if (getRequestScopedEvent() != null) {
+                auditEventLoggingFacade.log(requestScopedEvent, usernameHelper.getUsername(), getEventData());
             }
         }
     }
 
+    /**
+     * Audit log an event failure, unless something has already been audit logged for this request.
+     * If there is no current event, logging is skipped
+     * @param ex
+     */
     public void auditLogFail(Exception ex) {
-        // TO DO: if event is running, log into it
-        // if not, log specific authentication and accessdenied exceptions
+        auditLogFailInternal(null, ex);
+    }
+
+    /**
+     * Audit log an event failure, unless something has already been audit logged for this request.
+     * Log using current request bound event, if any. If no request bound event, use defaultEvent
+     * @param defaultEvent event to use for logging in case request bound event does not exist
+     * @param ex
+     */
+    public void auditLogFail(RestApiAuditEvent defaultEvent, Exception ex) {
+        if (defaultEvent == null) {
+            throw new IllegalArgumentException("missing defaultEvent");
+        }
+        auditLogFailInternal(defaultEvent, ex);
+    }
+
+    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex) {
         if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
-            if (getEventName() != null) {
+            RestApiAuditEvent eventToLog = getRequestScopedEvent();
+            if (eventToLog == null) {
+                eventToLog = defaultEvent;
+            }
+            if (eventToLog != null) {
                 String reason = ex.getMessage();
-                auditEventLoggingFacade.log(auditEvent, usernameHelper.getUsername(), reason, getEventData());
+                auditEventLoggingFacade.log(eventToLog, usernameHelper.getUsername(), reason, getEventData());
             }
         }
     }
-
-    public String getEventName() {
-        if (auditEvent != null) {
-            return auditEvent.getEventName();
-        } else {
-            return null;
-        }
-    }
-
 }

@@ -36,6 +36,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_ACCESS_CHECK;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_AUTHENTICATION;
+
 /**
  * exception handler
  */
@@ -69,7 +72,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
-        auditEventHolder.auditLogFail(e);
+        auditEventHolder.auditLogFail(UNSPECIFIED_AUTHENTICATION, e);
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
@@ -81,7 +84,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
-        auditEventHolder.auditLogFail(e);
+        auditEventHolder.auditLogFail(UNSPECIFIED_ACCESS_CHECK, e);
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
     }
