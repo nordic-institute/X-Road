@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventHolder;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
@@ -37,7 +38,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.HashMap;
 
@@ -97,18 +97,11 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             if (e.getMessage() != null) {
                 failureReason = e.getMessage();
             }
-            // TO DO: some helper for this
-            String url = ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString();
+            // TO DO: refactor
             HashMap<String, Object> data = new HashMap<>();
-            data.put("url", url);
+            data.put("url", AuditEventHolder.getCurrentRequestUrl());
             auditEventLoggingFacade.log(RestApiAuditEvent.API_KEY_AUTHENTICATION,
                         null, failureReason, data);
-
-//            if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
-//                // TO DO: implement logOnlyOnce
-////                auditEventLoggingFacade.log(RestApiAuditEvent.API_KEY_AUTHENTICATION,
-////                        null, failureReason, null);
-//            }
             throw e;
         }
     }

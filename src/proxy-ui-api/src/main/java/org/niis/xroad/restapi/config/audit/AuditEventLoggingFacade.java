@@ -32,7 +32,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A simple request scoped facade for audit logging.
@@ -64,6 +67,15 @@ public class AuditEventLoggingFacade {
      */
     private boolean requestScopeIsAvailable() {
         return RequestContextHolder.getRequestAttributes() != null;
+    }
+
+    public boolean hasLoggedForThisRequestAny(RestApiAuditEvent...events) {
+        if (requestScopeIsAvailable()) {
+            Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
+            return requestScopeLoggedEvents.getEvents().stream().anyMatch(searchedEvents::contains);
+        } else {
+            return false;
+        }
     }
 
     public boolean hasLoggedForThisRequest(RestApiAuditEvent event) {

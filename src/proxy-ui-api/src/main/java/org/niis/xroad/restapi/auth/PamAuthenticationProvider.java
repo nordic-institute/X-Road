@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.niis.xroad.restapi.config.audit.AuditEventHolder;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
@@ -42,6 +43,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,7 +96,12 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
         boolean success = false;
         String username = "unknown user";
         String failureReason = "unknown";
+        HashMap<String, Object> auditData = new HashMap<>();
+
         try {
+            // TO DO: refactor
+            auditData.put("url", AuditEventHolder.getCurrentRequestUrl());
+
             username = String.valueOf(authentication.getPrincipal());
             Authentication result = doAuthenticateInternal(authentication, username);
             success = true;
@@ -106,9 +113,9 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             throw e;
         } finally {
             if (success) {
-                auditEventLoggingFacade.log(loginEvent, username, null);
+                auditEventLoggingFacade.log(loginEvent, username, auditData);
             } else {
-                auditEventLoggingFacade.log(loginEvent, username, failureReason, null);
+                auditEventLoggingFacade.log(loginEvent, username, failureReason, auditData);
             }
         }
     }

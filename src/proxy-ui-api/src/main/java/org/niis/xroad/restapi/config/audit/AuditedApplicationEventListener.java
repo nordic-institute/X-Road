@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_AUTHENTICATION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
 
 @Component
@@ -53,7 +54,8 @@ public class AuditedApplicationEventListener {
         String url = getUrl(event);
         Map<String, Object> data = new HashMap();
         data.put("url", url);
-        if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
+        // prevent double audit logging both API_KEY_AUTHENTICATION and AUTH_CREDENTIALS_DISCOVERY
+        if (!auditEventLoggingFacade.hasLoggedForThisRequest(API_KEY_AUTHENTICATION)) {
             auditEventLoggingFacade.log(AUTH_CREDENTIALS_DISCOVERY, UsernameHelper.UNKNOWN_USERNAME,
                     event.getCredentialsNotFoundException().getMessage(), data);
         }

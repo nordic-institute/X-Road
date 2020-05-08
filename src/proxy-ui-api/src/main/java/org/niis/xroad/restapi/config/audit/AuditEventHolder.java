@@ -29,7 +29,18 @@ import lombok.Setter;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,18 +78,26 @@ public class AuditEventHolder {
 
     /**
      * Audit log an event success, if there is any event. If no request bound event, do nothing.
-     * Does not check if something has already been audit logged for this request.
      */
     public void auditLogSuccess() {
         if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
             if (getRequestScopedEvent() != null) {
+                addStandardEventData();
                 auditEventLoggingFacade.log(requestScopedEvent, usernameHelper.getUsername(), getEventData());
             }
         }
     }
 
     /**
-     * Audit log an event failure, unless something has already been audit logged for this request.
+     * Adds url and authentication method.
+     */
+    private void addStandardEventData() {
+        eventData.put("url", getCurrentRequestUrl());
+        eventData.put("auth", getCurrentAuthenticationScheme());
+    }
+
+    /**
+     * Audit log an event failure.
      * If there is no current event, logging is skipped
      * @param ex
      */
@@ -87,7 +106,7 @@ public class AuditEventHolder {
     }
 
     /**
-     * Audit log an event failure, unless something has already been audit logged for this request.
+     * Audit log an event failure.
      * Log using current request bound event, if any. If no request bound event, use defaultEvent
      * @param defaultEvent event to use for logging in case request bound event does not exist
      * @param ex
@@ -99,16 +118,56 @@ public class AuditEventHolder {
         auditLogFailInternal(defaultEvent, ex);
     }
 
-    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex) {
-        if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
-            RestApiAuditEvent eventToLog = getRequestScopedEvent();
-            if (eventToLog == null) {
-                eventToLog = defaultEvent;
+    // TO DO: refactor
+    public static String getCurrentRequestUrl() {
+        return getCurrentHttpRequest().getRequestURI();
+    }
+
+    private String getCurrentAuthenticationScheme() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
+        if (authentication == null) {
+            return null;
+        } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
+            return "ApiKey";
+        } else if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            if (hasSecurityContextInSession()) {
+                return "Session";
+            } else {
+                return "HttpBasicPam";
             }
-            if (eventToLog != null) {
-                String reason = ex.getMessage();
-                auditEventLoggingFacade.log(eventToLog, usernameHelper.getUsername(), reason, getEventData());
-            }
+        } else {
+            return authentication.getClass().getSimpleName();
         }
+    }
+
+    private boolean hasSecurityContextInSession() {
+        HttpServletRequest request = getCurrentHttpRequest();
+        boolean hasSessionContext = false;
+        if (request != null) {
+            hasSessionContext = new HttpSessionSecurityContextRepository().containsContext(request);
+        }
+        return hasSessionContext;
+    }
+
+    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex) {
+        RestApiAuditEvent eventToLog = getRequestScopedEvent();
+        if (eventToLog == null) {
+            eventToLog = defaultEvent;
+        }
+        if (eventToLog != null) {
+            addStandardEventData();
+            String reason = ex.getMessage();
+            auditEventLoggingFacade.log(eventToLog, usernameHelper.getUsername(), reason, getEventData());
+        }
+    }
+
+    private static HttpServletRequest getCurrentHttpRequest() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
+            return request;
+        }
+        return null;
     }
 }

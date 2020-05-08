@@ -352,7 +352,7 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS-NONO')")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<List<LocalGroup>> getClientLocalGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());

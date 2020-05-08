@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventHolder;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -36,6 +37,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_AUTHENTICATION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_ACCESS_CHECK;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_AUTHENTICATION;
 
@@ -52,6 +55,9 @@ public class ApplicationExceptionHandler {
     @Autowired
     @Lazy
     private AuditEventHolder auditEventHolder;
+
+    @Autowired
+    private AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * handle exceptions
@@ -72,7 +78,10 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
-        auditEventHolder.auditLogFail(UNSPECIFIED_AUTHENTICATION, e);
+        // prevent double audit logging with hasLoggedForThisRequestAny
+        if (!auditEventLoggingFacade.hasLoggedForThisRequestAny(API_KEY_AUTHENTICATION, AUTH_CREDENTIALS_DISCOVERY)) {
+            auditEventHolder.auditLogFail(UNSPECIFIED_AUTHENTICATION, e);
+        }
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
