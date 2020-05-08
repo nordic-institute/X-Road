@@ -25,12 +25,11 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -74,7 +73,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private UsernameHelper usernameHelper;
 
     @Autowired
-    private AuditEventLoggingFacade auditEventLoggingFacade;
+    private AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -106,7 +105,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
         @Override
         public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
             try {
-                auditEventLoggingFacade.log(FORM_LOGOUT, usernameHelper.getUsername(), null);
+                auditEventLoggerMakeUpBetterName.auditLogSuccess(FORM_LOGOUT);
             } catch (Exception e) {
                 log.error("failed to audit log logout", e);
             }

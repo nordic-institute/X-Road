@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,6 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * Service that handles keys
@@ -60,6 +60,7 @@ public class KeyService {
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final ManagementRequestSenderService managementRequestSenderService;
+    private final SecurityHelper securityHelper;
 
     /**
      * KeyService constructor
@@ -67,11 +68,13 @@ public class KeyService {
     @Autowired
     public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
             PossibleActionsRuleEngine possibleActionsRuleEngine,
-            ManagementRequestSenderService managementRequestSenderService) {
+            ManagementRequestSenderService managementRequestSenderService,
+            SecurityHelper securityHelper) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
         this.managementRequestSenderService = managementRequestSenderService;
+        this.securityHelper = securityHelper;
     }
 
     /**
@@ -190,11 +193,11 @@ public class KeyService {
 
         // verify permissions
         if (keyInfo.getUsage() == null) {
-            verifyAuthority("DELETE_KEY");
+            securityHelper.verifyAuthority("DELETE_KEY");
         } else if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-            verifyAuthority("DELETE_AUTH_KEY");
+            securityHelper.verifyAuthority("DELETE_AUTH_KEY");
         } else if (keyInfo.getUsage() == KeyUsageInfo.SIGNING) {
-            verifyAuthority("DELETE_SIGN_KEY");
+            securityHelper.verifyAuthority("DELETE_SIGN_KEY");
         }
 
         // verify that action is possible
@@ -228,7 +231,7 @@ public class KeyService {
     private void unregisterAuthCert(CertificateInfo certificateInfo)
             throws GlobalConfOutdatedException {
         // this permission is not checked by unregisterCertificate()
-        verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
+        securityHelper.verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
 
         // do not use tokenCertificateService.unregisterAuthCert because
         // - it does a bit of extra work to what we need (and makes us do extra work)

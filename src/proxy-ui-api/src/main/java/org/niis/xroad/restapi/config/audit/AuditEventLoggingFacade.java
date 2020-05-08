@@ -24,18 +24,10 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
-import ee.ria.xroad.common.AuditLogger;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A simple request scoped facade for audit logging.
@@ -53,90 +45,90 @@ public class AuditEventLoggingFacade {
         this.requestScopeLoggedEvents = requestScopeLoggedEvents;
     }
 
-    public boolean hasLoggedForThisRequest() {
-        if (requestScopeIsAvailable()) {
-            return !requestScopeLoggedEvents.getEvents().isEmpty();
-        } else {
-            return false;
-        }
-    }
+//    public boolean hasLoggedForThisRequest() {
+//        if (requestScopeIsAvailable()) {
+//            return !requestScopeLoggedEvents.getEvents().isEmpty();
+//        } else {
+//            return false;
+//        }
+//    }
+//
+////    /**
+////     * Tells if request scoped beans are available or not
+////     * (if we're executing a http request, or not
+////     */
+////    private boolean requestScopeIsAvailable() {
+////        return RequestContextHolder.getRequestAttributes() != null;
+////    }
+//
+//    public boolean hasLoggedForThisRequestAny(RestApiAuditEvent...events) {
+//        if (requestScopeIsAvailable()) {
+//            Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
+//            return requestScopeLoggedEvents.getEvents().stream().anyMatch(searchedEvents::contains);
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    public boolean hasLoggedForThisRequest(RestApiAuditEvent event) {
+//        if (requestScopeIsAvailable()) {
+//            return requestScopeLoggedEvents.getEvents().contains(event);
+//        } else {
+//            return false;
+//        }
+//    }
 
-    /**
-     * Tells if request scoped beans are available or not
-     * (if we're executing a http request, or not
-     */
-    private boolean requestScopeIsAvailable() {
-        return RequestContextHolder.getRequestAttributes() != null;
-    }
+//    private void addLoggedEventForThisRequest(RestApiAuditEvent event) {
+//        if (requestScopeIsAvailable()) {
+//            requestScopeLoggedEvents.getEvents().add(event);
+//        }
+//    }
+//
+//    // TO DO: comments
+//    public void log(RestApiAuditEvent event, Map<String, Object> data) {
+//        addLoggedEventForThisRequest(event);
+//        AuditLogger.log(event.getEventName(), data);
+//    }
+//
+//    public void log(RestApiAuditEvent event, String user, Map<String, Object> data) {
+//        addLoggedEventForThisRequest(event);
+//        AuditLogger.log(event.getEventName(), user, data);
+//    }
+//
+//    public void log(RestApiAuditEvent event, String user, String reason,
+//            Map<String, Object> data) {
+//        addLoggedEventForThisRequest(event);
+//        AuditLogger.log(event.getEventName(), user, reason, data);
+//    }
 
-    public boolean hasLoggedForThisRequestAny(RestApiAuditEvent...events) {
-        if (requestScopeIsAvailable()) {
-            Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
-            return requestScopeLoggedEvents.getEvents().stream().anyMatch(searchedEvents::contains);
-        } else {
-            return false;
-        }
-    }
+//    private void alreadyAuditLogged(RestApiAuditEvent event) {
+//            log.info("Skipping audit logging for event " + event
+//                    + " since audit event has already been logged for this request");
+//    }
 
-    public boolean hasLoggedForThisRequest(RestApiAuditEvent event) {
-        if (requestScopeIsAvailable()) {
-            return requestScopeLoggedEvents.getEvents().contains(event);
-        } else {
-            return false;
-        }
-    }
-
-    private void addLoggedEventForThisRequest(RestApiAuditEvent event) {
-        if (requestScopeIsAvailable()) {
-            requestScopeLoggedEvents.getEvents().add(event);
-        }
-    }
-
-    // TO DO: comments
-    public void log(RestApiAuditEvent event, Map<String, Object> data) {
-        addLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), data);
-    }
-
-    public void log(RestApiAuditEvent event, String user, Map<String, Object> data) {
-        addLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), user, data);
-    }
-
-    public void log(RestApiAuditEvent event, String user, String reason,
-            Map<String, Object> data) {
-        addLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), user, reason, data);
-    }
-
-    private void alreadyAuditLogged(RestApiAuditEvent event) {
-            log.info("Skipping audit logging for event " + event
-                    + " since audit event has already been logged for this request");
-    }
-
-    public void logOncePerRequest(RestApiAuditEvent event, Map<String, Object> data) {
-        if (hasLoggedForThisRequest()) {
-            alreadyAuditLogged(event);
-        } else {
-            log(event, data);
-        }
-    }
-
-    public void logOncePerRequest(RestApiAuditEvent event, String user, Map<String, Object> data) {
-        if (hasLoggedForThisRequest()) {
-            alreadyAuditLogged(event);
-        } else {
-            log(event, user, data);
-        }
-    }
-
-    public void logOncePerRequest(RestApiAuditEvent event, String user, String reason,
-            Map<String, Object> data) {
-        if (hasLoggedForThisRequest()) {
-            alreadyAuditLogged(event);
-        } else {
-            log(event, user, reason, data);
-        }
-    }
+//    public void logOncePerRequest(RestApiAuditEvent event, Map<String, Object> data) {
+//        if (hasLoggedForThisRequest()) {
+//            alreadyAuditLogged(event);
+//        } else {
+//            log(event, data);
+//        }
+//    }
+//
+//    public void logOncePerRequest(RestApiAuditEvent event, String user, Map<String, Object> data) {
+//        if (hasLoggedForThisRequest()) {
+//            alreadyAuditLogged(event);
+//        } else {
+//            log(event, user, data);
+//        }
+//    }
+//
+//    public void logOncePerRequest(RestApiAuditEvent event, String user, String reason,
+//            Map<String, Object> data) {
+//        if (hasLoggedForThisRequest()) {
+//            alreadyAuditLogged(event);
+//        } else {
+//            log(event, user, reason, data);
+//        }
+//    }
 
 }

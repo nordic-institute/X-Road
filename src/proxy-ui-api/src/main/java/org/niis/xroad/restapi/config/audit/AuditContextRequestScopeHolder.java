@@ -42,34 +42,31 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
+/**
+ * Holds current audit event and related audit data in request scope
+ */
 @Getter
 @Setter
 @Component
 @Scope(SCOPE_REQUEST)
-public class AuditEventHolder {
+public class AuditContextRequestScopeHolder {
 
     // TO DO: remove after debugging that it works as expected
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
-    // TODO: no setter for requestScopedEvent. Instead init(event) and change(event) if needed?
     private RestApiAuditEvent requestScopedEvent;
-    private Map<String, Object> eventData = new HashMap<>();
-
+    private Map<String, Object> eventData = new ConcurrentHashMap<>();
     private int instanceNumber;
-    private final UsernameHelper usernameHelper;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
-    public AuditEventHolder(UsernameHelper usernameHelper,
+    public AuditContextRequestScopeHolder(UsernameHelper usernameHelper,
             AuditEventLoggingFacade auditEventLoggingFacade) {
         instanceNumber = INSTANCE_COUNTER.incrementAndGet();
-        this.usernameHelper = usernameHelper;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     public void addData(String propertyName, Object value) {
@@ -77,45 +74,12 @@ public class AuditEventHolder {
     }
 
     /**
-     * Audit log an event success, if there is any event. If no request bound event, do nothing.
-     */
-    public void auditLogSuccess() {
-        if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
-            if (getRequestScopedEvent() != null) {
-                addStandardEventData();
-                auditEventLoggingFacade.log(requestScopedEvent, usernameHelper.getUsername(), getEventData());
-            }
-        }
-    }
-
-    /**
      * Adds url and authentication method.
+     * TO DO: here or where?
      */
     private void addStandardEventData() {
         eventData.put("url", getCurrentRequestUrl());
         eventData.put("auth", getCurrentAuthenticationScheme());
-    }
-
-    /**
-     * Audit log an event failure.
-     * If there is no current event, logging is skipped
-     * @param ex
-     */
-    public void auditLogFail(Exception ex) {
-        auditLogFailInternal(null, ex);
-    }
-
-    /**
-     * Audit log an event failure.
-     * Log using current request bound event, if any. If no request bound event, use defaultEvent
-     * @param defaultEvent event to use for logging in case request bound event does not exist
-     * @param ex
-     */
-    public void auditLogFail(RestApiAuditEvent defaultEvent, Exception ex) {
-        if (defaultEvent == null) {
-            throw new IllegalArgumentException("missing defaultEvent");
-        }
-        auditLogFailInternal(defaultEvent, ex);
     }
 
     // TO DO: refactor
@@ -148,18 +112,6 @@ public class AuditEventHolder {
             hasSessionContext = new HttpSessionSecurityContextRepository().containsContext(request);
         }
         return hasSessionContext;
-    }
-
-    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex) {
-        RestApiAuditEvent eventToLog = getRequestScopedEvent();
-        if (eventToLog == null) {
-            eventToLog = defaultEvent;
-        }
-        if (eventToLog != null) {
-            addStandardEventData();
-            String reason = ex.getMessage();
-            auditEventLoggingFacade.log(eventToLog, usernameHelper.getUsername(), reason, getEventData());
-        }
     }
 
     private static HttpServletRequest getCurrentHttpRequest() {

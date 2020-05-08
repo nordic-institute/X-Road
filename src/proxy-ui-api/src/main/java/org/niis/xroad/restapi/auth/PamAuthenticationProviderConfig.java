@@ -25,8 +25,9 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.util.RequestHelper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,15 +55,18 @@ public class PamAuthenticationProviderConfig {
             Arrays.asList("::/0", "0.0.0.0/0");
 
     private final GrantedAuthorityMapper grantedAuthorityMapper;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
+    private final RequestHelper requestHelper;
 
     /**
      * constructor
      */
     public PamAuthenticationProviderConfig(GrantedAuthorityMapper grantedAuthorityMapper,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName,
+            RequestHelper requestHelper) {
         this.grantedAuthorityMapper = grantedAuthorityMapper;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
+        this.requestHelper = requestHelper;
     }
 
     /**
@@ -74,7 +78,7 @@ public class PamAuthenticationProviderConfig {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
         return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN,
-                auditEventLoggingFacade);
+                auditEventLoggerMakeUpBetterName, requestHelper);
     }
 
     /**
@@ -85,7 +89,7 @@ public class PamAuthenticationProviderConfig {
     public PamAuthenticationProvider keyManagementWhitelist(
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
         return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper,
-                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade);
+                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggerMakeUpBetterName, requestHelper);
     }
 }
 

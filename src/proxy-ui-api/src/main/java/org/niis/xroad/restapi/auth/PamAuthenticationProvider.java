@@ -28,10 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
-import org.niis.xroad.restapi.config.audit.AuditEventHolder;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.util.RequestHelper;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,7 +43,6 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,7 +66,8 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final RestApiAuditEvent loginEvent; // login event to audit log
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final RequestHelper requestHelper;
+    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
 
     /**
      * constructor
@@ -76,11 +76,13 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
             GrantedAuthorityMapper grantedAuthorityMapper,
             RestApiAuditEvent loginEvent,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName,
+            RequestHelper requestHelper) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
         this.loginEvent = loginEvent;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
+        this.requestHelper = requestHelper;
     }
 
     /**
@@ -95,27 +97,21 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         boolean success = false;
         String username = "unknown user";
-        String failureReason = "unknown";
-        HashMap<String, Object> auditData = new HashMap<>();
+        Exception caughException = null;
 
         try {
-            // TO DO: refactor
-            auditData.put("url", AuditEventHolder.getCurrentRequestUrl());
-
             username = String.valueOf(authentication.getPrincipal());
             Authentication result = doAuthenticateInternal(authentication, username);
             success = true;
             return result;
         } catch (Exception e) {
-            if (e.getMessage() != null) {
-                failureReason = e.getMessage();
-            }
+            caughException = e;
             throw e;
         } finally {
             if (success) {
-                auditEventLoggingFacade.log(loginEvent, username, auditData);
+                auditEventLoggerMakeUpBetterName.auditLogSuccess(loginEvent);
             } else {
-                auditEventLoggingFacade.log(loginEvent, username, failureReason, auditData);
+                auditEventLoggerMakeUpBetterName.auditLogFail(loginEvent, caughException);
             }
         }
     }

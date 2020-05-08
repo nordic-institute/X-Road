@@ -27,10 +27,9 @@ package org.niis.xroad.restapi.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.LimitRequestSizesException;
-import org.niis.xroad.restapi.config.audit.AuditEventHolder;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,9 +52,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     private final ValidationErrorHelper validationErrorHelper;
 
     @Autowired
-    @Lazy
-    // audit logging should work even without requests, so wrap this in something
-    private AuditEventHolder auditEventHolder;
+    private AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
 
     @Autowired
     public SpringInternalExceptionHandler(ValidationErrorHelper validationErrorHelper) {
@@ -66,7 +63,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
-        auditEventHolder.auditLogFail(ex);
+        auditEventLoggerMakeUpBetterName.auditLogFail(ex);
         log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo();
         if (causedBySizeLimitExceeded(ex)) {

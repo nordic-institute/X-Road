@@ -25,15 +25,10 @@
 package org.niis.xroad.restapi.config.audit;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
-import org.springframework.security.web.FilterInvocation;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_AUTHENTICATION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
@@ -42,36 +37,19 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENT
 @Slf4j
 public class AuditedApplicationEventListener {
 
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
 
     @Autowired
-    public AuditedApplicationEventListener(AuditEventLoggingFacade auditEventLoggingFacade) {
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+    public AuditedApplicationEventListener(AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName) {
+        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
     }
 
     @EventListener
     void handleAuthenticationCredentialsNotFoundEvent(AuthenticationCredentialsNotFoundEvent event) {
-        String url = getUrl(event);
-        Map<String, Object> data = new HashMap();
-        data.put("url", url);
         // prevent double audit logging both API_KEY_AUTHENTICATION and AUTH_CREDENTIALS_DISCOVERY
-        if (!auditEventLoggingFacade.hasLoggedForThisRequest(API_KEY_AUTHENTICATION)) {
-            auditEventLoggingFacade.log(AUTH_CREDENTIALS_DISCOVERY, UsernameHelper.UNKNOWN_USERNAME,
-                    event.getCredentialsNotFoundException().getMessage(), data);
+        if (!auditEventLoggerMakeUpBetterName.hasAlreadyLoggedForThisRequest(API_KEY_AUTHENTICATION)) {
+            auditEventLoggerMakeUpBetterName.auditLogFail(AUTH_CREDENTIALS_DISCOVERY,
+                    event.getCredentialsNotFoundException());
         }
     }
-
-    private String getUrl(AuthenticationCredentialsNotFoundEvent event) {
-        String url = "unknown";
-        try {
-            if (event.getSource() instanceof FilterInvocation) {
-                FilterInvocation inv = (FilterInvocation) event.getSource();
-                url = inv.getRequest().getRequestURI();
-            }
-        } catch (Exception ex) {
-            log.error("unable to determine AuthenticationCredentialsNotFoundEvent url", ex);
-        }
-        return url;
-    }
-
 }

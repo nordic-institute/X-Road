@@ -22,41 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.util;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * Helper for working with security and authorization
+ * Helper for working with requests
+ * TO DO: comments
  */
-public final class SecurityHelper {
+@Component
+public final class RequestHelper {
 
-    private SecurityHelper() {
-        // noop
+    public String getCurrentRequestUrl() {
+        return getCurrentHttpRequest().getRequestURI();
     }
 
-    /**
-     * Tells if current user / authentication has been granted given authority
-     * @param authority
-     * @return
-     */
-    public static boolean hasAuthority(String authority) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
-    }
-
-    /**
-     * Verifies that current user / authentication has been granted given authority.
-     * If not, throws {@link AccessDeniedException}
-     * @param authority
-     * @throws AccessDeniedException if given authority has not been granted
-     */
-    public static void verifyAuthority(String authority) throws AccessDeniedException {
-        if (!hasAuthority(authority)) {
-            throw new AccessDeniedException("Missing authority: " + authority);
+    public HttpServletRequest getCurrentHttpRequest() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
+            return request;
         }
+        return null;
     }
+
+    /**
+     * Tells if request scoped beans are available or not
+     * (if we're executing a http request, or not)
+     */
+    public boolean requestScopeIsAvailable() {
+        return RequestContextHolder.getRequestAttributes() != null;
+    }
+
 }

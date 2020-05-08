@@ -43,7 +43,7 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
 
     @Autowired
     @Lazy
-    AuditEventHolder auditEventHolder;
+    AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -52,9 +52,7 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
         Method javaMethod = method.getMethod();
         if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
             AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
-            auditEventHolder.setRequestScopedEvent(auditEventMethod.event());
-        } else {
-            auditEventHolder.setRequestScopedEvent(null);
+            auditEventLoggerMakeUpBetterName.setRequestScopedEvent(auditEventMethod.event());
         }
         return true;
     }
@@ -62,6 +60,6 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
             ModelAndView modelAndView) throws Exception {
-        auditEventHolder.auditLogSuccess();
+        auditEventLoggerMakeUpBetterName.auditLogSuccess();
     }
 }

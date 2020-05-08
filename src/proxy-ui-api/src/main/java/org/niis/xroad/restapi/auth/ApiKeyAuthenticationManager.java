@@ -25,8 +25,7 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventHolder;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -38,8 +37,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
 
 import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.REGULAR_API_WHITELIST;
 
@@ -56,19 +53,19 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     private final AuthenticationHeaderDecoder authenticationHeaderDecoder;
     private final GrantedAuthorityMapper permissionMapper;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
 
     @Autowired
     public ApiKeyAuthenticationManager(ApiKeyAuthenticationHelper apiKeyAuthenticationHelper,
             AuthenticationHeaderDecoder authenticationHeaderDecoder,
             GrantedAuthorityMapper permissionMapper,
             @Qualifier(REGULAR_API_WHITELIST) AuthenticationIpWhitelist authenticationIpWhitelist,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName) {
         this.apiKeyAuthenticationHelper = apiKeyAuthenticationHelper;
         this.authenticationHeaderDecoder = authenticationHeaderDecoder;
         this.permissionMapper = permissionMapper;
         this.authenticationIpWhitelist = authenticationIpWhitelist;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
     }
 
     @Override
@@ -93,15 +90,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                             permissionMapper.getAuthorities(key.getRoles()));
             return authenticationWithGrants;
         } catch (Exception e) {
-            String failureReason = "unknown";
-            if (e.getMessage() != null) {
-                failureReason = e.getMessage();
-            }
-            // TO DO: refactor
-            HashMap<String, Object> data = new HashMap<>();
-            data.put("url", AuditEventHolder.getCurrentRequestUrl());
-            auditEventLoggingFacade.log(RestApiAuditEvent.API_KEY_AUTHENTICATION,
-                        null, failureReason, data);
+            auditEventLoggerMakeUpBetterName.auditLogFail(RestApiAuditEvent.API_KEY_AUTHENTICATION, e);
             throw e;
         }
     }

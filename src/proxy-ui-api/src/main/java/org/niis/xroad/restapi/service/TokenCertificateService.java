@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,7 +67,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * token certificate service
@@ -94,13 +94,15 @@ public class TokenCertificateService {
     private final DnFieldHelper dnFieldHelper;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final TokenService tokenService;
+    private final SecurityHelper securityHelper;
 
     @Autowired
     public TokenCertificateService(SignerProxyFacade signerProxyFacade, ClientService clientService,
             CertificateAuthorityService certificateAuthorityService, KeyService keyService, DnFieldHelper dnFieldHelper,
             GlobalConfService globalConfService, GlobalConfFacade globalConfFacade, ClientRepository clientRepository,
             ManagementRequestSenderService managementRequestSenderService, ServerConfService serverConfService,
-            PossibleActionsRuleEngine possibleActionsRuleEngine, TokenService tokenService) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine, TokenService tokenService,
+            SecurityHelper securityHelper) {
         this.signerProxyFacade = signerProxyFacade;
         this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
@@ -113,6 +115,7 @@ public class TokenCertificateService {
         this.serverConfService = serverConfService;
         this.tokenService = tokenService;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.securityHelper = securityHelper;
     }
 
     /**
@@ -221,9 +224,9 @@ public class TokenCertificateService {
 
         // check usage type specific auth in service, since controller does not know usage type
         if (keyInfo.isForSigning()) {
-            verifyAuthority("GENERATE_SIGN_CERT_REQ");
+            securityHelper.verifyAuthority("GENERATE_SIGN_CERT_REQ");
         } else {
-            verifyAuthority("GENERATE_AUTH_CERT_REQ");
+            securityHelper.verifyAuthority("GENERATE_AUTH_CERT_REQ");
         }
 
         // validate that regenerate csr is a possible action
@@ -327,13 +330,13 @@ public class TokenCertificateService {
             ClientId clientId = null;
             boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
             if (isAuthCert) {
-                verifyAuthority(IMPORT_AUTH_CERT);
+                securityHelper.verifyAuthority(IMPORT_AUTH_CERT);
                 if (isFromToken) {
                     throw new AuthCertificateNotSupportedException("auth cert cannot be imported from a token");
                 }
                 certificateState = CertificateInfo.STATUS_SAVED;
             } else {
-                verifyAuthority(IMPORT_SIGN_CERT);
+                securityHelper.verifyAuthority(IMPORT_SIGN_CERT);
                 String xroadInstance = globalConfFacade.getInstanceIdentifier();
                 clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
                 boolean clientExists = clientRepository.clientExists(clientId, true);
@@ -453,9 +456,9 @@ public class TokenCertificateService {
         try {
             boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
             if (isAuthCert) {
-                verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
+                securityHelper.verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
             } else {
-                verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
+                securityHelper.verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
             }
         } catch (AccessDeniedException e) {
             throw e;
@@ -807,9 +810,9 @@ public class TokenCertificateService {
                 PossibleActionEnum.DELETE, tokenInfo, keyInfo, certificateInfo);
 
         if (keyInfo.isForSigning()) {
-            verifyAuthority("DELETE_SIGN_CERT");
+            securityHelper.verifyAuthority("DELETE_SIGN_CERT");
         } else {
-            verifyAuthority("DELETE_AUTH_CERT");
+            securityHelper.verifyAuthority("DELETE_AUTH_CERT");
         }
         try {
             signerProxyFacade.deleteCert(certificateInfo.getId());
@@ -861,9 +864,9 @@ public class TokenCertificateService {
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
 
         if (keyInfo.isForSigning()) {
-            verifyAuthority("DELETE_SIGN_CERT");
+            securityHelper.verifyAuthority("DELETE_SIGN_CERT");
         } else {
-            verifyAuthority("DELETE_AUTH_CERT");
+            securityHelper.verifyAuthority("DELETE_AUTH_CERT");
         }
 
         // check that delete is possible
