@@ -9,3 +9,9 @@ export interface Tab {
   };
   permission?: string;
 }
+
+export interface ServiceCandidate {
+  service_code: string;
+  service_title?: string;
+  id: string;
+}

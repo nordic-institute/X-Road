@@ -59,6 +59,10 @@
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
+
+    <div class="row-wrap">
+
+    </div>
   </div>
 </template>
 
