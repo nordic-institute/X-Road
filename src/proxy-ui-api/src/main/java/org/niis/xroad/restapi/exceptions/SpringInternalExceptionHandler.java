@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.LimitRequestSizesException;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -52,7 +52,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     private final ValidationErrorHelper validationErrorHelper;
 
     @Autowired
-    private AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
+    private AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
     public SpringInternalExceptionHandler(ValidationErrorHelper validationErrorHelper) {
@@ -63,7 +63,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
-        auditEventLoggerMakeUpBetterName.auditLogFail(ex);
+        auditEventLoggingFacade.auditLogFail(ex);
         log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo();
         if (causedBySizeLimitExceeded(ex)) {

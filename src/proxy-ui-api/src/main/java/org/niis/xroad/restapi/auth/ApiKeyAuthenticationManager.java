@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -53,19 +53,19 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     private final AuthenticationHeaderDecoder authenticationHeaderDecoder;
     private final GrantedAuthorityMapper permissionMapper;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
-    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
     public ApiKeyAuthenticationManager(ApiKeyAuthenticationHelper apiKeyAuthenticationHelper,
             AuthenticationHeaderDecoder authenticationHeaderDecoder,
             GrantedAuthorityMapper permissionMapper,
             @Qualifier(REGULAR_API_WHITELIST) AuthenticationIpWhitelist authenticationIpWhitelist,
-            AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName) {
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.apiKeyAuthenticationHelper = apiKeyAuthenticationHelper;
         this.authenticationHeaderDecoder = authenticationHeaderDecoder;
         this.permissionMapper = permissionMapper;
         this.authenticationIpWhitelist = authenticationIpWhitelist;
-        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                             permissionMapper.getAuthorities(key.getRoles()));
             return authenticationWithGrants;
         } catch (Exception e) {
-            auditEventLoggerMakeUpBetterName.auditLogFail(RestApiAuditEvent.API_KEY_AUTHENTICATION, e);
+            auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.API_KEY_AUTHENTICATION, e);
             throw e;
         }
     }

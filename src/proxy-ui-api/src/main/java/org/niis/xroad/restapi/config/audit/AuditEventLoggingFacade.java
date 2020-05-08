@@ -24,111 +24,220 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
-import lombok.extern.slf4j.Slf4j;
+import ee.ria.xroad.common.AuditLogger;
+
+import org.niis.xroad.restapi.util.RequestHelper;
+import org.niis.xroad.restapi.util.SecurityHelper;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
- * A simple request scoped facade for audit logging.
- * Helps prevent multiple audit log entries due to same event
- * (e.g. wrong API key value causing both "API key was not found" and "Authentication not found")
+ * Facade for all proxy-ui-api audit logging.
+ * When used from request aware context, keeps track of current tracked audit event, and it's associated audit data.
+ * Also adjusts to non-request aware context.
  */
 @Component
-@Slf4j
 public class AuditEventLoggingFacade {
 
+    private final UsernameHelper usernameHelper;
+    private final RequestHelper requestHelper;
+    private final SecurityHelper securityHelper;
+
+    // request scoped beans, may not have value if audit logging outside of requests
+    private final AuditContextRequestScopeHolder auditContextRequestScopeHolder;
     private final RequestScopeLoggedEvents requestScopeLoggedEvents;
 
     @Autowired
-    public AuditEventLoggingFacade(@Lazy RequestScopeLoggedEvents requestScopeLoggedEvents) {
+    public AuditEventLoggingFacade(UsernameHelper usernameHelper,
+            @Lazy AuditContextRequestScopeHolder auditContextRequestScopeHolder,
+            @Lazy RequestScopeLoggedEvents requestScopeLoggedEvents,
+            RequestHelper requestHelper,
+            SecurityHelper securityHelper) {
+        this.usernameHelper = usernameHelper;
+        this.auditContextRequestScopeHolder = auditContextRequestScopeHolder;
         this.requestScopeLoggedEvents = requestScopeLoggedEvents;
+        this.requestHelper = requestHelper;
+        this.securityHelper = securityHelper;
     }
 
-//    public boolean hasLoggedForThisRequest() {
-//        if (requestScopeIsAvailable()) {
-//            return !requestScopeLoggedEvents.getEvents().isEmpty();
-//        } else {
-//            return false;
-//        }
-//    }
-//
-////    /**
-////     * Tells if request scoped beans are available or not
-////     * (if we're executing a http request, or not
-////     */
-////    private boolean requestScopeIsAvailable() {
-////        return RequestContextHolder.getRequestAttributes() != null;
-////    }
-//
-//    public boolean hasLoggedForThisRequestAny(RestApiAuditEvent...events) {
-//        if (requestScopeIsAvailable()) {
-//            Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
-//            return requestScopeLoggedEvents.getEvents().stream().anyMatch(searchedEvents::contains);
-//        } else {
-//            return false;
-//        }
-//    }
-//
-//    public boolean hasLoggedForThisRequest(RestApiAuditEvent event) {
-//        if (requestScopeIsAvailable()) {
-//            return requestScopeLoggedEvents.getEvents().contains(event);
-//        } else {
-//            return false;
-//        }
-//    }
+    public void setRequestScopedEvent(RestApiAuditEvent event) {
+        if (requestHelper.requestScopeIsAvailable()) {
+            RestApiAuditEvent existing = auditContextRequestScopeHolder.getRequestScopedEvent();
+            if (existing != null) {
+                throw new IllegalStateException("request scope already has event " + existing);
+            } else {
+                auditContextRequestScopeHolder.setRequestScopedEvent(event);
+            }
+        } else {
+            throw new IllegalStateException("request scope is not available");
+        }
+    }
 
-//    private void addLoggedEventForThisRequest(RestApiAuditEvent event) {
-//        if (requestScopeIsAvailable()) {
-//            requestScopeLoggedEvents.getEvents().add(event);
-//        }
-//    }
-//
-//    // TO DO: comments
-//    public void log(RestApiAuditEvent event, Map<String, Object> data) {
-//        addLoggedEventForThisRequest(event);
-//        AuditLogger.log(event.getEventName(), data);
-//    }
-//
-//    public void log(RestApiAuditEvent event, String user, Map<String, Object> data) {
-//        addLoggedEventForThisRequest(event);
-//        AuditLogger.log(event.getEventName(), user, data);
-//    }
-//
-//    public void log(RestApiAuditEvent event, String user, String reason,
-//            Map<String, Object> data) {
-//        addLoggedEventForThisRequest(event);
-//        AuditLogger.log(event.getEventName(), user, reason, data);
-//    }
+    public void putRequestScopedAuditData(String key, Object value) {
+        if (requestHelper.requestScopeIsAvailable()) {
+            auditContextRequestScopeHolder.getEventData().put(key, value);
+        } else {
+            throw new IllegalStateException("request scope is not available");
+        }
+    }
 
-//    private void alreadyAuditLogged(RestApiAuditEvent event) {
-//            log.info("Skipping audit logging for event " + event
-//                    + " since audit event has already been logged for this request");
-//    }
+    /**
+     * Audit log an current request bound event success, if there is any event.
+     * If there is no request bound event, does nothing.
+     */
+    public void auditLogSuccess() {
+        if (!hasAlreadyLoggedForThisRequest()) {
+            if (getRequestScopedEvent() != null) {
+                auditLog(getRequestScopedEvent(), usernameHelper.getUsername(),
+                        addStandardEventData(getRequestScopedEventData()));
+            }
+        }
+    }
 
-//    public void logOncePerRequest(RestApiAuditEvent event, Map<String, Object> data) {
-//        if (hasLoggedForThisRequest()) {
-//            alreadyAuditLogged(event);
-//        } else {
-//            log(event, data);
-//        }
-//    }
-//
-//    public void logOncePerRequest(RestApiAuditEvent event, String user, Map<String, Object> data) {
-//        if (hasLoggedForThisRequest()) {
-//            alreadyAuditLogged(event);
-//        } else {
-//            log(event, user, data);
-//        }
-//    }
-//
-//    public void logOncePerRequest(RestApiAuditEvent event, String user, String reason,
-//            Map<String, Object> data) {
-//        if (hasLoggedForThisRequest()) {
-//            alreadyAuditLogged(event);
-//        } else {
-//            log(event, user, reason, data);
-//        }
-//    }
+    /**
+     * Audit log success of a specific event.
+     * Does not touch request bound event.
+     */
+    public void auditLogSuccess(RestApiAuditEvent event) {
+        auditLog(event, usernameHelper.getUsername(), addStandardEventData(new HashMap<>()));
+    }
+
+    /**
+     * Audit log an event failure.
+     * If there is no current event, logging is skipped
+     * @param ex
+     */
+    public void auditLogFail(Exception ex) {
+        auditLogFailInternal(null, ex);
+    }
+
+    /**
+     * Audit log an event failure.
+     * Log using current request bound event, if any. If no request bound event, use defaultEvent
+     * @param defaultEvent event to use for logging in case request bound event does not exist
+     * @param ex
+     */
+    public void auditLogFail(RestApiAuditEvent defaultEvent, Exception ex) {
+        if (defaultEvent == null) {
+            throw new IllegalArgumentException("missing defaultEvent");
+        }
+        auditLogFailInternal(defaultEvent, ex);
+    }
+
+    public boolean hasAlreadyLoggedForThisRequest() {
+        if (requestHelper.requestScopeIsAvailable()) {
+            return !getRequestScopedLoggedEvents().isEmpty();
+        } else {
+            return false;
+        }
+    }
+
+    public boolean hasAlreadyLoggedForThisRequestAny(RestApiAuditEvent...events) {
+        if (requestHelper.requestScopeIsAvailable()) {
+            Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
+            return getRequestScopedLoggedEvents().stream().anyMatch(searchedEvents::contains);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean hasAlreadyLoggedForThisRequest(RestApiAuditEvent event) {
+        if (requestHelper.requestScopeIsAvailable()) {
+            return requestScopeLoggedEvents.getEvents().contains(event);
+        } else {
+            return false;
+        }
+    }
+
+    private void auditLog(RestApiAuditEvent event, Map<String, Object> data) {
+        addRequestScopedLoggedEventForThisRequest(event);
+        AuditLogger.log(event.getEventName(), data);
+    }
+
+    private void auditLog(RestApiAuditEvent event, String user, Map<String, Object> data) {
+        addRequestScopedLoggedEventForThisRequest(event);
+        AuditLogger.log(event.getEventName(), user, data);
+    }
+
+    private void auditLog(RestApiAuditEvent event, String user, String reason,
+            Map<String, Object> data) {
+        addRequestScopedLoggedEventForThisRequest(event);
+        AuditLogger.log(event.getEventName(), user, reason, data);
+    }
+
+    private void addRequestScopedLoggedEventForThisRequest(RestApiAuditEvent event) {
+        if (requestHelper.requestScopeIsAvailable()) {
+            requestScopeLoggedEvents.getEvents().add(event);
+        }
+    }
+
+
+    private RestApiAuditEvent getRequestScopedEvent() {
+        if (requestHelper.requestScopeIsAvailable()) {
+            return auditContextRequestScopeHolder.getRequestScopedEvent();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get request scoped event data, or a new Map if not in request scope
+     * @return
+     */
+    private Map<String, Object> getEventData() {
+        if (requestHelper.requestScopeIsAvailable()) {
+            return getRequestScopedEventData();
+        } else {
+            return new HashMap<>();
+        }
+    }
+
+    private Map<String, Object> getRequestScopedEventData() {
+        if (requestHelper.requestScopeIsAvailable()) {
+            return auditContextRequestScopeHolder.getEventData();
+        } else {
+            return null;
+        }
+    }
+
+    private Set<RestApiAuditEvent> getRequestScopedLoggedEvents() {
+        if (requestHelper.requestScopeIsAvailable()) {
+            return requestScopeLoggedEvents.getEvents();
+        } else {
+            return null;
+        }
+    }
+
+
+
+    /**
+     * Adds url and authentication method to event data map. Does not modify original map, returns a new instance
+     */
+    private Map<String, Object> addStandardEventData(Map<String, Object> data) {
+        Map<String, Object> result = new HashMap<>(data);
+        result.put("url", requestHelper.getCurrentRequestUrl());
+        result.put("auth", securityHelper.getCurrentAuthenticationScheme());
+        return result;
+    }
+
+    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex) {
+        RestApiAuditEvent eventToLog = getRequestScopedEvent();
+        if (eventToLog == null) {
+            eventToLog = defaultEvent;
+        }
+        if (eventToLog != null) {
+            Map<String, Object> data = addStandardEventData(getEventData());
+            String reason = ex.getMessage();
+            auditLog(eventToLog, usernameHelper.getUsername(), reason, data);
+        }
+    }
 
 }

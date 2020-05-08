@@ -29,18 +29,7 @@ import lombok.Setter;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,69 +46,19 @@ import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUES
 @Scope(SCOPE_REQUEST)
 public class AuditContextRequestScopeHolder {
 
-    // TO DO: remove after debugging that it works as expected
-    private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
     private RestApiAuditEvent requestScopedEvent;
     private Map<String, Object> eventData = new ConcurrentHashMap<>();
+
+    // TO DO: remove after debugging that it works as expected
+    private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
     private int instanceNumber;
 
     @Autowired
-    public AuditContextRequestScopeHolder(UsernameHelper usernameHelper,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+    public AuditContextRequestScopeHolder(UsernameHelper usernameHelper) {
         instanceNumber = INSTANCE_COUNTER.incrementAndGet();
     }
 
     public void addData(String propertyName, Object value) {
         eventData.put(propertyName, value);
-    }
-
-    /**
-     * Adds url and authentication method.
-     * TO DO: here or where?
-     */
-    private void addStandardEventData() {
-        eventData.put("url", getCurrentRequestUrl());
-        eventData.put("auth", getCurrentAuthenticationScheme());
-    }
-
-    // TO DO: refactor
-    public static String getCurrentRequestUrl() {
-        return getCurrentHttpRequest().getRequestURI();
-    }
-
-    private String getCurrentAuthenticationScheme() {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-        if (authentication == null) {
-            return null;
-        } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-            return "ApiKey";
-        } else if (authentication instanceof UsernamePasswordAuthenticationToken) {
-            if (hasSecurityContextInSession()) {
-                return "Session";
-            } else {
-                return "HttpBasicPam";
-            }
-        } else {
-            return authentication.getClass().getSimpleName();
-        }
-    }
-
-    private boolean hasSecurityContextInSession() {
-        HttpServletRequest request = getCurrentHttpRequest();
-        boolean hasSessionContext = false;
-        if (request != null) {
-            hasSessionContext = new HttpSessionSecurityContextRepository().containsContext(request);
-        }
-        return hasSessionContext;
-    }
-
-    private static HttpServletRequest getCurrentHttpRequest() {
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        if (requestAttributes instanceof ServletRequestAttributes) {
-            HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
-            return request;
-        }
-        return null;
     }
 }

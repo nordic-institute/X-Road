@@ -37,18 +37,18 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENT
 @Slf4j
 public class AuditedApplicationEventListener {
 
-    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
-    public AuditedApplicationEventListener(AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName) {
-        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
+    public AuditedApplicationEventListener(AuditEventLoggingFacade auditEventLoggingFacade) {
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     @EventListener
     void handleAuthenticationCredentialsNotFoundEvent(AuthenticationCredentialsNotFoundEvent event) {
         // prevent double audit logging both API_KEY_AUTHENTICATION and AUTH_CREDENTIALS_DISCOVERY
-        if (!auditEventLoggerMakeUpBetterName.hasAlreadyLoggedForThisRequest(API_KEY_AUTHENTICATION)) {
-            auditEventLoggerMakeUpBetterName.auditLogFail(AUTH_CREDENTIALS_DISCOVERY,
+        if (!auditEventLoggingFacade.hasAlreadyLoggedForThisRequest(API_KEY_AUTHENTICATION)) {
+            auditEventLoggingFacade.auditLogFail(AUTH_CREDENTIALS_DISCOVERY,
                     event.getCredentialsNotFoundException());
         }
     }

@@ -97,6 +97,7 @@ public class TokenCertificateService {
     private final SecurityHelper securityHelper;
 
     @Autowired
+    @SuppressWarnings("checkstyle:ParameterNumber")
     public TokenCertificateService(SignerProxyFacade signerProxyFacade, ClientService clientService,
             CertificateAuthorityService certificateAuthorityService, KeyService keyService, DnFieldHelper dnFieldHelper,
             GlobalConfService globalConfService, GlobalConfFacade globalConfFacade, ClientRepository clientRepository,

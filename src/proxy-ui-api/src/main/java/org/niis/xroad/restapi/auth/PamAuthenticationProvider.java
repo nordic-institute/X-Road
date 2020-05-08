@@ -28,10 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.util.RequestHelper;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -66,8 +65,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final RestApiAuditEvent loginEvent; // login event to audit log
-    private final RequestHelper requestHelper;
-    private final AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * constructor
@@ -76,13 +74,11 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
             GrantedAuthorityMapper grantedAuthorityMapper,
             RestApiAuditEvent loginEvent,
-            AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName,
-            RequestHelper requestHelper) {
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
         this.loginEvent = loginEvent;
-        this.auditEventLoggerMakeUpBetterName = auditEventLoggerMakeUpBetterName;
-        this.requestHelper = requestHelper;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     /**
@@ -109,9 +105,9 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             throw e;
         } finally {
             if (success) {
-                auditEventLoggerMakeUpBetterName.auditLogSuccess(loginEvent);
+                auditEventLoggingFacade.auditLogSuccess(loginEvent);
             } else {
-                auditEventLoggerMakeUpBetterName.auditLogFail(loginEvent, caughException);
+                auditEventLoggingFacade.auditLogFail(loginEvent, caughException);
             }
         }
     }

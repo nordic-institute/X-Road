@@ -35,7 +35,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggerMakeUpBetterName;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AccessRightConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
@@ -188,7 +188,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
-        auditEventLoggerMakeUpBetterName.putRequestScopedAuditData("findClientsProperty", "fooValue");
+        auditEventLoggingFacade.putRequestScopedAuditData("findClientsProperty", "fooValue");
         logMethodHolder();
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
@@ -202,7 +202,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS_NONONO')")
     @AuditEventMethod(event = GET_CLIENT)
     public ResponseEntity<Client> getClient(String id) {
-        auditEventLoggerMakeUpBetterName.putRequestScopedAuditData("getClientProperty", "fooValue");
+        auditEventLoggingFacade.putRequestScopedAuditData("getClientProperty", "fooValue");
         logMethodHolder();
         ClientType clientType = getClientType(id);
         Client client = clientConverter.convert(clientType);
@@ -210,11 +210,11 @@ public class ClientsApiController implements ClientsApi {
     }
 
     private void logMethodHolder() {
-        log.info("ClientsApiController controllerMethodHolder " + auditEventLoggerMakeUpBetterName);
+        log.info("ClientsApiController controllerMethodHolder " + auditEventLoggingFacade);
     }
 
     @Autowired
-    AuditEventLoggerMakeUpBetterName auditEventLoggerMakeUpBetterName;
+    AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * Read one client from DB
@@ -252,7 +252,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @AuditEventMethod(event = UPDATE_CLIENT)
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
-        auditEventLoggerMakeUpBetterName.putRequestScopedAuditData("updateClientProperty", "fooValue");
+        auditEventLoggingFacade.putRequestScopedAuditData("updateClientProperty", "fooValue");
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
             throw new BadRequestException();
         }
