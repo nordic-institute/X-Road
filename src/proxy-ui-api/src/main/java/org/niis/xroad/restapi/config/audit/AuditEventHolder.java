@@ -45,6 +45,7 @@ public class AuditEventHolder {
 
     // TO DO: remove after debugging that it works as expected
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
+    // TODO: no setter for auditEvent. Instead init(event) and change(event) if needed?
     private RestApiAuditEvent auditEvent;
     private Map<String, Object> eventData = new HashMap<>();
 
@@ -73,6 +74,8 @@ public class AuditEventHolder {
     }
 
     public void auditLogFail(Exception ex) {
+        // TO DO: if event is running, log into it
+        // if not, log specific authentication and accessdenied exceptions
         if (!auditEventLoggingFacade.hasLoggedForThisRequest()) {
             if (getEventName() != null) {
                 String reason = ex.getMessage();

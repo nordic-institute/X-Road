@@ -57,6 +57,7 @@ public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint
         if (log.isDebugEnabled()) {
             log.debug("Pre-authenticated entry point called. Rejecting access");
         }
+
         resolver.resolveException(request, response, null, exception);
     }
 }
