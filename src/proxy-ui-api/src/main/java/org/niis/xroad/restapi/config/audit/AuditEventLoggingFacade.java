@@ -68,11 +68,25 @@ public class AuditEventLoggingFacade {
         this.securityHelper = securityHelper;
     }
 
-    public void setRequestScopedEvent(RestApiAuditEvent event) {
+    public void initRequestScopedEvent(RestApiAuditEvent event) {
+        updateRequestScopedEvent(event, true);
+    }
+
+    public void changeRequestScopedEvent(RestApiAuditEvent event) {
+        updateRequestScopedEvent(event, false);
+    }
+
+    /**
+     * @param init true = setting first value, exception if old value exist. false = changing value, exception if
+     *                old value does not exist
+     */
+    private void updateRequestScopedEvent(RestApiAuditEvent event, boolean init) {
         if (requestHelper.requestScopeIsAvailable()) {
             RestApiAuditEvent existing = auditContextRequestScopeHolder.getRequestScopedEvent();
-            if (existing != null) {
+            if (init && existing != null) {
                 throw new IllegalStateException("request scope already has event " + existing);
+            } else if (!init && existing == null) {
+                throw new IllegalStateException("request scope did not have event to override");
             } else {
                 auditContextRequestScopeHolder.setRequestScopedEvent(event);
             }
@@ -80,6 +94,7 @@ public class AuditEventLoggingFacade {
             throw new IllegalStateException("request scope is not available");
         }
     }
+
 
     public void putRequestScopedAuditData(String key, Object value) {
         if (requestHelper.requestScopeIsAvailable()) {

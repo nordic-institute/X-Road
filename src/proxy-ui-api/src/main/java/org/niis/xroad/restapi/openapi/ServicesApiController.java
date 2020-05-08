@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientHelper;
@@ -60,6 +61,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_REST_ENDPOINT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_ACCESS_RIGHTS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_PARAMS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVICE_ACCESS_RIGHTS;
 
 /**
  * services api
@@ -103,6 +109,7 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
+    @AuditEventMethod(event = EDIT_SERVICE_PARAMS)
     public ResponseEntity<Service> updateService(String id, ServiceUpdate serviceUpdate) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
@@ -149,6 +156,7 @@ public class ServicesApiController implements ServicesApi {
 
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
+    @AuditEventMethod(event = REMOVE_SERVICE_ACCESS_RIGHTS)
     public ResponseEntity<Void> deleteServiceServiceClients(String encodedServiceId, ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
@@ -168,6 +176,7 @@ public class ServicesApiController implements ServicesApi {
 
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
+    @AuditEventMethod(event = ADD_SERVICE_ACCESS_RIGHTS)
     public ResponseEntity<List<ServiceClient>> addServiceServiceClients(String encodedServiceId,
             ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
@@ -193,6 +202,7 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_OPENAPI3_ENDPOINT')")
+    @AuditEventMethod(event = ADD_REST_ENDPOINT)
     public ResponseEntity<Endpoint> addEndpoint(String id, Endpoint endpoint) {
         ServiceType serviceType = getServiceType(id);
 

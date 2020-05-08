@@ -52,7 +52,7 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
         Method javaMethod = method.getMethod();
         if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
             AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
-            auditEventLoggingFacade.setRequestScopedEvent(auditEventMethod.event());
+            auditEventLoggingFacade.initRequestScopedEvent(auditEventMethod.event());
         }
         return true;
     }

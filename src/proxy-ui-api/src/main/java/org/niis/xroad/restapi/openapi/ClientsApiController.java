@@ -107,8 +107,16 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_CLIENT;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
@@ -137,6 +145,8 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightConverter accessRightConverter;
     private final ServiceClientService serviceClientService;
     private final ServiceClientIdentifierConverter serviceClientIdentifierConverter;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
+
 
     /**
      * ClientsApiController constructor
@@ -151,7 +161,8 @@ public class ClientsApiController implements ClientsApi {
             TokenCertificateConverter tokenCertificateConverter,
             OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
             AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
-            ServiceClientIdentifierConverter serviceClientIdentifierConverter) {
+            ServiceClientIdentifierConverter serviceClientIdentifierConverter,
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -167,6 +178,7 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightConverter = accessRightConverter;
         this.serviceClientService = serviceClientService;
         this.serviceClientIdentifierConverter = serviceClientIdentifierConverter;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     /**
@@ -186,7 +198,6 @@ public class ClientsApiController implements ClientsApi {
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
         auditEventLoggingFacade.putRequestScopedAuditData("findClientsProperty", "fooValue");
-        logMethodHolder();
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
@@ -198,19 +209,12 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Client> getClient(String id) {
+        // TO DO: remove foo values
         auditEventLoggingFacade.putRequestScopedAuditData("getClientProperty", "fooValue");
-        logMethodHolder();
         ClientType clientType = getClientType(id);
         Client client = clientConverter.convert(clientType);
         return new ResponseEntity<>(client, HttpStatus.OK);
     }
-
-    private void logMethodHolder() {
-        log.info("ClientsApiController controllerMethodHolder " + auditEventLoggingFacade);
-    }
-
-    @Autowired
-    AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * Read one client from DB
@@ -267,6 +271,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
+    @AuditEventMethod(event = ADD_CLIENT_INTERNAL_CERT)
     public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
             Resource body) {
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(body);
@@ -288,6 +293,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
+    @AuditEventMethod(event = DELETE_CLIENT_INTERNAL_CERT)
     public ResponseEntity<Void> deleteClientTlsCertificate(String encodedId, String hash) {
         ClientId clientId = clientConverter.convertId(encodedId);
         try {
@@ -328,6 +334,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
+    @AuditEventMethod(event = ADD_LOCAL_GROUP)
     public ResponseEntity<LocalGroup> addClientLocalGroup(String id, LocalGroupAdd localGroupAdd) {
         ClientType clientType = getClientType(id);
         LocalGroupType localGroupType = null;
@@ -461,6 +468,7 @@ public class ClientsApiController implements ClientsApi {
      */
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT')")
+    @AuditEventMethod(event = ADD_CLIENT)
     public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
         boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
         IsAuthentication isAuthentication = null;
@@ -489,6 +497,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    @AuditEventMethod(event = DELETE_CLIENT)
     public ResponseEntity<Void> deleteClient(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -532,6 +541,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_CLIENT_REG_REQ')")
+    @AuditEventMethod(event = REGISTER_CLIENT)
     public ResponseEntity<Void> registerClient(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -548,6 +558,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_CLIENT_DEL_REQ')")
+    @AuditEventMethod(event = UNREGISTER_CLIENT)
     public ResponseEntity<Void> unregisterClient(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -564,6 +575,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_OWNER_CHANGE_REQ')")
+    @AuditEventMethod(event = SEND_OWNER_CHANGE_REQ)
     public ResponseEntity<Void> changeOwner(Client client) {
         try {
             clientService.changeOwner(client.getMemberClass(), client.getMemberCode(), client.getSubsystemCode());

@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AnchorConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
@@ -58,6 +59,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_CERT_REQ;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_SSL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.IMPORT_PROXY_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_ANCHOR;
 
 /**
  * system api controller
@@ -123,6 +130,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_SSL')")
+    @AuditEventMethod(event = GENERATE_INTERNAL_SSL)
     public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
@@ -144,6 +152,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_TSP')")
+    @AuditEventMethod(event = DELETE_TSP)
     public ResponseEntity<TimestampingService> addConfiguredTimestampingService(
             TimestampingService timestampingServiceToAdd) {
         try {
@@ -159,6 +168,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_TSP')")
+    @AuditEventMethod(event = DELETE_TSP)
     public ResponseEntity<Void> deleteConfiguredTimestampingService(TimestampingService timestampingService) {
         try {
             systemService.deleteConfiguredTimestampingService(timestampingServiceConverter
@@ -172,6 +182,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_CERT_REQ')")
+    @AuditEventMethod(event = GENERATE_INTERNAL_CERT_REQ)
     public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedName distinguishedName) {
         byte[] csrBytes = null;
         try {
@@ -184,6 +195,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('IMPORT_PROXY_INTERNAL_CERT')")
+    @AuditEventMethod(event = IMPORT_PROXY_INTERNAL_CERT)
     public ResponseEntity<CertificateDetails> importSystemCertificate(Resource certificateResource) {
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
         X509Certificate x509Certificate = null;
@@ -220,6 +232,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
+    @AuditEventMethod(event = UPLOAD_ANCHOR)
     public ResponseEntity<Void> uploadAnchor(Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         try {

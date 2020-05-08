@@ -41,68 +41,68 @@ public enum RestApiAuditEvent {
     INIT_ANCHOR("Initialize anchor"),
     INIT_SERVER_CONFIGURATION("Initialize server configuration"),
 
+    // clients events
+    // all these have been located and annotated, except ones with specific comments
     ADD_CLIENT("Add client"),
     REGISTER_CLIENT("Register client"),
     UNREGISTER_CLIENT("Unregister client"),
     DELETE_CLIENT("Delete client"),
-    DELETE_CLIENT_CERTS("Delete client certificates"),
-    CHANGE_OWNER("Change owner"),
-
+    // TO DO: this is about deleting orphans, should log event name be updated???
+    DELETE_ORPHANS("Delete client certificates"),
+    SEND_OWNER_CHANGE_REQ("Change owner"),
     ADD_SERVICE_DESCRIPTION("Add service description"),
     DELETE_SERVICE_DESCRIPTION("Delete service description"),
     DISABLE_SERVICE_DESCRIPTION("Disable service description"),
     ENABLE_SERVICE_DESCRIPTION("Enable service description"),
     REFRESH_SERVICE_DESCRIPTION("Refresh service description"),
+    EDIT_SERVICE_DESCRIPTION("Edit service description"), // generic edit before SD type is determined
     EDIT_WSDL_SERVICE_DESCRIPTION("Edit wsdl service description"),
-    EDIT_SERVICE_PARAMETERS("Edit service parameters"),
+    EDIT_SERVICE_PARAMS("Edit service parameters"),
     ADD_REST_ENDPOINT("Add rest endpoint"),
     EDIT_REST_ENDPOINT("Edit rest endpoint"),
     DELETE_REST_ENDPOINT("Delete rest endpoint"),
+    // TO DO: this is also "edit REST service description", is this correct?
     EDIT_OPENAPI3_SERVICE_DESCRIPTION("Edit openapi3 service description"),
-
     ADD_SERVICE_ACCESS_RIGHTS("Add access rights to service"),
     REMOVE_SERVICE_ACCESS_RIGHTS("Remove access rights from service"),
-    ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"),
-    REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS("Remove access rights from subject"),
+    ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"), // not implemented yet
+    REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS("Remove access rights from subject"), // not implemented yet
     SET_CONNECTION_TYPE("Set connection type for servers in service consumer role"),
-    ADD_INTERNAL_TLS_CERT("Add internal TLS certificate"),
-    DELETE_INTERNAL_TLS_CERT("Delete internal TLS certificate"),
-    ADD_GROUP("Add group"),
-    EDIT_GROUP_DESCRIPTION("Edit group description"),
-    ADD_GROUP_MEMBERS("Add members to group"),
-
-    REMOVE_GROUP_MEMBERS("Remove members from group"),
-    DELETE_GROUP("Delete group"),
-
-    GENERATE_TLS_CSR("Generate certificate request for TLS"),
-    IMPORT_TLS_CERT("Import TLS certificate from file"),
+    ADD_CLIENT_INTERNAL_CERT("Add internal TLS certificate"),
+    DELETE_CLIENT_INTERNAL_CERT("Delete internal TLS certificate"),
+    ADD_LOCAL_GROUP("Add group"),
+    EDIT_LOCAL_GROUP_DESC("Edit group description"),
+    ADD_LOCAL_GROUP_MEMBERS("Add members to group"),
+    REMOVE_LOCAL_GROUP_MEMBERS("Remove members from group"),
+    DELETE_LOCAL_GROUP("Delete group"),
+    GENERATE_INTERNAL_CERT_REQ("Generate certificate request for TLS"),
+    IMPORT_PROXY_INTERNAL_CERT("Import TLS certificate from file"),
     UPLOAD_ANCHOR("Upload configuration anchor"),
     ADD_TSP("Add timestamping service"),
     DELETE_TSP("Delete timestamping service"),
-    GENERATE_TLS_KEY_AND_CERT("Generate new internal TLS key and certificate"),
+    GENERATE_INTERNAL_SSL("Generate new internal TLS key and certificate"),
 
+    // keys and certificates events
     LOGIN_TOKEN("Log in to token"),
     LOGOUT_TOKEN("Log out from token"),
     GENERATE_KEY("Generate key"),
     DELETE_KEY_FROM_CONFIG("Delete key from configuration"),
     DELETE_KEY_FROM_TOKEN("Delete key from token"),
     GENERATE_CSR("Generate CSR"),
-
     DELETE_CSR("Delete CSR"),
     IMPORT_CERT_FILE("Import certificate from file"),
     IMPORT_CERT_TOKEN("Import certificate from token"),
     DELETE_CERT_FROM_CONFIG("Delete certificate from configuration"),
-
     DELETE_CERT_FROM_TOKEN("Delete certificate from foken"),
     ENABLE_CERT("Enable certificate"),
     DISABLE_CERT("Disable certificate"),
     REGISTER_AUTH_CERT("Register authentication certificate"),
-
     UNREGISTER_AUTH_CERT("Unregister authentication certificate"),
     SKIP_UNREGISTER_AUTH_CERT("Skip unregistration of authentication certificate"),
     UPDATE_TOKEN_NAME("Set friendly name to token"),
     UPDATE_KEY_NAME("Set friendly name to key"),
 
+    // backup and restore events
     BACKUP("Back up configuration"),
     UPLOAD_BACKUP("Upload backup file"),
     DELETE_BACKUP("Delete backup file"),
