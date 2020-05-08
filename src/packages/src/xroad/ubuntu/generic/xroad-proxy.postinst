@@ -68,7 +68,7 @@ case "$1" in
 
   RET=""
   db_get xroad-common/database-host || true
-  /usr/share/xroad/scripts/setup_db.sh $RET
+  /usr/share/xroad/scripts/setup_db.sh "$RET"
 
   db_stop
 

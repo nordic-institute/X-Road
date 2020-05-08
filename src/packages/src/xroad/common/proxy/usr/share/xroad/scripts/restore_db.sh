@@ -7,14 +7,16 @@ db_properties=/etc/xroad/db.properties
 root_properties=/etc/xroad.properties
 
 db_host="127.0.0.1:5432"
-db_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
-db_schema="$db_user"
+db_conn_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
+db_user="${db_conn_user%%@*}"
+db_schema=$(get_prop ${db_properties} 'serverconf.hibernate.connection.currentSchema' "${db_user},public")
+db_schema=${db_schema%%,*}
 db_password="$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "serverconf")"
 db_url="$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
 db_database=serverconf
+db_admin_user=$(get_prop ${root_properties} 'serverconf.database.admin_user' "$db_conn_user")
+db_admin_password=$(get_prop ${root_properties} 'serverconf.database.admin_password' "$db_password")
 pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
-db_admin_user=$(get_prop ${root_properties} 'serverconf.admin.username' "$db_user")
-db_admin_password=$(get_prop ${root_properties} 'serverconf.admin.password' "$db_password")
 
 pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
 if [[ "$db_url" =~ $pat ]]; then
@@ -36,7 +38,7 @@ psql_dbuser() {
 }
 
 { cat <<EOF
-BEGIN;                                        https://goforeoy.sharepoint.com/sites/Vuokko
+BEGIN;
 DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
 EOF
   cat "$dump_file"
@@ -46,7 +48,7 @@ EOF
 cd /usr/share/xroad/db/
 
 context="--contexts=user"
-if [[ "$db_user" != "$db_admin_user" ]]; then
+if [[ "$db_conn_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"
 fi
 

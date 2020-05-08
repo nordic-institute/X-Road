@@ -7,6 +7,10 @@ get_prop() {
     crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
 
+gen_pw() {
+    head -c 24 /dev/urandom | base64 | tr "/+" "_-"
+}
+
 setup_database() {
 
     node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
@@ -18,26 +22,32 @@ setup_database() {
     local db_properties=/etc/xroad/db.properties
     local root_properties=/etc/xroad.properties
 
-    local db_host="${1:-127.0.0.1:5432}"
+    local new_db_host="$1"
+    local db_host="${new_db_host:-127.0.0.1:5432}"
 
-    local tmp_password="$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")"
-    local db_user=$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')
+    local db_master_conn_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+    local db_master_user=${db_master_conn_user%%@*}
+
+    local db_conn_user=$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')
+    local db_user=${db_conn_user%%@*}
     local db_schema=$(get_prop ${db_properties} 'serverconf.hibernate.connection.currentSchema' "${db_user},public")
     db_schema=${db_schema%%,*}
-    local db_password=$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "$tmp_password")
+    local db_password=$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "$(gen_pw)")
     local db_url=$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")
-    local db_master_user=postgres
     local db_database=serverconf
-    local db_admin_user=$(get_prop ${root_properties} 'serverconf.admin.username' "$db_user")
-    local db_admin_password=$(get_prop ${root_properties} 'serverconf.admin.password' "$db_password")
+    local db_options
+
+    local db_admin_conn_user=$(get_prop ${root_properties} 'serverconf.database.admin_user' "$db_user")
+    local db_admin_user=${db_admin_conn_user%%@*}
+    local db_admin_password=$(get_prop ${root_properties} 'serverconf.database.admin_password' "$db_password")
 
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
 
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
-      db_host=${BASH_REMATCH[1]:-$db_host}
+      db_host=${new_db_host:-${BASH_REMATCH[1]}}
       #match 2 unused
-      db_database=${BASH_REMATCH[3]:-serverconf}
+      db_database=${BASH_REMATCH[3]:-$db_database}
       db_options="${BASH_REMATCH[4]:-$db_options}"
     else
       log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database$db_options'"
@@ -52,18 +62,17 @@ setup_database() {
     remote_psql() { psql -h "${db_addr:-127.0.0.1}" -p "${db_port:-5432}" -qtA "$@"; }
 
     psql_dbuser() {
-        PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
+        PGDATABASE="$db_database" PGUSER="$db_conn_user" PGPASSWORD="$db_password" remote_psql "$@"
     }
 
     psql_adminuser() {
-        PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+        PGDATABASE="$db_database" PGUSER="$db_admin_conn_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
     }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-        db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
         function psql_master() {
-            PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
+            PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_conn_user}" remote_psql "$@"
         }
     else
         function psql_master() { local_psql "$@"; }
@@ -72,6 +81,15 @@ setup_database() {
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
     else
+        if [[ $(get_prop ${root_properties} serverconf.database.admin_user "") == "" ]]; then
+            db_admin_user="${db_user}_admin"
+            db_admin_conn_user="$db_admin_user"
+            db_admin_password="$(gen_pw)"
+
+            crudini --set "${root_properties}" '' serverconf.database.admin_user "${db_admin_conn_user}"
+            crudini --set "${root_properties}" '' serverconf.database.admin_password "${db_admin_password}"
+        fi
+
         { cat <<EOF
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
@@ -114,7 +132,7 @@ EOF
     crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
     crudini --set ${db_properties} '' serverconf.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
     crudini --set ${db_properties} '' serverconf.hibernate.connection.currentSchema "${db_schema},public"
-    crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_user}"
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.username "${db_conn_user}"
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password "${db_password}"
 
     if [[ $(psql_adminuser -c "select 1 from pg_tables where schemaname = 'public' and tablename='databasechangelog'" 2>/dev/null) == 1 ]]; then
@@ -124,7 +142,7 @@ EOF
         --url="jdbc:postgresql://$db_host/$db_database" \
         --changeLogFile=/usr/share/xroad/db/serverconf-legacy-changelog.xml \
         --password="${db_admin_password}" \
-        --username="${db_admin_user}" \
+        --username="${db_admin_conn_user}" \
         update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 
       psql_master --single-transaction -d "$db_database" <<EOF || die "Renaming public schema to '$db_schema' failed."
@@ -154,7 +172,7 @@ EOF
       --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
       --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml \
       --password="${db_admin_password}" \
-      --username="${db_admin_user}" \
+      --username="${db_admin_conn_user}" \
       --defaultSchemaName="${db_schema}" \
       $context \
       update \

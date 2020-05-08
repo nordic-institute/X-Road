@@ -111,6 +111,7 @@ rm -rf %{buildroot}
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh
 %attr(544,root,xroad) /usr/share/xroad/bin/xroad-add-admin-user.sh
+%attr(540,root,xroad) /usr/share/xroad/scripts/setup_db.sh
 
 %defattr(-,root,root,-)
 /usr/bin/xroad-add-admin-user
