@@ -107,10 +107,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT_SERVICE_DESCRIPTION;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FIND_CLIENTS;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GET_CLIENT;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
@@ -184,7 +182,6 @@ public class ClientsApiController implements ClientsApi {
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    @AuditEventMethod(event = FIND_CLIENTS)
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
@@ -199,8 +196,7 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS_NONONO')")
-    @AuditEventMethod(event = GET_CLIENT)
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Client> getClient(String id) {
         auditEventLoggingFacade.putRequestScopedAuditData("getClientProperty", "fooValue");
         logMethodHolder();
@@ -250,7 +246,7 @@ public class ClientsApiController implements ClientsApi {
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    @AuditEventMethod(event = UPDATE_CLIENT)
+    @AuditEventMethod(event = SET_CONNECTION_TYPE)
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
         auditEventLoggingFacade.putRequestScopedAuditData("updateClientProperty", "fooValue");
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
@@ -367,7 +363,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
-    @AuditEventMethod(event = ADD_CLIENT_SERVICE_DESCRIPTION)
+    @AuditEventMethod(event = ADD_SERVICE_DESCRIPTION)
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
         ClientId clientId = clientConverter.convertId(id);
