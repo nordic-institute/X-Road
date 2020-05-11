@@ -1,6 +1,5 @@
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="action-row">
         <div>{{$t('initialConfiguration.anchor.info')}}</div>
         <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" />
@@ -20,13 +19,12 @@
 
         <div>
           <large-button
-            :disabled="invalid"
+            :disabled="!configuratonAnchor"
             @click="done"
             data-test="save-button"
           >{{$t(saveButtonText)}}</large-button>
         </div>
       </div>
-    </ValidationObserver>
   </div>
 </template>
 
@@ -97,13 +95,18 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchConfigurationAnchor();
+    //this.fetchConfigurationAnchor();
   },
 });
 </script>
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
+
+.label {
+  width: 170px;
+  min-width: 170px;
+}
 
 .action-row {
   display: flex;

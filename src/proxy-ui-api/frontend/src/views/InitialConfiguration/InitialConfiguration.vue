@@ -10,42 +10,57 @@
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <!-- Headers without anchor page -->
       <v-stepper-header v-if="anchorExists" class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('initialConfiguration.member.title')}}</v-stepper-step>
+        <v-stepper-step
+          :complete="currentStep > 1"
+          step="1"
+        >{{$t('initialConfiguration.member.title')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
+        <v-stepper-step
+          :complete="currentStep > 2"
+          step="2"
+        >{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
       </v-stepper-header>
       <!-- Headers with anchor page -->
       <v-stepper-header v-else class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('initialConfiguration.anchor.title')}}</v-stepper-step>
+        <v-stepper-step
+          :complete="currentStep > 1"
+          step="1"
+        >{{$t('initialConfiguration.anchor.title')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('initialConfiguration.member.title')}}</v-stepper-step>
+        <v-stepper-step
+          :complete="currentStep > 2"
+          step="2"
+        >{{$t('initialConfiguration.member.title')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
+        <v-stepper-step
+          :complete="currentStep > 3"
+          step="3"
+        >{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items  v-if="anchorExists" class="stepper-content">
+      <v-stepper-items v-if="anchorExists" class="stepper-content">
         <!-- Member step -->
         <v-stepper-content step="1">
-          <OwnerMemberPage @cancel="cancel" @done="ownerMemberReady" :showPreviousButton="false" />
+          <OwnerMemberStep @cancel="cancel" @done="ownerMemberReady" :showPreviousButton="false" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="2">
-          <TokenPinPage @cancel="cancel" @previous="currentStep = 1" @done="tokenPinReady" />
+          <TokenPinStep @cancel="cancel" @previous="currentStep = 1" @done="tokenPinReady" />
         </v-stepper-content>
       </v-stepper-items>
 
       <v-stepper-items v-else class="stepper-content">
         <!-- Anchor step -->
         <v-stepper-content step="1">
-          <ConfigurationAnchorPage @cancel="cancel" @done="configAnchorReady"/>
+          <ConfigurationAnchorStep @cancel="cancel" @done="configAnchorReady" />
         </v-stepper-content>
         <!-- Member step -->
         <v-stepper-content step="2">
-          <OwnerMemberPage @cancel="cancel" @previous="currentStep = 1" @done="ownerMemberReady" />
+          <OwnerMemberStep @cancel="cancel" @previous="currentStep = 1" @done="ownerMemberReady" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="3">
-          <TokenPinPage @cancel="cancel" @previous="currentStep = 2" @done="tokenPinReady" />
+          <TokenPinStep @cancel="cancel" @previous="currentStep = 2" @done="tokenPinReady" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -56,9 +71,9 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import TokenPinPage from './TokenPinPage.vue';
-import ConfigurationAnchorPage from './ConfigurationAnchorPage.vue';
-import OwnerMemberPage from './OwnerMemberPage.vue';
+import TokenPinStep from './TokenPinStep.vue';
+import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
+import OwnerMemberStep from './OwnerMemberStep.vue';
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';
@@ -66,22 +81,22 @@ import * as api from '@/util/api';
 export default Vue.extend({
   components: {
     SubViewTitle,
-    TokenPinPage,
-    ConfigurationAnchorPage,
-    OwnerMemberPage,
+    TokenPinStep,
+    ConfigurationAnchorStep,
+    OwnerMemberStep,
   },
   props: {},
   data() {
     return {
       currentStep: 1,
-      anchorExists: true
+      anchorExists: false,
     };
   },
   methods: {
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
         () => {
-          this.currentStep ++;
+          this.currentStep++;
         },
         (error) => {
           this.$store.dispatch('showError', error);
@@ -93,21 +108,40 @@ export default Vue.extend({
     },
 
     configAnchorReady(): void {
-      this.currentStep ++;
+      this.currentStep++;
     },
 
     ownerMemberReady(): void {
-      this.currentStep ++;
+      this.currentStep++;
     },
 
-    tokenPinReady(): void {
-      console.log('READY');
+    tokenPinReady(pin: string): void {
+      console.log('READY', pin);
+    },
+
+    fetchConfigurationAnchor(): void {
+      api
+        .get('/system/anchor')
+        .then((resp) => {
+          console.log(resp);
+          if (resp.data) {
+            this.anchorExists = true;
+          }
+        })
+        .catch((error) => {
+          if (error.response?.status === 404) {
+            // No anchor is valid case
+            this.anchorExists = false;
+          } else {
+            this.$store.dispatch('showError', error);
+          }
+        });
     },
   },
   created() {
     this.$store.dispatch('fetchMemberClasses');
-
-
+    this.fetchConfigurationAnchor();
+    
   },
 });
 </script>

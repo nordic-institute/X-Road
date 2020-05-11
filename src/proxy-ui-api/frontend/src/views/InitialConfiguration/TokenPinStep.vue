@@ -58,13 +58,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Key, Token } from '@/types';
-import { CsrFormatTypes } from '@/global';
 import * as api from '@/util/api';
 
 import { extend } from 'vee-validate';
@@ -79,9 +74,7 @@ extend('password', {
 
 export default Vue.extend({
   components: {
-    HelpIcon,
     LargeButton,
-    SubViewTitle,
     ValidationObserver,
     ValidationProvider,
   },
@@ -92,33 +85,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
-      'filteredServiceList',
-      'isUsageReadOnly',
-      'selectedMember',
-      'usage',
-    ]),
 
-    csrFormat: {
-      get(): string {
-        return this.$store.getters.csrFormat;
-      },
-      set(value: string) {
-        this.$store.commit('storeCsrFormat', value);
-      },
-    },
-    certificationService: {
-      get(): string {
-        return this.$store.getters.certificationService;
-      },
-      set(value: string) {
-        this.$store.commit('storeCertificationService', value);
-      },
-    },
   },
   methods: {
     done(): void {
-      this.$emit('done');
+      this.$emit('done', this.pin);
     },
     previous(): void {
       this.$emit('previous');
@@ -128,14 +99,6 @@ export default Vue.extend({
     },
   },
 
-  watch: {
-    filteredServiceList(val) {
-      // Set first certification service selected as default when the list is updated
-      if (val && val.length === 1) {
-        this.certificationService = val[0].name;
-      }
-    },
-  },
 });
 </script>
 
