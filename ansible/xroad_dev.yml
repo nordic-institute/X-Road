@@ -20,10 +20,15 @@
 - hosts: compile_servers
   roles:
     - compile
-    - build-packages
   tags: 
     - compile
 
+- hosts: compile_servers
+  roles:
+    - build-packages
+  tags: 
+    - build-packages
+  
 - hosts: ss_servers, cs_servers, cp_servers
   roles:
     - packages-to-local-repo

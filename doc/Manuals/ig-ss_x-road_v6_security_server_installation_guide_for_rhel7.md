@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.5  
+Version: 1.6  
 Doc. ID: IG-SS-RHEL7
 
 ---
@@ -22,6 +22,7 @@ Doc. ID: IG-SS-RHEL7
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                    | Jarkko Hyöty
  12.09.2019 | 1.4     | Add instruction for remote database usage                       | Ilkka Seppälä
  10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443        | Jarkko Hyöty
+ 30.04.2020 | 1.6     | Add instructions how to use remote database located in Microsoft Azure        | Ilkka Seppälä
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -46,8 +47,6 @@ Doc. ID: IG-SS-RHEL7
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
-- [4 Installation Error handling](#4-installation-error-handling)
-  - [4.1 UI Does Not Respond or Returns an Error Message](#41-ui-does-not-respond-or-returns-an-error-message)
 
 <!-- tocstop -->
 
@@ -181,7 +180,7 @@ To install the X-Road security server software on *RHEL7* operating system, foll
 
         sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
 
-3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create two configuration files. The first file `db.properties` contains the database connection configuration and the other `xroad.properties` the database administrator master password. The configuration can be done by performing the following steps:
+3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create two configuration files. The first file `db.properties` contains the database connection configuration and the other `xroad.properties` the database administrator related properties. The configuration can be done by performing the following steps:
 
         sudo useradd xroad
         sudo mkdir /etc/xroad
@@ -196,9 +195,10 @@ To install the X-Road security server software on *RHEL7* operating system, foll
 
     Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-        postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
+      postgres.connection.password = {database superuser password}
+      postgres.connection.user = {database superuser name, postgres by default}
 
-    Edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
+    If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. Edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
 
         serverconf.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/serverconf
         serverconf.hibernate.connection.username = serverconf

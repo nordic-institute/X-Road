@@ -76,6 +76,9 @@ script:
     path: /usr/share/xroad/scripts/verify_internal_configuration.sh
   external-configuration-verifier:
     path: /usr/share/xroad/scripts/verify_external_configuration.sh
+  restore-configuration:
+    path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
+    args: -b -s %s -f %s
 
 url:
   download-configuration-anchor: http://localhost:%s/execute

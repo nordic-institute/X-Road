@@ -4,11 +4,18 @@ set -e
 
 . /usr/share/debconf/confmodule
 
-db_name=messagelog
-db_user=messagelog
-db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+get_prop() {
+  crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
+}
+
 db_properties=/etc/xroad/db.properties
 root_properties=/etc/xroad.properties
+db_name=messagelog
+db_user=$(get_prop ${db_properties} 'messagelog.hibernate.connection.username' 'messagelog')
+db_master_user=$(get_prop ${root_properties} 'postgres.connection.user' 'postgres')
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_plain_user=${db_user%%@*}
+db_plain_master=${db_master_user%%@*}
 
 RET=
 db_get xroad-common/database-host
@@ -41,26 +48,26 @@ else
       master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
       export PGPASSWORD=${master_passwd}
 
-      if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
+      if  ! psql -h $db_addr -p $db_port -U $db_master_user --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
        then echo -e "\n\npostgreSQL is not UTF8 compatible."
           echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
           exit 101
       fi
 
-      if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
+      if [[ `psql -h $db_addr -p $db_port -U $db_master_user postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_plain_user}'"` == "1" ]]
        then
-          echo  "$db_user user exists, skipping role creation"
-          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+          echo  "$db_plain_user user exists, skipping role creation"
+          echo "ALTER ROLE ${db_plain_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U $db_master_user postgres
       else
-          echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+          echo "CREATE ROLE ${db_plain_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U $db_master_user postgres
       fi
 
-      if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
+      if [[ `psql -h $db_addr -p $db_port -U $db_master_user postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
        then
           echo "database ${db_name} exists"
       else
-          echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
-          createdb -h $db_addr -p $db_port -U postgres ${db_name} -O ${db_user} -E UTF-8
+          echo "GRANT ${db_plain_user} to ${db_plain_master}" | psql -h $db_addr -p $db_port -U $db_master_user postgres
+          createdb -h $db_addr -p $db_port -U $db_master_user ${db_name} -O ${db_plain_user} -E UTF-8
       fi
 
     else
@@ -74,19 +81,19 @@ else
           exit 101
       fi
 
-      if [[ $(su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" ") == "1" ]]
+      if [[ $(su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_plain_user'\" ") == "1" ]]
        then
-          echo  "$db_user exists, skipping schema creation"
-          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+          echo  "$db_plain_user exists"
+          echo "ALTER ROLE ${db_plain_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
       else
-          echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
+          echo "CREATE ROLE $db_plain_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
       fi
 
       if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
       then
           echo "database $db_name exists"
       else
-          su - postgres -c "createdb $db_name -O $db_user -E UTF-8"
+          su - postgres -c "createdb $db_name -O $db_plain_user -E UTF-8"
       fi
 
     fi
