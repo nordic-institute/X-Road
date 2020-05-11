@@ -164,7 +164,9 @@
     "accessRightsGiven": "Access Rights Given",
     "removeAll": "Remove all",
     "addService": "Add service",
-    "noAccessRights": "No access rights to this client"
+    "noAccessRights": "No access rights to this client",
+    "addServiceClientAccessRightSuccess": "Access rights successfully added",
+    "noAvailableServices": "No available services"
   },
   "localGroups": {
     "addGroup": "Add group",

@@ -39,7 +39,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +57,7 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_P
 @Configuration
 @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
 public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    public static final String LOGIN_URL = "/login";
 
     @Autowired
     @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
@@ -68,17 +68,17 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
         http
             .authorizeRequests()
                 .antMatchers("/error").permitAll()
-                .antMatchers("/login").permitAll()
+                .antMatchers(LOGIN_URL).permitAll()
                 .antMatchers("/logout").fullyAuthenticated()
                 .antMatchers("/api/**").denyAll()
                 .anyRequest().denyAll()
                 .and()
-              .csrf()
-                .ignoringAntMatchers("/login")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .csrf()
+                .ignoringAntMatchers(LOGIN_URL)
+                .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
                 .and()
             .formLogin()
-                .loginPage("/login")
+                .loginPage(LOGIN_URL)
                 .successHandler(formLoginStatusCodeSuccessHandler())
                 .failureHandler(statusCode401AuthenticationFailureHandler())
                 .permitAll()
@@ -88,11 +88,11 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 .permitAll();
     }
 
-
     @Override
-    protected void configure(AuthenticationManagerBuilder builder) throws Exception {
+    protected void configure(AuthenticationManagerBuilder builder) {
         builder.authenticationProvider(authenticationProvider);
     }
+
     /**
      * authentication failure handler which does not redirect but just returns a http status code
      * @return
@@ -100,7 +100,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private static AuthenticationFailureHandler statusCode401AuthenticationFailureHandler() {
         return new SimpleUrlAuthenticationFailureHandler() {
             public void onAuthenticationFailure(HttpServletRequest request,
-                                                HttpServletResponse response, AuthenticationException exception)
+                    HttpServletResponse response, AuthenticationException exception)
                     throws IOException, ServletException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
@@ -115,7 +115,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private static AuthenticationSuccessHandler formLoginStatusCodeSuccessHandler() {
         return new SimpleUrlAuthenticationSuccessHandler() {
             public void onAuthenticationSuccess(HttpServletRequest request,
-                                                HttpServletResponse response, Authentication authentication)
+                    HttpServletResponse response, Authentication authentication)
                     throws IOException, ServletException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");

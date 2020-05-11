@@ -352,6 +352,15 @@ public class TokenService {
         }
     }
 
+    /**
+     * Check if there are any tokens that are not software tokens
+     * @return true if there are any other than software tokens present
+     */
+    public boolean hasHardwareTokens() {
+        List<TokenInfo> allTokens = getAllTokens();
+        return allTokens.stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
+    }
+
     public static class PinIncorrectException extends ServiceException {
 
         public static final String ERROR_PIN_INCORRECT = "pin_incorrect";

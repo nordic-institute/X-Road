@@ -26,14 +26,15 @@ package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.controller.NotificationsApiController;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -50,22 +51,17 @@ import java.util.concurrent.TimeUnit;
  * to the value it would have if the endpoint was not called (and
  * resetting back to original value when other urls are accessed).
  */
-@WebFilter
 @Slf4j
-public class SessionTimeoutFilter implements Filter {
+@Configuration
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class SessionTimeoutFilter extends GenericFilterBean {
 
     private static final String ORIGINAL_MAX_INACTIVE_ATTR =
             "originalMaxInactiveInterval";
 
-
-    @Override
-    public void init(FilterConfig config) throws ServletException {
-        // nothing to init
-    }
-
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain) throws IOException, ServletException {
+            FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpSession session = httpRequest.getSession(false);
@@ -118,10 +114,5 @@ public class SessionTimeoutFilter implements Filter {
         }
 
         chain.doFilter(request, response);
-    }
-
-    @Override
-    public void destroy() {
-        // no resources to destroy
     }
 }

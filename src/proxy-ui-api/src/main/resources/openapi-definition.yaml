@@ -178,10 +178,19 @@ paths:
             minLength: 1
             maxLength: 255
       responses:
-        '202':
-          description: item accepted
-        '204':
-          description: request was successful
+        '200':
+          description: restore was successful
+          content:
+            application/json:
+              schema:
+                description: response that tells if hsm tokens were logged out during the restore process
+                title: TokensLoggedOut
+                type: object
+                properties:
+                  hsm_tokens_logged_out:
+                    description: whether any hsm tokens were logged out during the restore process
+                    type: boolean
+                    default: false
         '400':
           description: request was invalid
         '401':
@@ -5461,11 +5470,18 @@ components:
           example: CS:ORG:Client:myService.v1
           minLength: 1
           maxLength: 1535
-        service_code:
+        full_service_code:
           type: string
           format: text
           description: encoded service code and version
           example: myService.v1
+          minLength: 1
+          maxLength: 511
+        service_code:
+          type: string
+          format: text
+          description: encoded service code and version
+          example: myService
           minLength: 1
           maxLength: 511
         timeout:
@@ -5475,6 +5491,14 @@ components:
           example: 60
           minimum: 0
           maximum: 1000
+        title:
+          type: string
+          readOnly: true
+          format: text
+          description: service title
+          example: client deletion
+          minLength: 1
+          maxLength: 255
         ssl_auth:
           type: boolean
           description: service ssl auth
