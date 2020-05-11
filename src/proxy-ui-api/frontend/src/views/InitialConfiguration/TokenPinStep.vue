@@ -12,7 +12,6 @@
             v-model="pin"
             :error-messages="errors"
             data-test="pin-input"
-            maxlength="4"
           ></v-text-field>
         </ValidationProvider>
       </div>
@@ -27,7 +26,6 @@
             v-model="pinConfirm"
             :error-messages="errors"
             data-test="confirm-pin-input"
-            maxlength="4"
           ></v-text-field>
         </ValidationProvider>
       </div>
