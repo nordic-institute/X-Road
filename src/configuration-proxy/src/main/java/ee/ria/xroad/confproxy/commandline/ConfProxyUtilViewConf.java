@@ -38,9 +38,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static ee.ria.xroad.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
@@ -126,8 +123,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             System.out.println("Instance identifier: "
                     + anchor.getInstanceIdentifier());
             System.out.println("Generated at:        "
-                    + ZonedDateTime.ofInstant(anchor.getGeneratedAt().toInstant(),
-                    ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
+                    + anchor.getGeneratedAt().toInstant());
             System.out.println("Hash:                "
                     + anchorHash(conf));
         } else {
