@@ -31,10 +31,15 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
+import org.niis.xroad.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.ProcessFailedException;
+import org.niis.xroad.restapi.service.RestoreProcessFailedException;
+import org.niis.xroad.restapi.service.RestoreService;
+import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -57,6 +62,8 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -72,7 +79,11 @@ import static org.mockito.Mockito.when;
 public class BackupsApiControllerTest {
 
     @MockBean
-    BackupService backupService;
+    private BackupService backupService;
+    @MockBean
+    private RestoreService restoreService;
+    @MockBean
+    private TokenService tokenService;
 
     @Autowired
     private BackupsApiController backupsApiController;
@@ -100,6 +111,7 @@ public class BackupsApiControllerTest {
         bf2.setCreatedAt(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
         when(backupService.getBackupFiles()).thenReturn(new ArrayList<>(Arrays.asList(bf1, bf2)));
+        when(tokenService.hasHardwareTokens()).thenReturn(false);
     }
 
     @Test
@@ -144,7 +156,8 @@ public class BackupsApiControllerTest {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void deleteBackup() {
-        ResponseEntity<Void> response = backupsApiController.deleteBackup(BACKUP_FILE_1_NAME);
+        ResponseEntity<Void> response = backupsApiController
+                .deleteBackup(BACKUP_FILE_1_NAME);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
     }
@@ -170,7 +183,8 @@ public class BackupsApiControllerTest {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(backupService.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
 
-        ResponseEntity<Resource> response = backupsApiController.downloadBackup(BACKUP_FILE_1_NAME);
+        ResponseEntity<Resource> response = backupsApiController
+                .downloadBackup(BACKUP_FILE_1_NAME);
         Resource backup = response.getBody();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(bytes.length, backup.contentLength());
@@ -184,7 +198,8 @@ public class BackupsApiControllerTest {
         doThrow(new BackupFileNotFoundException("")).when(backupService).readBackupFile(filename);
 
         try {
-            ResponseEntity<Resource> response = backupsApiController.downloadBackup(filename);
+            ResponseEntity<Resource> response = backupsApiController
+                    .downloadBackup(filename);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
@@ -266,6 +281,64 @@ public class BackupsApiControllerTest {
             fail("should throw BadRequestException");
         } catch (BadRequestException expected) {
             // success
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackup() {
+        ResponseEntity<TokensLoggedOut> response = backupsApiController
+                .restoreBackup(BACKUP_FILE_1_NAME);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        TokensLoggedOut tokensLoggedOut = response.getBody();
+        assertFalse(tokensLoggedOut.getHsmTokensLoggedOut());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackupWithLoggedOutTokens() {
+        when(tokenService.hasHardwareTokens()).thenReturn(true);
+        ResponseEntity<TokensLoggedOut> response = backupsApiController
+                .restoreBackup(BACKUP_FILE_1_NAME);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        TokensLoggedOut tokensLoggedOut = response.getBody();
+        assertTrue(tokensLoggedOut.getHsmTokensLoggedOut());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackupNotFound() throws Exception {
+        doThrow(new BackupFileNotFoundException("")).when(restoreService).restoreFromBackup(any());
+        try {
+            backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException e) {
+            assertEquals(BackupFileNotFoundException.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackupInterrupted() throws Exception {
+        doThrow(new InterruptedException()).when(restoreService).restoreFromBackup(any());
+        try {
+            backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException e) {
+            // expected
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    public void restoreFromBackupFailed() throws Exception {
+        doThrow(new RestoreProcessFailedException(new ProcessFailedException("process failed"), "restore failed"))
+                .when(restoreService).restoreFromBackup(any());
+        try {
+            backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
+            fail("should throw InternalServerErrorException");
+        } catch (InternalServerErrorException e) {
+            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 }
