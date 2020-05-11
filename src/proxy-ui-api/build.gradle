@@ -1,10 +1,10 @@
 buildscript {
     ext {
-        openapiGeneratorVersion = '4.0.1'
+        openapiGeneratorVersion = '4.2.0'
         nodePluginVersion = '1.3.1'
-        nodeVersion = '10.16.1'
-        npmVersion = '6.9.0'
-        swaggerParserVersion = '2.0.13'
+        nodeVersion = '12.16.3'
+        npmVersion = '6.14.4'
+        swaggerParserVersion = '2.0.19'
     }
     repositories {
         mavenCentral()
@@ -18,12 +18,12 @@ buildscript {
 }
 
 plugins {
-  id "io.spring.dependency-management"
-  id 'org.springframework.boot'
+    id "io.spring.dependency-management"
+    id 'org.springframework.boot'
 }
 
 ext {
-	set('springCloudVersion', "Hoxton.SR4")
+    set('springCloudVersion', "Hoxton.SR4")
 }
 
 sourceSets {
@@ -49,7 +49,7 @@ bootJar {
 }
 
 processResources {
-    from ('frontend/dist/') {
+    from('frontend/dist/') {
         into 'public/'
     }
 }
@@ -131,9 +131,9 @@ openApiGenerate {
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     systemProperties = [
         modelDocs: "false",
-        apis: "", // must use empty strings instead of "true":
+        apis     : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models: ""
+        models   : ""
     ]
     configOptions = [
         interfaceOnly: "true"
@@ -158,11 +158,11 @@ compileJava.dependsOn 'fixGeneratedSourcesDirectory'
 fixGeneratedSourcesDirectory.dependsOn tasks.openApiGenerate
 
 // set license format to ignore generated java sources
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }
@@ -203,15 +203,13 @@ dependencies {
     implementation('org.apache.commons:commons-compress:1.20')
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
-    implementation('io.swagger.parser.v3:swagger-parser:2.0.19')
+    implementation("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}")
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')
 
-    implementation('io.springfox:springfox-swagger2:2.9.2')
-    implementation('io.springfox:springfox-swagger-ui:2.8.0')
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.1.0')
     implementation('javax.validation:validation-api')
@@ -219,10 +217,10 @@ dependencies {
 }
 
 dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         dependencies {
             dependency 'com.google.guava:guava:28.0-jre'
         }
-	}
+    }
 }
