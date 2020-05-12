@@ -32,13 +32,13 @@ export function selectedFilter(arr: any[], search: string, excluded?: string): a
 }
 
 // Checks if the given WSDL URL valid
-export function isValidWsdlURL(str: string) {
+export function isValidWsdlURL(str: string): boolean {
   const pattern = new RegExp('(^(https?):\/\/\/?)[-a-zA-Z0-9]');
   return !!pattern.test(str);
 }
 
 // Checks if the given REST URL is valid
-export function isValidRestURL(str: string) {
+export function isValidRestURL(str: string): boolean {
   return isValidWsdlURL(str);
 }
 
