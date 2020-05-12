@@ -57,6 +57,8 @@ class InitController < ApplicationController
 
     required_validators = [:required]
 
+    logger.info "Printing out required_validators: #{required_validators}"
+
     unless SystemParameter.instance_identifier
       init_instance_identifier = required_validators.clone
     end
