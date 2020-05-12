@@ -56,11 +56,10 @@ class InitController < ApplicationController
     authorize!(:init_config)
 
     required_validators = [:required]
-    identifier_validators = [:identifier]
 
     unless SystemParameter.instance_identifier
       init_instance_identifier = required_validators.clone
-      instance_identifier_validator = identifier_validators.clone
+      init_instance_identifier << :identifier
     end
 
     unless SystemParameter.central_server_address
@@ -82,7 +81,6 @@ class InitController < ApplicationController
 
     validate_params({
       :instance_identifier => init_instance_identifier || [],
-      :instance_identifier => instance_identifier_validator || [],
       :central_server_address => init_central_server_address || [],
       :pin => init_software_token || [],
       :pin_repeat => init_software_token || []
