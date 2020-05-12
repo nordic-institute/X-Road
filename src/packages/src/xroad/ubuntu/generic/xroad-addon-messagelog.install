@@ -6,6 +6,7 @@
 
 ../../../../src/xroad/common/addon/proxy/messagelog-changelog.xml usr/share/xroad/db/
 ../../../../src/xroad/common/addon/proxy/messagelog/ usr/share/xroad/db/
+../../../../src/xroad/common/addon/proxy/setup_messagelog_db.sh usr/share/xroad/scripts/
 
 ../../../../../addons/messagelog/scripts/demo-upload.pl usr/share/doc/xroad-addon-messagelog/archive-server/
 ../../../../../../doc/archive-hashchain-verifier.rb usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/

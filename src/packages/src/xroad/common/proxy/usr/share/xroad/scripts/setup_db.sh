@@ -114,7 +114,7 @@ BEGIN
   CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
   GRANT "${db_user}" to "${db_master_user}";
   EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_admin_user already exists';
+    RAISE NOTICE 'User $db_user already exists';
 END\$\$;
 GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
 GRANT USAGE ON SCHEMA public to "${db_user}";
@@ -167,7 +167,7 @@ EOF
       context="--contexts=admin"
     fi
 
-    JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
+    LIQUIBASE_HOME="$(pwd)" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
       --classpath=/usr/share/xroad/jlib/proxy.jar \
       --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
       --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml \
