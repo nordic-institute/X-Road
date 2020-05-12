@@ -32,13 +32,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
 @Slf4j
+// TO DO: replace with implements WebMvcConfigurer and test
+// https://www.baeldung.com/web-mvc-configurer-adapter-deprecated
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Autowired
-    RequestScopedControllerMethodHandlerInterceptor yourInjectedInterceptor;
+    RequestScopedControllerMethodHandlerInterceptor auditInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(yourInjectedInterceptor);
+        registry.addInterceptor(auditInterceptor);
     }
 }
