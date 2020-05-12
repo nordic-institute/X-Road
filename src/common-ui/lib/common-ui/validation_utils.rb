@@ -124,7 +124,6 @@ module CommonUi
 
     class RequiredValidator < Validator
       def validate(val, param)
-        logger.info "running required validator"
         if !param || !val || (val.is_a?(String) && val.empty?)
           raise ValidationError.new(param, :required),
                 I18n.t('validation.missing_param', :param => param)
@@ -227,7 +226,6 @@ module CommonUi
 
     class IdentifierValidator < Validator
       def validate(val, param)
-        logger.info "running identifier validator"
         if val.include? "@"
           raise ValidationError.new(param, :identifier),
                 I18n.t('validation.invalid_identifier', :param => param, :val => val)

@@ -78,6 +78,8 @@ class InitController < ApplicationController
       raise t('init.already_initialized')
     end
 
+    logger.info "running validators"
+
     validate_params({
       :instance_identifier => [init_instance_identifier, instance_identifier_validator],
       :central_server_address => init_central_server_address || [],
