@@ -116,8 +116,13 @@ export const actions: ActionTree<AddClientState, RootState> = {
 
   fetchSelectableClients({ commit, rootGetters }, id: string) {
     // Fetch clients from backend that can be selected
-    return api.get('/clients?is_not_local_client=true&member_missing_sign_cert=true')
+
+    
+
+   // return api.get('/clients?is_not_local_client=true&member_missing_sign_cert=true')
+    return api.get('/clients?exclude_local=true')
       .then((res) => {
+        console.log(res.data.length);
         commit('storeMembers', res.data);
       })
       .catch((error) => {

@@ -1,4 +1,5 @@
 import { Client } from '@/types';
+import { cloneDeep } from 'lodash';
 
 // Filters an array of objects excluding specified object key
 export function selectedFilter(arr: any[], search: string, excluded?: string): any[] {
@@ -99,3 +100,54 @@ export function containsClient(clients: Client[], memberClass: string, memberCod
 
   return false;
 }
+
+
+
+export function generateVirtualMembers(clients: Client[]): Client[] {
+
+  // New arrays to separate members and subsystems
+  const members: Client[] = [];
+
+  // Find the owner member (there is only one)
+  clients.forEach((client: Client) => {
+    if (client.owner === true) {
+      members.push(client);
+      return;
+    }
+  });
+
+  clients.forEach((element: Client) => {
+    // Check if the member is already in the members array
+    const memberAlreadyExists = members.find((value, index) => {
+      const cli = value as Client;
+
+      // Compare member class and member code
+      if (cli.member_class === element.member_class && cli.member_code === element.member_code) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (!memberAlreadyExists) {
+      // If member is not in members array, create and add it
+      const clone: any = cloneDeep(element);
+
+      // Create member id by removing the last part of subsystem's id
+      const idArray = clone.id.split(':');
+      idArray.pop();
+      clone.id = idArray.join(':');
+
+      // Create a name from member_name
+      if (clone.member_name) {
+        clone.name = clone.member_name;
+      }
+
+      clone.status = undefined;
+      members.push(clone);
+    }
+  });
+
+  return members;
+}
+
