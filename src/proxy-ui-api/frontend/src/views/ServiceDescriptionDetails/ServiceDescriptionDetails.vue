@@ -2,15 +2,21 @@
   <div class="xrd-tab-max-width">
     <div>
       <subViewTitle
-        v-if="serviceDesc.type === 'WSDL'"
+        v-if="serviceDesc.type === serviceTypeEnum.WSDL"
         :title="$t('services.wsdlDetails')"
         @close="close"
       />
       <subViewTitle
-        v-if="serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3'"
+        v-else-if="serviceDesc.type === serviceTypeEnum.REST"
         :title="$t('services.restDetails')"
         @close="close"
       />
+      <subViewTitle
+        v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3"
+        :title="$t('services.openapiDetails')"
+        @close="close"
+      />
+
       <div class="delete-wrap">
         <large-button
           v-if="showDelete"
@@ -22,10 +28,14 @@
 
     <div class="edit-row">
       <div>{{$t('services.serviceType')}}</div>
-      <div class="code-input">
-        {{serviceDesc.type === 'OPENAPI3'
-        ? $t('services.OpenApi3Description') : $t('services.restApiBasePath')}}
+
+      <div class="code-input" v-if="serviceDesc.type === serviceTypeEnum.REST">
+        {{$t('services.restApiBasePath')}}
       </div>
+      <div class="code-input" v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3">
+        {{$t('services.OpenApi3Description')}}
+      </div>
+      <div class="code-input" v-else>{{$t('services.wsdlDescription')}}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
@@ -51,7 +61,7 @@
       </div>
 
       <div class="edit-row">
-        <template v-if="serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3'">
+        <template v-if="serviceDesc.type === serviceTypeEnum.REST || serviceDesc.type === serviceTypeEnum.OPENAPI3">
           <div>{{$t('services.serviceCode')}}</div>
 
           <ValidationProvider
@@ -130,6 +140,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceDescription } from '@/types';
+import {ServiceTypeEnum} from '@/domain';
 
 export default Vue.extend({
   components: {
@@ -156,6 +167,7 @@ export default Vue.extend({
       serviceDesc: {} as ServiceDescription,
       initialServiceCode: '',
       saveBusy: false,
+      serviceTypeEnum: ServiceTypeEnum,
     };
   },
   computed: {
@@ -178,8 +190,8 @@ export default Vue.extend({
       } as any;
 
       if (
-        serviceDescriptionUpdate.type === 'REST' ||
-        serviceDescriptionUpdate.type === 'OPENAPI3'
+        serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
+        serviceDescriptionUpdate.type === this.serviceTypeEnum.OPENAPI3
       ) {
         serviceDescriptionUpdate.ignore_warnings = false;
         serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
@@ -228,7 +240,7 @@ export default Vue.extend({
     },
 
     showDeletePopup(serviceType: string): void {
-      if (serviceType === 'WSDL') {
+      if (serviceType === this.serviceTypeEnum.WSDL) {
         this.confirmWSDLDelete = true;
       } else {
         this.confirmRESTDelete = true;

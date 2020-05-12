@@ -153,6 +153,7 @@ import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import { cloneDeep } from 'lodash';
 import {Service, ServiceDescription} from '@/types';
+import {ServiceTypeEnum} from '@/domain';
 
 export default Vue.extend({
   components: {
@@ -188,6 +189,7 @@ export default Vue.extend({
       addBusy: false,
       refreshBusy: {} as any,
       refreshButtonComponentKey: 0,
+      serviceTypeEnum: ServiceTypeEnum,
     };
   },
   computed: {
@@ -255,9 +257,9 @@ export default Vue.extend({
   },
   methods: {
     showRefreshButton(serviceDescriptionType: string): boolean {
-      if (serviceDescriptionType === 'WSDL') {
+      if (serviceDescriptionType === this.serviceTypeEnum.WSDL) {
         return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
-      } else if (serviceDescriptionType === 'OPENAPI3') {
+      } else if (serviceDescriptionType === this.serviceTypeEnum.OPENAPI3) {
         return this.$store.getters.hasPermission(Permissions.REFRESH_OPENAPI3);
       }
       return false;
@@ -349,7 +351,7 @@ export default Vue.extend({
       api
         .post(`/clients/${this.id}/service-descriptions`, {
           url,
-          type: 'WSDL',
+          type: this.serviceTypeEnum.WSDL,
         })
         .then((res) => {
           this.$store.dispatch('showSuccess', 'services.wsdlAdded');
@@ -381,7 +383,7 @@ export default Vue.extend({
       api
         .post(`/clients/${this.id}/service-descriptions`, {
           url: this.url,
-          type: 'WSDL',
+          type: this.serviceTypeEnum.WSDL,
           ignore_warnings: true,
         })
         .then((res) => {
