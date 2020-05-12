@@ -59,8 +59,8 @@ import java.util.Optional;
 public class InitializationService {
     public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
     public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
-    public static final String METADATA_SERVERCONF_EXISTS = "init_serverconf_exists";
-    public static final String METADATA_SOFTWARE_TOKEN_INITIALIZED = "init_software_token_initialized";
+    public static final String WARNING_SERVERCONF_EXISTS = "init_serverconf_exists";
+    public static final String WARNING_SOFTWARE_TOKEN_INITIALIZED = "init_software_token_initialized";
     public static final String METADATA_PIN_MIN_LENGTH = "pin_min_length";
     public static final String METADATA_PIN_MIN_CHAR_CLASSES = "pin_min_char_classes_count";
 
@@ -89,36 +89,35 @@ public class InitializationService {
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
      * 1. is anchor imported - whether or not a configuration anchor has been imported
-     * 2. is server conf initialized - whether or not a server conf exists
-     * 3. is software token initialized - whether or not a software token exists AND
+     * 2. is server code initialized - whether or not a server code has been initialized
+     * 3. is server owner initialized - whether or not a server owner has been initialized
+     * 4. is software token initialized - whether or not a software token exists AND
      * it's status != TokenStatusInfo.NOT_INITIALIZED
      * @return
      */
-    public InitializationStatusDto isSecurityServerInitialized() {
+    public InitializationStatusDto getSecurityServerInitializationStatus() {
         boolean isAnchorImported = systemService.isAnchorImported();
-        boolean isServerConfInitialized = serverConfService.isServerConfInitialized();
+        boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
+        boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
         boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
         initializationStatusDto.setAnchorImported(isAnchorImported);
-        initializationStatusDto.setServerConfInitialized(isServerConfInitialized && isSoftwareTokenInitialized);
+        initializationStatusDto.setServerCodeInitialized(isServerCodeInitialized);
+        initializationStatusDto.setServerOwnerInitialized(isServerOwnerInitialized);
+        initializationStatusDto.setSoftwareTokenInitialized(isSoftwareTokenInitialized);
         return initializationStatusDto;
     }
 
     /**
-     * Initialize a new Security Server with the provided parameters. The method will throw an exception if the
-     * server has already been initialized. The method does support partial initialization (e.g. server conf has
-     * been created but software token has not) BUT taking that into use will require changing
-     * {@link #verifyInitializationPrerequisites()} to throw UnhandledWarningsException with warning metadata
-     * instead of InitializationException.
+     * Initialize a new Security Server with the provided parameters
      * @param securityServerCode server code for the new Security Server
      * @param ownerMemberClass member class of the new owner member
      * @param ownerMemberCode member code of the new owner member
      * @param softwareTokenPin pin code for the initial software token (softToken-0)
      * @param ignoreWarnings
      * @throws AnchorNotFoundException if an anchor has not been imported
-     * @throws InitializationException if prerequisite check fails: if a server conf already exists OR if a
-     * software token has already been initialized
-     * @throws UnhandledWarningsException
+     * @throws UnhandledWarningsException if a server conf already exists OR if a software token has already been
+     * initialized OR trying to set unregistered member as an owner OR server code already exists
      * @throws WeakPinException if the pin does not meet the length and complexity requirements (if token pin policy is
      * enforced by properties)
      * @throws InvalidPinException if the provided pin code does not follow the TokenPinPolicy (if token pin policy is
@@ -126,12 +125,12 @@ public class InitializationService {
      * @throws SoftwareTokenInitException if something goes wrong with the token init
      */
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
-            String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, InitializationException,
-            UnhandledWarningsException, WeakPinException, InvalidPinException, SoftwareTokenInitException {
+            String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
+            UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
-        verifyInitializationPrerequisites();
+
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
         // get id from db if exists - this is for partial init support since no client ids should yet exist
         ClientId ownerClientId = clientService.getPossiblyManagedEntity(ClientId.create(instanceIdentifier,
@@ -141,25 +140,27 @@ public class InitializationService {
         }
         // --- Start the init ---
         ServerConfType serverConf = createInitialServerConf(ownerClientId, securityServerCode);
-        initializeSoftwareToken(softwareTokenPin);
+        if (!tokenService.isSoftwareTokenInitialized()) {
+            initializeSoftwareToken(softwareTokenPin);
+        }
         serverConfService.saveOrUpdate(serverConf);
     }
 
     /**
      * Helper to create a software token
      * @param softwareTokenPin the pin of the token
-     * @throws InvalidPinException
-     * @throws WeakPinException
-     * @throws SoftwareTokenInitException
+     * @throws InvalidCharactersException if the pin includes characters outside of ascii (range 32 - 126)
+     * @throws WeakPinException if the pin does not meet the requirements set in {@link TokenPinPolicy}
+     * @throws SoftwareTokenInitException if token init fails
      */
-    private void initializeSoftwareToken(String softwareTokenPin) throws InvalidPinException, WeakPinException,
+    private void initializeSoftwareToken(String softwareTokenPin) throws InvalidCharactersException, WeakPinException,
             SoftwareTokenInitException {
         char[] pin = softwareTokenPin.toCharArray();
         if (isTokenPinEnforced) {
             TokenPinPolicy.Description description = TokenPinPolicy.describe(pin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {
-                    throw new InvalidPinException("The provided pin code does not match with the pin code policy");
+                    throw new InvalidCharactersException("The provided pin code contains invalid characters");
                 }
                 List<String> metadata = new ArrayList<>();
                 metadata.add(METADATA_PIN_MIN_LENGTH);
@@ -178,43 +179,53 @@ public class InitializationService {
     }
 
     /**
-     * Helper to create the initial server conf
+     * Helper to create the initial server conf with a new server code and owner. If an existing server conf is found
+     * and it already has a server code or an owner -> the existing values will not be overridden
      * @param ownerClientId
      * @param securityServerCode
      * @return ServerConfType
      */
     private ServerConfType createInitialServerConf(ClientId ownerClientId, String securityServerCode) {
-        /* get serverconf from db if exists
-           - this is for partial init support since no server confs should yet exist
-         */
         ServerConfType serverConf = serverConfService.getOrCreateServerConf();
-        ClientType ownerClient = null;
-        // get client from db if exists - this is for partial init support since no clients should yet exist
-        Optional<ClientType> foundClient = serverConf.getClient().stream()
-                .filter(clientType -> clientType.getIdentifier().equals(ownerClientId))
-                .findFirst();
-        ownerClient = foundClient.orElse(getInitialClient(ownerClientId));
-        ownerClient.setConf(serverConf);
-        // again for partial init support: if the client already exists there is no reason to add it again
-        if (!serverConf.getClient().contains(ownerClient)) {
-            serverConf.getClient().add(ownerClient);
+
+        if (StringUtils.isEmpty(serverConf.getServerCode())) {
+            serverConf.setServerCode(securityServerCode);
         }
-        serverConf.setOwner(ownerClient);
-        serverConf.setServerCode(securityServerCode);
+
+        if (serverConf.getOwner() == null) {
+            ClientType ownerClient = getInitialClient(ownerClientId);
+            ownerClient.setConf(serverConf);
+            if (!serverConf.getClient().contains(ownerClient)) {
+                serverConf.getClient().add(ownerClient);
+            }
+            serverConf.setOwner(ownerClient);
+        }
         return serverConf;
     }
 
     /**
-     * Helper to check for warnings
+     * Check for warnings. Warnings include:
+     * - if server conf has already been initialized
+     * - if software token has already been initialized
+     * - if trying to add unregistered member as an owner
+     * - if the server id already exists
      * @param ownerClientId
      * @param securityServerCode
      * @throws UnhandledWarningsException
      */
     private void checkForWarnings(ClientId ownerClientId, String securityServerCode)
             throws UnhandledWarningsException {
+        boolean isServerConfInitialized = serverConfService.isServerConfInitialized();
+        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         String ownerMemberName = globalConfFacade.getMemberName(ownerClientId);
         SecurityServerId serverId = SecurityServerId.create(ownerClientId, securityServerCode);
         List<WarningDeviation> warnings = new ArrayList<>();
+        if (isServerConfInitialized) {
+            warnings.add(new WarningDeviation(WARNING_SERVERCONF_EXISTS));
+        }
+        if (isSoftwareTokenInitialized) {
+            warnings.add(new WarningDeviation(WARNING_SOFTWARE_TOKEN_INITIALIZED));
+        }
         if (StringUtils.isEmpty(ownerMemberName)) {
             WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_UNREGISTERED_MEMBER,
                     ownerClientId.toShortString());
@@ -247,30 +258,7 @@ public class InitializationService {
     }
 
     /**
-     * Verify that the initialization process can proceed and that the security server has not already been
-     * initialized. This means verifying that an anchor has been imported,
-     * server conf does not exist and a software token has not yet been initialized. This method could also be
-     * changed into throwing an UnhandledWarningsException with warning metadata instead of the current
-     * InitializationException if partial init needs to be supported in the future
-     * @throws InitializationException if server conf exists OR software token is already initialized
-     */
-    private void verifyInitializationPrerequisites() throws InitializationException {
-        boolean isServerConfInitialized = serverConfService.isServerConfInitialized();
-        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
-        List<String> metadata = new ArrayList<>();
-        if (isServerConfInitialized) {
-            metadata.add(METADATA_SERVERCONF_EXISTS);
-        }
-        if (isSoftwareTokenInitialized) {
-            metadata.add(METADATA_SOFTWARE_TOKEN_INITIALIZED);
-        }
-        if (!metadata.isEmpty()) {
-            throw new InitializationException("Error initializing security server", metadata);
-        }
-    }
-
-    /**
-     * If something goes south with the initialization
+     * If something goes wrong with the initialization
      */
     public static class InitializationException extends ServiceException {
         public static final String INITIALIZATION_FAILED = "initialization_failed";
@@ -281,13 +269,13 @@ public class InitializationService {
     }
 
     /**
-     * If the provided pin code is not valid
+     * If the provided pin code contains invalid characters
      */
-    public static class InvalidPinException extends ServiceException {
-        public static final String INVALID_PIN = "invalid_pin";
+    public static class InvalidCharactersException extends ServiceException {
+        public static final String INVALID_CHARACTERS_PIN = "invalid_characters_pin";
 
-        public InvalidPinException(String msg) {
-            super(msg, new ErrorDeviation(INVALID_PIN));
+        public InvalidCharactersException(String msg) {
+            super(msg, new ErrorDeviation(INVALID_CHARACTERS_PIN));
         }
     }
 

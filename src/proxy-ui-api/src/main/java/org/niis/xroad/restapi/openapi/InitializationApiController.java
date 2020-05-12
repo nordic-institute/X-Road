@@ -59,10 +59,13 @@ public class InitializationApiController implements InitializationApi {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
-        InitializationStatusDto initializationStatusDto = initializationService.isSecurityServerInitialized();
+        InitializationStatusDto initializationStatusDto =
+                initializationService.getSecurityServerInitializationStatus();
         InitializationStatus initializationStatus = new InitializationStatus();
         initializationStatus.setIsAnchorImported(initializationStatusDto.isAnchorImported());
-        initializationStatus.setIsServerConfInitialized(initializationStatusDto.isServerConfInitialized());
+        initializationStatus.setIsServerCodeInitialized(initializationStatusDto.isServerCodeInitialized());
+        initializationStatus.setIsServerOwnerInitialized(initializationStatusDto.isServerOwnerInitialized());
+        initializationStatus.setIsSoftwareTokenInitialized(initializationStatusDto.isSoftwareTokenInitialized());
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 
@@ -83,7 +86,7 @@ public class InitializationApiController implements InitializationApi {
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                     ignoreWarnings);
-        } catch (AnchorNotFoundException | InitializationService.InitializationException e) {
+        } catch (AnchorNotFoundException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException | InitializationService.InvalidPinException
                 | InitializationService.WeakPinException e) {

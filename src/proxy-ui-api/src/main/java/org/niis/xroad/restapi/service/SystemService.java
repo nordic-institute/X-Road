@@ -316,8 +316,7 @@ public class SystemService {
                 isGlobalConfInitialized = true;
             }
         } catch (AnchorNotFoundException e) {
-            log.info("SystemService#isAnchorImported: could not find Global Configuration Anchor", e);
-            // global conf does not exist - good!
+            // global conf does not exist
         }
         return isGlobalConfInitialized;
     }

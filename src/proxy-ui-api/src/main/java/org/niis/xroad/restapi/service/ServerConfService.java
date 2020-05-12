@@ -37,8 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 
 /**
  * service class for handling serverconf
@@ -69,12 +72,9 @@ public class ServerConfService {
      * @return
      */
     public ServerConfType getOrCreateServerConf() {
-        ServerConfType serverConfType = null;
-        try {
-            serverConfType = getServerConf();
-        } catch (CodedException ce) {
-            // server conf doesn't exist which is fine - let's just create one
-            serverConfType = new ServerConfType();
+        ServerConfType serverConfType = getServerConfGracefully();
+        if (serverConfType == null) {
+            return new ServerConfType();
         }
         return serverConfType;
     }
@@ -110,21 +110,27 @@ public class ServerConfService {
     }
 
     /**
-     * Is server conf initialized -> it is if whe can find one
+     * Is server code initialized
      * @return
      */
-    public boolean isServerConfInitialized() {
-        boolean isServerConfInitialized = false;
-        try {
-            ServerConfType serverConfType = getServerConf();
-            if (serverConfType != null) {
-                isServerConfInitialized = true;
-            }
-        } catch (CodedException ce) { // -> this is X_MALFORMED_SERVERCONF, "Server conf is not initialized!"
-            log.info("ServerConfService#isServerConfInitialized: CodedException thrown when getting Server Conf", ce);
-            // server conf does not exist - nice!
+    public boolean isServerCodeInitialized() {
+        ServerConfType serverConfType = getServerConfGracefully();
+        if (serverConfType != null) {
+            return StringUtils.isEmpty(serverConfType.getServerCode());
         }
-        return isServerConfInitialized;
+        return false;
+    }
+
+    /**
+     * Is server owner initialized
+     * @return
+     */
+    public boolean isServerOwnerInitialized() {
+        ServerConfType serverConfType = getServerConfGracefully();
+        if (serverConfType != null) {
+            return serverConfType.getOwner() != null;
+        }
+        return false;
     }
 
     /**
@@ -133,5 +139,22 @@ public class ServerConfService {
      */
     public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
         return serverConfRepository.saveOrUpdate(serverConfType);
+    }
+
+    /**
+     * Helper to get the server conf object without failing if the server conf is not yet initialized
+     * @return {@link ServerConfType} or <code>null</code> if not initialized
+     */
+    private ServerConfType getServerConfGracefully() {
+        try {
+            return getServerConf();
+        } catch (CodedException ce) {
+            log.info("ServerConfService#isServerConfInitialized: CodedException thrown when getting Server Conf", ce);
+            if (ce.getFaultCode().equals(X_MALFORMED_SERVERCONF)) {
+                return null;
+            } else {
+                throw ce;
+            }
+        }
     }
 }

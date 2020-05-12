@@ -1862,9 +1862,15 @@ paths:
                   is_anchor_imported:
                     type: boolean
                     description: whether a configuration anchor has been imported or not
-                  is_server_conf_initialized:
+                  is_server_code_initialized:
                     type: boolean
-                    description: whether the server conf of the security server has been initialized or not
+                    description: whether the server code of the security server has been initialized or not
+                  is_server_owner_initialized:
+                    type: boolean
+                    description: whether the server owner of the security server has been initialized or not
+                  is_software_token_initialized:
+                    type: boolean
+                    description: whether a software token has been initialized or not
         '400':
           description: request was invalid
         '401':
@@ -5052,12 +5058,6 @@ components:
     InitialServerConf: # ok
       type: object
       description: security server initial configuration
-      required:
-        - member_class
-        - member_code
-        - security_server_code
-        - software_token_pin
-        - ignore_warnings
       properties:
         owner_member_class:
           type: string
