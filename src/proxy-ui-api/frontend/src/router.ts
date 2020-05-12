@@ -148,9 +148,12 @@ const router = new Router({
         },
         {
           name: RouteName.AddMember,
-          path: '/add-member',
+          path: '/add-member/:instanceId/:memberClass/:memberCode',
           components: {
             default: AddMember,
+          },
+          props: {
+            default: true,
           },
         },
         {

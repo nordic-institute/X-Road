@@ -188,3 +188,9 @@ export enum ClientTypes {
   VIRTUAL_MEMBER = 'VIRTUAL_MEMBER',
   SUBSYSTEM = 'SUBSYSTEM',
 }
+
+export enum AddMemberWizardModes {
+  KEY_EXISTS = 'KEY_EXISTS',
+  CERTIFICATE_EXISTS = 'CERTIFICATE_EXISTS',
+  FULL = 'FULL',
+}

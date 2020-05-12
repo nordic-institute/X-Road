@@ -59,8 +59,20 @@
 
           <span v-else class="font-weight-bold name">{{item.visibleName}} ({{ $t("client.owner") }})</span>
         </template>
+        <!-- Name - Member -->
+        <template v-else-if="item.type === clientTypes.MEMBER">
+          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
+          <span
+            v-if="canOpenClient"
+            class="font-weight-bold name clickable"
+            @click="openClient(item)"
+          >{{item.visibleName}}</span>
+          <span v-else class="font-weight-bold name">{{item.visibleName}}</span>
+        </template>
         <!-- Name - virtual member -->
-        <template v-else-if="item.type === clientTypes.VIRTUAL_MEMBER || item.type === clientTypes.MEMBER">
+        <template
+          v-else-if="item.type === clientTypes.VIRTUAL_MEMBER || item.type === clientTypes.MEMBER"
+        >
           <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
           <span class="font-weight-bold name-member">{{item.visibleName}}</span>
         </template>
@@ -151,7 +163,7 @@ export default Vue.extend({
   }),
 
   computed: {
-    ...mapGetters(['clients', 'loading']),
+    ...mapGetters(['clients', 'loading', 'ownerMember']),
     treeMode(): boolean {
       // Switch between the "tree" view and the "flat" view
       if (this.search) {
@@ -193,7 +205,7 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
     showAddMember(): boolean {
-      return true;
+      return this.$store.getters.realMembers.length < 2;
     },
     showRegister(): boolean {
       return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
@@ -227,6 +239,11 @@ export default Vue.extend({
     addMember(): void {
       this.$router.push({
         name: RouteName.AddMember,
+        params: {
+          instanceId: this.ownerMember.instance_id,
+          memberClass: this.ownerMember.member_class,
+          memberCode: this.ownerMember.member_code,
+        },
       });
     },
 
