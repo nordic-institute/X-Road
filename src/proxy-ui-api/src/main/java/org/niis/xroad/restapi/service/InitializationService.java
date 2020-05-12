@@ -47,7 +47,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * service for initializing the security server
@@ -59,10 +58,16 @@ import java.util.Optional;
 public class InitializationService {
     public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
     public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
-    public static final String WARNING_SERVERCONF_EXISTS = "init_serverconf_exists";
+    public static final String WARNING_SERVERCODE_EXISTS = "init_serverconf_exists";
+    public static final String WARNING_SERVER_OWNER_EXISTS = "init_server_owner_exists";
     public static final String WARNING_SOFTWARE_TOKEN_INITIALIZED = "init_software_token_initialized";
     public static final String METADATA_PIN_MIN_LENGTH = "pin_min_length";
     public static final String METADATA_PIN_MIN_CHAR_CLASSES = "pin_min_char_classes_count";
+
+    public static final String ERROR_METADATA_SERVERCODE_BLANK = "server_code_blank";
+    public static final String ERROR_METADATA_MEMBER_CLASS_BLANK = "member_class_blank";
+    public static final String ERROR_METADATA_MEMBER_CODE_BLANK = "member_code_blank";
+    public static final String ERROR_METADATA_PIN_BLANK = "pin_code_blank";
 
     private final SystemService systemService;
     private final ServerConfService serverConfService;
@@ -114,27 +119,47 @@ public class InitializationService {
      * @param ownerMemberClass member class of the new owner member
      * @param ownerMemberCode member code of the new owner member
      * @param softwareTokenPin pin code for the initial software token (softToken-0)
-     * @param ignoreWarnings
+     * @param ignoreWarnings whether to skip initialization warnings all in all
      * @throws AnchorNotFoundException if an anchor has not been imported
-     * @throws UnhandledWarningsException if a server conf already exists OR if a software token has already been
-     * initialized OR trying to set unregistered member as an owner OR server code already exists
+     * @throws UnhandledWarningsException if a server code already initialized
+     * OR server owner already initialized
+     * OR if a software token has already been initialized
+     * OR trying to set unregistered member as an owner
+     * OR provided server code already in use
      * @throws WeakPinException if the pin does not meet the length and complexity requirements (if token pin policy is
      * enforced by properties)
      * @throws InvalidPinException if the provided pin code does not follow the TokenPinPolicy (if token pin policy is
      * enforced by properties)
      * @throws SoftwareTokenInitException if something goes wrong with the token init
+     * @throws MissingInitParamsException if empty or missing parameters are provided
      */
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
             String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
-            UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException {
+            UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException,
+            MissingInitParamsException {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
-
+        verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin);
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
-        // get id from db if exists - this is for partial init support since no client ids should yet exist
-        ClientId ownerClientId = clientService.getPossiblyManagedEntity(ClientId.create(instanceIdentifier,
-                ownerMemberClass, ownerMemberCode));
+        ClientId ownerClientId = null;
+        if (serverConfService.isServerOwnerInitialized()) {
+            ownerClientId = serverConfService.getSecurityServerOwnerId();
+        } else {
+            // if owner does not exist, assert new owner parameters
+            List<String> errorMetadata = new ArrayList<>();
+            if (StringUtils.isEmpty(ownerMemberClass)) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_BLANK);
+            }
+            if (StringUtils.isEmpty(ownerMemberCode)) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_BLANK);
+            }
+            if (!errorMetadata.isEmpty()) {
+                throw new MissingInitParamsException("Empty or missing member parameters provided for initialization",
+                        errorMetadata);
+            }
+            ownerClientId = ClientId.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
+        }
         if (!ignoreWarnings) {
             checkForWarnings(ownerClientId, securityServerCode);
         }
@@ -144,6 +169,41 @@ public class InitializationService {
             initializeSoftwareToken(softwareTokenPin);
         }
         serverConfService.saveOrUpdate(serverConf);
+    }
+
+    /**
+     * If old values do not exist -> new values must be provided
+     * @param securityServerCode
+     * @param ownerMemberClass
+     * @param ownerMemberCode
+     * @param softwareTokenPin
+     * @throws MissingInitParamsException if null or empty init parameters provided
+     */
+    private void verifyInitializationPrerequisites(String securityServerCode, String ownerMemberClass,
+            String ownerMemberCode, String softwareTokenPin) throws MissingInitParamsException {
+        List<String> errorMetadata = new ArrayList<>();
+        if (!serverConfService.isServerCodeInitialized()) {
+            if (StringUtils.isEmpty(securityServerCode)) {
+                errorMetadata.add(ERROR_METADATA_SERVERCODE_BLANK);
+            }
+        }
+        if (!serverConfService.isServerOwnerInitialized()) {
+            if (StringUtils.isEmpty(ownerMemberClass)) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_BLANK);
+            }
+            if (StringUtils.isEmpty(ownerMemberCode)) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_BLANK);
+            }
+        }
+        if (!tokenService.isSoftwareTokenInitialized()) {
+            if (StringUtils.isEmpty(softwareTokenPin)) {
+                errorMetadata.add(ERROR_METADATA_PIN_BLANK);
+            }
+        }
+        if (!errorMetadata.isEmpty()) {
+            throw new MissingInitParamsException("Empty or missing parameters provided for initialization",
+                    errorMetadata);
+        }
     }
 
     /**
@@ -205,36 +265,43 @@ public class InitializationService {
 
     /**
      * Check for warnings. Warnings include:
-     * - if server conf has already been initialized
+     * - if server code has already been initialized
+     * - if server owner has already been initialized
      * - if software token has already been initialized
      * - if trying to add unregistered member as an owner
-     * - if the server id already exists
+     * - if the provided server id already exists in global conf
      * @param ownerClientId
      * @param securityServerCode
      * @throws UnhandledWarningsException
      */
     private void checkForWarnings(ClientId ownerClientId, String securityServerCode)
             throws UnhandledWarningsException {
-        boolean isServerConfInitialized = serverConfService.isServerConfInitialized();
+        boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
+        boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
         boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         String ownerMemberName = globalConfFacade.getMemberName(ownerClientId);
-        SecurityServerId serverId = SecurityServerId.create(ownerClientId, securityServerCode);
         List<WarningDeviation> warnings = new ArrayList<>();
-        if (isServerConfInitialized) {
-            warnings.add(new WarningDeviation(WARNING_SERVERCONF_EXISTS));
+        if (isServerCodeInitialized) {
+            warnings.add(new WarningDeviation(WARNING_SERVERCODE_EXISTS));
+        }
+        if (isServerOwnerInitialized) {
+            warnings.add(new WarningDeviation(WARNING_SERVER_OWNER_EXISTS));
         }
         if (isSoftwareTokenInitialized) {
             warnings.add(new WarningDeviation(WARNING_SOFTWARE_TOKEN_INITIALIZED));
         }
-        if (StringUtils.isEmpty(ownerMemberName)) {
+        if (!isServerOwnerInitialized && StringUtils.isEmpty(ownerMemberName)) {
             WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_UNREGISTERED_MEMBER,
                     ownerClientId.toShortString());
             warnings.add(memberWarning);
         }
-        if (globalConfFacade.existsSecurityServer(serverId)) {
-            WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_SERVER_ID_EXISTS,
-                    serverId.toShortString());
-            warnings.add(memberWarning);
+        if (!isServerCodeInitialized) {
+            SecurityServerId serverId = SecurityServerId.create(ownerClientId, securityServerCode);
+            if (globalConfFacade.existsSecurityServer(serverId)) {
+                WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_SERVER_ID_EXISTS,
+                        serverId.toShortString());
+                warnings.add(memberWarning);
+            }
         }
         if (!warnings.isEmpty()) {
             throw new UnhandledWarningsException(warnings);
@@ -258,13 +325,13 @@ public class InitializationService {
     }
 
     /**
-     * If something goes wrong with the initialization
+     * If missing or empty params are provided for the init
      */
-    public static class InitializationException extends ServiceException {
-        public static final String INITIALIZATION_FAILED = "initialization_failed";
+    public static class MissingInitParamsException extends ServiceException {
+        public static final String INIT_PARAMS_MISSING = "init_params_missing";
 
-        public InitializationException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(INITIALIZATION_FAILED, metadata));
+        public MissingInitParamsException(String msg, List<String> metadata) {
+            super(msg, new ErrorDeviation(INIT_PARAMS_MISSING, metadata));
         }
     }
 

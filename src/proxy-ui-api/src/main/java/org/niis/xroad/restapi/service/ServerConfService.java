@@ -116,7 +116,7 @@ public class ServerConfService {
     public boolean isServerCodeInitialized() {
         ServerConfType serverConfType = getServerConfGracefully();
         if (serverConfType != null) {
-            return StringUtils.isEmpty(serverConfType.getServerCode());
+            return !StringUtils.isEmpty(serverConfType.getServerCode());
         }
         return false;
     }

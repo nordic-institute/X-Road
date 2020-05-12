@@ -88,8 +88,8 @@ public class InitializationApiController implements InitializationApi {
                     ignoreWarnings);
         } catch (AnchorNotFoundException e) {
             throw new ConflictException(e);
-        } catch (UnhandledWarningsException | InitializationService.InvalidPinException
-                | InitializationService.WeakPinException e) {
+        } catch (UnhandledWarningsException | InitializationService.InvalidCharactersException
+                | InitializationService.WeakPinException | InitializationService.MissingInitParamsException e) {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);
