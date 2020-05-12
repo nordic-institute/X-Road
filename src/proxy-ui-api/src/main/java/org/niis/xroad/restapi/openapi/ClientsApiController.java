@@ -35,7 +35,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AccessRightConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
@@ -118,6 +118,9 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLI
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
@@ -146,8 +149,7 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightConverter accessRightConverter;
     private final ServiceClientService serviceClientService;
     private final ServiceClientIdentifierConverter serviceClientIdentifierConverter;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
-
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * ClientsApiController constructor
@@ -163,7 +165,7 @@ public class ClientsApiController implements ClientsApi {
             OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
             AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
             ServiceClientIdentifierConverter serviceClientIdentifierConverter,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditDataHelper auditDataHelper) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -179,7 +181,7 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightConverter = accessRightConverter;
         this.serviceClientService = serviceClientService;
         this.serviceClientIdentifierConverter = serviceClientIdentifierConverter;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -198,7 +200,6 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
-        auditEventLoggingFacade.putRequestScopedAuditData("findClientsProperty", "fooValue");
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
@@ -210,8 +211,6 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Client> getClient(String id) {
-        // TO DO: remove foo values
-        auditEventLoggingFacade.putRequestScopedAuditData("getClientProperty", "fooValue");
         ClientType clientType = getClientType(id);
         Client client = clientConverter.convert(clientType);
         return new ResponseEntity<>(client, HttpStatus.OK);
@@ -253,7 +252,6 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @AuditEventMethod(event = SET_CONNECTION_TYPE)
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
-        auditEventLoggingFacade.putRequestScopedAuditData("updateClientProperty", "fooValue");
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
             throw new BadRequestException();
         }
@@ -379,6 +377,10 @@ public class ClientsApiController implements ClientsApi {
         boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
         String restServiceCode = serviceDescription.getRestServiceCode();
 
+        // audit logging from controller works better here
+        auditDataHelper.put(clientId);
+        auditDataHelper.put(WSDL_URL, url);
+
         ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
             try {
@@ -426,6 +428,11 @@ public class ClientsApiController implements ClientsApi {
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
                 addedServiceDescriptionType);
+
+        auditDataHelper.put(DISABLED, addedServiceDescription.getDisabled());
+//        auditDataHelper.put(REFRESHED_DATE, addedServiceDescription.getRefreshedAt());
+        auditDataHelper.putDateTime(REFRESHED_DATE, addedServiceDescription.getRefreshedAt());
+
         return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,
                 addedServiceDescription.getId());
     }

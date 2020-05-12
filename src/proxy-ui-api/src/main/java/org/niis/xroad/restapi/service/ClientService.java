@@ -558,7 +558,9 @@ public class ClientService {
             throw new ActionNotPossibleException("Only member can be an owner");
         }
         ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(), memberClass, memberCode);
+        auditDataHelper.put(clientId);
         ClientType client = getLocalClientOrThrowNotFound(clientId);
+        auditDataHelper.putClientStatus(client);
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
@@ -568,7 +570,8 @@ public class ClientService {
         }
 
         try {
-            managementRequestSenderService.sendOwnerChangeRequest(clientId);
+            Integer requestId = managementRequestSenderService.sendOwnerChangeRequest(clientId);
+            auditDataHelper.putManagementRequestId(requestId);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

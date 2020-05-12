@@ -42,7 +42,10 @@ public enum RestApiAuditProperty {
     CERT_HASH_ALGORITHM,
     CERT_REQUEST_IDS,
     KEY_ID,
-    ;
+    WSDL_URL,
+    DISABLED,
+    REFRESHED_DATE,
+    TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**
      * Gets logged property name for the enum value.

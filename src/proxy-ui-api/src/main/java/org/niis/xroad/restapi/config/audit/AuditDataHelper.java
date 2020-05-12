@@ -35,6 +35,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH_ALGORITHM;
@@ -65,7 +69,7 @@ public class AuditDataHelper {
 
     public void put(IsAuthentication isAuthentication) {
         String auditLoggedValue = getAuditLoggedValue(isAuthentication);
-        auditEventLoggingFacade.putRequestScopedAuditData(IS_AUTHENTICATION, auditLoggedValue);
+        put(IS_AUTHENTICATION, auditLoggedValue);
     }
 
     private String getAuditLoggedValue(IsAuthentication isAuthentication) {
@@ -82,7 +86,7 @@ public class AuditDataHelper {
     }
 
     public void put(ClientId clientId) {
-        auditEventLoggingFacade.putRequestScopedAuditData(CLIENT_IDENTIFIER, clientId);
+        put(CLIENT_IDENTIFIER, clientId);
     }
 
     public void putClientStatus(ClientType client) {
@@ -90,7 +94,7 @@ public class AuditDataHelper {
         if (client != null) {
             clientStatus = client.getClientStatus();
         }
-        auditEventLoggingFacade.putRequestScopedAuditData(CLIENT_STATUS, clientStatus);
+        put(CLIENT_STATUS, clientStatus);
     }
 
     public void putManagementRequestId(Integer requestId) {
@@ -100,7 +104,7 @@ public class AuditDataHelper {
     public void addCertificateHash(CertificateInfo certificateInfo) {
         String hash = createFormattedHash(certificateInfo);
         auditEventLoggingFacade.addRequestScopedAuditListData(CERT_HASHES, hash);
-        auditEventLoggingFacade.putRequestScopedAuditData(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+        put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
     private String createFormattedHash(CertificateInfo certificateInfo) {
@@ -121,5 +125,21 @@ public class AuditDataHelper {
         auditEventLoggingFacade.addRequestScopedAuditListData(CERT_REQUEST_IDS, id);
     }
 
+    /**
+     * Converts OffsetDateTime to correct audit log dateTime format, in system default time-zone
+     */
+    public void putDateTime(RestApiAuditProperty property, OffsetDateTime dateTime) {
+        put(property, getDateTimeInAuditLogFormat(dateTime));
+    }
 
+    private static final DateTimeFormatter AUDIT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx");
+
+    private String getDateTimeInAuditLogFormat(OffsetDateTime dateTime) {
+        if (dateTime != null) {
+            return dateTime.atZoneSameInstant(ZoneId.systemDefault())
+                    .format(AUDIT_FORMATTER);
+        } else {
+            return null;
+        }
+    }
 }
