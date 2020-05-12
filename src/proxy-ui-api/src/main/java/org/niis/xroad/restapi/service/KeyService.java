@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 
 /**
  * Service that handles keys
@@ -61,6 +63,7 @@ public class KeyService {
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final SecurityHelper securityHelper;
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * KeyService constructor
@@ -69,12 +72,14 @@ public class KeyService {
     public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
             PossibleActionsRuleEngine possibleActionsRuleEngine,
             ManagementRequestSenderService managementRequestSenderService,
-            SecurityHelper securityHelper) {
+            SecurityHelper securityHelper,
+            AuditDataHelper auditDataHelper) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
         this.managementRequestSenderService = managementRequestSenderService;
         this.securityHelper = securityHelper;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -188,6 +193,9 @@ public class KeyService {
      */
     public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfOutdatedException {
+
+        auditDataHelper.put(KEY_ID, keyId);
+
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
 

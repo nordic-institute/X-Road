@@ -33,8 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,7 +84,7 @@ public class AuditEventLoggingFacade {
      *                old value does not exist
      */
     private void updateRequestScopedEvent(RestApiAuditEvent event, boolean init) {
-        if (requestHelper.requestScopeIsAvailable()) {
+        requestHelper.runInRequestScope(() -> {
             RestApiAuditEvent existing = auditContextRequestScopeHolder.getRequestScopedEvent();
             if (init && existing != null) {
                 throw new IllegalStateException("request scope already has event " + existing);
@@ -90,18 +93,36 @@ public class AuditEventLoggingFacade {
             } else {
                 auditContextRequestScopeHolder.setRequestScopedEvent(event);
             }
-        } else {
-            throw new IllegalStateException("request scope is not available");
-        }
+        });
     }
 
-
+    /**
+     * TO DO: Maybe remove this one, and use only enums?
+     * @param key
+     * @param value
+     */
     public void putRequestScopedAuditData(String key, Object value) {
-        if (requestHelper.requestScopeIsAvailable()) {
-            auditContextRequestScopeHolder.getEventData().put(key, value);
-        } else {
-            throw new IllegalStateException("request scope is not available");
-        }
+        requestHelper.runInRequestScope(() ->
+                auditContextRequestScopeHolder.getEventData().put(key, value));
+    }
+
+    public void putRequestScopedAuditData(RestApiAuditProperty auditProperty, Object value) {
+        requestHelper.runInRequestScope(() ->
+                auditContextRequestScopeHolder.getEventData().put(auditProperty.getPropertyName(), value));
+    }
+
+    /**
+     * Adds to List<Object>, creates one if not existing
+     */
+    public void addRequestScopedAuditListData(RestApiAuditProperty auditProperty, Object value) {
+        requestHelper.runInRequestScope(() -> {
+            List<Object> data = Collections.synchronizedList(new ArrayList<>());
+            String propertyName = auditProperty.getPropertyName();
+            auditContextRequestScopeHolder.getEventData().putIfAbsent(propertyName, data);
+            List<Object> sharedListData = (List<Object>) auditContextRequestScopeHolder.getEventData()
+                    .get(propertyName);
+            sharedListData.add(value);
+        });
     }
 
     /**

@@ -33,6 +33,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,16 +58,19 @@ public class OrphanRemovalService {
     private final TokenCertificateService tokenCertificateService;
     private final ClientService clientService;
     private final KeyService keyService;
+    private final AuditDataHelper auditDataHelper;
 
     @Autowired
     public OrphanRemovalService(TokenService tokenService,
             TokenCertificateService tokenCertificateService,
             ClientService clientService,
-            KeyService keyService) {
+            KeyService keyService,
+            AuditDataHelper auditDataHelper) {
         this.tokenService = tokenService;
         this.tokenCertificateService = tokenCertificateService;
         this.clientService = clientService;
         this.keyService = keyService;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -207,6 +211,8 @@ public class OrphanRemovalService {
      */
     public void deleteOrphans(ClientId clientId) throws OrphansNotFoundException,
             ActionNotPossibleException, GlobalConfOutdatedException {
+
+        auditDataHelper.put(clientId);
 
         if (isAlive(clientId) || hasAliveSiblings(clientId)) {
             throw new OrphansNotFoundException();

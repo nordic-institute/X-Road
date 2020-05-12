@@ -59,4 +59,19 @@ public final class RequestHelper {
         return RequestContextHolder.getRequestAttributes() != null;
     }
 
+    /**
+     * Run operation in request scope, or throw {@link IllegalStateException} if there is not request scope
+     * @param operation
+     */
+    public void runInRequestScope(RequestScopeOperation operation) {
+        if (requestScopeIsAvailable()) {
+            operation.executeInRequest();
+        } else {
+            throw new IllegalStateException("request scope is not available");
+        }
+    }
+
+    public interface RequestScopeOperation {
+        void executeInRequest();
+    }
 }

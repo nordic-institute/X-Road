@@ -41,6 +41,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -95,6 +96,7 @@ public class TokenCertificateService {
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final TokenService tokenService;
     private final SecurityHelper securityHelper;
+    private final AuditDataHelper auditDataHelper;
 
     @Autowired
     @SuppressWarnings("checkstyle:ParameterNumber")
@@ -103,7 +105,7 @@ public class TokenCertificateService {
             GlobalConfService globalConfService, GlobalConfFacade globalConfFacade, ClientRepository clientRepository,
             ManagementRequestSenderService managementRequestSenderService, ServerConfService serverConfService,
             PossibleActionsRuleEngine possibleActionsRuleEngine, TokenService tokenService,
-            SecurityHelper securityHelper) {
+            SecurityHelper securityHelper, AuditDataHelper auditDataHelper) {
         this.signerProxyFacade = signerProxyFacade;
         this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
@@ -117,6 +119,7 @@ public class TokenCertificateService {
         this.tokenService = tokenService;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
         this.securityHelper = securityHelper;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -772,6 +775,7 @@ public class TokenCertificateService {
             for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
                 for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
                     if (certificateInfo.getId().equals(certificateId)) {
+                        auditDataHelper.addCertificateHash(certificateInfo);
                         deleteCertificate(certificateInfo, keyInfo, tokenInfo);
                         return;
                     }
@@ -809,6 +813,9 @@ public class TokenCertificateService {
             throws CertificateNotFoundException, ActionNotPossibleException {
         possibleActionsRuleEngine.requirePossibleCertificateAction(
                 PossibleActionEnum.DELETE, tokenInfo, keyInfo, certificateInfo);
+
+        // audit log delete for delete cert
+
 
         if (keyInfo.isForSigning()) {
             securityHelper.verifyAuthority("DELETE_SIGN_CERT");
@@ -858,6 +865,8 @@ public class TokenCertificateService {
      */
     public void deleteCsr(String csrId) throws KeyNotFoundException, CsrNotFoundException,
             ActionNotPossibleException {
+
+        auditDataHelper.addCsrId(csrId);
 
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();

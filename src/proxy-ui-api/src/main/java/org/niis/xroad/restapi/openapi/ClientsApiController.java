@@ -113,6 +113,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GR
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
@@ -512,6 +513,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_CLIENT')")
+    @AuditEventMethod(event = DELETE_ORPHANS)
     public ResponseEntity<Void> deleteOrphans(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
