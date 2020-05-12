@@ -189,7 +189,7 @@ export default Vue.extend({
       }
     },
     localMembersIds(val) {
-      // Set first client selected as defaulg when the list is updated
+      // Set first client selected as default when the list is updated
       if (val && val.length === 1) {
         this.client = val[0].id;
       }
