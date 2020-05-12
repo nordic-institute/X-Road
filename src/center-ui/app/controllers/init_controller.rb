@@ -79,8 +79,7 @@ class InitController < ApplicationController
     end
 
     validate_params({
-      :instance_identifier => init_instance_identifier || [],
-      :instance_identifier => instance_identifier_validator || [],
+      :instance_identifier => [init_instance_identifier, instance_identifier_validator],
       :central_server_address => init_central_server_address || [],
       :pin => init_software_token || [],
       :pin_repeat => init_software_token || []
