@@ -43,7 +43,7 @@ Vue.filter('formatDate', (value: string): string => {
   const date = new Date(value);
 
   return date.getFullYear() + '-'
-    + date.getMonth().toString().padStart(2, '0') + '-'
+    + (date.getMonth() + 1).toString().padStart(2, '0') + '-'
     + date.getDay().toString().padStart(2, '0');
 });
 
@@ -58,7 +58,7 @@ Vue.filter('formatDateTime', (value: string): string => {
   const date = new Date(value);
 
   return date.getFullYear() + '-'
-    + date.getMonth().toString().padStart(2, '0') + '-'
+    + (date.getMonth() + 1).toString().padStart(2, '0') + '-'
     + date.getDay().toString().padStart(2, '0') + ' '
     + date.getHours().toString().padStart(2, '0') + ':'
     + date.getMinutes().toString().padStart(2, '0');
