@@ -72,7 +72,7 @@ export function saveResponseAsFile(response: any, defaultFileName: string = 'cer
 }
 
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
-export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string) {
+export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string): boolean {
 
   if (!memberClass || !memberCode || !subsystemCode) {
     return false;

@@ -69,6 +69,17 @@ export const getters: GetterTree<AddClientState, RootState> = {
     return 'NONE';
   },
 
+  selectedMemberId(state: AddClientState): string | undefined {
+    if (!state.selectedMember) {
+      return undefined;
+    }
+
+    return state.selectedMember.instance_id +
+      ':' +
+      state.selectedMember.member_class +
+      ':' +
+      state.selectedMember.member_code;
+  },
 };
 
 export const mutations: MutationTree<AddClientState> = {

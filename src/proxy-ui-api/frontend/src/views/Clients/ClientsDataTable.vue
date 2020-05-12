@@ -205,7 +205,7 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
     showAddMember(): boolean {
-      return this.$store.getters.realMembers.length < 2;
+      return this.$store.getters.realMembers?.length < 2;
     },
     showRegister(): boolean {
       return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
