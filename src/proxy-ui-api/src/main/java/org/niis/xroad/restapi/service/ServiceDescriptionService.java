@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -64,6 +65,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIERS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED_NOTICE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URLS;
+
 /**
  * ServiceDescription service
  */
@@ -91,6 +96,7 @@ public class ServiceDescriptionService {
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
     private final OpenApiParser openApiParser;
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * ServiceDescriptionService constructor
@@ -105,7 +111,7 @@ public class ServiceDescriptionService {
             ClientService clientService, ClientRepository clientRepository,
             ServiceChangeChecker serviceChangeChecker,
             WsdlValidator wsdlValidator, UrlValidator urlValidator,
-            OpenApiParser openApiParser) {
+            OpenApiParser openApiParser, AuditDataHelper auditDataHelper) {
 
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
@@ -114,6 +120,7 @@ public class ServiceDescriptionService {
         this.wsdlValidator = wsdlValidator;
         this.urlValidator = urlValidator;
         this.openApiParser = openApiParser;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -144,6 +151,11 @@ public class ServiceDescriptionService {
      */
     private void toggleServices(boolean toEnabled, Collection<Long> serviceDescriptionIds,
             String disabledNotice) throws ServiceDescriptionNotFoundException {
+
+        if (!toEnabled) {
+            auditDataHelper.put(DISABLED_NOTICE, disabledNotice);
+        }
+
         List<ServiceDescriptionType> possiblyNullServiceDescriptions = serviceDescriptionRepository
                 .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[] {}));
 
@@ -161,6 +173,8 @@ public class ServiceDescriptionService {
                     + " not found");
         }
 
+        Set<ClientId> auditLogClientIds = new HashSet<>();
+
         serviceDescriptions.stream()
                 .forEach(serviceDescriptionType -> {
                     serviceDescriptionType.setDisabled(!toEnabled);
@@ -168,7 +182,18 @@ public class ServiceDescriptionService {
                         serviceDescriptionType.setDisabledNotice(disabledNotice);
                     }
                     serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
+                    auditLogClientIds.add(serviceDescriptionType.getClient().getIdentifier());
+                    auditDataHelper.addListPropertyItem(WSDL_URLS, serviceDescriptionType.getUrl());
                 });
+
+        if (auditLogClientIds.size() > 1) {
+            log.error("disabling service descriptions for multiple clients at once, audit log has non-standard format");
+            auditDataHelper.put(CLIENT_IDENTIFIERS, new ArrayList<>(auditLogClientIds));
+        } else {
+            auditDataHelper.put(auditLogClientIds.iterator().next());
+        }
+
+
     }
 
     /**
@@ -181,7 +206,9 @@ public class ServiceDescriptionService {
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id + " not found");
         }
+        auditDataHelper.addListPropertyItem(WSDL_URLS, serviceDescriptionType.getUrl());
         ClientType client = serviceDescriptionType.getClient();
+        auditDataHelper.put(client.getIdentifier());
         cleanAccessRights(client, serviceDescriptionType);
         cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);

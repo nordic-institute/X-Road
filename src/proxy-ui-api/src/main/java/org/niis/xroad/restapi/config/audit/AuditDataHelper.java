@@ -42,7 +42,6 @@ import java.time.format.DateTimeFormatter;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH_ALGORITHM;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_REQUEST_IDS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_STATUS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.IS_AUTHENTICATION;
@@ -65,6 +64,10 @@ public class AuditDataHelper {
 
     public void put(RestApiAuditProperty auditProperty, Object value) {
         auditEventLoggingFacade.putRequestScopedAuditData(auditProperty, value);
+    }
+
+    public void addListPropertyItem(RestApiAuditProperty listProperty, Object value) {
+        auditEventLoggingFacade.addRequestScopedAuditListData(listProperty, value);
     }
 
     public void put(IsAuthentication isAuthentication) {
@@ -103,7 +106,7 @@ public class AuditDataHelper {
 
     public void addCertificateHash(CertificateInfo certificateInfo) {
         String hash = createFormattedHash(certificateInfo);
-        auditEventLoggingFacade.addRequestScopedAuditListData(CERT_HASHES, hash);
+        addListPropertyItem(CERT_HASHES, hash);
         put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -119,10 +122,6 @@ public class AuditDataHelper {
             log.error("audit logging certificate hash forming failed", e);
         }
         return hash;
-    }
-
-    public void addCsrId(String id) {
-        auditEventLoggingFacade.addRequestScopedAuditListData(CERT_REQUEST_IDS, id);
     }
 
     /**

@@ -67,6 +67,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_REQUEST_IDS;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
 
 /**
@@ -866,7 +867,7 @@ public class TokenCertificateService {
     public void deleteCsr(String csrId) throws KeyNotFoundException, CsrNotFoundException,
             ActionNotPossibleException {
 
-        auditDataHelper.addCsrId(csrId);
+        auditDataHelper.addListPropertyItem(CERT_REQUEST_IDS, csrId);
 
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();

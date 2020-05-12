@@ -35,6 +35,7 @@ import com.google.common.base.CaseFormat;
 public enum RestApiAuditProperty {
 
     CLIENT_IDENTIFIER,
+    CLIENT_IDENTIFIERS,
     IS_AUTHENTICATION,
     CLIENT_STATUS,
     MANAGEMENT_REQUEST_ID,
@@ -43,8 +44,10 @@ public enum RestApiAuditProperty {
     CERT_REQUEST_IDS,
     KEY_ID,
     WSDL_URL,
+    WSDL_URLS,
     DISABLED,
     REFRESHED_DATE,
+    DISABLED_NOTICE,
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**
