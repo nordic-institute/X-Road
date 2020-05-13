@@ -12,10 +12,7 @@
 
       <div>
         <DeleteClientButton v-if="showDelete" :id="id" />
-        <LargeButton
-          v-if="showUnregister"
-          @click="confirmUnregisterClient = true"
-        >{{$t('action.unregister')}}</LargeButton>
+        <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchClient" />
       </div>
     </v-flex>
     <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
@@ -24,16 +21,6 @@
     </v-tabs>
 
     <router-view />
-
-    <!-- Confirm dialog for unregister client -->
-    <ConfirmDialog
-      :dialog="confirmUnregisterClient"
-      :loading="unregisterLoading"
-      title="client.action.unregister.confirmTitle"
-      text="client.action.unregister.confirmText"
-      @cancel="confirmUnregisterClient = false"
-      @accept="unregisterClient()"
-    />
   </div>
 </template>
 
@@ -43,13 +30,11 @@ import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    ConfirmDialog,
+    UnregisterClientButton,
     DeleteClientButton,
   },
   props: {
@@ -61,8 +46,6 @@ export default Vue.extend({
   data() {
     return {
       tab: undefined as undefined | Tab,
-      confirmUnregisterClient: false as boolean,
-      unregisterLoading: false as boolean,
     };
   },
   computed: {
@@ -110,12 +93,6 @@ export default Vue.extend({
 
       return this.$store.getters.getAllowedTabs(allTabs);
     },
-    localGroupsRoute(): object {
-      return {
-        name: RouteName.SubsystemLocalGroups,
-        params: { id: this.id },
-      };
-    },
   },
   created() {
     this.fetchClient(this.id);
@@ -125,28 +102,6 @@ export default Vue.extend({
       this.$store.dispatch('fetchClient', id).catch((error) => {
         this.$store.dispatch('showError', error);
       });
-    },
-
-    unregisterClient(): void {
-      this.unregisterLoading = true;
-      this.$store
-        .dispatch('unregisterClient', this.client)
-        .then(
-          () => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.unregister.success',
-            );
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          this.fetchClient(this.id);
-          this.confirmUnregisterClient = false;
-          this.unregisterLoading = false;
-        });
     },
   },
 });

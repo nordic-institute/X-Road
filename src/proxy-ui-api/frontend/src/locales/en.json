@@ -99,6 +99,7 @@
       }
     },
     "owner": "Owner",
+    "member": "Member",
     "memberName": "Member Name",
     "memberClass": "Member Class",
     "memberCode": "Member Code",
