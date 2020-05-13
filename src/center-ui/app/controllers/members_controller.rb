@@ -416,8 +416,8 @@ class MembersController < ApplicationController
 
     validate_params({
       :serverCode => [:required, :identifier],
-      :ownerCode => [:required, :identifier],
-      :ownerClass => [:required, :identifier],
+      :ownerCode => [:required],
+      :ownerClass => [:required],
       :tempCertId => [:required]
     })
 
@@ -466,7 +466,7 @@ class MembersController < ApplicationController
     validate_params({
       :memberClass => [:required],
       :memberCode => [:required],
-      :subsystemCode => [],
+      :subsystemCode => [:identifier],
       :serverCode => [:required],
       :ownerClass => [:required],
       :ownerCode => [:required]
