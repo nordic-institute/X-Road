@@ -250,7 +250,7 @@ public class ClientService {
      * Get a local client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
-    private ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
+    public ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
         ClientType clientType = getLocalClient(id);
         if (clientType == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
