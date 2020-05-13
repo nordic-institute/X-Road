@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.validator;
+package ee.ria.xroad.common.validation;
 
 /**
  * Encapsulates validation logic that is copied from Spring firewall internal methods and
@@ -40,19 +40,19 @@ public final class SpringFirewallValidationRules {
 
     private static final String FORBIDDEN_BACKSLASH = "\\";
 
-    static boolean containsPercent(String s) {
+    public static boolean containsPercent(String s) {
         return s.contains(FORBIDDEN_PERCENT);
     }
 
-    static boolean containsSemicolon(String s) {
+    public static boolean containsSemicolon(String s) {
         return s.contains(FORBIDDEN_SEMICOLON);
     }
 
-    static boolean containsForwardslash(String s) {
+    public static boolean containsForwardslash(String s) {
         return s.contains(FORBIDDEN_FORWARDSLASH);
     }
 
-    static boolean containsBackslash(String s) {
+    public static boolean containsBackslash(String s) {
         return s.contains(FORBIDDEN_BACKSLASH);
     }
 
@@ -68,7 +68,7 @@ public final class SpringFirewallValidationRules {
      *         sequences.
      */
     @SuppressWarnings("checkstyle:magicnumber")
-    static boolean isNormalized(String path) {
+    public static boolean isNormalized(String path) {
         if (path == null) {
             return true;
         }

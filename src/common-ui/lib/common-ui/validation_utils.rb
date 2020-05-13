@@ -23,12 +23,13 @@
 # THE SOFTWARE.
 #
 
+require 'java'
 require 'addressable/uri'
 
 java_import Java::com.google.common.net.InternetDomainName
 java_import Java::com.google.common.net.InetAddresses
 java_import Java::java.net.IDN
-
+java_import Java::ee.ria.xroad.common.validation.SpringFirewallValidationRules
 
 module CommonUi
   module ValidationUtils
@@ -226,7 +227,7 @@ module CommonUi
 
     class IdentifierValidator < Validator
       def validate(val, param)
-        if val.include? "@"
+        if SpringFirewallValidationRules::containsPercent(val)
           raise ValidationError.new(param, :identifier),
                 I18n.t('validation.invalid_identifier', :param => param, :val => val)
         end

@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.validator;
 
+import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+
 import java.util.EnumSet;
 
 /**
