@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 #
 
+require 'java'
 require 'thread'
 
 java_import Java::ee.ria.xroad.common.request.ClientRegRequestStatusWrapper
@@ -32,6 +33,7 @@ java_import Java::ee.ria.xroad.common.message.SoapUtils
 java_import Java::ee.ria.xroad.common.message.SoapFault
 java_import Java::ee.ria.xroad.common.ErrorCodes
 java_import Java::ee.ria.xroad.common.CodedException
+java_import Java::ee.ria.xroad.common.validation.SpringFirewallValidationRules
 
 class ManagementRequestController < ApplicationController
 
@@ -99,6 +101,30 @@ class ManagementRequestController < ApplicationController
                          :security_server => security_server.to_s,
                          :sec_serv_owner => sender.to_s)
         end
+    end
+
+    def check_security_server_identifiers(ss)
+      check_identifier(ss.xroad_instance)
+      check_identifier(ss.member_class)
+      check_identifier(ss.member_code)
+      check_identifier(ss.server_code)
+    end
+
+    def check_client_identifiers(ss)
+      check_identifier(ss.xroad_instance)
+      check_identifier(ss.member_class)
+      check_identifier(ss.member_code)
+      check_identifier(ss.subsystem_code)
+    end
+
+    def check_identifier(id)
+      if SpringFirewallValidationRules::containsPercent(val) ||
+        SpringFirewallValidationRules::containsSemicolon(val) ||
+        SpringFirewallValidationRules::containsForwardslash(val) ||
+        SpringFirewallValidationRules::containsBackslash(val) ||
+        !SpringFirewallValidationRules::isNormalized(val)
+        raise I18n.t("request.invalid_identifier", :id => id)
+      end
     end
 
     # xroad_id may be either ClientId or ServerId.
