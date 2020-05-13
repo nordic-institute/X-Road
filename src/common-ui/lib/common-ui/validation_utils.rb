@@ -231,7 +231,7 @@ module CommonUi
             SpringFirewallValidationRules::containsSemicolon(val) ||
             SpringFirewallValidationRules::containsForwardslash(val) ||
             SpringFirewallValidationRules::containsBackslash(val) ||
-            SpringFirewallValidationRules::isNormalized(val)
+            !SpringFirewallValidationRules::isNormalized(val)
           raise ValidationError.new(param, :identifier),
                 I18n.t('validation.invalid_identifier', :param => param, :val => val)
         end
