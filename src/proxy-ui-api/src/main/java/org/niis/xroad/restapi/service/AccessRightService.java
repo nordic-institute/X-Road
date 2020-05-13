@@ -217,7 +217,9 @@ public class AccessRightService {
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
         auditDataHelper.put(SERVICE_CODE, serviceType.getServiceCode());
-        subjectIds.forEach(id -> auditDataHelper.addListPropertyItem(SUBJECT_IDS, id));
+        if (subjectIds != null) {
+            subjectIds.forEach(id -> auditDataHelper.addListPropertyItem(SUBJECT_IDS, id));
+        }
 
         EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
 

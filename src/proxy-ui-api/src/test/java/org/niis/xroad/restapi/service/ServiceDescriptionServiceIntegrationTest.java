@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
@@ -122,6 +123,10 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @SpyBean
     private OpenApiParser openApiParser;
+
+    // to prevent java.lang.IllegalStateException: request scope is not available
+    @MockBean
+    private AuditDataHelper auditDataHelper;
 
     @Before
     public void setup() {

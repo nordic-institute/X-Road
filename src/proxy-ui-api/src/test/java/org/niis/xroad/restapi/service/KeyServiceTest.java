@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
@@ -103,7 +104,11 @@ public class KeyServiceTest {
 
     // allow all actions
     @MockBean
-    PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
+
+    // to prevent java.lang.IllegalStateException: request scope is not available
+    @MockBean
+    private AuditDataHelper auditDataHelper;
 
     @Before
     public void setup() throws Exception {
