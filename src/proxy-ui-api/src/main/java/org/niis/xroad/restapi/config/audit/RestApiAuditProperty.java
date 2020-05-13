@@ -24,14 +24,18 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.CaseFormat;
+import com.google.gson.annotations.JsonAdapter;
 
 /**
  * Enumeration for data properties that are audit logged.
  * Values are named so that property value returned by {@link #getPropertyName()} are enum value converted to
  * lower camel case.
- * For example CLIENT_IDENTIFIER -> clientIdentifier
+ * For example CLIENT_IDENTIFIER -> clientIdentifier.
+ * JSON serialized using {@link #getPropertyName()}
  */
+@JsonAdapter(RestApiAuditPropertyJsonAdapter.class) // changes how direct properties are JSON serialized
 public enum RestApiAuditProperty {
 
     CLIENT_IDENTIFIER,
@@ -52,6 +56,13 @@ public enum RestApiAuditProperty {
     SERVICES_ADDED,
     SERVICES_DELETED,
     WSDL_URL_NEW,
+
+    SERVICES,
+    ID,
+    URL,
+    TIMEOUT,
+    TLS_AUTH,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**
@@ -60,7 +71,14 @@ public enum RestApiAuditProperty {
      * For example CLIENT_IDENTIFIER -> clientIdentifier
      * @return
      */
+    @JsonValue
     public String getPropertyName() {
         return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
+    }
+
+    @Override
+    public String toString() {
+        // changes how e.g. Map entries are JSON serialized
+        return getPropertyName();
     }
 }

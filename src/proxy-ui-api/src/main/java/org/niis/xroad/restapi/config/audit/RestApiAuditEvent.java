@@ -54,9 +54,11 @@ public enum RestApiAuditEvent {
     DELETE_SERVICE_DESCRIPTION("Delete service description"),
     DISABLE_SERVICE_DESCRIPTION("Disable service description"),
     ENABLE_SERVICE_DESCRIPTION("Enable service description"),
-    REFRESH_SERVICE_DESCRIPTION("Refresh service description"), // TO DO: uses property "wsdl" instead of "wsdls"
+    // TO DO: uses property "wsdl" instead of "wsdls" array
+    REFRESH_SERVICE_DESCRIPTION("Refresh service description"),
     EDIT_SERVICE_DESCRIPTION("Edit service description"), // generic edit before SD type is determined
     EDIT_WSDL_SERVICE_DESCRIPTION("Edit wsdl service description"),
+    // TO DO: uses property "service" instead of "services" array
     EDIT_SERVICE_PARAMS("Edit service parameters"),
     ADD_REST_ENDPOINT("Add rest endpoint"),
     EDIT_REST_ENDPOINT("Edit rest endpoint"),

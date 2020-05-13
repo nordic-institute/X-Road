@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -59,7 +60,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -909,12 +909,10 @@ public class ServiceDescriptionService {
             ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
 
         auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
-        // wsdl audit data is inside a separate "wsdl" object. LinkedHashMap just to preserve order
-        Map<String, Object> wsdlAuditData = new LinkedHashMap<>();
-        auditDataHelper.addListPropertyItem(WSDL, wsdlAuditData);
-        wsdlAuditData.put(WSDL_URL.getPropertyName(), serviceDescriptionType.getUrl());
+        Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(WSDL);
+        wsdlAuditData.put(WSDL_URL, serviceDescriptionType.getUrl());
         if (auditDataHelper.dataIsForEvent(EDIT_WSDL_SERVICE_DESCRIPTION)) {
-            wsdlAuditData.put(WSDL_URL_NEW.getPropertyName(), url);
+            wsdlAuditData.put(WSDL_URL_NEW, url);
         }
 
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
@@ -936,8 +934,8 @@ public class ServiceDescriptionService {
                 serviceDescriptionType.getService(),
                 newServices);
 
-        wsdlAuditData.put(SERVICES_ADDED.getPropertyName(), serviceChanges.getAddedFullServiceCodes());
-        wsdlAuditData.put(SERVICES_DELETED.getPropertyName(), serviceChanges.getRemovedFullServiceCodes());
+        wsdlAuditData.put(SERVICES_ADDED, serviceChanges.getAddedFullServiceCodes());
+        wsdlAuditData.put(SERVICES_DELETED, serviceChanges.getRemovedFullServiceCodes());
 
         // collect all types of warnings, throw Exception if not ignored
         List<WarningDeviation> allWarnings = new ArrayList<>();

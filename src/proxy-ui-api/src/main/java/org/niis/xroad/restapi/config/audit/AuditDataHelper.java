@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
@@ -66,17 +68,36 @@ public class AuditDataHelper {
         auditEventLoggingFacade.putRequestScopedAuditData(auditProperty, value);
     }
 
+    /**
+     * Add a new item to a property that contains a list of items
+     * @param listProperty
+     * @param value
+     */
     public void addListPropertyItem(RestApiAuditProperty listProperty, Object value) {
         auditEventLoggingFacade.addRequestScopedAuditListData(listProperty, value);
+    }
+
+    /**
+     * Creates a Map that will contain nested audit properties.
+     * Map instance is not threadsafe.
+     * Map has stable key ordering ({@link LinkedHashMap}).
+     * Map is added to audit data with given RestApiAuditProperty key.
+     * @param auditProperty
+     * @return map for nested audit properties
+     */
+    public Map<RestApiAuditProperty, Object> putMap(RestApiAuditProperty auditProperty) {
+        Map<RestApiAuditProperty, Object> map = new LinkedHashMap<>();
+        put(auditProperty, map);
+        return map;
+    }
+
+    public boolean dataIsForEvent(RestApiAuditEvent event) {
+        return auditEventLoggingFacade.hasRequestScopedEvent(event);
     }
 
     public void put(IsAuthentication isAuthentication) {
         String auditLoggedValue = getAuditLoggedValue(isAuthentication);
         put(IS_AUTHENTICATION, auditLoggedValue);
-    }
-
-    public boolean dataIsForEvent(RestApiAuditEvent event) {
-        return auditEventLoggingFacade.hasRequestScopedEvent(event);
     }
 
     private String getAuditLoggedValue(IsAuthentication isAuthentication) {
