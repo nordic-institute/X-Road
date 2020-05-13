@@ -415,9 +415,9 @@ class MembersController < ApplicationController
     authorize!(:add_security_server_reg_request)
 
     validate_params({
-      :serverCode => [:required],
-      :ownerCode => [:required],
-      :ownerClass => [:required],
+      :serverCode => [:required, :identifier],
+      :ownerCode => [:required, :identifier],
+      :ownerClass => [:required, :identifier],
       :tempCertId => [:required]
     })
 
