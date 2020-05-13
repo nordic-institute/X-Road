@@ -110,11 +110,13 @@ import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT_INTERNAL_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_CLIENT_ACCESS_RIGHTS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_CLIENT;
@@ -650,6 +652,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
+    @AuditEventMethod(event = ADD_SERVICE_CLIENT_ACCESS_RIGHTS)
     public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
@@ -672,6 +675,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
+    @AuditEventMethod(event = REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS)
     public ResponseEntity<Void> deleteServiceClientAccessRights(String encodedClientId,
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);

@@ -68,8 +68,8 @@ public enum RestApiAuditEvent {
     EDIT_OPENAPI3_SERVICE_DESCRIPTION("Edit openapi3 service description"),
     ADD_SERVICE_ACCESS_RIGHTS("Add access rights to service"),
     REMOVE_SERVICE_ACCESS_RIGHTS("Remove access rights from service"),
-    ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"), // not implemented yet
-    REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS("Remove access rights from subject"), // not implemented yet
+    ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"),
+    REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS("Remove access rights from subject"),
     SET_CONNECTION_TYPE("Set connection type for servers in service consumer role"),
     ADD_CLIENT_INTERNAL_CERT("Add internal TLS certificate"),
     DELETE_CLIENT_INTERNAL_CERT("Delete internal TLS certificate"),
