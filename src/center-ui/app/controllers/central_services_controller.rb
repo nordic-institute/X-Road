@@ -141,7 +141,7 @@ class CentralServicesController < ApplicationController
     end
 
     validate_params({
-      :serviceCode => [:required],
+      :serviceCode => [:required, :identifier],
       :targetServiceCode => required,
       :targetServiceVersion => [],
       :targetProviderName => required,
