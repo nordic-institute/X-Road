@@ -860,6 +860,26 @@ public class ServiceDescriptionService {
     }
 
     /**
+     * Returns title for client's service with specific serviceCode.
+     * Current implementation picks title of the first matching service with given service code,
+     * if multiple versions exist.
+     * @param clientType
+     * @param serviceCode
+     * @return title, or null if no title exists.
+     * @throws NoSuchElementException if client does not have the given service
+     */
+    public String getServiceTitle(ClientType clientType, String serviceCode) {
+        ServiceType service = clientType.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .orElse(null);
+
+        return service == null ? null : service.getTitle();
+    }
+
+
+    /**
      * Update the WSDL url of the selected ServiceDescription.
      * Refreshing a WSDL is also an update of wsdl,
      * it just updates to the same URL value
@@ -1141,6 +1161,7 @@ public class ServiceDescriptionService {
         result.setWarnings(warnings);
         return result;
     }
+
 
     /**
      * validate that all services have legal service code (name) and version
