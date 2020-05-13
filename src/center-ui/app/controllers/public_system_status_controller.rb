@@ -53,18 +53,26 @@ class PublicSystemStatusController < BaseController
       :nodes => [],
     }
 
+    all_nodes_ok = true
     conf_expire = SystemParameter.conf_expire_interval_seconds
     now = Time.now
     node_status_result = ActiveRecord::Base.connection.execute(%q(select ha_node_name, address, configuration_generated from ha_cluster_status))
 
     node_status_result.each do |node_info|
+      status = node_status(node_info["configuration_generated"], now, conf_expire)
+      if status != "OK"
+        all_nodes_ok = false
+      end
       status_info[:nodes] << {
         node_name: node_info["ha_node_name"],
         node_address: node_info["address"],
         configuration_generated: node_info["configuration_generated"],
-        status: node_status(node_info["configuration_generated"], now, conf_expire)
+        status: status
       }
     end
+
+    status_info[:all_nodes_ok] = all_nodes_ok
+
     return status_info
   end
 

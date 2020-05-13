@@ -26,16 +26,10 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import java.util.List;
+public class RestoreProcessFailedException extends ServiceException {
+    public static final String RESTORE_PROCESS_FAILED = "restore_process_failed";
 
-public class ProcessFailedException extends ServiceException {
-    public static final String PROCESS_FAILED = "process_failed";
-
-    public ProcessFailedException(String msg) {
-        super(msg, new ErrorDeviation(PROCESS_FAILED));
-    }
-
-    public ProcessFailedException(String msg, List<String> metadata) {
-        super(msg, new ErrorDeviation(PROCESS_FAILED, metadata));
+    public RestoreProcessFailedException(Throwable t, String msg) {
+        super(msg, t, new ErrorDeviation(RESTORE_PROCESS_FAILED));
     }
 }

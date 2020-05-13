@@ -4,7 +4,7 @@
     <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('keys.detailsTitle')}}</v-stepper-step>
         <v-divider></v-divider>
         <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.csrDetails')}}</v-stepper-step>
         <v-divider></v-divider>
@@ -38,7 +38,6 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
-
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';

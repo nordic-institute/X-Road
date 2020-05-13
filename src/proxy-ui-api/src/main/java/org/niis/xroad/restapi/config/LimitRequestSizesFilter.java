@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -48,12 +47,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 @Configuration
-@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+@Order(LimitRequestSizesFilter.LIMIT_REQUEST_SIZES_FILTER_ORDER)
 @Slf4j
 /**
  * Servlet filter which limits request sizes to some amount of bytes
  */
 public class LimitRequestSizesFilter extends OncePerRequestFilter {
+    public static final int LIMIT_REQUEST_SIZES_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 2;
 
     private final FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
 
@@ -97,6 +97,7 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
         private BufferedReader reader;
 
         private final long maxBytes;
+
         SizeLimitingHttpServletRequestWrapper(HttpServletRequest request, long maxBytes) {
             super(request);
             this.maxBytes = maxBytes;
@@ -136,6 +137,7 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
         private final ServletInputStream is;
         private final long maxBytes;
         private long readSoFar = 0;
+
         SizeLimitingServletInputStream(ServletInputStream is, long maxBytes) {
             this.is = is;
             this.maxBytes = maxBytes;
@@ -165,6 +167,7 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
                 }
             }
         }
+
         private void increaseReadBytesCount(long localBefore) throws LimitRequestSizesException {
             increaseReadBytesCount(localBefore, 1);
         }
