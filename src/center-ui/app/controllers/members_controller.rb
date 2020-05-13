@@ -268,8 +268,8 @@ class MembersController < ApplicationController
     authorize!(:add_new_member)
 
     validate_params({
-      :memberClass => [:required],
-      :memberCode => [:required],
+      :memberClass => [:required, :identifier],
+      :memberCode => [:required, :identifier],
       :memberName => [:required]
     })
 
