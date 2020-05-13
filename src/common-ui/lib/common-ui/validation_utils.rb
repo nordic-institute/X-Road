@@ -227,7 +227,11 @@ module CommonUi
 
     class IdentifierValidator < Validator
       def validate(val, param)
-        if SpringFirewallValidationRules::containsPercent(val)
+        if SpringFirewallValidationRules::containsPercent(val) ||
+            SpringFirewallValidationRules::containsSemicolon(val) ||
+            SpringFirewallValidationRules::containsForwardslash(val) ||
+            SpringFirewallValidationRules::containsBackslash(val) ||
+            SpringFirewallValidationRules::isNormalized(val)
           raise ValidationError.new(param, :identifier),
                 I18n.t('validation.invalid_identifier', :param => param, :val => val)
         end
