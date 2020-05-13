@@ -90,12 +90,12 @@ public class InitializationApiControllerTest {
             // expected
         }
 
-        doThrow(new InitializationService.InitializationException("", Collections.emptyList()))
+        doThrow(new InitializationService.MissingInitParamsException("", Collections.emptyList()))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
-        } catch (ConflictException expected) {
+        } catch (BadRequestException expected) {
             // expected
         }
 
@@ -108,7 +108,7 @@ public class InitializationApiControllerTest {
             // expected
         }
 
-        doThrow(new InitializationService.InvalidPinException(""))
+        doThrow(new InitializationService.InvalidCharactersException(""))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
         try {
             initializationApiController.initSecurityServer(initialServerConf);

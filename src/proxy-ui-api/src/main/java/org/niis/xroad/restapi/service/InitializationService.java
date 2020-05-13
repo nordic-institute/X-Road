@@ -114,7 +114,9 @@ public class InitializationService {
     }
 
     /**
-     * Initialize a new Security Server with the provided parameters
+     * Initialize a new Security Server with the provided parameters. Supports partial initialization which means
+     * that if e.g. software token has already been initialized, it will not get initialized again, therefore the
+     * parameter <code>String softwareTokenPin</code> can be <code>null</code>.
      * @param securityServerCode server code for the new Security Server
      * @param ownerMemberClass member class of the new owner member
      * @param ownerMemberCode member code of the new owner member
@@ -128,8 +130,8 @@ public class InitializationService {
      * OR provided server code already in use
      * @throws WeakPinException if the pin does not meet the length and complexity requirements (if token pin policy is
      * enforced by properties)
-     * @throws InvalidPinException if the provided pin code does not follow the TokenPinPolicy (if token pin policy is
-     * enforced by properties)
+     * @throws InvalidCharactersException if the provided pin code does not follow the TokenPinPolicy (if token pin
+     * policy is enforced by properties). In other words pin code contains invalid characters (not ascii)
      * @throws SoftwareTokenInitException if something goes wrong with the token init
      * @throws MissingInitParamsException if empty or missing parameters are provided
      */
@@ -146,7 +148,7 @@ public class InitializationService {
         if (serverConfService.isServerOwnerInitialized()) {
             ownerClientId = serverConfService.getSecurityServerOwnerId();
         } else {
-            // if owner does not exist, assert new owner parameters
+            // if owner does not exist, new owner parameters are required
             List<String> errorMetadata = new ArrayList<>();
             if (StringUtils.isEmpty(ownerMemberClass)) {
                 errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_BLANK);
@@ -172,7 +174,8 @@ public class InitializationService {
     }
 
     /**
-     * If old values do not exist -> new values must be provided
+     * Verify that when initializing a new security server, all required parameters are provided.
+     * If old values do not exist -> new values must be provided.
      * @param securityServerCode
      * @param ownerMemberClass
      * @param ownerMemberCode
@@ -182,6 +185,12 @@ public class InitializationService {
     private void verifyInitializationPrerequisites(String securityServerCode, String ownerMemberClass,
             String ownerMemberCode, String softwareTokenPin) throws MissingInitParamsException {
         List<String> errorMetadata = new ArrayList<>();
+        /*
+         * Example cases:
+         * If server code does not exist -> securityServerCode param is required in the request.
+         * If server code already exists -> securityServerCode param is not required because it won't get initialized
+         * again.
+         */
         if (!serverConfService.isServerCodeInitialized()) {
             if (StringUtils.isEmpty(securityServerCode)) {
                 errorMetadata.add(ERROR_METADATA_SERVERCODE_BLANK);
