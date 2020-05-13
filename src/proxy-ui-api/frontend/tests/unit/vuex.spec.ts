@@ -4,9 +4,9 @@ import mockJson from './mockClients.json';
 import compareJson from './mockClientsResult.json';
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-Vue.use(Vuex);
+import { clientsState, mutations as clientsMutations, getters as clientsGetters, ClientsState } from '@/store/modules/clients';
 
-import { mutations as clientsMutations, getters as clientsGetters, ClientsState } from '@/store/modules/clients';
+Vue.use(Vuex);
 
 describe('clients actions', () => {
   let store: any;
@@ -14,18 +14,9 @@ describe('clients actions', () => {
   beforeEach(() => {
     setDataMock = jest.fn();
 
-    const state: ClientsState = {
-      loading: false,
-      localMembers: [],
-      clients: [],
-      formattedClients: [],
-      members: [],
-      subsystems: [],
-    };
-
     const clientsModule: Module<ClientsState, RootState> = {
       namespaced: false,
-      state,
+      state: clientsState,
       getters: clientsGetters,
       mutations: clientsMutations,
     };
