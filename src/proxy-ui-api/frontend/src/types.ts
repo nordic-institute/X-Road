@@ -283,6 +283,12 @@ export interface Client {
    * false
    */
   readonly owner?: boolean;
+  /**
+   * if this client is local and has a valid sign cert
+   * example:
+   * false
+   */
+  readonly has_valid_local_sign_cert?: boolean;
   connection_type?: ConnectionType; // enum
   readonly status?: ClientStatus; // enum
 }
@@ -914,6 +920,12 @@ export interface Service {
    * example:
    * myService.v1
    */
+  full_service_code?: string; // text
+  /**
+   * encoded service code and version
+   * example:
+   * myService
+   */
   service_code: string; // text
   /**
    * service time out value
@@ -974,7 +986,7 @@ export interface ServiceClient {
   readonly local_group_code?: string; // text
   service_client_type?: ServiceClientType; // text
   /**
-   * time when access right were given at. Contains meaningful value when listing service clients that have been granted access to a specific endpoint or service.
+   * time when access right were given at. When listing client's service clients without specifying the service, the time when first service access right was given to this service client for any service. When listing service clients for a specific service, time when service client was added permission to that service.
    * example:
    * 2018-12-15T00:00:00.001Z
    */
