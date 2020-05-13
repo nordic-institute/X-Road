@@ -89,7 +89,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SelectClientDialog from './SelectClientDialog.vue';
+import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/types';
 import { containsClient } from '@/util/helpers';
 

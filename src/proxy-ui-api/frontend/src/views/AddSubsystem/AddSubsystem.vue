@@ -95,7 +95,7 @@ import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
-import SelectClientDialog from '@/views/AddClient/SelectClientDialog.vue';
+import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';

@@ -85,7 +85,6 @@ export default Vue.extend({
     },
     selectableClients: {
       type: Array,
-      required: true,
     },
   },
 
