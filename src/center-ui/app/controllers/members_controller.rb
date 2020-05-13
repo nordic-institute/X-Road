@@ -346,7 +346,7 @@ class MembersController < ApplicationController
     validate_params({
       :memberClass => [:required],
       :memberCode => [:required],
-      :subsystemCode => [:required]
+      :subsystemCode => [:required, :identifier]
     })
 
     audit_log_data[:memberClass] = params[:memberClass]
