@@ -40,6 +40,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -61,6 +62,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_IDS;
+
 /**
  * Service class for handling access rights.
  * This service has several methods that return "access rights holders".
@@ -79,13 +83,15 @@ public class AccessRightService {
     private final GlobalConfService globalConfService;
     private final EndpointService endpointService;
     private final LocalGroupService localGroupService;
+    private final AuditDataHelper auditDataHelper;
 
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
             GlobalConfService globalConfService,
             EndpointService endpointService,
-            LocalGroupService localGroupService) {
+            LocalGroupService localGroupService,
+            AuditDataHelper auditDataHelper) {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
@@ -93,6 +99,7 @@ public class AccessRightService {
         this.globalConfService = globalConfService;
         this.endpointService = endpointService;
         this.localGroupService = localGroupService;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -202,12 +209,16 @@ public class AccessRightService {
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws AccessRightNotFoundException,
             ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException, LocalGroupNotFoundException {
+        auditDataHelper.put(clientId);
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
+        auditDataHelper.put(SERVICE_CODE, serviceType.getServiceCode());
+        subjectIds.forEach(id -> auditDataHelper.addListPropertyItem(SUBJECT_IDS, id));
+
         EndpointType endpointType = endpointService.getServiceBaseEndpoint(serviceType);
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds

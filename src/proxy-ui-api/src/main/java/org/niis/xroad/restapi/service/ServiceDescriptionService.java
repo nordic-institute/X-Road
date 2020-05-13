@@ -687,6 +687,7 @@ public class ServiceDescriptionService {
         }
 
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+        auditDataHelper.put(serviceDescription.getClient().getIdentifier());
         if (!serviceDescription.getType().equals(DescriptionType.REST)) {
             throw new WrongServiceDescriptionTypeException("Expected description type REST");
         }
@@ -742,6 +743,8 @@ public class ServiceDescriptionService {
         if (serviceDescription == null) {
             throw new ServiceDescriptionNotFoundException("ServiceDescription with id: " + id + " wasn't found");
         }
+
+        auditDataHelper.put(serviceDescription.getClient().getIdentifier());
 
         if (!serviceDescription.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");

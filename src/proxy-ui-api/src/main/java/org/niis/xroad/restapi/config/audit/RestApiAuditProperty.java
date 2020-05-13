@@ -63,6 +63,9 @@ public enum RestApiAuditProperty {
     TIMEOUT,
     TLS_AUTH,
 
+    SERVICE_CODE,
+    SUBJECT_IDS,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**
