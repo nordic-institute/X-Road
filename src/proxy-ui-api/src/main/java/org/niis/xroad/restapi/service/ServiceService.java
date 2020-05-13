@@ -102,13 +102,14 @@ public class ServiceService {
     }
 
     /**
-     * Get {@link ServiceType} from a {@link ClientType} by comparing the service code (with version).
+     * Get {@link ServiceType} from a {@link ClientType} by comparing the full service code (with version).
      * @param client
      * @param fullServiceCode
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
-    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode) throws ServiceNotFoundException {
+    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode)
+            throws ServiceNotFoundException {
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)

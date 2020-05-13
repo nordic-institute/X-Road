@@ -21,7 +21,7 @@
         @refreshList="fetchData"
         @tokenLogout="logoutDialog = true"
         @tokenLogin="loginDialog = true"
-        @addKey="addKeyDialog = true"
+        @addKey="addKey"
         :token="token"
       />
     </template>
@@ -35,8 +35,6 @@
     />
 
     <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
-
-    <KeyLabelDialog :dialog="addKeyDialog" @save="addKey" @cancel="addKeyDialog = false" />
   </div>
 </template>
 
@@ -46,28 +44,23 @@ import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import KeyLabelDialog from './KeyLabelDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenType, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
-
-import _ from 'lodash';
+import { cloneDeep } from 'lodash';
 
 export default Vue.extend({
   components: {
     TokenExpandable,
     ConfirmDialog,
     TokenLoginDialog,
-    KeyLabelDialog,
   },
   data() {
     return {
       search: '',
       loginDialog: false,
       logoutDialog: false,
-      addKeyDialog: false,
     };
   },
   computed: {
@@ -78,7 +71,7 @@ export default Vue.extend({
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      let arr = _.cloneDeep(this.tokens).sort((a: Token, b: Token) => {
+      let arr = cloneDeep(this.tokens).sort((a: Token, b: Token) => {
         if (a.id < b.id) {
           return -1;
         }
@@ -166,7 +159,7 @@ export default Vue.extend({
       this.fetchData();
       this.loginDialog = false;
     },
-    addKey(label: string) {
+    addKey() {
       this.$router.push({
         name: RouteName.AddKey,
         params: { tokenId: this.$store.getters.selectedToken.id },

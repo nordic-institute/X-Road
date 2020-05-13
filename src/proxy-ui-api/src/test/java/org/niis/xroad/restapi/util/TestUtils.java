@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -101,16 +102,35 @@ public final class TestUtils {
     public static final String DB_LOCAL_GROUP_ID_2 = "2";
     public static final String DB_LOCAL_GROUP_CODE = "group1";
     // services from initial test data: src/test/resources/data.sql
-    public static final String SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
-    public static final String SERVICE_BMI_OLD = "bodyMassIndexOld.v1";
-    public static final String SERVICE_GET_RANDOM = "getRandom.v1";
-    public static final String SERVICE_CALCULATE_PRIME = "calculatePrime.v1";
+    public static final String FULL_SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
+    public static final String SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld";
+    public static final String FULL_SERVICE_CODE_BMI_OLD = "bodyMassIndexOld.v1";
+    public static final String SERVICE_CODE_BMI_OLD = "bodyMassIndexOld";
+    public static final String FULL_SERVICE_CODE_GET_RANDOM = "getRandom.v1";
+    public static final String SERVICE_CODE_GET_RANDOM = "getRandom";
+    public static final String FULL_SERVICE_CALCULATE_PRIME = "calculatePrime.v1";
+    public static final String SERVICE_CALCULATE_PRIME = "calculatePrime";
     // services from wsdl test file: src/test/resources/testservice.wsdl
-    public static final String SERVICE_XROAD_GET_RANDOM = "xroadGetRandom.v1";
-    public static final String SERVICE_BMI = "bodyMassIndex.v1";
+    public static final String FULL_SERVICE_XROAD_GET_RANDOM = "xroadGetRandom.v1";
+    public static final String SERVICE_XROAD_GET_RANDOM = "xroadGetRandom";
+    public static final String FULL_SERVICE_CODE_BMI = "bodyMassIndex.v1";
+    public static final String SERVICE_CODE_BMI = "bodyMassIndex";
 
     public static final File ANCHOR_FILE = TestUtils.getTestResourceFile("internal-configuration-anchor.xml");
     public static final String ANCHOR_HASH = "B37E02C0B310497C05D938A8C4446DFA80722F97123852BA8BF20D57";
+
+    // key has all roles in data.sql
+    public static final String API_KEY_HEADER_VALUE = "X-Road-apikey token=d56e1ca7-4134-4ed4-8030-5f330bdb602a";
+
+    // obsolete items
+    public static final XRoadId OBSOLETE_SUBSYSTEM_ID = ClientId.create("FI", "GOV",
+            "M2", "OBSOLETE-SUBSYSTEM");
+    public static final GlobalGroupId OBSOLETE_GGROUP_ID = GlobalGroupId.create("FI",
+            "obsolete-globalgroup");
+    public static final long OBSOLETE_SCS_BASE_ENDPOINT_ID = 13L;
+    public static final String OBSOLETE_SCS_SERVICE_CODE = "serviceWithObsoleteScs";
+    public static final String OBSOLETE_SCS_FULL_SERVICE_CODE = OBSOLETE_SCS_SERVICE_CODE + ".v1";
+
 
     private TestUtils() {
         // noop

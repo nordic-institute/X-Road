@@ -33,4 +33,11 @@ public class IdentifierNotFoundException extends NotFoundException {
     public IdentifierNotFoundException() {
         super(new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
     }
+
+    public IdentifierNotFoundException(Throwable t) {
+        super(t, new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+    }
+    public IdentifierNotFoundException(String s) {
+        super(s, new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+    }
 }

@@ -20,6 +20,12 @@ INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, MEMBER_CLASS, M
 values (7, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M2', 'SS5');
 INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE)
 values (8, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M2', 'SS6');
+INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, GROUP_CODE)
+values (9,'GG','GLOBALGROUP','FI', 'test-globalgroup');
+INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, GROUP_CODE)
+values (10,'GG','GLOBALGROUP','FI', 'obsolete-globalgroup');
+INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE)
+values (11, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M2', 'OBSOLETE-SUBSYSTEM');
 
 
 
@@ -40,6 +46,8 @@ INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
 values (1, 'group1', 'foo', now(), 2);
 INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
 values (2, 'group2', 'foo', now(), 2);
+INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
+values (3, 'identifier-less-group', 'group-which-is-missing-identifier-for-some-reason', now(), 2);
 
 
 INSERT INTO SERVERCONF(ID, server_code, OWNER) values (1, 'TEST-INMEM-SS', 1);
@@ -66,7 +74,7 @@ values (6, 5, 'file:src/test/resources/openapiparser/valid.yaml', true, 'disable
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (1, 1, 'getRandom', 'v1', 'getrandom-title', 'https://soapservice.com/v1/Endpoint', true, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
-values (2, 1, 'calculatePrime', 'v1', null, 'https://soapservice.com/v1/Endpoint', false, 60);
+values (2, 1, 'calculatePrime', 'v1', 'calculatePrime-title', 'https://soapservice.com/v1/Endpoint', false, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (3, 2, 'openapi-servicecode', 'v1', null, 'https://restservice.com/api/v1', true, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
@@ -79,6 +87,8 @@ INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, T
 values (7, 5, 'rest-servicecode', 'v1', null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (8, 6, 'openapi3-test', 'v1', null, 'file:src/test/resources/openapiparser/valid.yaml', false, 60);
+INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
+values (9, 1, 'serviceWithObsoleteScs', 'v1', 'service-with-obsolete-service-clients', 'https://soapservice.com/v1/Endpoint', true, 60);
 
 
 
@@ -106,6 +116,8 @@ INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (11, 5, 'openapi3-test', 'GET', '/foo', false);
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (12, 5, 'openapi3-test', 'PUT', '/foo', false);
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (13, 2, 'serviceWithObsoleteScs', '*', '**', true);
 
 
 
@@ -131,8 +143,19 @@ INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
 values (10, 3, {ts '2020-03-05 12:04:30.389000'}, 2, 5);
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
 values (11, 3, {ts '2020-03-05 12:04:30.389000'}, 2, 6);
-
-
+-- test service_client rights_given_at correct value
+-- (accessright 13 has the earliest timestamp)
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (12, 9, {ts '2020-01-01 12:01:30.000000'}, 2, 1);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (13, 9, {ts '2020-01-01 09:07:22.000000'}, 2, 3);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (14, 9, {ts '2020-01-02 12:08:30.000000'}, 2, 4);
+-- access rights for obsolete global group and subsystem
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (15, 10, {ts '2020-01-02 12:08:30.000000'}, 2, 13);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (16, 11, {ts '2020-01-02 12:08:30.000000'}, 2, 13);
 
 INSERT INTO APIKEY (ID, ENCODED_KEY)
 values (1, 'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');

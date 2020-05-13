@@ -48,7 +48,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.joda.time.DateTime;
 
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -172,10 +171,9 @@ public final class OcspVerifier {
             log.debug("Verify OCSP nextUpdate, atDate: {} nextUpdate: {}", atDate, singleResp.getNextUpdate());
             if (singleResp.getNextUpdate() != null
                     && singleResp.getNextUpdate().before(atDate)) {
-                SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                 throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s", fmt.format(atDate),
-                                fmt.format(singleResp.getNextUpdate())));
+                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s",
+                                atDate.toInstant(), singleResp.getNextUpdate().toInstant()));
             }
         } else {
             log.debug("OCSP nextUpdate verification is turned off");

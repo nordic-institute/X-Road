@@ -29,7 +29,13 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 public class ServiceClientNotFoundException extends NotFoundException {
     public static final String ERROR_SERVICE_CLIENT_NOT_FOUND = "service_client_not_found";
 
+    public ServiceClientNotFoundException() {
+        super(new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
+    }
     public ServiceClientNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
+    }
+    public ServiceClientNotFoundException(Throwable t) {
+        super(t, new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
     }
 }

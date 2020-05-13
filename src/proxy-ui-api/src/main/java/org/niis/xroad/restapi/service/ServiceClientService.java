@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
@@ -44,15 +43,9 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 @Slf4j
 @Service
@@ -65,17 +58,20 @@ public class ServiceClientService {
     private final EndpointService endpointService;
     private final AccessRightService accessRightService;
     private final LocalGroupService localGroupService;
-    private final GlobalConfService globalConfService;
+    private final IdentifierService identifierService;
+    private final ServiceDescriptionService serviceDescriptionService;
 
     public ServiceClientService(ClientRepository clientRepository, ServiceService serviceService,
             EndpointService endpointService, AccessRightService accessRightService,
-            LocalGroupService localGroupService, GlobalConfService globalConfService) {
+            LocalGroupService localGroupService, IdentifierService identifierService,
+            ServiceDescriptionService serviceDescriptionService) {
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.endpointService = endpointService;
         this.accessRightService = accessRightService;
         this.localGroupService = localGroupService;
-        this.globalConfService = globalConfService;
+        this.identifierService = identifierService;
+        this.serviceDescriptionService = serviceDescriptionService;
     }
 
     /**
@@ -88,11 +84,12 @@ public class ServiceClientService {
      *
      * @param ownerId
      * @return
-     * @throws ClientNotFoundException
+     * @throws ClientNotFoundException if owner was not found
      *
      */
     public List<ServiceClientDto> getServiceClientsByClient(ClientId ownerId)
             throws ClientNotFoundException {
+
         ClientType owner = clientRepository.getClient(ownerId);
         if (owner == null) {
             throw new ClientNotFoundException("Client " + ownerId.toShortString() + " not found");
@@ -125,7 +122,8 @@ public class ServiceClientService {
     }
 
     /**
-     * Get single service client
+     * Get single service client. Service client may be "obsolete", e.g. global group
+     * that has been deleted from global configuration, but still exists in global configuration
      *
      * @param ownerId
      * @param serviceClientId
@@ -195,17 +193,18 @@ public class ServiceClientService {
      * @param serviceClientId
      * @return
      * @throws ClientNotFoundException if given client or service client is not found
-     * @throws IdentifierNotFoundException if given client doesn't own the given service client
+     * @throws ServiceClientNotFoundException if given service client being searched is not found
      */
     public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId ownerId,
-            XRoadId serviceClientId) throws ClientNotFoundException, IdentifierNotFoundException {
+            XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
 
         ClientType owner = clientRepository.getClient(ownerId);
         if (owner == null) {
             throw new ClientNotFoundException("Client not found with id: " + ownerId.toShortString());
         }
 
-        verifyServiceClientIdentifiersExist(owner, new HashSet(Arrays.asList(serviceClientId)));
+        // verify that service client exists
+        getServiceClient(ownerId, serviceClientId);
 
         // Filter service clients access rights from the given clients acl-list
         return owner.getAcl().stream()
@@ -213,7 +212,7 @@ public class ServiceClientService {
                 .map(acl -> ServiceClientAccessRightDto.builder()
                         .serviceCode(acl.getEndpoint().getServiceCode())
                         .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
-                        .title(getServiceTitle(owner, acl.getEndpoint().getServiceCode()))
+                        .title(serviceDescriptionService.getServiceTitle(owner, acl.getEndpoint().getServiceCode()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -223,87 +222,27 @@ public class ServiceClientService {
      *
      * @param dto
      * @return
-     * @throws LocalGroupNotFoundException if given dto contains local group that is not found
-     * @throws ServiceClientNotFoundException if given doesn't contain local group id nor XRoadId
+     * @throws ServiceClientNotFoundException if given dto contains local group that is not found
      */
     public XRoadId convertServiceClientIdentifierDtoToXroadId(ServiceClientIdentifierDto dto)
-            throws LocalGroupNotFoundException, ServiceClientNotFoundException {
+            throws ServiceClientNotFoundException {
+
+        if (dto.getXRoadId() == null && dto.getLocalGroupId() == null) {
+            // should never happen, as long as dto is from ServiceClientIdentifierConverter
+            throw new IllegalArgumentException();
+        }
+
         // Get XRoadId for the given service client
         XRoadId xRoadId = dto.getXRoadId();
         if (dto.isLocalGroup()) {
-            xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
-        }
-
-        if (xRoadId == null) {
-            throw new ServiceClientNotFoundException("Service client identifier doesn't "
-                + "contain key of a localgroup nor XRoadId");
+            try {
+                xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            } catch (LocalGroupNotFoundException e) {
+                throw new ServiceClientNotFoundException(e);
+            }
         }
 
         return xRoadId;
-    }
-
-    /**
-     * Verify that service client XRoadIds do exist
-     * @param clientType owner of (possible) local groups
-     * @param serviceClientIds service client ids to check
-     * @return
-     * @throws IdentifierNotFoundException if there were identifiers that could not be found
-     */
-    public void verifyServiceClientIdentifiersExist(ClientType clientType, Set<XRoadId> serviceClientIds)
-            throws IdentifierNotFoundException {
-        Map<XRoadObjectType, List<XRoadId>> idsPerType = serviceClientIds.stream()
-                .collect(groupingBy(XRoadId::getObjectType));
-        for (XRoadObjectType type: idsPerType.keySet()) {
-            if (!isValidServiceClientType(type)) {
-                throw new IllegalArgumentException("Invalid service client subject object type " + type);
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
-            if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
-                throw new IdentifierNotFoundException();
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
-            if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
-                throw new IdentifierNotFoundException();
-            }
-        }
-        if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
-            if (!localGroupService.localGroupsExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
-                throw new IdentifierNotFoundException();
-            }
-        }
-    }
-
-    private boolean isValidServiceClientType(XRoadObjectType objectType) {
-        return objectType == XRoadObjectType.SUBSYSTEM
-                || objectType == XRoadObjectType.GLOBALGROUP
-                || objectType == XRoadObjectType.LOCALGROUP;
-    }
-
-    /**
-     * Add access rights for services in serviceCodes to service client serviceClientId,
-     * both the services and service client in the context of subsystem clientId
-     * TO DO: test
-     * TO DO: test service != client's services
-     * TO DO: test service client != client's service clients
-     * TO DO: access right already exists -> exception
-     * @param clientId
-     * @param serviceClientId
-     * @param serviceCodes
-     */
-    public void addServiceClientAccessRights(ClientId clientId, XRoadId serviceClientId, Set<String> serviceCodes) {
-        log.debug("adding service client access rights");
-    }
-
-    private String getServiceTitle(ClientType clientType, String serviceCode) {
-        ServiceType service = clientType.getServiceDescription().stream()
-                .flatMap(sd -> sd.getService().stream())
-                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
-                .get();
-
-        return service == null ? null : service.getTitle();
     }
 
 }

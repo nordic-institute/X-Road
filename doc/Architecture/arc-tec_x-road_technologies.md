@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.3  
-17.04.2019
+Version: 1.4  
+12.05.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -17,6 +17,7 @@ Doc. ID: ARC-TEC
  02.03.2018 | 1.1     | Added uniform terms and conditions reference                | Tatu Repo
  17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10          | Petteri Kivimäki
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
+ 12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -41,6 +42,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 ## 1 Introduction
 
 This document describes the general technology composition of X-Road components. To better illustrate the role of main technologies in X-Road, the information is collected in to several technology matrices highlighting the technology relationships between components.   
+
+Besides, the [X-Road Core Tech Radar](https://nordic-institute.github.io/X-Road-tech-radar/) is a list of technologies used in the implementation of the core components of X-Road. 
 
 ## 1.1 Terms and abbreviations
 

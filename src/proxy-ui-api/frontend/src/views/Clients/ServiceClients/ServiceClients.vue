@@ -74,7 +74,7 @@
       addServiceClient(): void {
         // NOOP
       },
-      filteredServiceClients() {
+      filteredServiceClients(): ServiceClient[] {
         return this.serviceClients.filter( (sc: ServiceClient) => {
           const searchWordLowerCase = this.search.toLowerCase();
           return sc.name?.toLowerCase().includes(searchWordLowerCase)
