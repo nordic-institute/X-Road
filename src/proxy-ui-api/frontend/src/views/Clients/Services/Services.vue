@@ -152,8 +152,8 @@ import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import { cloneDeep } from 'lodash';
-import {Service, ServiceDescription} from '@/types';
-import {ServiceTypeEnum} from '@/domain';
+import { Service, ServiceDescription } from '@/types';
+import { ServiceTypeEnum } from '@/domain';
 
 export default Vue.extend({
   components: {
