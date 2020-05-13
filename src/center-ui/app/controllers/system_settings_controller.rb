@@ -202,7 +202,7 @@ class SystemSettingsController < ApplicationController
     authorize!(:view_system_settings)
 
     validate_params({
-      :code => [:required],
+      :code => [:required, :identifier],
       :description => [:required]
     })
 
