@@ -71,6 +71,7 @@ public enum RestApiAuditEvent {
     ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"),
     REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS("Remove access rights from subject"),
     SET_CONNECTION_TYPE("Set connection type for servers in service consumer role"),
+    // TO DO: no "filename" property, since we are using binary application/octet-stream upload
     ADD_CLIENT_INTERNAL_CERT("Add internal TLS certificate"),
     DELETE_CLIENT_INTERNAL_CERT("Delete internal TLS certificate"),
     ADD_LOCAL_GROUP("Add group"),
@@ -78,6 +79,8 @@ public enum RestApiAuditEvent {
     ADD_LOCAL_GROUP_MEMBERS("Add members to group"),
     REMOVE_LOCAL_GROUP_MEMBERS("Remove members from group"),
     DELETE_LOCAL_GROUP("Delete group"),
+
+    // system parameters
     GENERATE_INTERNAL_CERT_REQ("Generate certificate request for TLS"),
     IMPORT_PROXY_INTERNAL_CERT("Import TLS certificate from file"),
     UPLOAD_ANCHOR("Upload configuration anchor"),

@@ -122,6 +122,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTI
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
@@ -276,6 +277,11 @@ public class ClientsApiController implements ClientsApi {
     @AuditEventMethod(event = ADD_CLIENT_INTERNAL_CERT)
     public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
             Resource body) {
+        // there's no filename since we only get a binary application/octet-stream.
+        // Have audit log anyway (null behaves as no-op) in case different content type is added later
+        String filename = body.getFilename();
+        auditDataHelper.put(UPLOAD_FILE_NAME, filename);
+
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(body);
         ClientId clientId = clientConverter.convertId(encodedId);
         CertificateType certificateType = null;

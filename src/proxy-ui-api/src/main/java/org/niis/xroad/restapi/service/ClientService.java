@@ -247,9 +247,11 @@ public class ClientService {
      * @throws ClientNotFoundException if client was not found
      */
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
+        auditDataHelper.put(id);
         ClientType clientType = getLocalClientOrThrowNotFound(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
+        auditDataHelper.put(enumValue);
         clientType.setIsAuthentication(connectionType);
         clientRepository.saveOrUpdate(clientType);
         return clientType;
@@ -277,6 +279,7 @@ public class ClientService {
      */
     public CertificateType addTlsCertificate(ClientId id, byte[] certBytes)
             throws CertificateException, CertificateAlreadyExistsException, ClientNotFoundException {
+        auditDataHelper.put(id);
         X509Certificate x509Certificate;
         try {
             x509Certificate = CryptoUtils.readCertificate(certBytes);
@@ -284,6 +287,15 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
+        CertificateType certificateType = new CertificateType();
+        try {
+            certificateType.setData(x509Certificate.getEncoded());
+        } catch (CertificateEncodingException ex) {
+            // client cannot do anything about this
+            throw new RuntimeException(ex);
+        }
+        auditDataHelper.put(certificateType);
+
         ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> duplicate = clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
@@ -292,13 +304,6 @@ public class ClientService {
             throw new CertificateAlreadyExistsException("certificate already exists");
         }
 
-        CertificateType certificateType = new CertificateType();
-        try {
-            certificateType.setData(x509Certificate.getEncoded());
-        } catch (CertificateEncodingException ex) {
-            // client cannot do anything about this
-            throw new RuntimeException(ex);
-        }
         clientType.getIsCert().add(certificateType);
         clientRepository.saveOrUpdateAndFlush(clientType);
         return certificateType;
@@ -337,6 +342,9 @@ public class ClientService {
      */
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException, CertificateNotFoundException {
+
+        auditDataHelper.put(id);
+
         ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
@@ -344,6 +352,8 @@ public class ClientService {
         if (!certificateType.isPresent()) {
             throw new CertificateNotFoundException();
         }
+
+        auditDataHelper.put(certificateType.get());
 
         clientType.getIsCert().remove(certificateType.get());
         clientRepository.saveOrUpdate(clientType);

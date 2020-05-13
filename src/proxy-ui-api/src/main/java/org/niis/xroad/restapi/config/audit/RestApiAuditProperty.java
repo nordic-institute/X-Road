@@ -69,6 +69,13 @@ public enum RestApiAuditProperty {
     SERVICE_CODES,
     SUBJECT_ID,
 
+    GROUP_CODE,
+    GROUP_DESCRIPTION,
+    MEMBER_IDENTIFIERS,
+
+    CERT_HASH,
+    UPLOAD_FILE_NAME,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**

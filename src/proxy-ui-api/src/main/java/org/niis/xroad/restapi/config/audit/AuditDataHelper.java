@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.config.audit;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -42,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
@@ -132,13 +134,27 @@ public class AuditDataHelper {
     public void addCertificateHash(CertificateInfo certificateInfo) {
         String hash = createFormattedHash(certificateInfo);
         addListPropertyItem(CERT_HASHES, hash);
+        putDefaultHashAlgorithm();
+    }
+
+    public void put(CertificateType certificateType) {
+        String hash = createFormattedHash(certificateType.getData());
+        put(CERT_HASH, hash);
+        putDefaultHashAlgorithm();
+    }
+
+    public void putDefaultHashAlgorithm() {
         put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
     private String createFormattedHash(CertificateInfo certificateInfo) {
+        return createFormattedHash(certificateInfo.getCertificateBytes());
+    }
+
+    private String createFormattedHash(byte[] certBytes) {
         String hash = null;
         try {
-            hash = CryptoUtils.calculateCertHexHash(certificateInfo.getCertificateBytes());
+            hash = CryptoUtils.calculateCertHexHash(certBytes);
             if (hash != null) {
                 hash = hash.toUpperCase();
                 hash = String.join(":", Splitter.fixedLength(2).split(hash));
