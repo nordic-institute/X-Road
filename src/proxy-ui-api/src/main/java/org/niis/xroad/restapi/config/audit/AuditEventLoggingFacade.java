@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +78,16 @@ public class AuditEventLoggingFacade {
 
     public void changeRequestScopedEvent(RestApiAuditEvent event) {
         updateRequestScopedEvent(event, false);
+    }
+
+    public boolean hasRequestScopedEvent(RestApiAuditEvent event) {
+        if (requestHelper.requestScopeIsAvailable()) {
+            RestApiAuditEvent other = auditContextRequestScopeHolder.getRequestScopedEvent();
+            boolean equal = event == other;
+            return event == auditContextRequestScopeHolder.getRequestScopedEvent();
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -258,7 +269,7 @@ public class AuditEventLoggingFacade {
      * Adds url and authentication method to event data map. Does not modify original map, returns a new instance
      */
     private Map<String, Object> addStandardEventData(Map<String, Object> data) {
-        Map<String, Object> result = new HashMap<>(data);
+        Map<String, Object> result = new LinkedHashMap<>(data);
         result.put("url", requestHelper.getCurrentRequestUrl());
         result.put("auth", securityHelper.getCurrentAuthenticationScheme());
         return result;

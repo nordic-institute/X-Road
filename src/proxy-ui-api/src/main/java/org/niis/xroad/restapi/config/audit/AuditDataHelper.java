@@ -75,6 +75,10 @@ public class AuditDataHelper {
         put(IS_AUTHENTICATION, auditLoggedValue);
     }
 
+    public boolean dataIsForEvent(RestApiAuditEvent event) {
+        return auditEventLoggingFacade.hasRequestScopedEvent(event);
+    }
+
     private String getAuditLoggedValue(IsAuthentication isAuthentication) {
         switch (isAuthentication) {
             case SSLAUTH:

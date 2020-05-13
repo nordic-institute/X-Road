@@ -48,6 +48,10 @@ public enum RestApiAuditProperty {
     DISABLED,
     REFRESHED_DATE,
     DISABLED_NOTICE,
+    WSDL, // TO DO: Refresh WSDL uses property "wsdl" instead of "wsdls"
+    SERVICES_ADDED,
+    SERVICES_DELETED,
+    WSDL_URL_NEW,
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**

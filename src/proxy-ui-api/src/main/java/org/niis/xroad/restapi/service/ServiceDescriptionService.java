@@ -59,15 +59,22 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_WSDL_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIERS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED_NOTICE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_ADDED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_DELETED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URLS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL_NEW;
 
 /**
  * ServiceDescription service
@@ -901,6 +908,15 @@ public class ServiceDescriptionService {
             WrongServiceDescriptionTypeException, UnhandledWarningsException,
             ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
 
+        auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
+        // wsdl audit data is inside a separate "wsdl" object. LinkedHashMap just to preserve order
+        Map<String, Object> wsdlAuditData = new LinkedHashMap<>();
+        auditDataHelper.addListPropertyItem(WSDL, wsdlAuditData);
+        wsdlAuditData.put(WSDL_URL.getPropertyName(), serviceDescriptionType.getUrl());
+        if (auditDataHelper.dataIsForEvent(EDIT_WSDL_SERVICE_DESCRIPTION)) {
+            wsdlAuditData.put(WSDL_URL_NEW.getPropertyName(), url);
+        }
+
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
             throw new WrongServiceDescriptionTypeException("Existing service description (id: "
@@ -919,6 +935,9 @@ public class ServiceDescriptionService {
         ServiceChangeChecker.ServiceChanges serviceChanges = serviceChangeChecker.check(
                 serviceDescriptionType.getService(),
                 newServices);
+
+        wsdlAuditData.put(SERVICES_ADDED.getPropertyName(), serviceChanges.getAddedFullServiceCodes());
+        wsdlAuditData.put(SERVICES_DELETED.getPropertyName(), serviceChanges.getRemovedFullServiceCodes());
 
         // collect all types of warnings, throw Exception if not ignored
         List<WarningDeviation> allWarnings = new ArrayList<>();

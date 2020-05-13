@@ -31,8 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
@@ -47,7 +48,8 @@ import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUES
 public class AuditContextRequestScopeHolder {
 
     private RestApiAuditEvent requestScopedEvent;
-    private Map<String, Object> eventData = new ConcurrentHashMap<>();
+    // LinkedHashMap to make it possible to control the order of items, which can make output cleaner
+    private Map<String, Object> eventData = Collections.synchronizedMap(new LinkedHashMap<>());
 
     // TO DO: remove after debugging that it works as expected
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
