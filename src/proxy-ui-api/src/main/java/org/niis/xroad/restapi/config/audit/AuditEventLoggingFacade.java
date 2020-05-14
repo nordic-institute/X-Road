@@ -154,7 +154,18 @@ public class AuditEventLoggingFacade {
      * Does not touch request bound event.
      */
     public void auditLogSuccess(RestApiAuditEvent event) {
-        auditLog(event, usernameHelper.getUsername(), addStandardEventData(new HashMap<>()));
+        auditLog(event, usernameHelper.getUsername(), addStandardEventData(getEventData()));
+    }
+
+    /**
+     * Audit log success of a specific event with a specific username.
+     * Use this in exceptional situations, where usernameHelper does not contain username
+     * (like failed form login)
+     * Does not touch request bound event.
+     * @param username username to use for audit log
+     */
+    public void auditLogSuccess(RestApiAuditEvent event, String username) {
+        auditLog(event, username, addStandardEventData(getEventData()));
     }
 
     /**
@@ -163,7 +174,27 @@ public class AuditEventLoggingFacade {
      * @param ex
      */
     public void auditLogFail(Exception ex) {
-        auditLogFailInternal(null, ex);
+        auditLogFailInternal(null, ex, null);
+    }
+
+    /**
+     * Audit log an event failure.
+     * Use this in exceptional situations, where usernameHelper does not contain username
+     * (like failed form login)
+     * Does not touch request bound event.
+     * Log using current request bound event, if any. If no request bound event, use defaultEvent
+     * @param defaultEvent event to use for logging in case request bound event does not exist
+     * @param ex exception related to event failure
+     * @param username username to use for audit log
+     */
+    public void auditLogFail(RestApiAuditEvent defaultEvent, Exception ex, String username) {
+        if (defaultEvent == null) {
+            throw new IllegalArgumentException("missing defaultEvent");
+        }
+        if (username == null) {
+            throw new IllegalArgumentException("missing username");
+        }
+        auditLogFailInternal(defaultEvent, ex, username);
     }
 
     /**
@@ -176,7 +207,7 @@ public class AuditEventLoggingFacade {
         if (defaultEvent == null) {
             throw new IllegalArgumentException("missing defaultEvent");
         }
-        auditLogFailInternal(defaultEvent, ex);
+        auditLogFailInternal(defaultEvent, ex, null);
     }
 
     public boolean hasAlreadyLoggedForThisRequest() {
@@ -275,7 +306,11 @@ public class AuditEventLoggingFacade {
         return result;
     }
 
-    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex) {
+    private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex, String usernameOverride) {
+        String username = usernameOverride;
+        if (username == null) {
+            username = usernameHelper.getUsername();
+        }
         RestApiAuditEvent eventToLog = getRequestScopedEvent();
         if (eventToLog == null) {
             eventToLog = defaultEvent;
@@ -283,7 +318,7 @@ public class AuditEventLoggingFacade {
         if (eventToLog != null) {
             Map<String, Object> data = addStandardEventData(getEventData());
             String reason = ex.getMessage();
-            auditLog(eventToLog, usernameHelper.getUsername(), reason, data);
+            auditLog(eventToLog, username, reason, data);
         }
     }
 

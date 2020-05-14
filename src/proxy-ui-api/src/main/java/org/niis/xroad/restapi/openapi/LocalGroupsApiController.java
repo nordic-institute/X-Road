@@ -142,7 +142,8 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     public ResponseEntity<Void> deleteLocalGroupMember(String groupIdString, Members members) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         try {
-            localGroupService.deleteGroupMembers(localGroupType.getId(), clientConverter.convertIds(members.getItems()));
+            localGroupService.deleteGroupMembers(localGroupType.getId(),
+                    clientConverter.convertIds(members.getItems()));
         } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
             throw new ConflictException(e);
         }
