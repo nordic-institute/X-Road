@@ -4,7 +4,7 @@
       {{$t('initialConfiguration.pin.info1')}}
       <div class="row-wrap">
         <div class="label">{{$t('initialConfiguration.pin.pin')}}</div>
-        <ValidationProvider rules="required|password:@confirmPin" v-slot="{ errors }">
+        <ValidationProvider name="pin" rules="required|password:@confirmPin" v-slot="{ errors }">
           <v-text-field
             class="form-input"
             name="pin"
