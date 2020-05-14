@@ -6,12 +6,21 @@ import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
 
+// TODO: this should be in types ??
+interface InitializationStatus {
+  is_anchor_imported: boolean;
+  is_server_code_initialized: boolean;
+  is_server_owner_initialized: boolean;
+  is_software_token_initialized: boolean;
+}
+
 
 export interface InitServerState {
   memberClass: string | undefined;
   memberCode: string | undefined;
   memberName: string | undefined;
   securityServerCode: string | undefined;
+  initializationStatus: InitializationStatus | undefined;
 }
 
 const getDefaultState = () => {
@@ -20,12 +29,12 @@ const getDefaultState = () => {
     memberCode: undefined,
     memberName: 'placeholder name',
     securityServerCode: undefined,
+    initializationStatus: undefined,
   };
 };
 
 // Initial state. The state can be reseted with this.
 const moduleState = getDefaultState();
-
 
 export const getters: GetterTree<InitServerState, RootState> = {
 
@@ -45,7 +54,21 @@ export const getters: GetterTree<InitServerState, RootState> = {
     return state.securityServerCode;
   },
 
+  isAnchorImported(state): boolean {
+    return state.initializationStatus?.is_anchor_imported || false;
+  },
 
+  isServerCodeInitialized(state): boolean {
+    return state.initializationStatus?.is_server_code_initialized || false;
+  },
+
+  isServerOwnerInitialized(state): boolean {
+    return state.initializationStatus?.is_server_owner_initialized || false;
+  },
+
+  isSoftwareTokenInitialized(state): boolean {
+    return state.initializationStatus?.is_software_token_initialized || false;
+  }
 };
 
 export const mutations: MutationTree<InitServerState> = {
@@ -66,9 +89,13 @@ export const mutations: MutationTree<InitServerState> = {
   storeInitServerSSCode(state, code: string | undefined) {
     state.securityServerCode = code;
   },
+
+  storeInitStatus(state, status: InitializationStatus) {
+    state.initializationStatus = status;
+  },
 };
 
-export const actions: ActionTree<InitServerState, RootState> = {
+export const actions: ActionTree<InitServerState, any> = {
   resetInitServerState({ commit }) {
     commit('resetInitServerState');
   },
@@ -76,12 +103,23 @@ export const actions: ActionTree<InitServerState, RootState> = {
     commit('storeCsrTokenId', tokenId);
   },
   fetchInitServerMemberName({ commit, rootGetters }) {
+    // TODO: where does the name actually comes from ??
     api
       .get(`/member-classes`)
       .then((res: any) => {
         commit('storeInitServerMemberName', res.data[0]);
       })
       .catch((error: any) => {
+        throw error;
+      });
+  },
+  fetchInitializationStatus({ commit, rootGetters, dispatch }) {
+    return api
+      .get('/initialization/status')
+      .then((resp) => {
+        commit('storeInitStatus', resp.data);
+      })
+      .catch((error) => {
         throw error;
       });
   },

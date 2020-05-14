@@ -9,7 +9,7 @@
     />
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <!-- Headers without anchor page -->
-      <v-stepper-header v-if="anchorExists" class="noshadow">
+      <v-stepper-header v-if="isAnchorImported" class="noshadow">
         <v-stepper-step
           :complete="currentStep > 1"
           step="1"
@@ -38,7 +38,7 @@
         >{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items v-if="anchorExists" class="stepper-content">
+      <v-stepper-items v-if="isAnchorImported" class="stepper-content">
         <!-- Member step -->
         <v-stepper-content step="1">
           <OwnerMemberStep @cancel="cancel" @done="ownerMemberReady" :showPreviousButton="false" />
@@ -86,23 +86,15 @@ export default Vue.extend({
     OwnerMemberStep,
   },
   props: {},
+  computed: {
+    ...mapGetters(['isAnchorImported']),
+  },
   data() {
     return {
       currentStep: 1,
-      anchorExists: false,
     };
   },
   methods: {
-    save(): void {
-      this.$store.dispatch('fetchCsrForm').then(
-        () => {
-          this.currentStep++;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
-    },
     cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
@@ -119,6 +111,13 @@ export default Vue.extend({
       console.log('READY', pin);
     },
 
+    fetchInitStatus(): void {
+      this.$store.dispatch('fetchInitializationStatus').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
+    },
+
+    /*
     fetchConfigurationAnchor(): void {
       api
         .get('/system/anchor')
@@ -136,12 +135,12 @@ export default Vue.extend({
             this.$store.dispatch('showError', error);
           }
         });
-    },
+    }, */
   },
   created() {
     this.$store.dispatch('fetchMemberClasses');
-    this.fetchConfigurationAnchor();
-    
+    this.fetchInitStatus();
+    //this.fetchConfigurationAnchor();
   },
 });
 </script>

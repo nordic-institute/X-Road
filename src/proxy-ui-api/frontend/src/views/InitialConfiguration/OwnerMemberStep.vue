@@ -150,7 +150,7 @@ export default Vue.extend({
 
   watch: {
     memberClasses(val) {
-      // Set first certification service selected as default when the list is updated
+      // Set first member class selected if there is only one
       if (val && val.length === 1) {
         this.$store.commit('storeInitServerMemberClass', val[0]);
       }
