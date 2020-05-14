@@ -586,10 +586,10 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpointServiceDescriptionSuccess() throws Exception {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
-        assertEquals(6, client.getEndpoint().size());
+        assertEquals(7, client.getEndpoint().size());
         serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "http://testurl.com", "testcode");
         client = clientService.getLocalClient(CLIENT_ID_SS1);
-        assertEquals(7, client.getEndpoint().size());
+        assertEquals(8, client.getEndpoint().size());
         assertTrue(client.getEndpoint().stream()
                 .map(EndpointType::getServiceCode)
                 .collect(Collectors.toList())
