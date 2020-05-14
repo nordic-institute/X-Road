@@ -271,13 +271,17 @@ export default Vue.extend({
 
     registerAccepted(item: Client) {
       this.registerClientLoading = true;
+
+      let clientId =
+        item.instance_id + ':' + item.member_class + ':' + item.member_code;
+
+      // In case of subsystem add also subsystem code
+      if (item.subsystem_code) {
+        clientId = clientId + ':' + item.subsystem_code;
+      }
+
       this.$store
-        .dispatch('registerClient', {
-          instanceId: item.instance_id,
-          memberClass: item.member_class,
-          memberCode: item.member_code,
-          subsystemCode: item.subsystem_code,
-        })
+        .dispatch('registerClient', clientId)
         .then(
           (response) => {
             this.$store.dispatch(

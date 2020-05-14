@@ -181,13 +181,17 @@ export default Vue.extend({
     },
 
     registerSubsystem(): void {
+      const clientId =
+        this.instanceId +
+        ':' +
+        this.memberClass +
+        ':' +
+        this.memberCode +
+        ':' +
+        this.subsystemCode;
+
       this.$store
-        .dispatch('registerClient', {
-          instanceId: this.instanceId,
-          memberClass: this.memberClass,
-          memberCode: this.memberCode,
-          subsystemCode: this.subsystemCode,
-        })
+        .dispatch('registerClient', clientId)
         .then(
           () => {
             this.disableDone = false;

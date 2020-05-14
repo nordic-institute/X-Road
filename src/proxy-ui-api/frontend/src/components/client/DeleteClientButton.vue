@@ -79,11 +79,11 @@ export default Vue.extend({
           this.deleteLoading = false;
           if (error.response.status === 404) {
             // No orphans found so exit the view
-            this.$router.go(-1);
+            this.$router.replace({ name: RouteName.Clients });
           } else {
             // There was some other error, but the client is already deleted so exit the view
             this.$store.dispatch('showError', error);
-            this.$router.go(-1);
+            this.$router.replace({ name: RouteName.Clients });
           }
         },
       );
@@ -108,7 +108,7 @@ export default Vue.extend({
         .finally(() => {
           this.confirmOrphans = false;
           this.orphansLoading = false;
-          this.$router.go(-1);
+          this.$router.replace({ name: RouteName.Clients });
         });
     },
   },
