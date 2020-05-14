@@ -118,11 +118,11 @@ class ManagementRequestController < ApplicationController
     end
 
     def check_identifier(id)
-      if SpringFirewallValidationRules::containsPercent(val) ||
-        SpringFirewallValidationRules::containsSemicolon(val) ||
-        SpringFirewallValidationRules::containsForwardslash(val) ||
-        SpringFirewallValidationRules::containsBackslash(val) ||
-        !SpringFirewallValidationRules::isNormalized(val)
+      if SpringFirewallValidationRules::containsPercent(id) ||
+        SpringFirewallValidationRules::containsSemicolon(id) ||
+        SpringFirewallValidationRules::containsForwardslash(id) ||
+        SpringFirewallValidationRules::containsBackslash(id) ||
+        !SpringFirewallValidationRules::isNormalized(id)
         raise I18n.t("request.invalid_identifier", :id => id)
       end
     end
