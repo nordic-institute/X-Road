@@ -104,7 +104,7 @@ class ManagementRequestController < ApplicationController
     end
 
     def check_security_server_identifiers(ss)
-      if ss.blank?
+      unless ss.blank?
         check_identifier(ss.xroad_instance)
         check_identifier(ss.member_class)
         check_identifier(ss.member_code)
@@ -113,7 +113,7 @@ class ManagementRequestController < ApplicationController
     end
 
     def check_client_identifiers(ss)
-      if ss.blank?
+      unless ss.blank?
         check_identifier(ss.xroad_instance)
         check_identifier(ss.member_class)
         check_identifier(ss.member_code)
