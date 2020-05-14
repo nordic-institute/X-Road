@@ -119,6 +119,9 @@ public final class TestUtils {
     public static final File ANCHOR_FILE = TestUtils.getTestResourceFile("internal-configuration-anchor.xml");
     public static final String ANCHOR_HASH = "B37E02C0B310497C05D938A8C4446DFA80722F97123852BA8BF20D57";
 
+    // key has all roles in data.sql
+    public static final String API_KEY_HEADER_VALUE = "X-Road-apikey token=d56e1ca7-4134-4ed4-8030-5f330bdb602a";
+
     // obsolete items
     public static final XRoadId OBSOLETE_SUBSYSTEM_ID = ClientId.create("FI", "GOV",
             "M2", "OBSOLETE-SUBSYSTEM");

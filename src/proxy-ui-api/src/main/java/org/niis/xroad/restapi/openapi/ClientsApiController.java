@@ -658,20 +658,4 @@ public class ClientsApiController implements ClientsApi {
         }
         return serviceCodes;
     }
-
-//    /**
-//     * For local group ids, verify that local group ID matches an existing local group PK.
-//     *
-//     * @throws BadRequestException if encoded service client id was badly formatted
-//     * @throws ResourceNotFoundException if service client id was a local group ID, and that ID does not exist in DB
-//     */
-//    private XRoadId processServiceClientXRoadId(String encodedServiceClientId) {
-//        ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(encodedServiceClientId);
-//        try {
-//            return serviceClientService.convertServiceClientIdentifierDtoToXroadId(dto);
-//        } catch (LocalGroupNotFoundException e) {
-//            throw new ResourceNotFoundException(e);
-//        }
-//    }
-
 }
