@@ -21,7 +21,7 @@
       <div class="row-title">{{$t('serviceClients.accessRights')}}</div>
       <div class="row-buttons">
         <large-button
-          @click="removeAll()"
+          @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
           v-if="accessRights.length > 0"
@@ -77,6 +77,15 @@
       @cancel="hideAddService">
     </AddServiceClientServiceDialog>
 
+    <!-- Confirm dialog delete group -->
+    <confirmDialog
+      :dialog="showConfirmDeleteAll"
+      title="serviceClients.removeAllTitle"
+      text="serviceClients.removeAllText"
+      @cancel="showConfirmDeleteAll = false"
+      @accept="removeAll()"
+    />
+
   </div>
 </template>
 
@@ -93,12 +102,14 @@ export interface ServiceCandidate {
   service_title?: string;
   id: string;
 }
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
     LargeButton,
     AddServiceClientServiceDialog,
+    ConfirmDialog,
   },
   props: {
     id: {
@@ -117,18 +128,21 @@ export default Vue.extend({
       isAddServiceDialogVisible: false as boolean,
       serviceDescriptions: [] as ServiceDescription[],
       services: [] as Service[],
+      showConfirmDeleteAll: false as boolean,
     };
   },
   methods: {
     fetchData(): void {
 
       this.fetchAccessRights();
-
+      this.fetchServiceDescriptions();
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
         .then( (response: any) => this.serviceClient = response.data)
         .catch( (error: any) => this.$store.dispatch('showError', error));
 
+    },
+    fetchServiceDescriptions(): void {
       api
         .get(`/clients/${this.id}/service-descriptions`)
         .then( (response: any) => {
@@ -145,6 +159,20 @@ export default Vue.extend({
     close(): void {
       this.$router.go(-1);
     },
+    remove(accessRight: AccessRight): void {
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          {items: [{service_code: accessRight.service_code}]})
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          if (this.accessRights.length === 1) {
+            this.accessRights = [];
+          } else {
+            this.fetchAccessRights();
+          }
+        })
+        .catch((error: any) => this.$store.dispatch('showError', error));
+    },
     addService(accessRights: AccessRight[]): void {
       this.hideAddService();
 
@@ -160,14 +188,21 @@ export default Vue.extend({
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
     },
-    remove(): void {
-      // NOOP
-    },
     showAddServiceDialog(): void {
       this.isAddServiceDialogVisible = true;
     },
     removeAll(): void {
-      // NOOP
+      this.showConfirmDeleteAll = false;
+
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          {items: this.accessRights.map((item: AccessRight) => ({service_code: item.service_code}))})
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          this.accessRights = [];
+        })
+        .catch((error: any) => this.$store.dispatch('showError', error));
+
     },
     serviceCandidates(): ServiceCandidate[] {
       // returns whether given access right is for given service
@@ -192,7 +227,7 @@ export default Vue.extend({
         }));
     },
   },
-  created() {
+  created(): void {
     this.fetchData();
   },
 
