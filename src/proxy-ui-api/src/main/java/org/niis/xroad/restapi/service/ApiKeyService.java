@@ -31,6 +31,8 @@ import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -53,11 +55,14 @@ public class ApiKeyService {
 
     private final PasswordEncoder passwordEncoder;
     private final ApiKeyRepository apiKeyRepository;
+    private final CacheManager cacheManager;
 
     @Autowired
-    public ApiKeyService(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository) {
+    public ApiKeyService(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository,
+            CacheManager cacheManager) {
         this.passwordEncoder = passwordEncoder;
         this.apiKeyRepository = apiKeyRepository;
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -175,6 +180,21 @@ public class ApiKeyService {
     }
 
     /**
+     * Clears api key caches. Used after a successful restore operation to ensure that the api keys are
+     * up to date.
+     */
+    public void clearApiKeyCaches() {
+        Cache keyCache = cacheManager.getCache(ApiKeyRepository.GET_KEY_CACHE);
+        if (keyCache != null) {
+            keyCache.clear();
+        }
+        Cache allKeysCache = cacheManager.getCache(ApiKeyRepository.LIST_ALL_KEYS_CACHE);
+        if (allKeysCache != null) {
+            allKeysCache.clear();
+        }
+    }
+
+    /**
      * List all keys
      * @return
      */
@@ -184,6 +204,7 @@ public class ApiKeyService {
 
     public static class ApiKeyNotFoundException extends NotFoundException {
         public static final String ERROR_API_KEY_NOT_FOUND = "api_key_not_found";
+
         public ApiKeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_API_KEY_NOT_FOUND));
         }

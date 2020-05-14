@@ -620,7 +620,7 @@ public class ClientServiceIntegrationTest {
         ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getLocalClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
-        assertEquals(2, clientType.getLocalGroup().size());
+        assertEquals(3, clientType.getLocalGroup().size());
 
         try {
             clientService.updateConnectionType(id, "FUBAR");
@@ -631,7 +631,8 @@ public class ClientServiceIntegrationTest {
         clientService.updateConnectionType(id, "NOSSL");
         clientType = clientService.getLocalClient(id);
         assertEquals("NOSSL", clientType.getIsAuthentication());
-        assertEquals(2, clientType.getLocalGroup().size());
+        assertEquals(3, clientType.getLocalGroup().size());
+
     }
 
     @Test

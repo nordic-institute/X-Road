@@ -42,6 +42,8 @@ import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCe
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
+import AddServiceClientAccessRights from '@/views/Clients/ServiceClients/AddServiceClientAccessRightsWizard.vue';
+
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
 // https://github.com/vuejs/vue-router/pull/2497#issuecomment-474010032
@@ -270,6 +272,14 @@ const router = new Router({
           props: { default: true },
           components: {
             default: ServiceClientAccessRights,
+          },
+        },
+        {
+          name: RouteName.AddServiceClientAccessRight,
+          path: '/subsystem/serviceclients/:id/add',
+          props: { default: true },
+          components: {
+            default: AddServiceClientAccessRights,
           },
         },
         {

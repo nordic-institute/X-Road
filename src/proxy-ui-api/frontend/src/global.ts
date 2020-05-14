@@ -39,6 +39,7 @@ export enum RouteName {
   EndpointAccessRights = 'endpoint-access-rights',
   ServiceClientAccessRights = 'service-client-access-rights',
   InitialConfiguration = 'initial-configuration',
+  AddServiceClientAccessRight= 'add-service-client-access-right',
 }
 
 // A "single source of truth" for permission strings

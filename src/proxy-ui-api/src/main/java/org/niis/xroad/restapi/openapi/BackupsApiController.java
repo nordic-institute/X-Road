@@ -29,10 +29,14 @@ import org.niis.xroad.restapi.converter.BackupConverter;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
+import org.niis.xroad.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
+import org.niis.xroad.restapi.service.RestoreProcessFailedException;
+import org.niis.xroad.restapi.service.RestoreService;
+import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -55,14 +59,21 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {
     public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
+    public static final String RESTORE_INTERRUPTED = "backup_restore_interrupted";
 
     private final BackupService backupService;
+    private final RestoreService restoreService;
     private final BackupConverter backupConverter;
+    private final TokenService tokenService;
 
     @Autowired
-    public BackupsApiController(BackupService backupService, BackupConverter backupConverter) {
+    public BackupsApiController(BackupService backupService,
+            RestoreService restoreService, BackupConverter backupConverter,
+            TokenService tokenService) {
         this.backupService = backupService;
+        this.restoreService = restoreService;
         this.backupConverter = backupConverter;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -120,5 +131,23 @@ public class BackupsApiController implements BackupsApi {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
+    public synchronized ResponseEntity<TokensLoggedOut> restoreBackup(String filename) {
+        boolean hasHardwareTokens = tokenService.hasHardwareTokens();
+        // If hardware tokens exist prior to the restore -> they will be logged out by the restore script
+        TokensLoggedOut tokensLoggedOut = new TokensLoggedOut().hsmTokensLoggedOut(hasHardwareTokens);
+        try {
+            restoreService.restoreFromBackup(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(RESTORE_INTERRUPTED));
+        } catch (RestoreProcessFailedException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }
 }

@@ -35,4 +35,7 @@ public class ServiceNotFoundException extends NotFoundException {
     public ServiceNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
     }
+    public ServiceNotFoundException(Throwable t) {
+        super(t, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
+    }
 }

@@ -66,7 +66,7 @@
         "confirm": {
           "title": "Register client",
           "text": "Are you sure you want to send a client registration request?"
-        } 
+        }
       }
     }
   },
@@ -86,6 +86,16 @@
         "success": "Client unregistered",
         "confirmTitle": "Unregister client",
         "confirmText": "Do you want to unregister this client?"
+      },
+      "delete": {
+        "success": "Client deleted",
+        "confirmTitle": "Delete client",
+        "confirmText": "Do you want to delete this client?"
+      },
+      "removeOrphans": {
+        "success": "Certificate deleted",
+        "confirmTitle": "Key and certificate deletion",
+        "confirmText": "Signature key and certificate associated with the deleted client have no users. Delete key and certificate?"
       }
     },
     "owner": "Owner",
@@ -152,9 +162,19 @@
     "serviceCode": "Service code",
     "title": "Title",
     "accessRightsGiven": "Access Rights Given",
+    "removeSuccess": "Access Rights successfully removed",
+    "removeAllTitle": "Remove all access rights",
+    "removeAllText": "Are you sure you want to remove all access rights from this service client",
     "removeAll": "Remove all",
     "addService": "Add service",
-    "noAccessRights": "No access rights to this client"
+    "addServiceClientAccessRightSuccess": "Access rights successfully added",
+    "noAvailableServices": "No available services",
+    "noAccessRights": "No access rights to this client",
+    "memberGroupStep": "Member / Group",
+    "servicesStep": "Services",
+    "addServiceClientTitle": "Add a subject",
+    "addSelected": "Add Selected",
+    "serviceSelectionStep": "Servicecode"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -199,7 +219,8 @@
     "urlPlaceholder": "Insert URL",
     "serviceCodePlaceholder": "Insert service code",
     "restApiBasePath": "REST API Base Path",
-    "OpenApi3Description": "OpenApi 3 Description",
+    "OpenApi3Description": "OpenAPI 3 Description",
+    "wsdlDescription": "WSDL Description",
     "timeout": "Timeout",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
@@ -213,6 +234,7 @@
     "wsdlAdded": "WSDL added",
     "deleted": "Service description deleted",
     "restDetails": "REST details",
+    "openapiDetails": "OpenAPI 3 details",
     "wsdlDetails": "WSDL details",
     "refreshed": "Refreshed",
     "lastRefreshed": "Last refreshed: ",

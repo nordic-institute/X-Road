@@ -45,7 +45,6 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.util.ClientUtils;
-import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -251,7 +250,7 @@ public class ClientService {
      * Get a local client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
-    private ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
+    public ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
         ClientType clientType = getLocalClient(id);
         if (clientType == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
@@ -614,11 +613,7 @@ public class ClientService {
     private boolean hasValidLocalSignCertCheck(ClientType clientType) {
         List<CertificateInfo> signCertificateInfos = currentSecurityServerSignCertificates
                 .getSignCertificateInfos();
-        try {
-            return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
-        } catch (OcspUtils.OcspStatusExtractionException e) {
-            throw new DeviationAwareRuntimeException("Error while extracting OCSP status from certificate", e);
-        }
+        return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
     }
 
     /**
@@ -659,7 +654,7 @@ public class ClientService {
                 subsystemCode);
 
         ClientType existingLocalClient = getLocalClient(clientId);
-        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (existingLocalClient != null) {
             throw new ClientAlreadyExistsException("client " + clientId + " already exists");
         }
@@ -706,7 +701,7 @@ public class ClientService {
      * If ClientId already exists in DB, return the managed instance.
      * Otherwise return transient instance that was given as parameter
      */
-    private ClientId getPossiblyManagedEntity(ClientId transientClientId) {
+    public ClientId getPossiblyManagedEntity(ClientId transientClientId) {
         ClientId managedEntity = identifierRepository.getClientId(transientClientId);
         if (managedEntity != null) {
             return managedEntity;
@@ -726,7 +721,7 @@ public class ClientService {
             CannotDeleteOwnerException, ClientNotFoundException {
         ClientType clientType = getLocalClientOrThrowNotFound(clientId);
         // cant delete owner
-        ClientId ownerId = serverConfService.getSecurityServerOwnerId();
+        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(clientType.getIdentifier())) {
             throw new CannotDeleteOwnerException();
         }

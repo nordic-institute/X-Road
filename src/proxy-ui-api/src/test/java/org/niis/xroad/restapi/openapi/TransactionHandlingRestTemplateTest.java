@@ -62,6 +62,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.API_KEY_HEADER_VALUE;
 
 /**
  * Test live clients api controller with rest template.
@@ -73,9 +74,6 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 public class TransactionHandlingRestTemplateTest {
-
-    // key has all roles in data.sql
-    public static final String API_KEY_HEADER_VALUE = "X-Road-apikey token=d56e1ca7-4134-4ed4-8030-5f330bdb602a";
 
     @Autowired
     private TestRestTemplate restTemplate;
