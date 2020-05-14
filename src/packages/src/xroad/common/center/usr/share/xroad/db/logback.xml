@@ -1,7 +1,7 @@
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} %logger{36} - %msg%n</pattern>
+      <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
   <root level="info">

@@ -15,7 +15,7 @@ plugins {
     id 'jacoco'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.9.RELEASE" apply false
-    id 'org.springframework.boot' version '2.1.13.RELEASE' apply false
+    id 'org.springframework.boot' version '2.2.7.RELEASE' apply false
 }
 
 repositories {

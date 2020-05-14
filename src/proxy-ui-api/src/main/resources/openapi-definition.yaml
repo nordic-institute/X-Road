@@ -178,10 +178,19 @@ paths:
             minLength: 1
             maxLength: 255
       responses:
-        '202':
-          description: item accepted
-        '204':
-          description: request was successful
+        '200':
+          description: restore was successful
+          content:
+            application/json:
+              schema:
+                description: response that tells if hsm tokens were logged out during the restore process
+                title: TokensLoggedOut
+                type: object
+                properties:
+                  hsm_tokens_logged_out:
+                    description: whether any hsm tokens were logged out during the restore process
+                    type: boolean
+                    default: false
         '400':
           description: request was invalid
         '401':

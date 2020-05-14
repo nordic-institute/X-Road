@@ -59,10 +59,10 @@ setup_database() {
     local db_host="127.0.0.1:5432"
     local tmp_password="$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")"
     local db_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
-    local db_schema="$db_user"
+    local db_schema="${db_user%%@*}"
     local db_password="$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "$tmp_password")"
     local db_url="$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
-    local db_master_user=postgres
+    local db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
     local db_database=serverconf
     local db_options=""
 
@@ -85,13 +85,8 @@ setup_database() {
     local_psql() { su -l -c "psql -qtA -p ${db_port:-5432} $*" postgres; }
     remote_psql() { psql -h "${db_addr:-127.0.0.1}" -p "${db_port:-5432}" -qtA "$@"; }
 
-    psql_dbuser() {
-        PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
-    }
-
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-        db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
         function psql_master() {
             PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
         }
@@ -99,25 +94,32 @@ setup_database() {
         function psql_master() { local_psql "$@"; }
     fi
 
+    local db_plain_user=${db_user%%@*}
+    local db_plain_master=${db_master_user%%@*}
+
+    psql_dbuser() {
+        PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
+    }
+
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
     else
-        psql_master <<EOF || die "Creating database '${db_database}' on '${db_host}' failed."
+        psql_master -d postgres <<EOF || die "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 DO \$\$
 BEGIN
-  CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_user}" to "${db_master_user}";
+  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
+  GRANT "${db_plain_user}" to "${db_plain_master}";
   EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_user already exists';
+    RAISE NOTICE 'User $db_plain_user already exists';
 END\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
 \c "${db_database}"
 CREATE EXTENSION hstore;
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_user}";
+CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_plain_user}";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_user}";
+GRANT USAGE ON SCHEMA public to "${db_plain_user}";
 EOF
     fi
 
@@ -138,14 +140,14 @@ EOF
       /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://$db_host/$db_database?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/serverconf-legacy-changelog.xml --password="${db_password}" --username="${db_user}" update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
         psql_master --single-transaction -d "$db_database" <<EOF || die "Renaming public schema to '$db_schema' failed."
 \set STOP_ON_ERROR on
-ALTER DATABASE "${db_database}" OWNER TO "${db_master_user}";
+ALTER DATABASE "${db_database}" OWNER TO "${db_plain_master}";
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
 ALTER SCHEMA public RENAME TO "${db_schema}";
-ALTER SCHEMA "${db_schema}" OWNER TO "${db_user}";
+ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
 REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
 CREATE SCHEMA public;
-GRANT USAGE ON SCHEMA public TO "${db_user}";
+GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 ALTER EXTENSION hstore SET SCHEMA public;
 EOF
     fi

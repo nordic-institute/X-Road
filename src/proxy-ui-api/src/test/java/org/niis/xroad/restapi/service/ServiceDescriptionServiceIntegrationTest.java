@@ -582,17 +582,43 @@ public class ServiceDescriptionServiceIntegrationTest {
         assertTrue(originalRefreshedDate.compareTo(serviceDescriptiontype.getRefreshedDate()) < 0);
     }
 
+    @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpointServiceDescriptionSuccess() throws Exception {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
-        assertEquals(3, client.getEndpoint().size());
+        assertEquals(6, client.getEndpoint().size());
         serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "http://testurl.com", "testcode");
         client = clientService.getLocalClient(CLIENT_ID_SS1);
-        assertEquals(4, client.getEndpoint().size());
+        assertEquals(7, client.getEndpoint().size());
         assertTrue(client.getEndpoint().stream()
                 .map(EndpointType::getServiceCode)
                 .collect(Collectors.toList())
                 .contains("testcode"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addRestEndpoinServiceDescriptionWithDuplicateServiceCodes() throws Exception {
+        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        assertTrue(client.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .anyMatch(service -> service.getServiceCode().equals("getRandom")
+                        && service.getServiceVersion().equals("v1")));
+
+        // Test adding service with duplicate service code
+        try {
+            serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
+                    "http://testurl.com", "getRandom");
+            throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) { }
+
+        // Test adding service with duplicate full service code
+        try {
+            serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
+                    "http:://testurl.com", "getRandom.v1");
+            throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) { }
+
     }
 
     @Test
