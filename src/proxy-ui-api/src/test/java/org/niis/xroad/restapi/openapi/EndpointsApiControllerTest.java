@@ -168,6 +168,7 @@ public class EndpointsApiControllerTest {
     @Test
     @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeExistingEndpointAccessRights() {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         ServiceClients deletedScs = new ServiceClients()
@@ -183,6 +184,7 @@ public class EndpointsApiControllerTest {
     @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeInexistingEndpointAccessRights() {
+        when(globalConfService.clientsExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         ServiceClients deletedScs = new ServiceClients()

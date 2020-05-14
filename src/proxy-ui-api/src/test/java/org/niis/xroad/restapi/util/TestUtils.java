@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -120,6 +121,16 @@ public final class TestUtils {
 
     // key has all roles in data.sql
     public static final String API_KEY_HEADER_VALUE = "X-Road-apikey token=d56e1ca7-4134-4ed4-8030-5f330bdb602a";
+
+    // obsolete items
+    public static final XRoadId OBSOLETE_SUBSYSTEM_ID = ClientId.create("FI", "GOV",
+            "M2", "OBSOLETE-SUBSYSTEM");
+    public static final GlobalGroupId OBSOLETE_GGROUP_ID = GlobalGroupId.create("FI",
+            "obsolete-globalgroup");
+    public static final long OBSOLETE_SCS_BASE_ENDPOINT_ID = 13L;
+    public static final String OBSOLETE_SCS_SERVICE_CODE = "serviceWithObsoleteScs";
+    public static final String OBSOLETE_SCS_FULL_SERVICE_CODE = OBSOLETE_SCS_SERVICE_CODE + ".v1";
+
 
     private TestUtils() {
         // noop

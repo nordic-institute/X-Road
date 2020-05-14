@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -47,11 +48,14 @@ public class EndpointService {
 
     private final ClientRepository clientRepository;
     private final EndpointRepository endpointRepository;
+    private final ServiceService serviceService;
 
     @Autowired
-    public EndpointService(ClientRepository clientRepository, EndpointRepository endpointRepository) {
+    public EndpointService(ClientRepository clientRepository, EndpointRepository endpointRepository,
+            ServiceService serviceService) {
         this.clientRepository = clientRepository;
         this.endpointRepository = endpointRepository;
+        this.serviceService = serviceService;
     }
 
     /**
@@ -179,6 +183,32 @@ public class EndpointService {
             baseEndpoints.add(getServiceBaseEndpoint(clientType, serviceCode));
         }
         return baseEndpoints;
+    }
+
+    /**
+     * Get base endpoint for given client and full service code
+     * @throws ServiceNotFoundException if no match was found
+     */
+    public EndpointType getBaseEndpointType(ClientType clientType, String fullServiceCode)
+            throws ServiceNotFoundException {
+        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
+        try {
+            return getServiceBaseEndpoint(serviceType);
+        } catch (EndpointNotFoundException e) {
+            throw new ServiceNotFoundException(e);
+        }
+    }
+
+
+    /**
+     * Get all endpoints (base and others) for the given client and service code.
+     * @param clientType
+     * @param serviceCodes
+     */
+    public List<EndpointType> getServiceEndpoints(ClientType clientType, Set<String> serviceCodes) {
+        return clientType.getEndpoint().stream()
+                .filter(endpointType -> serviceCodes.contains(endpointType.getServiceCode()))
+                .collect(Collectors.toList());
     }
 
 

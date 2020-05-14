@@ -43,11 +43,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,16 +59,19 @@ public class ServiceClientService {
     private final AccessRightService accessRightService;
     private final LocalGroupService localGroupService;
     private final IdentifierService identifierService;
+    private final ServiceDescriptionService serviceDescriptionService;
 
     public ServiceClientService(ClientRepository clientRepository, ServiceService serviceService,
             EndpointService endpointService, AccessRightService accessRightService,
-            LocalGroupService localGroupService, IdentifierService identifierService) {
+            LocalGroupService localGroupService, IdentifierService identifierService,
+            ServiceDescriptionService serviceDescriptionService) {
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
         this.endpointService = endpointService;
         this.accessRightService = accessRightService;
         this.localGroupService = localGroupService;
         this.identifierService = identifierService;
+        this.serviceDescriptionService = serviceDescriptionService;
     }
 
     /**
@@ -84,11 +84,12 @@ public class ServiceClientService {
      *
      * @param ownerId
      * @return
-     * @throws ClientNotFoundException
+     * @throws ClientNotFoundException if owner was not found
      *
      */
     public List<ServiceClientDto> getServiceClientsByClient(ClientId ownerId)
             throws ClientNotFoundException {
+
         ClientType owner = clientRepository.getClient(ownerId);
         if (owner == null) {
             throw new ClientNotFoundException("Client " + ownerId.toShortString() + " not found");
@@ -121,7 +122,8 @@ public class ServiceClientService {
     }
 
     /**
-     * Get single service client
+     * Get single service client. Service client may be "obsolete", e.g. global group
+     * that has been deleted from global configuration, but still exists in global configuration
      *
      * @param ownerId
      * @param serviceClientId
@@ -191,17 +193,18 @@ public class ServiceClientService {
      * @param serviceClientId
      * @return
      * @throws ClientNotFoundException if given client or service client is not found
-     * @throws IdentifierNotFoundException if given client doesn't own the given service client
+     * @throws ServiceClientNotFoundException if given service client being searched is not found
      */
     public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId ownerId,
-            XRoadId serviceClientId) throws ClientNotFoundException, IdentifierNotFoundException {
+            XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
 
         ClientType owner = clientRepository.getClient(ownerId);
         if (owner == null) {
             throw new ClientNotFoundException("Client not found with id: " + ownerId.toShortString());
         }
 
-        identifierService.verifyServiceClientIdentifiersExist(owner, new HashSet(Arrays.asList(serviceClientId)));
+        // verify that service client exists
+        getServiceClient(ownerId, serviceClientId);
 
         // Filter service clients access rights from the given clients acl-list
         return owner.getAcl().stream()
@@ -209,7 +212,7 @@ public class ServiceClientService {
                 .map(acl -> ServiceClientAccessRightDto.builder()
                         .serviceCode(acl.getEndpoint().getServiceCode())
                         .rightsGiven(FormatUtils.fromDateToOffsetDateTime(acl.getRightsGiven()))
-                        .title(getServiceTitle(owner, acl.getEndpoint().getServiceCode()))
+                        .title(serviceDescriptionService.getServiceTitle(owner, acl.getEndpoint().getServiceCode()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -219,10 +222,10 @@ public class ServiceClientService {
      *
      * @param dto
      * @return
-     * @throws LocalGroupNotFoundException if given dto contains local group that is not found
+     * @throws ServiceClientNotFoundException if given dto contains local group that is not found
      */
     public XRoadId convertServiceClientIdentifierDtoToXroadId(ServiceClientIdentifierDto dto)
-            throws LocalGroupNotFoundException {
+            throws ServiceClientNotFoundException {
 
         if (dto.getXRoadId() == null && dto.getLocalGroupId() == null) {
             // should never happen, as long as dto is from ServiceClientIdentifierConverter
@@ -232,35 +235,14 @@ public class ServiceClientService {
         // Get XRoadId for the given service client
         XRoadId xRoadId = dto.getXRoadId();
         if (dto.isLocalGroup()) {
-            xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            try {
+                xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());
+            } catch (LocalGroupNotFoundException e) {
+                throw new ServiceClientNotFoundException(e);
+            }
         }
 
         return xRoadId;
-    }
-
-    /**
-     * Add access rights for services in serviceCodes to service client serviceClientId,
-     * both the services and service client in the context of subsystem clientId
-     * TO DO: test
-     * TO DO: test service != client's services
-     * TO DO: test service client != client's service clients
-     * TO DO: access right already exists -> exception
-     * @param clientId
-     * @param serviceClientId
-     * @param serviceCodes
-     */
-    public void addServiceClientAccessRights(ClientId clientId, XRoadId serviceClientId, Set<String> serviceCodes) {
-        log.debug("adding service client access rights");
-    }
-
-    private String getServiceTitle(ClientType clientType, String serviceCode) {
-        ServiceType service = clientType.getServiceDescription().stream()
-                .flatMap(sd -> sd.getService().stream())
-                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
-                .get();
-
-        return service == null ? null : service.getTitle();
     }
 
 }
