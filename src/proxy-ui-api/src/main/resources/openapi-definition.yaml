@@ -5592,7 +5592,6 @@ components:
       description: service client. May be a subsystem, local group, or a global group
       required:
         - id
-        - subject_type
       properties:
         id:
           type: string
@@ -5619,6 +5618,7 @@ components:
           readOnly: true
         service_client_type:
           $ref: '#/components/schemas/ServiceClientType'
+          readOnly: true
         rights_given_at:
           type: string
           format: date-time
