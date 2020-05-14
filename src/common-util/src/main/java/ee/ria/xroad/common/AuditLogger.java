@@ -45,6 +45,8 @@ public final class AuditLogger {
     private static final String EVENT_PARAM = "event";
     private static final String USER_PARAM = "user";
     private static final String REASON_PARAM = "reason";
+    private static final String AUTH_PARAM = "auth";
+    private static final String URL_PARAM = "url";
     private static final String DATA_PARAM = "data";
 
     private static final String FAILURE_SUFFIX = " failed";
@@ -101,6 +103,45 @@ public final class AuditLogger {
         message.put(REASON_PARAM, reason);
         message.put(DATA_PARAM, data);
 
+        log(JsonUtils.getSerializer().toJson(message));
+    }
+
+    /**
+     * TO DO: comment
+     * @param event
+     * @param user
+     * @param data
+     * @param auth
+     * @param url
+     */
+    public static void log(String event, String user, Map<String, Object> data, String auth, String url) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put(EVENT_PARAM, event);
+        message.put(USER_PARAM, user);
+        message.put(AUTH_PARAM, auth);
+        message.put(URL_PARAM, url);
+        message.put(DATA_PARAM, data);
+
+        log(JsonUtils.getSerializer().toJson(message));
+    }
+
+    /**
+     * TO DO: comment
+     * @param event
+     * @param user
+     * @param reason
+     * @param data
+     * @param auth
+     * @param url
+     */
+    public static void log(String event, String user, String reason, Map<String, Object> data, String auth, String url) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put(EVENT_PARAM, event + FAILURE_SUFFIX);
+        message.put(USER_PARAM, user);
+        message.put(REASON_PARAM, reason);
+        message.put(AUTH_PARAM, auth);
+        message.put(URL_PARAM, url);
+        message.put(DATA_PARAM, data);
         log(JsonUtils.getSerializer().toJson(message));
     }
 }

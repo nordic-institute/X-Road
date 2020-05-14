@@ -89,13 +89,17 @@ public enum RestApiAuditEvent {
     GENERATE_INTERNAL_SSL("Generate new internal TLS key and certificate"),
 
     // keys and certificates events
+    // TO DO: token serial number is not included in JSON if null (probably any other field likewise)
     LOGIN_TOKEN("Log in to token"),
     LOGOUT_TOKEN("Log out from token"),
     GENERATE_KEY("Generate key"),
-    DELETE_KEY_FROM_CONFIG("Delete key from configuration"),
-    DELETE_KEY_FROM_TOKEN("Delete key from token"),
+    DELETE_KEY("Delete key"),
+    DELETE_KEY_FROM_TOKEN_AND_CONFIG("Delete key from token and configuration"),
     GENERATE_CSR("Generate CSR"),
+    // TO DO: csr id is logged as "CertId", might make sense to change?
     DELETE_CSR("Delete CSR"),
+    // TO DO: we probably need this too?
+    GENERATE_KEY_AND_CSR("Generate key and CSR"),
     IMPORT_CERT_FILE("Import certificate from file"),
     IMPORT_CERT_TOKEN("Import certificate from token"),
     DELETE_CERT_FROM_CONFIG("Delete certificate from configuration"),

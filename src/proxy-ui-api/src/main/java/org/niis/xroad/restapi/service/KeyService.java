@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,10 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_KEY_FROM_TOKEN_AND_CONFIG;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL;
 
 /**
  * Service that handles keys
@@ -64,6 +68,7 @@ public class KeyService {
     private final ManagementRequestSenderService managementRequestSenderService;
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * KeyService constructor
@@ -73,13 +78,15 @@ public class KeyService {
             PossibleActionsRuleEngine possibleActionsRuleEngine,
             ManagementRequestSenderService managementRequestSenderService,
             SecurityHelper securityHelper,
-            AuditDataHelper auditDataHelper) {
+            AuditDataHelper auditDataHelper,
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
         this.managementRequestSenderService = managementRequestSenderService;
         this.securityHelper = securityHelper;
         this.auditDataHelper = auditDataHelper;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     /**
@@ -160,6 +167,7 @@ public class KeyService {
 
         // check that adding a key is possible
         TokenInfo tokenInfo = tokenService.getToken(tokenId);
+        auditDataHelper.put(tokenInfo);
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.GENERATE_KEY,
                 tokenInfo);
 
@@ -171,6 +179,9 @@ public class KeyService {
         } catch (Exception other) {
             throw new RuntimeException("adding a new key failed", other);
         }
+        auditDataHelper.put(KEY_ID, keyInfo.getId());
+        auditDataHelper.put(KEY_LABEL, keyInfo.getLabel());
+        auditDataHelper.put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         return keyInfo;
     }
 
@@ -194,10 +205,10 @@ public class KeyService {
     public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfOutdatedException {
 
-        auditDataHelper.put(KEY_ID, keyId);
-
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        auditDataHelper.put(tokenInfo);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
+        auditDataHelper.put(keyInfo);
 
         // verify permissions
         if (keyInfo.getUsage() == null) {
@@ -221,6 +232,8 @@ public class KeyService {
                 }
             }
         }
+
+        auditEventLoggingFacade.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
 
         // delete key needs to be done twice. First call deletes the certs & csrs
         try {

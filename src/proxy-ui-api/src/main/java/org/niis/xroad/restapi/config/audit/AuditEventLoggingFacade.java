@@ -31,13 +31,13 @@ import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
  * Also adjusts to non-request aware context.
  */
 @Component
+@Profile("nontest")
 public class AuditEventLoggingFacade {
 
     private final UsernameHelper usernameHelper;
@@ -144,7 +145,8 @@ public class AuditEventLoggingFacade {
         if (!hasAlreadyLoggedForThisRequest()) {
             if (getRequestScopedEvent() != null) {
                 auditLog(getRequestScopedEvent(), usernameHelper.getUsername(),
-                        addStandardEventData(getRequestScopedEventData()));
+                        getRequestScopedEventData());
+//                addStandardEventData(getRequestScopedEventData()));
             }
         }
     }
@@ -154,7 +156,8 @@ public class AuditEventLoggingFacade {
      * Does not touch request bound event.
      */
     public void auditLogSuccess(RestApiAuditEvent event) {
-        auditLog(event, usernameHelper.getUsername(), addStandardEventData(getEventData()));
+        auditLog(event, usernameHelper.getUsername(), getEventData());
+//        auditLog(event, usernameHelper.getUsername(), addStandardEventData(getEventData()));
     }
 
     /**
@@ -165,7 +168,8 @@ public class AuditEventLoggingFacade {
      * @param username username to use for audit log
      */
     public void auditLogSuccess(RestApiAuditEvent event, String username) {
-        auditLog(event, username, addStandardEventData(getEventData()));
+        auditLog(event, username, getEventData());
+//        auditLog(event, username, addStandardEventData(getEventData()));
     }
 
     /**
@@ -235,20 +239,19 @@ public class AuditEventLoggingFacade {
         }
     }
 
-    private void auditLog(RestApiAuditEvent event, Map<String, Object> data) {
-        addRequestScopedLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), data);
-    }
-
     private void auditLog(RestApiAuditEvent event, String user, Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), user, data);
+        AuditLogger.log(event.getEventName(), user, data,
+                securityHelper.getCurrentAuthenticationScheme(),
+                requestHelper.getCurrentRequestUrl());
     }
 
     private void auditLog(RestApiAuditEvent event, String user, String reason,
             Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), user, reason, data);
+        AuditLogger.log(event.getEventName(), user, reason, data,
+                securityHelper.getCurrentAuthenticationScheme(),
+                requestHelper.getCurrentRequestUrl());
     }
 
     private void addRequestScopedLoggedEventForThisRequest(RestApiAuditEvent event) {
@@ -295,16 +298,16 @@ public class AuditEventLoggingFacade {
     }
 
 
-
-    /**
-     * Adds url and authentication method to event data map. Does not modify original map, returns a new instance
-     */
-    private Map<String, Object> addStandardEventData(Map<String, Object> data) {
-        Map<String, Object> result = new LinkedHashMap<>(data);
-        result.put("url", requestHelper.getCurrentRequestUrl());
-        result.put("auth", securityHelper.getCurrentAuthenticationScheme());
-        return result;
-    }
+//
+//    /**
+//     * Adds url and authentication method to event data map. Does not modify original map, returns a new instance
+//     */
+//    private Map<String, Object> addStandardEventData(Map<String, Object> data) {
+//        Map<String, Object> result = new LinkedHashMap<>(data);
+//        result.put("url", requestHelper.getCurrentRequestUrl());
+//        result.put("auth", securityHelper.getCurrentAuthenticationScheme());
+//        return result;
+//    }
 
     private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex, String usernameOverride) {
         String username = usernameOverride;
@@ -316,9 +319,9 @@ public class AuditEventLoggingFacade {
             eventToLog = defaultEvent;
         }
         if (eventToLog != null) {
-            Map<String, Object> data = addStandardEventData(getEventData());
+//            Map<String, Object> data = addStandardEventData(getEventData());
             String reason = ex.getMessage();
-            auditLog(eventToLog, username, reason, data);
+            auditLog(eventToLog, username, reason, getEventData());
         }
     }
 

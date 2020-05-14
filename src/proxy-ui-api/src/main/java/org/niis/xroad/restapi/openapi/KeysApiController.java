@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.KeyConverter;
@@ -63,6 +64,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.EnumSet;
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CSR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_CSR;
 
 /**
  * keys controller
@@ -138,6 +143,7 @@ public class KeysApiController implements KeysApi {
             + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION)"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
+    @AuditEventMethod(event = GENERATE_CSR)
     public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
@@ -178,6 +184,7 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
+    @AuditEventMethod(event = DELETE_CSR)
     public ResponseEntity<Void> deleteCsr(String keyId, String csrId) {
         try {
             tokenCertificateService.deleteCsr(csrId);
@@ -214,6 +221,7 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('DELETE_KEY', 'DELETE_AUTH_KEY', 'DELETE_SIGN_KEY')")
+    @AuditEventMethod(event = DELETE_KEY)
     public ResponseEntity<Void> deleteKey(String keyId) {
         try {
             keyService.deleteKey(keyId);

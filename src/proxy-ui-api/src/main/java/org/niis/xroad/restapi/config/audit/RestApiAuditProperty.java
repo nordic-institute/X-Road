@@ -80,6 +80,18 @@ public enum RestApiAuditProperty {
     CERT_HASH,
     UPLOAD_FILE_NAME,
 
+    TOKEN_ID,
+    TOKEN_SERIAL_NUMBER,
+    TOKEN_FRIENDLY_NAME,
+    KEY_LABEL,
+    KEY_FRIENDLY_NAME,
+    KEY_USAGE,
+
+    SUBJECT_NAME,
+    CERTIFICATION_SERVICE_NAME,
+    CSR_FORMAT,
+    CERT_ID,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**

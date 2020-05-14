@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,15 +65,18 @@ public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * TokenService constructor
      */
     @Autowired
     public TokenService(SignerProxyFacade signerProxyFacade,
-            PossibleActionsRuleEngine possibleActionsRuleEngine) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            AuditDataHelper auditDataHelper) {
         this.signerProxyFacade = signerProxyFacade;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -142,9 +146,11 @@ public class TokenService {
 
         // check that action is possible
         TokenInfo tokenInfo = getToken(id);
+
+        auditDataHelper.put(tokenInfo);
+
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_ACTIVATE,
                 tokenInfo);
-
         try {
             signerProxyFacade.activateToken(id, password);
         } catch (CodedException e) {
@@ -170,6 +176,9 @@ public class TokenService {
 
         // check that action is possible
         TokenInfo tokenInfo = getToken(id);
+
+        auditDataHelper.put(tokenInfo);
+
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_DEACTIVATE,
                 tokenInfo);
 

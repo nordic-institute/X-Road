@@ -42,6 +42,7 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -67,7 +68,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATION_SERVICE_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_REQUEST_IDS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CSR_FORMAT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_USAGE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
 
 /**
@@ -149,7 +155,11 @@ public class TokenCertificateService {
 
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        auditDataHelper.put(tokenInfo);
         KeyInfo key = keyService.getKey(tokenInfo, keyId);
+        auditDataHelper.put(key);
+        auditDataHelper.put(KEY_USAGE, keyUsage);
+        auditDataHelper.put(memberId);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
@@ -184,6 +194,9 @@ public class TokenCertificateService {
         List<DnFieldValue> dnFieldValues = dnFieldHelper.processDnParameters(profile, subjectFieldValues);
 
         String subjectName = dnFieldHelper.createSubjectName(dnFieldValues);
+        auditDataHelper.put(SUBJECT_NAME, subjectName);
+        auditDataHelper.put(CERTIFICATION_SERVICE_NAME, caName);
+        auditDataHelper.put(CSR_FORMAT, format);
 
         try {
             return signerProxyFacade.generateCertRequest(keyId, memberId,
@@ -867,11 +880,20 @@ public class TokenCertificateService {
     public void deleteCsr(String csrId) throws KeyNotFoundException, CsrNotFoundException,
             ActionNotPossibleException {
 
-        auditDataHelper.addListPropertyItem(CERT_REQUEST_IDS, csrId);
+        // different audit fields for these events
+        if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.DELETE_ORPHANS)) {
+            auditDataHelper.addListPropertyItem(CERT_REQUEST_IDS, csrId);
+        } else if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.DELETE_CSR)) {
+            auditDataHelper.put(CERT_ID, csrId);
+        }
 
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
         KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+        if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.DELETE_CSR)) {
+            auditDataHelper.put(tokenInfo);
+            auditDataHelper.put(keyInfo);
+        }
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
 
         if (keyInfo.isForSigning()) {

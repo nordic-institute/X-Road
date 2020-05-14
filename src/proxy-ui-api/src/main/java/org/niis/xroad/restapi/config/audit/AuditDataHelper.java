@@ -30,10 +30,13 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
@@ -49,13 +52,20 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_STATUS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.IS_AUTHENTICATION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIENDLY_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_USAGE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MANAGEMENT_REQUEST_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
 
 /**
  * Helpers for setting audit log data properties
  */
 @Component
 @Slf4j
+@Profile("nontest")
 public class AuditDataHelper {
 
     private final AuditEventLoggingFacade auditEventLoggingFacade;
@@ -182,4 +192,26 @@ public class AuditDataHelper {
             return null;
         }
     }
+
+    /**
+     * audit log token id, serial number and friendly name
+     * @param tokenInfo
+     */
+    public void put(TokenInfo tokenInfo) {
+        put(TOKEN_ID, tokenInfo.getId());
+        put(TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+        put(TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+    }
+
+    /**
+     * audit log key id, friendly name and usage
+     * @param keyInfo
+     */
+    public void put(KeyInfo keyInfo) {
+        put(KEY_ID, keyInfo.getId());
+        put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
+        // TO DO: probably convert this
+        put(KEY_USAGE, keyInfo.getUsage());
+    }
+
 }
