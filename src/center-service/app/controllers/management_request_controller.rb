@@ -104,27 +104,33 @@ class ManagementRequestController < ApplicationController
     end
 
     def check_security_server_identifiers(ss)
-      # check_identifier(ss.xroad_instance)
-      # check_identifier(ss.member_class)
-      # check_identifier(ss.member_code)
-      # check_identifier(ss.server_code)
+      if ss.blank?
+        check_identifier(ss.xroad_instance)
+        check_identifier(ss.member_class)
+        check_identifier(ss.member_code)
+        check_identifier(ss.server_code)
+      end
     end
 
     def check_client_identifiers(ss)
-      # check_identifier(ss.xroad_instance)
-      # check_identifier(ss.member_class)
-      # check_identifier(ss.member_code)
-      # check_identifier(ss.subsystem_code)
+      if ss.blank?
+        check_identifier(ss.xroad_instance)
+        check_identifier(ss.member_class)
+        check_identifier(ss.member_code)
+        check_identifier(ss.subsystem_code)
+      end
     end
 
     def check_identifier(id)
-      # if SpringFirewallValidationRules::containsPercent(id) ||
-      #   SpringFirewallValidationRules::containsSemicolon(id) ||
-      #   SpringFirewallValidationRules::containsForwardslash(id) ||
-      #   SpringFirewallValidationRules::containsBackslash(id) ||
-      #   !SpringFirewallValidationRules::isNormalized(id)
-      #   raise I18n.t("request.invalid_identifier", :id => id)
-      # end
+      unless id.blank?
+        if SpringFirewallValidationRules::containsPercent(id) ||
+          SpringFirewallValidationRules::containsSemicolon(id) ||
+          SpringFirewallValidationRules::containsForwardslash(id) ||
+          SpringFirewallValidationRules::containsBackslash(id) ||
+          !SpringFirewallValidationRules::isNormalized(id)
+          raise I18n.t("request.invalid_identifier", :id => id)
+        end
+      end
     end
 
     # xroad_id may be either ClientId or ServerId.
