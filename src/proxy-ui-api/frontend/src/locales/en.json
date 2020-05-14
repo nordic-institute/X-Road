@@ -167,9 +167,14 @@
     "removeAllText": "Are you sure you want to remove all access rights from this service client",
     "removeAll": "Remove all",
     "addService": "Add service",
-    "noAccessRights": "No access rights to this client",
     "addServiceClientAccessRightSuccess": "Access rights successfully added",
-    "noAvailableServices": "No available services"
+    "noAvailableServices": "No available services",
+    "noAccessRights": "No access rights to this client",
+    "memberGroupStep": "Member / Group",
+    "servicesStep": "Services",
+    "addServiceClientTitle": "Add a subject",
+    "addSelected": "Add Selected",
+    "serviceSelectionStep": "Servicecode"
   },
   "localGroups": {
     "addGroup": "Add group",

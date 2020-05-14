@@ -19,7 +19,15 @@
   tr td:first-child {
     font-weight: bold;
   }
+
+  &.xrd-table-highlightable tbody tr:hover {
+      cursor: pointer;
+      background-color: $XRoad-Grey10;
+  }
+
 }
+
+
 
 .table-toolbar {
   display: flex;
