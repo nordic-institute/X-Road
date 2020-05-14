@@ -60,4 +60,4 @@ RUN sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.s
 
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 80 443 4000 5500 5577 5588 2552 9011
+EXPOSE 80 443 4000 5500 5577 5588
