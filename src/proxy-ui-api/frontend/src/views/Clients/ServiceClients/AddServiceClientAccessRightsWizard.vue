@@ -82,6 +82,9 @@
           .get(`/clients/${this.id}/service-descriptions`)
           .then( (response: any) => {
             const serviceDescriptions = response.data as ServiceDescription[];
+
+            // Parse all services for the current client and map them to ServiceCandidates (manually added type for
+            // objects that are used to add and list services that can be granted access rights to).
             this.serviceCandidates = serviceDescriptions
               .reduce( (curr: Service[], next: ServiceDescription) => curr.concat(...next.services), [])
               .map( (service: Service) => ({
