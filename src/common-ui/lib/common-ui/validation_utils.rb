@@ -244,7 +244,7 @@ module CommonUi
       end
 
       def containsUnprintable(val)
-        return val.match(/\a\e\f\n\r\t\v/)
+        return val.match(/[^ -~]+/)
       end
     end
 
