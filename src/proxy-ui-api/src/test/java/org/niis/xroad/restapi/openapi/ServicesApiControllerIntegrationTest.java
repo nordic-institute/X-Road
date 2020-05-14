@@ -513,13 +513,16 @@ public class ServicesApiControllerIntegrationTest {
         } catch (ConflictException e) { }
 
 
-        // try adding two identical localgroups
+        // try adding two identical localgroups -> no exception, only one added
+        List<ServiceClient> itemsBefore =
+                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         ServiceClient localGroup = new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
                 ServiceClientType.LOCALGROUP);
         ServiceClients duplicateLocalGroups = new ServiceClients().addItemsItem(localGroup).addItemsItem(localGroup);
-        try {
-            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
-        } catch (ConflictException e) { }
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
+        List<ServiceClient> itemsAfter =
+                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(itemsBefore.size(), itemsAfter.size());
     }
 
     @Test(expected = BadRequestException.class)
