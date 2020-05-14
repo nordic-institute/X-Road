@@ -27,7 +27,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 RUN pg_ctlcluster 10 main start \
 && apt-get -qq update \
-&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin \
+&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin xroad-addon-proxymonitor \
 && su - postgres -c "psql postgres -tAc \"DROP DATABASE serverconf;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP USER serverconf;\"" \
 && apt-get -qq clean \
@@ -60,4 +60,4 @@ RUN sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.s
 
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 80 443 4000 5500 5577 5588
+EXPOSE 80 443 4000 5500 5577 5588 2552 9011
