@@ -51,4 +51,4 @@ if [[ $(getenforce) != "Disabled" ]]; then
 
 fi
 
-/usr/share/xroad/scripts/setup_db.sh
+/usr/share/xroad/scripts/setup_serverconf_db.sh
