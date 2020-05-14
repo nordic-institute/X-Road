@@ -231,10 +231,20 @@ module CommonUi
             SpringFirewallValidationRules::containsSemicolon(val) ||
             SpringFirewallValidationRules::containsForwardslash(val) ||
             SpringFirewallValidationRules::containsBackslash(val) ||
-            !SpringFirewallValidationRules::isNormalized(val)
+            !SpringFirewallValidationRules::isNormalized(val) ||
+            containsColon(val) ||
+            containsUnprintable(val)
           raise ValidationError.new(param, :identifier),
                 I18n.t('validation.invalid_identifier', :param => param, :val => val)
         end
+      end
+
+      def containsColon(val)
+        return val.include?(":")
+      end
+
+      def containsUnprintable(val)
+        return val.match(/\a\e\f\n\r\t\v/)
       end
     end
 
