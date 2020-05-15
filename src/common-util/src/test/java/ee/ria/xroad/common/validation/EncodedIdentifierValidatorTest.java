@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
