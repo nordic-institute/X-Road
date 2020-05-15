@@ -24,8 +24,6 @@
  */
 package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
-
 import java.util.EnumSet;
 
 /**

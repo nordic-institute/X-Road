@@ -27,18 +27,17 @@ package ee.ria.xroad.common.validation;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
 import java.util.EnumSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.BACKSLASH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.COLON;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.PERCENT;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.SEMICOLON;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @Slf4j
 public class EncodedIdentifierValidatorTest {
