@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -47,6 +48,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -185,7 +187,7 @@ public class SystemServiceTest {
     @Test
     public void getAnchorFileFromBytes() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
-        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes);
+        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, true);
         assertEquals(ANCHOR_HASH, anchorFile.getHash());
     }
 
@@ -195,26 +197,34 @@ public class SystemServiceTest {
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
-        systemService.getAnchorFileFromBytes(anchorBytes);
+        systemService.getAnchorFileFromBytes(anchorBytes, true);
     }
 
     @Test
-    public void uploadAnchor() throws Exception {
+    public void getAnchorFileFromBytesSkipVerify() throws Exception {
+        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("INVALID", "GOV", "1111"));
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, false);
+        assertEquals(ANCHOR_HASH, anchorFile.getHash());
+    }
+
+    @Test
+    public void replaceAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         try {
-            systemService.uploadAnchor(anchorBytes);
+            systemService.replaceAnchor(anchorBytes);
         } catch (Exception e) {
             fail("Should not fail");
         }
     }
 
     @Test
-    public void uploadAnchorFailVerification() throws Exception {
+    public void replaceAnchorFailVerification() throws Exception {
         doThrow(new ConfigurationVerifier.ConfigurationVerificationException(MISSING_PRIVATE_PARAMS))
                 .when(configurationVerifier).verifyInternalConfiguration(any());
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         try {
-            systemService.uploadAnchor(anchorBytes);
+            systemService.replaceAnchor(anchorBytes);
             fail("Should have failed");
         } catch (Exception e) {
             assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS,
@@ -223,8 +233,28 @@ public class SystemServiceTest {
     }
 
     @Test(expected = SystemService.MalformedAnchorException.class)
-    public void uploadAnchorWithBadData() throws Exception {
+    public void replaceAnchorWithBadData() throws Exception {
         byte[] anchorBytes = new byte[8];
-        systemService.uploadAnchor(anchorBytes);
+        systemService.replaceAnchor(anchorBytes);
+    }
+
+    @Test
+    public void uploadInitialAnchor() throws Exception {
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));
+        try {
+            systemService.uploadInitialAnchor(anchorBytes);
+        } catch (Exception e) {
+            fail("Should not fail");
+        }
+    }
+
+    @Test(expected = SystemService.AnchorAlreadyExistsException.class)
+    public void uploadInitialAnchorAgain() throws Exception {
+        byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
+        when(anchorRepository.readAnchorFile()).thenReturn(anchorBytes);
+        when(anchorRepository.loadAnchorFromFile())
+                .thenReturn(new ConfigurationAnchorV2("src/test/resources/internal-configuration-anchor.xml"));
+        systemService.uploadInitialAnchor(anchorBytes);
     }
 }

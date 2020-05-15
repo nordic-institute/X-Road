@@ -701,7 +701,7 @@ public class ClientService {
      * If ClientId already exists in DB, return the managed instance.
      * Otherwise return transient instance that was given as parameter
      */
-    private ClientId getPossiblyManagedEntity(ClientId transientClientId) {
+    public ClientId getPossiblyManagedEntity(ClientId transientClientId) {
         ClientId managedEntity = identifierRepository.getClientId(transientClientId);
         if (managedEntity != null) {
             return managedEntity;
