@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.common.validation;
 
+import com.google.common.base.CharMatcher;
+
 /**
  * Encapsulates validation logic that is copied from Spring firewall internal methods and
  * variables
@@ -54,6 +56,10 @@ public final class SpringFirewallValidationRules {
 
     public static boolean containsBackslash(String s) {
         return s.contains(FORBIDDEN_BACKSLASH);
+    }
+
+    public static boolean containsNonPrintable(String s) {
+        return CharMatcher.javaIsoControl().matchesAnyOf(s);
     }
 
     /**

@@ -34,6 +34,7 @@ import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.Validati
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.COLON;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.NON_PRINTABLE;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.PERCENT;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.SEMICOLON;
 import static org.junit.Assert.assertEquals;
@@ -75,6 +76,10 @@ public class EncodedIdentifierValidatorTest {
     char slash = '/';
     char backslash = '\\';
     char percent = '%';
+    char tab = '\t';
+    char newline = '\n';
+    char cr = '\r';
+    char space = ' ';
 
     @Test
     public void semiOrFullColons() {
@@ -100,9 +105,21 @@ public class EncodedIdentifierValidatorTest {
     }
 
     @Test
+    public void nonPrintable() {
+        assertEquals(EnumSet.of(NON_PRINTABLE),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(tab)));
+        assertEquals(EnumSet.of(NON_PRINTABLE),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(newline)));
+        assertEquals(EnumSet.of(NON_PRINTABLE),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(cr)));
+        assertEquals(EnumSet.noneOf(EncodedIdentifierValidator.ValidationError.class),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(space)));
+    }
+
+    @Test
     public void allErrors() {
         assertEquals(EnumSet.allOf(EncodedIdentifierValidator.ValidationError.class),
-                encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../ff"));
+                encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../f\tf"));
     }
 
 }
