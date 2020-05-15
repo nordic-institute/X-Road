@@ -28,7 +28,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 

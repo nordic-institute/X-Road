@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.openapi.validator;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError;
 
 import java.util.EnumSet;
 import java.util.Set;
