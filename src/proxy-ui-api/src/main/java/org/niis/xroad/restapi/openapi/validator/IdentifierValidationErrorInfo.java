@@ -24,8 +24,9 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import lombok.Getter;
 import ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError;
+
+import lombok.Getter;
 
 import java.util.EnumSet;
 import java.util.List;
