@@ -77,21 +77,6 @@ task buildFront(type: NpmTask) {
     }
 }
 
-// Generate typescript types from openapi3 definition
-task buildTypes(type: NpmTask, dependsOn: 'npmInstall') {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    inputs.dir("frontend")
-    outputs.dir("frontend/src")
-
-    args = ['run', 'generate-types']
-
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
 // check that npm run check-audit passes
 // check-audit uses ignores from audit-resolve.json
 task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
@@ -129,17 +114,14 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
-
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
-// buildTypes -> checkFrontAudit -> buildFront -> processResources
-checkFrontAudit.dependsOn 'buildTypes'
+// checkFrontAudit -> buildFront -> processResources
 buildFront.dependsOn 'checkFrontAudit'
 processResources.dependsOn 'buildFront'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
-clean.delete << file('frontend/src/types.ts')
 
 openApiGenerate {
     generatorName = "spring"
