@@ -92,6 +92,10 @@ public enum RestApiAuditProperty {
     CSR_FORMAT,
     CERT_ID,
 
+    CERT_FILE_NAME,
+    ADDRESS,
+    CERT_STATUS,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**

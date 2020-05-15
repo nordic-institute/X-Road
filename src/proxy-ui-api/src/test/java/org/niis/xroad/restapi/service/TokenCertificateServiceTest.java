@@ -396,6 +396,7 @@ public class TokenCertificateServiceTest {
                 case SIGNER_EX_INTERNAL_ERROR_HASH:
                 case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
                 case SIGNER_EX_TOKEN_READONLY_HASH:
+                case MOCK_CERTIFICATE_HASH:
                     return new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
                 default:
                     throw new CertificateNotFoundException("unknown cert: " + hash);

@@ -100,11 +100,13 @@ public enum RestApiAuditEvent {
     DELETE_CSR("Delete CSR"),
     // TO DO: we probably need this too?
     GENERATE_KEY_AND_CSR("Generate key and CSR"),
+
     IMPORT_CERT_FILE("Import certificate from file"),
     IMPORT_CERT_TOKEN("Import certificate from token"),
+    DELETE_CERT("Delete certificate"),
     DELETE_CERT_FROM_CONFIG("Delete certificate from configuration"),
-    DELETE_CERT_FROM_TOKEN("Delete certificate from foken"),
-    ENABLE_CERT("Enable certificate"),
+    DELETE_CERT_FROM_TOKEN("Delete certificate from token"),
+    ACTIVATE_CERT("Enable certificate"),
     DISABLE_CERT("Disable certificate"),
     REGISTER_AUTH_CERT("Register authentication certificate"),
     UNREGISTER_AUTH_CERT("Unregister authentication certificate"),

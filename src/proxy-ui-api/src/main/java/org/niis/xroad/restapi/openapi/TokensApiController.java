@@ -66,6 +66,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_KEY
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_KEY_AND_CSR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGIN_TOKEN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGOUT_TOKEN;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_TOKEN_NAME;
 
 /**
  * tokens controller
@@ -165,6 +166,7 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('EDIT_TOKEN_FRIENDLY_NAME')")
     @Override
+    @AuditEventMethod(event = UPDATE_TOKEN_NAME)
     public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
         try {
             TokenInfo tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());

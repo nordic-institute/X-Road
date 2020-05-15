@@ -68,6 +68,7 @@ import java.util.List;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CSR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_CSR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_KEY_NAME;
 
 /**
  * keys controller
@@ -124,6 +125,7 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_KEY_FRIENDLY_NAME')")
+    @AuditEventMethod(event = UPDATE_KEY_NAME)
     public ResponseEntity<Key> updateKey(String id, KeyName keyName) {
         KeyInfo keyInfo = null;
         try {

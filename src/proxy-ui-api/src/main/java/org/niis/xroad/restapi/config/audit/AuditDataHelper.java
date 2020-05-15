@@ -49,6 +49,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_I
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_STATUS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.IS_AUTHENTICATION;
@@ -141,6 +142,10 @@ public class AuditDataHelper {
         auditEventLoggingFacade.putRequestScopedAuditData(MANAGEMENT_REQUEST_ID, requestId);
     }
 
+    /**
+     * Add cert hash to _list property_ CERT_HASHES and put cert algo to regular property
+     * @param certificateInfo
+     */
     public void addCertificateHash(CertificateInfo certificateInfo) {
         String hash = createFormattedHash(certificateInfo);
         addListPropertyItem(CERT_HASHES, hash);
@@ -153,6 +158,23 @@ public class AuditDataHelper {
         putDefaultHashAlgorithm();
     }
 
+    /**
+     * Put cert id, hash, and hash default algorithm
+     * @param certificateInfo
+     */
+    public void put(CertificateInfo certificateInfo) {
+        String hash = createFormattedHash(certificateInfo);
+        put(CERT_ID, certificateInfo.getId());
+        put(CERT_HASH, hash);
+        putDefaultHashAlgorithm();
+    }
+
+    public void putCertificateHash(String unformattedHash) {
+        String hash = formatHash(unformattedHash);
+        put(CERT_HASH, hash);
+        putDefaultHashAlgorithm();
+    }
+
     public void putDefaultHashAlgorithm() {
         put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
@@ -161,13 +183,17 @@ public class AuditDataHelper {
         return createFormattedHash(certificateInfo.getCertificateBytes());
     }
 
+    private String formatHash(String unformattedHash) {
+        String hash = unformattedHash.toUpperCase();
+        return String.join(":", Splitter.fixedLength(2).split(hash));
+    }
+
     private String createFormattedHash(byte[] certBytes) {
         String hash = null;
         try {
             hash = CryptoUtils.calculateCertHexHash(certBytes);
             if (hash != null) {
-                hash = hash.toUpperCase();
-                hash = String.join(":", Splitter.fixedLength(2).split(hash));
+                hash = formatHash(hash);
             }
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
@@ -210,7 +236,6 @@ public class AuditDataHelper {
     public void put(KeyInfo keyInfo) {
         put(KEY_ID, keyInfo.getId());
         put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
-        // TO DO: probably convert this
         put(KEY_USAGE, keyInfo.getUsage());
     }
 

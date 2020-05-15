@@ -52,6 +52,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
@@ -225,6 +226,8 @@ public class TokenService {
 
         // check that updating friendly name is possible
         TokenInfo tokenInfo = getToken(tokenId);
+        auditDataHelper.put(tokenInfo);
+        auditDataHelper.put(TOKEN_FRIENDLY_NAME, friendlyName); // Override old value with the new
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
                 tokenInfo);
 

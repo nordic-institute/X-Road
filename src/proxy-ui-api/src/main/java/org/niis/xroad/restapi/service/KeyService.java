@@ -132,7 +132,10 @@ public class KeyService {
 
         // check that updating friendly name is possible
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(id);
+
         KeyInfo keyInfo = getKey(tokenInfo, id);
+        auditDataHelper.put(KEY_ID, keyInfo.getId());
+        auditDataHelper.put(KEY_FRIENDLY_NAME, friendlyName);
         possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
                 tokenInfo, keyInfo);
 
