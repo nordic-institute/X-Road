@@ -44,21 +44,26 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CLASS_BLANK;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_PIN_BLANK;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CLASS_EXISTS;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CODE_EXISTS;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_PIN_EXISTS;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_PIN_NOT_PROVIDED;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_SERVERCODE_EXISTS;
+import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.service.InitializationService.InvalidInitParamsException.INVALID_INIT_PARAMS;
 import static org.niis.xroad.restapi.service.InitializationService.METADATA_PIN_MIN_CHAR_CLASSES;
 import static org.niis.xroad.restapi.service.InitializationService.METADATA_PIN_MIN_LENGTH;
-import static org.niis.xroad.restapi.service.InitializationService.MissingInitParamsException.INIT_PARAMS_MISSING;
+import static org.niis.xroad.restapi.service.InitializationService.ServerAlreadyFullyInitializedException.SERVER_ALREADY_FULLY_INITIALIZED;
 import static org.niis.xroad.restapi.service.InitializationService.WARNING_INIT_SERVER_ID_EXISTS;
 import static org.niis.xroad.restapi.service.InitializationService.WARNING_INIT_UNREGISTERED_MEMBER;
-import static org.niis.xroad.restapi.service.InitializationService.WARNING_SERVERCODE_EXISTS;
-import static org.niis.xroad.restapi.service.InitializationService.WARNING_SERVER_OWNER_EXISTS;
 import static org.niis.xroad.restapi.service.InitializationService.WARNING_SOFTWARE_TOKEN_INITIALIZED;
 import static org.niis.xroad.restapi.service.InitializationService.WeakPinException.WEAK_PIN;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
@@ -229,17 +234,16 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeWarnAlreadyInitialized() throws Exception {
+    public void initializeWarnSoftwareTokenAlreadyInitialized() throws Exception {
+        when(globalConfFacade.getMemberName(any())).thenReturn("Some awesome name");
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        when(serverConfService.isServerCodeInitialized()).thenReturn(true);
-        when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
+        when(serverConfService.isServerCodeInitialized()).thenReturn(false);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, false);
+                    null, false);
             fail("should have failed");
         } catch (UnhandledWarningsException expected) {
-            assertWarningWithoutMetadata(WARNING_SERVER_OWNER_EXISTS, expected);
-            assertWarningWithoutMetadata(WARNING_SERVERCODE_EXISTS, expected);
             assertWarningWithoutMetadata(WARNING_SOFTWARE_TOKEN_INITIALIZED, expected);
         }
     }
@@ -252,12 +256,12 @@ public class InitializationServiceTest {
         try {
             initializationService.initialize(null, null, null, null, true);
             fail("should have failed");
-        } catch (InitializationService.MissingInitParamsException expected) {
-            assertErrorWithMetadata(INIT_PARAMS_MISSING, expected,
-                    InitializationService.ERROR_METADATA_SERVERCODE_BLANK,
-                    InitializationService.ERROR_METADATA_MEMBER_CLASS_BLANK,
-                    InitializationService.ERROR_METADATA_MEMBER_CODE_BLANK,
-                    InitializationService.ERROR_METADATA_PIN_BLANK);
+        } catch (InitializationService.InvalidInitParamsException expected) {
+            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected,
+                    InitializationService.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                    InitializationService.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
+                    InitializationService.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
+                    InitializationService.ERROR_METADATA_PIN_NOT_PROVIDED);
         }
     }
 
@@ -312,13 +316,17 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializePartialServerCode() throws Exception {
-        when(serverConfService.isServerCodeInitialized()).thenReturn(false);
-        when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
-        when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                SOFTWARE_TOKEN_PIN, true);
-        assertTrue(true);
+    public void initializePartialFailRedundantServerCode() throws Exception {
+        when(serverConfService.isServerCodeInitialized()).thenReturn(true);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
+        try {
+            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                    SOFTWARE_TOKEN_PIN, true);
+            fail("Should have thrown InvalidInitParamsException");
+        } catch (InitializationService.InvalidInitParamsException expected) {
+            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_SERVERCODE_EXISTS);
+        }
     }
 
     @Test
@@ -341,8 +349,8 @@ public class InitializationServiceTest {
         try {
             initializationService.initialize(null, null, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.MissingInitParamsException expected) {
-            assertErrorWithMetadata(INIT_PARAMS_MISSING, expected, ERROR_METADATA_MEMBER_CLASS_BLANK);
+        } catch (InitializationService.InvalidInitParamsException expected) {
+            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
         }
     }
 
@@ -354,8 +362,36 @@ public class InitializationServiceTest {
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     null, true);
-        } catch (InitializationService.MissingInitParamsException expected) {
-            assertErrorWithMetadata(INIT_PARAMS_MISSING, expected, ERROR_METADATA_PIN_BLANK);
+        } catch (InitializationService.InvalidInitParamsException expected) {
+            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_MEMBER_CLASS_EXISTS,
+                    ERROR_METADATA_MEMBER_CODE_EXISTS, ERROR_METADATA_PIN_NOT_PROVIDED);
+        }
+    }
+
+    @Test
+    public void initializePartialFailServerCodeMissingAndSoftTokenPinRedundant() throws Exception {
+        when(serverConfService.isServerCodeInitialized()).thenReturn(false);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
+        try {
+            initializationService.initialize(null, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                    SOFTWARE_TOKEN_PIN, true);
+        } catch (InitializationService.InvalidInitParamsException expected) {
+            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                    ERROR_METADATA_MEMBER_CLASS_EXISTS, ERROR_METADATA_MEMBER_CODE_EXISTS, ERROR_METADATA_PIN_EXISTS);
+        }
+    }
+
+    @Test
+    public void initializeFailAlreadyFullyInitialized() throws Exception {
+        when(serverConfService.isServerCodeInitialized()).thenReturn(true);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
+        try {
+            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                    SOFTWARE_TOKEN_PIN, true);
+        } catch (InitializationService.ServerAlreadyFullyInitializedException expected) {
+            assertEquals(SERVER_ALREADY_FULLY_INITIALIZED, expected.getErrorDeviation().getCode());
         }
     }
 }

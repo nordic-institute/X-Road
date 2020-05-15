@@ -64,10 +64,15 @@ public class InitializationService {
     public static final String METADATA_PIN_MIN_LENGTH = "pin_min_length";
     public static final String METADATA_PIN_MIN_CHAR_CLASSES = "pin_min_char_classes_count";
 
-    public static final String ERROR_METADATA_SERVERCODE_BLANK = "server_code_blank";
-    public static final String ERROR_METADATA_MEMBER_CLASS_BLANK = "member_class_blank";
-    public static final String ERROR_METADATA_MEMBER_CODE_BLANK = "member_code_blank";
-    public static final String ERROR_METADATA_PIN_BLANK = "pin_code_blank";
+    public static final String ERROR_METADATA_SERVERCODE_NOT_PROVIDED = "server_code_not_provided";
+    public static final String ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED = "member_class_not_provided";
+    public static final String ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED = "member_code_not_provided";
+    public static final String ERROR_METADATA_PIN_NOT_PROVIDED = "pin_code_not_provided";
+
+    public static final String ERROR_METADATA_SERVERCODE_EXISTS = "server_code_exists";
+    public static final String ERROR_METADATA_MEMBER_CLASS_EXISTS = "member_class_exists";
+    public static final String ERROR_METADATA_MEMBER_CODE_EXISTS = "member_code_exists";
+    public static final String ERROR_METADATA_PIN_EXISTS = "pin_code_exists";
 
     private final SystemService systemService;
     private final ServerConfService serverConfService;
@@ -133,33 +138,28 @@ public class InitializationService {
      * @throws InvalidCharactersException if the provided pin code does not follow the TokenPinPolicy (if token pin
      * policy is enforced by properties). In other words pin code contains invalid characters (not ascii)
      * @throws SoftwareTokenInitException if something goes wrong with the token init
-     * @throws MissingInitParamsException if empty or missing parameters are provided
+     * @throws InvalidInitParamsException if empty or missing or redundant parameters are provided
+     * @throws ServerAlreadyFullyInitializedException if the server has already been fully initialized
      */
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
             String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
             UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException,
-            MissingInitParamsException {
+            InvalidInitParamsException, ServerAlreadyFullyInitializedException {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
+        }
+        boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
+        boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
+        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
+        if (isServerCodeInitialized && isServerOwnerInitialized && isSoftwareTokenInitialized) {
+            throw new ServerAlreadyFullyInitializedException("Security server has already been fully initialized");
         }
         verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin);
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
         ClientId ownerClientId = null;
-        if (serverConfService.isServerOwnerInitialized()) {
+        if (isServerOwnerInitialized) {
             ownerClientId = serverConfService.getSecurityServerOwnerId();
         } else {
-            // if owner does not exist, new owner parameters are required
-            List<String> errorMetadata = new ArrayList<>();
-            if (StringUtils.isEmpty(ownerMemberClass)) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_BLANK);
-            }
-            if (StringUtils.isEmpty(ownerMemberCode)) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_BLANK);
-            }
-            if (!errorMetadata.isEmpty()) {
-                throw new MissingInitParamsException("Empty or missing member parameters provided for initialization",
-                        errorMetadata);
-            }
             ownerClientId = ClientId.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
         }
         if (!ignoreWarnings) {
@@ -167,7 +167,7 @@ public class InitializationService {
         }
         // --- Start the init ---
         ServerConfType serverConf = createInitialServerConf(ownerClientId, securityServerCode);
-        if (!tokenService.isSoftwareTokenInitialized()) {
+        if (!isSoftwareTokenInitialized) {
             initializeSoftwareToken(softwareTokenPin);
         }
         serverConfService.saveOrUpdate(serverConf);
@@ -175,42 +175,73 @@ public class InitializationService {
 
     /**
      * Verify that when initializing a new security server, all required parameters are provided.
-     * If old values do not exist -> new values must be provided.
+     * If old values DO NOT exist -> new values must be provided.
+     * If old values DO exists -> new values are not allowed
      * @param securityServerCode
      * @param ownerMemberClass
      * @param ownerMemberCode
      * @param softwareTokenPin
-     * @throws MissingInitParamsException if null or empty init parameters provided
+     * @throws InvalidInitParamsException if null, empty or redundant init parameters provided
      */
     private void verifyInitializationPrerequisites(String securityServerCode, String ownerMemberClass,
-            String ownerMemberCode, String softwareTokenPin) throws MissingInitParamsException {
+            String ownerMemberCode, String softwareTokenPin) throws InvalidInitParamsException {
         List<String> errorMetadata = new ArrayList<>();
         /*
-         * Example cases:
+         * Example case:
          * If server code does not exist -> securityServerCode param is required in the request.
-         * If server code already exists -> securityServerCode param is not required because it won't get initialized
-         * again.
+         * If server code already exists -> securityServerCode param is not allowed in the request.
          */
-        if (!serverConfService.isServerCodeInitialized()) {
-            if (StringUtils.isEmpty(securityServerCode)) {
-                errorMetadata.add(ERROR_METADATA_SERVERCODE_BLANK);
+
+        if (StringUtils.isEmpty(securityServerCode)) {
+            if (!serverConfService.isServerCodeInitialized()) {
+                errorMetadata.add(ERROR_METADATA_SERVERCODE_NOT_PROVIDED);
             }
         }
-        if (!serverConfService.isServerOwnerInitialized()) {
-            if (StringUtils.isEmpty(ownerMemberClass)) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_BLANK);
-            }
-            if (StringUtils.isEmpty(ownerMemberCode)) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_BLANK);
+
+        if (!StringUtils.isEmpty(securityServerCode)) {
+            if (serverConfService.isServerCodeInitialized()) {
+                errorMetadata.add(ERROR_METADATA_SERVERCODE_EXISTS);
             }
         }
-        if (!tokenService.isSoftwareTokenInitialized()) {
-            if (StringUtils.isEmpty(softwareTokenPin)) {
-                errorMetadata.add(ERROR_METADATA_PIN_BLANK);
+
+        if (StringUtils.isEmpty(ownerMemberClass)) {
+            if (!serverConfService.isServerOwnerInitialized()) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
             }
         }
+
+        if (!StringUtils.isEmpty(ownerMemberClass)) {
+            if (serverConfService.isServerOwnerInitialized()) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_EXISTS);
+            }
+        }
+
+        if (StringUtils.isEmpty(ownerMemberCode)) {
+            if (!serverConfService.isServerOwnerInitialized()) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED);
+            }
+        }
+
+        if (!StringUtils.isEmpty(ownerMemberCode)) {
+            if (serverConfService.isServerOwnerInitialized()) {
+                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_EXISTS);
+            }
+        }
+
+        if (StringUtils.isEmpty(softwareTokenPin)) {
+            if (!tokenService.isSoftwareTokenInitialized()) {
+                errorMetadata.add(ERROR_METADATA_PIN_NOT_PROVIDED);
+            }
+        }
+
+        if (!StringUtils.isEmpty(softwareTokenPin)) {
+            if (tokenService.isSoftwareTokenInitialized()) {
+                errorMetadata.add(ERROR_METADATA_PIN_EXISTS);
+            }
+        }
+
         if (!errorMetadata.isEmpty()) {
-            throw new MissingInitParamsException("Empty or missing parameters provided for initialization",
+            throw new InvalidInitParamsException("Empty, missing or redundant parameters provided for initialization",
                     errorMetadata);
         }
     }
@@ -334,13 +365,13 @@ public class InitializationService {
     }
 
     /**
-     * If missing or empty params are provided for the init
+     * If missing or empty or redundant params are provided for the init
      */
-    public static class MissingInitParamsException extends ServiceException {
-        public static final String INIT_PARAMS_MISSING = "init_params_missing";
+    public static class InvalidInitParamsException extends ServiceException {
+        public static final String INVALID_INIT_PARAMS = "invalid_init_params";
 
-        public MissingInitParamsException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(INIT_PARAMS_MISSING, metadata));
+        public InvalidInitParamsException(String msg, List<String> metadata) {
+            super(msg, new ErrorDeviation(INVALID_INIT_PARAMS, metadata));
         }
     }
 
@@ -374,6 +405,17 @@ public class InitializationService {
 
         public SoftwareTokenInitException(String msg, Throwable t) {
             super(msg, t, new ErrorDeviation(SOFTWARE_TOKEN_INIT_FAILED));
+        }
+    }
+
+    /**
+     * If the server has already been fully initialized
+     */
+    public static class ServerAlreadyFullyInitializedException extends ServiceException {
+        public static final String SERVER_ALREADY_FULLY_INITIALIZED = "server_already_fully_initialized";
+
+        public ServerAlreadyFullyInitializedException(String msg) {
+            super(msg, new ErrorDeviation(SERVER_ALREADY_FULLY_INITIALIZED));
         }
     }
 }

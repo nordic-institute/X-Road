@@ -86,10 +86,10 @@ public class InitializationApiController implements InitializationApi {
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                     ignoreWarnings);
-        } catch (AnchorNotFoundException e) {
+        } catch (AnchorNotFoundException | InitializationService.ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException | InitializationService.InvalidCharactersException
-                | InitializationService.WeakPinException | InitializationService.MissingInitParamsException e) {
+                | InitializationService.WeakPinException | InitializationService.InvalidInitParamsException e) {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);
