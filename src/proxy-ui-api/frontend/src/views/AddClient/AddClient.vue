@@ -37,7 +37,7 @@
         </v-stepper-content>
         <!-- Step 4 -->
         <v-stepper-content step="4">
-          <WizardPageCsrDetails
+          <CsrDetailsPageLocked
             @cancel="cancel"
             @previous="csrDetailsPrevious"
             @done="csrDetailsReady"
@@ -72,9 +72,8 @@ import ClientDetailsPage from './ClientDetailsPage.vue';
 import TokenPage from './TokenPage.vue';
 import SignKeyPage from './SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
-import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
+import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from './GenerateCsrPage.vue';
-
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';
@@ -88,7 +87,7 @@ export default Vue.extend({
     TokenPage,
     SignKeyPage,
     FinishPage,
-    WizardPageCsrDetails,
+    CsrDetailsPageLocked,
     GenerateCsrPage,
   },
   props: {},
@@ -98,16 +97,6 @@ export default Vue.extend({
     };
   },
   methods: {
-    save(): void {
-      this.$store.dispatch('fetchCsrForm').then(
-        () => {
-          this.currentStep = 2;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
-    },
     cancel(): void {
       this.$store.dispatch('resetCsrState');
       this.$store.dispatch('resetAddClientState');
@@ -134,6 +123,10 @@ export default Vue.extend({
       this.currentStep = 4;
     },
     csrDetailsReady(): void {
+      // Add the selected client id in the CSR store
+      const idString = this.$store.getters.selectedMemberId;
+      this.$store.commit('storeCsrClient', idString);
+
       this.$store.dispatch('fetchCsrForm').then(
         () => {
           this.currentStep = 5;
@@ -172,23 +165,6 @@ export default Vue.extend({
       this.$router.replace({ name: RouteName.Clients });
     },
 
-    fetchKeyData(id: string): void {
-      this.$store.dispatch('fetchKeyData').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
-    fetchLocalMembers(): void {
-      this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
-    fetchCertificateAuthorities(): void {
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
   },
   created() {
     this.$store.dispatch('setupSignKey');
