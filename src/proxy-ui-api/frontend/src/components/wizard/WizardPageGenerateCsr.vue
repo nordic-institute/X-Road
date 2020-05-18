@@ -74,6 +74,11 @@ export default Vue.extend({
       type: String,
       default: 'action.done',
     },
+    // Creating Key + CSR or just CSR
+    keyAndCsr: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     ...mapGetters(['csrForm']),
@@ -96,14 +101,27 @@ export default Vue.extend({
     generateCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
-      this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      if (this.keyAndCsr) {
+        // Create key and CSR
+        this.$store.dispatch('generateKeyAndCsr', tokenId).then(
+          (response) => {
+            this.disableDone = false;
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
+      } else {
+        // Create only CSR
+        this.$store.dispatch('generateCsr').then(
+          (response) => {
+            this.disableDone = false;
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
+      }
     },
   },
 });
