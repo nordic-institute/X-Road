@@ -22,7 +22,7 @@
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content step="3">
-          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 2" @done="done" />
+          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 2" @done="done" keyAndCsr/>
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
