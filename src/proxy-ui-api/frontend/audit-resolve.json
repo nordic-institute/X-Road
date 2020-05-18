@@ -19,6 +19,11 @@
       "decision": "ignore",
       "madeAt": 1588578292034,
       "expiresAt": 1591170276771
+    },
+    "1486|@vue/cli-service>webpack-dev-server>http-proxy-middleware>http-proxy": {
+      "decision": "ignore",
+      "madeAt": 1589800949523,
+      "expiresAt": 1592392936793
     }
   },
   "rules": {},
