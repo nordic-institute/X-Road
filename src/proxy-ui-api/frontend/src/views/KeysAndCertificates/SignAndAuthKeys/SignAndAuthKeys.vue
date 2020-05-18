@@ -50,7 +50,7 @@ import KeyLabelDialog from './KeyLabelDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 import { mapGetters } from 'vuex';
-import { Key, Token, TokenType, TokenCertificate } from '@/types';
+import { Key, Token, TokenType, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 
 import { cloneDeep } from 'lodash';

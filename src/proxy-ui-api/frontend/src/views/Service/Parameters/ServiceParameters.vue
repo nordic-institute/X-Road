@@ -205,7 +205,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
-import {ServiceClient} from '@/types';
+import {ServiceClient} from '@/openapi-types';
 
 type NullableServiceClient = undefined | ServiceClient;
 

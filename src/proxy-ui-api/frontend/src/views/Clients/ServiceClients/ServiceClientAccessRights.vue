@@ -76,7 +76,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import {AccessRight, ServiceClient} from '@/types';
+import {AccessRight, ServiceClient} from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 

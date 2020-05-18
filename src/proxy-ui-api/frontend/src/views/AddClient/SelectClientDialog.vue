@@ -72,7 +72,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 export default Vue.extend({
   components: {

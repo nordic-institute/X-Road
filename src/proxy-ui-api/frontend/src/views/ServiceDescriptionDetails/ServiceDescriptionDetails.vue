@@ -129,7 +129,7 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ServiceDescription } from '@/types';
+import { ServiceDescription } from '@/openapi-types';
 
 export default Vue.extend({
   components: {

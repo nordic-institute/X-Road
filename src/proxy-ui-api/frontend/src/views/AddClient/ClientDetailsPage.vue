@@ -90,7 +90,7 @@ import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from './SelectClientDialog.vue';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import { containsClient } from '@/util/helpers';
 
 import { ValidationProvider, ValidationObserver } from 'vee-validate';

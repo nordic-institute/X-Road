@@ -15,7 +15,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Generated type definitions
-src/types.ts
+src/openapi-types.ts
 
 # Editor directories and files
 .idea

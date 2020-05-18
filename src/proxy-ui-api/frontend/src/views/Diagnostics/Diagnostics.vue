@@ -112,7 +112,7 @@ import {
   TimestampingServiceDiagnostics,
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
-} from '@/types';
+} from '@/openapi-types';
 import StatusIcon from '@/components/ui/StatusIcon.vue';
 import ProgressLinear from '@/components/ui/ProgressLinear.vue';
 

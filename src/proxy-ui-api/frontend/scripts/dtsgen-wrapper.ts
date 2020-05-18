@@ -4,7 +4,7 @@ import {parseFileContent} from 'dtsgenerator/dist/utils';
 import prettier from 'prettier';
 
 const openAPIPath = '../src/main/resources/openapi-definition.yaml';
-const outputTSPath = 'src/types.ts';
+const outputTSPath = 'src/openapi-openapi-types.ts';
 
 function main() {
   console.log(`Generating typescript interfaces from ${openAPIPath}`);

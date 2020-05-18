@@ -3,7 +3,7 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Token, Client } from '@/types';
+import { Token, Client } from '@/openapi-types';
 import * as api from '@/util/api';
 
 export interface AddClientState {
