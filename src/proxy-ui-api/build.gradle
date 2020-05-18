@@ -117,8 +117,8 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
 // checkFrontAudit -> buildFront -> processResources
-buildFront.dependsOn 'checkFrontAudit'
 processResources.dependsOn 'buildFront'
+buildFront.dependsOn 'checkFrontAudit'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
