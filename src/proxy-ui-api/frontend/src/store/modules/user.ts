@@ -108,15 +108,11 @@ export const actions: ActionTree<UserState, RootState> = {
   },
 
   async fetchUserData({ commit, dispatch }) {
-
-    commit('setLoading', true);
-
     return axios.get('/user')
       .then((res) => {
         console.log(res);
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
-
       })
       .catch((error) => {
         console.log(error);
