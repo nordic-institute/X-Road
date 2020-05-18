@@ -154,7 +154,8 @@ public class InitializationService {
         if (isServerCodeInitialized && isServerOwnerInitialized && isSoftwareTokenInitialized) {
             throw new ServerAlreadyFullyInitializedException("Security server has already been fully initialized");
         }
-        verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin);
+        verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
+                isServerCodeInitialized, isServerOwnerInitialized, isSoftwareTokenInitialized);
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
         ClientId ownerClientId = null;
         if (isServerOwnerInitialized) {
@@ -181,10 +182,14 @@ public class InitializationService {
      * @param ownerMemberClass
      * @param ownerMemberCode
      * @param softwareTokenPin
+     * @param isServerCodeInitialized
+     * @param isServerOwnerInitialized
+     * @param isSoftwareTokenInitialized
      * @throws InvalidInitParamsException if null, empty or redundant init parameters provided
      */
     private void verifyInitializationPrerequisites(String securityServerCode, String ownerMemberClass,
-            String ownerMemberCode, String softwareTokenPin) throws InvalidInitParamsException {
+            String ownerMemberCode, String softwareTokenPin, boolean isServerCodeInitialized,
+            boolean isServerOwnerInitialized, boolean isSoftwareTokenInitialized) throws InvalidInitParamsException {
         List<String> errorMetadata = new ArrayList<>();
         /*
          * Example case:
@@ -193,49 +198,49 @@ public class InitializationService {
          */
 
         if (StringUtils.isEmpty(securityServerCode)) {
-            if (!serverConfService.isServerCodeInitialized()) {
+            if (!isServerCodeInitialized) {
                 errorMetadata.add(ERROR_METADATA_SERVERCODE_NOT_PROVIDED);
             }
         }
 
         if (!StringUtils.isEmpty(securityServerCode)) {
-            if (serverConfService.isServerCodeInitialized()) {
+            if (isServerCodeInitialized) {
                 errorMetadata.add(ERROR_METADATA_SERVERCODE_EXISTS);
             }
         }
 
         if (StringUtils.isEmpty(ownerMemberClass)) {
-            if (!serverConfService.isServerOwnerInitialized()) {
+            if (!isServerOwnerInitialized) {
                 errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
             }
         }
 
         if (!StringUtils.isEmpty(ownerMemberClass)) {
-            if (serverConfService.isServerOwnerInitialized()) {
+            if (isServerOwnerInitialized) {
                 errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_EXISTS);
             }
         }
 
         if (StringUtils.isEmpty(ownerMemberCode)) {
-            if (!serverConfService.isServerOwnerInitialized()) {
+            if (!isServerOwnerInitialized) {
                 errorMetadata.add(ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED);
             }
         }
 
         if (!StringUtils.isEmpty(ownerMemberCode)) {
-            if (serverConfService.isServerOwnerInitialized()) {
+            if (isServerOwnerInitialized) {
                 errorMetadata.add(ERROR_METADATA_MEMBER_CODE_EXISTS);
             }
         }
 
         if (StringUtils.isEmpty(softwareTokenPin)) {
-            if (!tokenService.isSoftwareTokenInitialized()) {
+            if (!isSoftwareTokenInitialized) {
                 errorMetadata.add(ERROR_METADATA_PIN_NOT_PROVIDED);
             }
         }
 
         if (!StringUtils.isEmpty(softwareTokenPin)) {
-            if (tokenService.isSoftwareTokenInitialized()) {
+            if (isSoftwareTokenInitialized) {
                 errorMetadata.add(ERROR_METADATA_PIN_EXISTS);
             }
         }
