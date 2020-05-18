@@ -150,6 +150,44 @@ For example:
   To install the Security Server Sidecar provider, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message loggin, both for internal or remote database (Check 1.6 step).
   To install the Security Server Sidecar provider with finish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
+### 1.10 Environmental monitoring
+
+Environmental monitoring that can be  used to obtain information about the platform it's running on, check more information in [Environmental Monitoring Architecture.](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md "Environmental Monitoring Architecture") 
+For check the metrics we can make a SOAP message to the Security Server Sidecar URL.
+We can use this example as template for the SOAP message:
+```xml
+<SOAP-ENV:Envelope
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:id="http://x-road.eu/xsd/identifiers"
+	xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+	xmlns:m="http://x-road.eu/xsd/monitoring">
+    <SOAP-ENV:Header>
+        <xrd:client id:objectType="MEMBER">
+            <id:xRoadInstance>fdev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>1710128-9</id:memberCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>fdev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>1710128-9</id:memberCode>
+            <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
+        </xrd:service>
+        <xrd:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>fdev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>1710128-9</id:memberCode>
+            <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
+        </xrd:securityServer>
+        <xrd:id>ID11234</xrd:id>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <m:getSecurityServerMetrics/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
 ## 2 Security Server Sidecar Initial Configuration
 
 ### 2.1 Reference Data
