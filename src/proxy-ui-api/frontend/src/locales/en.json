@@ -482,7 +482,8 @@
       "info1": "Specify the details of the Member you want to add.",
       "info2": "If the Member is already existing, you can select it from the Global list.",
       "select": "Select member",
-      "title": "Member details"
+      "title": "Member details",
+      "register": "Register member"
     },
     "subsystem": {
       "title": "Add a Subsystem",
