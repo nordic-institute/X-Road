@@ -5,7 +5,7 @@
 # X-Road: Message Protocol for REST
 **Technical Specification**
 
-Version: 1.0.0  
+Version: 1.0.1  
 Doc. ID: PR-REST
 
 ---
@@ -21,39 +21,50 @@ Doc. ID: PR-REST
 |22.03.2019 | 0.5.0	  | <ul><li>Clarified 1.1 overview</li><li>Clarified 3.2 objectives</li><li>Added to 4.3 chapter "X-Road specific headers returned in the response"</li><li>Clarified the use of X-Road-Id in 4.3</li><li>Removed chapter 5.2 where it was recommended to use \[REST-BEST-PRACTISES\]</li><li>Updated examples in chapters 4.6 and 6</li><li>Updated request hash description in 4.3</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
 |22.03.2019 | 0.9.0   | Initial Markdown documentation | Caro Hautamäki |
 |25.04.2019 | 1.0.0   | Update document version number | Jarkko Hyöty |
+|19.05.2020 | 1.0.1   | Added chapter [4.8 Identifier Character Restrictions](#48-identifier-character-restrictions) | Ilkka Seppälä |
 
 ## Table of Contents  
 
 <!-- toc -->
 
-- [1 Introduction](#1-introduction)
-  * [1.1 Overview](#11-overview)
-  * [1.2 REST](#12-rest)
-- [2 Definitions](#2-definitions)
-  * [2.1 Key words](#21-key-words)
-  * [2.2 X-Road Terminology](#22-x-road-terminology)
-  * [2.3 Versioning](#23-versioning)
-  * [2.4 References](#24-references)
-- [3 Scope](#3-scope)
-  * [3.1 Scope and Requirements](#31-scope-and-requirements)
-  * [3.2 Objectives](#32-objectives)
-- [4 Message Format](#4-message-format)
-  * [4.1 REST Interface](#41-rest-interface)
-  * [4.2 URI Sanitation](#42-uri-sanitation)
-  * [4.3 Use of HTTP Headers](#43-use-of-http-headers)
-  * [4.4 HTTP Redirects](#44-http-redirects)
-  * [4.5 Error handling](#45-error-handdling)
-  * [4.6 Security](#46-security)
-- [5 Services](#5-services)
-  * [5.1 Describing Services](#51-describing-services)
-- [6 Examples](#6-examples)
-  * [6.1 General](#61-general)
-  * [6.2 GET Request and Response](#62-get-request-and-response)
-  * [6.3 PUT Request and Response](#63-put-request-and-response)
-  * [6.4 POST Request and Response](#64-post-request-and-response)
-  * [6.5 DELETE Request and Response](#65-delete-request-and-response)
-  * [6.6 POST Request with Attachments and Response](#66-post-request-with-attachments-and-response)
-- [Appendix 1 Example Service Definition](#appendix-1-example-service-definition)
+- [X-Road: Message Protocol for REST](#x-road-message-protocol-for-rest)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Overview](#11-overview)
+    - [1.2 REST](#12-rest)
+  - [2 Definitions](#2-definitions)
+    - [2.1 Key Words](#21-key-words)
+    - [2.2 X-Road Terminology](#22-x-road-terminology)
+    - [2.3 Versioning](#23-versioning)
+    - [2.4 References](#24-references)
+  - [3 Scope](#3-scope)
+    - [3.1 Scope and Requirements](#31-scope-and-requirements)
+    - [3.2 Objectives](#32-objectives)
+  - [4 Message Format](#4-message-format)
+    - [4.1 REST Interface](#41-rest-interface)
+    - [4.2 URI Sanitation](#42-uri-sanitation)
+    - [4.3 Use of HTTP Headers](#43-use-of-http-headers)
+    - [4.4 HTTP Redirects](#44-http-redirects)
+    - [4.5 Use of Query Parameters](#45-use-of-query-parameters)
+    - [4.6 Error handling](#46-error-handling)
+      - [Example 1 (Category 1)](#example-1-category-1)
+      - [Example 2 (Category 2)](#example-2-category-2)
+      - [Example 3 (Category 3)](#example-3-category-3)
+      - [Example 4 (Category 4)](#example-4-category-4)
+      - [Example 5 (Tracking the source of error)](#example-5-tracking-the-source-of-error)
+    - [4.7 Security](#47-security)
+    - [4.8 Identifier Character Restrictions](#48-identifier-character-restrictions)
+  - [5 Services](#5-services)
+    - [5.1 Describing Services](#51-describing-services)
+  - [6 Examples](#6-examples)
+    - [6.1 General](#61-general)
+    - [6.2 GET Request and Response](#62-get-request-and-response)
+    - [6.3 PUT Request and Response](#63-put-request-and-response)
+    - [6.4 POST Request and Response](#64-post-request-and-response)
+    - [6.5 DELETE Request and Response](#65-delete-request-and-response)
+    - [6.6 POST Request with Attachments and Response](#66-post-request-with-attachments-and-response)
+  - [Appendix 1 Example Service Definition](#appendix-1-example-service-definition)
 
 ## 1 Introduction
 ### 1.1 Overview
@@ -522,6 +533,27 @@ HTTP 500 can come from the service provider or from the Security Servers.
 Secure REST services should only provide HTTPS endpoints. This concerns both the consumer Security Server and the provider service. HTTPS protects authentication credentials in transit, for example passwords, API keys or JSON Web Tokens. It also allows clients to authenticate the service and guarantees integrity of the transmitted data. 
 
 It is RECOMMENDED to use mutually authenticated client-side certificates in the connections between the Security Server and information systems - both service consumers and service providers, to provide additional protection for highly privileged web services. Security Server MUST support mutually authenticated client-side certificates on both consumer and provider side. Use of JWT tokens as an authentication method between the Security Server and information system is not supported. Instead, sending JWT tokens in HTTP headers from the service consumer to the service provider is supported - X-Road passes the headers unmodified.
+
+### 4.8 Identifier Character Restrictions
+
+X-Road identifiers include, but are not restricted to:
+- Instance id
+- Member class
+- Member code
+- Subsystem code
+- Service code
+- Central service code
+- Security server code
+
+X-Road Message Protocol for REST imposes some restrictions on the characters that can be used in X-Road identifiers. The following characters SHALL NOT be used in the identifier values:
+- Colon
+- Semicolon
+- Slash
+- Backslash
+- Percent
+- Path identifiers (such as /../)
+- Non-printable characters (tab, newline etc.)
+
 
 ## 5 Services
 ### 5.1 Describing Services

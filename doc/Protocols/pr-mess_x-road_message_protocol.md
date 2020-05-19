@@ -6,8 +6,8 @@
 # X-Road: Message Protocol v4.0
 **Technical Specification**
 
-Version: 4.0.21  
-06.03.2018  
+Version: 4.0.22  
+19.05.2020  
 Doc. ID: PR-MESS
 
 ---
@@ -37,38 +37,43 @@ Doc. ID: PR-MESS
  20.06.2017 | 4.0.19  | SOAPAction HTTP header is preserved                                                             | Jarkko Hyöty
  26.10.2017 | 4.0.20  | Added [Annex H](#annex-h-known-x-road-message-protocol-extensions) on known protocol extensions | Olli Lindgren
  06.03.2018 | 4.0.21  | Moved terms to term doc, added terms reference and doc link                                     | Tatu Repo
+ 19.05.2020 | 4.0.22  | Added chapter [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)    | Ilkka Seppälä
  
 ## Table of Contents
 
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-  * [1.3 Identifying Entities](#13-identifying-entities)
-- [2 Format of Messages](#2-format-of-messages)
-  * [2.1 Identifiers](#21-identifiers)
-  * [2.2 Message Headers](#22-message-headers)
-  * [2.3 Message Body](#23-message-body)
-  * [2.4 Attachments](#24-attachments)
-  * [2.5 Fault Messages](#25-fault-messages)
-  * [2.6 Character Encoding](#26-character-encoding)
-- [3 Describing Services](#3-describing-services)
-  * [3.1 General](#31-general)
-  * [3.2 Describing Services with WSDL](#32-describing-services-with-wsdl)
-- [Annex A XML Schema for Identifiers](#annex-a-xml-schema-for-identifiers)
-- [Annex B XML Schema for Messages](#annex-b-xml-schema-for-messages)
-- [Annex C Example WSDL](#annex-c-example-wsdl)
-- [Annex D Example Fault Messages](#annex-d-example-fault-messages)
-  * [D.1 Technical](#d1-technical)
-  * [D.2 Non-technical](#d2-non-technical)
-- [Annex E Example Messages](#annex-e-example-messages)
-  * [E.1 Request](#e1-request)
-  * [E.2 Response](#e2-response)
-- [Annex F Example Request with Attachment](#annex-f-example-request-with-attachment)
-- [Annex G Example Request with MTOM Attachment](#annex-g-example-request-with-mtom-attachment)
-- [Annex H Known X-Road Message Protocol Extensions](#annex-h-known-x-road-message-protocol-extensions)
+- [X-Road: Message Protocol v4.0](#x-road-message-protocol-v40)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
+    - [1.2 References](#12-references)
+    - [1.3 Identifying Entities](#13-identifying-entities)
+  - [2 Format of Messages](#2-format-of-messages)
+    - [2.1 Identifiers](#21-identifiers)
+    - [2.2 Message Headers](#22-message-headers)
+    - [2.3 Message Body](#23-message-body)
+    - [2.4 Attachments](#24-attachments)
+    - [2.5 Fault Messages](#25-fault-messages)
+    - [2.6 Character Encoding](#26-character-encoding)
+    - [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)
+  - [3 Describing Services](#3-describing-services)
+    - [3.1 General](#31-general)
+    - [3.2 Describing Services with WSDL](#32-describing-services-with-wsdl)
+  - [Annex A XML Schema for Identifiers](#annex-a-xml-schema-for-identifiers)
+  - [Annex B XML Schema for Messages](#annex-b-xml-schema-for-messages)
+  - [Annex C Example WSDL](#annex-c-example-wsdl)
+  - [Annex D Example Fault Messages](#annex-d-example-fault-messages)
+    - [D.1 Technical](#d1-technical)
+    - [D.2 Non-technical](#d2-non-technical)
+  - [Annex E Example Messages](#annex-e-example-messages)
+    - [E.1 Request](#e1-request)
+    - [E.2 Response](#e2-response)
+  - [Annex F Example Request with Attachment](#annex-f-example-request-with-attachment)
+  - [Annex G Example Request with MTOM Attachment](#annex-g-example-request-with-mtom-attachment)
+  - [Annex H Known X-Road Message Protocol Extensions](#annex-h-known-x-road-message-protocol-extensions)
 
 <!-- tocstop -->
 
@@ -331,6 +336,27 @@ In case the *charset* parameter is not determined in the HTTP *Content-Type* hea
 
 With UTF-8 encoding BOM (Byte Order Mark) bytes MAY be used in the beginning of XML message. Security servers MAY remove the BOM bytes when processing the message.
 
+### 2.7 Identifier Character Restrictions
+
+X-Road identifiers include, but are not restricted to:
+- Instance id
+- Member class
+- Member code
+- Subsystem code
+- Service code
+- Service version
+- Central service code
+- Security server code
+
+X-Road Message Protocol imposes some restrictions on the characters that can be used in X-Road identifiers. The following characters SHALL NOT be used in the identifier values:
+- Colon
+- Semicolon
+- Slash
+- Backslash
+- Percent
+- Path identifiers (such as /../)
+- Non-printable characters (tab, newline etc.)
+  
 
 ## 3 Describing Services
 
