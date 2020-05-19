@@ -149,7 +149,12 @@ public class BackupRepository {
         return new File(path.toString());
     }
 
-    private Path getFilePath(String filename) {
+    /**
+     * Return absolute path to (possible) backup file with given filename
+     * @param filename
+     * @return
+     */
+    public Path getFilePath(String filename) {
         return Paths.get(getConfigurationBackupPath(), filename);
     }
 

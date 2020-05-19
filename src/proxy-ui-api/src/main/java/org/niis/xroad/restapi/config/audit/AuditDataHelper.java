@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +47,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.BACKUP_FILE_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH_ALGORITHM;
@@ -262,6 +264,14 @@ public class AuditDataHelper {
         put(KEY_ID, keyInfo.getId());
         put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         put(KEY_USAGE, keyInfo.getUsage());
+    }
+
+    public void putBackupFilename(Path filePath) {
+        String filename = null;
+        if (filePath != null) {
+            filename = filePath.toString();
+        }
+        put(BACKUP_FILE_NAME, filename);
     }
 
 }

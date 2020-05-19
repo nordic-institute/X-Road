@@ -30,6 +30,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -66,6 +67,7 @@ public class BackupService {
     private final BackupRepository backupRepository;
     private final ServerConfService serverConfService;
     private final ExternalProcessRunner externalProcessRunner;
+    private final AuditDataHelper auditDataHelper;
 
     @Setter
     private String generateBackupScriptPath;
@@ -78,11 +80,13 @@ public class BackupService {
     @Autowired
     public BackupService(BackupRepository backupRepository, ServerConfService serverConfService,
             ExternalProcessRunner externalProcessRunner,
-            @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
+            @Value("${script.generate-backup.path}") String generateBackupScriptPath,
+            AuditDataHelper auditDataHelper) {
         this.backupRepository = backupRepository;
         this.serverConfService = serverConfService;
         this.externalProcessRunner = externalProcessRunner;
         this.generateBackupScriptPath = generateBackupScriptPath;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -103,6 +107,7 @@ public class BackupService {
      * @throws BackupFileNotFoundException if backup file is not found
      */
     public void deleteBackup(String filename) throws BackupFileNotFoundException {
+        auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
         if (!getBackup(filename).isPresent()) {
             throw new BackupFileNotFoundException(getFileNotFoundExceptionMessage(filename));
         }
@@ -132,6 +137,7 @@ public class BackupService {
     public BackupFile generateBackup() throws InterruptedException {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         String filename = generateBackupFileName();
+        auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
         String fullPath = backupRepository.getConfigurationBackupPath() + filename;
         String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
 
@@ -172,6 +178,7 @@ public class BackupService {
      */
     public BackupFile uploadBackup(Boolean ignoreWarnings, String filename, byte[] fileBytes)
             throws InvalidFilenameException, UnhandledWarningsException, InvalidBackupFileException {
+        auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
         if (!FormatUtils.isValidBackupFilename(filename)) {
             throw new InvalidFilenameException("uploading backup file failed because of invalid filename ("
                     + filename + ")");

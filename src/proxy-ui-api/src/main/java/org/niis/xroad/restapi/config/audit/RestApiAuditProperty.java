@@ -96,6 +96,8 @@ public enum RestApiAuditProperty {
     ADDRESS,
     CERT_STATUS,
 
+    BACKUP_FILE_NAME,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**
