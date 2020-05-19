@@ -45,6 +45,7 @@ import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -54,6 +55,7 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
@@ -69,6 +71,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URI;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -178,6 +181,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             // If the handler thread excepted, do not continue.
             checkError();
 
+            // Check that incoming identifiers do not contain illegal characters
+            checkRequestIdentifiers();
+
             // Verify that the client is registered.
             ClientId client = requestSoap.getClient();
             verifyClientStatus(client);
@@ -202,6 +208,45 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         } finally {
             if (response != null) {
                 response.consume();
+            }
+        }
+    }
+
+    private void checkRequestIdentifiers() {
+        ClientId client = requestSoap.getClient();
+        if (client != null) {
+            checkIdentifier(client.getXRoadInstance(), "client.xRoadInstance");
+            checkIdentifier(client.getMemberClass(), "client.memberClass");
+            checkIdentifier(client.getMemberCode(), "client.memberCode");
+            checkIdentifier(client.getSubsystemCode(), "client.subsystemCode");
+        }
+        ServiceId service = requestSoap.getService();
+        if (service != null) {
+            checkIdentifier(service.getXRoadInstance(), "service.xRoadInstance");
+            checkIdentifier(service.getMemberClass(), "service.memberClass");
+            checkIdentifier(service.getMemberCode(), "service.memberCode");
+            checkIdentifier(service.getSubsystemCode(), "service.subsystemCode");
+        }
+        CentralServiceId centralService = requestSoap.getCentralService();
+        if (centralService != null) {
+            checkIdentifier(centralService.getXRoadInstance(), "centralService.xRoadInstance");
+            checkIdentifier(centralService.getMemberClass(), "centralService.memberClass");
+            checkIdentifier(centralService.getMemberCode(), "centralService.memberCode");
+            checkIdentifier(centralService.getSubsystemCode(), "centralService.subsystemCode");
+        }
+        checkIdentifier(requestSoap.getQueryId(), "id");
+        checkIdentifier(requestSoap.getUserId(), "userId");
+        checkIdentifier(requestSoap.getIssue(), "issue");
+        checkIdentifier(requestSoap.getProtocolVersion(), "protocolVersion");
+    }
+
+    private void checkIdentifier(String id, String field) {
+        if (StringUtils.isNotEmpty(id)) {
+            EncodedIdentifierValidator encodedIdentifierValidator = new EncodedIdentifierValidator();
+            EnumSet<EncodedIdentifierValidator.ValidationError> validationErrors =
+                    encodedIdentifierValidator.getValidationErrors(id);
+            if (!validationErrors.isEmpty()) {
+                log.warn("Invalid identifier in {}: {}", field, id);
             }
         }
     }

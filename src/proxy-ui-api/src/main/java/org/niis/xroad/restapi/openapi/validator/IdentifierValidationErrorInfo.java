@@ -42,7 +42,8 @@ public enum IdentifierValidationErrorInfo {
     SEMICOLON("NoSemicolons", "must not contain semicolons"),
     FORWARDSLASH("NoForwardslashes", "must not contain slashes"),
     BACKSLASH("NoBackslashes", "must not contain backslashes"),
-    PERCENT("NoPercents", "must not contain percents");
+    PERCENT("NoPercents", "must not contain percents"),
+    NON_PRINTABLE("NoNonPrintables", "must not contain non-printables");
 
     @Getter
     private String errorCode;
