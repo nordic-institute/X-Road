@@ -187,6 +187,7 @@ public class InitializationService {
      * @param isSoftwareTokenInitialized
      * @throws InvalidInitParamsException if null, empty or redundant init parameters provided
      */
+    @SuppressWarnings("squid:S3776")
     private void verifyInitializationPrerequisites(String securityServerCode, String ownerMemberClass,
             String ownerMemberCode, String softwareTokenPin, boolean isServerCodeInitialized,
             boolean isServerOwnerInitialized, boolean isSoftwareTokenInitialized) throws InvalidInitParamsException {
