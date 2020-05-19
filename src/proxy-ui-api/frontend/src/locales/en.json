@@ -251,7 +251,7 @@
     "adding_services": "Adding services:",
     "wsdl_validation_warnings": "Validation warnings:",
     "memberNameGroupDesc": "Member name / Group description",
-    "idGroupCode": "ID / Group code",
+    "idGroupCode": "ID / Group code"
   },
   "endpoints": {
     "addEndpoint": "Add Endpoint",
