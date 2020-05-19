@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.niis.xroad.restapi.config.audit.DoNothingAuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -89,7 +90,7 @@ public class InternalTlsCertificateServiceTest {
                     }
                     throw new RuntimeException("TEST command not supported");
                 }
-            }, null, SCRIPT_ARGS);
+            }, null, SCRIPT_ARGS, new DoNothingAuditDataHelper());
 
     @Before
     public void setup() throws Exception {

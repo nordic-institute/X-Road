@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
@@ -66,6 +67,7 @@ public class InternalTlsCertificateService {
 
     private final ExternalProcessRunner externalProcessRunner;
     private final String generateCertScriptArgs;
+    private final AuditDataHelper auditDataHelper;
 
     @Setter
     private String generateCertScriptPath;
@@ -82,11 +84,13 @@ public class InternalTlsCertificateService {
     public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
             ExternalProcessRunner externalProcessRunner,
             @Value("${script.generate-certificate.path}") String generateCertScriptPath,
-            @Value("${script.generate-certificate.args}") String generateCertScriptArgs) {
+            @Value("${script.generate-certificate.args}") String generateCertScriptArgs,
+            AuditDataHelper auditDataHelper) {
         this.internalTlsCertificateRepository = internalTlsCertificateRepository;
         this.externalProcessRunner = externalProcessRunner;
         this.generateCertScriptPath = generateCertScriptPath;
         this.generateCertScriptArgs = generateCertScriptArgs;
+        this.auditDataHelper = auditDataHelper;
     }
 
     public X509Certificate getInternalTlsCertificate() {
@@ -150,6 +154,13 @@ public class InternalTlsCertificateService {
             log.error("Failed to generate internal TLS key and cert", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));
         }
+        // audit log hash of generated cert
+        X509Certificate generatedCert = internalTlsCertificateRepository.getInternalTlsCertificate();
+        try {
+            auditDataHelper.putCertificateHash(generatedCert.getEncoded());
+        } catch (CertificateEncodingException e) {
+            log.error("Unable to audit log generated certificate hash", e);
+        }
     }
 
     /**
@@ -159,6 +170,7 @@ public class InternalTlsCertificateService {
      * @throws InvalidCertificateException
      */
     public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException {
+        auditDataHelper.putCertificateHash(certificateBytes);
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = CryptoUtils.readCertificate(certificateBytes);

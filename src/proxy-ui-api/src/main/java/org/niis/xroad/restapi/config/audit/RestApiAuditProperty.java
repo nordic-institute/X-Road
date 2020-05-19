@@ -98,6 +98,12 @@ public enum RestApiAuditProperty {
 
     BACKUP_FILE_NAME,
 
+    ANCHOR_FILE_HASH,
+    ANCHOR_FILE_HASH_ALGORITHM,
+    GENERATED_AT,
+    TSP_NAME,
+    TSP_URL,
+
     TO_DO_REMOVE_THIS; // TO DO: remove last one
 
     /**

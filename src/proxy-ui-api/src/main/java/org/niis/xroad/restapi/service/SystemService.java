@@ -37,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -59,6 +61,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_URL;
 
 /**
  * Service that handles system services
@@ -74,6 +82,7 @@ public class SystemService {
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final AuditDataHelper auditDataHelper;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -91,12 +100,14 @@ public class SystemService {
     @Autowired
     public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
             AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier,
-            CurrentSecurityServerId currentSecurityServerId) {
+            CurrentSecurityServerId currentSecurityServerId,
+            AuditDataHelper auditDataHelper) {
         this.globalConfService = globalConfService;
         this.serverConfService = serverConfService;
         this.anchorRepository = anchorRepository;
         this.configurationVerifier = configurationVerifier;
         this.currentSecurityServerId = currentSecurityServerId;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -107,8 +118,19 @@ public class SystemService {
         return serverConfService.getConfiguredTimestampingServices();
     }
 
+    /**
+     * Audit log tsp name and url
+     * @param tspType
+     */
+    private void auditLog(TspType tspType) {
+        auditDataHelper.put(TSP_NAME, tspType.getName());
+        auditDataHelper.put(TSP_URL, tspType.getUrl());
+    }
+
     public void addConfiguredTimestampingService(TspType tspTypeToAdd)
             throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
+        auditLog(tspTypeToAdd);
+
         // Check that the timestamping service is an approved timestamping service
         Optional<TspType> match = globalConfService.getApprovedTspsForThisInstance().stream()
                 .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
@@ -142,6 +164,8 @@ public class SystemService {
      */
     public void deleteConfiguredTimestampingService(TspType tspTypeToDelete)
             throws TimestampingServiceNotFoundException {
+        auditLog(tspTypeToDelete);
+
         List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
 
         Optional<TspType> delete = configuredTimestampingServices.stream()
@@ -174,6 +198,7 @@ public class SystemService {
      * <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
      */
     public byte[] generateInternalCsr(String distinguishedName) throws InvalidDistinguishedNameException {
+        auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
         byte[] csrBytes = null;
         try {
             KeyPair keyPair = CertUtils.readKeyPairFromPemFile(internalKeyPath);
@@ -237,6 +262,8 @@ public class SystemService {
     public void uploadAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
             MalformedAnchorException, ConfigurationDownloadException,
             ConfigurationVerifier.ConfigurationVerificationException {
+        auditDataHelper.put(ANCHOR_FILE_HASH, auditDataHelper.createFormattedHash(anchorBytes));
+        auditDataHelper.put(ANCHOR_FILE_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
         ConfigurationAnchorV2 anchor = null;
         try {
             anchor = new ConfigurationAnchorV2(anchorBytes);
@@ -247,6 +274,8 @@ public class SystemService {
                 throw ce;
             }
         }
+        auditDataHelper.putDate(GENERATED_AT, anchor.getGeneratedAt());
+
         verifyAnchorInstance(anchor);
         File tempAnchor = null;
         try {

@@ -35,6 +35,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -43,6 +44,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -155,18 +157,26 @@ public class AuditDataHelper {
     }
 
     /**
+     * calculates hash, formats it according to audit log format, and puts hash and default hash algorithm
+     * @param certBytes certificate bytes
+     */
+    public void putCertificateHash(byte[] certBytes) {
+        putAlreadyFormattedCertificateHash(createFormattedHash(certBytes));
+    }
+
+    /**
      * formats hash according to audit log format, and puts hash and default hash algorithm
      * @param unformattedHash unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
      */
     public void putCertificateHash(String unformattedHash) {
-        putFormattedCertificateHash(formatHash(unformattedHash));
+        putAlreadyFormattedCertificateHash(formatHash(unformattedHash));
     }
 
     /**
      * Puts hash and default hash algorithm
      * @param formattedHash formatted "63:0B:9F:83" hash
      */
-    public void putFormattedCertificateHash(String formattedHash) {
+    public void putAlreadyFormattedCertificateHash(String formattedHash) {
         put(CERT_HASH, formattedHash);
         putDefaultHashAlgorithm();
     }
@@ -214,8 +224,12 @@ public class AuditDataHelper {
         return String.join(":", Splitter.fixedLength(2).split(hash));
     }
 
-    private String createFormattedHash(byte[] certBytes) {
-        return formatHash(createUnformattedHash(certBytes));
+    /**
+     * Create audit log -formatted hash 63:0B:9F:83 of a byte array, using default cert hash algorithm
+     * @return
+     */
+    public String createFormattedHash(byte[] bytes) {
+        return formatHash(createUnformattedHash(bytes));
     }
 
     private String createUnformattedHash(byte[] certBytes) {
@@ -244,6 +258,13 @@ public class AuditDataHelper {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Converts Date to correct audit log dateTime format, in system default time-zone
+     */
+    public void putDate(RestApiAuditProperty property, Date date) {
+        putDateTime(property, FormatUtils.fromDateToOffsetDateTime(date));
     }
 
     /**

@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AnchorConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
@@ -60,11 +61,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_CERT_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_SSL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.IMPORT_PROXY_INTERNAL_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_ANCHOR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
 
 /**
  * system api controller
@@ -85,6 +88,7 @@ public class SystemApiController implements SystemApi {
     private final VersionService versionService;
     private final VersionConverter versionConverter;
     private final CsrFilenameCreator csrFilenameCreator;
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * Constructor
@@ -93,7 +97,8 @@ public class SystemApiController implements SystemApi {
     public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
             CertificateDetailsConverter certificateDetailsConverter, SystemService systemService,
             TimestampingServiceConverter timestampingServiceConverter, AnchorConverter anchorConverter,
-            VersionService versionService, VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator) {
+            VersionService versionService, VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator,
+            AuditDataHelper auditDataHelper) {
         this.internalTlsCertificateService = internalTlsCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.systemService = systemService;
@@ -102,6 +107,7 @@ public class SystemApiController implements SystemApi {
         this.versionService = versionService;
         this.versionConverter = versionConverter;
         this.csrFilenameCreator = csrFilenameCreator;
+        this.auditDataHelper = auditDataHelper;
     }
 
     @Override
@@ -152,7 +158,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_TSP')")
-    @AuditEventMethod(event = DELETE_TSP)
+    @AuditEventMethod(event = ADD_TSP)
     public ResponseEntity<TimestampingService> addConfiguredTimestampingService(
             TimestampingService timestampingServiceToAdd) {
         try {
@@ -197,6 +203,11 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('IMPORT_PROXY_INTERNAL_CERT')")
     @AuditEventMethod(event = IMPORT_PROXY_INTERNAL_CERT)
     public ResponseEntity<CertificateDetails> importSystemCertificate(Resource certificateResource) {
+        // there's no filename since we only get a binary application/octet-stream.
+        // Have audit log anyway (null behaves as no-op) in case different content type is added later
+        String filename = certificateResource.getFilename();
+        auditDataHelper.put(CERT_FILE_NAME, filename);
+
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
         X509Certificate x509Certificate = null;
         try {
