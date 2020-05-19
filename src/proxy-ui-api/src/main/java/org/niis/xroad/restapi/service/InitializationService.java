@@ -202,35 +202,43 @@ public class InitializationService {
         boolean isEmptyOwnerMemberCode = StringUtils.isEmpty(ownerMemberCode);
         boolean isEmptySoftwareTokenPin = StringUtils.isEmpty(softwareTokenPin);
 
-        if (isEmptySecurityServerCode && !isServerCodeInitialized) {
+        boolean shouldProvideServerCode = isEmptySecurityServerCode && !isServerCodeInitialized;
+        if (shouldProvideServerCode) {
             errorMetadata.add(ERROR_METADATA_SERVERCODE_NOT_PROVIDED);
         }
 
-        if (!isEmptySecurityServerCode && isServerCodeInitialized) {
+        boolean shouldNotProvideServerCode = !isEmptySecurityServerCode && isServerCodeInitialized;
+        if (shouldNotProvideServerCode) {
             errorMetadata.add(ERROR_METADATA_SERVERCODE_EXISTS);
         }
 
-        if (isEmptyOwnerMemberClass && !isServerOwnerInitialized) {
+        boolean shouldProvideOwnerMemberClass = isEmptyOwnerMemberClass && !isServerOwnerInitialized;
+        if (shouldProvideOwnerMemberClass) {
             errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
         }
 
-        if (!isEmptyOwnerMemberClass && isServerOwnerInitialized) {
+        boolean shouldNotProvideOwnerMemberClass = !isEmptyOwnerMemberClass && isServerOwnerInitialized;
+        if (shouldNotProvideOwnerMemberClass) {
             errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_EXISTS);
         }
 
-        if (isEmptyOwnerMemberCode && !isServerOwnerInitialized) {
+        boolean shouldProvideOwnerMemberCode = isEmptyOwnerMemberCode && !isServerOwnerInitialized;
+        if (shouldProvideOwnerMemberCode) {
             errorMetadata.add(ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED);
         }
 
-        if (!isEmptyOwnerMemberCode && isServerOwnerInitialized) {
+        boolean shouldNotProvideOwnerMemberCode = !isEmptyOwnerMemberCode && isServerOwnerInitialized;
+        if (shouldNotProvideOwnerMemberCode) {
             errorMetadata.add(ERROR_METADATA_MEMBER_CODE_EXISTS);
         }
 
-        if (isEmptySoftwareTokenPin && !isSoftwareTokenInitialized) {
+        boolean shouldProvideSoftwareTokenPin = isEmptySoftwareTokenPin && !isSoftwareTokenInitialized;
+        if (shouldProvideSoftwareTokenPin) {
             errorMetadata.add(ERROR_METADATA_PIN_NOT_PROVIDED);
         }
 
-        if (!isEmptySoftwareTokenPin && isSoftwareTokenInitialized) {
+        boolean shouldNotProvideSoftwareTokenPin = !isEmptySoftwareTokenPin && isSoftwareTokenInitialized;
+        if (shouldNotProvideSoftwareTokenPin) {
             errorMetadata.add(ERROR_METADATA_PIN_EXISTS);
         }
 
