@@ -77,16 +77,12 @@ class InitController < ApplicationController
       raise t('init.already_initialized')
     end
 
-    logger.info "running validators"
-
     validate_params({
       :instance_identifier => init_instance_identifier || [],
       :central_server_address => init_central_server_address || [],
       :pin => init_software_token || [],
       :pin_repeat => init_software_token || []
     })
-
-    logger.info "running validators completed"
 
     if init_instance_identifier
       SystemParameter.create!(
