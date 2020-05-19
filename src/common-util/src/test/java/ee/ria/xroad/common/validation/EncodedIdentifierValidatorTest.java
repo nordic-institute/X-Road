@@ -79,6 +79,8 @@ public class EncodedIdentifierValidatorTest {
     char tab = '\t';
     char newline = '\n';
     char cr = '\r';
+    char esc = '\u001b';
+    char sos = '\u0098';
     char space = ' ';
 
     @Test
@@ -112,6 +114,10 @@ public class EncodedIdentifierValidatorTest {
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(newline)));
         assertEquals(EnumSet.of(NON_PRINTABLE),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(cr)));
+        assertEquals(EnumSet.of(NON_PRINTABLE),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(esc)));
+        assertEquals(EnumSet.of(NON_PRINTABLE),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(sos)));
         assertEquals(EnumSet.noneOf(EncodedIdentifierValidator.ValidationError.class),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(space)));
     }
