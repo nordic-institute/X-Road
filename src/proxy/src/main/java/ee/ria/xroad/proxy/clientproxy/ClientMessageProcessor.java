@@ -234,10 +234,6 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             checkIdentifier(centralService.getMemberCode(), "centralService.memberCode");
             checkIdentifier(centralService.getSubsystemCode(), "centralService.subsystemCode");
         }
-        checkIdentifier(requestSoap.getQueryId(), "id");
-        checkIdentifier(requestSoap.getUserId(), "userId");
-        checkIdentifier(requestSoap.getIssue(), "issue");
-        checkIdentifier(requestSoap.getProtocolVersion(), "protocolVersion");
     }
 
     private void checkIdentifier(String id, String field) {
@@ -246,7 +242,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             EnumSet<EncodedIdentifierValidator.ValidationError> validationErrors =
                     encodedIdentifierValidator.getValidationErrors(id);
             if (!validationErrors.isEmpty()) {
-                log.warn("Invalid identifier in {}: {}", field, id);
+                log.warn("Invalid identifier in '{}' field: {}", field, id);
             }
         }
     }
