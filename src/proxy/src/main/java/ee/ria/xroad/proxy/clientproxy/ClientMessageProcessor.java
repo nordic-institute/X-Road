@@ -224,6 +224,8 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             checkIdentifier(service.getMemberClass(), "service.memberClass");
             checkIdentifier(service.getMemberCode(), "service.memberCode");
             checkIdentifier(service.getSubsystemCode(), "service.subsystemCode");
+            checkIdentifier(service.getServiceCode(), "service.serviceCode");
+            checkIdentifier(service.getServiceVersion(), "service.serviceVersion");
         }
         CentralServiceId centralService = requestSoap.getCentralService();
         if (centralService != null) {

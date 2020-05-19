@@ -156,6 +156,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             checkIdentifier(service.getMemberClass(), "service.memberClass");
             checkIdentifier(service.getMemberCode(), "service.memberCode");
             checkIdentifier(service.getSubsystemCode(), "service.subsystemCode");
+            checkIdentifier(service.getServiceCode(), "service.serviceCode");
         }
         SecurityServerId securityServer = restRequest.getTargetSecurityServer();
         if (securityServer != null) {
