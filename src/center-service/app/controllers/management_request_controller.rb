@@ -125,22 +125,14 @@ class ManagementRequestController < ApplicationController
       unless id.blank?
         if SpringFirewallValidationRules::containsPercent(id) ||
           SpringFirewallValidationRules::containsSemicolon(id) ||
+          SpringFirewallValidationRules::containsColon(id) ||
           SpringFirewallValidationRules::containsForwardslash(id) ||
           SpringFirewallValidationRules::containsBackslash(id) ||
           !SpringFirewallValidationRules::isNormalized(id) ||
-          containsColon(val) ||
-          containsUnprintable(val)
-          raise I18n.t("request.invalid_identifier", :id => id)
+          SpringFirewallValidationRules::containsNonPrintable(id)
+            raise I18n.t("request.invalid_identifier", :id => id)
         end
       end
-    end
-
-    def containsColon(val)
-      return val.include?(":")
-    end
-
-    def containsUnprintable(val)
-      return val.match(/[^ -~]+/)
     end
 
     # xroad_id may be either ClientId or ServerId.

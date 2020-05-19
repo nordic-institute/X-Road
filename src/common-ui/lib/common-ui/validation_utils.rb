@@ -228,23 +228,15 @@ module CommonUi
     class IdentifierValidator < Validator
       def validate(val, param)
         if SpringFirewallValidationRules::containsPercent(val) ||
-            SpringFirewallValidationRules::containsSemicolon(val) ||
-            SpringFirewallValidationRules::containsForwardslash(val) ||
-            SpringFirewallValidationRules::containsBackslash(val) ||
-            !SpringFirewallValidationRules::isNormalized(val) ||
-            containsColon(val) ||
-            containsUnprintable(val)
-          raise ValidationError.new(param, :identifier),
-                I18n.t('validation.invalid_identifier', :param => param, :val => val)
+          SpringFirewallValidationRules::containsSemicolon(val) ||
+          SpringFirewallValidationRules::containsColon(val) ||
+          SpringFirewallValidationRules::containsForwardslash(val) ||
+          SpringFirewallValidationRules::containsBackslash(val) ||
+          !SpringFirewallValidationRules::isNormalized(val) ||
+          SpringFirewallValidationRules::containsNonPrintable(val)
+            raise ValidationError.new(param, :identifier),
+                  I18n.t('validation.invalid_identifier', :param => param, :val => val)
         end
-      end
-
-      def containsColon(val)
-        return val.include?(":")
-      end
-
-      def containsUnprintable(val)
-        return val.match(/[^ -~]+/)
       end
     end
 
