@@ -99,7 +99,7 @@ import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
-import { containsClient } from '@/util/helpers';
+import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import * as api from '@/util/api';
@@ -181,14 +181,7 @@ export default Vue.extend({
     },
 
     registerSubsystem(): void {
-      const clientId =
-        this.instanceId +
-        ':' +
-        this.memberClass +
-        ':' +
-        this.memberCode +
-        ':' +
-        this.subsystemCode;
+      const clientId = createClientId(this.instanceId, this.memberClass, this.memberCode, this.subsystemCode);
 
       this.$store
         .dispatch('registerClient', clientId)

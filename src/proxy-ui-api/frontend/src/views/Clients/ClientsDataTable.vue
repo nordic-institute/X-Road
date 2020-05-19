@@ -34,7 +34,7 @@
     </div>
 
     <v-data-table
-      :loading="loading"
+      :loading="clientsLoading"
       :headers="headers"
       :items="clients"
       :search="search"
@@ -139,6 +139,7 @@ import ClientStatus from './ClientStatus.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
+import { createClientId } from '@/util/helpers';
 import { Client } from '@/types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -163,7 +164,7 @@ export default Vue.extend({
   }),
 
   computed: {
-    ...mapGetters(['clients', 'loading', 'ownerMember']),
+    ...mapGetters(['clients', 'clientsLoading', 'ownerMember']),
     treeMode(): boolean {
       // Switch between the "tree" view and the "flat" view
       if (this.search) {
@@ -272,13 +273,17 @@ export default Vue.extend({
     registerAccepted(item: Client) {
       this.registerClientLoading = true;
 
-      let clientId =
-        item.instance_id + ':' + item.member_class + ':' + item.member_code;
-
-      // In case of subsystem add also subsystem code
-      if (item.subsystem_code) {
-        clientId = clientId + ':' + item.subsystem_code;
+      // This should not happen, but better to throw error than create an invalid client id
+      if (!item.instance_id) {
+        throw new Error('Missing instance id');
       }
+
+      const clientId = createClientId(
+        item.instance_id,
+        item.member_class,
+        item.member_code,
+        item.subsystem_code,
+      );
 
       this.$store
         .dispatch('registerClient', clientId)

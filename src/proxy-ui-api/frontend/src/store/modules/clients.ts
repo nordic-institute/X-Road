@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Client } from '@/types';
+import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
 import i18n from './../../i18n';
@@ -10,19 +11,25 @@ import i18n from './../../i18n';
 export interface ClientsState {
   clients: Client[];
   formattedClients: ExtendedClient[];
-  loading: boolean;
+  clientsLoading: boolean;
   localMembers: Client[];
-  members: ExtendedClient[];
+  ownerMember: Client | undefined;
+  members: ExtendedClient[]; // all local members, virtual and real
+  realMembers: ExtendedClient[]; // local actual real members, owner +1
+  virtualMembers: ExtendedClient[]; // local "virtual" members, generated from subsystem data
   subsystems: ExtendedClient[];
 }
 
 export const clientsState: ClientsState = {
   clients: [],
   formattedClients: [],
-  loading: false,
+  clientsLoading: false,
   localMembers: [],
+  ownerMember: undefined,
   members: [],
   subsystems: [],
+  realMembers: [],
+  virtualMembers: [],
 };
 
 function createSortName(client: Client, sortName: string): any {
@@ -45,6 +52,10 @@ export const getters: GetterTree<ClientsState, RootState> = {
     return state.formattedClients;
   },
 
+  realMembers(state): ExtendedClient[] {
+    return state.realMembers;
+  },
+
   localMembers(state): Client[] {
     return state.localMembers;
   },
@@ -53,9 +64,14 @@ export const getters: GetterTree<ClientsState, RootState> = {
     return state.localMembers;
   },
 
-  loading(state): boolean {
-    return state.loading;
+  clientsLoading(state): boolean {
+    return state.clientsLoading;
   },
+
+  ownerMember(state): Client | undefined {
+    return state.ownerMember;
+  },
+
 };
 
 export const mutations: MutationTree<ClientsState> = {
@@ -63,7 +79,9 @@ export const mutations: MutationTree<ClientsState> = {
     state.clients = clients;
 
     // New arrays to separate members and subsystems
+    const realMembers: ExtendedClient[] = [];
     const members: ExtendedClient[] = [];
+    const virtualMembers: ExtendedClient[] = [];
     const subsystems: ExtendedClient[] = [];
     const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
@@ -80,10 +98,12 @@ export const mutations: MutationTree<ClientsState> = {
 
         if (element.owner) {
           clone.type = ClientTypes.OWNER_MEMBER;
+          state.ownerMember = element;
         } else {
           clone.type = ClientTypes.MEMBER;
         }
 
+        realMembers.push(clone);
         members.push(clone);
       }
     });
@@ -106,8 +126,18 @@ export const mutations: MutationTree<ClientsState> = {
         const clone = cloneDeep(element) as any;
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
-        // Create "virtual member" id by removing the last part of subsystem's id
-        clone.id = element.instance_id + ':' + element.member_class + ':' + element.member_code;
+        // This should not happen, but better to throw error than create an invalid client id
+        if (!element.instance_id) {
+          throw new Error('Missing instance id');
+        }
+
+        // Create "virtual member" id
+        clone.id = createClientId(
+          element.instance_id,
+          element.member_class,
+          element.member_code,
+        );
+
         clone.subsystem_code = undefined;
 
         // Create a name from member_name
@@ -143,16 +173,18 @@ export const mutations: MutationTree<ClientsState> = {
       }
     });
 
+    state.realMembers = realMembers;
     state.subsystems = subsystems;
-
+    state.members = members;
     // Combine the arrays
     state.formattedClients = [...new Set([...subsystems, ...members])];
   },
+
   storeLocalMembers(state, clients: []) {
     state.localMembers = clients;
   },
   setLoading(state, loading: boolean) {
-    state.loading = loading;
+    state.clientsLoading = loading;
   },
 };
 
@@ -163,11 +195,9 @@ export const actions: ActionTree<ClientsState, RootState> = {
 
     return axios.get('/clients')
       .then((res) => {
-        console.log(res);
         commit('storeClients', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -188,6 +218,7 @@ export const actions: ActionTree<ClientsState, RootState> = {
         throw error;
       });
   },
+
 };
 
 export const clientsModule: Module<ClientsState, RootState> = {

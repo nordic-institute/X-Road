@@ -19,20 +19,19 @@
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="selectedMember" data-test="selected-member-name">{{selectedMember.member_name}}</div>
+        <div data-test="selected-member-name">{{selectedMemberName}}</div>
       </div>
 
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
 
         <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
-          <v-text-field
+          <v-select
+            :items="memberClasses"
             class="form-input"
-            type="text"
-            :error-messages="errors"
             v-model="memberClass"
             data-test="member-class-input"
-          ></v-text-field>
+          ></v-select>
         </ValidationProvider>
       </div>
       <div class="row-wrap">
@@ -56,17 +55,15 @@
         </div>
         <large-button
           @click="done"
-          :disabled="invalid || duplicateClient"
+          :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
         >{{$t('action.next')}}</large-button>
       </div>
     </ValidationObserver>
 
-    <SelectClientDialog :dialog="showSelectClient" @cancel="showSelectClient = false" />
-
     <SelectClientDialog
       :dialog="showSelectClient"
-      :selectableClients="selectableClients"
+      :selectableClients="selectableMembers"
       @cancel="showSelectClient = false"
       @save="saveSelectedClient"
     />
@@ -78,10 +75,13 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SelectClientDialog from './SelectClientDialog.vue';
+import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/types';
-
+import { debounce } from '@/util/helpers';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { AddMemberWizardModes } from '../../global';
+
+let that: any;
 
 export default Vue.extend({
   components: {
@@ -92,7 +92,12 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedClients', 'selectableClients']),
+    ...mapGetters([
+      'reservedMember',
+      'memberClasses',
+      'selectableClients',
+      'selectedMemberName',
+    ]),
 
     memberClass: {
       get(): string {
@@ -112,13 +117,20 @@ export default Vue.extend({
       },
     },
 
-    selectedMember: {
-      get(): Client {
-        return this.$store.getters.selectedMember;
-      },
-      set(value: Client) {
-        this.$store.commit('setMember', value);
-      },
+    selectableMembers(): Client[] {
+      // Filter out the owner member
+      const filtered = this.$store.getters.selectableClients.filter(
+        (client: Client) => {
+          if (
+            client.member_class === this.reservedMember.memberClass &&
+            client.member_code === this.reservedMember.memberCode
+          ) {
+            return false;
+          }
+          return true;
+        },
+      );
+      return filtered;
     },
 
     duplicateClient(): boolean {
@@ -126,23 +138,17 @@ export default Vue.extend({
         return false;
       }
 
+      // Check that the info doesn't match the reserved member (owner member)
       if (
-        this.reservedClients.some((e: Client) => {
-          if (e.member_class.toLowerCase() !== this.memberClass.toLowerCase()) {
-            return false;
-          }
-
-          if (e.member_code.toLowerCase() !== this.memberCode.toLowerCase()) {
-            return false;
-          }
-
-          return true;
-        })
+        this.reservedMember.memberClass.toLowerCase() !==
+          this.memberClass.toLowerCase() ||
+        this.reservedMember.memberCode.toLowerCase() !==
+          this.memberCode.toLowerCase()
       ) {
-        return true;
+        return false;
       }
 
-      return false;
+      return true;
     },
   },
   data() {
@@ -151,6 +157,7 @@ export default Vue.extend({
       certificationService: undefined,
       filteredServiceList: [],
       showSelectClient: false as boolean,
+      checkRunning: false,
     };
   },
   methods: {
@@ -161,19 +168,90 @@ export default Vue.extend({
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
-      this.$store.dispatch('setSelectedMember', selectedMember).then(
-        (response) => {
-          this.$store.dispatch('fetchReservedClients', selectedMember);
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      this.$store.dispatch('setSelectedMember', selectedMember);
       this.showSelectClient = false;
     },
+    checkClient(): void {
+      this.checkRunning = true;
+
+      // Find if the selectable clients array has a match
+      const tempClient = this.selectableClients.find((client: Client) => {
+        return (
+          client.member_code === this.memberCode &&
+          client.member_class === this.memberClass
+        );
+      });
+
+      // Fill the name "field" if it's available
+      if (tempClient?.member_name) {
+        this.$store.commit('setSelectedMemberName', tempClient.member_name);
+      } else {
+        // Clear the "field" if not
+        this.$store.commit('setSelectedMemberName', undefined);
+      }
+
+      this.checkClientDebounce();
+    },
+    checkClientDebounce: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      // Search tokens for suitable CSR:s and certificates
+      that.$store
+        .dispatch('searchTokens', {
+          instanceId: that.reservedMember.instanceId,
+          memberClass: that.memberClass,
+          memberCode: that.memberCode,
+        })
+        .then(
+          () => {
+            that.checkRunning = false;
+          },
+          (error: Error) => {
+            that.$store.dispatch('showError', error);
+            that.checkRunning = true;
+          },
+        );
+    }, 600),
   },
   created() {
+    that = this;
+    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
     this.$store.dispatch('fetchSelectableClients');
+  },
+
+  watch: {
+    memberCode(val) {
+      // Set first certification service selected as default when the list is updated
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (
+        !val ||
+        val.length < 1 ||
+        !this.memberClass ||
+        this.memberClass.length < 1
+      ) {
+        return;
+      }
+      this.checkClient();
+    },
+    memberClass(val) {
+      // Set first certification service selected as default when the list is updated
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (
+        !val ||
+        val.length < 1 ||
+        !this.memberCode ||
+        this.memberCode.length < 1
+      ) {
+        return;
+      }
+      this.checkClient();
+    },
+
+    memberClasses(val) {
+      // Set first member class selected as default when the list is updated
+      if (val && val.length === 1) {
+        this.memberClass = val[0];
+      }
+    },
   },
 });
 </script>

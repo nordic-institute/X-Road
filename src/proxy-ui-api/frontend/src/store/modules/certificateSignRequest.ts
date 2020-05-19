@@ -64,7 +64,7 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   keyId(state): string {
     return state.keyId;
   },
-  keyLabel(state): string {
+  keyLabel(state): string | undefined {
     return state.keyLabel;
   },
   isUsageReadOnly(state): boolean {
@@ -216,7 +216,7 @@ export const actions: ActionTree<CsrState, RootState> = {
   generateKeyAndCsr({ getters }, tokenId: string) {
     const crtObject = getters.csrRequestBody;
 
-    let body = {
+    const body = {
       key_label: undefined,
       csr_generate_request: crtObject,
     };

@@ -1,10 +1,19 @@
 /**
- * Vuex store for add client/subsystem wizards
+ * Vuex store for add client/subsystem/member wizards
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Token, Client } from '@/types';
+import { AddMemberWizardModes, UsageTypes } from '@/global';
+import { Token, Client, TokenCertificateSigningRequest, TokenCertificate, Key } from '@/types';
+import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
+
+
+interface ReservedMemberData {
+  instanceId: string;
+  memberClass: string;
+  memberCode: string;
+}
 
 export interface AddClientState {
   expandedTokens: string[];
@@ -12,10 +21,12 @@ export interface AddClientState {
   tokenId: string | undefined;
   selectableClients: Client[];
   reservedClients: Client[];
-  selectedMember: Client;
+  selectedMemberName: string | undefined;
   memberClass: string;
   memberCode: string;
   subsystemCode: string | undefined;
+  memberWizardMode: string;
+  reservedMemberData: ReservedMemberData | undefined;
 }
 
 const getDefaultState = () => {
@@ -24,19 +35,20 @@ const getDefaultState = () => {
     tokens: [],
     selectableClients: [],
     reservedClients: [],
-    selectedMember: { member_class: '', member_code: '', subsystem_code: '' },
+    selectedMemberName: '',
     memberClass: '',
     memberCode: '',
     subsystemCode: undefined,
     tokenId: undefined,
+    memberWizardMode: AddMemberWizardModes.FULL,
+    reservedMemberData: undefined,
   };
 };
 
 // Initial state. The state can be reseted with this.
 const tokensState: AddClientState = getDefaultState();
 
-
-export const getters: GetterTree<AddClientState, RootState> = {
+export const getters: GetterTree<AddClientState, any> = {
 
   selectableClients(state: AddClientState): Client[] {
     return state.selectableClients;
@@ -50,35 +62,21 @@ export const getters: GetterTree<AddClientState, RootState> = {
   subsystemCode(state: AddClientState): string | undefined {
     return state.subsystemCode;
   },
-  selectedMember(state: AddClientState): Client | undefined {
-    return state.selectedMember;
+  selectedMemberName(state: AddClientState): string | undefined {
+    return state.selectedMemberName;
   },
   reservedClients(state: AddClientState): Client[] {
     return state.reservedClients;
   },
-
-  addMemberMode(state: AddClientState): string {
-    if (state.memberCode === 'all') {
-      return 'ALL';
-    }
-
-    if (state.memberCode === 'cert') {
-      return 'CERT';
-    }
-
-    return 'NONE';
+  addMemberWizardMode(state: AddClientState): string {
+    return state.memberWizardMode;
   },
-
-  selectedMemberId(state: AddClientState): string | undefined {
-    if (!state.selectedMember) {
-      return undefined;
-    }
-
-    return state.selectedMember.instance_id +
-      ':' +
-      state.selectedMember.member_class +
-      ':' +
-      state.selectedMember.member_code;
+  selectedMemberId(state: AddClientState, rootGetters): string | undefined {
+    // Instance id is always the same with current server and members
+    return createClientId(rootGetters.user.currentSecurityServer.instance_id, state.memberClass, state.memberCode);
+  },
+  reservedMember(state: AddClientState): any {
+    return state.reservedMemberData;
   },
 };
 
@@ -87,10 +85,13 @@ export const mutations: MutationTree<AddClientState> = {
     Object.assign(state, getDefaultState());
   },
   setMember(state: AddClientState, member: Client) {
-    state.selectedMember = member;
+    state.selectedMemberName = member.member_name;
     state.memberClass = member.member_class;
     state.memberCode = member.member_code;
     state.subsystemCode = member.subsystem_code;
+  },
+  setSelectedMemberName(state: AddClientState, val: string | undefined) {
+    state.selectedMemberName = val;
   },
   setMemberClass(state: AddClientState, val: string) {
     state.memberClass = val;
@@ -106,6 +107,12 @@ export const mutations: MutationTree<AddClientState> = {
   },
   storeReservedClients(state: AddClientState, clients: Client[]) {
     state.reservedClients = clients;
+  },
+  storeReservedMember(state: AddClientState, memberData: any) {
+    state.reservedMemberData = memberData;
+  },
+  setAddMemberWizardMode(state: AddClientState, mode: string) {
+    state.memberWizardMode = mode;
   },
 };
 
@@ -137,6 +144,17 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
+  fetchReservedMembers({ commit, rootGetters }, client: Client) {
+    // Fetch clients from backend that match the selected client without subsystem code
+    return api.get(`/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`)
+      .then((res) => {
+        commit('storeReservedClients', res.data);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
   setSelectedMember({ commit, rootGetters }, member: Client) {
     commit('setMember', member);
   },
@@ -157,6 +175,82 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
+  createMember({ commit, state }) {
+    const body = {
+      client: {
+        member_class: state.memberClass,
+        member_code: state.memberCode,
+      },
+      ignore_warnings: false,
+    };
+
+    return api.post('/clients', body)
+      .catch((error) => {
+        throw error;
+      });
+  },
+
+  async searchTokens({ commit, dispatch }, { instanceId, memberClass, memberCode }) {
+
+    const ownerId = createClientId(instanceId, memberClass, memberCode);
+    const hasValidCert = await checkForValidSignCert(instanceId, memberClass, memberCode);
+
+    if (hasValidCert) {
+      commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
+      return;
+    }
+
+    // Fetch tokens from backend
+    api
+      .get(`/tokens`)
+      .then((res) => {
+
+        // Find if a token has a sign key with a certificate that has matching client data
+        res.data.some((token: Token) => {
+          return token.keys.some((key: Key) => {
+            if (key.usage === UsageTypes.SIGNING) {
+
+              // Go through the keys certificates
+              const foundCert: boolean = key.certificates.some((certificate: TokenCertificate) => {
+                if (ownerId === certificate.owner_id) {
+                  commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
+                  return true;
+                }
+              });
+
+              if (foundCert) { return true; }
+
+              // Go through the keys CSR:s
+              key.certificate_signing_requests.some((csr: TokenCertificateSigningRequest) => {
+                if (ownerId === csr.owner_id) {
+                  dispatch('setCsrTokenId', token.id);
+                  commit('setAddMemberWizardMode', AddMemberWizardModes.CSR_EXISTS);
+                  return true;
+                }
+              });
+            }
+          });
+        });
+      })
+      .catch((error: Error) => {
+        throw error;
+      });
+
+  },
+};
+
+
+const checkForValidSignCert = async (instanceId: string, memberClass: string, memberCode: string): Promise<boolean> => {
+  // Make a request to backend for a client
+  // returns true if it has a local valid sign certificate
+  return api
+    .get(`/clients?instance=${instanceId}&member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`)
+    .then((response: any) => {
+      return response.data.length > 0;
+    })
+    .catch((error: Error) => {
+      throw error;
+    });
 };
 
 export const addClientModule: Module<AddClientState, RootState> = {

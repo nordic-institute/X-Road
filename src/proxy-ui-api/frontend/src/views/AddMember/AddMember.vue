@@ -7,8 +7,9 @@
       :showClose="false"
       data-test="wizard-title"
     />
+
     <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
-      <template v-if="addMemberMode === 'ALL'">
+      <template v-if="addMemberWizardMode === wizardModes.FULL">
         <v-stepper-header class="noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
           <v-divider></v-divider>
@@ -20,11 +21,19 @@
           <v-divider></v-divider>
           <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
+          <v-stepper-step step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
         </v-stepper-header>
       </template>
 
-      <template v-if="addMemberMode === 'CERT'">
+      <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
+        <v-stepper-header class="noshadow">
+          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step step="2">{{$t('wizard.finish.title')}}</v-stepper-step>
+        </v-stepper-header>
+      </template>
+
+      <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
         <v-stepper-header class="noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
           <v-divider></v-divider>
@@ -32,16 +41,8 @@
           <v-divider></v-divider>
           <v-stepper-step :complete="currentStep > 3" step="3">{{$t('csr.generateCsr')}}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 4" step="4">{{$t('wizard.finish.title')}}</v-stepper-step>
+          <v-stepper-step step="4">{{$t('wizard.finish.title')}}</v-stepper-step>
         </v-stepper-header>
-      </template>
-
-      <template v-if="addMemberMode === 'NONE'">
-        
-        <v-stepper-header class="noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
-        </v-stepper-header>
-        
       </template>
 
       <v-stepper-items class="stepper-content">
@@ -59,7 +60,7 @@
         </v-stepper-content>
         <!-- Step 4 -->
         <v-stepper-content :step="csrDetailsPageNumber">
-          <WizardPageCsrDetails
+          <CsrDetailsPageLocked
             @cancel="cancel"
             @previous="previousPage"
             @done="csrDetailsReady"
@@ -94,11 +95,11 @@ import MemberDetailsPage from './MemberDetailsPage.vue';
 import TokenPage from './TokenPage.vue';
 import SignKeyPage from './SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
-import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
+import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from './GenerateCsrPage.vue';
 
 import { Key, Token } from '@/types';
-import { RouteName, UsageTypes } from '@/global';
+import { RouteName, AddMemberWizardModes } from '@/global';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -110,48 +111,87 @@ export default Vue.extend({
     TokenPage,
     SignKeyPage,
     FinishPage,
-    WizardPageCsrDetails,
+    CsrDetailsPageLocked,
     GenerateCsrPage,
   },
-  props: {},
+  props: {
+    instanceId: {
+      type: String,
+      required: true,
+    },
+    memberClass: {
+      type: String,
+      required: true,
+    },
+    memberCode: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       currentStep: 1,
+      wizardModes: AddMemberWizardModes,
     };
   },
 
   computed: {
-    ...mapGetters(['addMemberMode']),
+    ...mapGetters(['addMemberWizardMode']),
 
     tokenPageNumber(): number {
-      if (this.addMemberMode === 'CERT') {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
+        this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
+      ) {
         return 999;
       }
+
       return 2;
     },
 
     keyPageNumber(): number {
-      if (this.addMemberMode === 'CERT') {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
+        this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
+      ) {
         return 999;
       }
+
       return 3;
     },
     csrDetailsPageNumber(): number {
-      if (this.addMemberMode === 'CERT') {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+      ) {
+        return 999;
+      }
+      if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
         return 2;
       }
+
       return 4;
     },
 
     csrGeneratePageNumber(): number {
-      if (this.addMemberMode === 'CERT') {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+      ) {
+        return 999;
+      }
+      if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
         return 3;
       }
+
       return 5;
     },
 
     finishPageNumber(): number {
-      if (this.addMemberMode === 'CERT') {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+      ) {
+        return 2;
+      }
+      if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
         return 4;
       }
       return 6;
@@ -171,13 +211,13 @@ export default Vue.extend({
       this.$store.dispatch('fetchLocalMembers').catch((error) => {
         this.$store.dispatch('showError', error);
       });
-
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
 
     csrDetailsReady(): void {
+      // Add the selected client id in csr store
+      const idString = this.$store.getters.selectedMemberId;
+      this.$store.commit('storeCsrClient', idString);
+
       this.$store.dispatch('fetchCsrForm').then(
         (response) => {
           this.currentStep++;
@@ -198,18 +238,6 @@ export default Vue.extend({
       this.$router.replace({ name: RouteName.Clients });
     },
 
-    fetchKeyData(id: string): void {
-      this.$store.dispatch('fetchKeyData').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
-    fetchLocalMembers(): void {
-      this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
         this.$store.dispatch('showError', error);
@@ -217,7 +245,20 @@ export default Vue.extend({
     },
   },
   created() {
+    // Set up the CSR part with Sign mode
     this.$store.dispatch('setupSignKey');
+    this.fetchCertificateAuthorities();
+
+    // this.$store.dispatch('fetchXroadInstances');
+    this.$store.dispatch('fetchMemberClasses');
+    this.$store.dispatch('fetchSelectableClients');
+
+    // Store the reserved member info to vuex
+    this.$store.commit('storeReservedMember', {
+      instanceId: this.instanceId,
+      memberClass: this.memberClass,
+      memberCode: this.memberCode,
+    });
   },
 });
 </script>

@@ -102,52 +102,31 @@ export function containsClient(clients: Client[], memberClass: string, memberCod
 }
 
 
+// Create a client ID
+export function createClientId(
+  instanceId: string,
+  memberClass: string,
+  memberCode: string,
+  subsystemCode?: string): string {
 
-export function generateVirtualMembers(clients: Client[]): Client[] {
+  if (subsystemCode) {
+    return `${instanceId}:${memberClass}:${memberCode}:${subsystemCode}`;
+  }
 
-  // New arrays to separate members and subsystems
-  const members: Client[] = [];
-
-  // Find the owner member (there is only one)
-  clients.forEach((client: Client) => {
-    if (client.owner === true) {
-      members.push(client);
-      return;
-    }
-  });
-
-  clients.forEach((element: Client) => {
-    // Check if the member is already in the members array
-    const memberAlreadyExists = members.find((value, index) => {
-      const cli = value as Client;
-
-      // Compare member class and member code
-      if (cli.member_class === element.member_class && cli.member_code === element.member_code) {
-        return true;
-      }
-
-      return false;
-    });
-
-    if (!memberAlreadyExists) {
-      // If member is not in members array, create and add it
-      const clone: any = cloneDeep(element);
-
-      // Create member id by removing the last part of subsystem's id
-      const idArray = clone.id.split(':');
-      idArray.pop();
-      clone.id = idArray.join(':');
-
-      // Create a name from member_name
-      if (clone.member_name) {
-        clone.name = clone.member_name;
-      }
-
-      clone.status = undefined;
-      members.push(clone);
-    }
-  });
-
-  return members;
+  return `${instanceId}:${memberClass}:${memberCode}`;
 }
+
+// Debounce function
+export const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+  let timeout: number | undefined;
+
+  return (...args: Parameters<F>): Promise<ReturnType<F>> =>
+    new Promise((resolve) => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+
+      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+    });
+};
 

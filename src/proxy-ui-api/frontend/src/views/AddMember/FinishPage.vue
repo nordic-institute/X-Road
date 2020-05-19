@@ -14,6 +14,16 @@
     <p>{{$t('wizard.finish.note')}}</p>
     <p></p>
 
+    <div v-if="showRegisterOption" class="row-wrap">
+      <FormLabel labelText="wizard.member.register" />
+      <v-checkbox
+        v-model="registerChecked"
+        color="primary"
+        class="register-checkbox"
+        data-test="register-member-checkbox"
+      ></v-checkbox>
+    </div>
+
     <div class="button-footer">
       <div class="button-group">
         <large-button
@@ -43,20 +53,39 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import FormLabel from '@/components/ui/FormLabel.vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { AddMemberWizardModes } from '@/global';
+import { createClientId } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
     LargeButton,
     ValidationObserver,
     ValidationProvider,
+    FormLabel,
   },
   computed: {
-    ...mapGetters(['csrForm']),
+    ...mapGetters([
+      'addMemberWizardMode',
+      'memberClass',
+      'memberCode',
+      'reservedMember',
+    ]),
+
+    showRegisterOption() {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+      ) {
+        return true;
+      }
+      return false;
+    },
   },
   data() {
     return {
-      disableCancel: false,
+      disableCancel: false as boolean,
+      registerChecked: true as boolean,
     };
   },
   methods: {
@@ -69,9 +98,22 @@ export default Vue.extend({
     done(): void {
       this.disableCancel = true;
 
-      this.$store.dispatch('createClient').then(
+      this.$store.dispatch('createMember').then(
         (response) => {
-          this.generateCsr();
+          if (
+            this.addMemberWizardMode ===
+              AddMemberWizardModes.CERTIFICATE_EXISTS &&
+            this.registerChecked
+          ) {
+            this.registerClient();
+          } else if (
+            this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+          ) {
+            this.disableCancel = false;
+            this.$emit('done');
+          } else {
+            this.generateCsr();
+          }
         },
         (error) => {
           this.$store.dispatch('showError', error);
@@ -85,12 +127,31 @@ export default Vue.extend({
 
       this.$store.dispatch('generateKeyAndCsr', tokenId).then(
         (response) => {
+          if (this.registerChecked) {
+            this.registerClient();
+          } else {
+            this.disableCancel = false;
+            this.$emit('done');
+          }
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+          this.disableCancel = false;
+        },
+      );
+    },
+
+    registerClient(): void {
+      const clientId = createClientId(this.reservedMember.instanceId, this.memberClass, this.memberCode);
+
+      this.$store.dispatch('registerClient', clientId).then(
+        () => {
           this.disableCancel = false;
           this.$emit('done');
         },
         (error) => {
           this.$store.dispatch('showError', error);
-          this.disableCancel = false;
+          this.$emit('done');
         },
       );
     },

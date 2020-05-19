@@ -190,8 +190,9 @@ export enum ClientTypes {
   SUBSYSTEM = 'SUBSYSTEM',
 }
 
+// Different modes for the add member wizard
 export enum AddMemberWizardModes {
-  KEY_EXISTS = 'KEY_EXISTS',
+  CSR_EXISTS = 'CSR_EXISTS',
   CERTIFICATE_EXISTS = 'CERTIFICATE_EXISTS',
   FULL = 'FULL',
 }
