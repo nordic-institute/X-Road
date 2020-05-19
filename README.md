@@ -152,7 +152,7 @@ For example:
 
 ### 1.10 Environmental monitoring
 
-Environmental monitoring that can be  used to obtain information about the platform it's running on, check more information in [Environmental Monitoring Architecture.](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md "Environmental Monitoring Architecture") 
+Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in [Environmental Monitoring Architecture.](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md "Environmental Monitoring Architecture") 
 For check the metrics we can make a SOAP message to the Security Server Sidecar URL.
 We can use this example as template for the SOAP message:
 ```xml
