@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
@@ -45,7 +46,6 @@ import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -55,7 +55,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
@@ -71,7 +70,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URI;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -234,16 +232,12 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             checkIdentifier(centralService.getMemberCode(), "centralService.memberCode");
             checkIdentifier(centralService.getSubsystemCode(), "centralService.subsystemCode");
         }
-    }
-
-    private void checkIdentifier(String id, String field) {
-        if (StringUtils.isNotEmpty(id)) {
-            EncodedIdentifierValidator encodedIdentifierValidator = new EncodedIdentifierValidator();
-            EnumSet<EncodedIdentifierValidator.ValidationError> validationErrors =
-                    encodedIdentifierValidator.getValidationErrors(id);
-            if (!validationErrors.isEmpty()) {
-                log.warn("Invalid identifier in '{}' field: {}", field, id);
-            }
+        SecurityServerId securityServer = requestSoap.getSecurityServer();
+        if (securityServer != null) {
+            checkIdentifier(securityServer.getXRoadInstance(), "securityServer.xRoadInstance");
+            checkIdentifier(securityServer.getMemberClass(), "securityServer.memberClass");
+            checkIdentifier(securityServer.getMemberCode(), "securityServer.memberCode");
+            checkIdentifier(securityServer.getServerCode(), "securityServer.subsystemCode");
         }
     }
 
