@@ -130,7 +130,7 @@ public class StringTrimmerRestTemplateTest {
                 .queryParam("subsystem_code", SUBSYSTEM_CODE_WITH_SPACES)
                 .build(false)
                 .toString();
-        ParameterizedTypeReference<List<Client>> typeRef = new ParameterizedTypeReference<List<Client>>() {};
+        ParameterizedTypeReference<List<Client>> typeRef = new ParameterizedTypeReference<List<Client>>() { };
         ResponseEntity<List<Client>> response = restTemplate.exchange(findClientsApiPath, HttpMethod.GET, null,
                 typeRef);
         List<Client> foundClients = response.getBody();
