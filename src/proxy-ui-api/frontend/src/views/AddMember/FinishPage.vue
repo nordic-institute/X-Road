@@ -43,7 +43,11 @@
           data-test="previous-button"
         >{{$t('action.previous')}}</large-button>
 
-        <large-button @click="done" data-test="submit-button">{{$t('action.submit')}}</large-button>
+        <large-button
+          @click="done"
+          data-test="submit-button"
+          :loading="submitLoading"
+        >{{$t('action.submit')}}</large-button>
       </div>
     </div>
   </div>
@@ -86,6 +90,7 @@ export default Vue.extend({
     return {
       disableCancel: false as boolean,
       registerChecked: true as boolean,
+      submitLoading: false as boolean,
     };
   },
   methods: {
@@ -97,6 +102,7 @@ export default Vue.extend({
     },
     done(): void {
       this.disableCancel = true;
+      this.submitLoading = true;
 
       this.$store.dispatch('createMember').then(
         (response) => {
@@ -110,6 +116,7 @@ export default Vue.extend({
             this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
           ) {
             this.disableCancel = false;
+            this.submitLoading = false;
             this.$emit('done');
           } else {
             this.generateCsr();
@@ -118,6 +125,7 @@ export default Vue.extend({
         (error) => {
           this.$store.dispatch('showError', error);
           this.disableCancel = false;
+          this.submitLoading = false;
         },
       );
     },
@@ -127,30 +135,35 @@ export default Vue.extend({
 
       this.$store.dispatch('generateKeyAndCsr', tokenId).then(
         (response) => {
-          if (this.registerChecked) {
-            this.registerClient();
-          } else {
-            this.disableCancel = false;
-            this.$emit('done');
-          }
+          this.disableCancel = false;
+          this.submitLoading = false;
+          this.$emit('done');
         },
         (error) => {
           this.$store.dispatch('showError', error);
           this.disableCancel = false;
+          this.submitLoading = false;
         },
       );
     },
 
     registerClient(): void {
-      const clientId = createClientId(this.reservedMember.instanceId, this.memberClass, this.memberCode);
+      const clientId = createClientId(
+        this.reservedMember.instanceId,
+        this.memberClass,
+        this.memberCode,
+      );
 
       this.$store.dispatch('registerClient', clientId).then(
         () => {
           this.disableCancel = false;
+          this.submitLoading = false;
           this.$emit('done');
         },
         (error) => {
           this.$store.dispatch('showError', error);
+          this.disableCancel = false;
+          this.submitLoading = false;
           this.$emit('done');
         },
       );

@@ -95,7 +95,6 @@ export default Vue.extend({
     ...mapGetters([
       'reservedMember',
       'memberClasses',
-      'selectableClients',
       'selectedMemberName',
     ]),
 
@@ -119,7 +118,7 @@ export default Vue.extend({
 
     selectableMembers(): Client[] {
       // Filter out the owner member
-      const filtered = this.$store.getters.selectableClients.filter(
+      const filtered = this.$store.getters.selectableMembers.filter(
         (client: Client) => {
           if (
             client.member_class === this.reservedMember.memberClass &&
@@ -175,7 +174,7 @@ export default Vue.extend({
       this.checkRunning = true;
 
       // Find if the selectable clients array has a match
-      const tempClient = this.selectableClients.find((client: Client) => {
+      const tempClient = this.selectableMembers.find((client: Client) => {
         return (
           client.member_code === this.memberCode &&
           client.member_class === this.memberClass
@@ -215,7 +214,7 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableClients');
+    this.$store.dispatch('fetchSelectableMembers');
   },
 
   watch: {

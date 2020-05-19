@@ -20,6 +20,7 @@ export interface AddClientState {
   tokens: Token[];
   tokenId: string | undefined;
   selectableClients: Client[];
+  selectableMembers: Client[];
   reservedClients: Client[];
   selectedMemberName: string | undefined;
   memberClass: string;
@@ -34,6 +35,7 @@ const getDefaultState = () => {
     expandedTokens: [],
     tokens: [],
     selectableClients: [],
+    selectableMembers: [],
     reservedClients: [],
     selectedMemberName: '',
     memberClass: '',
@@ -53,6 +55,11 @@ export const getters: GetterTree<AddClientState, any> = {
   selectableClients(state: AddClientState): Client[] {
     return state.selectableClients;
   },
+
+  selectableMembers(state: AddClientState): Client[] {
+    return state.selectableMembers;
+  },
+
   memberClass(state: AddClientState): string {
     return state.memberClass;
   },
@@ -73,7 +80,7 @@ export const getters: GetterTree<AddClientState, any> = {
   },
   selectedMemberId(state: AddClientState, rootGetters): string | undefined {
     // Instance id is always the same with current server and members
-    return createClientId(rootGetters.user.currentSecurityServer.instance_id, state.memberClass, state.memberCode);
+    return createClientId(rootGetters.currentSecurityServer.instance_id, state.memberClass, state.memberCode);
   },
   reservedMember(state: AddClientState): any {
     return state.reservedMemberData;
@@ -102,8 +109,11 @@ export const mutations: MutationTree<AddClientState> = {
   setSubsystemCode(state: AddClientState, val: string) {
     state.subsystemCode = val;
   },
-  storeMembers(state: AddClientState, clients: Client[]) {
+  storeSelectableClients(state: AddClientState, clients: Client[]) {
     state.selectableClients = clients;
+  },
+  storeSelectableMembers(state: AddClientState, clients: Client[]) {
+    state.selectableMembers = clients;
   },
   storeReservedClients(state: AddClientState, clients: Client[]) {
     state.reservedClients = clients;
@@ -125,8 +135,24 @@ export const actions: ActionTree<AddClientState, RootState> = {
     // Fetch clients from backend that can be selected
     return api.get('/clients?exclude_local=true&member_missing_sign_cert=true&internal_search=false&show_members=false')
       .then((res) => {
-        console.log(res.data.length);
-        commit('storeMembers', res.data);
+        commit('storeSelectableClients', res.data);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
+  fetchSelectableMembers({ commit, rootGetters }, id: string) {
+    // Fetch clients from backend that can be selected
+    return api.get('/clients?internal_search=false&show_members=true')
+      .then((res) => {
+
+        // Filter out subsystems
+        const filtered = res.data.filter((client: Client) => {
+          return !client.subsystem_code;
+        });
+
+        commit('storeSelectableMembers', filtered);
       })
       .catch((error) => {
         throw error;
@@ -238,7 +264,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
 
   },
 };
-
 
 const checkForValidSignCert = async (instanceId: string, memberClass: string, memberCode: string): Promise<boolean> => {
   // Make a request to backend for a client

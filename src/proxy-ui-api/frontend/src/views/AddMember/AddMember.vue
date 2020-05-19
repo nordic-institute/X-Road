@@ -200,8 +200,8 @@ export default Vue.extend({
 
   methods: {
     cancel(): void {
-      this.$store.dispatch('resetState');
       this.$store.dispatch('resetAddClientState');
+      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.Clients });
     },
 
@@ -233,8 +233,8 @@ export default Vue.extend({
     },
 
     done(): void {
-      this.$store.dispatch('resetState');
       this.$store.dispatch('resetAddClientState');
+      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.Clients });
     },
 
@@ -251,7 +251,6 @@ export default Vue.extend({
 
     // this.$store.dispatch('fetchXroadInstances');
     this.$store.dispatch('fetchMemberClasses');
-    this.$store.dispatch('fetchSelectableClients');
 
     // Store the reserved member info to vuex
     this.$store.commit('storeReservedMember', {
