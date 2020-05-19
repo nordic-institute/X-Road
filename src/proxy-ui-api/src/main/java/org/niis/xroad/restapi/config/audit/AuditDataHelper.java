@@ -147,11 +147,32 @@ public class AuditDataHelper {
      * @param certificateInfo
      */
     public void addCertificateHash(CertificateInfo certificateInfo) {
-        String hash = createFormattedHash(certificateInfo);
+        String hash = createFormattedHash(certificateInfo.getCertificateBytes());
         addListPropertyItem(CERT_HASHES, hash);
         putDefaultHashAlgorithm();
     }
 
+    /**
+     * formats hash according to audit log format, and puts hash and default hash algorithm
+     * @param unformattedHash unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
+     */
+    public void putCertificateHash(String unformattedHash) {
+        putFormattedCertificateHash(formatHash(unformattedHash));
+    }
+
+    /**
+     * Puts hash and default hash algorithm
+     * @param formattedHash formatted "63:0B:9F:83" hash
+     */
+    public void putFormattedCertificateHash(String formattedHash) {
+        put(CERT_HASH, formattedHash);
+        putDefaultHashAlgorithm();
+    }
+
+
+    /**
+     * Put (only) cert hash, and hash default algorithm
+     */
     public void put(CertificateType certificateType) {
         String hash = createFormattedHash(certificateType.getData());
         put(CERT_HASH, hash);
@@ -159,42 +180,46 @@ public class AuditDataHelper {
     }
 
     /**
+     * Put cert id, hash and default algorithm
+     * @param id
+     * @param unformattedHash unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
+     */
+    public void putCertificateData(String id, String unformattedHash) {
+        put(CERT_ID, id);
+        putCertificateHash(unformattedHash);
+    }
+
+    /**
      * Put cert id, hash, and hash default algorithm
      * @param certificateInfo
      */
     public void put(CertificateInfo certificateInfo) {
-        String hash = createFormattedHash(certificateInfo);
-        put(CERT_ID, certificateInfo.getId());
-        put(CERT_HASH, hash);
-        putDefaultHashAlgorithm();
-    }
-
-    public void putCertificateHash(String unformattedHash) {
-        String hash = formatHash(unformattedHash);
-        put(CERT_HASH, hash);
-        putDefaultHashAlgorithm();
+        String hash = createUnformattedHash(certificateInfo.getCertificateBytes());
+        putCertificateData(certificateInfo.getId(), hash);
     }
 
     public void putDefaultHashAlgorithm() {
         put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
-    private String createFormattedHash(CertificateInfo certificateInfo) {
-        return createFormattedHash(certificateInfo.getCertificateBytes());
-    }
-
-    private String formatHash(String unformattedHash) {
+    /**
+     * Change unformatted hash 630b9f83... to audit log -formatted hash 63:0B:9F:83..
+     * @param unformattedHash
+     * @return
+     */
+    public String formatHash(String unformattedHash) {
         String hash = unformattedHash.toUpperCase();
         return String.join(":", Splitter.fixedLength(2).split(hash));
     }
 
     private String createFormattedHash(byte[] certBytes) {
+        return formatHash(createUnformattedHash(certBytes));
+    }
+
+    private String createUnformattedHash(byte[] certBytes) {
         String hash = null;
         try {
             hash = CryptoUtils.calculateCertHexHash(certBytes);
-            if (hash != null) {
-                hash = formatHash(hash);
-            }
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
         }

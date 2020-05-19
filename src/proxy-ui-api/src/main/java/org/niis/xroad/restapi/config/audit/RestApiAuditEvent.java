@@ -101,6 +101,7 @@ public enum RestApiAuditEvent {
     // TO DO: we probably need this too?
     GENERATE_KEY_AND_CSR("Generate key and CSR"),
 
+    // TO DO: we do not have certFileName property (since application/octet-stream)
     IMPORT_CERT_FILE("Import certificate from file"),
     IMPORT_CERT_TOKEN("Import certificate from token"),
     DELETE_CERT("Delete certificate"),

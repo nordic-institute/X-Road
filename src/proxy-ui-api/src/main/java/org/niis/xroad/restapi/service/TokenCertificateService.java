@@ -486,6 +486,7 @@ public class TokenCertificateService {
         } else {
             auditDataHelper.put(KEY_ID, keyInfo.getId());
         }
+        auditDataHelper.put(certificateInfo);
         auditDataHelper.put(CERT_ID, certificateInfo.getId());
     }
 
