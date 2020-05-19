@@ -36,6 +36,8 @@ public final class SpringFirewallValidationRules {
 
     private static final String FORBIDDEN_PERCENT = "%";
 
+    private static final String FORBIDDEN_COLON = ":";
+
     private static final String FORBIDDEN_SEMICOLON = ";";
 
     private static final String FORBIDDEN_FORWARDSLASH = "/";
@@ -44,6 +46,10 @@ public final class SpringFirewallValidationRules {
 
     public static boolean containsPercent(String s) {
         return s.contains(FORBIDDEN_PERCENT);
+    }
+
+    public static boolean containsColon(String s) {
+        return s.contains(FORBIDDEN_COLON);
     }
 
     public static boolean containsSemicolon(String s) {

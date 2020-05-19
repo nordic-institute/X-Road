@@ -47,14 +47,12 @@ import java.util.EnumSet;
  */
 public class EncodedIdentifierValidator {
 
-    private static final String FORBIDDEN_COLON = ":";
-
     public EnumSet<ValidationError> getValidationErrors(String s) {
         EnumSet<ValidationError> errors = EnumSet.noneOf(ValidationError.class);
         if (s == null) {
             return errors;
         }
-        if (s.contains(FORBIDDEN_COLON)) {
+        if (SpringFirewallValidationRules.containsColon(s)) {
             errors.add(ValidationError.COLON);
         }
         if (SpringFirewallValidationRules.containsBackslash(s)) {
