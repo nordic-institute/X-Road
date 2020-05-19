@@ -197,52 +197,41 @@ public class InitializationService {
          * If server code already exists -> securityServerCode param is not allowed in the request.
          */
 
-        if (StringUtils.isEmpty(securityServerCode)) {
-            if (!isServerCodeInitialized) {
-                errorMetadata.add(ERROR_METADATA_SERVERCODE_NOT_PROVIDED);
-            }
+        boolean isEmptySecurityServerCode = StringUtils.isEmpty(securityServerCode);
+        boolean isEmptyOwnerMemberClass = StringUtils.isEmpty(ownerMemberClass);
+        boolean isEmptyOwnerMemberCode = StringUtils.isEmpty(ownerMemberCode);
+        boolean isEmptySoftwareTokenPin = StringUtils.isEmpty(softwareTokenPin);
+
+        if (isEmptySecurityServerCode && !isServerCodeInitialized) {
+            errorMetadata.add(ERROR_METADATA_SERVERCODE_NOT_PROVIDED);
         }
 
-        if (!StringUtils.isEmpty(securityServerCode)) {
-            if (isServerCodeInitialized) {
-                errorMetadata.add(ERROR_METADATA_SERVERCODE_EXISTS);
-            }
+        if (!isEmptySecurityServerCode && isServerCodeInitialized) {
+            errorMetadata.add(ERROR_METADATA_SERVERCODE_EXISTS);
         }
 
-        if (StringUtils.isEmpty(ownerMemberClass)) {
-            if (!isServerOwnerInitialized) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
-            }
+        if (isEmptyOwnerMemberClass && !isServerOwnerInitialized) {
+            errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
         }
 
-        if (!StringUtils.isEmpty(ownerMemberClass)) {
-            if (isServerOwnerInitialized) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_EXISTS);
-            }
+        if (!isEmptyOwnerMemberClass && isServerOwnerInitialized) {
+            errorMetadata.add(ERROR_METADATA_MEMBER_CLASS_EXISTS);
         }
 
-        if (StringUtils.isEmpty(ownerMemberCode)) {
-            if (!isServerOwnerInitialized) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED);
-            }
+        if (isEmptyOwnerMemberCode && !isServerOwnerInitialized) {
+            errorMetadata.add(ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED);
         }
 
-        if (!StringUtils.isEmpty(ownerMemberCode)) {
-            if (isServerOwnerInitialized) {
-                errorMetadata.add(ERROR_METADATA_MEMBER_CODE_EXISTS);
-            }
+        if (!isEmptyOwnerMemberCode && isServerOwnerInitialized) {
+            errorMetadata.add(ERROR_METADATA_MEMBER_CODE_EXISTS);
         }
 
-        if (StringUtils.isEmpty(softwareTokenPin)) {
-            if (!isSoftwareTokenInitialized) {
-                errorMetadata.add(ERROR_METADATA_PIN_NOT_PROVIDED);
-            }
+        if (isEmptySoftwareTokenPin && !isSoftwareTokenInitialized) {
+            errorMetadata.add(ERROR_METADATA_PIN_NOT_PROVIDED);
         }
 
-        if (!StringUtils.isEmpty(softwareTokenPin)) {
-            if (isSoftwareTokenInitialized) {
-                errorMetadata.add(ERROR_METADATA_PIN_EXISTS);
-            }
+        if (!isEmptySoftwareTokenPin && isSoftwareTokenInitialized) {
+            errorMetadata.add(ERROR_METADATA_PIN_EXISTS);
         }
 
         if (!errorMetadata.isEmpty()) {
