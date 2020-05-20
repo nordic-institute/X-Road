@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.commonui;
+package ee.ria.xroad.commonui;
 
 import org.junit.Test;
 

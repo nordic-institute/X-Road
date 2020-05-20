@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -65,8 +65,8 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     ConfProxyUtilViewConf() {
         super("confproxy-view-conf");
         getOptions().addOption(PROXY_INSTANCE)
-            .addOption("a", "all", false,
-                    "show configurations for all instances");
+                .addOption("a", "all", false,
+                        "show configurations for all instances");
     }
 
     @Override
@@ -100,7 +100,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      * @throws Exception if errors occur when reading properties
      */
     private void displayInfo(final String instance,
-            final ConfProxyProperties conf) throws Exception {
+                             final ConfProxyProperties conf) throws Exception {
         ConfigurationAnchorV2 anchor = null;
         String anchorError = null;
         try {
@@ -115,7 +115,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         int validityInterval = conf.getValidityIntervalSeconds();
         System.out.println("Validity interval: "
                 + (validityInterval < 0 ? VALIDITY_INTERVAL_NA_MSG
-                        : validityInterval + " s."));
+                : validityInterval + " s."));
         System.out.println();
 
         System.out.println(ConfProxyProperties.ANCHOR_XML);
@@ -168,7 +168,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      * @return string describing certificate information
      */
     private String certInfo(final String keyId,
-            final ConfProxyProperties conf) {
+                            final ConfProxyProperties conf) {
         if (keyId == null) {
             return "";
         }

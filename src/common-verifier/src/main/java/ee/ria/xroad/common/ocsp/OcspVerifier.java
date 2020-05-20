@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -77,7 +77,8 @@ public final class OcspVerifier {
     private final OcspVerifierOptions options;
 
     private static final TimeBasedObjectCache CACHE = new TimeBasedObjectCache(SystemProperties
-            .getOcspVerifierCachePeriod());;
+            .getOcspVerifierCachePeriod());
+    ;
 
     /**
      * Constructor
@@ -101,7 +102,7 @@ public final class OcspVerifier {
      * if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer) throws Exception {
+                                        X509Certificate subject, X509Certificate issuer) throws Exception {
         verifyValidityAndStatus(response, subject, issuer, new Date());
     }
 
@@ -116,8 +117,8 @@ public final class OcspVerifier {
      * if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer, Date atDate)
-                    throws Exception {
+                                        X509Certificate subject, X509Certificate issuer, Date atDate)
+            throws Exception {
         verifyValidity(response, subject, issuer, atDate);
         verifyStatus(response);
     }
@@ -132,7 +133,7 @@ public final class OcspVerifier {
      * if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer) throws Exception {
+                               X509Certificate issuer) throws Exception {
         verifyValidity(response, subject, issuer, new Date());
     }
 
@@ -147,10 +148,10 @@ public final class OcspVerifier {
      * if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer, Date atDate) throws Exception {
+                               X509Certificate issuer, Date atDate) throws Exception {
         log.debug("verifyValidity(subject: {}, issuer: {}, atDate: {})",
-                new Object[] {subject.getSubjectX500Principal().getName(),
-                    issuer.getSubjectX500Principal().getName(), atDate});
+                new Object[]{subject.getSubjectX500Principal().getName(),
+                        issuer.getSubjectX500Principal().getName(), atDate});
 
         SingleResp singleResp = verifyResponseValidityCached(response, subject, issuer);
         verifyValidityAt(atDate, singleResp);
@@ -268,11 +269,11 @@ public final class OcspVerifier {
      */
     public boolean isExpired(SingleResp singleResp, Date atDate) {
         Date allowedThisUpdate = new DateTime(atDate)
-            .minusSeconds(ocspFreshnessSeconds).toDate();
+                .minusSeconds(ocspFreshnessSeconds).toDate();
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
-                + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
-                        allowedThisUpdate, atDate });
+                + "atDate: {})", new Object[]{singleResp.getThisUpdate(),
+                allowedThisUpdate, atDate});
 
         return singleResp.getThisUpdate().before(allowedThisUpdate);
     }
@@ -368,7 +369,7 @@ public final class OcspVerifier {
     }
 
     private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-            X509Certificate issuer) throws Exception {
+                                                  X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
         if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {

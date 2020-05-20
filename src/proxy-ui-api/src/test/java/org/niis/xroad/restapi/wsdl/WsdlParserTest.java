@@ -38,6 +38,7 @@ public class WsdlParserTest {
 
     /**
      * Test if a valid WSDL is parsed correctly.
+     *
      * @throws Exception in case of any errors
      */
     @Test
@@ -48,6 +49,7 @@ public class WsdlParserTest {
 
     /**
      * Test if an invalid WSDL is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
@@ -57,6 +59,7 @@ public class WsdlParserTest {
 
     /**
      * Test if an invalid URL is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlNotFoundException.class)
@@ -66,6 +69,7 @@ public class WsdlParserTest {
 
     /**
      * Test if a fault XML is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
@@ -75,6 +79,7 @@ public class WsdlParserTest {
 
     /**
      * Test if NotFound is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlNotFoundException.class)

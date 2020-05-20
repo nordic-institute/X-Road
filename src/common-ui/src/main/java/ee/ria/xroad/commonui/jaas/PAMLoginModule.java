@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -59,7 +59,7 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public void initialize(Subject subj, CallbackHandler callback,
-            Map<String, ?> sharedState, Map<String, ?> options) {
+                           Map<String, ?> sharedState, Map<String, ?> options) {
         this.subject = subj;
         this.callbackHandler = callback;
     }
@@ -78,7 +78,7 @@ public class PAMLoginModule implements LoginModule {
 
             webName = ((NameCallback) callbacks[0]).getName();
             String webPassword = new String(
-                ((PasswordCallback) callbacks[1]).getPassword());
+                    ((PasswordCallback) callbacks[1]).getPassword());
 
             if (webName == null) {
                 return false;
@@ -107,7 +107,7 @@ public class PAMLoginModule implements LoginModule {
         }
 
         subject.getPrincipals().add(
-            new JAASPrincipal(currentUser.getUserName()));
+                new JAASPrincipal(currentUser.getUserName()));
 
         for (String group : currentUser.getGroups()) {
             subject.getPrincipals().add(new JAASRole(group));
@@ -136,7 +136,7 @@ public class PAMLoginModule implements LoginModule {
         }
 
         subject.getPrincipals().remove(
-            new JAASPrincipal(currentUser.getUserName()));
+                new JAASPrincipal(currentUser.getUserName()));
 
         for (String group : currentUser.getGroups()) {
             subject.getPrincipals().remove(new JAASRole(group));
