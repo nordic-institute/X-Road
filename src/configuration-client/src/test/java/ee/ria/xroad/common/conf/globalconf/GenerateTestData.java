@@ -72,7 +72,7 @@ public final class GenerateTestData {
             .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/" + SHARED_PARAMETERS_XML),
                     SHARED_PARAMETERS_XML)
             .addEntry(new ConfDirEntry("FOO", "EE", "/foo.xml"), "/foo.xml")
-            .save();
+                .save();
 
         // detached conf scenario
         new TestConfDir("test-conf-detached").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,

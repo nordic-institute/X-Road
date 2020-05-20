@@ -195,7 +195,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
     @Test
     public void storeAndQueryDataFilteringByOutputFields() throws Exception {
         ClientId client = ClientId.create(
-               "XTEE-CI-XM", "GOV", "00000001", "System1");
+                "XTEE-CI-XM", "GOV", "00000001", "System1");
 
         storeFullOperationalDataRecords(1, 1474968960L);
 

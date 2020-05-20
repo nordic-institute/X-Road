@@ -68,7 +68,7 @@ public final class ConfProxyTest {
                     conf.getConfigurationDownloadPath(SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION));
 
             OutputBuilder output = new OutputBuilder(confDir, conf,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
+                    SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
             output.buildSignedDirectory();
             output.moveAndCleanup();
         } catch (Exception ex) {
