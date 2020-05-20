@@ -40,12 +40,11 @@ public final class GlobalConfExtensions {
 
     // Instance per thread, same way as in GlobalGonf/GlobalConfImpl.
     // This way thread safety handling is same as in GlobalConf.
-    private static final ThreadLocal<GlobalConfExtensions> INSTANCE
-                    = new ThreadLocal<GlobalConfExtensions>() {
-                        @Override
-                        protected GlobalConfExtensions initialValue() {
-                            return new GlobalConfExtensions();
-                        }
+    private static final ThreadLocal<GlobalConfExtensions> INSTANCE = new ThreadLocal<GlobalConfExtensions>() {
+        @Override
+        protected GlobalConfExtensions initialValue() {
+            return new GlobalConfExtensions();
+        }
     };
 
     private OcspNextUpdate ocspNextUpdate;

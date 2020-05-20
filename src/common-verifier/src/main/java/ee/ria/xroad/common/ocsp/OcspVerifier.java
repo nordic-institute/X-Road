@@ -272,7 +272,7 @@ public final class OcspVerifier {
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
-                allowedThisUpdate, atDate });
+                        allowedThisUpdate, atDate });
 
         return singleResp.getThisUpdate().before(allowedThisUpdate);
     }

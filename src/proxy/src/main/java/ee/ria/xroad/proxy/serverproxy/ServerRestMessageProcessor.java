@@ -131,8 +131,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private String xRequestId;
 
-    ServerRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-                               HttpClient httpClient, X509Certificate[] clientSslCerts, OpMonitoringData opMonitoringData) {
+    ServerRestMessageProcessor(HttpServletRequest servletRequest,
+                               HttpServletResponse servletResponse,
+                               HttpClient httpClient,
+                               X509Certificate[] clientSslCerts,
+                               OpMonitoringData opMonitoringData) {
         super(servletRequest, servletResponse, httpClient);
 
         this.clientSslCerts = clientSslCerts;
