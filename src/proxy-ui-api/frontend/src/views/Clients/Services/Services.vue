@@ -154,6 +154,7 @@ import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 import { cloneDeep } from 'lodash';
 import { Service, ServiceDescription } from '@/types';
 import { ServiceTypeEnum } from '@/domain';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   components: {
@@ -166,30 +167,30 @@ export default Vue.extend({
   },
   props: {
     id: {
-      type: String,
+      type: String as Prop<string>,
       required: true,
     },
   },
   data() {
     return {
-      search: '',
-      addWsdlDialog: false,
-      addRestDialog: false,
-      disableDescDialog: false,
-      selectedServiceDesc: undefined,
-      selectedIndex: -1,
-      componentKey: 0,
+      search: '' as string,
+      addWsdlDialog: false as boolean,
+      addRestDialog: false as boolean,
+      disableDescDialog: false as boolean,
+      selectedServiceDesc: undefined as undefined | ServiceDescription,
+      selectedIndex: -1 as number,
+      componentKey: 0 as number,
       expanded: [] as string[],
-      serviceDescriptions: [] as any[],
-      warningInfo: undefined,
-      saveWarningDialog: false,
-      refreshWarningDialog: false,
-      url: '',
-      refreshId: '',
-      addBusy: false,
+      serviceDescriptions: [] as ServiceDescription[],
+      warningInfo: undefined as undefined | string[],
+      saveWarningDialog: false as boolean,
+      refreshWarningDialog: false as boolean,
+      url: '' as string,
+      refreshId: '' as string,
+      addBusy: false as boolean,
       refreshBusy: {} as any,
-      refreshButtonComponentKey: 0,
-      serviceTypeEnum: ServiceTypeEnum,
+      refreshButtonComponentKey: 0 as number,
+      serviceTypeEnum: ServiceTypeEnum as any,
     };
   },
   computed: {
@@ -359,12 +360,10 @@ export default Vue.extend({
           this.fetchData();
         })
         .catch((error) => {
-          if (error.response.data.warnings) {
+          if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.saveWarningDialog = true;
-          } else if (
-            error.response.data.error.code === 'service_already_exists'
-          ) {
+          } else if (error?.response?.data?.error?.code === 'service_already_exists') {
             this.$store.dispatch(
               'showErrorMessageRaw',
               'service already exists',
