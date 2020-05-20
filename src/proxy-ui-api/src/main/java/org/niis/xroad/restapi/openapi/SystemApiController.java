@@ -25,12 +25,10 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.AnchorConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
@@ -68,6 +66,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_CERT_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_SSL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.IMPORT_PROXY_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
 
@@ -280,6 +279,7 @@ public class SystemApiController implements SystemApi {
      */
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    @AuditEventMethod(event = INIT_ANCHOR)
     public ResponseEntity<Void> uploadInitialAnchor(Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         try {

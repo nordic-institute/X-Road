@@ -104,7 +104,8 @@ public enum RestApiAuditProperty {
     TSP_NAME,
     TSP_URL,
 
-    TO_DO_REMOVE_THIS; // TO DO: remove last one
+    OWNER_IDENTIFIER,
+    SERVER_CODE;
 
     /**
      * Gets logged property name for the enum value.

@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -47,6 +48,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 /**
  * service for initializing the security server
@@ -80,6 +84,7 @@ public class InitializationService {
     private final GlobalConfFacade globalConfFacade;
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
+    private final AuditDataHelper auditDataHelper;
 
     @Setter
     private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
@@ -87,13 +92,14 @@ public class InitializationService {
     @Autowired
     public InitializationService(SystemService systemService, ServerConfService serverConfService,
             TokenService tokenService, GlobalConfFacade globalConfFacade, ClientService clientService,
-            SignerProxyFacade signerProxyFacade) {
+            SignerProxyFacade signerProxyFacade, AuditDataHelper auditDataHelper) {
         this.systemService = systemService;
         this.serverConfService = serverConfService;
         this.tokenService = tokenService;
         this.globalConfFacade = globalConfFacade;
         this.clientService = clientService;
         this.signerProxyFacade = signerProxyFacade;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -163,6 +169,8 @@ public class InitializationService {
         } else {
             ownerClientId = ClientId.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
         }
+        auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
+        auditDataHelper.put(SERVER_CODE, securityServerCode);
         if (!ignoreWarnings) {
             checkForWarnings(ownerClientId, securityServerCode);
         }
