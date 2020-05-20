@@ -41,6 +41,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -160,10 +162,14 @@ public class AuditDataHelper {
 
     /**
      * calculates hash, formats it according to audit log format, and puts hash and default hash algorithm
-     * @param certBytes certificate bytes
+     * @param certificate certificate
      */
-    public void putCertificateHash(byte[] certBytes) {
-        putAlreadyFormattedCertificateHash(createFormattedHash(certBytes));
+    public void putCertificateHash(X509Certificate certificate) {
+        try {
+            putAlreadyFormattedCertificateHash(createFormattedHash(certificate.getEncoded()));
+        } catch (CertificateEncodingException e) {
+            log.error("Unable to audit log generated certificate hash", e);
+        }
     }
 
     /**

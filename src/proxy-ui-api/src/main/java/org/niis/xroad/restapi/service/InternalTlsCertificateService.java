@@ -156,11 +156,7 @@ public class InternalTlsCertificateService {
         }
         // audit log hash of generated cert
         X509Certificate generatedCert = internalTlsCertificateRepository.getInternalTlsCertificate();
-        try {
-            auditDataHelper.putCertificateHash(generatedCert.getEncoded());
-        } catch (CertificateEncodingException e) {
-            log.error("Unable to audit log generated certificate hash", e);
-        }
+        auditDataHelper.putCertificateHash(generatedCert);
     }
 
     /**
@@ -170,13 +166,13 @@ public class InternalTlsCertificateService {
      * @throws InvalidCertificateException
      */
     public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException {
-        auditDataHelper.putCertificateHash(certificateBytes);
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = CryptoUtils.readCertificate(certificateBytes);
         } catch (Exception e) {
             throw new InvalidCertificateException("cannot convert bytes to certificate", e);
         }
+        auditDataHelper.putCertificateHash(x509Certificate);
         try {
             CertUtils.writePemToFile(certificateBytes, internalCertPath);
             CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
