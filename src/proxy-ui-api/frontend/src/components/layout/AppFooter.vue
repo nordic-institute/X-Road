@@ -26,7 +26,7 @@
           <v-row>
             <v-col>
               <a class="footer-link" target="_blank"
-                 href="https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports">
+                 href="https://x-road.global/feedback">
                 {{$t('footer.software.feedback')}}
               </a>
             </v-col>
