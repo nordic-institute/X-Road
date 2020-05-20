@@ -484,6 +484,7 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
     }
 
+    @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addDuplicateAccessRight() throws Exception {
         when(globalConfService.clientsExist(any())).thenReturn(true);
@@ -500,7 +501,7 @@ public class ServicesApiControllerIntegrationTest {
                         ServiceClientType.SUBSYSTEM));
         try {
             servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
-            throw new Exception("Should throw Conflict exception in stead of this");
+            fail("Should throw Conflict exception in stead of this");
         } catch (ConflictException e) { }
 
         // try adding duplicate local group
@@ -509,20 +510,20 @@ public class ServicesApiControllerIntegrationTest {
                         ServiceClientType.LOCALGROUP));
         try {
             servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, existingLocalGroup);
-            throw new Exception("Should throw Conflict exception in stead of this");
+            fail("Should throw Conflict exception in stead of this");
         } catch (ConflictException e) { }
 
 
-        // try adding two identical localgroups -> no exception, only one added
+        // try adding two identical localgroups
         List<ServiceClient> itemsBefore =
                 servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         ServiceClient localGroup = new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                 ServiceClientType.LOCALGROUP);
         ServiceClients duplicateLocalGroups = new ServiceClients().addItemsItem(localGroup).addItemsItem(localGroup);
-        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
-        List<ServiceClient> itemsAfter =
-                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
-        assertEquals(itemsBefore.size() + 1, itemsAfter.size());
+        try {
+            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
+            fail("Should throw Conflict exception in stead of this");
+        } catch (ConflictException e) { }
     }
 
     @Test(expected = BadRequestException.class)
