@@ -41,12 +41,12 @@ public final class GlobalConfExtensions {
     // Instance per thread, same way as in GlobalGonf/GlobalConfImpl.
     // This way thread safety handling is same as in GlobalConf.
     private static final ThreadLocal<GlobalConfExtensions> INSTANCE
-            = new ThreadLocal<GlobalConfExtensions>() {
-                @Override
-                protected GlobalConfExtensions initialValue() {
-                    return new GlobalConfExtensions();
-                }
-            };
+                    = new ThreadLocal<GlobalConfExtensions>() {
+                        @Override
+                        protected GlobalConfExtensions initialValue() {
+                            return new GlobalConfExtensions();
+                        }
+    };
 
     private OcspNextUpdate ocspNextUpdate;
     private OcspFetchInterval ocspFetchInterval;
@@ -132,13 +132,13 @@ public final class GlobalConfExtensions {
 
                 if (Files.exists(ocspFetchIntervalPath)) {
                     log.trace("Loading private parameters from {}",
-                            ocspFetchIntervalPath);
+                                ocspFetchIntervalPath);
                     ocspFetchInterval = new OcspFetchInterval();
                     ocspFetchInterval.load(getOcspFetchIntervalConfigurationPath().toString());
                     log.trace("Parameters were loaded, value: {}", ocspFetchInterval.getOcspFetchInterval());
                 } else {
                     log.trace("Not loading ocsp fetch interval from {}, "
-                            + "file does not exist", ocspFetchIntervalPath);
+                                + "file does not exist", ocspFetchIntervalPath);
                 }
             }
         } catch (Exception e) {

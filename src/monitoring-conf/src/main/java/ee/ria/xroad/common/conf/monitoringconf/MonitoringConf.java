@@ -45,11 +45,11 @@ public final class MonitoringConf {
     // (in comparison to GlobalGonf/GlobalConfImpl/ConfigurationDirectoryV2)
     // since there is no need to (INSTANCE per thread).
     private static final ThreadLocal<MonitoringConf> INSTANCE
-            = new ThreadLocal<MonitoringConf>() {
-        @Override
-        protected MonitoringConf initialValue() {
-            return new MonitoringConf();
-        }
+                    = new ThreadLocal<MonitoringConf>() {
+                @Override
+                protected MonitoringConf initialValue() {
+                    return new MonitoringConf();
+                }
     };
 
     private MonitoringParameters monitoringParameters;

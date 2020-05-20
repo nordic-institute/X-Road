@@ -268,7 +268,7 @@ public final class OcspVerifier {
      */
     public boolean isExpired(SingleResp singleResp, Date atDate) {
         Date allowedThisUpdate = new DateTime(atDate)
-            .minusSeconds(ocspFreshnessSeconds).toDate();
+                .minusSeconds(ocspFreshnessSeconds).toDate();
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),

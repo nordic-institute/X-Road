@@ -61,8 +61,8 @@ public class ConfProxy {
         log.debug("Purge outdated generations");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
-             version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
-             version--) {
+                version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
+                version--) {
             log.debug("Download global configuration version {}. Minimum version {}", version,
                     SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
             ConfigurationDirectory confDir = download(version);

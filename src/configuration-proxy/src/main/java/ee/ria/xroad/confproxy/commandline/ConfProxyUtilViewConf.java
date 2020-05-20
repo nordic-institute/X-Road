@@ -64,7 +64,8 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      */
     ConfProxyUtilViewConf() {
         super("confproxy-view-conf");
-        getOptions().addOption(PROXY_INSTANCE)
+        getOptions()
+                .addOption(PROXY_INSTANCE)
                 .addOption("a", "all", false,
                         "show configurations for all instances");
     }
