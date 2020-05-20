@@ -51,6 +51,7 @@ export default Vue.extend({
           name: 'tab.services.parameters',
           to: {
             name: RouteName.ServiceParameters,
+            query: { descriptionType: this.$route.query.descriptionType },
           },
         },
         {
@@ -58,6 +59,7 @@ export default Vue.extend({
           name: 'tab.services.endpoints',
           to: {
             name: RouteName.Endpoints,
+            query: { descriptionType: this.$route.query.descriptionType },
           },
         },
       ];
