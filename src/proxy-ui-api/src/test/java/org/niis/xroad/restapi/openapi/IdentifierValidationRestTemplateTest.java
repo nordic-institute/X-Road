@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -77,6 +78,9 @@ public class IdentifierValidationRestTemplateTest {
     private TestRestTemplate restTemplate;
 
     @MockBean
+    private SystemService systemService;
+
+    @MockBean
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
@@ -92,8 +96,8 @@ public class IdentifierValidationRestTemplateTest {
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(systemService.isAnchorImported()).thenReturn(false);
     }
 
     @Test
