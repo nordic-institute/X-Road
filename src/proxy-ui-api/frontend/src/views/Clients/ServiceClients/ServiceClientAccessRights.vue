@@ -21,10 +21,10 @@
       <div class="row-title">{{$t('serviceClients.accessRights')}}</div>
       <div class="row-buttons">
         <large-button
-          @click="removeAll()"
+          @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
-          v-if="accessRights.length > 0"
+          v-if="serviceClientAccessRights.length > 0"
         >{{$t('serviceClients.removeAll')}}
         </large-button>
         <large-button
@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <table class="xrd-table service-client-margin" v-if="accessRights.length > 0">
+    <table class="xrd-table service-client-margin" v-if="serviceClientAccessRights.length > 0">
       <thead>
         <tr>
           <th>{{$t('serviceClients.serviceCode')}}</th>
@@ -46,7 +46,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(accessRight, index) in accessRights" v-bind:index="index" >
+        <tr v-for="(accessRight, index) in serviceClientAccessRights" v-bind:index="index" >
           <td>{{accessRight.service_code}}</td>
           <td>{{accessRight.service_title}}</td>
           <td>{{accessRight.rights_given_at}}</td>
@@ -77,28 +77,35 @@
       @cancel="hideAddService">
     </AddServiceClientServiceDialog>
 
+    <!-- Confirm dialog delete group -->
+    <confirmDialog
+      :dialog="showConfirmDeleteAll"
+      title="serviceClients.removeAllTitle"
+      text="serviceClients.removeAllText"
+      @cancel="showConfirmDeleteAll = false"
+      @accept="removeAll()"
+    />
+
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import * as api from '@/util/api';
-import {AccessRight, AccessRights, Service, ServiceClient, ServiceDescription} from '@/types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
+  import Vue from 'vue';
+  import * as api from '@/util/api';
+  import {AccessRight, AccessRights, ServiceClient, ServiceDescription} from '@/types';
+  import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+  import LargeButton from '@/components/ui/LargeButton.vue';
+  import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
+  import {serviceCandidatesForServiceClient} from '@/util/serviceClientUtils';
+  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+  import {ServiceCandidate} from '@/ui-types';
 
-export interface ServiceCandidate {
-  service_code: string;
-  service_title?: string;
-  id: string;
-}
-
-export default Vue.extend({
+  export default Vue.extend({
   components: {
     SubViewTitle,
     LargeButton,
     AddServiceClientServiceDialog,
+    ConfirmDialog,
   },
   props: {
     id: {
@@ -112,42 +119,57 @@ export default Vue.extend({
   },
   data() {
     return {
-      accessRights: [] as AccessRight[],
+      serviceClientAccessRights: [] as AccessRight[],
       serviceClient: {} as ServiceClient,
       isAddServiceDialogVisible: false as boolean,
-      serviceDescriptions: [] as ServiceDescription[],
-      services: [] as Service[],
+      clientServiceDescriptions: [] as ServiceDescription[],
+      showConfirmDeleteAll: false as boolean,
     };
   },
   methods: {
     fetchData(): void {
 
       this.fetchAccessRights();
-
+      this.fetchServiceDescriptions();
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
         .then( (response: any) => this.serviceClient = response.data)
         .catch( (error: any) => this.$store.dispatch('showError', error));
 
+    },
+    fetchServiceDescriptions(): void {
       api
         .get(`/clients/${this.id}/service-descriptions`)
         .then( (response: any) => {
-          this.serviceDescriptions = response.data;
+          this.clientServiceDescriptions = response.data;
         })
         .catch( (error: any) => this.$store.dispatch('showError', error));
     },
     fetchAccessRights(): void {
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
-        .then( (response: any) => this.accessRights = response.data)
+        .then( (response: any) => this.serviceClientAccessRights = response.data)
         .catch( (error: any) => this.$store.dispatch('showError', error));
     },
     close(): void {
       this.$router.go(-1);
     },
+    remove(accessRight: AccessRight): void {
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          {items: [{service_code: accessRight.service_code}]})
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          if (this.serviceClientAccessRights.length === 1) {
+            this.serviceClientAccessRights = [];
+          } else {
+            this.fetchAccessRights();
+          }
+        })
+        .catch((error: any) => this.$store.dispatch('showError', error));
+    },
     addService(accessRights: AccessRight[]): void {
       this.hideAddService();
-
       const accessRightsObject: AccessRights = { items: accessRights };
       api
         .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`, accessRightsObject)
@@ -160,39 +182,27 @@ export default Vue.extend({
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
     },
-    remove(): void {
-      // NOOP
-    },
     showAddServiceDialog(): void {
       this.isAddServiceDialogVisible = true;
     },
     removeAll(): void {
-      // NOOP
+      this.showConfirmDeleteAll = false;
+
+      api
+        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          {items: this.serviceClientAccessRights.map((item: AccessRight) => ({service_code: item.service_code}))})
+        .then(() => {
+          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          this.serviceClientAccessRights = [];
+        })
+        .catch((error: any) => this.$store.dispatch('showError', error));
+
     },
     serviceCandidates(): ServiceCandidate[] {
-      // returns whether given access right is for given service
-      const isNotAccessRightToService = (service: Service, accessRight: AccessRight) =>
-        accessRight.service_code !== service.service_code;
-
-      // returns whether accessrights list contains any access that is for given service
-      const noAccessRightsToService = (service: Service) =>
-        this.accessRights.every( (accessRight: AccessRight) => isNotAccessRightToService(service, accessRight));
-
-      // return services that can be added to this service client
-      return this.serviceDescriptions
-        // pick all services from service descriptions
-        .reduce( (curr: Service[], next: ServiceDescription) => curr.concat(...next.services), this.services)
-        // filter out services where this service client has access right already
-        .filter( (service: Service) => noAccessRightsToService(service))
-        // map to service candidates
-        .map( (service: Service): ServiceCandidate => ({
-          service_code: service.service_code,
-          service_title: service.title,
-          id: service.id, // add id for UI components to work in loop
-        }));
+      return serviceCandidatesForServiceClient(this.clientServiceDescriptions, this.serviceClientAccessRights);
     },
   },
-  created() {
+  created(): void {
     this.fetchData();
   },
 

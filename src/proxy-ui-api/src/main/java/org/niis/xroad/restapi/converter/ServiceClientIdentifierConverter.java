@@ -28,25 +28,21 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
-import com.google.common.collect.Streams;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Converter for ServiceClient
+ * Converter for ServiceClient identifiers
  */
 @Component
 public class ServiceClientIdentifierConverter {
 
-    public static final String ERROR_INVALID_SERVICE_CLIENT_ID = "invalid_service_client_id";
-    private static final String INVALID_SERVICE_CLIENT_ID = "Invalid service client id ";
     private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
 
@@ -64,9 +60,10 @@ public class ServiceClientIdentifierConverter {
      * and whether the whole string is numeric or not
      * @param encodedServiceClientIdentifier encoded service client id
      * @return ServiceClientIdentifierDto object
-     * @throws BadRequestException if encoded service client id was badly formatted
+     * @throws BadServiceClientIdentifierException if encoded service client id was badly formatted
      */
-    public ServiceClientIdentifierDto convertId(String encodedServiceClientIdentifier) {
+    public ServiceClientIdentifierDto convertId(String encodedServiceClientIdentifier)
+            throws BadServiceClientIdentifierException {
         ServiceClientIdentifierDto dto = new ServiceClientIdentifierDto();
         if (clientConverter.isEncodedSubsystemId(encodedServiceClientIdentifier)) {
             // subsystem
@@ -81,28 +78,37 @@ public class ServiceClientIdentifierConverter {
             try {
                 id = Long.parseLong(encodedServiceClientIdentifier);
             } catch (NumberFormatException e) {
-                throw createBadServiceClientIdException(encodedServiceClientIdentifier);
+                throw new BadServiceClientIdentifierException(encodedServiceClientIdentifier);
             }
             dto.setLocalGroupId(id);
         } else {
-            throw createBadServiceClientIdException(encodedServiceClientIdentifier);
+            throw new BadServiceClientIdentifierException(encodedServiceClientIdentifier);
         }
         return dto;
     }
 
-    private BadRequestException createBadServiceClientIdException(String encodedId) {
-        return new BadRequestException(INVALID_SERVICE_CLIENT_ID + encodedId,
-                new ErrorDeviation(ERROR_INVALID_SERVICE_CLIENT_ID));
+    public static class BadServiceClientIdentifierException extends Exception {
+        @Getter
+        private String serviceClientIdentifier;
+
+        public BadServiceClientIdentifierException(String serviceClientIdentifier) {
+            super();
+            this.serviceClientIdentifier = serviceClientIdentifier;
+        }
     }
 
     /**
      * Convert collection of encoded service client ids into ServiceClientIdentifierDtos
      * See {@link #convertId(String)} for details.
+     * @throws BadServiceClientIdentifierException if encoded service client id was badly formatted
      */
-    public List<ServiceClientIdentifierDto> convertIds(Iterable<String> encodeServiceClientIdentifiers) {
-        return Streams.stream(encodeServiceClientIdentifiers)
-                .map(this::convertId)
-                .collect(Collectors.toList());
+    public List<ServiceClientIdentifierDto> convertIds(Iterable<String> encodedServiceClientIdentifiers)
+            throws BadServiceClientIdentifierException {
+        List<ServiceClientIdentifierDto> dtos = new ArrayList<>();
+        for (String encodedIdentifier : encodedServiceClientIdentifiers) {
+            dtos.add(convertId(encodedIdentifier));
+        }
+        return dtos;
     }
 
 }

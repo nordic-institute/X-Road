@@ -231,4 +231,16 @@ public class GlobalConfService {
             throw new ConfigurationDownloadException(response.getBody());
         }
     }
+
+    /**
+     * Find member's name in the global conf
+     * @param memberClass
+     * @param memberCode
+     * @return
+     */
+    public String findMemberName(String memberClass, String memberCode) {
+        String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
+        ClientId clientId = ClientId.create(instanceIdentifier, memberClass, memberCode);
+        return globalConfFacade.getMemberName(clientId);
+    }
 }

@@ -25,6 +25,12 @@ log4j:
           jpa: DEBUG
         transaction: DEBUG
 
+ratelimit:
+  requests:
+    per:
+      second: 60
+      minute: 3600
+
 #server:
 #  error:
 #    include-stacktrace: always

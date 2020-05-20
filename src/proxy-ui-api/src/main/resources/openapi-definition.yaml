@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.26"
+  version: "1.0.27"
   title: X-Road UI Based API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -1812,6 +1812,79 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /initialization:
+    post: # ok
+      tags:
+        - security server
+      summary: Initialize a new security server with the provided initial configuration
+      operationId: initSecurityServer
+      description: Administrator initializes a new security server with the provided initial configuration
+      requestBody:
+        description: initial security server configuration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitialServerConf'
+      responses:
+        '201':
+          description: security server initialized
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /initialization/status:
+    get: # ok
+      tags:
+        - security server
+      summary: Check the initialization status of the Security Server
+      operationId: getInitializationStatus
+      description: Administrator checks the initialization status of the Security Server
+      responses:
+        '200':
+          description: initialization status of the Security Server
+          content:
+            application/json:
+              schema:
+                type: object
+                title: InitializationStatus
+                description: Initialization status of the Security Server
+                properties:
+                  is_anchor_imported:
+                    type: boolean
+                    description: whether a configuration anchor has been imported or not
+                  is_server_code_initialized:
+                    type: boolean
+                    description: whether the server code of the security server has been initialized or not
+                  is_server_owner_initialized:
+                    type: boolean
+                    description: whether the server owner of the security server has been initialized or not
+                  is_software_token_initialized:
+                    type: boolean
+                    description: whether a software token has been initialized or not
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
   /local-groups/{group_id}:
     get: # ok
       tags:
@@ -2411,6 +2484,57 @@ paths:
                   format: text
                   minLength: 1
                   maxLength: 255
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /member-names:
+    get: # ok
+      tags:
+        - security server
+      summary: find member name by member class and member code
+      operationId: findMemberName
+      description: Administrator looks up member's name
+      parameters:
+        - in: query
+          name: member_class
+          description: class of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: member_code
+          description: code of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: name of the member
+          content:
+            application/json:
+              schema:
+                title: MemberName
+                type: object
+                description: member's name
+                properties:
+                  member_name:
+                    type: string
+                    format: text
         '400':
           description: request was invalid
         '401':
@@ -3348,12 +3472,46 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: Upload a new configuration anchor file when initializing a new security server.
+        Calls to this endpoint only succeed if a configuration anchor is not already found – meaning that this endpoint can only be used when initializing a new security server.
+        For updating the anchor for an already initialized security server use the PUT /system/anchor endpoint instead
+      operationId: uploadInitialAnchor
+      description: Administrator uploads a new configuration anchor file in the security server's initialization phase
+      requestBody:
+        description: configuration anchor
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: configuration anchor file
+      responses:
+        '201':
+          description: configuration anchor uploaded
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
     put: # ok
       tags:
         - security server
-      summary: upload a configuration anchor file
-      operationId: uploadAnchor
-      description: Administrator uploads a configuration anchor file
+      summary: Upload a configuration anchor file to replace an existing one. Note that this only works if there already exists an anchor that can be replaced.
+        When initalizing a new Security Server use endpoint POST /system/anchor instead
+      operationId: replaceAnchor
+      description: Administrator uploads a configuration anchor file anytime after the Security Server has been initialized
       requestBody:
         description: configuration anchor
         content:
@@ -3383,9 +3541,21 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: Read and the configuration anchor file and return the hash for a preview. The instance of the anchor is also validated. The anchor will not be saved
+      summary: Read and the configuration anchor file and return the hash for a preview.
+        The instance of the anchor is also validated unless the validate_instance query parameter is explicitly set to false.
+        The anchor will not be saved
       operationId: previewAnchor
       description: Administrator wants to preview a configuration anchor file hash
+      parameters:
+        - in: query
+          name: validate_instance
+          description: Whether or not to validate the owner instance of the anchor.
+            Set this to false explicitly when previewing an anchor in the security server initialization phase.
+            Default value is true if the parameter is omitted.
+          required: false
+          schema:
+            type: boolean
+            default: true
       requestBody:
         description: configuration anchor
         content:
@@ -4885,6 +5055,43 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    InitialServerConf: # ok
+      type: object
+      description: security server initial configuration
+      properties:
+        owner_member_class:
+          type: string
+          format: text
+          description: member class
+          example: GOV
+          minLength: 1
+          maxLength: 255
+        owner_member_code:
+          type: string
+          format: text
+          description: member code
+          example: 12345678-9
+          minLength: 1
+          maxLength: 255
+        security_server_code:
+          type: string
+          format: text
+          description: security server code
+          example: SS1
+          minLength: 1
+          maxLength: 255
+        software_token_pin:
+          type: string
+          format: text
+          description: pin code for the initial software token
+          example: sup3rs3cr3t_p!n
+          minLength: 1
+          maxLength: 255
+        ignore_warnings:
+          type: boolean
+          default: false
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
     LocalGroup: # ok
       type: object
       description: group
@@ -5385,7 +5592,6 @@ components:
       description: service client. May be a subsystem, local group, or a global group
       required:
         - id
-        - subject_type
       properties:
         id:
           type: string
@@ -5412,6 +5618,7 @@ components:
           readOnly: true
         service_client_type:
           $ref: '#/components/schemas/ServiceClientType'
+          readOnly: true
         rights_given_at:
           type: string
           format: date-time

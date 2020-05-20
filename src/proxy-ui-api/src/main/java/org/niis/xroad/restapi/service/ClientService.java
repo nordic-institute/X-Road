@@ -250,7 +250,7 @@ public class ClientService {
      * Get a local client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
-    private ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
+    public ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
         ClientType clientType = getLocalClient(id);
         if (clientType == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
@@ -701,7 +701,7 @@ public class ClientService {
      * If ClientId already exists in DB, return the managed instance.
      * Otherwise return transient instance that was given as parameter
      */
-    private ClientId getPossiblyManagedEntity(ClientId transientClientId) {
+    public ClientId getPossiblyManagedEntity(ClientId transientClientId) {
         ClientId managedEntity = identifierRepository.getClientId(transientClientId);
         if (managedEntity != null) {
             return managedEntity;

@@ -22,45 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Test util for working with persistence
  */
-@Slf4j
-@Repository
-public class ServerConfRepository {
+@Component
+public class PersistenceTestUtil {
 
-    private final PersistenceUtils persistenceUtils;
+    private final EntityManager entityManager;
 
     @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public PersistenceTestUtil(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     /**
-     * Return ServerConfType
-     * @return
+     * Count number of rows in database for specific mapped class
      */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
-
-    /**
-     * Save or update ServerConf
-     * @return
-     */
-    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
-        return serverConfType;
+    public long countRows(Class entityClass) {
+        Query query = entityManager.createQuery("SELECT count(*) FROM "
+                + entityClass.getSimpleName());
+        return (long) query.getSingleResult();
     }
 }
