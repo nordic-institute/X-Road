@@ -439,7 +439,6 @@ public class ClientsApiController implements ClientsApi {
                 addedServiceDescriptionType);
 
         auditDataHelper.put(DISABLED, addedServiceDescription.getDisabled());
-//        auditDataHelper.put(REFRESHED_DATE, addedServiceDescription.getRefreshedAt());
         auditDataHelper.putDateTime(REFRESHED_DATE, addedServiceDescription.getRefreshedAt());
 
         return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,

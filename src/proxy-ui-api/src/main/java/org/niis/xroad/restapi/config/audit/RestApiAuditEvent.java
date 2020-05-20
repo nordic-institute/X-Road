@@ -83,6 +83,8 @@ public enum RestApiAuditEvent {
     // system parameters
     GENERATE_INTERNAL_CERT_REQ("Generate certificate request for TLS"),
     IMPORT_PROXY_INTERNAL_CERT("Import TLS certificate from file"),
+    // TO DO: uses generatedAt format "2019-06-14T09:46:39+00:00" instead of old "2019-06-14T09:46:39+00:00"
+    // selected format is the same as in "add service description"
     UPLOAD_ANCHOR("Upload configuration anchor"),
     ADD_TSP("Add timestamping service"),
     DELETE_TSP("Delete timestamping service"),

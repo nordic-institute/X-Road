@@ -61,9 +61,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_URL;
@@ -305,8 +302,7 @@ public class SystemService {
     private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
             ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
-        auditDataHelper.put(ANCHOR_FILE_HASH, auditDataHelper.createFormattedHash(anchorBytes));
-        auditDataHelper.put(ANCHOR_FILE_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+        auditDataHelper.putAnchorHash(anchorBytes);
         ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(GENERATED_AT, anchor.getGeneratedAt());
         if (shouldVerifyAnchorInstance) {

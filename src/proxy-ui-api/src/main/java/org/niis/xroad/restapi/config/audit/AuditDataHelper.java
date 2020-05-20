@@ -49,6 +49,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.BACKUP_FILE_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASHES;
@@ -162,6 +164,22 @@ public class AuditDataHelper {
      */
     public void putCertificateHash(byte[] certBytes) {
         putAlreadyFormattedCertificateHash(createFormattedHash(certBytes));
+    }
+
+    /**
+     * calculates hash, formats it according to audit log format, and puts hash and hash algorithm properties
+     * @param bytes anchor bytes
+     */
+    public void putAnchorHash(byte[] bytes) {
+        String algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
+        String hash = null;
+        try {
+            hash = CryptoUtils.hexDigest(algorithm, bytes);
+        } catch (Exception e) {
+            log.error("audit logging certificate hash forming failed", e);
+        }
+        put(ANCHOR_FILE_HASH, formatHash(hash));
+        put(ANCHOR_FILE_HASH_ALGORITHM, algorithm);
     }
 
     /**
