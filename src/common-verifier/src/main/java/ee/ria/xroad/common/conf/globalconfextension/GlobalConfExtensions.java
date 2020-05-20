@@ -42,11 +42,11 @@ public final class GlobalConfExtensions {
     // This way thread safety handling is same as in GlobalConf.
     private static final ThreadLocal<GlobalConfExtensions> INSTANCE
             = new ThreadLocal<GlobalConfExtensions>() {
-        @Override
-        protected GlobalConfExtensions initialValue() {
-            return new GlobalConfExtensions();
-        }
-    };
+                @Override
+                protected GlobalConfExtensions initialValue() {
+                    return new GlobalConfExtensions();
+                }
+            };
 
     private OcspNextUpdate ocspNextUpdate;
     private OcspFetchInterval ocspFetchInterval;

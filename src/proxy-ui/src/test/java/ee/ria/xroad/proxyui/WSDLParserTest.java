@@ -74,6 +74,6 @@ public class WSDLParserTest {
      */
     @Test(expected = CodedException.class)
     public void readFaultInsteadOfWsdl() throws Exception {
-       WSDLParser.parseWSDL("file:src/test/resources/fault.xml");
+        WSDLParser.parseWSDL("file:src/test/resources/fault.xml");
     }
 }
