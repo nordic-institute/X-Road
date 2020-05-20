@@ -33,6 +33,7 @@ import io.github.bucket4j.Bucket4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
@@ -50,6 +51,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
+@Profile("nontest")
 @Order(IpThrottlingFilter.IP_THROTTLING_FILTER_ORDER)
 @Slf4j
 /**

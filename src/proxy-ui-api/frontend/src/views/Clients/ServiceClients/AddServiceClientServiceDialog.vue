@@ -52,8 +52,8 @@
   import Vue from 'vue';
   import SimpleDialog from '@/components/ui/SimpleDialog.vue';
   import {AccessRight} from '@/types';
-  import { ServiceCandidate } from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
   import { Prop } from 'vue/types/options';
+  import {ServiceCandidate} from '@/ui-types';
   export default Vue.extend({
     components: {
       SimpleDialog,

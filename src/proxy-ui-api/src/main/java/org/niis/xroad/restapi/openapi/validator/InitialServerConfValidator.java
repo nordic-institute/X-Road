@@ -22,45 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
-
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+package org.niis.xroad.restapi.openapi.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 
-/**
- * repository for working with ServerConfType / serverconf table
- */
+import java.util.Arrays;
+import java.util.Collection;
+
 @Slf4j
-@Repository
-public class ServerConfRepository {
+public class InitialServerConfValidator extends AbstractIdentifierValidator {
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return InitialServerConf.class.equals(clazz);
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
-
-    /**
-     * Save or update ServerConf
-     * @return
-     */
-    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
-        return serverConfType;
+    @Override
+    Collection<ValidatedField> getValidatedFields(Object target) {
+        InitialServerConf initialServerConf = (InitialServerConf) target;
+        return Arrays.asList(
+                ValidatedField.builder()
+                        .fieldName("securityServerCode")
+                        .value(initialServerConf.getSecurityServerCode()).build(),
+                ValidatedField.builder()
+                        .fieldName("ownerMemberClass")
+                        .value(initialServerConf.getOwnerMemberClass()).build(),
+                ValidatedField.builder()
+                        .fieldName("ownerMemberCode")
+                        .value(initialServerConf.getOwnerMemberCode()).build());
     }
 }

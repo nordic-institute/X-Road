@@ -22,45 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
-
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.openapi.model.MemberName;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Member names controller for finding member names
  */
+@Controller
+@RequestMapping("/api")
 @Slf4j
-@Repository
-public class ServerConfRepository {
-
-    private final PersistenceUtils persistenceUtils;
+@PreAuthorize("denyAll")
+public class MemberNamesApiController implements MemberNamesApi {
+    private final GlobalConfService globalConfService;
 
     @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public MemberNamesApiController(GlobalConfService globalConfService) {
+        this.globalConfService = globalConfService;
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
-
-    /**
-     * Save or update ServerConf
-     * @return
-     */
-    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
-        return serverConfType;
+    @Override
+    @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    public ResponseEntity<MemberName> findMemberName(String memberClass, String memberCode) {
+        String memberName = globalConfService.findMemberName(memberClass, memberCode);
+        if (StringUtils.isEmpty(memberName)) {
+            throw new ResourceNotFoundException("member name not found");
+        }
+        return new ResponseEntity<>(new MemberName().memberName(memberName), HttpStatus.OK);
     }
 }
