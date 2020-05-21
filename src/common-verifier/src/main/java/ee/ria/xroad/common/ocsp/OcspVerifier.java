@@ -76,7 +76,7 @@ public final class OcspVerifier {
     private final OcspVerifierOptions options;
 
     private static final TimeBasedObjectCache CACHE = new TimeBasedObjectCache(SystemProperties
-            .getOcspVerifierCachePeriod());;
+            .getOcspVerifierCachePeriod());
 
     /**
      * Constructor

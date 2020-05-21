@@ -37,25 +37,22 @@ import java.nio.file.Path;
 @Slf4j
 public final class GlobalConfExtensions {
 
-    // Instance per thread, same way as in GlobalGonf/GlobalConfImpl.
-    // This way thread safety handling is same as in GlobalConf.
-    private static final ThreadLocal<GlobalConfExtensions> INSTANCE
-            = new ThreadLocal<GlobalConfExtensions>() {
-        @Override
-        protected GlobalConfExtensions initialValue() {
-            return new GlobalConfExtensions();
-        }
-    };
-
     private OcspNextUpdate ocspNextUpdate;
     private OcspFetchInterval ocspFetchInterval;
+    private static volatile GlobalConfExtensions instance = null;
 
     /**
      * @return instance
      */
     public static GlobalConfExtensions getInstance() {
-        GlobalConfExtensions configuration =  INSTANCE.get();
-        return configuration;
+        if (instance == null) {
+            synchronized (GlobalConfExtensions.class){
+                if (instance == null) {
+                    instance = new GlobalConfExtensions();
+                }
+            }
+        }
+        return instance;
     }
 
     /**

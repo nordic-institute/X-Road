@@ -71,14 +71,10 @@ public abstract class MessageProcessorBase {
     }
 
     /**
-     * Saves the current configurations in thread local storage, to protect
-     * against configuration reloads during message processing.
+     * Verifies validity
      */
     private void cacheConfigurationForCurrentThread() {
-        GlobalConf.initForCurrentThread();
         GlobalConf.verifyValidity();
-
-        KeyConf.initForCurrentThread();
     }
 
     /**

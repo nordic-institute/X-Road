@@ -77,11 +77,9 @@ class QueryRequestProcessor {
     }
 
     /**
-     * Saves the current configurations in thread local storage, to protect
-     * against configuration reloads during message processing.
+     * Verifies configuration validity
      */
     private void cacheConfigurationForCurrentThread() {
-        GlobalConf.initForCurrentThread();
         GlobalConf.verifyValidity();
     }
 
