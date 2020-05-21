@@ -27,11 +27,14 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 RUN pg_ctlcluster 10 main start \
 && apt-get -qq update \
-&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin xroad-addon-messagelog \
+&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin xroad-addon-messagelog  xroad-addon-opmonitoring  \
 && su - postgres -c "psql postgres -tAc \"DROP DATABASE serverconf;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP USER serverconf;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP DATABASE messagelog;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP USER messagelog;\"" \
+&& su - postgres -c "psql postgres -tAc 'DROP DATABASE \"op-monitor\";'" \
+&& su - postgres -c "psql postgres -tAc \"DROP USER opmonitor;\"" \
+&& pg_ctlcluster 10 main stop \
 && apt-get -qq clean \
 && pg_ctlcluster 10 main stop \
 && nginx -s stop \
@@ -61,7 +64,9 @@ COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 RUN sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh
 
 RUN mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
+RUN mv /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf.disabled
 
 CMD ["/root/entrypoint.sh"]
+
 
 EXPOSE 80 443 4000 5500 5577 5588
