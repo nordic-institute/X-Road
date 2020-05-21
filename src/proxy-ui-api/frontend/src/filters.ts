@@ -48,7 +48,7 @@ Vue.filter('formatDate', (value: string): string => {
 });
 
 // Format date string. Result YYYY-MM-DD HH:MM.
-Vue.filter('formatDateTime', (value: string): string => {
+export const formatDateTime = (value: string): string => {
   const timestamp = Date.parse(value);
 
   if (isNaN(timestamp)) {
@@ -62,7 +62,9 @@ Vue.filter('formatDateTime', (value: string): string => {
     + date.getDay().toString().padStart(2, '0') + ' '
     + date.getHours().toString().padStart(2, '0') + ':'
     + date.getMinutes().toString().padStart(2, '0');
-});
+};
+
+Vue.filter('formatDateTime', formatDateTime);
 
 
 // Format date string. Result HH:MM.

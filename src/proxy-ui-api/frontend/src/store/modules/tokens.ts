@@ -183,6 +183,7 @@ export const actions: ActionTree<TokensState, RootState> = {
       .then((res) => {
         // Update tokens
         this.dispatch('fetchTokens');
+        this.dispatch('checkAlertStatus');
       })
       .catch((error) => {
         throw error;

@@ -101,7 +101,8 @@ export default Vue.extend({
           }
 
           this.$store.dispatch('showError', error);
-        });
+        })
+        .finally(() => this.$store.dispatch('checkAlertStatus'));
 
       this.clear();
     },
