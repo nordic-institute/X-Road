@@ -102,12 +102,15 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
         if (testTargetUrl.isEmpty()) {
             throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
         }
+        if (testDataUrl.isEmpty()) {
+            throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
+        }
     }
-
+    
     inputs.dir("frontend")
     outputs.dir("frontend")
 
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl]
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl ]
 
     execOverrides {
         it.workingDir = 'frontend'
