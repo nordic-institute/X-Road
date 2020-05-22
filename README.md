@@ -150,6 +150,16 @@ For example:
   To install the Security Server Sidecar provider, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message loggin, both for internal or remote database (Check 1.6 step).
   To install the Security Server Sidecar provider with finish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
+### 1.10 Logging Level
+
+It is possible to configure the security server sidecar to adjust the loggin level so that can be less verbose. For doing this we must set the environment vaiable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sentistive string values TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO
+For setting the environment variable we can edit the /etc/envrionment file or run:
+
+ ```bash
+  export XROAD_LOG_LEVEL=<loggin level valu>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> 
+  ```
+
 ## 2 Security Server Sidecar Initial Configuration
 
 ### 2.1 Reference Data

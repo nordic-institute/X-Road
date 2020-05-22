@@ -88,5 +88,11 @@ then
     fi
 fi
 
+
+if [ ! -f ${XROAD_LOG_LEVEL} ];
+    then
+    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties 
+fi
+
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
