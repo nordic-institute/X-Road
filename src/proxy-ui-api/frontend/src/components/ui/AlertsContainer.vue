@@ -1,30 +1,38 @@
 <template>
-  <v-container v-if="hasAlerts">
-    <v-row justify="center" v-if="showGlobalConfAlert">
-      <v-col cols="12" lg="10" xl="8">
-        <v-alert data-test="global-alert-global-configuration" type="warning">
-          {{ $t('globalAlert.globalConfigurationInvalid') }}
-        </v-alert>
-      </v-col>
-    </v-row>
-    <v-row justify="center" v-if="showSoftTokenPinEnteredAlert">
-      <v-col cols="12" lg="10" xl="8">
-        <v-alert data-test="global-alert-soft-token-pin" type="warning">
-          {{ $t('globalAlert.softTokenPinNotEntered') }}
-        </v-alert>
-      </v-col>
-    </v-row>
-    <v-row justify="center" v-if="showRestoreInProgress">
-      <v-col cols="12" lg="10" xl="8">
-        <v-alert data-test="global-alert-soft-token-pin" type="warning">
-          {{
-            $t('globalAlert.backupRestoreInProgress', {
-              startTime: formatDateTime(restoreStartTime),
-            })
-          }}
-        </v-alert>
-      </v-col>
-    </v-row>
+  <v-container
+    v-if="isAuthenticated && hasAlerts"
+    fluid
+    class="alerts-container"
+  >
+    <v-alert
+      data-test="global-alert-global-configuration"
+      :value="showGlobalConfAlert"
+      color="red"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.globalConfigurationInvalid')
+      }}</span>
+    </v-alert>
+    <v-alert
+      data-test="global-alert-soft-token-pin"
+      :value="showSoftTokenPinEnteredAlert"
+      color="red"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.softTokenPinNotEntered')
+      }}</span>
+    </v-alert>
+    <v-alert
+      data-test="global-alert-soft-token-pin"
+      :value="showRestoreInProgress"
+      color="red"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.backupRestoreInProgress', {
+          startTime: formatDateTime(restoreStartTime),
+        })
+      }}</span>
+    </v-alert>
   </v-container>
 </template>
 
@@ -47,6 +55,7 @@ export default Vue.extend({
       'showSoftTokenPinEnteredAlert',
       'showRestoreInProgress',
       'restoreStartTime',
+      'isAuthenticated',
     ]),
   },
   methods: {
@@ -55,4 +64,22 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.alerts-container {
+  width: 100%;
+  padding: 0;
+  & > * {
+    margin-top: 4px;
+    margin-bottom: 0;
+    border-radius: 0;
+  }
+  & > :first-child {
+    margin-top: 4px;
+  }
+}
+.alert-text {
+  color: white;
+  text-align: center;
+  display: block;
+}
+</style>
