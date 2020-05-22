@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+    stages {
+        stage('Create Security server sidecar vanilla docker image') {
+            steps {
+                build job: 'docker-build-security-server-sidecar',
+                parameters: [
+                    string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION),
+                    booleanParam(name: 'IS_LATEST', value: params.IS_LATEST)
+                ]
+            }
+        }
+        stage('Optionally publish image with latest -tag') {
+            when {
+                expression { params.IS_LATEST == true }
+            }
+            steps {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                    sh 'docker push niis/xroad-security-server-sidecar:latest'
+                }
+            }
+        }
+        stage('Publish image with RELEASE_VERSION') {
+            steps {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                    sh 'docker push niis/xroad-security-server-sidecar:$RELEASE_VERSION'
+                }
+            }
+        }
+    }
+}

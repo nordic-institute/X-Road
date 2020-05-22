@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Build X-Road Security Server Sidecar vanilla image') {
             steps {
-                sh 'docker build -f sidecar/Dockerfile --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${RELEASE_VERSION} sidecar/'
+                sh 'docker build -f sidecar/Dockerfile --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
             }
         }
         stage('Optionally add latest tag to X-Road Security Server Sidecar vanilla image') {
@@ -27,12 +27,12 @@ pipeline {
                 expression { params.IS_LATEST == true }
             }
             steps {
-                sh 'docker tag niis/xroad-security-server-sidecar:${RELEASE_VERSION} niis/xroad-security-server-sidecar:latest'
+                sh 'docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:latest'
             }
         }
         stage('Run container') {
             steps {
-                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss niis/xroad-security-server-sidecar:${RELEASE_VERSION}'
+                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss niis/xroad-security-server-sidecar:${IMAGE_TAG}'
             }
         }
         stage('Test') {
@@ -45,7 +45,7 @@ pipeline {
                             echo '========> X-Road Security Server Sidecar is successfully running'
                             currentBuild.result = 'SUCCESS'
                         } else {
-                            error("========> X-Road Security Server Sidecar returned " + response + " . Try again in 10s")
+                            error("========> X-Road Security Server Sidecar returned " + response + " . Try again in 20s")
                         }
                     }
                 }
