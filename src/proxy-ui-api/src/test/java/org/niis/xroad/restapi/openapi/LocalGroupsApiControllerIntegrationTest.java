@@ -54,6 +54,7 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.assertMissingLocationHeader;
 
@@ -130,12 +131,14 @@ public class LocalGroupsApiControllerIntegrationTest {
         ResponseEntity<Void> response =
                 localGroupsApiController.deleteLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
         try {
             localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
         }
+        // Local group access right removal is tested in service tests
     }
 
     @Test

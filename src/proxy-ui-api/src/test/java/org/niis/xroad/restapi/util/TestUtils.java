@@ -101,6 +101,7 @@ public final class TestUtils {
     public static final String DB_LOCAL_GROUP_ID_1 = "1";
     public static final String DB_LOCAL_GROUP_ID_2 = "2";
     public static final String DB_LOCAL_GROUP_CODE = "group1";
+    public static final int GROUP1_ACCESS_RIGHTS_COUNT = 1;
     // services from initial test data: src/test/resources/data.sql
     public static final String FULL_SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
     public static final String SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld";

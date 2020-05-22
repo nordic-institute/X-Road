@@ -75,26 +75,21 @@ public class AccessRightService {
 
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
-    private final ServiceService serviceService;
     private final IdentifierService identifierService;
     private final EndpointService endpointService;
-    private final LocalGroupService localGroupService;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ClientService clientService;
 
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
-            ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
+            ClientRepository clientRepository, IdentifierService identifierService,
             EndpointService endpointService,
-            LocalGroupService localGroupService,
             ServiceDescriptionService serviceDescriptionService,
             ClientService clientService) {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
-        this.serviceService = serviceService;
         this.identifierService = identifierService;
         this.endpointService = endpointService;
-        this.localGroupService = localGroupService;
         this.serviceDescriptionService = serviceDescriptionService;
         this.clientService = clientService;
     }
@@ -187,6 +182,8 @@ public class AccessRightService {
             clientType.getAcl().removeAll(accessRightsToBeRemoved);
         }
     }
+
+
 
     /**
      * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
