@@ -6,6 +6,7 @@ pipeline {
                 build job: 'docker-build-security-server-sidecar',
                 parameters: [
                     string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION),
+                    string(name: 'IMAGE_TAG', value: params.IMAGE_TAG),
                     booleanParam(name: 'IS_LATEST', value: params.IS_LATEST)
                 ]
             }
@@ -20,10 +21,10 @@ pipeline {
                 }
             }
         }
-        stage('Publish image with RELEASE_VERSION') {
+        stage('Publish image with IMAGE_TAG') {
             steps {
                 withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                    sh 'docker push niis/xroad-security-server-sidecar:$RELEASE_VERSION'
+                    sh 'docker push niis/xroad-security-server-sidecar:$IMAGE_TAG'
                 }
             }
         }
