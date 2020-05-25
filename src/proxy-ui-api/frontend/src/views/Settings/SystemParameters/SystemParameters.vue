@@ -77,7 +77,7 @@
                   <th>
                     {{
                       $t(
-                        'systemParameters.timestampingServices.table.header.certificateHash',
+                        'systemParameters.timestampingServices.table.header.timestampingService',
                       )
                     }}
                   </th>
