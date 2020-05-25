@@ -524,7 +524,7 @@
       },
       "table": {
         "header": {
-          "certificateHash": "Certificate Hash (SHA/1)",
+          "timestampingService": "Timestamping Service",
           "serviceURL": "Service URL"
         },
         "action": {

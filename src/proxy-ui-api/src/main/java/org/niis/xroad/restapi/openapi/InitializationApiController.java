@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -86,10 +87,10 @@ public class InitializationApiController implements InitializationApi {
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                     ignoreWarnings);
-        } catch (AnchorNotFoundException e) {
+        } catch (AnchorNotFoundException | InitializationService.ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException | InitializationService.InvalidCharactersException
-                | InitializationService.WeakPinException | InitializationService.MissingInitParamsException e) {
+                | InitializationService.WeakPinException | InitializationService.InvalidInitParamsException e) {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);

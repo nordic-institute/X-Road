@@ -162,11 +162,11 @@ Add X-Road package repository (**reference data: 1.1**)
 
 (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
 
-      ```
-      sudo touch /etc/xroad.properties
-      sudo chown root:root /etc/xroad.properties
-      sudo chmod 600 /etc/xroad.properties
-      ```
+  ```
+  sudo touch /etc/xroad.properties
+  sudo chown root:root /etc/xroad.properties
+  sudo chmod 600 /etc/xroad.properties
+  ```
 
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 

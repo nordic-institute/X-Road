@@ -228,12 +228,12 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
 
     Then edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
 
-      serverconf.hibernate.connection.username = serverconf@servername
-      serverconf.hibernate.connection.password = H1nGmB3uqtU7IJ82qqEaMaH2ozXBBkh0
-      op-monitor.hibernate.connection.username = opmonitor@servername
-      op-monitor.hibernate.connection.password = V8jCARSA7RIuCQWr59Hw3UK9zNzBeP2l
-      messagelog.hibernate.connection.username = messagelog@servername
-      messagelog.hibernate.connection.password = 1wmJ-bK39nbA4EYcTS9MgdjyJewPpf_w
+        serverconf.hibernate.connection.username = serverconf@servername
+        serverconf.hibernate.connection.password = H1nGmB3uqtU7IJ82qqEaMaH2ozXBBkh0
+        op-monitor.hibernate.connection.username = opmonitor@servername
+        op-monitor.hibernate.connection.password = V8jCARSA7RIuCQWr59Hw3UK9zNzBeP2l
+        messagelog.hibernate.connection.username = messagelog@servername
+        messagelog.hibernate.connection.password = 1wmJ-bK39nbA4EYcTS9MgdjyJewPpf_w
 
     In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
