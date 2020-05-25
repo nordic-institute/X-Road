@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    stages {
+        stage('Create Security server sidecar provider with Finnish settings docker image') {
+            steps {
+                build job: 'docker-build-security-server-sidecar-provider-fi',
+                parameters: [
+                    string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION),
+                    string(name: 'IMAGE_TAG', value: params.IMAGE_TAG),
+                    booleanParam(name: 'IS_LATEST', value: params.IS_LATEST)
+                ]
+            }
+        }
+        stage('Optionally publish image with latest-provider-fi -tag') {
+            when {
+                expression { params.IS_LATEST == true }
+            }
+            steps {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                    sh 'docker push niis/xroad-security-server-sidecar:latest-provider-fi'
+                }
+            }
+        }
+        stage('Publish image with IMAGE_TAG-provider-fi') {
+            steps {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                    sh 'docker push niis/xroad-security-server-sidecar:$IMAGE_TAG-provider-fi'
+                }
+            }
+        }
+    }
+}
