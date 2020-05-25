@@ -80,11 +80,7 @@ public final class AuditLogger {
      * @param data relevant details of the event
      */
     public static void log(String event, String user, Map<String, Object> data) {
-        Map<String, Object> message = new LinkedHashMap<>();
-        message.put(EVENT_PARAM, event);
-        message.put(USER_PARAM, user);
-        message.put(DATA_PARAM, data);
-
+        Map<String, Object> message = createMessageMap(event, user, data, null, null);
         log(JsonUtils.getSerializer().toJson(message));
     }
 
@@ -97,17 +93,12 @@ public final class AuditLogger {
      */
     public static void log(String event, String user, String reason,
             Map<String, Object> data) {
-        Map<String, Object> message = new LinkedHashMap<>();
-        message.put(EVENT_PARAM, event + FAILURE_SUFFIX);
-        message.put(USER_PARAM, user);
-        message.put(REASON_PARAM, reason);
-        message.put(DATA_PARAM, data);
-
+        Map<String, Object> message = createFailureMessageMap(event, user, reason, data, null, null);
         log(JsonUtils.getSerializer().toJson(message));
     }
 
     /**
-     * TO DO: comment
+     * Audit log a success message, with authentication information
      * @param event
      * @param user
      * @param data
@@ -115,18 +106,12 @@ public final class AuditLogger {
      * @param url
      */
     public static void log(String event, String user, Map<String, Object> data, String auth, String url) {
-        Map<String, Object> message = new LinkedHashMap<>();
-        message.put(EVENT_PARAM, event);
-        message.put(USER_PARAM, user);
-        message.put(AUTH_PARAM, auth);
-        message.put(URL_PARAM, url);
-        message.put(DATA_PARAM, data);
-
+        Map<String, Object> message = createMessageMap(event, user, data, auth, url);
         log(JsonUtils.getSerializer().toJson(message));
     }
 
     /**
-     * TO DO: comment
+     * Audit log a failure message, with authentication information
      * @param event
      * @param user
      * @param reason
@@ -134,14 +119,39 @@ public final class AuditLogger {
      * @param auth
      * @param url
      */
-    public static void log(String event, String user, String reason, Map<String, Object> data, String auth, String url) {
+    public static void log(String event, String user, String reason, Map<String, Object> data,
+            String auth, String url) {
+        Map<String, Object> message = createFailureMessageMap(event, user, reason, data, auth, url);
+        log(JsonUtils.getSerializer().toJson(message));
+    }
+
+    private static Map<String, Object> createMessageMap(String event, String user,
+            Map<String, Object> data, String auth, String url) {
+        return createMessageMapInternal(event, user, null, data, auth, url);
+    }
+
+    private static Map<String, Object> createFailureMessageMap(String event, String user, String reason,
+            Map<String, Object> data, String auth, String url) {
+        String failureEvent = event + FAILURE_SUFFIX;
+        return createMessageMapInternal(failureEvent, user, reason, data, auth, url);
+    }
+
+    private static Map<String, Object> createMessageMapInternal(String event, String user, String reason,
+            Map<String, Object> data, String auth, String url) {
         Map<String, Object> message = new LinkedHashMap<>();
         message.put(EVENT_PARAM, event + FAILURE_SUFFIX);
         message.put(USER_PARAM, user);
-        message.put(REASON_PARAM, reason);
-        message.put(AUTH_PARAM, auth);
-        message.put(URL_PARAM, url);
+        if (reason != null) {
+            message.put(REASON_PARAM, reason);
+        }
+        if (auth != null) {
+            message.put(AUTH_PARAM, auth);
+        }
+        if (url != null) {
+            message.put(URL_PARAM, url);
+        }
         message.put(DATA_PARAM, data);
-        log(JsonUtils.getSerializer().toJson(message));
+        return message;
     }
+
 }
