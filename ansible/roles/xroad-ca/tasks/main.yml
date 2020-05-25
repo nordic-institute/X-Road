@@ -3,18 +3,19 @@
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
-  
-- name: Update all packages to the latest version
-  apt:
-    update_cache: yes
 
 - name: install required packages
   package:
-      name: "{{ item }}"
+      name: "{{ items }}"
       state: present
-  with_items:
-    - "acl"
-    - "nginx-light"
+  vars:
+    items:
+      - "acl"
+      - "nginx-light"
+
+- name: instal incron
+  apt: name=incron state=present
+  when: ansible_distribution_release == "trusty"
 
 - name: group ca
   group:
@@ -46,6 +47,16 @@
   with_items:
     - "etc"
     - "usr"
+
+- name: copy root user directories for trusty
+  copy:
+    src: "trusty-files/{{ item }}"
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+    - "etc"
+  when: ansible_distribution_release == "trusty"
 
 - name: copy root user directories for bionic
   copy:
@@ -85,9 +96,6 @@
     - "revoke.sh"
     - "sign.sh"
     - "intermediate.sh"
-    - "ocsp.py"
-    - "ca.py"
-    - "sign_req.sh"
 
 - name: set file permissions 3
   file:
@@ -107,12 +115,12 @@
 
 - name: check if ocsp.log exists
   stat:
-    path: /var/log/ocsp.log
+    path: "/var/log/ocsp.log"
   register: stat_result
 
 - name: create ocsp.log
   file:
-    path: /var/log/ocsp.log
+    path: "/var/log/ocsp.log"
     state: touch
     group: "ca"
     owner: "ca"
@@ -121,7 +129,7 @@
 
 - name: check if .init exists
   stat:
-    path: /home/ca/CA/.init
+    path: "/home/ca/CA/.init"
   register: stat_result
 
 - name: run init.sh
@@ -132,11 +140,6 @@
   become_user: ca
   when: stat_result.stat.exists == False
 
-- name: remove obsolete files
-  file:
-    path: /etc/nginx/sites-enabled/ocsp.nginx
-    state: absent
-
 - name: restart nginx
   service:
     name: nginx
@@ -145,12 +148,6 @@
 - name: restart ocsp
   service:
     name: ocsp
-    state: restarted
-    enabled: yes
-
-- name: restart ca
-  service:
-    name: ca
     state: restarted
     enabled: yes
 

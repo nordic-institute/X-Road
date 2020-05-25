@@ -27,10 +27,19 @@
     content: "postgres.connection.password = {{ database_admin_password }}"
     dest: /etc/xroad.properties
     mode: 0600
-  when: database_admin_password != ""
+  when: (database_admin_password is defined) and (database_admin_password != "")
 
 - name: install xroad security server packages
   apt:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
     force: yes
+
+- name: install op-monitoring
+  package: name=xroad-addon-opmonitoring state=latest
+  when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
+      
+- name: install hwtokens
+  package: name=xroad-addon-hwtokens state=latest
+  when: (xroad_install_hwtokens is defined) and (xroad_install_hwtokens)
+
