@@ -152,79 +152,11 @@ For example:
 
 ### 1.10 EnviornmentalMonitoring for Provider
 
-Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in s>GOV</id:memberClass>
-            <id:memberCode>1710128-9</id:memberCode>
-        </xrd:client>
-        <xrd:service id:objectType="SERVICE">
-            <id:xRoadInstance>fdev</id:xRoadInstance>
-            <id:memberClass>GOV</id:memberClass>
-            <id:memberCode>1710128-9</id:memberCode>
-            <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
-        </xrd:service>
-        <xrd:securityServer id:objectType="SERVER">
-            <id:xRoadInstance>fdev</id:xRoadInstance>
-            <id:memberClass>GOV</id:memberClass>
-            <id:memberCode>1710128-9</id:memberCode>
-            <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
-        </xrd:securityServer>
-        <xrd:id>ID11234</xrd:id>
-        <xrd:protocolVersion>4.0</xrd:protocolVersion>
-    </SOAP-ENV:Header>
-    <SOAP-ENV:Body>
-        <m:getSecurityServerMetrics/>
-    </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
-```
+Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in [https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md "https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md")
 
 #### 1.11 Operational monitoring for provider
 
 Operational monitoring for the Security Server Sidecar provider can be  used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here [https://github.com/nordic-institute/X-Road/blob/develop/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md "https://github.com/nordic-institute/X-Road/blob/develop/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md")
-
-## 2 Security Server Sidecar Initial Configuration
-
-### 2.1 Reference Data
-
- **Ref** | **Value**                                                | **Explanation**
- ---- | ----------------------------------------------------------- | -------------------------------------------------------
- 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt;     | Global configuration anchor file or provider URL (1) (2)
- 2.2  | &lt;security server owner's member class&gt;<br>E.g.<br> COM - Commercial<br> ORG - Organisation            | Member class of the security server owner for the sidecar (2)
- 2.3  | &lt;security server owner's member code&gt;                 | Member code of the security server owner for the sidecar (2) (3)
- 2.4  | &lt;security server code&gt;                                | Security server code for the sidecar (4)
- 2.5  | &lt;PIN for software token&gt;                              | Software token PIN code (same as ref. data 1.3)
-
-Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the security server sidecar network.
-
-Note (2): Reference items 2.1 - 2.3 are provided to the security server owner by the X-Road central server's administrator.
-
-Note (3): The security server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
-
-Note (4): The security server code uniquely identifies the security server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.ectType="MEMBER">
-            <id:xRoadInstance>fdev</id:xRoadInstance>
-            <id:memberClass>GOV</id:memberClass>
-            <id:memberCode>1710128-9</id:memberCode>
-        </xrd:client>
-        <xrd:service id:objectType="SERVICE">
-            <id:xRoadInstance>fdev</id:xRoadInstance>
-            <id:memberClass>GOV</id:memberClass>
-            <id:memberCode>1710128-9</id:memberCode>
-            <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
-        </xrd:service>
-        <xrd:securityServer id:objectType="SERVER">
-            <id:xRoadInstance>fdev</id:xRoadInstance>
-            <id:memberClass>GOV</id:memberClass>
-            <id:memberCode>1710128-9</id:memberCode>
-            <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
-        </xrd:securityServer>
-        <xrd:id>ID11234</xrd:id>
-        <xrd:protocolVersion>4.0</xrd:protocolVersion>
-    </SOAP-ENV:Header>
-    <SOAP-ENV:Body>
-        <m:getSecurityServerMetrics/>
-    </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
-```
-
-#### 1.10.2 Enviornmental monitoring
 
 ## 2 Security Server Sidecar Initial Configuration
 
