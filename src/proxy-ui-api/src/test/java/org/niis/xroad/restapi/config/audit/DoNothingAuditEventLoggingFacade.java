@@ -61,7 +61,6 @@ public class DoNothingAuditEventLoggingFacade extends AuditEventLoggingFacade {
 
     @Override
     public void auditLogSuccess() {
-        super.auditLogSuccess();
     }
 
     @Override
