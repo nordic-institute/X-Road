@@ -21,10 +21,10 @@ pipeline {
                 }
             }
         }
-        stage('Publish image with IMAGE_TAG-provider') {
+        stage('Publish image with IMAGE_TAG') {
             steps {
                 withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                    sh 'docker push niis/xroad-security-server-sidecar:$IMAGE_TAG-provider'
+                    sh 'docker push niis/xroad-security-server-sidecar:$IMAGE_TAG'
                 }
             }
         }
