@@ -118,6 +118,7 @@ public class AuditEventLoggingFacade {
                 auditContextRequestScopeHolder.getEventData().put(key, value));
     }
 
+    // TO DO: move to audit data helper?
     public void putRequestScopedAuditData(RestApiAuditProperty auditProperty, Object value) {
         requestHelper.runInRequestScope(() ->
                 auditContextRequestScopeHolder.getEventData().put(auditProperty.getPropertyName(), value));
@@ -293,18 +294,6 @@ public class AuditEventLoggingFacade {
             return null;
         }
     }
-
-
-//
-//    /**
-//     * Adds url and authentication method to event data map. Does not modify original map, returns a new instance
-//     */
-//    private Map<String, Object> addStandardEventData(Map<String, Object> data) {
-//        Map<String, Object> result = new LinkedHashMap<>(data);
-//        result.put("url", requestHelper.getCurrentRequestUrl());
-//        result.put("auth", securityHelper.getCurrentAuthenticationScheme());
-//        return result;
-//    }
 
     private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex, String usernameOverride) {
         String username = usernameOverride;
