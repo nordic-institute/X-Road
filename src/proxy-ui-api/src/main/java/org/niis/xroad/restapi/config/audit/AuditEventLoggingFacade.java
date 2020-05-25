@@ -142,12 +142,9 @@ public class AuditEventLoggingFacade {
      * If there is no request bound event, does nothing.
      */
     public void auditLogSuccess() {
-        if (!hasAlreadyLoggedForThisRequest()) {
-            if (getRequestScopedEvent() != null) {
-                auditLog(getRequestScopedEvent(), usernameHelper.getUsername(),
-                        getRequestScopedEventData());
-//                addStandardEventData(getRequestScopedEventData()));
-            }
+        if (getRequestScopedEvent() != null) {
+            auditLog(getRequestScopedEvent(), usernameHelper.getUsername(),
+                    getRequestScopedEventData());
         }
     }
 
