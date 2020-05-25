@@ -48,11 +48,15 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
-        HandlerMethod method = (HandlerMethod) handler;
-        Method javaMethod = method.getMethod();
-        if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
-            AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
-            auditEventLoggingFacade.initRequestScopedEvent(auditEventMethod.event());
+        if (handler instanceof HandlerMethod) {
+            // controller method calls are HandlerMethods, there are also other handlers
+            // such as ResourceHttpRequestHandlers when serving static resources
+            HandlerMethod method = (HandlerMethod) handler;
+            Method javaMethod = method.getMethod();
+            if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
+                AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
+                auditEventLoggingFacade.initRequestScopedEvent(auditEventMethod.event());
+            }
         }
         return true;
     }
@@ -60,6 +64,8 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
             ModelAndView modelAndView) throws Exception {
-        auditEventLoggingFacade.auditLogSuccess();
+        if (handler instanceof HandlerMethod) {
+            auditEventLoggingFacade.auditLogSuccess();
+        }
     }
 }

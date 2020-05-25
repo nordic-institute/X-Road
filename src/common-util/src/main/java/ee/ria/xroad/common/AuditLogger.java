@@ -136,10 +136,18 @@ public final class AuditLogger {
         return createMessageMapInternal(failureEvent, user, reason, data, auth, url);
     }
 
+    /**
+     * @param event raw event name, including possible " failure" postfix. Always included
+     * @param user user, always included (even if null)
+     * @param reason possible reason, only included if not null
+     * @param data data, always included (even if null)
+     * @param auth possible authentication type, only included if not null
+     * @param url possible url, only included if not null
+     */
     private static Map<String, Object> createMessageMapInternal(String event, String user, String reason,
             Map<String, Object> data, String auth, String url) {
         Map<String, Object> message = new LinkedHashMap<>();
-        message.put(EVENT_PARAM, event + FAILURE_SUFFIX);
+        message.put(EVENT_PARAM, event);
         message.put(USER_PARAM, user);
         if (reason != null) {
             message.put(REASON_PARAM, reason);
