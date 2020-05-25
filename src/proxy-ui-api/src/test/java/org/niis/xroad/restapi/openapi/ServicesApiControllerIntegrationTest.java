@@ -485,22 +485,46 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
     }
 
-    @Test(expected = ConflictException.class)
+    @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
-    public void addDuplicateAccessRight() {
+    public void addDuplicateAccessRight() throws Exception {
         when(globalConfService.clientsExist(any())).thenReturn(true);
         when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
+        // add subsystem TestUtils.CLIENT_ID_SS2 as duplicate
         ServiceClients clientsToAdd = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
+        try {
+            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
+            fail("Should throw Conflict exception in stead of this");
+        } catch (ConflictException e) { }
 
-        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
+        // try adding duplicate local group
+        ServiceClients existingLocalGroup = new ServiceClients()
+                        .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
+                        ServiceClientType.LOCALGROUP));
+        try {
+            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, existingLocalGroup);
+            fail("Should throw Conflict exception in stead of this");
+        } catch (ConflictException e) { }
+
+
+        // try adding two identical localgroups
+        List<ServiceClient> itemsBefore =
+                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        ServiceClient localGroup = new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
+                ServiceClientType.LOCALGROUP);
+        ServiceClients duplicateLocalGroups = new ServiceClients().addItemsItem(localGroup).addItemsItem(localGroup);
+        try {
+            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
+            fail("Should throw Conflict exception in stead of this");
+        } catch (ConflictException e) { }
     }
 
     @Test(expected = BadRequestException.class)
