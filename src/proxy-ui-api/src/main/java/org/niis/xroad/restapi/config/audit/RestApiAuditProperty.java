@@ -105,7 +105,10 @@ public enum RestApiAuditProperty {
     TSP_URL,
 
     OWNER_IDENTIFIER,
-    SERVER_CODE;
+    SERVER_CODE,
+
+    API_KEY_ID,
+    API_KEY_ROLES;
 
     /**
      * Gets logged property name for the enum value.
