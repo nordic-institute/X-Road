@@ -45,6 +45,10 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
     @Lazy
     AuditEventLoggingFacade auditEventLoggingFacade;
 
+    @Autowired
+    @Lazy
+    AuditEventHelper auditEventHelper;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
@@ -55,7 +59,7 @@ public class RequestScopedControllerMethodHandlerInterceptor implements HandlerI
             Method javaMethod = method.getMethod();
             if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
                 AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);
-                auditEventLoggingFacade.initRequestScopedEvent(auditEventMethod.event());
+                auditEventHelper.initRequestScopedEvent(auditEventMethod.event());
             }
         }
         return true;

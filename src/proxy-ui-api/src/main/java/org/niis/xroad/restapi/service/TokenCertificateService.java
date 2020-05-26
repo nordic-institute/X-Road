@@ -42,7 +42,7 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -110,7 +110,7 @@ public class TokenCertificateService {
     private final TokenService tokenService;
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditEventHelper auditEventHelper;
 
     @Autowired
     @SuppressWarnings("checkstyle:ParameterNumber")
@@ -120,7 +120,7 @@ public class TokenCertificateService {
             ManagementRequestSenderService managementRequestSenderService, ServerConfService serverConfService,
             PossibleActionsRuleEngine possibleActionsRuleEngine, TokenService tokenService,
             SecurityHelper securityHelper, AuditDataHelper auditDataHelper,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventHelper auditEventHelper) {
         this.signerProxyFacade = signerProxyFacade;
         this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
@@ -135,7 +135,7 @@ public class TokenCertificateService {
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
         this.securityHelper = securityHelper;
         this.auditDataHelper = auditDataHelper;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditEventHelper = auditEventHelper;
     }
 
     /**
@@ -874,9 +874,9 @@ public class TokenCertificateService {
         hash = hash.toLowerCase();
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         if (certificateInfo.isSavedToConfiguration()) {
-            auditEventLoggingFacade.changeRequestScopedEvent(DELETE_CERT_FROM_CONFIG);
+            auditEventHelper.changeRequestScopedEvent(DELETE_CERT_FROM_CONFIG);
         } else {
-            auditEventLoggingFacade.changeRequestScopedEvent(DELETE_CERT_FROM_TOKEN);
+            auditEventHelper.changeRequestScopedEvent(DELETE_CERT_FROM_TOKEN);
         }
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();

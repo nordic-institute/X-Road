@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
@@ -68,7 +69,7 @@ public class KeyService {
     private final ManagementRequestSenderService managementRequestSenderService;
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditEventHelper auditEventHelper;
 
     /**
      * KeyService constructor
@@ -79,6 +80,7 @@ public class KeyService {
             ManagementRequestSenderService managementRequestSenderService,
             SecurityHelper securityHelper,
             AuditDataHelper auditDataHelper,
+            AuditEventHelper auditEventHelper,
             AuditEventLoggingFacade auditEventLoggingFacade) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
@@ -86,7 +88,7 @@ public class KeyService {
         this.managementRequestSenderService = managementRequestSenderService;
         this.securityHelper = securityHelper;
         this.auditDataHelper = auditDataHelper;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditEventHelper = auditEventHelper;
     }
 
     /**
@@ -236,7 +238,7 @@ public class KeyService {
             }
         }
 
-        auditEventLoggingFacade.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
+        auditEventHelper.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
 
         // delete key needs to be done twice. First call deletes the certs & csrs
         try {

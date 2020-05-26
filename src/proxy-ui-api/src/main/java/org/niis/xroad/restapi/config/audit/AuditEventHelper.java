@@ -24,41 +24,46 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.restapi.util.UsernameHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
-
 /**
- * Holds current audit event and related audit data in request scope
+ * Helpers for setting audit log data properties
  */
-@Getter
-@Setter
 @Component
-@Scope(SCOPE_REQUEST)
-public class AuditContextRequestScopeHolder {
+@Slf4j
+@Profile("nontest")
+public class AuditEventHelper {
 
-    private RestApiAuditEvent requestScopedEvent;
-    // LinkedHashMap to make it possible to control the order of items, which can make output cleaner
-    // TO DO: Properties instead of strings
-    private Map<String, Object> eventData = Collections.synchronizedMap(new LinkedHashMap<>());
-
-    // TO DO: remove after debugging that it works as expected
-    private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
-    private int instanceNumber;
+    private final RequestScopedAuditDataHolder requestScopedAuditDataHolder;
 
     @Autowired
-    public AuditContextRequestScopeHolder(UsernameHelper usernameHelper) {
-        instanceNumber = INSTANCE_COUNTER.incrementAndGet();
+    public AuditEventHelper(RequestScopedAuditDataHolder requestScopedAuditDataHolder) {
+        this.requestScopedAuditDataHolder = requestScopedAuditDataHolder;
     }
 
+    void initRequestScopedEvent(RestApiAuditEvent event) {
+        updateRequestScopedEvent(event, true);
+    }
+
+    public void changeRequestScopedEvent(RestApiAuditEvent event) {
+        updateRequestScopedEvent(event, false);
+    }
+
+    /**
+     * @param init true = setting first value, exception if old value exist. false = changing value, exception if
+     *                old value does not exist
+     */
+    private void updateRequestScopedEvent(RestApiAuditEvent event, boolean init) {
+        RestApiAuditEvent existing = requestScopedAuditDataHolder.getAuditEvent();
+        if (init && existing != null) {
+            throw new IllegalStateException("request scope already has event " + existing);
+        } else if (!init && existing == null) {
+            throw new IllegalStateException("request scope did not have event to override");
+        } else {
+            requestScopedAuditDataHolder.setAuditEvent(event);
+        }
+    }
 }

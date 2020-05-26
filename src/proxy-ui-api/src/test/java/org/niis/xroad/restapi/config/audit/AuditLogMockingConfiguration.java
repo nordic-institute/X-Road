@@ -36,14 +36,18 @@ public class AuditLogMockingConfiguration {
     @Bean
     @Primary
     public AuditDataHelper mockAuditDataHelper() {
-        AuditDataHelper mockAuditDataHelper = mock(AuditDataHelper.class);
-        return mockAuditDataHelper;
+        return mock(AuditDataHelper.class);
+    }
+
+    @Bean
+    @Primary
+    public AuditEventHelper mockAuditEventHelper() {
+        return mock(AuditEventHelper.class);
     }
 
     @Bean
     @Primary
     public AuditEventLoggingFacade mockAuditEventLoggingFacade() {
-        AuditEventLoggingFacade mockFacade = mock(AuditEventLoggingFacade.class);
-        return mockFacade;
+        return mock(AuditEventLoggingFacade.class);
     }
 }

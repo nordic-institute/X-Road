@@ -30,15 +30,11 @@ import org.niis.xroad.restapi.util.RequestHelper;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,86 +52,17 @@ public class AuditEventLoggingFacade {
     private final RequestHelper requestHelper;
     private final SecurityHelper securityHelper;
 
-    // request scoped beans, may not have value if audit logging outside of requests
-    private final AuditContextRequestScopeHolder auditContextRequestScopeHolder;
-    private final RequestScopeLoggedEvents requestScopeLoggedEvents;
+    private final RequestScopedAuditDataHolder requestScopedAuditDataHolder;
 
     @Autowired
     public AuditEventLoggingFacade(UsernameHelper usernameHelper,
-            @Lazy AuditContextRequestScopeHolder auditContextRequestScopeHolder,
-            @Lazy RequestScopeLoggedEvents requestScopeLoggedEvents,
+            RequestScopedAuditDataHolder requestScopedAuditDataHolder,
             RequestHelper requestHelper,
             SecurityHelper securityHelper) {
         this.usernameHelper = usernameHelper;
-        this.auditContextRequestScopeHolder = auditContextRequestScopeHolder;
-        this.requestScopeLoggedEvents = requestScopeLoggedEvents;
+        this.requestScopedAuditDataHolder = requestScopedAuditDataHolder;
         this.requestHelper = requestHelper;
         this.securityHelper = securityHelper;
-    }
-
-    public void initRequestScopedEvent(RestApiAuditEvent event) {
-        updateRequestScopedEvent(event, true);
-    }
-
-    public void changeRequestScopedEvent(RestApiAuditEvent event) {
-        updateRequestScopedEvent(event, false);
-    }
-
-    public boolean hasRequestScopedEvent(RestApiAuditEvent event) {
-        if (requestHelper.requestScopeIsAvailable()) {
-            RestApiAuditEvent other = auditContextRequestScopeHolder.getRequestScopedEvent();
-            boolean equal = event == other;
-            return event == auditContextRequestScopeHolder.getRequestScopedEvent();
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param init true = setting first value, exception if old value exist. false = changing value, exception if
-     *                old value does not exist
-     */
-    private void updateRequestScopedEvent(RestApiAuditEvent event, boolean init) {
-        requestHelper.runInRequestScope(() -> {
-            RestApiAuditEvent existing = auditContextRequestScopeHolder.getRequestScopedEvent();
-            if (init && existing != null) {
-                throw new IllegalStateException("request scope already has event " + existing);
-            } else if (!init && existing == null) {
-                throw new IllegalStateException("request scope did not have event to override");
-            } else {
-                auditContextRequestScopeHolder.setRequestScopedEvent(event);
-            }
-        });
-    }
-
-    /**
-     * TO DO: Maybe remove this one, and use only enums?
-     * @param key
-     * @param value
-     */
-    public void putRequestScopedAuditData(String key, Object value) {
-        requestHelper.runInRequestScope(() ->
-                auditContextRequestScopeHolder.getEventData().put(key, value));
-    }
-
-    // TO DO: move to audit data helper?
-    public void putRequestScopedAuditData(RestApiAuditProperty auditProperty, Object value) {
-        requestHelper.runInRequestScope(() ->
-                auditContextRequestScopeHolder.getEventData().put(auditProperty.getPropertyName(), value));
-    }
-
-    /**
-     * Adds to List<Object>, creates one if not existing
-     */
-    public void addRequestScopedAuditListData(RestApiAuditProperty auditProperty, Object value) {
-        requestHelper.runInRequestScope(() -> {
-            List<Object> data = Collections.synchronizedList(new ArrayList<>());
-            String propertyName = auditProperty.getPropertyName();
-            auditContextRequestScopeHolder.getEventData().putIfAbsent(propertyName, data);
-            List<Object> sharedListData = (List<Object>) auditContextRequestScopeHolder.getEventData()
-                    .get(propertyName);
-            sharedListData.add(value);
-        });
     }
 
     /**
@@ -155,7 +82,6 @@ public class AuditEventLoggingFacade {
      */
     public void auditLogSuccess(RestApiAuditEvent event) {
         auditLog(event, usernameHelper.getUsername(), getEventData());
-//        auditLog(event, usernameHelper.getUsername(), addStandardEventData(getEventData()));
     }
 
     /**
@@ -167,7 +93,6 @@ public class AuditEventLoggingFacade {
      */
     public void auditLogSuccess(RestApiAuditEvent event, String username) {
         auditLog(event, username, getEventData());
-//        auditLog(event, username, addStandardEventData(getEventData()));
     }
 
     /**
@@ -214,7 +139,7 @@ public class AuditEventLoggingFacade {
 
     public boolean hasAlreadyLoggedForThisRequest() {
         if (requestHelper.requestScopeIsAvailable()) {
-            return !getRequestScopedLoggedEvents().isEmpty();
+            return !requestScopedAuditDataHolder.getLoggedEvents().isEmpty();
         } else {
             return false;
         }
@@ -223,7 +148,7 @@ public class AuditEventLoggingFacade {
     public boolean hasAlreadyLoggedForThisRequestAny(RestApiAuditEvent...events) {
         if (requestHelper.requestScopeIsAvailable()) {
             Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
-            return getRequestScopedLoggedEvents().stream().anyMatch(searchedEvents::contains);
+            return requestScopedAuditDataHolder.getLoggedEvents().stream().anyMatch(searchedEvents::contains);
         } else {
             return false;
         }
@@ -231,7 +156,7 @@ public class AuditEventLoggingFacade {
 
     public boolean hasAlreadyLoggedForThisRequest(RestApiAuditEvent event) {
         if (requestHelper.requestScopeIsAvailable()) {
-            return requestScopeLoggedEvents.getEvents().contains(event);
+            return requestScopedAuditDataHolder.getLoggedEvents().contains(event);
         } else {
             return false;
         }
@@ -254,14 +179,14 @@ public class AuditEventLoggingFacade {
 
     private void addRequestScopedLoggedEventForThisRequest(RestApiAuditEvent event) {
         if (requestHelper.requestScopeIsAvailable()) {
-            requestScopeLoggedEvents.getEvents().add(event);
+            requestScopedAuditDataHolder.getLoggedEvents().add(event);
         }
     }
 
 
     private RestApiAuditEvent getRequestScopedEvent() {
         if (requestHelper.requestScopeIsAvailable()) {
-            return auditContextRequestScopeHolder.getRequestScopedEvent();
+            return requestScopedAuditDataHolder.getAuditEvent();
         } else {
             return null;
         }
@@ -281,15 +206,7 @@ public class AuditEventLoggingFacade {
 
     private Map<String, Object> getRequestScopedEventData() {
         if (requestHelper.requestScopeIsAvailable()) {
-            return auditContextRequestScopeHolder.getEventData();
-        } else {
-            return null;
-        }
-    }
-
-    private Set<RestApiAuditEvent> getRequestScopedLoggedEvents() {
-        if (requestHelper.requestScopeIsAvailable()) {
-            return requestScopeLoggedEvents.getEvents();
+            return requestScopedAuditDataHolder.getEventData();
         } else {
             return null;
         }
@@ -305,7 +222,6 @@ public class AuditEventLoggingFacade {
             eventToLog = defaultEvent;
         }
         if (eventToLog != null) {
-//            Map<String, Object> data = addStandardEventData(getEventData());
             String reason = ex.getMessage();
             auditLog(eventToLog, username, reason, getEventData());
         }

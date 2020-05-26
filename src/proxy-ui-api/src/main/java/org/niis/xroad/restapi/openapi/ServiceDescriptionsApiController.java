@@ -28,7 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
@@ -82,7 +82,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceConverter serviceConverter;
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditEventHelper auditEventHelper;
 
     /**
      * ServiceDescriptionsApiController constructor
@@ -96,11 +96,11 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     public ServiceDescriptionsApiController(ServiceDescriptionService serviceDescriptionService,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceConverter serviceConverter,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventHelper auditEventHelper) {
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceConverter = serviceConverter;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditEventHelper = auditEventHelper;
     }
 
     @InitBinder("serviceDescriptionUpdate")
@@ -165,12 +165,12 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         try {
 
             if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
-                auditEventLoggingFacade.changeRequestScopedEvent(EDIT_WSDL_SERVICE_DESCRIPTION);
+                auditEventHelper.changeRequestScopedEvent(EDIT_WSDL_SERVICE_DESCRIPTION);
                 updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
                         serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
                         serviceDescriptionUpdate.getIgnoreWarnings());
             } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
-                auditEventLoggingFacade.changeRequestScopedEvent(EDIT_OPENAPI3_SERVICE_DESCRIPTION);
+                auditEventHelper.changeRequestScopedEvent(EDIT_OPENAPI3_SERVICE_DESCRIPTION);
                 if (serviceDescriptionUpdate.getRestServiceCode() == null) {
                     throw new BadRequestException("Missing parameter rest_service_code");
                 }
@@ -180,7 +180,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                                 serviceDescriptionUpdate.getNewRestServiceCode(),
                                 serviceDescriptionUpdate.getIgnoreWarnings());
             } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
-                auditEventLoggingFacade.changeRequestScopedEvent(EDIT_OPENAPI3_SERVICE_DESCRIPTION);
+                auditEventHelper.changeRequestScopedEvent(EDIT_OPENAPI3_SERVICE_DESCRIPTION);
                 if (serviceDescriptionUpdate.getRestServiceCode() == null) {
                     throw new BadRequestException("Missing parameter rest_service_code");
                 }

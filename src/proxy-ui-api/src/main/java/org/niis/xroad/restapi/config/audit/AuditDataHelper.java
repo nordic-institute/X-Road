@@ -46,8 +46,11 @@ import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
@@ -78,16 +81,19 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SER
 public class AuditDataHelper {
 
     private final AuditEventLoggingFacade auditEventLoggingFacade;
-
+    private final RequestScopedAuditDataHolder requestScopedAuditDataHolder;
 
     @Autowired
-    public AuditDataHelper(AuditEventLoggingFacade auditEventLoggingFacade) {
+    public AuditDataHelper(AuditEventLoggingFacade auditEventLoggingFacade,
+            RequestScopedAuditDataHolder requestScopedAuditDataHolder) {
         this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.requestScopedAuditDataHolder = requestScopedAuditDataHolder;
     }
 
     public void put(RestApiAuditProperty auditProperty, Object value) {
-        auditEventLoggingFacade.putRequestScopedAuditData(auditProperty, value);
+        requestScopedAuditDataHolder.getEventData().put(auditProperty.getPropertyName(), value);
     }
+
 
     /**
      * Add a new item to a property that contains a list of items
@@ -95,7 +101,12 @@ public class AuditDataHelper {
      * @param value
      */
     public void addListPropertyItem(RestApiAuditProperty listProperty, Object value) {
-        auditEventLoggingFacade.addRequestScopedAuditListData(listProperty, value);
+        List<Object> data = Collections.synchronizedList(new ArrayList<>());
+        String propertyName = listProperty.getPropertyName();
+        requestScopedAuditDataHolder.getEventData().putIfAbsent(propertyName, data);
+        List<Object> sharedListData = (List<Object>) requestScopedAuditDataHolder.getEventData()
+                .get(propertyName);
+        sharedListData.add(value);
     }
 
     /**
@@ -113,7 +124,8 @@ public class AuditDataHelper {
     }
 
     public boolean dataIsForEvent(RestApiAuditEvent event) {
-        return auditEventLoggingFacade.hasRequestScopedEvent(event);
+        RestApiAuditEvent other = requestScopedAuditDataHolder.getAuditEvent();
+        return event == other;
     }
 
     public void put(IsAuthentication isAuthentication) {
@@ -147,7 +159,7 @@ public class AuditDataHelper {
     }
 
     public void putManagementRequestId(Integer requestId) {
-        auditEventLoggingFacade.putRequestScopedAuditData(MANAGEMENT_REQUEST_ID, requestId);
+        put(MANAGEMENT_REQUEST_ID, requestId);
     }
 
     /**
