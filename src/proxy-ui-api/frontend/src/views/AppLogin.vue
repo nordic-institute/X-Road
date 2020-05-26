@@ -46,8 +46,7 @@
               rounded
               :disabled="isDisabled"
               :loading="loading"
-            >{{$t('login.logIn')}}
-            </v-btn>
+            >{{$t('login.logIn')}}</v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -57,7 +56,7 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { RouteName } from '@/global';
+import { RouteName, Permissions } from '@/global';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
 export default (Vue as VueConstructor<
@@ -115,7 +114,6 @@ export default (Vue as VueConstructor<
           (response) => {
             // Auth ok. Start phase 2 (fetch user data and current security server info).
             this.fetchUserData();
-            this.fetchCurrentSecurityServer();
             this.fetchSecurityServerVersion();
           },
           (error) => {
@@ -150,7 +148,8 @@ export default (Vue as VueConstructor<
         .dispatch('fetchUserData')
         .then(
           (response) => {
-            this.$router.replace({ name: RouteName.Clients });
+            // this.$router.replace({ name: RouteName.Clients });
+            this.fetchInitializationData();
           },
           (error) => {
             // Display error
@@ -162,6 +161,38 @@ export default (Vue as VueConstructor<
           this.loading = false;
         });
     },
+
+    async fetchInitializationData() {
+      this.$store
+        .dispatch('fetchInitializationStatus')
+        .then(
+          (response) => {
+            if (this.$store.getters.needsInitialisation) {
+              // Check if the user has permission to initialise the server
+              if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+                this.$store.dispatch(
+                  'showErrorMessage',
+                  'initialConfiguration.noPermission',
+                );
+                return;
+              }
+              this.$router.replace({ name: RouteName.InitialConfiguration });
+            } else {
+              this.fetchCurrentSecurityServer();
+              this.$router.replace({ name: RouteName.Clients });
+            }
+          },
+          (error) => {
+            // Display error
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
+          // Clear loading state
+          this.loading = false;
+        });
+    },
+
     async fetchCurrentSecurityServer() {
       this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
         this.$store.dispatch('showError', error);

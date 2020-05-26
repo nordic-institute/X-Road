@@ -41,11 +41,11 @@
       <v-stepper-items v-if="isAnchorImported" class="stepper-content">
         <!-- Member step -->
         <v-stepper-content step="1">
-          <OwnerMemberStep  @done="ownerMemberReady" :showPreviousButton="false" />
+          <OwnerMemberStep @done="ownerMemberReady" :showPreviousButton="false" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="2">
-          <TokenPinStep  @previous="currentStep = 1" @done="tokenPinReady" />
+          <TokenPinStep @previous="currentStep = 1" @done="tokenPinReady" />
         </v-stepper-content>
       </v-stepper-items>
 
@@ -60,10 +60,19 @@
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="3">
-          <TokenPinStep @previous="currentStep = 2" @done="tokenPinReady" />
+          <TokenPinStep @previous="currentStep = 2" @done="tokenPinReady" :saveBusy="pinSaveBusy" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
+
+    <!-- Confirm dialog for warnings when initializing server -->
+    <warningDialog
+      :dialog="confirmInitWarning"
+      :warnings="warningInfo"
+      localizationParent="initialConfiguration.warning"
+      @cancel="confirmInitWarning = false"
+      @accept="acceptInitWarning()"
+    ></warningDialog>
   </div>
 </template>
 
@@ -73,6 +82,7 @@ import { mapGetters } from 'vuex';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import TokenPinStep from './TokenPinStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
+import WarningDialog from './WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
@@ -84,6 +94,7 @@ export default Vue.extend({
     TokenPinStep,
     ConfigurationAnchorStep,
     OwnerMemberStep,
+    WarningDialog,
   },
   props: {},
   computed: {
@@ -92,10 +103,13 @@ export default Vue.extend({
   data() {
     return {
       currentStep: 1,
+      pinSaveBusy: false,
+      warningInfo: [],
+      confirmInitWarning: false,
+      requestPayload: undefined as any,
     };
   },
   methods: {
-
     configAnchorReady(): void {
       this.currentStep++;
     },
@@ -106,10 +120,53 @@ export default Vue.extend({
 
     tokenPinReady(pin: string): void {
       console.log('READY', pin);
+
+      this.pinSaveBusy = true;
+
+      this.requestPayload = {
+        owner_member_class: this.$store.getters.initServerMemberClass,
+        owner_member_code: this.$store.getters.initServerMemberCode,
+        security_server_code: this.$store.getters.initServerSSCode,
+        software_token_pin: pin,
+        ignore_warnings: false,
+      };
+
+      this.initServer(this.requestPayload);
+    },
+
+    acceptInitWarning(): void {
+      this.requestPayload.ignore_warnings = true;
+      this.confirmInitWarning = false;
+      this.initServer(this.requestPayload);
+    },
+
+    initServer(payload: any): void {
+      api
+        .post('/initialization', payload)
+        .then((res) => {
+          this.$store.dispatch('showSuccess', 'initialConfiguration.success');
+          this.pinSaveBusy = false;
+          this.$router.replace({ name: RouteName.Clients });
+        })
+        .catch((error) => {
+          if (error.response.data.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.confirmInitWarning = true;
+          } else {
+            this.$store.dispatch('showError', error);
+            this.pinSaveBusy = false;
+          }
+        });
     },
 
     fetchInitStatus(): void {
       this.$store.dispatch('fetchInitializationStatus').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
+    },
+
+    async fetchCurrentSecurityServer() {
+      this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },

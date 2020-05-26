@@ -68,6 +68,14 @@ export const getters: GetterTree<InitServerState, RootState> = {
 
   isSoftwareTokenInitialized(state): boolean {
     return state.initializationStatus?.is_software_token_initialized || false;
+  },
+  needsInitialisation: (state) => {
+    if (state.initializationStatus?.is_anchor_imported && state.initializationStatus.is_server_code_initialized &&
+      state.initializationStatus.is_server_owner_initialized && state.initializationStatus.is_software_token_initialized
+    ) {
+      return false;
+    }
+    return true;
   }
 };
 

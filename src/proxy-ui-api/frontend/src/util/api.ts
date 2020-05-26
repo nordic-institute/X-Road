@@ -17,8 +17,8 @@ export function patch(uri: string, data: any) {
 /*
  * Wraps axios put method calls with data
  */
-export function put(uri: string, data: any) {
-  return axios.put(uri, data);
+export function put(uri: string, data: any, config?: AxiosRequestConfig) {
+  return axios.put(uri, data, config);
 }
 
 /*

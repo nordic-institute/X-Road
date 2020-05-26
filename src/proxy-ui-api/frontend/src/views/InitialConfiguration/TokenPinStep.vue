@@ -44,6 +44,7 @@
           >{{$t('action.previous')}}</large-button>
           <large-button
             :disabled="invalid"
+            :loading="saveBusy"
             @click="done"
             data-test="save-button"
           >{{$t('action.submit')}}</large-button>
@@ -74,6 +75,11 @@ export default Vue.extend({
     LargeButton,
     ValidationObserver,
     ValidationProvider,
+  },
+  props: {
+    saveBusy: {
+      type: Boolean,
+    },
   },
   data() {
     return {
