@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * Helper for working with requests
- * TO DO: comments
  */
 @Component
 public final class RequestHelper {
@@ -42,6 +41,10 @@ public final class RequestHelper {
         return getCurrentHttpRequest().getRequestURI();
     }
 
+    /**
+     * Returns current {@link HttpServletRequest}
+     * @return
+     */
     public HttpServletRequest getCurrentHttpRequest() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes instanceof ServletRequestAttributes) {
@@ -60,7 +63,8 @@ public final class RequestHelper {
     }
 
     /**
-     * Run operation in request scope, or throw {@link IllegalStateException} if there is not request scope
+     * Run operation (that returns some value) in request scope,
+     * or throw {@link IllegalStateException} if there is not request scope
      * @param operation
      */
     public Object runInRequestScope(RequestScopeOperation operation) {
@@ -72,7 +76,8 @@ public final class RequestHelper {
     }
 
     /**
-     * Run operation in request scope, or throw {@link IllegalStateException} if there is not request scope
+     * Run a void operation in request scope,
+     * or throw {@link IllegalStateException} if there is not request scope
      * @param operation
      */
     public void runInRequestScope(RequestScopeVoidOperation operation) {

@@ -73,8 +73,10 @@ public class SecurityHelper {
     }
 
     /**
-     * TO DO: comments
-     * @return
+     * Returns current authentication scheme as a string. Possible values:
+     * - ApiKey
+     * - Session
+     * - HttpBasicPam
      */
     public String getCurrentAuthenticationScheme() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
