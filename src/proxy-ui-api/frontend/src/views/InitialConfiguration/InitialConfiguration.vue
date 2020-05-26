@@ -41,26 +41,26 @@
       <v-stepper-items v-if="isAnchorImported" class="stepper-content">
         <!-- Member step -->
         <v-stepper-content step="1">
-          <OwnerMemberStep @cancel="cancel" @done="ownerMemberReady" :showPreviousButton="false" />
+          <OwnerMemberStep  @done="ownerMemberReady" :showPreviousButton="false" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="2">
-          <TokenPinStep @cancel="cancel" @previous="currentStep = 1" @done="tokenPinReady" />
+          <TokenPinStep  @previous="currentStep = 1" @done="tokenPinReady" />
         </v-stepper-content>
       </v-stepper-items>
 
       <v-stepper-items v-else class="stepper-content">
         <!-- Anchor step -->
         <v-stepper-content step="1">
-          <ConfigurationAnchorStep @cancel="cancel" @done="configAnchorReady" />
+          <ConfigurationAnchorStep @done="configAnchorReady" />
         </v-stepper-content>
         <!-- Member step -->
         <v-stepper-content step="2">
-          <OwnerMemberStep @cancel="cancel" @previous="currentStep = 1" @done="ownerMemberReady" />
+          <OwnerMemberStep @previous="currentStep = 1" @done="ownerMemberReady" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="3">
-          <TokenPinStep @cancel="cancel" @previous="currentStep = 2" @done="tokenPinReady" />
+          <TokenPinStep @previous="currentStep = 2" @done="tokenPinReady" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -95,9 +95,6 @@ export default Vue.extend({
     };
   },
   methods: {
-    cancel(): void {
-      this.$router.replace({ name: RouteName.Clients });
-    },
 
     configAnchorReady(): void {
       this.currentStep++;

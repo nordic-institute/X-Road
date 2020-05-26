@@ -50,8 +50,7 @@
       </div>
 
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
-
+        <v-spacer></v-spacer>
         <div>
           <large-button
             v-if="showPreviousButton"
@@ -142,9 +141,6 @@ export default Vue.extend({
     },
     previous(): void {
       this.$emit('previous');
-    },
-    cancel(): void {
-      this.$emit('cancel');
     },
   },
 

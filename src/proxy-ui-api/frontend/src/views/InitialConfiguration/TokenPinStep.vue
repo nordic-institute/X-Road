@@ -34,8 +34,7 @@
       <br />
       {{$t('initialConfiguration.pin.info3')}}
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
-
+        <v-spacer></v-spacer>
         <div>
           <large-button
             @click="previous"
@@ -91,9 +90,6 @@ export default Vue.extend({
     },
     previous(): void {
       this.$emit('previous');
-    },
-    cancel(): void {
-      this.$emit('cancel');
     },
   },
 

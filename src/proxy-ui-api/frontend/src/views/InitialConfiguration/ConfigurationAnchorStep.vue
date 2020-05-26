@@ -1,30 +1,29 @@
 <template>
   <div>
-      <div class="action-row">
-        <div>{{$t('initialConfiguration.anchor.info')}}</div>
-        <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" />
-      </div>
-      <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>
-        <template v-if="configuratonAnchor">{{ configuratonAnchor.hash | colonize }}</template>
-      </div>
+    <div class="action-row">
+      <div>{{$t('initialConfiguration.anchor.info')}}</div>
+      <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" initMode />
+    </div>
+    <div class="row-wrap">
+      <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>
+      <template v-if="configuratonAnchor">{{ configuratonAnchor.hash | colonize }}</template>
+    </div>
 
-      <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>
-        <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
-      </div>
+    <div class="row-wrap">
+      <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>
+      <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
+    </div>
 
-      <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
-
-        <div>
-          <large-button
-            :disabled="!configuratonAnchor"
-            @click="done"
-            data-test="save-button"
-          >{{$t(saveButtonText)}}</large-button>
-        </div>
+    <div class="button-footer">
+      <v-spacer></v-spacer>
+      <div>
+        <large-button
+          :disabled="!configuratonAnchor"
+          @click="done"
+          data-test="save-button"
+        >{{$t(saveButtonText)}}</large-button>
       </div>
+    </div>
   </div>
 </template>
 
@@ -90,12 +89,6 @@ export default Vue.extend({
     done(): void {
       this.$emit('done');
     },
-    cancel(): void {
-      this.$emit('cancel');
-    },
-  },
-  created() {
-    //this.fetchConfigurationAnchor();
   },
 });
 </script>
