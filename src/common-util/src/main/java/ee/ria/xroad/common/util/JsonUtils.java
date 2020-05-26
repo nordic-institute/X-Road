@@ -51,12 +51,25 @@ public final class JsonUtils {
 
     /**
      * Get Gson with custom serializer.
+     * Default serializer does not serialize nulls
      * @return Gson instance with custom serializer.
      */
     public static Gson getSerializer() {
+        return getSerializer(false);
+    }
+
+    /**
+     * Get Gson with custom serializer.
+     * @param serializeNulls if null values should be serialized
+     * @return Gson instance with custom serializer.
+     */
+    public static Gson getSerializer(boolean serializeNulls) {
         GsonBuilder builder = new GsonBuilder();
         builder.disableHtmlEscaping();
         builder.registerTypeAdapter(ClientId.class, new ClientIdSerializer());
+        if (serializeNulls) {
+            builder.serializeNulls();
+        }
 
         builder.setExclusionStrategies(new ExclusionStrategy() {
             @Override
@@ -72,6 +85,7 @@ public final class JsonUtils {
 
         return builder.create();
     }
+
 
     private static class ClientIdSerializer implements JsonSerializer<ClientId> {
         @Override

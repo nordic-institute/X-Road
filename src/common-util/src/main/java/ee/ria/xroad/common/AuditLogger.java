@@ -81,7 +81,7 @@ public final class AuditLogger {
      */
     public static void log(String event, String user, Map<String, Object> data) {
         Map<String, Object> message = createMessageMap(event, user, data, null, null);
-        log(JsonUtils.getSerializer().toJson(message));
+        log(serializeJson(message));
     }
 
     /**
@@ -94,7 +94,7 @@ public final class AuditLogger {
     public static void log(String event, String user, String reason,
             Map<String, Object> data) {
         Map<String, Object> message = createFailureMessageMap(event, user, reason, data, null, null);
-        log(JsonUtils.getSerializer().toJson(message));
+        log(serializeJson(message));
     }
 
     /**
@@ -107,7 +107,7 @@ public final class AuditLogger {
      */
     public static void log(String event, String user, Map<String, Object> data, String auth, String url) {
         Map<String, Object> message = createMessageMap(event, user, data, auth, url);
-        log(JsonUtils.getSerializer().toJson(message));
+        log(serializeJson(message));
     }
 
     /**
@@ -122,7 +122,12 @@ public final class AuditLogger {
     public static void log(String event, String user, String reason, Map<String, Object> data,
             String auth, String url) {
         Map<String, Object> message = createFailureMessageMap(event, user, reason, data, auth, url);
-        log(JsonUtils.getSerializer().toJson(message));
+        log(serializeJson(message));
+    }
+
+    private static String serializeJson(Map<String, Object> message) {
+        // serialize nulls, like old Ruby implementation
+        return JsonUtils.getSerializer(true).toJson(message);
     }
 
     private static Map<String, Object> createMessageMap(String event, String user,
