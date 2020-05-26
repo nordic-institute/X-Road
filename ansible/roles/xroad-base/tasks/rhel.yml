@@ -1,7 +1,10 @@
 ---
 - name: Install epel repository (RHEL)
   yum:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
+
+- name: Clean yum cache
+  command: yum clean metadata warn=no
 
 - name: Install required packages (RHEL)
   become: yes
@@ -33,3 +36,16 @@
     repo_gpgcheck: "{{ rhel_repo_gpgcheck }}"
     state: present
     enabled: yes
+
+- name: X-Road repo key
+  rpm_key:
+    state: present
+    key: "{{ rhel_repo_gpgkey }}"
+
+- name: xroad repo
+  template:
+    src: "xroad.repo.j2"
+    dest: "/etc/yum.repos.d/xroad.repo"
+    owner: root
+    group: root
+    mode: 0644
