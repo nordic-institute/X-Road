@@ -1,6 +1,6 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
-    <div class="apply-to-all">
+    <div class="apply-to-all" v-if="showApplyToAll">
       <div class="apply-to-all-text">{{$t('services.applyToAll')}}</div>
     </div>
 
@@ -31,6 +31,7 @@
         </div>
 
         <v-checkbox
+          v-if="showApplyToAll"
           @change="setTouched()"
           v-model="url_all"
           color="primary"
@@ -66,6 +67,7 @@
         </div>
 
         <v-checkbox
+          v-if="showApplyToAll"
           @change="setTouched()"
           v-model="timeout_all"
           color="primary"
@@ -91,6 +93,7 @@
         </div>
 
         <v-checkbox
+          v-if="showApplyToAll"
           @change="setTouched()"
           v-model="ssl_auth_all"
           color="primary"
@@ -206,6 +209,7 @@ import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 import {ServiceClient} from '@/openapi-types';
+import { ServiceTypeEnum } from '@/domain';
 
 type NullableServiceClient = undefined | ServiceClient;
 
@@ -255,6 +259,9 @@ export default Vue.extend({
     disableSave(): boolean {
       // service is undefined --> can't save OR inputs are not touched
       return !this.service || !this.touched;
+    },
+    showApplyToAll(): boolean {
+      return this.$route.query.descriptionType === ServiceTypeEnum.WSDL;
     },
   },
 
@@ -409,15 +416,14 @@ export default Vue.extend({
     align-content: center;
     width: 100%;
   }
-}
 
-.edit-row > *:last-child {
-  margin-left: 20px;
-  width: 100px;
-  max-width: 100px;
-  min-width: 100px;
-  margin-left: auto;
-  margin-right: 0;
+  & > .table-checkbox:last-child {
+    width: 100px;
+    max-width: 100px;
+    min-width: 100px;
+    margin-left: auto;
+    margin-right: 0;
+  }
 }
 
 .group-members-row {

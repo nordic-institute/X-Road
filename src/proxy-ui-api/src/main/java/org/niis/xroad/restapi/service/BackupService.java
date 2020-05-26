@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -77,8 +78,8 @@ public class BackupService {
      */
     @Autowired
     public BackupService(BackupRepository backupRepository, ServerConfService serverConfService,
-                         ExternalProcessRunner externalProcessRunner,
-                         @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
+            ExternalProcessRunner externalProcessRunner,
+            @Value("${script.generate-backup.path}") String generateBackupScriptPath) {
         this.backupRepository = backupRepository;
         this.serverConfService = serverConfService;
         this.externalProcessRunner = externalProcessRunner;
@@ -132,7 +133,7 @@ public class BackupService {
     public BackupFile generateBackup() throws InterruptedException {
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         String filename = generateBackupFileName();
-        String fullPath =  backupRepository.getConfigurationBackupPath() + filename;
+        String fullPath = backupRepository.getConfigurationBackupPath() + filename;
         String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
 
         try {
@@ -146,7 +147,6 @@ public class BackupService {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            log.error("Failed to generate backup", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(BACKUP_GENERATION_FAILED));
         }
 

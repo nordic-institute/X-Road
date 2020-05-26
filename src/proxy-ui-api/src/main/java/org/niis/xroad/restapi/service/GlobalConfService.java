@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -127,28 +128,6 @@ public class GlobalConfService {
     }
 
     /**
-     * @param identifiers
-     * @return whether the global group identifiers exist in global configuration
-     */
-    public boolean globalGroupIdentifiersExist(Collection<XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
-                .map(GlobalGroupInfo::getId)
-                .collect(Collectors.toList());
-        return existingIdentifiers.containsAll(identifiers);
-    }
-
-    /**
-     * @param identifiers
-     * @return whether the members identifiers exist in global configuration
-     */
-    public boolean clientIdentifiersExist(Collection<XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
-                .map(MemberInfo::getId)
-                .collect(Collectors.toList());
-        return existingIdentifiers.containsAll(identifiers);
-    }
-
-    /**
      * @return member classes for current instance
      */
     public Set<String> getMemberClassesForThisInstance() {
@@ -252,5 +231,17 @@ public class GlobalConfService {
         if (response != null && response.getStatusCode() != HttpStatus.OK) {
             throw new ConfigurationDownloadException(response.getBody());
         }
+    }
+
+    /**
+     * Find member's name in the global conf
+     * @param memberClass
+     * @param memberCode
+     * @return
+     */
+    public String findMemberName(String memberClass, String memberCode) {
+        String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
+        ClientId clientId = ClientId.create(instanceIdentifier, memberClass, memberCode);
+        return globalConfFacade.getMemberName(clientId);
     }
 }

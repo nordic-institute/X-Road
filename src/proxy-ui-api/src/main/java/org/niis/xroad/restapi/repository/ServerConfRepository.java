@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,14 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * repository for working with ServerConfType / serverconf table
  */
 @Slf4j
 @Repository
-@Transactional
 public class ServerConfRepository {
 
     private final PersistenceUtils persistenceUtils;
@@ -57,4 +56,12 @@ public class ServerConfRepository {
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
 
+    /**
+     * Save or update ServerConf
+     * @return
+     */
+    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
+        return serverConfType;
+    }
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -36,9 +37,11 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -76,6 +79,9 @@ public class IdentifierValidationRestTemplateTest {
     private TestRestTemplate restTemplate;
 
     @MockBean
+    private SystemService systemService;
+
+    @MockBean
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
@@ -91,8 +97,8 @@ public class IdentifierValidationRestTemplateTest {
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(systemService.isAnchorImported()).thenReturn(false);
     }
 
     @Test
@@ -117,7 +123,6 @@ public class IdentifierValidationRestTemplateTest {
         ResponseEntity<Object> response = createTestClient(memberCode, subsystemCode);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
-
 
     private ResponseEntity<Object> createTestClient(String memberCode, String subsystemCode) {
         Client client = new Client()
@@ -182,6 +187,46 @@ public class IdentifierValidationRestTemplateTest {
         assertEquals(new Integer(HttpStatus.BAD_REQUEST.value()), response.get("status"));
         Map<String, Object> errors = (Map<String, Object>) response.get("error");
         assertEquals("validation_failure", errors.get("code"));
+    }
+
+    @Test
+    public void initialServerConf() {
+        assertInitialServerConfValidationError(HAS_COLON, "aa", "aa");
+        assertInitialServerConfValidationError(HAS_SEMICOLON, "aa", "aa");
+        assertInitialServerConfValidationError(HAS_PERCENT, "aa", "aa");
+        assertInitialServerConfValidationError(HAS_NON_NORMALIZED, "aa", "aa");
+        assertInitialServerConfValidationError(HAS_BACKSLASH, "aa", "aa");
+        assertInitialServerConfValidationError("aa", HAS_COLON, "aa");
+        assertInitialServerConfValidationError("aa", HAS_SEMICOLON, "aa");
+        assertInitialServerConfValidationError("aa", HAS_PERCENT, "aa");
+        assertInitialServerConfValidationError("aa", HAS_NON_NORMALIZED, "aa");
+        assertInitialServerConfValidationError("aa", HAS_BACKSLASH, "aa");
+        assertInitialServerConfValidationError("aa", "aa", HAS_COLON);
+        assertInitialServerConfValidationError("aa", "aa", HAS_SEMICOLON);
+        assertInitialServerConfValidationError("aa", "aa", HAS_PERCENT);
+        assertInitialServerConfValidationError("aa", "aa", HAS_NON_NORMALIZED);
+        assertInitialServerConfValidationError("aa", "aa", HAS_BACKSLASH);
+
+        // these should pass validation but in the end initializing fails because of missing configuration anchor
+        ResponseEntity<Object> response = createInitialServerConf("aa.bb.列.ä", "aa.bb.列.ä", "aa.bb.列.ä");
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+    }
+
+    private ResponseEntity<Object> createInitialServerConf(String securityServerCode, String ownerMemberClass,
+            String ownerMemberCode) {
+        InitialServerConf initialServerConf = new InitialServerConf()
+                .securityServerCode(securityServerCode)
+                .ownerMemberClass(ownerMemberClass)
+                .ownerMemberCode(ownerMemberCode)
+                .softwareTokenPin("1234");
+        return restTemplate.postForEntity("/api/initialization", initialServerConf, Object.class);
+    }
+
+    private void assertInitialServerConfValidationError(String securityServerCode, String ownerMemberClass,
+            String ownerMemberCode) {
+        ResponseEntity<Object> response = createInitialServerConf(securityServerCode, ownerMemberClass,
+                ownerMemberCode);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
 }

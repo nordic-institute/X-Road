@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -69,9 +70,10 @@ public class TokenServiceTest {
     private static final String UNKNOWN_LOGIN_FAIL_TOKEN_ID = "unknown-login-fail";
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
-    private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String GOOD_KEY_ID = "key-which-exists";
     private static final String GOOD_TOKEN_NAME = "good-token";
+
+    public static final String GOOD_TOKEN_ID = "token-which-exists";
 
     @Autowired
     private TokenService tokenService;

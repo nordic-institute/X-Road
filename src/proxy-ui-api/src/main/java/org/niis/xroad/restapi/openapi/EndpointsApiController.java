@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,9 +28,10 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
-import org.niis.xroad.restapi.converter.ServiceClientHelper;
+import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
@@ -39,8 +41,7 @@ import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
-import org.niis.xroad.restapi.service.IdentifierNotFoundException;
-import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -157,19 +158,20 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<List<ServiceClient>> addEndpointServiceClients(String id, ServiceClients serviceClients) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
-        List<XRoadId> xRoadIds = serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients);
         List<ServiceClientDto> serviceClientsByEndpoint = null;
 
         try {
+            Set<XRoadId> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
             serviceClientsByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
-                    new HashSet<>(xRoadIds), localGroupIds);
-        } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
+                    new HashSet<>(xRoadIds));
+        } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
             throw new ConflictException(e);
-        } catch (IdentifierNotFoundException | LocalGroupNotFoundException e) {
+        } catch (ServiceClientNotFoundException e) {
             throw new BadRequestException(e);
+        } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
+            throw serviceClientHelper.wrapInBadRequestException(e);
         }
 
         List<ServiceClient> serviceClientsResult = serviceClientConverter
@@ -181,18 +183,20 @@ public class EndpointsApiController implements EndpointsApi {
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
     public ResponseEntity<Void> deleteEndpointServiceClients(String id, ServiceClients serviceClients) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
-        Set<Long> localGroupIds = serviceClientHelper.getLocalGroupIds(serviceClients);
-        HashSet<XRoadId> xRoadIds = new HashSet<>(serviceClientHelper.getXRoadIdsButSkipLocalGroups(serviceClients));
         try {
-            accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds, localGroupIds);
+            Set<XRoadId> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds);
         } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
+        } catch (ServiceClientNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
+            throw serviceClientHelper.wrapInBadRequestException(e);
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
 
 }

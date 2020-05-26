@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -40,7 +41,9 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * test ClientConverter
@@ -117,6 +120,24 @@ public class ClientConverterTest {
     @Test(expected = BadRequestException.class)
     public void convertBadStringId3() throws Exception {
         clientConverter.convertId("XRD2:GOV:M4:SS1::::::");
+    }
+
+    @Test
+    public void isEncodedMemberId() throws Exception {
+        assertTrue(clientConverter.isEncodedMemberId("XRD2:GOV:M4"));
+        assertFalse(clientConverter.isEncodedMemberId("XRD2:GOV:M4:SS1"));
+    }
+
+    @Test
+    public void isEncodedSubsystemId() throws Exception {
+        assertFalse(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4"));
+        assertTrue(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4:SS1"));
+    }
+
+    @Test
+    public void isEncodedClientId() throws Exception {
+        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4"));
+        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4:SS1"));
     }
 
     @Test

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -36,6 +37,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
@@ -43,11 +49,14 @@ public class EndpointService {
 
     private final ClientRepository clientRepository;
     private final EndpointRepository endpointRepository;
+    private final ServiceService serviceService;
 
     @Autowired
-    public EndpointService(ClientRepository clientRepository, EndpointRepository endpointRepository) {
+    public EndpointService(ClientRepository clientRepository, EndpointRepository endpointRepository,
+            ServiceService serviceService) {
         this.clientRepository = clientRepository;
         this.endpointRepository = endpointRepository;
+        this.serviceService = serviceService;
     }
 
     /**
@@ -135,21 +144,74 @@ public class EndpointService {
      * Get matching base-endpoint for the given client and service.
      *
      * @param serviceType
-     * @return
-     * @throws EndpointNotFoundException
+     * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
      */
     public EndpointType getServiceBaseEndpoint(ServiceType serviceType)
             throws EndpointNotFoundException {
         ClientType clientType = serviceType.getServiceDescription().getClient();
+        String serviceCode = serviceType.getServiceCode();
+        return getServiceBaseEndpoint(clientType, serviceCode);
+    }
+
+    /**
+     * Get matching base-endpoint for the given client and service code.
+     * @param clientType
+     * @param serviceCode
+     * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
+     */
+    public EndpointType getServiceBaseEndpoint(ClientType clientType, String serviceCode)
+            throws EndpointNotFoundException {
         return clientType.getEndpoint().stream()
-                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
+                .filter(endpointType -> endpointType.getServiceCode().equals(serviceCode)
                         && endpointType.getMethod().equals(EndpointType.ANY_METHOD)
                         && endpointType.getPath().equals(EndpointType.ANY_PATH))
                 .findFirst()
                 .orElseThrow(() -> new EndpointNotFoundException(
-                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client"
-                        + clientType.getIdentifier() + " and servicecode " + serviceType.getServiceCode()));
+                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "
+                        + clientType.getIdentifier() + " and servicecode " + serviceCode));
     }
+
+    /**
+     * Get matching base-endpoints for the given client and service codes.
+     * @param clientType
+     * @param serviceCodes
+     * @throws EndpointNotFoundException if any base endpoint matching given parameters did not exist
+     */
+    public List<EndpointType> getServiceBaseEndpoints(ClientType clientType, Set<String> serviceCodes)
+            throws EndpointNotFoundException {
+        List<EndpointType> baseEndpoints = new ArrayList<>();
+        for (String serviceCode: serviceCodes) {
+            baseEndpoints.add(getServiceBaseEndpoint(clientType, serviceCode));
+        }
+        return baseEndpoints;
+    }
+
+    /**
+     * Get base endpoint for given client and full service code
+     * @throws ServiceNotFoundException if no match was found
+     */
+    public EndpointType getBaseEndpointType(ClientType clientType, String fullServiceCode)
+            throws ServiceNotFoundException {
+        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
+        try {
+            return getServiceBaseEndpoint(serviceType);
+        } catch (EndpointNotFoundException e) {
+            throw new ServiceNotFoundException(e);
+        }
+    }
+
+
+    /**
+     * Get all endpoints (base and others) for the given client and service code.
+     * @param clientType
+     * @param serviceCodes
+     */
+    public List<EndpointType> getServiceEndpoints(ClientType clientType, Set<String> serviceCodes) {
+        return clientType.getEndpoint().stream()
+                .filter(endpointType -> serviceCodes.contains(endpointType.getServiceCode()))
+                .collect(Collectors.toList());
+    }
+
 
     public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
         public static final String ILLEGAL_GENERATED_ENDPOINT_UPDATE = "illegal_generated_endpoint_update";

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -43,10 +44,11 @@ import java.io.IOException;
  * Adds correlation id (sleuth trace id) to response header
  */
 @Component
-@Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 1)
+@Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER)
 public class AddCorrelationIdFilter implements Filter {
-
+    public static final int CORRELATION_ID_FILTER_ORDER = TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 1;
     public static final String CORRELATION_ID_HEADER_NAME = "x-road-ui-correlation-id";
+
     @Autowired
     private Tracer tracer;
 

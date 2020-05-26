@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -90,13 +91,14 @@ public class ServiceService {
     }
 
     /**
-     * Get {@link ServiceType} from a {@link ClientType} by comparing the service code (with version).
+     * Get {@link ServiceType} from a {@link ClientType} by comparing the full service code (with version).
      * @param client
      * @param fullServiceCode
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
-    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode) throws ServiceNotFoundException {
+    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode)
+            throws ServiceNotFoundException {
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)

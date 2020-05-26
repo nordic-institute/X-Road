@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -75,9 +76,10 @@ public class TokensApiControllerTest {
 
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
-    private static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
-    private static final String NOT_ACTIVE_TOKEN_KEY_ID = "token-not-active-key";
     private static final String KEY_LABEL = "key-label";
+
+    public static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
+    public static final String NOT_ACTIVE_TOKEN_KEY_ID = "token-not-active-key";
 
     @MockBean
     private TokenService tokenService;

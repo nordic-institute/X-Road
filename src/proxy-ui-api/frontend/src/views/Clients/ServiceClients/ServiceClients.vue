@@ -20,7 +20,7 @@
       </v-btn>
     </div>
 
-    <table class="xrd-table service-clients-table">
+    <table class="xrd-table xrd-table-highlightable service-clients-table">
       <thead>
         <tr>
           <th>{{$t('serviceClients.name')}}</th>
@@ -72,9 +72,9 @@
             this.$store.dispatch('showError', error));
       },
       addServiceClient(): void {
-        // NOOP
+        this.$router.push(`/subsystem/serviceclients/${this.id}/add`);
       },
-      filteredServiceClients() {
+      filteredServiceClients(): ServiceClient[] {
         return this.serviceClients.filter( (sc: ServiceClient) => {
           const searchWordLowerCase = this.search.toLowerCase();
           return sc.name?.toLowerCase().includes(searchWordLowerCase)
@@ -101,11 +101,6 @@
 
 .service-clients-table {
   margin-top: 40px;
-}
-
-table tbody tr:hover {
-  cursor: pointer;
-  background-color: $XRoad-Grey10;
 }
 
 </style>

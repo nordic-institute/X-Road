@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -34,15 +35,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * custom token / session cookie authentication for rest apis
@@ -79,9 +76,10 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 .authenticationEntryPoint(http401AuthenticationEntryPoint)
                 .and()
             .csrf()
-                // we require csrf protection only if session cookie-authentication is used
-                .requireCsrfProtectionMatcher(request -> isSessionCookieAuthenticated(request))
-                .csrfTokenRepository(new ApiKeyAuthAwareCookieCsrfTokenRepository())
+                // we require csrf protection only if there is a session alive
+                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::sessionExists)
+                // CsrfFilter always generates a new token in the repo -> prevent with lazy
+                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
                 .and()
             .anonymous()
                 .disable()
@@ -92,42 +90,12 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
             .formLogin()
                 .disable();
     }
-    /**
-     * Checks whether session cookie auth, or some other (api key) auth was used.
-     * Purely based on existence of JSESSIONID cookie.
-     */
-    private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
-        return WebUtils.getCookie(request, "JSESSIONID") != null;
-    }
 
     /**
-     * CookieCsrfTokenRepository (wrapper) which does not send unneeded CSRF cookies if we're
-     * using api key auth
+     * Check if an alive session exists
      */
-    private static class ApiKeyAuthAwareCookieCsrfTokenRepository implements CsrfTokenRepository {
-
-        // final class, cannot be extended
-        private CookieCsrfTokenRepository cookieCsrfTokenRepository;
-
-        ApiKeyAuthAwareCookieCsrfTokenRepository() {
-            this.cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        }
-        @Override
-        public CsrfToken generateToken(HttpServletRequest request) {
-            return cookieCsrfTokenRepository.generateToken(request);
-        }
-
-        @Override
-        public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
-            if (isSessionCookieAuthenticated(request)) {
-                cookieCsrfTokenRepository.saveToken(token, request, response);
-            }
-        }
-
-        @Override
-        public CsrfToken loadToken(HttpServletRequest request) {
-            return cookieCsrfTokenRepository.loadToken(request);
-        }
+    private static boolean sessionExists(HttpServletRequest request) {
+        return request.getSession(false) != null;
     }
 
     /**

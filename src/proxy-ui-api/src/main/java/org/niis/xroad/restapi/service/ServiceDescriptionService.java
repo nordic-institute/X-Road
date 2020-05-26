@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -393,37 +394,35 @@ public class ServiceDescriptionService {
      */
     private void checkDuplicateServiceCodes(ServiceDescriptionType serviceDescription)
             throws ServiceCodeAlreadyExistsException {
-        List<String> existingServices = serviceDescription.getClient().getServiceDescription().stream()
-                .filter(s -> !s.equals(serviceDescription))
-                .flatMap(otherServiceDescription -> otherServiceDescription.getService().stream())
-                .map(otherService -> createServiceCodeAndVersionCombination(otherService))
-                .collect(Collectors.toList());
 
-        List<String> duplicateServiceCodes = serviceDescription.getService().stream()
-                .filter(candidate -> {
-                    String candidateCombination = createServiceCodeAndVersionCombination(candidate);
-                    return existingServices.contains(candidateCombination);
+        List<ServiceType> existingServices =
+                getClientsExistingServices(serviceDescription.getClient(), serviceDescription.getId());
+
+        Set<ServiceType> duplicateServices = serviceDescription.getService().stream()
+                .filter(candidateService -> {
+                    String candidateFullServiceCode = FormatUtils.getServiceFullName(candidateService);
+                    boolean existsByServiceCode = existingServices.stream()
+                            .map(s -> s.getServiceCode())
+                            .anyMatch(serviceCode -> serviceCode.equalsIgnoreCase(candidateService.getServiceCode()));
+                    boolean existsByFullServiceCode = existingServices.stream()
+                            .map(s -> FormatUtils.getServiceFullName(s))
+                            .anyMatch(fullServiceCode -> fullServiceCode.equalsIgnoreCase(candidateFullServiceCode));
+                    return existsByFullServiceCode || existsByServiceCode;
                 })
-                .map(duplicate -> duplicate.getServiceCode())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
-        if (duplicateServiceCodes.size() > 0) {
-            throw new ServiceCodeAlreadyExistsException(duplicateServiceCodes);
+        // throw error with service metadata if conflicted
+        if (!duplicateServices.isEmpty()) {
+            List<String> errorMetadata = new ArrayList();
+            for (ServiceType service : duplicateServices) {
+                // error metadata contains service name and service description url
+                errorMetadata.add(FormatUtils.getServiceFullName(service));
+                errorMetadata.add(service.getServiceDescription().getUrl());
+            }
+            throw new ServiceCodeAlreadyExistsException(errorMetadata);
         }
-    }
 
-    /**
-     * Creates combination of Services ServiceCode and version
-     *
-     * @param service
-     * @return String presentation
-     */
-    private String createServiceCodeAndVersionCombination(ServiceType service) {
-        String serviceCode = service.getServiceCode();
-        String serviceVersion = service.getServiceVersion() == null ? "" : service.getServiceVersion();
-        return serviceCode + serviceVersion;
     }
-
 
     /**
      * Add a new REST ServiceDescription
@@ -481,6 +480,8 @@ public class ServiceDescriptionService {
 
         return serviceDescriptionType;
     }
+
+
 
     /**
      * Update the WSDL url of the selected ServiceDescription
@@ -860,6 +861,26 @@ public class ServiceDescriptionService {
     }
 
     /**
+     * Returns title for client's service with specific serviceCode.
+     * Current implementation picks title of the first matching service with given service code,
+     * if multiple versions exist.
+     * @param clientType
+     * @param serviceCode
+     * @return title, or null if no title exists.
+     * @throws NoSuchElementException if client does not have the given service
+     */
+    public String getServiceTitle(ClientType clientType, String serviceCode) {
+        ServiceType service = clientType.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
+                .findFirst()
+                .orElse(null);
+
+        return service == null ? null : service.getTitle();
+    }
+
+
+    /**
      * Update the WSDL url of the selected ServiceDescription.
      * Refreshing a WSDL is also an update of wsdl,
      * it just updates to the same URL value
@@ -1141,6 +1162,7 @@ public class ServiceDescriptionService {
         result.setWarnings(warnings);
         return result;
     }
+
 
     /**
      * validate that all services have legal service code (name) and version

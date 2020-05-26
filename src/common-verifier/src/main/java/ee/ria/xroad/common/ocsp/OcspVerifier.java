@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -48,7 +49,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.joda.time.DateTime;
 
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,7 +77,7 @@ public final class OcspVerifier {
     private final OcspVerifierOptions options;
 
     private static final TimeBasedObjectCache CACHE = new TimeBasedObjectCache(SystemProperties
-            .getOcspVerifierCachePeriod());;
+            .getOcspVerifierCachePeriod());
 
     /**
      * Constructor
@@ -172,10 +172,9 @@ public final class OcspVerifier {
             log.debug("Verify OCSP nextUpdate, atDate: {} nextUpdate: {}", atDate, singleResp.getNextUpdate());
             if (singleResp.getNextUpdate() != null
                     && singleResp.getNextUpdate().before(atDate)) {
-                SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                 throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s", fmt.format(atDate),
-                                fmt.format(singleResp.getNextUpdate())));
+                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s",
+                                atDate.toInstant(), singleResp.getNextUpdate().toInstant()));
             }
         } else {
             log.debug("OCSP nextUpdate verification is turned off");
@@ -269,7 +268,7 @@ public final class OcspVerifier {
      */
     public boolean isExpired(SingleResp singleResp, Date atDate) {
         Date allowedThisUpdate = new DateTime(atDate)
-            .minusSeconds(ocspFreshnessSeconds).toDate();
+                .minusSeconds(ocspFreshnessSeconds).toDate();
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),

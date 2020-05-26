@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -620,7 +621,7 @@ public class ClientServiceIntegrationTest {
         ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getLocalClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
-        assertEquals(2, clientType.getLocalGroup().size());
+        assertEquals(3, clientType.getLocalGroup().size());
 
         try {
             clientService.updateConnectionType(id, "FUBAR");
@@ -631,7 +632,8 @@ public class ClientServiceIntegrationTest {
         clientService.updateConnectionType(id, "NOSSL");
         clientType = clientService.getLocalClient(id);
         assertEquals("NOSSL", clientType.getIsAuthentication());
-        assertEquals(2, clientType.getLocalGroup().size());
+        assertEquals(3, clientType.getLocalGroup().size());
+
     }
 
     @Test

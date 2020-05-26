@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -44,6 +45,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -239,5 +241,18 @@ public final class FormatUtils {
      */
     public static boolean isValidBackupFilename(String filename) {
         return Pattern.compile(BACKUP_FILENAME_PATTERN).matcher(filename).matches();
+    }
+
+    /**
+     * Encode a string to a base64 string
+     * @param toBeEncoded string to be encoded
+     * @return
+     */
+    public static String encodeStringToBase64(String toBeEncoded) {
+        if (StringUtils.isEmpty(toBeEncoded)) {
+            throw new IllegalArgumentException("cannot encode null or empty strings");
+        }
+        byte[] encodedBytes = Base64.getEncoder().encode(toBeEncoded.getBytes());
+        return new String(encodedBytes);
     }
 }

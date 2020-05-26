@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.13  
+Version: 2.14  
 Doc. ID: IG-CS
 
 ---
@@ -31,6 +31,7 @@ Doc. ID: IG-CS
 | 04.09.2019 | 2.11    | Update ports | Petteri Kivimäki |
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
 | 26.11.2019 | 2.13    | Add instructions for using remote database | Ilkka Seppälä
+| 29.04.2020 | 2.14    | Add instructions how to use remote database located in Microsoft Azure | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -161,15 +162,39 @@ Add X-Road package repository (**reference data: 1.1**)
 
 (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
 
-      ```
-      sudo touch /etc/xroad.properties
-      sudo chown root:root /etc/xroad.properties
-      sudo chmod 600 /etc/xroad.properties
-      ```
+  ```
+  sudo touch /etc/xroad.properties
+  sudo chown root:root /etc/xroad.properties
+  sudo chmod 600 /etc/xroad.properties
+  ```
 
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-      postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
+      postgres.connection.password = {database superuser password}
+      postgres.connection.user = {database superuser name, postgres by default}
+
+  If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. Therefore you need to precreate also db.properties file as follows. First create the directory and file.
+
+      sudo mkdir /etc/xroad
+      sudo chown xroad:xroad /etc/xroad
+      sudo chmod 751 /etc/xroad
+      sudo touch /etc/xroad/db.properties
+      sudo chown xroad:xroad /etc/xroad/db.properties
+      sudo chmod 640 /etc/xroad/db.properties
+
+  Then edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
+
+      adapter=postgresql
+      encoding=utf8
+      username=centerui@servername
+      password=centerui
+      database=centerui_production
+      reconnect=true
+      host=servername.postgres.database.azure.com
+      port=5432
+      schema=centerui
+
+  In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
 Issue the following commands to install the central server packages:
 

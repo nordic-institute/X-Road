@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,6 +28,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -37,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
@@ -80,6 +83,9 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
 
     @MockBean
     private SignerProxyFacade signerProxyFacade;
+
+    @MockBean
+    private CurrentSecurityServerId currentSecurityServerId;
 
     @Autowired
     private KeyAndCertificateRequestService keyAndCertificateRequestService;
@@ -139,6 +145,9 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(Arrays.asList(
                 new ApprovedCAInfo(MOCK_CA, false,
                         "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider")));
+        ClientId ownerId = ClientId.create("FI", "GOV", "M1");
+        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
+        when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
     }
 
     private KeyInfo getKey(Map<String, TokenInfo> tokens, String keyId) {

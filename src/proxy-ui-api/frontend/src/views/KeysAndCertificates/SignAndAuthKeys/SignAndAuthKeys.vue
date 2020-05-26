@@ -21,7 +21,7 @@
         @refreshList="fetchData"
         @tokenLogout="logoutDialog = true"
         @tokenLogin="loginDialog = true"
-        @addKey="addKeyDialog = true"
+        @addKey="addKey"
         :token="token"
       />
     </template>
@@ -35,8 +35,6 @@
     />
 
     <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
-
-    <KeyLabelDialog :dialog="addKeyDialog" @save="addKey" @cancel="addKeyDialog = false" />
   </div>
 </template>
 
@@ -46,13 +44,10 @@ import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import KeyLabelDialog from './KeyLabelDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenType, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
-
 import { cloneDeep } from 'lodash';
 
 export default Vue.extend({
@@ -60,14 +55,12 @@ export default Vue.extend({
     TokenExpandable,
     ConfirmDialog,
     TokenLoginDialog,
-    KeyLabelDialog,
   },
   data() {
     return {
       search: '',
       loginDialog: false,
       logoutDialog: false,
-      addKeyDialog: false,
     };
   },
   computed: {
@@ -166,7 +159,7 @@ export default Vue.extend({
       this.fetchData();
       this.loginDialog = false;
     },
-    addKey(label: string) {
+    addKey() {
       this.$router.push({
         name: RouteName.AddKey,
         params: { tokenId: this.$store.getters.selectedToken.id },

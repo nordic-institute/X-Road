@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,6 +25,7 @@
  */
 package org.niis.xroad.restapi.util;
 
+import org.niis.xroad.restapi.exceptions.Deviation;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
@@ -31,10 +33,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Util class for working with Errors and Warnings in tests
@@ -85,6 +89,20 @@ public final class DeviationTestUtils {
     }
 
     /**
+     * Warning without metadata
+     * @param warningCode
+     * @param deviationAware
+     */
+    public static void assertWarningWithoutMetadata(String warningCode, DeviationAware deviationAware) {
+        List<String> warningCodes = deviationAware.getWarningDeviations().stream()
+                .map(Deviation::getCode)
+                .collect(Collectors.toList());
+        deviationAware.getWarningDeviations()
+                .forEach(warningDeviation -> assertNull(warningDeviation.getMetadata()));
+        assertTrue(warningCodes.contains(warningCode));
+    }
+
+    /**
      * one warning with one metadata item
      */
     public static void assertWarning(String warningCode, String warningMetadata, DeviationAware deviationAware) {
@@ -103,7 +121,7 @@ public final class DeviationTestUtils {
      * @param deviationAware
      * @param warningMetadata
      */
-    public static void assertWarning(String warningCode, DeviationAware deviationAware, String...warningMetadata) {
+    public static void assertWarning(String warningCode, DeviationAware deviationAware, String... warningMetadata) {
         assertNotNull(deviationAware.getWarningDeviations());
         WarningDeviation warningDeviation = findWarning(warningCode, deviationAware);
         assertNotNull(warningDeviation);
@@ -112,7 +130,6 @@ public final class DeviationTestUtils {
         List<String> metadatas = Arrays.asList(warningMetadata);
         assertEquals(metadatas, warningDeviation.getMetadata());
     }
-
 
     /**
      * ErrorDeviation with one metadata item
@@ -130,7 +147,7 @@ public final class DeviationTestUtils {
     /**
      * multiple error metadata items
      */
-    public static void assertErrorWithMetadata(String errorCode, DeviationAware deviationAware, String...metadata) {
+    public static void assertErrorWithMetadata(String errorCode, DeviationAware deviationAware, String... metadata) {
         assertEquals(errorCode, deviationAware.getErrorDeviation().getCode());
         assertNotNull(deviationAware.getErrorDeviation().getMetadata());
         List<String> metadatas = Arrays.asList(metadata);

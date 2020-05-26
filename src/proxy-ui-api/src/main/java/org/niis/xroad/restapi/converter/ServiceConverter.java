@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -89,10 +90,12 @@ public class ServiceConverter {
         Service service = new Service();
 
         service.setId(convertId(serviceType, clientId));
-        service.setServiceCode(FormatUtils.getServiceFullName(serviceType));
+        service.setServiceCode(serviceType.getServiceCode());
+        service.setFullServiceCode(FormatUtils.getServiceFullName(serviceType));
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
+        service.setTitle(serviceType.getTitle());
 
         List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
                 serviceType.getServiceDescription().getClient());

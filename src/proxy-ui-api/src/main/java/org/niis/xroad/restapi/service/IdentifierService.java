@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,7 +26,9 @@
 
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
@@ -34,9 +37,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * service class for handling identifiers
@@ -46,11 +55,18 @@ import java.util.stream.Collectors;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class IdentifierService {
+
     private final IdentifierRepository identifierRepository;
+    private final LocalGroupService localGroupService;
+    private final GlobalConfService globalConfService;
 
     @Autowired
-    public IdentifierService(IdentifierRepository identifierRepository) {
+    public IdentifierService(IdentifierRepository identifierRepository,
+            LocalGroupService localGroupService,
+            GlobalConfService globalConfService) {
         this.identifierRepository = identifierRepository;
+        this.localGroupService = localGroupService;
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -60,11 +76,21 @@ public class IdentifierService {
      * @return List of XRoadIds
      */
     public Set<XRoadId> getOrPersistXroadIds(Set<XRoadId> xRoadIds) {
-        Set<XRoadId> txEntities = getXroadIds(xRoadIds);
-        xRoadIds.removeAll(txEntities); // remove the persistent ones
-        identifierRepository.saveOrUpdate(xRoadIds); // persist the non-persisted
-        txEntities.addAll(xRoadIds); // add the newly persisted ids into the collection of already existing ids
-        return txEntities;
+        Set<XRoadId> idsToPersist = new HashSet<>(xRoadIds);
+        Set<XRoadId> managedEntities = getXroadIds(idsToPersist);
+        idsToPersist.removeAll(managedEntities); // remove the persistent ones
+        identifierRepository.saveOrUpdate(idsToPersist); // persist the non-persisted
+        managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
+        return managedEntities;
+    }
+
+    /**
+     * Get the existing {@link XRoadId xRoadId} from the local db or persist it if it did not exist in db yet.
+     * @param xRoadId
+     * @return managed XRoadId which exists in IDENTIFIER table
+     */
+    public XRoadId getOrPersistXroadId(XRoadId xRoadId) {
+        return getOrPersistXroadIds(new HashSet<>(Arrays.asList(xRoadId))).iterator().next();
     }
 
     /**
@@ -78,4 +104,48 @@ public class IdentifierService {
                 .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
                 .collect(Collectors.toSet());
     }
+
+    /**
+     * Verify that service client objects identified by given XRoadIds do exist.
+     * Criteria in detail:
+     * - subsystem is registered in global configuration
+     * - global group exists in global configuration
+     * - local group exists and belongs to given client
+     * @param clientType owner of (possible) local groups
+     * @param serviceClientIds service client ids to check
+     * @throws ServiceClientNotFoundException if some service client objects could not be found
+     */
+    public void verifyServiceClientObjectsExist(ClientType clientType, Set<XRoadId> serviceClientIds)
+            throws ServiceClientNotFoundException {
+        Map<XRoadObjectType, List<XRoadId>> idsPerType = serviceClientIds.stream()
+                .collect(groupingBy(XRoadId::getObjectType));
+        for (XRoadObjectType type: idsPerType.keySet()) {
+            if (!isValidServiceClientType(type)) {
+                throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);
+            }
+        }
+        if (idsPerType.containsKey(XRoadObjectType.GLOBALGROUP)) {
+            if (!globalConfService.globalGroupsExist(idsPerType.get(XRoadObjectType.GLOBALGROUP))) {
+                throw new ServiceClientNotFoundException();
+            }
+        }
+        if (idsPerType.containsKey(XRoadObjectType.SUBSYSTEM)) {
+            if (!globalConfService.clientsExist(idsPerType.get(XRoadObjectType.SUBSYSTEM))) {
+                throw new ServiceClientNotFoundException();
+            }
+        }
+        if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
+            if (!localGroupService.localGroupsExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
+                throw new ServiceClientNotFoundException();
+            }
+        }
+    }
+
+    private boolean isValidServiceClientType(XRoadObjectType objectType) {
+        return objectType == XRoadObjectType.SUBSYSTEM
+                || objectType == XRoadObjectType.GLOBALGROUP
+                || objectType == XRoadObjectType.LOCALGROUP;
+    }
+
+
 }

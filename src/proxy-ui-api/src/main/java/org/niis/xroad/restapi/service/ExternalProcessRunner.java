@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -45,7 +46,8 @@ public class ExternalProcessRunner {
     private static final long TIMEOUT = 60000;
 
     /**
-     * Executes the given command with given arguments
+     * Executes the given command with given arguments.
+     * <b>Notice that arguments should be provided as varargs or as an array without any whitespace</b>
      * @param command the command to execute
      * @param args arguments to be appended to the command. Make sure to pass your arguments in the correct order
      * (e.g. if your options have values enter them as separate consecutive args).
@@ -75,6 +77,7 @@ public class ExternalProcessRunner {
         try {
             process = pb.start();
         } catch (IOException e) {
+            log.error("Error starting external process: " + command, e);
             throw new ProcessNotExecutableException(e);
         }
 
@@ -86,6 +89,7 @@ public class ExternalProcessRunner {
             process.destroy();
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
+            log.error("External command not executable: " + commandWithArgsString, e);
             throw new ProcessNotExecutableException(e);
         }
 
@@ -116,7 +120,8 @@ public class ExternalProcessRunner {
     /**
      * Executes the given command with given arguments and throws a {@link ProcessFailedException} if the process' exit
      * code is not 0 or if the process times out. Used e.g. for simple script execution when there is no need to handle
-     * different exit codes
+     * different exit codes. <b>Notice that arguments should be provided as varargs or as an array without any
+     * whitespace</b>
      * @param command the command to execute
      * @param args arguments to be appended to the command. Make sure to pass your arguments in the correct order
      * (e.g. if your options have values enter them as separate consecutive args).
@@ -132,13 +137,23 @@ public class ExternalProcessRunner {
         ProcessResult processResult = execute(command, args);
         // if the process fails we attach the output into the exception
         if (processResult.getExitCode() != 0) {
-            String lineSep = System.lineSeparator();
-            String processOutputString = String.join(lineSep, processResult.processOutput);
+            String processOutputString = processOutputToString(processResult.processOutput);
             String errorMsg = String.format("Failed to run command '%s' with output: %n %s",
                     processResult.commandWithArgs, processOutputString);
-            throw new ProcessFailedException(errorMsg);
+            log.error(errorMsg);
+            throw new ProcessFailedException(errorMsg, processResult.processOutput);
         }
         return processResult;
+    }
+
+    /**
+     * Format the process output string list to one string
+     * @param processOutput
+     * @return
+     */
+    public static String processOutputToString(List<String> processOutput) {
+        String lineSep = System.lineSeparator();
+        return String.join(lineSep, processOutput);
     }
 
     @Data
