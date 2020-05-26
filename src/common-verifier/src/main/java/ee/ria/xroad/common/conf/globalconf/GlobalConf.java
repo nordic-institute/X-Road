@@ -74,7 +74,7 @@ public final class GlobalConf {
      */
     static GlobalConfProvider getInstance() {
         if (instance == null) {
-            synchronized (GlobalConfProvider.class){
+            synchronized (GlobalConfProvider.class) {
                 if (instance == null) {
                     instance = instanceFactory.createInstance(true);
                 }

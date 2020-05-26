@@ -219,8 +219,8 @@ public interface GlobalConfProvider extends ConfProvider {
      * @return true, if cert can be used to authenticate as
      * member member
      * @throws Exception if an error occurs
-     */
-     boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
+    */
+    boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
             throws Exception;
 
      /**
