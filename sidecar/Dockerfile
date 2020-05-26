@@ -34,9 +34,9 @@ RUN pg_ctlcluster 10 main start \
 && su - postgres -c "psql postgres -tAc \"DROP USER messagelog;\"" \
 && su - postgres -c "psql postgres -tAc 'DROP DATABASE \"op-monitor\";'" \
 && su - postgres -c "psql postgres -tAc \"DROP USER opmonitor;\"" \
+&& su - postgres -c "psql postgres -tAc \"DROP USER opmonitor-admin;\"" \
 && pg_ctlcluster 10 main stop \
 && apt-get -qq clean \
-&& pg_ctlcluster 10 main stop \
 && nginx -s stop \
 && userdel -r xrd \
 && rm -f /var/run/nginx.pid \

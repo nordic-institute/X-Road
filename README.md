@@ -150,13 +150,13 @@ For example:
   To install the Security Server Sidecar provider, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message loggin, both for internal or remote database (Check 1.6 step).
   To install the Security Server Sidecar provider with finish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
-### 1.10 EnviornmentalMonitoring for Provider
+### 1.10 Enviornmental Monitoring for Provider
 
-Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in [https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md "https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md")
+Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in <https://github.com/nordic-institute/X-Road/blob/master/doc/EnvironmentalMonitoring/Monitoring-architecture.md/>
 
 #### 1.11 Operational monitoring for provider
 
-Operational monitoring for the Security Server Sidecar provider can be  used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here [https://github.com/nordic-institute/X-Road/blob/develop/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md](http://https://github.com/nordic-institute/X-Road/blob/develop/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md "https://github.com/nordic-institute/X-Road/blob/develop/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md")
+Operational monitoring for the Security Server Sidecar provider can be  used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here <https://github.com/nordic-institute/X-Road/blob/master/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md/>
 
 ## 2 Security Server Sidecar Initial Configuration
 
