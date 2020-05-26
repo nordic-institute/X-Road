@@ -156,7 +156,7 @@ It is possible to configure the security server sidecar to adjust the loggin lev
 For setting the environment variable we can edit the /etc/envrionment file or run:
 
  ```bash
-  export XROAD_LOG_LEVEL=<loggin level valu>
+  export XROAD_LOG_LEVEL=<logging level value>
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> 
   ```
 
