@@ -35,13 +35,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Facade for all proxy-ui-api audit logging.
- * When used from request aware context, keeps track of current tracked audit event, and it's associated audit data.
+ * Facade for {@link AuditLogger}, implements all proxy-ui-api audit logging calls.
+ * Tracks logged events and stores them in {@link RequestScopedAuditDataHolder}
+ * Knows which events have been audit logged so far (can be queried with e.g. hasAlreadyLoggedForThisRequestAny).
  * Also adjusts to non-request aware context.
  */
 @Component
@@ -72,7 +74,7 @@ public class AuditEventLoggingFacade {
     public void auditLogSuccess() {
         if (getRequestScopedEvent() != null) {
             auditLog(getRequestScopedEvent(), usernameHelper.getUsername(),
-                    getRequestScopedEventData());
+                    createConvertedEventData());
         }
     }
 
@@ -81,7 +83,7 @@ public class AuditEventLoggingFacade {
      * Does not touch request bound event.
      */
     public void auditLogSuccess(RestApiAuditEvent event) {
-        auditLog(event, usernameHelper.getUsername(), getEventData());
+        auditLog(event, usernameHelper.getUsername(), createConvertedEventData());
     }
 
     /**
@@ -92,7 +94,7 @@ public class AuditEventLoggingFacade {
      * @param username username to use for audit log
      */
     public void auditLogSuccess(RestApiAuditEvent event, String username) {
-        auditLog(event, username, getEventData());
+        auditLog(event, username, createConvertedEventData());
     }
 
     /**
@@ -106,7 +108,7 @@ public class AuditEventLoggingFacade {
 
     /**
      * Audit log an event failure.
-     * Use this in exceptional situations, where usernameHelper does not contain username
+     * Use this in exceptional situations where usernameHelper does not contain username
      * (like failed form login)
      * Does not touch request bound event.
      * Log using current request bound event, if any. If no request bound event, use defaultEvent
@@ -137,6 +139,10 @@ public class AuditEventLoggingFacade {
         auditLogFailInternal(defaultEvent, ex, null);
     }
 
+    /**
+     * Whether any audit logging has been done for this request. False if not in request scope.
+     * @return
+     */
     public boolean hasAlreadyLoggedForThisRequest() {
         if (requestHelper.requestScopeIsAvailable()) {
             return !requestScopedAuditDataHolder.getLoggedEvents().isEmpty();
@@ -145,6 +151,10 @@ public class AuditEventLoggingFacade {
         }
     }
 
+    /**
+     * Whether any of given events have been logged for this request. False if not in request scope.
+     * @return
+     */
     public boolean hasAlreadyLoggedForThisRequestAny(RestApiAuditEvent...events) {
         if (requestHelper.requestScopeIsAvailable()) {
             Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());
@@ -154,6 +164,10 @@ public class AuditEventLoggingFacade {
         }
     }
 
+    /**
+     * Whether given event has been logged for this request. False if not in request scope.
+     * @return
+     */
     public boolean hasAlreadyLoggedForThisRequest(RestApiAuditEvent event) {
         if (requestHelper.requestScopeIsAvailable()) {
             return requestScopedAuditDataHolder.getLoggedEvents().contains(event);
@@ -193,25 +207,38 @@ public class AuditEventLoggingFacade {
     }
 
     /**
-     * Get request scoped event data, or a new Map if not in request scope
-     * @return
+     * Get request scoped event data, or a new empty Map if not in request scope.
+     * Map contains property name strings as keys instead of RestApiAuditProperties (hence "Converted").
+     * Use this for producing data object that will be given to actual {@link AuditLogger}
      */
-    private Map<String, Object> getEventData() {
+    private Map<String, Object> createConvertedEventData() {
         if (requestHelper.requestScopeIsAvailable()) {
-            return getRequestScopedEventData();
+            return convertPropertyMap(requestScopedAuditDataHolder.getEventData());
         } else {
             return new HashMap<>();
         }
     }
 
-    private Map<String, Object> getRequestScopedEventData() {
-        if (requestHelper.requestScopeIsAvailable()) {
-            return requestScopedAuditDataHolder.getEventData();
-        } else {
-            return null;
+    /**
+     * Convert a map with RestApiAuditProperty keys to a map with RestApiAuditProperty.getPropertyName as keys
+     */
+    private Map<String, Object> convertPropertyMap(Map<RestApiAuditProperty, Object> map) {
+        LinkedHashMap<String, Object> converted = new LinkedHashMap<>();
+        for (RestApiAuditProperty prop : map.keySet()) {
+            converted.put(prop.getPropertyName(), map.get(prop));
         }
+        return converted;
     }
 
+    /**
+     * Audit logs an failure. Some helper logic for handling handling different username and event parameters.
+     * Logs either request scoped event, or given defaultEvent, or skips logging if neither exists.
+     * @param defaultEvent {@link RestApiAuditEvent} that will be used, if there is no request scoped event
+     * @param ex exception whose message is used as failure reason
+     * @param usernameOverride username to log. If null, username associated with current
+     * {@link org.springframework.security.core.Authentication} is used. For exceptional cases where Authentication
+     *                         does not (yet?) contain username
+     */
     private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex, String usernameOverride) {
         String username = usernameOverride;
         if (username == null) {
@@ -223,7 +250,7 @@ public class AuditEventLoggingFacade {
         }
         if (eventToLog != null) {
             String reason = ex.getMessage();
-            auditLog(eventToLog, username, reason, getEventData());
+            auditLog(eventToLog, username, reason, createConvertedEventData());
         }
     }
 

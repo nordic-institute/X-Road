@@ -117,7 +117,7 @@ public enum RestApiAuditProperty {
      * @return
      */
     @JsonValue
-    public String getPropertyName() {
+    String getPropertyName() {
         return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
 

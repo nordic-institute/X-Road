@@ -37,7 +37,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Autowired
-    RequestScopedControllerMethodHandlerInterceptor auditInterceptor;
+    AuditEventHandlerInterceptor auditInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

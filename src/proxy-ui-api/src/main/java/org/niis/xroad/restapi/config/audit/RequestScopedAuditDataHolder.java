@@ -34,47 +34,51 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Helper that holds request scoped audit data
+ * Helper that holds all request scoped audit data.
+ * If methods for accessing the data are used ouside of request scope,
+ * {@link IllegalStateException} is thrown.
+ *
+ * Can be injected to beans that are used (also) outside request scope.
  */
 @Component
 @Profile("nontest")
-public class RequestScopedAuditDataHolder {
+class RequestScopedAuditDataHolder {
 
-    private final AuditContextRequestScopeHolder auditContextRequestScopeHolder;
-    private final RequestScopeLoggedEvents requestScopeLoggedEvents;
+    private final RequestScopedAuditEventData requestScopedAuditEventData;
+    private final RequestScopedLoggedAuditEvents requestScopedLoggedAuditEvents;
     private final RequestHelper requestHelper;
 
     @Autowired
-    public RequestScopedAuditDataHolder(@Lazy AuditContextRequestScopeHolder auditContextRequestScopeHolder,
-            @Lazy RequestScopeLoggedEvents requestScopeLoggedEvents,
+    RequestScopedAuditDataHolder(@Lazy RequestScopedAuditEventData requestScopedAuditEventData,
+            @Lazy RequestScopedLoggedAuditEvents requestScopedLoggedAuditEvents,
             RequestHelper requestHelper) {
-        this.requestScopeLoggedEvents = requestScopeLoggedEvents;
-        this.auditContextRequestScopeHolder = auditContextRequestScopeHolder;
+        this.requestScopedLoggedAuditEvents = requestScopedLoggedAuditEvents;
+        this.requestScopedAuditEventData = requestScopedAuditEventData;
         this.requestHelper = requestHelper;
     }
 
-    public void setAuditEvent(RestApiAuditEvent event) {
+    void setAuditEvent(RestApiAuditEvent event) {
         requestHelper.runInRequestScope(() ->
-                auditContextRequestScopeHolder.setRequestScopedEvent(event));
+                requestScopedAuditEventData.setRequestScopedEvent(event));
     }
 
-    public RestApiAuditEvent getAuditEvent() {
+    RestApiAuditEvent getAuditEvent() {
         return (RestApiAuditEvent) requestHelper.runInRequestScope(() ->
-            auditContextRequestScopeHolder.getRequestScopedEvent());
+            requestScopedAuditEventData.getRequestScopedEvent());
     }
 
-    public Map<String, Object> getEventData() {
-        return (Map<String, Object>) requestHelper.runInRequestScope(() ->
-                auditContextRequestScopeHolder.getEventData());
+    Map<RestApiAuditProperty, Object> getEventData() {
+        return (Map<RestApiAuditProperty, Object>) requestHelper.runInRequestScope(() ->
+                requestScopedAuditEventData.getEventData());
     }
 
-    public void addData(String propertyName, Object value) {
+    void addData(RestApiAuditProperty property, Object value) {
         requestHelper.runInRequestScope(() ->
-                auditContextRequestScopeHolder.getEventData().put(propertyName, value));
+                requestScopedAuditEventData.getEventData().put(property, value));
     }
 
-    public Set<RestApiAuditEvent> getLoggedEvents() {
+    Set<RestApiAuditEvent> getLoggedEvents() {
         return (Set<RestApiAuditEvent>) requestHelper.runInRequestScope(() ->
-                requestScopeLoggedEvents.getEvents());
+                requestScopedLoggedAuditEvents.getEvents());
     }
 }

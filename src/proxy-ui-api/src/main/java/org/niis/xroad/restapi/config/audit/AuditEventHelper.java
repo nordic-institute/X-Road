@@ -30,7 +30,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * Helpers for setting audit log data properties
+ * Helper for initializing or updating {@link RestApiAuditEvent} associated with current request.
+ * Attempts to call update methods from outside of request scope will cause {@link IllegalStateException}
  */
 @Component
 @Slf4j
@@ -44,10 +45,20 @@ public class AuditEventHelper {
         this.requestScopedAuditDataHolder = requestScopedAuditDataHolder;
     }
 
+    /**
+     * Set initial {@link RestApiAuditEvent} associated with current request
+     * @param event
+     * @throws IllegalStateException if initial event has already been set, or not inside request scope
+     */
     void initRequestScopedEvent(RestApiAuditEvent event) {
         updateRequestScopedEvent(event, true);
     }
 
+    /**
+     * Change {@link RestApiAuditEvent} associated with current request
+     * @param event
+     * @throws IllegalStateException if initial event has not yet been set, or not inside request scope
+     */
     public void changeRequestScopedEvent(RestApiAuditEvent event) {
         updateRequestScopedEvent(event, false);
     }

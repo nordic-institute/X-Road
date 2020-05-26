@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
+/**
+ * Known audit events for this module
+ */
 public enum RestApiAuditEvent {
 
     FORM_LOGIN("Log in user"),

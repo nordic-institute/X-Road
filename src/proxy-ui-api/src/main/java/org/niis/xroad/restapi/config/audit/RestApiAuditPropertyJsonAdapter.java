@@ -32,9 +32,9 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 /**
- * Adapter for RestApiAuditProperty
+ * Adapter for RestApiAuditProperty that knows how to convert {@link RestApiAuditProperty} values to property names
  */
-public class RestApiAuditPropertyJsonAdapter extends TypeAdapter<RestApiAuditProperty> {
+class RestApiAuditPropertyJsonAdapter extends TypeAdapter<RestApiAuditProperty> {
 
     @Override
     public void write(JsonWriter out, RestApiAuditProperty value) throws IOException {

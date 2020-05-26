@@ -73,7 +73,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
 
 /**
- * Helpers for setting audit log data properties
+ * Methods for storing various {@link RestApiAuditProperty} values in request scope
  */
 @Component
 @Slf4j
@@ -90,8 +90,11 @@ public class AuditDataHelper {
         this.requestScopedAuditDataHolder = requestScopedAuditDataHolder;
     }
 
+    /**
+     * Put a generic property value
+     */
     public void put(RestApiAuditProperty auditProperty, Object value) {
-        requestScopedAuditDataHolder.getEventData().put(auditProperty.getPropertyName(), value);
+        requestScopedAuditDataHolder.getEventData().put(auditProperty, value);
     }
 
 
@@ -102,10 +105,9 @@ public class AuditDataHelper {
      */
     public void addListPropertyItem(RestApiAuditProperty listProperty, Object value) {
         List<Object> data = Collections.synchronizedList(new ArrayList<>());
-        String propertyName = listProperty.getPropertyName();
-        requestScopedAuditDataHolder.getEventData().putIfAbsent(propertyName, data);
+        requestScopedAuditDataHolder.getEventData().putIfAbsent(listProperty, data);
         List<Object> sharedListData = (List<Object>) requestScopedAuditDataHolder.getEventData()
-                .get(propertyName);
+                .get(listProperty);
         sharedListData.add(value);
     }
 
@@ -123,11 +125,18 @@ public class AuditDataHelper {
         return map;
     }
 
+    /**
+     * Whether current data is associated with the given event
+     */
     public boolean dataIsForEvent(RestApiAuditEvent event) {
         RestApiAuditEvent other = requestScopedAuditDataHolder.getAuditEvent();
         return event == other;
     }
 
+    /**
+     * put {@link IsAuthentication} value, properly formatted for audit log
+     * @param isAuthentication
+     */
     public void put(IsAuthentication isAuthentication) {
         String auditLoggedValue = getAuditLoggedValue(isAuthentication);
         put(IS_AUTHENTICATION, auditLoggedValue);
@@ -146,10 +155,17 @@ public class AuditDataHelper {
         }
     }
 
+    /**
+     * put {@link ClientId}
+     * @param clientId
+     */
     public void put(ClientId clientId) {
         put(CLIENT_IDENTIFIER, clientId);
     }
 
+    /**
+     * put status of given client
+     */
     public void putClientStatus(ClientType client) {
         String clientStatus = null;
         if (client != null) {
@@ -158,6 +174,9 @@ public class AuditDataHelper {
         put(CLIENT_STATUS, clientStatus);
     }
 
+    /**
+     * put management request id
+     */
     public void putManagementRequestId(Integer requestId) {
         put(MANAGEMENT_REQUEST_ID, requestId);
     }
@@ -169,7 +188,7 @@ public class AuditDataHelper {
     public void addCertificateHash(CertificateInfo certificateInfo) {
         String hash = createFormattedHash(certificateInfo.getCertificateBytes());
         addListPropertyItem(CERT_HASHES, hash);
-        putDefaultHashAlgorithm();
+        putDefaulCerttHashAlgorithm();
     }
 
     /**
@@ -214,7 +233,7 @@ public class AuditDataHelper {
      */
     public void putAlreadyFormattedCertificateHash(String formattedHash) {
         put(CERT_HASH, formattedHash);
-        putDefaultHashAlgorithm();
+        putDefaulCerttHashAlgorithm();
     }
 
 
@@ -224,7 +243,7 @@ public class AuditDataHelper {
     public void put(CertificateType certificateType) {
         String hash = createFormattedHash(certificateType.getData());
         put(CERT_HASH, hash);
-        putDefaultHashAlgorithm();
+        putDefaulCerttHashAlgorithm();
     }
 
     /**
@@ -246,7 +265,10 @@ public class AuditDataHelper {
         putCertificateData(certificateInfo.getId(), hash);
     }
 
-    public void putDefaultHashAlgorithm() {
+    /**
+     * Put default cert hash algorithm
+     */
+    public void putDefaulCerttHashAlgorithm() {
         put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -323,6 +345,9 @@ public class AuditDataHelper {
         put(KEY_USAGE, keyInfo.getUsage());
     }
 
+    /**
+     * put backup filename
+     */
     public void putBackupFilename(Path filePath) {
         String filename = null;
         if (filePath != null) {

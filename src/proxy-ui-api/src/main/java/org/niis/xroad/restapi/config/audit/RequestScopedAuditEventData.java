@@ -25,22 +25,28 @@
 package org.niis.xroad.restapi.config.audit;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
-
 /**
- * Request scoped bean keeping track of audit events that have been logged for this request
+ * Request scoped container for data related to one audit event: RestApiAuditEvent and
+ * associated RestApiAuditProperty values
  */
 @Getter
+@Setter
 @Component
 @Scope(SCOPE_REQUEST)
-class RequestScopeLoggedEvents {
-    private final Set<RestApiAuditEvent> events = Collections.synchronizedSet(new HashSet<>());
+class RequestScopedAuditEventData {
+
+    private RestApiAuditEvent requestScopedEvent;
+
+    // LinkedHashMap to make it possible to control the order of items, which can make output cleaner
+    private Map<RestApiAuditProperty, Object> eventData = Collections.synchronizedMap(new LinkedHashMap<>());
 }

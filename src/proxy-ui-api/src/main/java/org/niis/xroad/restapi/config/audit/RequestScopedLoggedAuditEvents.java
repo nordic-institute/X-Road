@@ -25,40 +25,22 @@
 package org.niis.xroad.restapi.config.audit;
 
 import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.restapi.util.UsernameHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
+
 /**
- * Holds current audit event and related audit data in request scope
+ * Request scoped bean keeping track of audit events that have been logged for this request
  */
 @Getter
-@Setter
 @Component
 @Scope(SCOPE_REQUEST)
-public class AuditContextRequestScopeHolder {
-
-    private RestApiAuditEvent requestScopedEvent;
-    // LinkedHashMap to make it possible to control the order of items, which can make output cleaner
-    // TO DO: Properties instead of strings
-    private Map<String, Object> eventData = Collections.synchronizedMap(new LinkedHashMap<>());
-
-    // TO DO: remove after debugging that it works as expected
-    private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
-    private int instanceNumber;
-
-    @Autowired
-    public AuditContextRequestScopeHolder(UsernameHelper usernameHelper) {
-        instanceNumber = INSTANCE_COUNTER.incrementAndGet();
-    }
-
+class RequestScopedLoggedAuditEvents {
+    private final Set<RestApiAuditEvent> events = Collections.synchronizedSet(new HashSet<>());
 }

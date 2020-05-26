@@ -33,6 +33,9 @@ import org.springframework.stereotype.Component;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_AUTHENTICATION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY;
 
+/**
+ * Listener that enables detailed logging of AuthenticationCredentialsNotFoundEvents
+ */
 @Component
 @Slf4j
 public class AuditedApplicationEventListener {
