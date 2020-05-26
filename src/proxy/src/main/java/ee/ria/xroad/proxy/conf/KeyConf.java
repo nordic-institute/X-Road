@@ -67,7 +67,7 @@ public final class KeyConf {
         }
 
         if (instance == null) {
-            synchronized (KeyConfProvider.class){
+            synchronized (KeyConfProvider.class) {
                 if (instance == null) {
                     initInstance();
                 }

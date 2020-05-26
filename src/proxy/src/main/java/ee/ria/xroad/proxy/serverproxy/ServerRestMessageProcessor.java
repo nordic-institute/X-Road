@@ -344,7 +344,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.REST
-            && descriptionType != DescriptionType.OPENAPI3) {
+                && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
