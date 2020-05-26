@@ -152,7 +152,7 @@ For example:
 
 ### 1.10 Logging Level
 
-It is possible to configure the security server sidecar to adjust the loggin level so that can be less verbose. For doing this we must set the environment vaiable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sentistive string values TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO
+It is possible to configure the Security Server Sidecar to adjust the logging level so that it is less verbose. To do this, we must set the environment variable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO.
 For setting the environment variable we can either edit the /etc/environment file or run:
 
  ```bash
