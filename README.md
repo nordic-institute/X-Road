@@ -129,6 +129,34 @@ The following configuration is needed on the remote database server to allow ext
 
 - The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database. 
 
+### 1.6.1 Reconfigure external database address after initialization
+
+It's is possible to change the external database after the inicialization while the Sidecar container it's running. This will not recreate the database, so we need to make sure that the 'serverconf' database is already created and a user with granted permissions to access it. For change the database host we need to:
+- Run a new command on the sidecar container:
+```bash
+docker exec -it <sidecar_container_name> bash
+  ```
+- Inside the container open in a text editor ( we can install any of the command line text editors like nano, vi ...) the `etc/xroad/db.properties` file:
+ ```bash 
+nano etc/xroad/db.properties
+  ``` 
+- Replace the connection host, the username and password with the properties of the new database:
+```bash
+  [...]
+    # -db.properties -
+serverconf.hibernate.connection.url = jdbc:postgresql://(new_host_ip):5432/serverconf
+serverconf.hibernate.connection.username = (new_user)
+serverconf.hibernate.connection.password = (new_password)
+  [...]
+  ```
+  If other components like 'message_log' or 'op_monitor' are also configured in the `etc / xroad / db.properties` file to use an external database, we must change their properties in the same way as in the example above.
+
+- After the properties are changed, save and close the  `etc/xroad/db.properties` file  and restart the services by running:
+```bash
+ supervisorctl restart all
+  ``` 
+
+
 ## 1.7 Volume support
 
 It is possible to configure security server sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
