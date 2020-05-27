@@ -41,11 +41,12 @@ public enum RestApiAuditEvent {
     API_KEY_UPDATE("API key update"),
     API_KEY_REMOVE("API key remove"),
 
+    // TO DO: uses generatedAt format "2019-06-14T09:46:39+00:00" instead of old "2019-06-14T09:46:39+00:00"
+    // selected format is the same as in "add service description"
     INIT_ANCHOR("Initialize anchor"),
     INIT_SERVER_CONFIGURATION("Initialize server configuration"),
 
     // clients events
-    // all these have been located and annotated, except ones with specific comments
     ADD_CLIENT("Add client"),
     REGISTER_CLIENT("Register client"),
     UNREGISTER_CLIENT("Unregister client"),
@@ -62,7 +63,6 @@ public enum RestApiAuditEvent {
     REFRESH_SERVICE_DESCRIPTION("Refresh service description"),
     EDIT_SERVICE_DESCRIPTION("Edit service description"), // generic edit before SD type is determined
     EDIT_WSDL_SERVICE_DESCRIPTION("Edit wsdl service description"),
-    // TO DO: uses property "service" instead of "services" array
     EDIT_SERVICE_PARAMS("Edit service parameters"),
     ADD_REST_ENDPOINT("Add rest endpoint"),
     EDIT_REST_ENDPOINT("Edit rest endpoint"),
@@ -85,6 +85,7 @@ public enum RestApiAuditEvent {
 
     // system parameters
     GENERATE_INTERNAL_CERT_REQ("Generate certificate request for TLS"),
+    // TO DO: no "filename" property, since we are using binary application/octet-stream upload
     IMPORT_PROXY_INTERNAL_CERT("Import TLS certificate from file"),
     // TO DO: uses generatedAt format "2019-06-14T09:46:39+00:00" instead of old "2019-06-14T09:46:39+00:00"
     // selected format is the same as in "add service description"
@@ -94,7 +95,6 @@ public enum RestApiAuditEvent {
     GENERATE_INTERNAL_SSL("Generate new internal TLS key and certificate"),
 
     // keys and certificates events
-    // TO DO: token serial number is not included in JSON if null (probably any other field likewise)
     LOGIN_TOKEN("Log in to token"),
     LOGOUT_TOKEN("Log out from token"),
     GENERATE_KEY("Generate key"),
