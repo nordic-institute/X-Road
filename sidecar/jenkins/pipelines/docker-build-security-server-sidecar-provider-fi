@@ -1,11 +1,6 @@
 pipeline {
     agent any
     stages {
-        stage('Trigger sync') {
-            steps {
-                build job: 'xroad-sync-repository-x-road-security-server-sidecar'
-            }
-        }
         stage('Clone X-Road Security Server Sidecar repository') {
             steps {
                 checkout([
