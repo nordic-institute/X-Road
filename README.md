@@ -131,12 +131,12 @@ The following configuration is needed on the remote database server to allow ext
 
 ### 1.6.1 Reconfigure external database address after initialization
 
-It's is possible to change the external database after the inicialization while the Sidecar container it's running. This will not recreate the database, so we need to make sure that the 'serverconf' database and a user with granted permissions to access are already created. For change the database host we need to:
+It's is possible to change the external database after the inicialization while the Sidecar container it's running. This will not recreate the database, so we need to make sure that the 'serverconf' database and a user with granted permissions to access it are already created. For change the database host we need to:
 - Run a new command on the sidecar container:
 ```bash
 docker exec -it <sidecar_container_name> bash
   ```
-- Inside the container open in a text editor ( we can install any of the command line text editors like nano, vi ...) the `etc/xroad/db.properties` file:
+- Inside the container open in a text editor (we can install any of the command line text editors like nano, vi ...) the `etc/xroad/db.properties` file:
  ```bash 
 nano etc/xroad/db.properties
   ``` 
