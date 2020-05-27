@@ -51,7 +51,7 @@ import NewGroupDialog from './NewGroupDialog.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
-import { LocalGroup } from '@/types';
+import { LocalGroup } from '@/openapi-types';
 
 export default Vue.extend({
   components: {

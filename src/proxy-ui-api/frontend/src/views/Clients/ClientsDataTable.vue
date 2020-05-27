@@ -122,7 +122,7 @@ import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 

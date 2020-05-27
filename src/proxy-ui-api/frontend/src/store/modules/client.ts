@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 export interface ClientState {
   client: Client | null;

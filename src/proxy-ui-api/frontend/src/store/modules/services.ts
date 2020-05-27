@@ -1,6 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Endpoint, Service, ServiceClient } from '@/types';
+import { Endpoint, Service, ServiceClient } from '@/openapi-types';
 
 
 export interface ServicesState {

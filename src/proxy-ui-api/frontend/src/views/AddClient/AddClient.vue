@@ -75,7 +75,7 @@ import FinishPage from './FinishPage.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import GenerateCsrPage from './GenerateCsrPage.vue';
 
-import { Key, Token } from '@/types';
+import { Key, Token } from '@/openapi-types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';
 

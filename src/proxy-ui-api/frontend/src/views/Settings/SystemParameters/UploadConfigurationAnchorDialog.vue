@@ -94,7 +94,7 @@ import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Anchor } from '@/types';
+import { Anchor } from '@/openapi-types';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',

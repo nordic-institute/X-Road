@@ -37,7 +37,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import { TimestampingService } from '@/types';
+import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import { Prop } from 'vue/types/options';

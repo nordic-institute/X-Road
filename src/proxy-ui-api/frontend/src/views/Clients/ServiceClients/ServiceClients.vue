@@ -46,7 +46,7 @@
   import Vue from 'vue';
   import {mapGetters} from 'vuex';
   import * as api from '@/util/api';
-  import {ServiceClient} from '@/types';
+  import {ServiceClient} from '@/openapi-types';
 
   export default Vue.extend({
     props: {
