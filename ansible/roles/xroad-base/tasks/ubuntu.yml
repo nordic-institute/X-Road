@@ -49,7 +49,6 @@
   apt_key:
     url: "{{ubuntu_18_apt_key}}"
     state: present
-
   when: package_source == "remote" and ansible_distribution_release == "bionic"
 
 - name: remove old repo config
@@ -64,7 +63,6 @@
     filename: xroad
     update_cache: yes
   when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "14")
-
 
 - name: xroad bionic apt repository
   apt_repository:
