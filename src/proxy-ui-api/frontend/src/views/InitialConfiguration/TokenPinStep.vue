@@ -87,9 +87,7 @@ export default Vue.extend({
       pinConfirm: '',
     };
   },
-  computed: {
 
-  },
   methods: {
     done(): void {
       this.$emit('done', this.pin);
@@ -98,7 +96,6 @@ export default Vue.extend({
       this.$emit('previous');
     },
   },
-
 });
 </script>
 

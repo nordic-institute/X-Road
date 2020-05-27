@@ -3,7 +3,7 @@
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="initServerMemberName" data-test="selected-member-name">{{initServerMemberName}}</div>
+        <div v-if="memberName" data-test="selected-member-name">{{memberName}}</div>
       </div>
 
       <div class="row-wrap">
@@ -78,8 +78,7 @@ import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { Key, Token } from '@/types';
-import { CsrFormatTypes } from '@/global';
+import { Key, Token, Client } from '@/types';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -103,11 +102,11 @@ export default Vue.extend({
   },
   data() {
     return {
-      csrFormatList: Object.values(CsrFormatTypes),
+      memberName: '',
     };
   },
   computed: {
-    ...mapGetters(['memberClasses', 'initServerMemberName']),
+    ...mapGetters(['memberClasses', 'initExistingMembers']),
 
     memberClass: {
       get(): string {
@@ -142,6 +141,23 @@ export default Vue.extend({
     previous(): void {
       this.$emit('previous');
     },
+
+    checkClient(): void {
+      // Find if the selectable clients array has a match
+      const tempClient = this.initExistingMembers.find((client: Client) => {
+        return (
+          client.member_code === this.memberCode &&
+          client.member_class === this.memberClass
+        );
+      });
+      // Fill the name "field" if it's available
+      if (tempClient?.member_name) {
+        this.memberName = tempClient.member_name;
+      } else {
+        // Clear the "field" if not
+        this.memberName = '';
+      }
+    },
   },
 
   watch: {
@@ -154,10 +170,20 @@ export default Vue.extend({
     memberClass(val) {
       if (val) {
         // Update member name when info changes
-        this.$store.dispatch('fetchInitServerMemberName');
+        this.checkClient();
+      }
+    },
+
+    memberCode(val) {
+      if (val) {
+        // Update member name when info changes
+        this.checkClient();
       }
     },
   },
+  created() {
+    this.$store.dispatch('fetchExistingMembers');
+  }
 });
 </script>
 

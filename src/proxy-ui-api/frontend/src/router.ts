@@ -367,7 +367,7 @@ const router = new Router({
 
         {
           name: RouteName.InitialConfiguration,
-          path: '/initial-conf',
+          path: '/initial-configuration',
           components: {
             default: InitialConfiguration,
           },
