@@ -1,7 +1,7 @@
 ---
 - name: Preserve hostname
   lineinfile: "dest=/etc/cloud/cloud.cfg state=present regexp='preserve_hostname' line='preserve_hostname: true'"
-  when: (aws_preserve_hostname is defined) && (aws_preserve_hostname)
+  when: (aws_preserve_hostname is defined) and (aws_preserve_hostname)
 
 - name: configure ssh password authentication
   replace:

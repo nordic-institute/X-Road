@@ -6,9 +6,9 @@
     dest: /etc/apt/apt.conf.d/
     owner: root
     group: root
-  when: (disable_automatic_upgrades is defined) && (disable_automatic_upgrades)
+  when: (disable_automatic_upgrades is defined) and (disable_automatic_upgrades)
 
- name: Ensure that all packages are configured
+- name: Ensure that all packages are configured
   shell: dpkg --configure -a
   ignore_errors: yes
 
