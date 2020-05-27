@@ -131,7 +131,7 @@ The following configuration is needed on the remote database server to allow ext
 
 ### 1.6.1 Reconfigure external database address after initialization
 
-It's is possible to change the external database after the inicialization while the Sidecar container it's running. This will not recreate the database, so we need to make sure that the 'serverconf' database is already created and a user with granted permissions to access it. For change the database host we need to:
+It's is possible to change the external database after the inicialization while the Sidecar container it's running. This will not recreate the database, so we need to make sure that the 'serverconf' database and a user with granted permissions to access are already created. For change the database host we need to:
 - Run a new command on the sidecar container:
 ```bash
 docker exec -it <sidecar_container_name> bash
@@ -144,12 +144,12 @@ nano etc/xroad/db.properties
 ```bash
   [...]
     # -db.properties -
-serverconf.hibernate.connection.url = jdbc:postgresql://(new_host_ip):5432/serverconf
-serverconf.hibernate.connection.username = (new_user)
-serverconf.hibernate.connection.password = (new_password)
+serverconf.hibernate.connection.url = jdbc:postgresql://<new_host_ip>:5432/serverconf
+serverconf.hibernate.connection.username = <new_user>
+serverconf.hibernate.connection.password = <new_password>
   [...]
   ```
-  If other components like 'message_log' or 'op_monitor' are also configured in the `etc / xroad / db.properties` file to use an external database, we must change their properties in the same way as in the example above.
+  If other components like 'message_log' or 'op_monitor' are also configured in the `etc/xroad/db.properties` file to use an external database, we must change their properties in the same way as in the example above.
 
 - After the properties are changed, save and close the  `etc/xroad/db.properties` file  and restart the services by running:
 ```bash
