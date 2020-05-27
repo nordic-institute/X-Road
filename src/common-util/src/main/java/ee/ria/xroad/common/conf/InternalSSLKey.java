@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.PasswordUtil;
 
 import lombok.Getter;
 import lombok.Value;
@@ -53,8 +54,11 @@ public final class InternalSSLKey {
     public static final String CRT_FILE_NAME = "ssl/internal.crt";
     public static final String KEY_FILE_NAME = "ssl/internal.p12";
     public static final String KEY_ALIAS = "internal";
+
+    private static final int PASSWORD_LENGTH = 15;
+
     @Getter
-    private static final char[] KEY_PASSWORD = KEY_ALIAS.toCharArray();
+    private static final char[] KEY_PASSWORD = PasswordUtil.generatePassword(PASSWORD_LENGTH).toCharArray();
 
     private final PrivateKey key;
     private final X509Certificate[] certChain;
