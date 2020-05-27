@@ -1,10 +1,8 @@
 
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveResponseAsFile } from '@/util/helpers';
-import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/types';
+import { Client } from '@/types';
 import * as api from '@/util/api';
-import { UsageTypes, CsrFormatTypes } from '@/global';
 
 // TODO: this should be in types ??
 interface InitializationStatus {
@@ -18,18 +16,18 @@ interface InitializationStatus {
 export interface InitServerState {
   memberClass: string | undefined;
   memberCode: string | undefined;
-  memberName: string | undefined;
   securityServerCode: string | undefined;
   initializationStatus: InitializationStatus | undefined;
+  existingMembers: Client[] | undefined;
 }
 
 const getDefaultState = () => {
   return {
     memberClass: undefined,
     memberCode: undefined,
-    memberName: 'placeholder name',
     securityServerCode: undefined,
     initializationStatus: undefined,
+    existingMembers: [],
   };
 };
 
@@ -44,10 +42,6 @@ export const getters: GetterTree<InitServerState, RootState> = {
 
   initServerMemberCode(state): string | undefined {
     return state.memberCode;
-  },
-
-  initServerMemberName(state): string | undefined {
-    return state.memberName;
   },
 
   initServerSSCode(state): string | undefined {
@@ -69,6 +63,11 @@ export const getters: GetterTree<InitServerState, RootState> = {
   isSoftwareTokenInitialized(state): boolean {
     return state.initializationStatus?.is_software_token_initialized || false;
   },
+
+  initExistingMembers(state): Client[] | undefined {
+    return state.existingMembers;
+  },
+
   needsInitialisation: (state) => {
     if (state.initializationStatus?.is_anchor_imported && state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized && state.initializationStatus.is_software_token_initialized
@@ -86,20 +85,17 @@ export const mutations: MutationTree<InitServerState> = {
   storeInitServerMemberCode(state, memberCode: string | undefined) {
     state.memberCode = memberCode;
   },
-  storeInitServerMemberName(state, memberName: string | undefined) {
-    state.memberName = memberName;
-  },
-
   storeInitServerMemberClass(state, memberClass: string | undefined) {
     state.memberClass = memberClass;
   },
-
   storeInitServerSSCode(state, code: string | undefined) {
     state.securityServerCode = code;
   },
-
   storeInitStatus(state, status: InitializationStatus) {
     state.initializationStatus = status;
+  },
+  storeExistingMembers(state, members: Client[]) {
+    state.existingMembers = members;
   },
 };
 
@@ -107,25 +103,23 @@ export const actions: ActionTree<InitServerState, any> = {
   resetInitServerState({ commit }) {
     commit('resetInitServerState');
   },
-  setCsrTokenId({ commit, dispatch, rootGetters }, tokenId: string) {
-    commit('storeCsrTokenId', tokenId);
-  },
-  fetchInitServerMemberName({ commit, rootGetters }) {
-    // TODO: where does the name actually comes from ??
-    api
-      .get(`/member-classes`)
-      .then((res: any) => {
-        commit('storeInitServerMemberName', res.data[0]);
-      })
-      .catch((error: any) => {
-        throw error;
-      });
-  },
+
   fetchInitializationStatus({ commit, rootGetters, dispatch }) {
     return api
       .get('/initialization/status')
       .then((resp) => {
         commit('storeInitStatus', resp.data);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
+  fetchExistingMembers({ commit }) {
+    return api
+      .get('/clients?show_members=true')
+      .then((resp) => {
+        commit('storeExistingMembers', resp.data);
       })
       .catch((error) => {
         throw error;
