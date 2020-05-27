@@ -22,34 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config.audit;
+package org.niis.xroad.restapi.config;
 
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 
 import static org.mockito.Mockito.mock;
 
 @Configuration
-@Profile("!audit-test")
-public class AuditLogMockingConfiguration {
+public class SignerProxyMockingConfiguration {
 
     @Bean
     @Primary
-    public AuditDataHelper mockAuditDataHelper() {
-        return mock(AuditDataHelper.class);
-    }
-
-    @Bean
-    @Primary
-    public AuditEventHelper mockAuditEventHelper() {
-        return mock(AuditEventHelper.class);
-    }
-
-    @Bean
-    @Primary
-    public AuditEventLoggingFacade mockAuditEventLoggingFacade() {
-        return mock(AuditEventLoggingFacade.class);
+    public SignerProxyFacade mockSignerProxyFacade() {
+        return mock(SignerProxyFacade.class);
     }
 }

@@ -41,7 +41,7 @@ import java.util.Set;
  * Can be injected to beans that are used (also) outside request scope.
  */
 @Component
-@Profile("nontest")
+@Profile({ "nontest", "audit-test" })
 class RequestScopedAuditDataHolder {
 
     private final RequestScopedAuditEventData requestScopedAuditEventData;

@@ -77,7 +77,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SER
  */
 @Component
 @Slf4j
-@Profile("nontest")
+@Profile({ "nontest", "audit-test" })
 public class AuditDataHelper {
 
     private final AuditEventLoggingFacade auditEventLoggingFacade;

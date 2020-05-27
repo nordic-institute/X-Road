@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-@Profile("nontest")
+@Profile({ "nontest", "audit-test" })
 public class AuditEventHelper {
 
     private final RequestScopedAuditDataHolder requestScopedAuditDataHolder;
