@@ -27,8 +27,9 @@ package ee.ria.xroad.common.ocsp;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.TimeBasedObjectCache;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.bouncycastle.asn1.DERBitString;
@@ -51,6 +52,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
@@ -75,8 +77,14 @@ public final class OcspVerifier {
 
     private final OcspVerifierOptions options;
 
-    private static final TimeBasedObjectCache CACHE = new TimeBasedObjectCache(SystemProperties
-            .getOcspVerifierCachePeriod());
+    private static final Cache<String, SingleResp> RESPONSE_VALIDITY_CACHE;
+
+    static {
+        RESPONSE_VALIDITY_CACHE = CacheBuilder.newBuilder()
+                .expireAfterWrite(SystemProperties.getOcspVerifierCachePeriod(),
+                        TimeUnit.SECONDS)
+                .build();
+    }
 
     /**
      * Constructor
@@ -184,11 +192,12 @@ public final class OcspVerifier {
                                                                  X509Certificate issuer)
             throws Exception {
         String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
-        if (!CACHE.isValid(key)) {
-            CACHE.setValue(key, verifyResponseValidity(response, subject, issuer));
+        SingleResp responseValidity = RESPONSE_VALIDITY_CACHE.getIfPresent(key);
+        if (responseValidity == null) {
+            responseValidity = verifyResponseValidity(response, subject, issuer);
+            RESPONSE_VALIDITY_CACHE.put(key, responseValidity);
         }
-
-        return (SingleResp) CACHE.getValue(key);
+        return responseValidity;
     }
 
     private SingleResp verifyResponseValidity(OCSPResp response, X509Certificate subject, X509Certificate issuer)
@@ -267,7 +276,7 @@ public final class OcspVerifier {
      */
     public boolean isExpired(SingleResp singleResp, Date atDate) {
         Date allowedThisUpdate = new DateTime(atDate)
-            .minusSeconds(ocspFreshnessSeconds).toDate();
+                .minusSeconds(ocspFreshnessSeconds).toDate();
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
