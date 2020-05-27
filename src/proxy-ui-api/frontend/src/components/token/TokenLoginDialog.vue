@@ -37,7 +37,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { Token } from '@/types';
+import { Token } from '@/openapi-types';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 

@@ -61,7 +61,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {ServiceClient} from '@/types';
+import {ServiceClient} from '@/openapi-types';
 import * as api from '@/util/api';
 import {Prop} from 'vue/types/options';
 import LargeButton from '@/components/ui/LargeButton.vue';

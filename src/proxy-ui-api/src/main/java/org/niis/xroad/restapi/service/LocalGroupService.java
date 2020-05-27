@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,6 +25,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -214,8 +216,9 @@ public class LocalGroupService {
      * Deletes a local group
      * @param groupId
      * @throws LocalGroupNotFoundException if local group with given id was not found
+     * @throws ClientNotFoundException if client containing local group was not found
      */
-    public void deleteLocalGroup(Long groupId) throws LocalGroupNotFoundException {
+    public void deleteLocalGroup(Long groupId) throws LocalGroupNotFoundException, ClientNotFoundException {
         LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
 
         if (existingLocalGroupType == null) {
@@ -223,7 +226,24 @@ public class LocalGroupService {
         }
         auditLog(existingLocalGroupType, existingLocalGroupType.getDescription());
 
+        XRoadId xRoadId = getLocalGroupIdAsXroadId(groupId);
+        ClientType clientType = clientRepository.getClientByLocalGroup(existingLocalGroupType);
+
+        deleteAccessRightsByXRoadId(clientType, xRoadId);
         localGroupRepository.delete(existingLocalGroupType);
+    }
+
+    /**
+     * Removes access rights by XRoadId
+     *
+     * @param clientType
+     * @param xRoadId
+     */
+    private void deleteAccessRightsByXRoadId(ClientType clientType, XRoadId xRoadId) {
+        List<AccessRightType> acls = clientType.getAcl().stream()
+                .filter(acl -> acl.getSubjectId().equals(xRoadId))
+                .collect(Collectors.toList());
+        clientType.getAcl().removeAll(acls);
     }
 
     /**

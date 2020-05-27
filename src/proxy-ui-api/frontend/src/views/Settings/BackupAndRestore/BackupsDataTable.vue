@@ -40,7 +40,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { Backup } from '@/types';
+import { Backup } from '@/openapi-types';
 import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';

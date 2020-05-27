@@ -66,7 +66,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Endpoint } from '@/types';
+import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
 import { RouteName } from '@/global';

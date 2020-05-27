@@ -63,7 +63,7 @@ import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable
 import { Permissions } from '@/global';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
-import { Backup } from '@/types';
+import { Backup } from '@/openapi-types';
 import { AxiosResponse } from 'axios';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 

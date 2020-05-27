@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client, ClientStatus } from '@/types';
+import { Client, ClientStatus } from '@/openapi-types';
 import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({

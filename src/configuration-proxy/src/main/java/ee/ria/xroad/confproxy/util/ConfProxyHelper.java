@@ -1,19 +1,20 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -58,7 +59,8 @@ public final class ConfProxyHelper {
     /**
      * Unavailable utility class constructor.
      */
-    private ConfProxyHelper() { }
+    private ConfProxyHelper() {
+    }
 
     /**
      * Invoke the configuration client script to download the global
@@ -76,7 +78,7 @@ public final class ConfProxyHelper {
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         log.info("Running '{} {} {} {}' ...", ConfProxyProperties.getDownloadScriptPath(), sourceAnchor, path,
-            version);
+                version);
         runConfClient(pb);
         return new ConfigurationDirectoryV2(path);
     }
@@ -153,7 +155,7 @@ public final class ConfProxyHelper {
      */
     public static List<String> availableInstances() throws IOException {
         Path confPath =
-            Paths.get(SystemProperties.getConfigurationProxyConfPath());
+                Paths.get(SystemProperties.getConfigurationProxyConfPath());
         return subDirectoryNames(confPath);
     }
 
@@ -179,18 +181,18 @@ public final class ConfProxyHelper {
                 continue;
             }
             long diffSeconds = TimeUnit.MILLISECONDS
-                .toSeconds((current.getTime() - old.getTime()));
+                    .toSeconds((current.getTime() - old.getTime()));
             long timeToKeep = Math.min(MAX_CONFIGURATION_LIFETIME_SECONDS,
-                conf.getValidityIntervalSeconds());
+                    conf.getValidityIntervalSeconds());
             if (diffSeconds > timeToKeep) {
                 Path oldPath =
-                    Paths.get(conf.getConfigurationTargetPath(), genTime);
+                        Paths.get(conf.getConfigurationTargetPath(), genTime);
                 FileUtils.deleteDirectory(oldPath.toFile());
                 log.debug("Purge directory {}", oldPath);
             } else {
                 Path valid = instanceDir.resolve(genTime);
                 log.debug("A valid generated configuration exists in '{}'",
-                    valid);
+                        valid);
             }
         }
     }
@@ -205,7 +207,7 @@ public final class ConfProxyHelper {
             throws IOException {
         List<String> subdirs = new ArrayList<>();
         try (DirectoryStream<Path> stream =
-                Files.newDirectoryStream(dir, Files::isDirectory)) {
+                     Files.newDirectoryStream(dir, Files::isDirectory)) {
             for (Path subDir : stream) {
                 String conf = subDir.getFileName().toString();
                 subdirs.add(conf);
