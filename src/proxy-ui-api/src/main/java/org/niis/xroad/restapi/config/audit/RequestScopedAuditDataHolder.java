@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.config.audit;
 import org.niis.xroad.restapi.util.RequestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -41,7 +40,7 @@ import java.util.Set;
  * Can be injected to beans that are used (also) outside request scope.
  */
 @Component
-@Profile({ "nontest", "audit-test" })
+//@Profile({ "nontest", "audit-test" })
 class RequestScopedAuditDataHolder {
 
     private final RequestScopedAuditEventData requestScopedAuditEventData;

@@ -178,17 +178,27 @@ public class AuditEventLoggingFacade {
 
     private void auditLog(RestApiAuditEvent event, String user, Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), user, data,
-                securityHelper.getCurrentAuthenticationScheme(),
+        callAuditLoggerLogSuccess(event, user, data, securityHelper.getCurrentAuthenticationScheme(),
                 requestHelper.getCurrentRequestUrl());
     }
 
     private void auditLog(RestApiAuditEvent event, String user, String reason,
             Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        AuditLogger.log(event.getEventName(), user, reason, data,
-                securityHelper.getCurrentAuthenticationScheme(),
+        callAuditLoggerLogFailure(event, user, reason, data, securityHelper.getCurrentAuthenticationScheme(),
                 requestHelper.getCurrentRequestUrl());
+    }
+
+    // package private wrapper method for AuditLogger.log, to enable easier mocking in tests
+    void callAuditLoggerLogSuccess(RestApiAuditEvent event, String user, Map<String, Object> data,
+            String auth, String url) {
+        AuditLogger.log(event.getEventName(), user, data, auth, url);
+    }
+
+    // package private wrapper method for AuditLogger.log, to enable easier mocking in tests
+    void callAuditLoggerLogFailure(RestApiAuditEvent event, String user, String reason,
+            Map<String, Object> data, String auth, String url) {
+        AuditLogger.log(event.getEventName(), user, reason, data, auth, url);
     }
 
     private void addRequestScopedLoggedEventForThisRequest(RestApiAuditEvent event) {
