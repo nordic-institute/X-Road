@@ -84,13 +84,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 @Profile({ "nontest", "audit-test" })
 public class AuditDataHelper {
 
-    private final AuditEventLoggingFacade auditEventLoggingFacade;
     private final RequestScopedAuditDataHolder requestScopedAuditDataHolder;
 
     @Autowired
-    public AuditDataHelper(AuditEventLoggingFacade auditEventLoggingFacade,
-            RequestScopedAuditDataHolder requestScopedAuditDataHolder) {
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
+    public AuditDataHelper(RequestScopedAuditDataHolder requestScopedAuditDataHolder) {
         this.requestScopedAuditDataHolder = requestScopedAuditDataHolder;
     }
 
