@@ -5,7 +5,7 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { AddMemberWizardModes, UsageTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import { Token, Client, TokenCertificateSigningRequest, TokenCertificate, Key  } from '@/openapi-types';
+import { Token, Client, TokenCertificateSigningRequest, TokenCertificate, Key } from '@/openapi-types';
 import * as api from '@/util/api';
 
 
@@ -217,65 +217,48 @@ export const actions: ActionTree<AddClientState, RootState> = {
   },
 
   async searchTokens({ commit, dispatch }, { instanceId, memberClass, memberCode }) {
+    
+    const clientsResponse = await api.get(`/clients?instance=${instanceId}
+    &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
-    const ownerId = createClientId(instanceId, memberClass, memberCode);
-    const hasValidCert = await checkForValidSignCert(instanceId, memberClass, memberCode);
-
-    if (hasValidCert) {
+    if (clientsResponse.data.length > 0) {
+      // There is a client with valid sign certificate
       commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
       return;
     }
 
     // Fetch tokens from backend
-    api
-      .get(`/tokens`)
-      .then((res) => {
+    const tokenResponse = await api.get(`/tokens`);
+    // Create a client id
+    const ownerId = createClientId(instanceId, memberClass, memberCode);
 
-        // Find if a token has a sign key with a certificate that has matching client data
-        res.data.some((token: Token) => {
-          return token.keys.some((key: Key) => {
-            if (key.usage === UsageTypes.SIGNING) {
+    // Find if a token has a sign key with a certificate that has matching client data
+    tokenResponse.data.some((token: Token) => {
+      return token.keys.some((key: Key) => {
+        if (key.usage === UsageTypes.SIGNING) {
 
-              // Go through the keys certificates
-              const foundCert: boolean = key.certificates.some((certificate: TokenCertificate) => {
-                if (ownerId === certificate.owner_id) {
-                  commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
-                  return true;
-                }
-              });
-
-              if (foundCert) { return true; }
-
-              // Go through the keys CSR:s
-              key.certificate_signing_requests.some((csr: TokenCertificateSigningRequest) => {
-                if (ownerId === csr.owner_id) {
-                  dispatch('setCsrTokenId', token.id);
-                  commit('setAddMemberWizardMode', AddMemberWizardModes.CSR_EXISTS);
-                  return true;
-                }
-              });
+          // Go through the keys certificates
+          const foundCert: boolean = key.certificates.some((certificate: TokenCertificate) => {
+            if (ownerId === certificate.owner_id) {
+              commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
+              return true;
             }
           });
-        });
-      })
-      .catch((error: Error) => {
-        throw error;
+
+          if (foundCert) { return true; }
+
+          // Go through the keys CSR:s
+          key.certificate_signing_requests.some((csr: TokenCertificateSigningRequest) => {
+            if (ownerId === csr.owner_id) {
+              dispatch('setCsrTokenId', token.id);
+              commit('setAddMemberWizardMode', AddMemberWizardModes.CSR_EXISTS);
+              return true;
+            }
+          });
+        }
       });
-
-  },
-};
-
-const checkForValidSignCert = async (instanceId: string, memberClass: string, memberCode: string): Promise<boolean> => {
-  // Make a request to backend for a client
-  // returns true if it has a local valid sign certificate
-  return api
-    .get(`/clients?instance=${instanceId}&member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`)
-    .then((response: any) => {
-      return response.data.length > 0;
-    })
-    .catch((error: Error) => {
-      throw error;
     });
+  },
 };
 
 export const addClientModule: Module<AddClientState, RootState> = {
