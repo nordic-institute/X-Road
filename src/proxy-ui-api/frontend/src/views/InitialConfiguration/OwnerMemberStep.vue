@@ -155,7 +155,7 @@ export default Vue.extend({
       this.$emit('previous');
     },
 
-    checkClient(): void {
+    checkMember(): void {
       if (this.memberClass && this.memberCode) {
         this.$store.dispatch('fetchMemberName', {
           memberClass: this.memberClass,
@@ -175,13 +175,13 @@ export default Vue.extend({
     memberClass(val) {
       if (val) {
         // Update member name when info changes
-        this.checkClient();
+        this.checkMember();
       }
     },
     memberCode(val) {
       if (val) {
         // Update member name when info changes
-        this.checkClient();
+        this.checkMember();
       }
     },
   },
@@ -198,7 +198,7 @@ export default Vue.extend({
       },
     );
 
-    this.checkClient();
+    this.checkMember();
   },
 });
 </script>

@@ -16,6 +16,7 @@
         <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
       </div>
     </template>
+    <div v-else style="height: 120px;"></div>
 
     <div class="button-footer">
       <v-spacer></v-spacer>
@@ -63,7 +64,7 @@ export default Vue.extend({
   data() {
     return {
       showAnchorDialog: false as boolean,
-      configuratonAnchor: {} as Anchor,
+      configuratonAnchor: undefined as Anchor | undefined,
     };
   },
   computed: {
@@ -75,13 +76,15 @@ export default Vue.extend({
     ]),
   },
   methods: {
+    // Fetch anchor data so it can be shown in the UI
     fetchConfigurationAnchor() {
       api
         .get('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
 
-      this.$store.dispatch('fetchMemberClasses');
+      // Fetch member classes for owner member step after anchor is ready
+      this.$store.dispatch('fetchMemberClassesForCurrentInstance');
     },
     done(): void {
       this.$emit('done');

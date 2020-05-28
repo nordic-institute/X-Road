@@ -123,8 +123,6 @@ export default Vue.extend({
     },
 
     tokenPinReady(pin: string): void {
-      console.log('READY', pin);
-
       this.pinSaveBusy = true;
 
       this.requestPayload = {
@@ -158,6 +156,7 @@ export default Vue.extend({
         .then((res) => {
           this.$store.dispatch('showSuccess', 'initialConfiguration.success');
           this.pinSaveBusy = false;
+          this.fetchCurrentSecurityServer();
           this.$router.replace({ name: RouteName.Clients });
         })
         .catch((error) => {
@@ -177,35 +176,14 @@ export default Vue.extend({
       });
     },
 
-    async fetchCurrentSecurityServer() {
+    fetchCurrentSecurityServer() {
       this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },
-
-    /*
-    fetchConfigurationAnchor(): void {
-      api
-        .get('/system/anchor')
-        .then((resp) => {
-          console.log(resp);
-          if (resp.data) {
-            this.anchorExists = true;
-          }
-        })
-        .catch((error) => {
-          if (error.response?.status === 404) {
-            // No anchor is valid case
-            this.anchorExists = false;
-          } else {
-            this.$store.dispatch('showError', error);
-          }
-        });
-    }, */
   },
   created() {
     this.fetchInitStatus();
-    //this.fetchConfigurationAnchor();
   },
 });
 </script>
