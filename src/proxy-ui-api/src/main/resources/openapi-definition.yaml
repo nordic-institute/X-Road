@@ -4875,7 +4875,7 @@ components:
         - ERROR_CODE_MISSING_PRIVATE_PARAMS # The downloaded global configuration did not contain private parameters
         - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
         - UNKNOWN
-    CodeWithMetadata:
+    CodeWithDetails:
       type: object
       description: object that contains a code identifier and possibly collection of
         associated metadata. Used to relay error and warning information.
@@ -4895,6 +4895,19 @@ components:
           items:
             type: string
             format: text
+        validation_errors:
+          description: object that contains validation errors bound to their respected fields - the object's key
+            represents the field where the validation error has happened and the key's value is the validation error
+          type: object
+          additionalProperties:
+            type: array
+            description: array containing the validation errors of a field
+            items:
+              type: string
+              format: text
+          example:
+            clientAdd.client.memberCode: ["NoPercent"]
+            clientAdd.client.subsystemCode: ["NoPercent", "NoBackslashes"]
     ConnectionType: # ok
       type: string
       format: enum
@@ -5021,13 +5034,13 @@ components:
           description: http status code
           example: 400
         error:
-          $ref: '#/components/schemas/CodeWithMetadata'
+          $ref: '#/components/schemas/CodeWithDetails'
         warnings:
           type: array
           description: warnings that could be ignored
           uniqueItems: true
           items:
-            $ref: '#/components/schemas/CodeWithMetadata'
+            $ref: '#/components/schemas/CodeWithDetails'
     GlobalConfiguration: # ok
       type: object
       description: global configuration
