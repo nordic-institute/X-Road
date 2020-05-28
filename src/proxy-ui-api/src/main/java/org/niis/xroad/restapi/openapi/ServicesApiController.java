@@ -114,13 +114,13 @@ public class ServicesApiController implements ServicesApi {
     public ResponseEntity<Service> updateService(String id, ServiceUpdate serviceUpdate) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
-        Service service = serviceUpdate.getService();
         Service updatedService = null;
         try {
             updatedService = serviceConverter.convert(
-                    serviceService.updateService(clientId, fullServiceCode, service.getUrl(), serviceUpdate.getUrlAll(),
-                            service.getTimeout(), serviceUpdate.getTimeoutAll(),
-                            Boolean.TRUE.equals(service.getSslAuth()), serviceUpdate.getSslAuthAll()),
+                    serviceService.updateService(clientId, fullServiceCode,
+                            serviceUpdate.getUrl(), serviceUpdate.getUrlAll(),
+                            serviceUpdate.getTimeout(), serviceUpdate.getTimeoutAll(),
+                            Boolean.TRUE.equals(serviceUpdate.getSslAuth()), serviceUpdate.getSslAuthAll()),
                     clientId);
         } catch (InvalidUrlException e) {
             throw new BadRequestException(e);
