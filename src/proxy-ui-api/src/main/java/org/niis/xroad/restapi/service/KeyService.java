@@ -239,6 +239,7 @@ public class KeyService {
             }
         }
 
+        // TO DO: don't change if deleting orphans (test also)
         auditEventHelper.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
 
         // delete key needs to be done twice. First call deletes the certs & csrs
