@@ -31,7 +31,6 @@ public enum RestApiAuditEvent {
 
     FORM_LOGIN("Log in user"),
     FORM_LOGOUT("Log out user"),
-    SET_UI_LANGUAGE("Set UI language"),
 
     KEY_MANAGEMENT_PAM_LOGIN("Key management API log in"),
     API_KEY_AUTHENTICATION("API key authentication"),

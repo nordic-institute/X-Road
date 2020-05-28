@@ -39,8 +39,6 @@ import com.google.gson.annotations.JsonAdapter;
 public enum RestApiAuditProperty {
 
     USER, // only when not available via UsernameHelper, e.g. when form login fails
-    // TO DO: language endpoint not implemented (yet?)
-    LOCALE,
 
     CLIENT_IDENTIFIER,
     CLIENT_IDENTIFIERS,
