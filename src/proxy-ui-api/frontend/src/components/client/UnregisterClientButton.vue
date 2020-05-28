@@ -1,6 +1,7 @@
 <template>
   <div>
     <LargeButton
+      data-test="unregister-client-button"
       @click="confirmUnregisterClient = true"
     >{{$t('action.unregister')}}</LargeButton>
 
@@ -40,7 +41,6 @@ export default Vue.extend({
   },
 
   methods: {
-
     unregisterClient(): void {
       this.unregisterLoading = true;
       this.$store
