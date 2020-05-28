@@ -612,7 +612,7 @@
   "initialConfiguration": {
     "title": "Initial configuration",
     "noPermission": "You do not have sufficient permissions to complete the operation.",
-    "success": "Server initialized",
+    "success": "Server initialised",
     "anchor": {
       "title": "Configuration Anchor",
       "info": "Import the configuration anchor provided by the Central Server's administrator.",
@@ -641,7 +641,7 @@
       "init_server_id_exists": "Server id exists",
       "init_serverconf_exists": "Serverconf exists",
       "init_server_owner_exists": "Server owner exists",
-      "init_software_token_initialized": "Software token is initialized"
+      "init_software_token_initialized": "Software token is initialised"
     }
   },
   "login": {
@@ -740,7 +740,7 @@
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
         "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
-        "ERROR_CODE_UNINITIALIZED": "The configuration client is initializing.",
+        "ERROR_CODE_UNINITIALIZED": "The configuration client is initialising.",
         "UNKNOWN": "Unknown"
       }
     },
