@@ -2,7 +2,7 @@
  TypeScript typings that are used in UI, but not in backend.
  These are not in openapi definitions.
 */
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 // Interface for Tab data
 export interface Tab {

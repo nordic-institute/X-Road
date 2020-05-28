@@ -76,7 +76,7 @@ import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import { debounce } from '@/util/helpers';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '../../global';

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { cloneDeep } from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';

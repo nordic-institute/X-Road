@@ -67,7 +67,7 @@ import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { Token } from '@/types';
+import { Token } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
