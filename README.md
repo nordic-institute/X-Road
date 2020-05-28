@@ -158,6 +158,10 @@ Environmental monitoring for the Security Server Sidecar provider can be  used t
 
 Operational monitoring for the Security Server Sidecar provider can be  used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here <https://github.com/nordic-institute/X-Road/blob/master/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md/>
 
+### 1.9.3 Environmental and Operational monitoring for consumer
+
+If we need to add environmental and operational monitoring in the consumer Sidecar, we can use for this the provider Sidecar that could be use as a consumer too.
+
 ## 2 Security Server Sidecar Initial Configuration
 
 ### 2.1 Reference Data
