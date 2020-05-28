@@ -14,7 +14,7 @@ export const generalState: State = {
   xroadInstances: [],
   memberClasses: [],
   memberClassesCurrentInstance: [],
-  memberName: ''
+  memberName: '',
 };
 
 export const getters: GetterTree<State, RootState> = {
@@ -91,7 +91,7 @@ export const actions: ActionTree<State, RootState> = {
       .catch((error) => {
         throw error;
       });
-  }
+  },
 };
 
 export const generalModule: Module<State, RootState> = {

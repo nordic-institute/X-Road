@@ -156,11 +156,19 @@ export default Vue.extend({
     },
 
     checkMember(): void {
-      if (this.memberClass && this.memberCode) {
-        this.$store.dispatch('fetchMemberName', {
-          memberClass: this.memberClass,
-          memberCode: this.memberCode,
-        });
+      if (this.memberClass?.length > 0 && this.memberCode?.length > 0) {
+        this.$store
+          .dispatch('fetchMemberName', {
+            memberClass: this.memberClass,
+            memberCode: this.memberCode,
+          })
+          .catch((error) => {
+            if (error.response.status === 404) {
+              // no match found
+              return;
+            }
+            this.$store.dispatch('showError', error);
+          });
       }
     },
   },
@@ -186,17 +194,15 @@ export default Vue.extend({
     },
   },
   beforeMount() {
-    this.$store.dispatch('fetchMemberClassesForCurrentInstance').then(
-      (response) => {},
-      (error) => {
-        console.log(error);
+    this.$store
+      .dispatch('fetchMemberClassesForCurrentInstance')
+      .catch((error) => {
         if (error.response.status === 500) {
           // this can happen if anchor is not ready
           return;
         }
         this.$store.dispatch('showError', error);
-      },
-    );
+      });
 
     this.checkMember();
   },

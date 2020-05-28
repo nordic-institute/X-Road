@@ -69,7 +69,7 @@ export const getters: GetterTree<InitServerState, RootState> = {
       return false;
     }
     return true;
-  }
+  },
 };
 
 export const mutations: MutationTree<InitServerState> = {
