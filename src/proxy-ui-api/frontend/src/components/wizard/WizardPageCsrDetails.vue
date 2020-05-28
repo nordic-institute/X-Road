@@ -184,13 +184,13 @@ export default Vue.extend({
   watch: {
     filteredServiceList(val) {
       // Set first certification service selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.certificationService = val[0].name;
       }
     },
     localMembersIds(val) {
       // Set first client selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.client = val[0].id;
       }
     },

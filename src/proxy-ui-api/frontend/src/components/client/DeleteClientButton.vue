@@ -1,6 +1,9 @@
 <template>
   <div>
-    <LargeButton @click="confirmDelete = true">{{$t('action.delete')}}</LargeButton>
+    <LargeButton
+      data-test="delete-client-button"
+      @click="confirmDelete = true"
+    >{{$t('action.delete')}}</LargeButton>
 
     <!-- Confirm dialog for delete client -->
     <ConfirmDialog

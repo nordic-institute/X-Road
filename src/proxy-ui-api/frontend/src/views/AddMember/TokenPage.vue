@@ -14,7 +14,12 @@
 
     <v-radio-group v-model="tokenGroup">
       <div class="radio-row" v-for="token in filteredTokens" :key="token.id">
-        <v-radio :label="`Token ${token.name}`" :value="token" :disabled="!token.logged_in"></v-radio>
+        <v-radio
+          :label="`Token ${token.name}`"
+          :value="token"
+          :disabled="!token.logged_in"
+          data-test="token-radio-buttton"
+        ></v-radio>
         <div>
           <large-button
             @click="confirmLogin(token)"
@@ -101,10 +106,10 @@ export default Vue.extend({
   },
   data() {
     return {
-      search: undefined,
-      disableDone: true,
+      search: undefined as string | undefined,
+      disableDone: true as boolean,
       tokenGroup: undefined as Token | undefined,
-      loginDialog: false,
+      loginDialog: false as boolean,
     };
   },
   methods: {
@@ -115,7 +120,7 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
-      if (!this.tokenGroup || !this.tokenGroup.id) {
+      if (!this.tokenGroup?.id) {
         return;
       }
       this.$store.dispatch('setCsrTokenId', this.tokenGroup.id);

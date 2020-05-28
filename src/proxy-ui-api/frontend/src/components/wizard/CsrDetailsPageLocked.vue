@@ -107,7 +107,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      csrFormatList: Object.values(CsrFormatTypes),
+      csrFormatList: Object.values(CsrFormatTypes) as string[],
     };
   },
   computed: {
@@ -150,7 +150,7 @@ export default Vue.extend({
   watch: {
     filteredServiceList(val) {
       // Set first certification service selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.certificationService = val[0].name;
       }
     },
