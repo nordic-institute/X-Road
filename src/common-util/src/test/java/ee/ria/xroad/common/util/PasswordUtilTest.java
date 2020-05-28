@@ -25,41 +25,22 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.junit.Test;
 
-public final class PasswordUtil {
+import java.util.regex.Pattern;
 
-    private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
-    private static final String CHAR_UPPER = CHAR_LOWER.toUpperCase();
-    private static final String NUMBER = "0123456789";
-    private static final String OTHER_CHAR = "!@#$%&*()_+-=[]?";
+import static org.junit.Assert.assertEquals;
 
-    private static SecureRandom random = new SecureRandom();
+public class PasswordUtilTest {
 
-    private PasswordUtil() {
+    // At least one upper-case and one lower-case and one numeric character
+    private final Pattern textPattern = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$");
 
+    @Test
+    public void shouldGenerateRandomPasswordWithSpecificLength() {
+        String generatedPassword = PasswordUtil.generatePassword(15);
+        assertEquals(15, generatedPassword.length());
+        assertEquals(true, textPattern.matcher(generatedPassword).matches());
+        assertEquals(20, PasswordUtil.generatePassword(20).length());
     }
-
-    public static String generatePassword(int length) {
-        if (length < 1) throw new IllegalArgumentException();
-
-        // shuffle strings
-        String stringToShuffle = CHAR_LOWER + CHAR_UPPER + NUMBER + OTHER_CHAR;
-        List<String> letters = Arrays.asList(stringToShuffle.split(""));
-        Collections.shuffle(letters);
-        String passwordAllow = letters.stream().collect(Collectors.joining());
-
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            int rndCharAt = random.nextInt(passwordAllow.length());
-            char rndChar = passwordAllow.charAt(rndCharAt);
-            sb.append(rndChar);
-        }
-        return sb.toString();
-    }
-
 }
