@@ -50,8 +50,7 @@ public enum RestApiAuditEvent {
     REGISTER_CLIENT("Register client"),
     UNREGISTER_CLIENT("Unregister client"),
     DELETE_CLIENT("Delete client"),
-    // TO DO: this is about deleting orphans, should log event name be updated???
-    DELETE_ORPHANS("Delete client certificates"),
+    DELETE_ORPHANS("Delete orphaned client keys, certs and certificates"),
     SEND_OWNER_CHANGE_REQ("Change owner"),
     // TO DO: add openapi3 and REST also contain wsdlUrl
     ADD_SERVICE_DESCRIPTION("Add service description"),
