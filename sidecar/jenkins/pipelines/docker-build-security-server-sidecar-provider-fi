@@ -32,7 +32,7 @@ pipeline {
         }
         stage('Run container') {
             steps {
-                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss niis/xroad-security-server-sidecar:${IMAGE_TAG}'
+                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-provider-fi niis/xroad-security-server-sidecar:${IMAGE_TAG}'
             }
         }
         stage('Test') {
@@ -54,7 +54,7 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rm -f sss || true'
+            sh 'docker rm -f sss-provider-fi || true'
         }
     }
 }
