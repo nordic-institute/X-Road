@@ -108,7 +108,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { mapGetters } from 'vuex';
-import { Key, Token, TokenType, TokenCertificate } from '@/types';
+import { Key, Token, TokenType, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 
 export default Vue.extend({

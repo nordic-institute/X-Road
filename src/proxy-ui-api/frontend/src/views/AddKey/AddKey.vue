@@ -38,7 +38,7 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
-import { Key, Token } from '@/types';
+import { Key, Token } from '@/openapi-types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';
 

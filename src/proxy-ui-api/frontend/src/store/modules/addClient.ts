@@ -4,8 +4,8 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { AddMemberWizardModes, UsageTypes } from '@/global';
-import { Token, Client, TokenCertificateSigningRequest, TokenCertificate, Key } from '@/types';
 import { createClientId } from '@/util/helpers';
+import { Token, Client, TokenCertificateSigningRequest, TokenCertificate, Key  } from '@/openapi-types';
 import * as api from '@/util/api';
 
 

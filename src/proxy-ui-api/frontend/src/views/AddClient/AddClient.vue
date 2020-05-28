@@ -74,7 +74,7 @@ import SignKeyPage from './SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from './GenerateCsrPage.vue';
-import { Key, Token } from '@/types';
+import { Key, Token } from '@/openapi-types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';
 

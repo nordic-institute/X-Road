@@ -140,7 +140,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 

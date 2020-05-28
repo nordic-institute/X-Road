@@ -1,5 +1,4 @@
-import { Client } from '@/types';
-import { cloneDeep } from 'lodash';
+import { Client } from '@/openapi-types';
 
 // Filters an array of objects excluding specified object key
 export function selectedFilter(arr: any[], search: string, excluded?: string): any[] {

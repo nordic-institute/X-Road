@@ -89,7 +89,7 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, TokenCertificate } from '@/types';
+import { Key, TokenCertificate } from '@/openapi-types';
 import { Permissions, PossibleActions, UsageTypes } from '@/global';
 
 export default Vue.extend({

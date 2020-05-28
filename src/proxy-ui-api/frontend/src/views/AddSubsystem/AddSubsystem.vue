@@ -97,10 +97,10 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { Key, Token } from '@/types';
+import { Key, Token } from '@/openapi-types';
 import { RouteName, UsageTypes } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import * as api from '@/util/api';
 
