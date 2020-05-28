@@ -176,7 +176,7 @@ export default Vue.extend({
   watch: {
     memberClassesCurrentInstance(val) {
       // Set first member class selected if there is only one
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.$store.commit('storeInitServerMemberClass', val[0]);
       }
     },

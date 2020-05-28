@@ -3,7 +3,6 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import * as api from '@/util/api';
 
-// TODO: this should be in types ??
 interface InitializationStatus {
   is_anchor_imported: boolean;
   is_server_code_initialized: boolean;
