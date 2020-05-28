@@ -1,7 +1,8 @@
 - name: Set hostname
   hostname:
     name: "{{inventory_hostname}}"
+  when: not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "14")
+  # Ansible bug https://github.com/ansible/ansible/issues/63354
 
 - name: Set hostname to etc hosts
   lineinfile: dest=/etc/hosts regexp='^127\.0\.1\.1' line='127.0.1.1 {{inventory_hostname}}' owner=root group=root mode=0644
-
