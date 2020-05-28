@@ -152,7 +152,7 @@ import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import { cloneDeep } from 'lodash';
-import { Service, ServiceDescription } from '@/types';
+import {Service, ServiceDescription} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 

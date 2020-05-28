@@ -38,7 +38,7 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Anchor } from '@/types';
+import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 

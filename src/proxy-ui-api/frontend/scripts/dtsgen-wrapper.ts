@@ -4,11 +4,11 @@ import {parseFileContent} from 'dtsgenerator/dist/utils';
 import prettier from 'prettier';
 
 const openAPIPath = '../src/main/resources/openapi-definition.yaml';
-const outputTSPath = 'src/types.ts';
+const outputTSPath = 'src/openapi-types.ts';
 
-async function main(): Promise<void> {
+function main() {
   console.log(`Generating typescript interfaces from ${openAPIPath}`);
-  await dtsGenerator({
+  dtsGenerator({
     contents: [parseFileContent(fs.readFileSync(openAPIPath, 'utf-8'), openAPIPath)],
     typeNameConvertor: id => {
       const names = DefaultTypeNameConvertor(id);

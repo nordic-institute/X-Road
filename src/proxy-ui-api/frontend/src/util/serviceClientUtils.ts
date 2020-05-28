@@ -1,5 +1,5 @@
 
-import {AccessRight, Service, ServiceDescription} from '@/types';
+import {AccessRight, Service, ServiceDescription} from '@/openapi-types';
 import {ServiceCandidate} from '@/ui-types';
 
 // returns whether given access right is for given service

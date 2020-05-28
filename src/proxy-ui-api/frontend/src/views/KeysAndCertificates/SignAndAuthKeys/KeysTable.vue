@@ -179,7 +179,7 @@ import CertificateStatus from './CertificateStatus.vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
+import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 import { Permissions, UsageTypes, PossibleActions } from '@/global';
 import * as api from '@/util/api';
 

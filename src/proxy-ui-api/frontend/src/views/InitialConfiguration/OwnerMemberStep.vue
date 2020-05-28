@@ -81,7 +81,7 @@ import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { Key, Token, Client } from '@/types';
+import { Key, Token, Client } from '@/openapi-types';
 import * as api from '@/util/api';
 
 export default Vue.extend({

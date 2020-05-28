@@ -1,7 +1,7 @@
 
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 import * as api from '@/util/api';
 
 // TODO: this should be in types ??

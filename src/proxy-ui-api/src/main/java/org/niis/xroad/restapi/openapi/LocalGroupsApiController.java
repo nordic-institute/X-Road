@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -124,6 +125,8 @@ public class LocalGroupsApiController implements LocalGroupsApi {
             localGroupService.deleteLocalGroup(groupId);
         } catch (LocalGroupNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given localgroup with id: " + groupIdString);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

@@ -84,7 +84,7 @@ import TokenPinStep from './TokenPinStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import WarningDialog from './WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
-import { Key, Token } from '@/types';
+import { Key, Token } from '@/openapi-types';
 import { RouteName, UsageTypes } from '@/global';
 import * as api from '@/util/api';
 
