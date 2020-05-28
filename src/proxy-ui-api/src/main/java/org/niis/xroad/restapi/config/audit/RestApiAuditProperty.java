@@ -49,19 +49,18 @@ public enum RestApiAuditProperty {
     CERT_HASH_ALGORITHM,
     CERT_REQUEST_IDS,
     KEY_ID,
-    WSDL_URL,
-    WSDL_URLS,
+    SERVICE_TYPE,
     DISABLED,
     REFRESHED_DATE,
     DISABLED_NOTICE,
     WSDL, // TO DO: Refresh WSDL uses property "wsdl" instead of "wsdls"
     SERVICES_ADDED,
     SERVICES_DELETED,
-    WSDL_URL_NEW,
+    URL,
+    URL_NEW,
 
     SERVICES,
     ID,
-    URL,
     TIMEOUT,
     TLS_AUTH,
 
@@ -89,6 +88,7 @@ public enum RestApiAuditProperty {
     CERTIFICATION_SERVICE_NAME,
     CSR_FORMAT,
     CERT_ID,
+    CSR_ID,
 
     CERT_FILE_NAME,
     ADDRESS,

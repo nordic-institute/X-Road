@@ -48,6 +48,7 @@ import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
+import org.niis.xroad.restapi.converter.ServiceTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
@@ -124,7 +125,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_C
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
@@ -387,9 +387,9 @@ public class ClientsApiController implements ClientsApi {
         boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
         String restServiceCode = serviceDescription.getRestServiceCode();
 
-        // audit logging from controller works better here
+        // audit logging from controller works better here since logic is split into 3 different methods
         auditDataHelper.put(clientId);
-        auditDataHelper.put(WSDL_URL, url);
+        auditDataHelper.putServiceDescriptionUrl(url, ServiceTypeMapping.map(serviceDescription.getType()).get());
 
         ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {

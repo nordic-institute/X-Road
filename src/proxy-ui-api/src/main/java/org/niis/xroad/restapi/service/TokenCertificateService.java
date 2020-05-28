@@ -78,6 +78,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_REQUEST_IDS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_STATUS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CSR_FORMAT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CSR_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_USAGE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
@@ -955,7 +956,7 @@ public class TokenCertificateService {
         if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.DELETE_ORPHANS)) {
             auditDataHelper.addListPropertyItem(CERT_REQUEST_IDS, csrId);
         } else if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.DELETE_CSR)) {
-            auditDataHelper.put(CERT_ID, csrId);
+            auditDataHelper.put(CSR_ID, csrId);
         }
 
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);

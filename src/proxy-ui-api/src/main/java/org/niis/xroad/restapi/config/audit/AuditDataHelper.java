@@ -27,6 +27,8 @@ package org.niis.xroad.restapi.config.audit;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -68,9 +70,11 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIEN
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_USAGE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MANAGEMENT_REQUEST_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 
 /**
  * Methods for storing various {@link RestApiAuditProperty} values in request scope
@@ -179,6 +183,21 @@ public class AuditDataHelper {
      */
     public void putManagementRequestId(Integer requestId) {
         put(MANAGEMENT_REQUEST_ID, requestId);
+    }
+
+    /**
+     * put service description url and type
+     */
+    public void putServiceDescriptionUrl(String url, DescriptionType type) {
+        put(URL, url);
+        put(SERVICE_TYPE, type);
+    }
+
+    /**
+     * put service description url and type
+     */
+    public void putServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType) {
+        putServiceDescriptionUrl(serviceDescriptionType.getUrl(), serviceDescriptionType.getType());
     }
 
     /**

@@ -156,7 +156,7 @@ public class ServiceService {
 
         ServiceDescriptionType serviceDescriptionType = serviceType.getServiceDescription();
 
-        auditDataHelper.put(RestApiAuditProperty.WSDL_URL, serviceDescriptionType.getUrl());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
 
         serviceDescriptionType.getService().forEach(service -> {
             boolean serviceMatch = service == serviceType;

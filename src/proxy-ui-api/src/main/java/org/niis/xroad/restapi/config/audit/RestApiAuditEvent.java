@@ -59,14 +59,11 @@ public enum RestApiAuditEvent {
     ENABLE_SERVICE_DESCRIPTION("Enable service description"),
     // TO DO: uses property "wsdl" instead of "wsdls" array
     REFRESH_SERVICE_DESCRIPTION("Refresh service description"),
-    EDIT_SERVICE_DESCRIPTION("Edit service description"), // generic edit before SD type is determined
-    EDIT_WSDL_SERVICE_DESCRIPTION("Edit wsdl service description"),
+    EDIT_SERVICE_DESCRIPTION("Edit service description"),
     EDIT_SERVICE_PARAMS("Edit service parameters"),
     ADD_REST_ENDPOINT("Add rest endpoint"),
     EDIT_REST_ENDPOINT("Edit rest endpoint"),
     DELETE_REST_ENDPOINT("Delete rest endpoint"),
-    // TO DO: this is also "edit REST service description", is this correct?
-    EDIT_OPENAPI3_SERVICE_DESCRIPTION("Edit openapi3 service description"),
     ADD_SERVICE_ACCESS_RIGHTS("Add access rights to service"),
     REMOVE_SERVICE_ACCESS_RIGHTS("Remove access rights from service"),
     ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"),

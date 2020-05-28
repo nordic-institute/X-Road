@@ -58,15 +58,12 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_SERVICE_DESCRIPTION;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_OPENAPI3_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_WSDL_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERVICE_DESCRIPTION;
 
@@ -116,7 +113,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     public ResponseEntity<Void> enableServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
-            serviceDescriptionService.enableServices(Collections.singletonList(serviceDescriptionId));
+            serviceDescriptionService.enableServices(serviceDescriptionId.longValue());
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
         }
@@ -134,7 +131,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         }
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
-            serviceDescriptionService.disableServices(Collections.singletonList(serviceDescriptionId),
+            serviceDescriptionService.disableServices(serviceDescriptionId.longValue(),
                     disabledNotice);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
@@ -166,12 +163,10 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         try {
 
             if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
-                auditEventHelper.changeRequestScopedEvent(EDIT_WSDL_SERVICE_DESCRIPTION);
                 updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
                         serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
                         serviceDescriptionUpdate.getIgnoreWarnings());
             } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
-                auditEventHelper.changeRequestScopedEvent(EDIT_OPENAPI3_SERVICE_DESCRIPTION);
                 if (serviceDescriptionUpdate.getRestServiceCode() == null) {
                     throw new BadRequestException("Missing parameter rest_service_code");
                 }
@@ -181,7 +176,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                                 serviceDescriptionUpdate.getNewRestServiceCode(),
                                 serviceDescriptionUpdate.getIgnoreWarnings());
             } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
-                auditEventHelper.changeRequestScopedEvent(EDIT_OPENAPI3_SERVICE_DESCRIPTION);
                 if (serviceDescriptionUpdate.getRestServiceCode() == null) {
                     throw new BadRequestException("Missing parameter rest_service_code");
                 }

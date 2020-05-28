@@ -60,22 +60,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_WSDL_SERVICE_DESCRIPTION;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIERS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED_NOTICE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_ADDED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_DELETED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL_NEW;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URLS;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL_URL_NEW;
 
 /**
  * ServiceDescription service
@@ -132,76 +128,53 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * Disable 1-n services
+     * Disable 1 services
      *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    public void disableServices(Collection<Long> serviceDescriptionIds,
+    public void disableServices(long serviceDescriptionId,
             String disabledNotice) throws ServiceDescriptionNotFoundException {
-        toggleServices(false, serviceDescriptionIds, disabledNotice);
+        toggleServices(false, serviceDescriptionId, disabledNotice);
     }
 
     /**
-     * Enable 1-n services
+     * Enable 1 service
      *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    public void enableServices(Collection<Long> serviceDescriptionIds) throws ServiceDescriptionNotFoundException {
-        toggleServices(true, serviceDescriptionIds, null);
+    public void enableServices(long serviceDescriptionId) throws ServiceDescriptionNotFoundException {
+        toggleServices(true, serviceDescriptionId, null);
     }
 
     /**
      * Change 1-n services to enabled/disabled
      *
-     * @param serviceDescriptionIds
+     * @param serviceDescriptionId
      * @param disabledNotice
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    private void toggleServices(boolean toEnabled, Collection<Long> serviceDescriptionIds,
+    private void toggleServices(boolean toEnabled, long serviceDescriptionId,
             String disabledNotice) throws ServiceDescriptionNotFoundException {
 
         if (!toEnabled) {
             auditDataHelper.put(DISABLED_NOTICE, disabledNotice);
         }
 
-        List<ServiceDescriptionType> possiblyNullServiceDescriptions = serviceDescriptionRepository
-                .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[] {}));
+        ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository
+                .getServiceDescription(serviceDescriptionId);
 
-        List<ServiceDescriptionType> serviceDescriptions = possiblyNullServiceDescriptions.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        if (serviceDescriptions.size() != serviceDescriptionIds.size()) {
-            Set<Long> foundIds = serviceDescriptions.stream()
-                    .map(serviceDescriptionType -> serviceDescriptionType.getId())
-                    .collect(Collectors.toSet());
-            Set<Long> missingIds = new HashSet<>(serviceDescriptionIds);
-            missingIds.removeAll(foundIds);
-            throw new ServiceDescriptionNotFoundException("Service descriptions with ids " + missingIds
+        if (serviceDescriptionType == null) {
+            throw new ServiceDescriptionNotFoundException("Service description with id " + serviceDescriptionId
                     + " not found");
         }
 
-        Set<ClientId> auditLogClientIds = new HashSet<>();
-
-        serviceDescriptions.stream()
-                .forEach(serviceDescriptionType -> {
-                    serviceDescriptionType.setDisabled(!toEnabled);
-                    if (!toEnabled) {
-                        serviceDescriptionType.setDisabledNotice(disabledNotice);
-                    }
-                    serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
-                    auditLogClientIds.add(serviceDescriptionType.getClient().getIdentifier());
-                    auditDataHelper.addListPropertyItem(WSDL_URLS, serviceDescriptionType.getUrl());
-                });
-
-        if (auditLogClientIds.size() > 1) {
-            log.error("disabling service descriptions for multiple clients at once, audit log has non-standard format");
-            auditDataHelper.put(CLIENT_IDENTIFIERS, new ArrayList<>(auditLogClientIds));
-        } else {
-            auditDataHelper.put(auditLogClientIds.iterator().next());
+        serviceDescriptionType.setDisabled(!toEnabled);
+        if (!toEnabled) {
+            serviceDescriptionType.setDisabledNotice(disabledNotice);
         }
-
-
+        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
+        auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
     }
 
     /**
@@ -214,7 +187,7 @@ public class ServiceDescriptionService {
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id + " not found");
         }
-        auditDataHelper.addListPropertyItem(WSDL_URLS, serviceDescriptionType.getUrl());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
         ClientType client = serviceDescriptionType.getClient();
         auditDataHelper.put(client.getIdentifier());
         cleanAccessRights(client, serviceDescriptionType);
@@ -578,6 +551,8 @@ public class ServiceDescriptionService {
                     + serviceDescriptionType.toString() + " not found");
         }
 
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
+
         if (serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
             serviceDescriptionType = refreshWSDLServiceDescription(serviceDescriptionType, ignoreWarnings);
         } else if (serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
@@ -689,6 +664,8 @@ public class ServiceDescriptionService {
 
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
         auditDataHelper.put(serviceDescription.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescription);
+        auditDataHelper.put(URL_NEW, url);
         if (!serviceDescription.getType().equals(DescriptionType.REST)) {
             throw new WrongServiceDescriptionTypeException("Expected description type REST");
         }
@@ -746,6 +723,8 @@ public class ServiceDescriptionService {
         }
 
         auditDataHelper.put(serviceDescription.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescription);
+        auditDataHelper.put(URL_NEW, url);
 
         if (!serviceDescription.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
@@ -934,9 +913,10 @@ public class ServiceDescriptionService {
 
         auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
         Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(WSDL);
-        wsdlAuditData.put(WSDL_URL, serviceDescriptionType.getUrl());
-        if (auditDataHelper.dataIsForEvent(EDIT_WSDL_SERVICE_DESCRIPTION)) {
-            wsdlAuditData.put(WSDL_URL_NEW, url);
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
+
+        if (auditDataHelper.dataIsForEvent(EDIT_SERVICE_DESCRIPTION)) {
+            auditDataHelper.put(URL_NEW, url);
         }
 
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
