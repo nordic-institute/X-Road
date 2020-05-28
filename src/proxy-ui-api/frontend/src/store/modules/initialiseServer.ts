@@ -18,7 +18,6 @@ export interface InitServerState {
   memberCode: string | undefined;
   securityServerCode: string | undefined;
   initializationStatus: InitializationStatus | undefined;
-  existingMembers: Client[] | undefined;
 }
 
 const getDefaultState = () => {
@@ -27,7 +26,6 @@ const getDefaultState = () => {
     memberCode: undefined,
     securityServerCode: undefined,
     initializationStatus: undefined,
-    existingMembers: [],
   };
 };
 
@@ -52,20 +50,16 @@ export const getters: GetterTree<InitServerState, RootState> = {
     return state.initializationStatus?.is_anchor_imported || false;
   },
 
-  isServerCodeInitialized(state): boolean {
-    return state.initializationStatus?.is_server_code_initialized || false;
-  },
-
   isServerOwnerInitialized(state): boolean {
     return state.initializationStatus?.is_server_owner_initialized || false;
   },
 
-  isSoftwareTokenInitialized(state): boolean {
-    return state.initializationStatus?.is_software_token_initialized || false;
+  isServerCodeInitialized(state): boolean {
+    return state.initializationStatus?.is_server_code_initialized || false;
   },
 
-  initExistingMembers(state): Client[] | undefined {
-    return state.existingMembers;
+  isSoftwareTokenInitialized(state): boolean {
+    return state.initializationStatus?.is_software_token_initialized || false;
   },
 
   needsInitialisation: (state) => {
@@ -94,9 +88,6 @@ export const mutations: MutationTree<InitServerState> = {
   storeInitStatus(state, status: InitializationStatus) {
     state.initializationStatus = status;
   },
-  storeExistingMembers(state, members: Client[]) {
-    state.existingMembers = members;
-  },
 };
 
 export const actions: ActionTree<InitServerState, any> = {
@@ -109,17 +100,6 @@ export const actions: ActionTree<InitServerState, any> = {
       .get('/initialization/status')
       .then((resp) => {
         commit('storeInitStatus', resp.data);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  fetchExistingMembers({ commit }) {
-    return api
-      .get('/clients?show_members=true')
-      .then((resp) => {
-        commit('storeExistingMembers', resp.data);
       })
       .catch((error) => {
         throw error;

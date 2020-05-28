@@ -4,15 +4,18 @@
       <div>{{$t('initialConfiguration.anchor.info')}}</div>
       <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" initMode />
     </div>
-    <div class="row-wrap">
-      <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>
-      <template v-if="configuratonAnchor">{{ configuratonAnchor.hash | colonize }}</template>
-    </div>
 
-    <div class="row-wrap">
-      <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>
-      <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
-    </div>
+    <template v-if="configuratonAnchor">
+      <div class="row-wrap">
+        <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>
+        <template v-if="configuratonAnchor">{{ configuratonAnchor.hash | colonize }}</template>
+      </div>
+
+      <div class="row-wrap">
+        <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>
+        <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
+      </div>
+    </template>
 
     <div class="button-footer">
       <v-spacer></v-spacer>
@@ -72,19 +75,13 @@ export default Vue.extend({
     ]),
   },
   methods: {
-    async fetchConfigurationAnchor() {
-      return api
+    fetchConfigurationAnchor() {
+      api
         .get('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
-    },
-    importAnchor(): void {
-      console.log('import');
-      this.showAnchorDialog = true;
-    },
-    saveAnchor(): void {
-      console.log('saveAnchor');
-      this.showAnchorDialog = false;
+
+      this.$store.dispatch('fetchMemberClasses');
     },
     done(): void {
       this.$emit('done');

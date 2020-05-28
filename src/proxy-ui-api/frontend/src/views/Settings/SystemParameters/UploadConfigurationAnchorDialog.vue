@@ -12,6 +12,7 @@
         data-test="system-parameters-configuration-anchor-upload-button"
         outlined
         @click="$refs.anchorUpload.click()"
+        :loading="previewing"
         :requires-permission="permissions.UPLOAD_ANCHOR"
         class="ml-5"
       >{{ $t('systemParameters.configurationAnchor.action.upload.button') }}</large-button>
@@ -108,6 +109,7 @@ export default Vue.extend({
   },
   data() {
     return {
+      previewing: false,
       uploading: false,
       anchorPreview: EmptyAnchorPreview,
       uploadedFile: null as string | ArrayBuffer | null,
@@ -128,6 +130,7 @@ export default Vue.extend({
     },
 
     previewAnchor(event: any, query: string): void {
+      this.previewing = true;
       const fileList = (event.target.files ||
         event.dataTransfer.files) as FileList;
       if (!fileList.length) {
@@ -182,6 +185,7 @@ export default Vue.extend({
         });
     },
     close(): void {
+      this.previewing = false;
       this.showPreview = false;
       this.anchorPreview = EmptyAnchorPreview;
     },

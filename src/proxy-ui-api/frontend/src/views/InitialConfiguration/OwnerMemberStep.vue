@@ -12,7 +12,8 @@
         <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
           <v-select
             v-model="memberClass"
-            :items="memberClasses"
+            :items="memberClassesCurrentInstance"
+            :disabled="isServerOwnerInitialized"
             data-test="member-class-input"
             class="form-input"
           ></v-select>
@@ -26,6 +27,7 @@
             class="form-input"
             type="text"
             :error-messages="errors"
+            :disabled="isServerOwnerInitialized"
             v-model="memberCode"
             data-test="member-code-input"
           ></v-text-field>
@@ -43,6 +45,7 @@
             class="form-input"
             type="text"
             :error-messages="errors"
+            :disabled="isServerCodeInitialized"
             v-model="securityServerCode"
             data-test="security-server-code-input"
           ></v-text-field>
@@ -100,16 +103,21 @@ export default Vue.extend({
       default: true,
     },
   },
-  data() {
-    return {
-      memberName: '',
-    };
-  },
   computed: {
-    ...mapGetters(['memberClasses', 'initExistingMembers']),
+    ...mapGetters([
+      'memberClassesCurrentInstance',
+      'initExistingMembers',
+      'currentSecurityServer',
+      'isServerCodeInitialized',
+      'isServerOwnerInitialized',
+      'memberName',
+    ]),
 
     memberClass: {
       get(): string {
+        if (this.currentSecurityServer?.member_class) {
+          return this.currentSecurityServer.member_class;
+        }
         return this.$store.getters.initServerMemberClass;
       },
       set(value: string) {
@@ -118,15 +126,20 @@ export default Vue.extend({
     },
     memberCode: {
       get(): string {
+        if (this.currentSecurityServer?.member_code) {
+          return this.currentSecurityServer.member_code;
+        }
         return this.$store.getters.initServerMemberCode;
       },
       set(value: string) {
         this.$store.commit('storeInitServerMemberCode', value);
       },
     },
-
     securityServerCode: {
       get(): string {
+        if (this.currentSecurityServer?.server_code) {
+          return this.currentSecurityServer.server_code;
+        }
         return this.$store.getters.initServerSSCode;
       },
       set(value: string) {
@@ -143,25 +156,17 @@ export default Vue.extend({
     },
 
     checkClient(): void {
-      // Find if the selectable clients array has a match
-      const tempClient = this.initExistingMembers.find((client: Client) => {
-        return (
-          client.member_code === this.memberCode &&
-          client.member_class === this.memberClass
-        );
-      });
-      // Fill the name "field" if it's available
-      if (tempClient?.member_name) {
-        this.memberName = tempClient.member_name;
-      } else {
-        // Clear the "field" if not
-        this.memberName = '';
+      if (this.memberClass && this.memberCode) {
+        this.$store.dispatch('fetchMemberName', {
+          memberClass: this.memberClass,
+          memberCode: this.memberCode,
+        });
       }
     },
   },
 
   watch: {
-    memberClasses(val) {
+    memberClassesCurrentInstance(val) {
       // Set first member class selected if there is only one
       if (val && val.length === 1) {
         this.$store.commit('storeInitServerMemberClass', val[0]);
@@ -173,7 +178,6 @@ export default Vue.extend({
         this.checkClient();
       }
     },
-
     memberCode(val) {
       if (val) {
         // Update member name when info changes
@@ -181,9 +185,21 @@ export default Vue.extend({
       }
     },
   },
-  created() {
-    this.$store.dispatch('fetchExistingMembers');
-  }
+  beforeMount() {
+    this.$store.dispatch('fetchMemberClassesForCurrentInstance').then(
+      (response) => {},
+      (error) => {
+        console.log(error);
+        if (error.response.status === 500) {
+          // this can happen if anchor is not ready
+          return;
+        }
+        this.$store.dispatch('showError', error);
+      },
+    );
+
+    this.checkClient();
+  },
 });
 </script>
 

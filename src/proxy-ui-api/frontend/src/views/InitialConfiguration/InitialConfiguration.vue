@@ -98,7 +98,11 @@ export default Vue.extend({
   },
   props: {},
   computed: {
-    ...mapGetters(['isAnchorImported']),
+    ...mapGetters([
+      'isAnchorImported',
+      'isServerOwnerInitialized',
+      'isServerCodeInitialized',
+    ]),
   },
   data() {
     return {
@@ -124,12 +128,20 @@ export default Vue.extend({
       this.pinSaveBusy = true;
 
       this.requestPayload = {
-        owner_member_class: this.$store.getters.initServerMemberClass,
-        owner_member_code: this.$store.getters.initServerMemberCode,
-        security_server_code: this.$store.getters.initServerSSCode,
         software_token_pin: pin,
         ignore_warnings: false,
       };
+
+      // If owner member is not already set up add it
+      if (!this.isServerOwnerInitialized) {
+        this.requestPayload.owner_member_class = this.$store.getters.initServerMemberClass;
+        this.requestPayload.owner_member_code = this.$store.getters.initServerMemberCode;
+      }
+
+      // Add security code if it's not already set up
+      if (!this.isServerCodeInitialized) {
+        this.requestPayload.security_server_code = this.$store.getters.initServerSSCode;
+      }
 
       this.initServer(this.requestPayload);
     },
@@ -192,7 +204,6 @@ export default Vue.extend({
     }, */
   },
   created() {
-    this.$store.dispatch('fetchMemberClasses');
     this.fetchInitStatus();
     //this.fetchConfigurationAnchor();
   },
