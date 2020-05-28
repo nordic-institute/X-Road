@@ -1,7 +1,6 @@
 
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Client } from '@/openapi-types';
 import * as api from '@/util/api';
 
 // TODO: this should be in types ??
@@ -11,7 +10,6 @@ interface InitializationStatus {
   is_server_owner_initialized: boolean;
   is_software_token_initialized: boolean;
 }
-
 
 export interface InitServerState {
   memberClass: string | undefined;
@@ -62,7 +60,7 @@ export const getters: GetterTree<InitServerState, RootState> = {
     return state.initializationStatus?.is_software_token_initialized || false;
   },
 
-  needsInitialisation: (state) => {
+  needsInitialization: (state) => {
     if (state.initializationStatus?.is_anchor_imported && state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized && state.initializationStatus.is_software_token_initialized
     ) {

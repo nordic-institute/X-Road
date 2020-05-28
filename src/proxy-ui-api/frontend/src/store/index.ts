@@ -13,7 +13,7 @@ import { addClientModule } from './modules/addClient';
 import { csrModule } from './modules/certificateSignRequest';
 import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
-import { module as initServer } from './modules/initialiseServer';
+import { module as initServer } from './modules/initializeServer';
 
 Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({

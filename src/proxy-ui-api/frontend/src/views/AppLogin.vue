@@ -167,8 +167,8 @@ export default (Vue as VueConstructor<
         .dispatch('fetchInitializationStatus')
         .then(
           (response) => {
-            if (this.$store.getters.needsInitialisation) {
-              // Check if the user has permission to initialise the server
+            if (this.$store.getters.needsInitialization) {
+              // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                 this.$store.dispatch(
                   'showErrorMessage',
