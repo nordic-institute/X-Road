@@ -26,6 +26,8 @@ package org.niis.xroad.restapi.config.audit;
 
 import ee.ria.xroad.common.AuditLogger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.RequestHelper;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.UsernameHelper;
@@ -182,10 +184,17 @@ public class AuditEventLoggingFacade {
                 requestHelper.getCurrentRequestUrl());
     }
 
-    private void auditLog(RestApiAuditEvent event, String user, String reason,
+    private void auditLogFailure(RestApiAuditEvent event, String user, String reason,
             Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
         callAuditLoggerLogFailure(event, user, reason, data, securityHelper.getCurrentAuthenticationScheme(),
+                requestHelper.getCurrentRequestUrl());
+    }
+
+    private void auditLogWarning(RestApiAuditEvent event, String user, String reason,
+            Map<String, Object> data) {
+        addRequestScopedLoggedEventForThisRequest(event);
+        callAuditLoggerLogWarning(event, user, reason, data, securityHelper.getCurrentAuthenticationScheme(),
                 requestHelper.getCurrentRequestUrl());
     }
 
@@ -199,6 +208,12 @@ public class AuditEventLoggingFacade {
     void callAuditLoggerLogFailure(RestApiAuditEvent event, String user, String reason,
             Map<String, Object> data, String auth, String url) {
         AuditLogger.log(event.getEventName(), user, reason, data, auth, url);
+    }
+
+    // package private wrapper method for AuditLogger.log, to enable easier mocking in tests
+    void callAuditLoggerLogWarning(RestApiAuditEvent event, String user, String reason,
+            Map<String, Object> data, String auth, String url) {
+        AuditLogger.logWarning(event.getEventName(), user, reason, data, auth, url);
     }
 
     private void addRequestScopedLoggedEventForThisRequest(RestApiAuditEvent event) {
@@ -243,6 +258,8 @@ public class AuditEventLoggingFacade {
     /**
      * Audit logs an failure. Some helper logic for handling handling different username and event parameters.
      * Logs either request scoped event, or given defaultEvent, or skips logging if neither exists.
+     * Based on exception root causes, calls proper AuditLogger method which includes boolean indicating if
+     * failure was caused by unhandled warnings
      * @param defaultEvent {@link RestApiAuditEvent} that will be used, if there is no request scoped event
      * @param ex exception whose message is used as failure reason
      * @param usernameOverride username to log. If null, username associated with current
@@ -260,8 +277,20 @@ public class AuditEventLoggingFacade {
         }
         if (eventToLog != null) {
             String reason = ex.getMessage();
-            auditLog(eventToLog, username, reason, createConvertedEventData());
+            if (causedByUnhandledWarnings(ex)) {
+                auditLogWarning(eventToLog, username, reason, createConvertedEventData());
+            } else {
+                auditLogFailure(eventToLog, username, reason, createConvertedEventData());
+            }
         }
+    }
+
+
+    /**
+     * Finds out if exception causes contain UnhandledWarningsException
+     */
+    private boolean causedByUnhandledWarnings(Throwable t) {
+        return ExceptionUtils.indexOfType(t, UnhandledWarningsException.class) != -1;
     }
 
 }
