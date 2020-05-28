@@ -51,6 +51,7 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_KEY_FROM_TOKEN_AND_CONFIG;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL;
@@ -239,8 +240,9 @@ public class KeyService {
             }
         }
 
-        // TO DO: don't change if deleting orphans (test also)
-        auditEventHelper.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
+        if (!auditDataHelper.dataIsForEvent(DELETE_ORPHANS)) {
+            auditEventHelper.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
+        }
 
         // delete key needs to be done twice. First call deletes the certs & csrs
         try {

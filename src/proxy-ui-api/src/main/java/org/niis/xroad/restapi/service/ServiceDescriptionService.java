@@ -551,6 +551,7 @@ public class ServiceDescriptionService {
                     + serviceDescriptionType.toString() + " not found");
         }
 
+        auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
 
         if (serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {

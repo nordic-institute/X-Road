@@ -40,8 +40,6 @@ public enum RestApiAuditEvent {
     API_KEY_UPDATE("API key update"),
     API_KEY_REMOVE("API key remove"),
 
-    // TO DO: uses generatedAt format "2019-06-14T09:46:39+00:00" instead of old "2019-06-14T09:46:39+00:00"
-    // selected format is the same as in "add service description"
     INIT_ANCHOR("Initialize anchor"),
     INIT_SERVER_CONFIGURATION("Initialize server configuration"),
 
@@ -52,12 +50,10 @@ public enum RestApiAuditEvent {
     DELETE_CLIENT("Delete client"),
     DELETE_ORPHANS("Delete orphaned client keys, certs and certificates"),
     SEND_OWNER_CHANGE_REQ("Change owner"),
-    // TO DO: add openapi3 and REST also contain wsdlUrl
     ADD_SERVICE_DESCRIPTION("Add service description"),
     DELETE_SERVICE_DESCRIPTION("Delete service description"),
     DISABLE_SERVICE_DESCRIPTION("Disable service description"),
     ENABLE_SERVICE_DESCRIPTION("Enable service description"),
-    // TO DO: uses property "wsdl" instead of "wsdls" array
     REFRESH_SERVICE_DESCRIPTION("Refresh service description"),
     EDIT_SERVICE_DESCRIPTION("Edit service description"),
     EDIT_SERVICE_PARAMS("Edit service parameters"),
@@ -69,7 +65,6 @@ public enum RestApiAuditEvent {
     ADD_SERVICE_CLIENT_ACCESS_RIGHTS("Add access rights to subject"),
     REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS("Remove access rights from subject"),
     SET_CONNECTION_TYPE("Set connection type for servers in service consumer role"),
-    // TO DO: no "filename" property, since we are using binary application/octet-stream upload
     ADD_CLIENT_INTERNAL_CERT("Add internal TLS certificate"),
     DELETE_CLIENT_INTERNAL_CERT("Delete internal TLS certificate"),
     ADD_LOCAL_GROUP("Add group"),
@@ -80,10 +75,7 @@ public enum RestApiAuditEvent {
 
     // system parameters
     GENERATE_INTERNAL_CERT_REQ("Generate certificate request for TLS"),
-    // TO DO: no "filename" property, since we are using binary application/octet-stream upload
     IMPORT_PROXY_INTERNAL_CERT("Import TLS certificate from file"),
-    // TO DO: uses generatedAt format "2019-06-14T09:46:39+00:00" instead of old "2019-06-14T09:46:39+00:00"
-    // selected format is the same as in "add service description"
     UPLOAD_ANCHOR("Upload configuration anchor"),
     ADD_TSP("Add timestamping service"),
     DELETE_TSP("Delete timestamping service"),
@@ -96,12 +88,9 @@ public enum RestApiAuditEvent {
     DELETE_KEY("Delete key"),
     DELETE_KEY_FROM_TOKEN_AND_CONFIG("Delete key from token and configuration"),
     GENERATE_CSR("Generate CSR"),
-    // TO DO: csr id is logged as "CertId", might make sense to change?
     DELETE_CSR("Delete CSR"),
-    // TO DO: we probably need this too?
     GENERATE_KEY_AND_CSR("Generate key and CSR"),
 
-    // TO DO: we do not have certFileName property (since application/octet-stream)
     IMPORT_CERT_FILE("Import certificate from file"),
     IMPORT_CERT_TOKEN("Import certificate from token"),
     DELETE_CERT("Delete certificate"),
