@@ -143,8 +143,15 @@ public final class AuditLogger {
     }
 
     private static String serializeJson(Map<String, Object> message) {
-        // serialize nulls, like old Ruby implementation
-        return JsonUtils.getSerializer(true).toJson(message);
+        String result;
+        try {
+            // serialize nulls, like old Ruby implementation
+            result = JsonUtils.getSerializer(true).toJson(message);
+        } catch (Throwable t) {
+            log.error("could not json serialize audit json message map: " + message, t);
+            throw t;
+        }
+        return result;
     }
 
     // message map for successful event (no reason)
