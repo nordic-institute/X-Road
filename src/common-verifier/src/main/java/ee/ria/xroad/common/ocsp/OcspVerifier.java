@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.bouncycastle.asn1.DERBitString;
@@ -52,6 +53,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
@@ -108,7 +110,7 @@ public final class OcspVerifier {
      * if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer) throws Exception {
+                                        X509Certificate subject, X509Certificate issuer) throws Exception {
         verifyValidityAndStatus(response, subject, issuer, new Date());
     }
 
@@ -123,8 +125,8 @@ public final class OcspVerifier {
      * if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer, Date atDate)
-                    throws Exception {
+                                        X509Certificate subject, X509Certificate issuer, Date atDate)
+            throws Exception {
         verifyValidity(response, subject, issuer, atDate);
         verifyStatus(response);
     }
@@ -139,7 +141,7 @@ public final class OcspVerifier {
      * if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer) throws Exception {
+                               X509Certificate issuer) throws Exception {
         verifyValidity(response, subject, issuer, new Date());
     }
 
@@ -154,10 +156,10 @@ public final class OcspVerifier {
      * if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer, Date atDate) throws Exception {
+                               X509Certificate issuer, Date atDate) throws Exception {
         log.debug("verifyValidity(subject: {}, issuer: {}, atDate: {})",
                 new Object[] {subject.getSubjectX500Principal().getName(),
-                    issuer.getSubjectX500Principal().getName(), atDate});
+                        issuer.getSubjectX500Principal().getName(), atDate});
 
         SingleResp singleResp = verifyResponseValidityCached(response, subject, issuer);
         verifyValidityAt(atDate, singleResp);
@@ -188,16 +190,15 @@ public final class OcspVerifier {
         }
     }
 
-    private synchronized SingleResp verifyResponseValidityCached(OCSPResp response, X509Certificate subject,
+    private SingleResp verifyResponseValidityCached(OCSPResp response, X509Certificate subject,
                                                                  X509Certificate issuer)
             throws Exception {
-        String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
-        SingleResp responseValidity = RESPONSE_VALIDITY_CACHE.getIfPresent(key);
-        if (responseValidity == null) {
-            responseValidity = verifyResponseValidity(response, subject, issuer);
-            RESPONSE_VALIDITY_CACHE.put(key, responseValidity);
+        try {
+            final String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
+            return RESPONSE_VALIDITY_CACHE.get(key, () -> verifyResponseValidity(response, subject, issuer));
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            throw (Exception)e.getCause();
         }
-        return responseValidity;
     }
 
     private SingleResp verifyResponseValidity(OCSPResp response, X509Certificate subject, X509Certificate issuer)
@@ -280,7 +281,7 @@ public final class OcspVerifier {
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
-                        allowedThisUpdate, atDate });
+                allowedThisUpdate, atDate });
 
         return singleResp.getThisUpdate().before(allowedThisUpdate);
     }
@@ -376,7 +377,7 @@ public final class OcspVerifier {
     }
 
     private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-            X509Certificate issuer) throws Exception {
+                                                  X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
         if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {
