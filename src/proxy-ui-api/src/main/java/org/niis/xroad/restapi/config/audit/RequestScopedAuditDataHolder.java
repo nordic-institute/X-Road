@@ -70,11 +70,6 @@ class RequestScopedAuditDataHolder {
                 requestScopedAuditEventData.getEventData());
     }
 
-    void addData(RestApiAuditProperty property, Object value) {
-        requestHelper.runInRequestScope(() ->
-                requestScopedAuditEventData.getEventData().put(property, value));
-    }
-
     Set<RestApiAuditEvent> getLoggedEvents() {
         return (Set<RestApiAuditEvent>) requestHelper.runInRequestScope(() ->
                 requestScopedLoggedAuditEvents.getEvents());
