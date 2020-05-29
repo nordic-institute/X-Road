@@ -182,7 +182,7 @@ export default Vue.extend({
   watch: {
     memberClasses(val) {
       // Set first member class selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.memberClass = val[0];
       }
     },

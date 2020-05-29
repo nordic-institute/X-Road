@@ -102,6 +102,8 @@ import { Key, Token } from '@/openapi-types';
 import { RouteName, AddMemberWizardModes } from '@/global';
 import * as api from '@/util/api';
 
+const NO_SELECTION = 999;
+
 export default Vue.extend({
   components: {
     HelpIcon,
@@ -130,7 +132,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentStep: 1,
+      currentStep: 1 as number,
       wizardModes: AddMemberWizardModes,
     };
   },
@@ -143,7 +145,7 @@ export default Vue.extend({
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
         this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
       ) {
-        return 999;
+        return NO_SELECTION;
       }
 
       return 2;
@@ -154,7 +156,7 @@ export default Vue.extend({
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
         this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
       ) {
-        return 999;
+        return NO_SELECTION;
       }
 
       return 3;
@@ -163,7 +165,7 @@ export default Vue.extend({
       if (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
       ) {
-        return 999;
+        return NO_SELECTION;
       }
       if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
         return 2;
@@ -176,7 +178,7 @@ export default Vue.extend({
       if (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
       ) {
-        return 999;
+        return NO_SELECTION;
       }
       if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
         return 3;

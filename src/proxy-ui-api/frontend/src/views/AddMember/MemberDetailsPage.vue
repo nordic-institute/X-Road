@@ -77,7 +77,7 @@ import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
-import { debounce } from '@/util/helpers';
+import { debounce, isEmpty } from '@/util/helpers';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '../../global';
 
@@ -92,11 +92,7 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters([
-      'reservedMember',
-      'memberClasses',
-      'selectedMemberName',
-    ]),
+    ...mapGetters(['reservedMember', 'memberClasses', 'selectedMemberName']),
 
     memberClass: {
       get(): string {
@@ -120,13 +116,10 @@ export default Vue.extend({
       // Filter out the owner member
       const filtered = this.$store.getters.selectableMembers.filter(
         (client: Client) => {
-          if (
+          return !(
             client.member_class === this.reservedMember.memberClass &&
             client.member_code === this.reservedMember.memberCode
-          ) {
-            return false;
-          }
-          return true;
+          );
         },
       );
       return filtered;
@@ -138,25 +131,18 @@ export default Vue.extend({
       }
 
       // Check that the info doesn't match the reserved member (owner member)
-      if (
+      return !(
         this.reservedMember.memberClass.toLowerCase() !==
           this.memberClass.toLowerCase() ||
         this.reservedMember.memberCode.toLowerCase() !==
           this.memberCode.toLowerCase()
-      ) {
-        return false;
-      }
-
-      return true;
+      );
     },
   },
   data() {
     return {
-      disableDone: false,
-      certificationService: undefined,
-      filteredServiceList: [],
       showSelectClient: false as boolean,
-      checkRunning: false,
+      checkRunning: false as boolean,
     };
   },
   methods: {
@@ -181,13 +167,8 @@ export default Vue.extend({
         );
       });
 
-      // Fill the name "field" if it's available
-      if (tempClient?.member_name) {
-        this.$store.commit('setSelectedMemberName', tempClient.member_name);
-      } else {
-        // Clear the "field" if not
-        this.$store.commit('setSelectedMemberName', undefined);
-      }
+      // Fill the name "field" if it's available or set it undefined
+      this.$store.commit('setSelectedMemberName', tempClient?.member_name);
 
       this.checkClientDebounce();
     },
@@ -218,36 +199,26 @@ export default Vue.extend({
   },
 
   watch: {
-    memberCode(val) {
+    memberCode(val): void {
       // Set first certification service selected as default when the list is updated
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-      if (
-        !val ||
-        val.length < 1 ||
-        !this.memberClass ||
-        this.memberClass.length < 1
-      ) {
+      if (isEmpty(val) || isEmpty(this.memberClass)) {
         return;
       }
       this.checkClient();
     },
-    memberClass(val) {
+    memberClass(val): void {
       // Set first certification service selected as default when the list is updated
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-      if (
-        !val ||
-        val.length < 1 ||
-        !this.memberCode ||
-        this.memberCode.length < 1
-      ) {
+      if (isEmpty(val) || isEmpty(this.memberCode)) {
         return;
       }
       this.checkClient();
     },
 
-    memberClasses(val) {
+    memberClasses(val): void {
       // Set first member class selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.memberClass = val[0];
       }
     },

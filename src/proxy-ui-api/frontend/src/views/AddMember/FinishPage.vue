@@ -133,18 +133,20 @@ export default Vue.extend({
     generateCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
-      this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-        (response) => {
+      this.$store
+        .dispatch('generateKeyAndCsr', tokenId)
+        .then(
+          (response) => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
           this.disableCancel = false;
           this.submitLoading = false;
-          this.$emit('done');
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-          this.disableCancel = false;
-          this.submitLoading = false;
-        },
-      );
+        });
     },
 
     registerClient(): void {
@@ -154,19 +156,21 @@ export default Vue.extend({
         this.memberCode,
       );
 
-      this.$store.dispatch('registerClient', clientId).then(
-        () => {
+      this.$store
+        .dispatch('registerClient', clientId)
+        .then(
+          () => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+            this.$emit('done');
+          },
+        )
+        .finally(() => {
           this.disableCancel = false;
           this.submitLoading = false;
-          this.$emit('done');
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-          this.disableCancel = false;
-          this.submitLoading = false;
-          this.$emit('done');
-        },
-      );
+        });
     },
   },
 });

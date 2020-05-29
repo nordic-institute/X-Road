@@ -129,3 +129,7 @@ export const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: nu
     });
 };
 
+// Check if a string or array is empty, null or undefined
+export function isEmpty(str: string | []): boolean {
+  return (!str || 0 === str.length);
+}

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { cloneDeep } from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Client } from '@/openapi-types';
@@ -13,7 +12,7 @@ export interface ClientsState {
   formattedClients: ExtendedClient[];
   clientsLoading: boolean;
   localMembers: Client[];
-  ownerMember: Client | undefined;
+  ownerMember: Client | undefined;
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
   virtualMembers: ExtendedClient[]; // local "virtual" members, generated from subsystem data
@@ -68,7 +67,7 @@ export const getters: GetterTree<ClientsState, RootState> = {
     return state.clientsLoading;
   },
 
-  ownerMember(state): Client | undefined {
+  ownerMember(state): Client | undefined {
     return state.ownerMember;
   },
 
@@ -89,7 +88,7 @@ export const mutations: MutationTree<ClientsState> = {
     state.clients.forEach((element: Client) => {
 
       if (!element.subsystem_code) {
-        const clone = cloneDeep(element) as ExtendedClient;
+        const clone = {...element} as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
         clone.visibleName = clone.member_name;
@@ -111,19 +110,14 @@ export const mutations: MutationTree<ClientsState> = {
     // Pick out the members
     state.clients.forEach((element) => {
       // Check if the member is already in the members array
-      const memberAlreadyExists = members.find((member: ExtendedClient) => {
-        // Compare member class, member code and instance id
-        if (member.member_class === element.member_class && member.member_code === element.member_code
-          && member.instance_id === element.instance_id) {
-          return true;
-        }
-
-        return false;
-      });
+      const memberAlreadyExists = members.find((member: ExtendedClient) =>
+        member.member_class === element.member_class &&
+        member.member_code === element.member_code &&
+        member.instance_id === element.instance_id);
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = cloneDeep(element) as any;
+        const clone = {...element} as any;
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
@@ -157,7 +151,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = cloneDeep(element) as ExtendedClient;
+        const clone = {...element} as ExtendedClient;
         clone.visibleName = clone.subsystem_code;
         clone.type = ClientTypes.SUBSYSTEM;
 

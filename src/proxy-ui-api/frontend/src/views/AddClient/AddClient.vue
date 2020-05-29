@@ -98,8 +98,6 @@ export default Vue.extend({
   },
   methods: {
     cancel(): void {
-      this.$store.dispatch('resetCsrState');
-      this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
 
@@ -160,14 +158,16 @@ export default Vue.extend({
     },
 
     done(): void {
-      this.$store.dispatch('resetCsrState');
-      this.$store.dispatch('resetAddClientState');
       this.$router.replace({ name: RouteName.Clients });
     },
-
   },
   created() {
     this.$store.dispatch('setupSignKey');
+  },
+  beforeDestroy() {
+    // Clear the vuex stores used in the wizard
+    this.$store.dispatch('resetAddClientState');
+    this.$store.dispatch('resetCsrState');
   },
 });
 </script>

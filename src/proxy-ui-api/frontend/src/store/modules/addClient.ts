@@ -221,10 +221,10 @@ export const actions: ActionTree<AddClientState, RootState> = {
     const clientsResponse = await api.get(`/clients?instance=${instanceId}
     &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
-    const matchingClient: boolean = clientsResponse.data.some((client: Client) => { 
+    const matchingClient: boolean = clientsResponse.data.some((client: Client) => {
       if (client.member_code === memberCode && client.member_class === memberClass) {
         return true;
-      };
+      }
     });
 
     if (matchingClient) {
