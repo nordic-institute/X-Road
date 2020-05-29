@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-
+    <property file="/etc/xroad/conf.d/variables-logback.properties" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d %level [xroad-jetty] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL}"/>
 
-    <root level="INFO">
+    <root level="${XROAD_LOG_LEVEL}">
         <appender-ref ref="STDOUT" />
     </root>
 
