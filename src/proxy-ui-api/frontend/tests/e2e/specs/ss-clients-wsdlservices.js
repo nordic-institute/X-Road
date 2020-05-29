@@ -373,7 +373,7 @@ module.exports = {
     // verify missing file
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Request failed with status code 400")]]');
+    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Request failed with status code 400")]]', 20000);
     mainPage.closeSnackbar();
 
     // Verify cancel
