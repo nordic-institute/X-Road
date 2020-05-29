@@ -61,11 +61,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
@@ -272,22 +270,7 @@ public class IdentifierValidationRestTemplateTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
         assertNotNull(errorResponse);
-        assertFieldValidationErrors(errorResponse, expectedFieldValidationErrors);
-    }
-
-    private static void assertFieldValidationErrors(ErrorInfo errorResponse,
-            Map<String, List<String>> expectedFieldValidationErrors) {
         Map<String, List<String>> actualFieldValidationErrors = errorResponse.getError().getValidationErrors();
-
-        Set<String> actualErroneousFields = actualFieldValidationErrors.keySet();
-        Set<String> expectedErroneousFields = expectedFieldValidationErrors.keySet();
-
-        assertTrue(expectedErroneousFields.containsAll(actualErroneousFields));
-        expectedErroneousFields.forEach(field -> {
-            List<String> expectedValidationErrors = expectedFieldValidationErrors.get(field);
-            List<String> actualValidationErrors = actualFieldValidationErrors.get(field);
-            assertTrue(expectedValidationErrors.containsAll(actualValidationErrors));
-        });
+        assertEquals(expectedFieldValidationErrors, actualFieldValidationErrors);
     }
-
 }
