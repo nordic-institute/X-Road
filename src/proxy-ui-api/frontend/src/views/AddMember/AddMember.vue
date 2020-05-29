@@ -200,8 +200,6 @@ export default Vue.extend({
 
   methods: {
     cancel(): void {
-      this.$store.dispatch('resetAddClientState');
-      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.Clients });
     },
 
@@ -233,8 +231,6 @@ export default Vue.extend({
     },
 
     done(): void {
-      this.$store.dispatch('resetAddClientState');
-      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.Clients });
     },
 
@@ -258,6 +254,10 @@ export default Vue.extend({
       memberClass: this.memberClass,
       memberCode: this.memberCode,
     });
+  },
+  beforeDestroy() {
+    this.$store.dispatch('resetAddClientState');
+    this.$store.dispatch('resetCsrState');
   },
 });
 </script>

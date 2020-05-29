@@ -217,11 +217,17 @@ export const actions: ActionTree<AddClientState, RootState> = {
   },
 
   async searchTokens({ commit, dispatch }, { instanceId, memberClass, memberCode }) {
-    
+
     const clientsResponse = await api.get(`/clients?instance=${instanceId}
     &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
-    if (clientsResponse.data.length > 0) {
+    const matchingClient: boolean = clientsResponse.data.some((client: Client) => { 
+      if (client.member_code === memberCode && client.member_class === memberClass) {
+        return true;
+      };
+    });
+
+    if (matchingClient) {
       // There is a client with valid sign certificate
       commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
       return;
