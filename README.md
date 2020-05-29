@@ -21,6 +21,9 @@ The Security Server sidecar can be installed both on physical and virtualized ha
 
 The Security Server sidecar installation requires an existing installation of Docker.
 
+Building with Docker BuildKit can slightly reduce the size of the resulting container image.
+See <https://docs.docker.com/develop/develop-images/build_enhancements/> for more information.
+
 ### 1.3 Requirements for the Security Server Sidecar
 
 Minimum recommended docker engine configuration to run the security server sidecar container:
@@ -144,6 +147,7 @@ For example:
   ```
 
 ### 1.8 Finnish settings
+
   To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
 
 ### 1.9 Security Server Sidecar Provider
