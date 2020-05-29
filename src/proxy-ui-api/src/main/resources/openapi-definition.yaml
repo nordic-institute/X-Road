@@ -2936,7 +2936,6 @@ paths:
       parameters:
         - in: path
           name: id
-          required: true
           description: id of the endpoint
           required: true
           schema:
@@ -2972,7 +2971,6 @@ paths:
       parameters:
         - in: path
           name: id
-          required: true
           description: id of the endpoint
           required: true
           schema:
@@ -3016,7 +3014,6 @@ paths:
           name: id
           required: true
           description: id of the endpoint
-          required: true
           schema:
             type: string
             example: 102

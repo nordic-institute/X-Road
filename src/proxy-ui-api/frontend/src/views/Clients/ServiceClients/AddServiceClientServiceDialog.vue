@@ -51,7 +51,7 @@
 <script lang="ts">
   import Vue from 'vue';
   import SimpleDialog from '@/components/ui/SimpleDialog.vue';
-  import {AccessRight} from '@/types';
+  import {AccessRight} from '@/openapi-types';
   import { Prop } from 'vue/types/options';
   import {ServiceCandidate} from '@/ui-types';
   export default Vue.extend({

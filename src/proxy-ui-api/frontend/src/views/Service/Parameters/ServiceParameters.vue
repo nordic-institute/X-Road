@@ -208,7 +208,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
-import {ServiceClient} from '@/types';
+import {ServiceClient} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 
 type NullableServiceClient = undefined | ServiceClient;
@@ -416,7 +416,7 @@ export default Vue.extend({
     align-content: center;
     width: 100%;
   }
-  
+
   & > .table-checkbox:last-child {
     width: 100px;
     max-width: 100px;

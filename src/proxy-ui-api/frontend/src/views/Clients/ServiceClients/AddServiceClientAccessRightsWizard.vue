@@ -41,7 +41,7 @@
   import MemberOrGroupSelectionStep from '@/views/Clients/ServiceClients/MemberOrGroupSelectionStep.vue';
   import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectionStep.vue';
   import LargeButton from '@/components/ui/LargeButton.vue';
-  import {AccessRight, Service, ServiceClient, ServiceDescription} from '@/types';
+  import {AccessRight, Service, ServiceClient, ServiceDescription} from '@/openapi-types';
   import * as api from '@/util/api';
   import {ServiceCandidate} from '@/ui-types';
 
