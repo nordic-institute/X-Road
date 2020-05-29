@@ -201,19 +201,19 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeCsrFormat', csrFormat);
   },
 
-  generateCsr({ commit, getters, state }) {
+  generateCsr({ getters, state }) {
     const requestBody = getters.csrRequestBody;
 
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response);
+        downloadAndSaveCsr(state.keyId, response.data.csr_id);
       }).catch((error: any) => {
         throw error;
       });
   },
 
-  generateKeyAndCsr({ commit, getters, state }, tokenId: string) {
+  generateKeyAndCsr({ getters }, tokenId: string) {
     const crtObject = getters.csrRequestBody;
 
     const body = {
@@ -224,7 +224,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-        saveResponseAsFile(response);
+        downloadAndSaveCsr(response.data.key.id, response.data.csr_id);
       })
       .catch((error) => {
         throw error;
@@ -245,7 +245,16 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeCsrKey', templateKey);
     commit('storeUsage', UsageTypes.SIGNING);
   },
+};
 
+
+const downloadAndSaveCsr = (keyId: string, csrId: string) => {
+  // Fetch the CSR file from backend and save it via browser
+  api
+    .get(`/keys/${keyId}/csrs/${csrId}`)
+    .then((response) => {
+      saveResponseAsFile(response);
+    });
 };
 
 export const csrModule: Module<CsrState, RootState> = {
