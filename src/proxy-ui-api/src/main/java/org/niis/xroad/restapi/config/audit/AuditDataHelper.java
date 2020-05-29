@@ -144,6 +144,9 @@ public class AuditDataHelper {
     }
 
     private String getAuditLoggedValue(IsAuthentication isAuthentication) {
+        if (isAuthentication == null) {
+            return null;
+        }
         switch (isAuthentication) {
             case SSLAUTH:
                 return "HTTPS";
@@ -194,7 +197,9 @@ public class AuditDataHelper {
      * put service description url and type
      */
     public void putServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType) {
-        putServiceDescriptionUrl(serviceDescriptionType.getUrl(), serviceDescriptionType.getType());
+        if (serviceDescriptionType != null) {
+            putServiceDescriptionUrl(serviceDescriptionType.getUrl(), serviceDescriptionType.getType());
+        }
     }
 
     /**
@@ -202,9 +207,11 @@ public class AuditDataHelper {
      * @param certificateInfo
      */
     public void addCertificateHash(CertificateInfo certificateInfo) {
-        String hash = createFormattedHash(certificateInfo.getCertificateBytes());
-        addListPropertyItem(CERT_HASHES, hash);
-        putDefaulCerttHashAlgorithm();
+        if (certificateInfo != null) {
+            String hash = createFormattedHash(certificateInfo.getCertificateBytes());
+            addListPropertyItem(CERT_HASHES, hash);
+            putDefaulCertHashAlgorithm();
+        }
     }
 
     /**
@@ -212,10 +219,12 @@ public class AuditDataHelper {
      * @param certificate certificate
      */
     public void putCertificateHash(X509Certificate certificate) {
-        try {
-            putAlreadyFormattedCertificateHash(createFormattedHash(certificate.getEncoded()));
-        } catch (CertificateEncodingException e) {
-            log.error("Unable to audit log generated certificate hash", e);
+        if (certificate != null) {
+            try {
+                putAlreadyFormattedCertificateHash(createFormattedHash(certificate.getEncoded()));
+            } catch (CertificateEncodingException e) {
+                log.error("Unable to audit log generated certificate hash", e);
+            }
         }
     }
 
@@ -249,7 +258,7 @@ public class AuditDataHelper {
      */
     public void putAlreadyFormattedCertificateHash(String formattedHash) {
         put(CERT_HASH, formattedHash);
-        putDefaulCerttHashAlgorithm();
+        putDefaulCertHashAlgorithm();
     }
 
 
@@ -257,9 +266,11 @@ public class AuditDataHelper {
      * Put (only) cert hash, and hash default algorithm
      */
     public void put(CertificateType certificateType) {
-        String hash = createFormattedHash(certificateType.getData());
-        put(CERT_HASH, hash);
-        putDefaulCerttHashAlgorithm();
+        if (certificateType != null) {
+            String hash = createFormattedHash(certificateType.getData());
+            put(CERT_HASH, hash);
+            putDefaulCertHashAlgorithm();
+        }
     }
 
     /**
@@ -277,14 +288,16 @@ public class AuditDataHelper {
      * @param certificateInfo
      */
     public void put(CertificateInfo certificateInfo) {
-        String hash = createUnformattedHash(certificateInfo.getCertificateBytes());
-        putCertificateData(certificateInfo.getId(), hash);
+        if (certificateInfo != null) {
+            String hash = createUnformattedHash(certificateInfo.getCertificateBytes());
+            putCertificateData(certificateInfo.getId(), hash);
+        }
     }
 
     /**
      * Put default cert hash algorithm
      */
-    public void putDefaulCerttHashAlgorithm() {
+    public void putDefaulCertHashAlgorithm() {
         put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -346,9 +359,11 @@ public class AuditDataHelper {
      * @param tokenInfo
      */
     public void put(TokenInfo tokenInfo) {
-        put(TOKEN_ID, tokenInfo.getId());
-        put(TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
-        put(TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+        if (tokenInfo != null) {
+            put(TOKEN_ID, tokenInfo.getId());
+            put(TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+            put(TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+        }
     }
 
     /**
@@ -356,20 +371,24 @@ public class AuditDataHelper {
      * @param keyInfo
      */
     public void put(KeyInfo keyInfo) {
-        put(KEY_ID, keyInfo.getId());
-        put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
-        put(KEY_USAGE, keyInfo.getUsage());
+        if (keyInfo != null) {
+            put(KEY_ID, keyInfo.getId());
+            put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
+            put(KEY_USAGE, keyInfo.getUsage());
+        }
     }
 
     /**
      * put backup filename
      */
     public void putBackupFilename(Path filePath) {
-        String filename = null;
         if (filePath != null) {
-            filename = filePath.toString();
+            String filename = null;
+            if (filePath != null) {
+                filename = filePath.toString();
+            }
+            put(BACKUP_FILE_NAME, filename);
         }
-        put(BACKUP_FILE_NAME, filename);
     }
 
 }

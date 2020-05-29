@@ -159,33 +159,47 @@ public class ServiceService {
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
 
         serviceDescriptionType.getService().forEach(service -> {
-            boolean serviceMatch = service == serviceType;
-            if (urlAll || serviceMatch) {
-                service.setUrl(url);
-            }
-            if (timeoutAll || serviceMatch) {
-                service.setTimeout(timeout);
-            }
-            if (sslAuthAll || serviceMatch) {
-                if (service.getUrl().startsWith(HTTPS)) {
-                    service.setSslAuthentication(sslAuth);
-                } else {
-                    service.setSslAuthentication(null);
-                }
-            }
-            if (urlAll || timeoutAll || sslAuthAll || serviceMatch) {
-                HashMap<RestApiAuditProperty, Object> serviceAuditData = new LinkedHashMap<>();
-                auditDataHelper.addListPropertyItem(SERVICES, serviceAuditData);
-                serviceAuditData.put(ID, FormatUtils.getServiceFullName(service));
-                serviceAuditData.put(URL, service.getUrl());
-                serviceAuditData.put(TIMEOUT, service.getTimeout());
-                serviceAuditData.put(TLS_AUTH, service.getSslAuthentication());
-            }
+            updateServiceFromSameDefinition(url, urlAll, timeout,
+                    timeoutAll, sslAuth, sslAuthAll,
+                    serviceType, service);
         });
 
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceType;
+    }
+
+    /**
+     * @param targetService service we are actually updating
+     * @param serviceFromSameDefinition another service from same service definition. Can be == targetService
+     */
+    private void updateServiceFromSameDefinition(String url, boolean urlAll, Integer timeout,
+            boolean timeoutAll, boolean sslAuth, boolean sslAuthAll,
+            ServiceType targetService, ServiceType serviceFromSameDefinition) {
+
+        boolean serviceMatch = serviceFromSameDefinition == targetService;
+        if (urlAll || serviceMatch) {
+            serviceFromSameDefinition.setUrl(url);
+        }
+        if (timeoutAll || serviceMatch) {
+            serviceFromSameDefinition.setTimeout(timeout);
+        }
+        if (sslAuthAll || serviceMatch) {
+            if (serviceFromSameDefinition.getUrl().startsWith(HTTPS)) {
+                serviceFromSameDefinition.setSslAuthentication(sslAuth);
+            } else {
+                serviceFromSameDefinition.setSslAuthentication(null);
+            }
+        }
+        if (urlAll || timeoutAll || sslAuthAll || serviceMatch) {
+            // new audit log data item
+            HashMap<RestApiAuditProperty, Object> serviceAuditData = new LinkedHashMap<>();
+            auditDataHelper.addListPropertyItem(SERVICES, serviceAuditData);
+            serviceAuditData.put(ID, FormatUtils.getServiceFullName(serviceFromSameDefinition));
+            serviceAuditData.put(URL, serviceFromSameDefinition.getUrl());
+            serviceAuditData.put(TIMEOUT, serviceFromSameDefinition.getTimeout());
+            serviceAuditData.put(TLS_AUTH, serviceFromSameDefinition.getSslAuthentication());
+        }
     }
 
     /**

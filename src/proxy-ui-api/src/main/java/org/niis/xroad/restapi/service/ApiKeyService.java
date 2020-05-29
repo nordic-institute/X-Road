@@ -191,10 +191,10 @@ public class ApiKeyService {
      */
     public void removeById(long id) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
-        auditLog(apiKeyType);
         if (apiKeyType == null) {
             throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
         }
+        auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
 

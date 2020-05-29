@@ -38,7 +38,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class RequestHelper {
 
     public String getCurrentRequestUrl() {
-        return getCurrentHttpRequest().getRequestURI();
+        HttpServletRequest currentRequest = getCurrentHttpRequest();
+        if (currentRequest != null) {
+            return currentRequest.getRequestURI();
+        } else {
+            return null;
+        }
     }
 
     /**

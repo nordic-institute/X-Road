@@ -164,8 +164,7 @@ public class ServiceDescriptionService {
                 .getServiceDescription(serviceDescriptionId);
 
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id " + serviceDescriptionId
-                    + " not found");
+            throw createServiceDescriptionNotFoundException(serviceDescriptionId);
         }
 
         serviceDescriptionType.setDisabled(!toEnabled);
@@ -177,6 +176,12 @@ public class ServiceDescriptionService {
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
     }
 
+    private ServiceDescriptionNotFoundException createServiceDescriptionNotFoundException(long serviceDescriptionId) {
+        return new ServiceDescriptionNotFoundException("Service description with id "
+                + serviceDescriptionId
+                + " not found");
+    }
+
     /**
      * Delete one ServiceDescription
      *
@@ -185,7 +190,7 @@ public class ServiceDescriptionService {
     public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
         ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id " + id + " not found");
+            throw createServiceDescriptionNotFoundException(id);
         }
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
         ClientType client = serviceDescriptionType.getClient();
@@ -518,7 +523,7 @@ public class ServiceDescriptionService {
             WsdlUrlAlreadyExistsException, InterruptedException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString());
+            throw createServiceDescriptionNotFoundException(id);
         }
         return updateWsdlUrl(serviceDescriptionType, url, ignoreWarnings);
     }
@@ -547,8 +552,7 @@ public class ServiceDescriptionService {
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id "
-                    + serviceDescriptionType.toString() + " not found");
+            throw createServiceDescriptionNotFoundException(id);
         }
 
         auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());

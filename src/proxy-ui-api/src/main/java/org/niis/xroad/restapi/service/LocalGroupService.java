@@ -109,11 +109,11 @@ public class LocalGroupService {
     public LocalGroupType updateDescription(Long groupId, String description) throws LocalGroupNotFoundException {
         LocalGroupType localGroupType = getLocalGroup(groupId);
 
-        auditLog(localGroupType, description);
-
         if (localGroupType == null) {
             throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
         }
+        auditLog(localGroupType, description);
+
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
         localGroupRepository.saveOrUpdate(localGroupType);
@@ -124,8 +124,10 @@ public class LocalGroupService {
      * audit log client id, group code, group description
      */
     private void auditLog(LocalGroupType localGroupType, String description) {
-        auditLogOwnerClientId(localGroupType);
-        auditDataHelper.put(GROUP_CODE, localGroupType.getGroupCode());
+        if (localGroupType != null) {
+            auditLogOwnerClientId(localGroupType);
+            auditDataHelper.put(GROUP_CODE, localGroupType.getGroupCode());
+        }
         auditDataHelper.put(GROUP_DESCRIPTION, description);
     }
 
