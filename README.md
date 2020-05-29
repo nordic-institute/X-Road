@@ -150,7 +150,7 @@ For example:
   To install the Security Server Sidecar provider, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message loggin, both for internal or remote database (Check 1.6 step).
   To install the Security Server Sidecar provider with finish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
-### 1.9.1 Enviornmental Monitoring for Provider
+### 1.9.1 Environmental Monitoring for Provider
 
 Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in <https://github.com/nordic-institute/X-Road/blob/master/doc/EnvironmentalMonitoring/Monitoring-architecture.md/>
 
