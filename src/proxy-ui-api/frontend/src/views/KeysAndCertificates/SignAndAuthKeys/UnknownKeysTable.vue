@@ -111,7 +111,7 @@
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, TokenCertificate } from '@/openapi-types';
-import { Permissions, PossibleActions, UsageTypes } from '@/global';
+import { Permissions, PossibleActions } from '@/global';
 
 export default Vue.extend({
   components: {

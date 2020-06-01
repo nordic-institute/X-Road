@@ -61,15 +61,12 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
     LargeButton,
-    ValidationObserver,
-    ValidationProvider,
     FormLabel,
   },
   computed: {
@@ -108,7 +105,7 @@ export default Vue.extend({
       this.submitLoading = true;
 
       this.$store.dispatch('createMember').then(
-        (response) => {
+        () => {
           if (
             this.addMemberWizardMode ===
               AddMemberWizardModes.CERTIFICATE_EXISTS &&
@@ -139,7 +136,7 @@ export default Vue.extend({
       this.$store
         .dispatch('generateKeyAndCsr', tokenId)
         .then(
-          (response) => {
+          () => {
             this.$emit('done');
           },
           (error) => {

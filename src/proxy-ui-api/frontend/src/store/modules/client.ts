@@ -77,7 +77,7 @@ export const actions: ActionTree<ClientState, RootState> = {
         throw error;
       });
   },
-  fetchSignCertificates({ commit, rootGetters }, id: string) {
+  fetchSignCertificates({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing id');
     }
@@ -92,7 +92,7 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
-  fetchTlsCertificates({ commit, rootGetters }, id: string) {
+  fetchTlsCertificates({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing id');
     }
@@ -107,7 +107,7 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
-  fetchSSCertificate({ commit, rootGetters }, id: string) {
+  fetchSSCertificate({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing id');
     }
@@ -158,7 +158,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     );
   },
 
-  saveConnectionType({ commit, state }, { clientId, connType }) {
+  saveConnectionType({ commit }, { clientId, connType }) {
     return axios
       .patch(`/clients/${clientId}`, {
         connection_type: connType,

@@ -285,7 +285,7 @@ export default Vue.extend({
 
       api
         .patch(`/service-descriptions/${this.id}`, tempDesc)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
         })

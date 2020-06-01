@@ -83,7 +83,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Key, CertificateDetails } from '@/openapi-types';
+import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';

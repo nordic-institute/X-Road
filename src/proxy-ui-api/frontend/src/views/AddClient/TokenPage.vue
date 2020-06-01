@@ -80,14 +80,11 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Token } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
     LargeButton,
-    ValidationObserver,
-    ValidationProvider,
     TokenLoginDialog,
   },
   computed: {
@@ -139,7 +136,7 @@ export default Vue.extend({
       this.$store.dispatch('setSelectedToken', token);
       this.loginDialog = true;
     },
-    tokenLogin(password: string): void {
+    tokenLogin(): void {
       this.fetchData();
       this.loginDialog = false;
     },

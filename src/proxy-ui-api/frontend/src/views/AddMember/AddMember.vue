@@ -123,8 +123,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberDetailsPage from './MemberDetailsPage.vue';
 import TokenPage from './TokenPage.vue';
@@ -132,17 +130,12 @@ import SignKeyPage from './SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from './GenerateCsrPage.vue';
-
-import { Key, Token } from '@/openapi-types';
 import { RouteName, AddMemberWizardModes } from '@/global';
-import * as api from '@/util/api';
 
 const NO_SELECTION = 999;
 
 export default Vue.extend({
   components: {
-    HelpIcon,
-    LargeButton,
     SubViewTitle,
     MemberDetailsPage,
     TokenPage,
@@ -254,7 +247,7 @@ export default Vue.extend({
       this.$store.commit('storeCsrClient', idString);
 
       this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
+        () => {
           this.currentStep++;
         },
         (error) => {

@@ -35,13 +35,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { ValidationProvider } from 'vee-validate';
 import { Token } from '@/openapi-types';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider, ValidationObserver },
+  components: { SimpleDialog, ValidationProvider },
   props: {
     dialog: {
       type: Boolean,
@@ -83,7 +83,7 @@ export default Vue.extend({
         .put(`/tokens/${token.id}/login`, {
           password: this.pin,
         })
-        .then((res) => {
+        .then(() => {
           this.loading = false;
           this.$store.dispatch('showSuccess', 'keys.loggedIn');
           this.$emit('save');

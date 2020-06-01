@@ -32,14 +32,11 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
 export default Vue.extend({
   components: {
     FormLabel,
     LargeButton,
-    ValidationObserver,
-    ValidationProvider,
   },
   computed: {
     ...mapGetters(['csrForm']),

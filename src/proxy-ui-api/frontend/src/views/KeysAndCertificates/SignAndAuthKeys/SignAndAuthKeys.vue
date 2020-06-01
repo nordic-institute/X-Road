@@ -47,13 +47,12 @@
 <script lang="ts">
 // View for keys tab
 import Vue from 'vue';
-import { Permissions, RouteName, UsageTypes } from '@/global';
+import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { mapGetters } from 'vuex';
-import { Key, Token, TokenType, TokenCertificate } from '@/openapi-types';
-import * as api from '@/util/api';
+import { Key, Token, TokenCertificate } from '@/openapi-types';
 import { cloneDeep } from 'lodash';
 
 export default Vue.extend({
@@ -151,7 +150,7 @@ export default Vue.extend({
       }
 
       this.$store.dispatch('tokenLogout', token.id).then(
-        (response) => {
+        () => {
           this.$store.dispatch('showSuccess', 'keys.loggedOut');
         },
         (error) => {
@@ -161,7 +160,7 @@ export default Vue.extend({
 
       this.logoutDialog = false;
     },
-    tokenLogin(password: string): void {
+    tokenLogin(): void {
       this.fetchData();
       this.loginDialog = false;
     },

@@ -33,7 +33,6 @@ const store: StoreOptions<RootState> = {
     addClientModule,
     notificationsModule,
   },
-  // @ts-ignore
   plugins: [vuexLocal.plugin],
 };
 

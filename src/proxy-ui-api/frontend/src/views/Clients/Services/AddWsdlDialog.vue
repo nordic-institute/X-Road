@@ -31,12 +31,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { ValidationProvider } from 'vee-validate';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidWsdlURL } from '@/util/helpers';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider, ValidationObserver },
+  components: { SimpleDialog, ValidationProvider },
   props: {
     dialog: {
       type: Boolean,

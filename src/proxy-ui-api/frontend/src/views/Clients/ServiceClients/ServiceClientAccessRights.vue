@@ -198,7 +198,7 @@ export default Vue.extend({
           `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
           accessRightsObject,
         )
-        .then((response: any) => {
+        .then(() => {
           this.$store.dispatch(
             'showSuccess',
             'serviceClients.addServiceClientAccessRightSuccess',

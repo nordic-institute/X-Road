@@ -36,7 +36,7 @@
       </thead>
       <tbody>
         <template>
-          <tr v-for="sc in serviceClients">
+          <tr v-for="sc in serviceClients" :key="sc.id">
             <td>{{ sc.name }}</td>
             <td>{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
