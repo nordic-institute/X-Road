@@ -59,15 +59,17 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
-
 import { extend } from 'vee-validate';
+import i18n from '@/i18n';
+
+const PASSWORD_MATCH_ERROR: string = i18n.t('initialConfiguration.pin.pinMatchError') as string;
 
 extend('password', {
   params: ['target'],
   validate(value, { target }) {
     return value === target;
   },
-  message: 'Password confirmation does not match',
+  message: PASSWORD_MATCH_ERROR,
 });
 
 export default Vue.extend({
@@ -83,8 +85,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      pin: '',
-      pinConfirm: '',
+      pin: '' as string,
+      pinConfirm: '' as string,
     };
   },
 
