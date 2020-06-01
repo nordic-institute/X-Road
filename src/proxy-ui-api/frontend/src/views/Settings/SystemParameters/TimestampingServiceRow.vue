@@ -67,7 +67,7 @@ export default Vue.extend({
       this.deleting = true;
       api
         .post('/system/timestamping-services/delete', this.timestampingService)
-        .then((_) => {
+        .then(() => {
           this.deleting = false;
           this.confirmDeleteDialog = false;
           this.$emit('deleted');

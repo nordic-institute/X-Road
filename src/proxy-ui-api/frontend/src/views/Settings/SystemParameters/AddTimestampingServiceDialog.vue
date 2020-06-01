@@ -129,7 +129,7 @@ export default Vue.extend({
       this.loading = true;
       api
         .post('/system/timestamping-services', this.selectedTimestampingService)
-        .then((resp) => {
+        .then(() => {
           this.$emit('added');
           this.loading = false;
           this.close();

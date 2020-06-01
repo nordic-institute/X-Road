@@ -122,7 +122,7 @@ export default (Vue as VueConstructor<
       this.$store
         .dispatch('login', loginData)
         .then(
-          (response) => {
+          () => {
             // Auth ok. Start phase 2 (fetch user data and current security server info).
             this.fetchUserData();
             this.fetchCurrentSecurityServer();
@@ -159,7 +159,7 @@ export default (Vue as VueConstructor<
       this.$store
         .dispatch('fetchUserData')
         .then(
-          (response) => {
+          () => {
             this.$router.replace({ name: RouteName.Clients });
           },
           (error) => {

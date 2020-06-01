@@ -45,7 +45,6 @@ import Vue from 'vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberOrGroupSelectionStep from '@/views/Clients/ServiceClients/MemberOrGroupSelectionStep.vue';
 import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectionStep.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import {
   AccessRight,
   Service,
@@ -66,7 +65,6 @@ export default Vue.extend({
     SubViewTitle,
     MemberOrGroupSelectionStep,
     ServiceSelectionStep,
-    LargeButton,
   },
   data() {
     return {

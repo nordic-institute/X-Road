@@ -53,21 +53,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
-import { Key, Token } from '@/openapi-types';
-import { RouteName, UsageTypes } from '@/global';
-import * as api from '@/util/api';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
-    LargeButton,
     SubViewTitle,
     WizardPageKeyLabel,
     WizardPageCsrDetails,
@@ -87,7 +80,7 @@ export default Vue.extend({
   methods: {
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
+        () => {
           this.currentStep = 3;
         },
         (error) => {

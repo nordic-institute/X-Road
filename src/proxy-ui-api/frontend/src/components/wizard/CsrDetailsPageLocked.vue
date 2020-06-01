@@ -92,16 +92,12 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Key, Token } from '@/openapi-types';
 import { CsrFormatTypes } from '@/global';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     HelpIcon,
     LargeButton,
-    SubViewTitle,
     ValidationObserver,
     ValidationProvider,
   },

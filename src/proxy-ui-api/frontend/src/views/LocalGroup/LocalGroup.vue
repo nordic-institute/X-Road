@@ -6,9 +6,9 @@
       <template>
         <div class="cert-hash">
           {{ $t('localGroup.localGroup') }}
-          <large-button v-if="showDelete" @click="deleteGroup()" outlined>{{
-            $t('action.delete')
-          }}</large-button>
+          <large-button v-if="showDelete" @click="deleteGroup()" outlined>
+            {{ $t('action.delete') }}
+          </large-button>
         </div>
       </template>
     </div>

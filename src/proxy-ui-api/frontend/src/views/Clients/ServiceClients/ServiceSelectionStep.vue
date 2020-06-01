@@ -69,7 +69,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
@@ -78,7 +77,6 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     LargeButton,
   },
   props: {

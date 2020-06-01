@@ -67,7 +67,6 @@ import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
@@ -108,7 +107,7 @@ export default Vue.extend({
 
       api
         .patch(`/tokens/${this.id}`, this.token)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.tokenSaved');
           this.$router.go(-1);
         })
@@ -120,7 +119,7 @@ export default Vue.extend({
         });
     },
 
-    fetchData(id: string): void {
+    fetchData(): void {
       this.loading = true;
       api
         .get(`/tokens/${this.id}`)
@@ -136,7 +135,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchData(this.id);
+    this.fetchData();
   },
 });
 </script>

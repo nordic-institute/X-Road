@@ -223,7 +223,9 @@ export default Vue.extend({
   },
   computed: {
     orderedCertificateAuthorities(): CertificateAuthority[] {
-      return this.certificateAuthorities.sort((authorityA, authorityB) =>
+      const temp = this.certificateAuthorities;
+
+      return temp.sort((authorityA, authorityB) =>
         authorityA.path.localeCompare(authorityB.path),
       );
     },
