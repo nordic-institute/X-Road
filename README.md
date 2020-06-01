@@ -175,6 +175,23 @@ Operational monitoring for the Security Server Sidecar provider can be  used to 
 
 If we need to add environmental and operational monitoring in the consumer Sidecar, we can use for this the provider Sidecar that could be use as a consumer too.
 
+## 1.10 Estimated time for new Security Server Sidecar Installation
+
+The installation process from scratch has tested in the following environment:
+- Opearting System: Ubuntu 18.04.4 LTS.
+- Memory: 16 GB .
+- DISK: 512GB SSD.
+- CPU: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz.
+- Cores: 4.
+- Internet connection: 120 mbps download, 106 mbps upload.
+
+The time results were:
+- Download and install git: 1 minute.
+- Clone Security Server Sidecar Repository: 10 seconds.
+- Download and install docker: 30seg
+- Build Consumer image: 17 minutes 30 seconds.
+- Build Provider image (Using the consumer image as base): 3 minutes 30 seconds.
+
 ## 2 Security Server Sidecar Initial Configuration
 
 ### 2.1 Reference Data
