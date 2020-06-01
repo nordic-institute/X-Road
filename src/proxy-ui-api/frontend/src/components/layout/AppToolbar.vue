@@ -61,9 +61,6 @@ export default Vue.extend({
       this.$store.dispatch('logout');
       this.$router.replace({ name: RouteName.Login });
     },
-    demoLogout(): void {
-      this.$store.dispatch('demoLogout');
-    },
   },
 });
 </script>

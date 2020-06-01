@@ -111,12 +111,10 @@ export const actions: ActionTree<UserState, RootState> = {
     return axios
       .get('/user')
       .then((res) => {
-        console.log(res);
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       });
   },
@@ -133,7 +131,6 @@ export const actions: ActionTree<UserState, RootState> = {
         commit('setCurrentSecurityServer', resp.data[0]);
       })
       .catch((error) => {
-        console.error(error);
         throw error;
       });
   },
@@ -143,7 +140,6 @@ export const actions: ActionTree<UserState, RootState> = {
       .get<Version>('/system/version')
       .then((resp) => commit('setSecurityServerVersion', resp.data))
       .catch((error) => {
-        console.error(error);
         throw error;
       });
   },
@@ -156,7 +152,7 @@ export const actions: ActionTree<UserState, RootState> = {
     axiosAuth
       .post('/logout')
       .catch((error) => {
-        console.error(error);
+        // Nothing to do
       })
       .finally(() => {
         // Reload the browser page to clean up the memory
@@ -165,13 +161,6 @@ export const actions: ActionTree<UserState, RootState> = {
   },
   clearAuth({ commit }) {
     commit('clearAuthData');
-  },
-  demoLogout({ commit, dispatch }) {
-    // This is for logging out on backend without changing the frontend
-    // For testing purposes!
-    axiosAuth.post('/logout').catch((error) => {
-      console.error(error);
-    });
   },
 };
 

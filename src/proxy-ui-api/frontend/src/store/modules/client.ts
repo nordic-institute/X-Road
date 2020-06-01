@@ -166,8 +166,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       .then((res) => {
         if (res.data) {
           commit('storeClient', res.data);
-        } else {
-          console.error('no data');
         }
       })
       .catch((error) => {
