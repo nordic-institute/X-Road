@@ -84,8 +84,7 @@ export default Vue.extend({
     },
 
     formatArray(arr: []): string {
-      let translated: string[];
-      translated = [];
+      const translated: string[] = [];
 
       arr.forEach((element) => {
         // @ts-ignore: Vue has no call signature for l18n $t
