@@ -40,6 +40,13 @@ const getDefaultState = () => {
 // Initial state. The state can be reseted with this.
 const csrState = getDefaultState();
 
+const downloadAndSaveCsr = (keyId: string, csrId: string) => {
+  // Fetch the CSR file from backend and save it via browser
+  api.get(`/keys/${keyId}/csrs/${csrId}`).then((response) => {
+    saveResponseAsFile(response);
+  });
+};
+
 export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
     return state.csrClient;
@@ -207,7 +214,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response);
+        downloadAndSaveCsr(state.keyId, response.data.csr_id);
       })
       .catch((error: any) => {
         throw error;
@@ -230,7 +237,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-        saveResponseAsFile(response);
+        downloadAndSaveCsr(response.data.key.id, response.data.csr_id);
       })
       .catch((error) => {
         throw error;
