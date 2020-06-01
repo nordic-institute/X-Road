@@ -82,10 +82,13 @@ public final class OcspVerifier {
 
     private static final Cache<String, SingleResp> RESPONSE_VALIDITY_CACHE;
 
+    private static final int RESPONSE_VALIDITY_CACHE_MAX_SIZE = 1000;
+
     static {
         RESPONSE_VALIDITY_CACHE = CacheBuilder.newBuilder()
                 .expireAfterWrite(SystemProperties.getOcspVerifierCachePeriod(),
                         TimeUnit.SECONDS)
+                .maximumSize(RESPONSE_VALIDITY_CACHE_MAX_SIZE)
                 .build();
     }
 
@@ -282,7 +285,7 @@ public final class OcspVerifier {
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
-                allowedThisUpdate, atDate });
+                    allowedThisUpdate, atDate });
 
         return singleResp.getThisUpdate().before(allowedThisUpdate);
     }
