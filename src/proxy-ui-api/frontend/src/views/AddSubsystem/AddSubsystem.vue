@@ -95,11 +95,11 @@ import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
-import SelectClientDialog from '@/views/AddClient/SelectClientDialog.vue';
+import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import { Key, Token } from '@/openapi-types';
 import { RouteName, UsageTypes } from '@/global';
-import { containsClient } from '@/util/helpers';
+import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import * as api from '@/util/api';
@@ -181,13 +181,10 @@ export default Vue.extend({
     },
 
     registerSubsystem(): void {
+      const clientId = createClientId(this.instanceId, this.memberClass, this.memberCode, this.subsystemCode);
+
       this.$store
-        .dispatch('registerClient', {
-          instanceId: this.instanceId,
-          memberClass: this.memberClass,
-          memberCode: this.memberCode,
-          subsystemCode: this.subsystemCode,
-        })
+        .dispatch('registerClient', clientId)
         .then(
           () => {
             this.disableDone = false;

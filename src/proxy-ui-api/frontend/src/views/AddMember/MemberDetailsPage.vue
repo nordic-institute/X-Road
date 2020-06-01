@@ -2,17 +2,17 @@
   <div>
     <div class="info-block">
       <div>
-        {{$t('wizard.clientInfo1')}}
+        {{$t('wizard.member.info1')}}
         <br />
         <br />
-        {{$t('wizard.clientInfo2')}}
+        {{$t('wizard.member.info2')}}
       </div>
       <div class="action-block">
         <large-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-        >{{$t('wizard.selectClient')}}</large-button>
+        >{{$t('wizard.member.select')}}</large-button>
       </div>
     </div>
 
@@ -28,7 +28,6 @@
         <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
           <v-select
             :items="memberClasses"
-            :error-messages="errors"
             class="form-input"
             v-model="memberClass"
             data-test="member-class-input"
@@ -49,19 +48,6 @@
         </ValidationProvider>
       </div>
 
-      <div class="row-wrap">
-        <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
-
-        <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            v-model="subsystemCode"
-            data-test="subsystem-code-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
       <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
       <div class="button-footer">
         <div class="button-group">
@@ -69,7 +55,7 @@
         </div>
         <large-button
           @click="done"
-          :disabled="invalid || duplicateClient"
+          :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
         >{{$t('action.next')}}</large-button>
       </div>
@@ -77,7 +63,7 @@
 
     <SelectClientDialog
       :dialog="showSelectClient"
-      :selectableClients="selectableClients"
+      :selectableClients="selectableMembers"
       @cancel="showSelectClient = false"
       @save="saveSelectedClient"
     />
@@ -91,9 +77,11 @@ import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
-import { containsClient } from '@/util/helpers';
-
+import { debounce, isEmpty } from '@/util/helpers';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { AddMemberWizardModes } from '../../global';
+
+let that: any;
 
 export default Vue.extend({
   components: {
@@ -104,12 +92,7 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters([
-      'reservedClients',
-      'selectableClients',
-      'memberClasses',
-      'selectedMemberName',
-    ]),
+    ...mapGetters(['reservedMember', 'memberClasses', 'selectedMemberName']),
 
     memberClass: {
       get(): string {
@@ -129,30 +112,37 @@ export default Vue.extend({
       },
     },
 
-    subsystemCode: {
-      get(): string {
-        return this.$store.getters.subsystemCode;
-      },
-      set(value: string) {
-        this.$store.commit('setSubsystemCode', value);
-      },
+    selectableMembers(): Client[] {
+      // Filter out the owner member
+      const filtered = this.$store.getters.selectableMembers.filter(
+        (client: Client) => {
+          return !(
+            client.member_class === this.reservedMember.memberClass &&
+            client.member_code === this.reservedMember.memberCode
+          );
+        },
+      );
+      return filtered;
     },
 
     duplicateClient(): boolean {
-      return containsClient(
-        this.reservedClients,
-        this.memberClass,
-        this.memberCode,
-        this.subsystemCode,
+      if (!this.memberClass || !this.memberCode) {
+        return false;
+      }
+
+      // Check that the info doesn't match the reserved member (owner member)
+      return !(
+        this.reservedMember.memberClass.toLowerCase() !==
+          this.memberClass.toLowerCase() ||
+        this.reservedMember.memberCode.toLowerCase() !==
+          this.memberCode.toLowerCase()
       );
     },
   },
   data() {
     return {
-      disableDone: false,
-      certificationService: undefined,
-      filteredServiceList: [],
       showSelectClient: false as boolean,
+      checkRunning: false as boolean,
     };
   },
   methods: {
@@ -163,24 +153,70 @@ export default Vue.extend({
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
-      this.$store.dispatch('setSelectedMember', selectedMember).then(
-        (response) => {
-          this.$store.dispatch('fetchReservedClients', selectedMember);
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      this.$store.dispatch('setSelectedMember', selectedMember);
       this.showSelectClient = false;
     },
+    checkClient(): void {
+      this.checkRunning = true;
+
+      // Find if the selectable clients array has a match
+      const tempClient = this.selectableMembers.find((client: Client) => {
+        return (
+          client.member_code === this.memberCode &&
+          client.member_class === this.memberClass
+        );
+      });
+
+      // Fill the name "field" if it's available or set it undefined
+      this.$store.commit('setSelectedMemberName', tempClient?.member_name);
+
+      this.checkClientDebounce();
+    },
+    checkClientDebounce: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      // Search tokens for suitable CSR:s and certificates
+      that.$store
+        .dispatch('searchTokens', {
+          instanceId: that.reservedMember.instanceId,
+          memberClass: that.memberClass,
+          memberCode: that.memberCode,
+        })
+        .then(
+          () => {
+            that.checkRunning = false;
+          },
+          (error: Error) => {
+            that.$store.dispatch('showError', error);
+            that.checkRunning = true;
+          },
+        );
+    }, 600),
   },
   created() {
-    this.$store.dispatch('fetchSelectableClients');
-    this.$store.dispatch('fetchMemberClasses');
+    that = this;
+    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+    this.$store.dispatch('fetchSelectableMembers');
   },
 
   watch: {
-    memberClasses(val) {
+    memberCode(val): void {
+      // Set first certification service selected as default when the list is updated
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (isEmpty(val) || isEmpty(this.memberClass)) {
+        return;
+      }
+      this.checkClient();
+    },
+    memberClass(val): void {
+      // Set first certification service selected as default when the list is updated
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (isEmpty(val) || isEmpty(this.memberCode)) {
+        return;
+      }
+      this.checkClient();
+    },
+
+    memberClasses(val): void {
       // Set first member class selected as default when the list is updated
       if (val?.length === 1) {
         this.memberClass = val[0];

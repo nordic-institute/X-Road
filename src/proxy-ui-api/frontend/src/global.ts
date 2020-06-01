@@ -36,6 +36,7 @@ export enum RouteName {
   InternalTlsCertificate = 'internal-tls-certificate',
   GenerateInternalCSR = 'generate-internal-csr',
   EndpointDetails = 'endpoint-details',
+  AddMember = 'add-member',
   EndpointAccessRights = 'endpoint-access-rights',
   ServiceClientAccessRights = 'service-client-access-rights',
   InitialConfiguration = 'initial-configuration',
@@ -181,3 +182,18 @@ export const Roles = [
   'XROAD_SYSTEM_ADMINISTRATOR',
   'XROAD_SECURITYSERVER_OBSERVER',
 ];
+
+// Client types used in client list
+export enum ClientTypes {
+  OWNER_MEMBER = 'OWNER_MEMBER',
+  MEMBER = 'MEMBER',
+  VIRTUAL_MEMBER = 'VIRTUAL_MEMBER',
+  SUBSYSTEM = 'SUBSYSTEM',
+}
+
+// Different modes for the add member wizard
+export enum AddMemberWizardModes {
+  CSR_EXISTS = 'CSR_EXISTS',
+  CERTIFICATE_EXISTS = 'CERTIFICATE_EXISTS',
+  FULL = 'FULL',
+}

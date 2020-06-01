@@ -3,11 +3,8 @@
     <v-flex mb-4 class="title-action">
       <h1 v-if="client" class="display-1 mb-3">{{client.subsystem_code}} ({{ $t('subsystem') }})</h1>
       <div>
-        <LargeButton v-if="showDelete" @click="confirmDelete = true">{{$t('action.delete')}}</LargeButton>
-        <LargeButton
-          v-if="showUnregister"
-          @click="confirmUnregisterClient = true"
-        >{{$t('action.unregister')}}</LargeButton>
+        <DeleteClientButton v-if="showDelete" :id="id" />
+        <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchClient" />
       </div>
     </v-flex>
     <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
@@ -16,36 +13,6 @@
     </v-tabs>
 
     <router-view />
-
-    <!-- Confirm dialog for delete client -->
-    <ConfirmDialog
-      :dialog="confirmDelete"
-      :loading="deleteLoading"
-      title="client.action.delete.confirmTitle"
-      text="client.action.delete.confirmText"
-      @cancel="confirmDelete = false"
-      @accept="deleteClient()"
-    />
-
-    <!-- Confirm dialog for deleting orphans -->
-    <ConfirmDialog
-      :dialog="confirmOrphans"
-      :loading="orphansLoading"
-      title="client.action.removeOrphans.confirmTitle"
-      text="client.action.removeOrphans.confirmText"
-      @cancel="confirmOrphans = false"
-      @accept="deleteOrphans()"
-    />
-
-    <!-- Confirm dialog for unregister client -->
-    <ConfirmDialog
-      :dialog="confirmUnregisterClient"
-      :loading="unregisterLoading"
-      title="client.action.unregister.confirmTitle"
-      text="client.action.unregister.confirmText"
-      @cancel="confirmUnregisterClient = false"
-      @accept="unregisterClient()"
-    />
   </div>
 </template>
 
@@ -54,13 +21,13 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
+import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    ConfirmDialog,
+    UnregisterClientButton,
+    DeleteClientButton,
   },
   props: {
     id: {
@@ -70,10 +37,6 @@ export default Vue.extend({
   },
   data() {
     return {
-      orphansLoading: false as boolean,
-      confirmDelete: false as boolean,
-      deleteLoading: false as boolean,
-      confirmOrphans: false as boolean,
       tab: undefined as undefined | Tab,
       confirmUnregisterClient: false as boolean,
       unregisterLoading: false as boolean,
@@ -162,87 +125,6 @@ export default Vue.extend({
       this.$store.dispatch('fetchClient', id).catch((error) => {
         this.$store.dispatch('showError', error);
       });
-    },
-    deleteClient(): void {
-      this.deleteLoading = true;
-      this.$store.dispatch('deleteClient', this.client.id).then(
-        (response) => {
-          this.$store.dispatch('showSuccess', 'client.action.delete.success');
-          this.checkOrphans();
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-          this.confirmDelete = false;
-          this.deleteLoading = false;
-        },
-      );
-    },
-
-    checkOrphans(): void {
-      this.$store.dispatch('getOrphans', this.client.id).then(
-        (response) => {
-          this.confirmDelete = false;
-          this.deleteLoading = false;
-          this.confirmOrphans = true;
-        },
-        (error) => {
-          this.confirmDelete = false;
-          this.deleteLoading = false;
-          if (error.response.status === 404) {
-            // No orphans found so exit the view
-            this.$router.go(-1);
-          } else {
-            // There was some other error, but the client is already deleted so exit the view
-            this.$store.dispatch('showError', error);
-            this.$router.go(-1);
-          }
-        },
-      );
-    },
-
-    deleteOrphans(): void {
-      this.orphansLoading = true;
-      this.$store
-        .dispatch('deleteOrphans', this.client.id)
-        .then(
-          (response) => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.removeOrphans.success',
-            );
-          },
-          (error) => {
-            // There was some other error, but the client is already deleted so exit the view
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          this.confirmOrphans = false;
-          this.orphansLoading = false;
-          this.$router.go(-1);
-        });
-    },
-
-    unregisterClient(): void {
-      this.unregisterLoading = true;
-      this.$store
-        .dispatch('unregisterClient', this.client)
-        .then(
-          (response) => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.unregister.success',
-            );
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          this.fetchClient(this.id);
-          this.confirmUnregisterClient = false;
-          this.unregisterLoading = false;
-        });
     },
   },
 });
