@@ -371,6 +371,36 @@ const router = new Router({
           components: {
             default: InitialConfiguration,
           },
+          beforeEnter: (to, from, next) => {
+            // Coming from login is ok
+            if (from.name === RouteName.Login) {
+              next();
+              return;
+            }
+
+            // Coming from somewhere else, needs a check
+            store
+              .dispatch('fetchInitializationStatus')
+              .then(
+                () => {
+                  if (store.getters.needsInitialization) {
+                    // Check if the user has permission to initialize the server
+                    if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+                      store.dispatch(
+                        'showErrorMessage',
+                        'initialConfiguration.noPermission',
+                      );
+                      return;
+                    }
+                    next();
+                  }
+                },
+                (error) => {
+                  // Display error
+                  store.dispatch('showError', error);
+                },
+              );
+          },
         },
       ],
     },

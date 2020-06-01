@@ -135,12 +135,10 @@ export default (Vue as VueConstructor<
               });
             }
             this.$store.dispatch('showErrorMessageRaw', error.message);
-          },
-        )
-        .finally(() => {
-          // Clear loading state
+                      // Clear loading state
           this.loading = false;
-        });
+          },
+        );
     },
     async fetchUserData() {
       this.loading = true;
@@ -148,18 +146,15 @@ export default (Vue as VueConstructor<
         .dispatch('fetchUserData')
         .then(
           (response) => {
-            // this.$router.replace({ name: RouteName.Clients });
+            // Check if initialization is needed
             this.fetchInitializationData();
           },
           (error) => {
             // Display error
             this.$store.dispatch('showErrorMessageRaw', error.message);
+            this.loading = false;
           },
-        )
-        .finally(() => {
-          // Clear loading state
-          this.loading = false;
-        });
+        );
     },
 
     async fetchInitializationData() {
