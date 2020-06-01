@@ -80,11 +80,7 @@
             class="validation-provider"
           >
             <v-text-field
-              v-model="
-                serviceDesc.services &&
-                  serviceDesc.services[0] &&
-                  serviceDesc.services[0].service_code
-              "
+              v-model="currentServiceCode"
               single-line
               class="code-input"
               name="code_field"
@@ -179,6 +175,7 @@ export default Vue.extend({
       warningInfo: [],
       touched: false,
       serviceDesc: {} as ServiceDescription,
+      currentServiceCode: undefined as string | undefined,
       initialServiceCode: '',
       saveBusy: false,
       serviceTypeEnum: ServiceTypeEnum,
@@ -209,20 +206,15 @@ export default Vue.extend({
       ) {
         serviceDescriptionUpdate.ignore_warnings = false;
         serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
-        const currentServiceCode =
-          this.serviceDesc.services &&
-          this.serviceDesc.services[0] &&
-          this.serviceDesc.services[0].service_code;
-
         serviceDescriptionUpdate.new_rest_service_code =
-          serviceDescriptionUpdate.rest_service_code !== currentServiceCode
-            ? currentServiceCode
+          serviceDescriptionUpdate.rest_service_code !== this.currentServiceCode
+            ? this.currentServiceCode
             : serviceDescriptionUpdate.rest_service_code;
       }
 
       api
         .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
           this.$router.go(-1);
@@ -304,6 +296,13 @@ export default Vue.extend({
   },
   created() {
     this.fetchData(this.id);
+  },
+  watch: {
+    serviceDesc(desc: ServiceDescription) {
+      if (desc.services?.[0]?.service_code) {
+        this.currentServiceCode = desc.services[0].service_code;
+      }
+    },
   },
 });
 </script>

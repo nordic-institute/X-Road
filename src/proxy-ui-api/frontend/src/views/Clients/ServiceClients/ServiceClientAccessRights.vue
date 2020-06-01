@@ -50,8 +50,8 @@
       </thead>
       <tbody>
         <tr
-          v-for="(accessRight, index) in serviceClientAccessRights"
-          v-bind:index="index"
+          v-for="accessRight in keyedServiceClientAccessRights()"
+          :key="accessRight.uiKey"
         >
           <td>{{ accessRight.service_code }}</td>
           <td>{{ accessRight.service_title }}</td>
@@ -117,6 +117,10 @@ import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddSer
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ServiceCandidate } from '@/ui-types';
+
+interface UiAccessRight extends AccessRight {
+  uiKey: number;
+}
 
 export default Vue.extend({
   components: {
@@ -236,6 +240,18 @@ export default Vue.extend({
         this.clientServiceDescriptions,
         this.serviceClientAccessRights,
       );
+    },
+
+    keyedServiceClientAccessRights() {
+      let index = 0;
+      const arrWithKeys = [];
+      for (const accessRight of this.serviceClientAccessRights) {
+        arrWithKeys[index] = accessRight as UiAccessRight;
+        arrWithKeys[index].uiKey = index;
+        index++;
+      }
+
+      return arrWithKeys;
     },
   },
   created(): void {
