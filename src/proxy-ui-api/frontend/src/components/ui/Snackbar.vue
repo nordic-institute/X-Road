@@ -39,10 +39,13 @@
     >
       {{ errorObject.message }}
       <br />
-      {{ $t('id') }}: {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
-      <v-btn icon v-clipboard:copy="errorObject.response.headers['x-road-ui-correlation-id'] ">
-        <v-icon>mdi-content-copy</v-icon>
-      </v-btn>
+
+      <template v-if="errorObject.response">
+        {{ $t('id') }}: {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
+        <v-btn icon v-clipboard:copy="errorObject.response.headers['x-road-ui-correlation-id'] ">
+          <v-icon>mdi-content-copy</v-icon>
+        </v-btn>
+      </template>
 
       <v-btn
         data-test="snackbar-yes-button"

@@ -6,34 +6,17 @@
           {{$t('csr.usage')}}
           <helpIcon :text="$t('csr.helpUsage')" />
         </div>
-
-        <ValidationProvider name="crs.usage" rules="required" v-slot="{ errors }">
-          <v-select
-            :items="usageList"
-            class="form-input"
-            v-model="usage"
-            :disabled="isUsageReadOnly"
-            data-test="csr-usage-select"
-          ></v-select>
-        </ValidationProvider>
+        <div class="readonly-info-field">{{usage}}</div>
       </div>
 
-      <div class="row-wrap" v-if="usage === usageTypes.SIGNING">
+      <div class="row-wrap">
         <div class="label">
           {{$t('csr.client')}}
           <helpIcon :text="$t('csr.helpClient')" />
         </div>
-
-        <ValidationProvider name="crs.client" rules="required" v-slot="{ errors }">
-          <v-select
-            :items="localMembersIds"
-            item-text="id"
-            item-value="id"
-            class="form-input"
-            v-model="client"
-            data-test="csr-client-select"
-          ></v-select>
-        </ValidationProvider>
+        <div
+          class="readonly-info-field"
+        >{{selectedMemberId}}</div>
       </div>
 
       <div class="row-wrap">
@@ -101,7 +84,7 @@ import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Key, Token } from '@/openapi-types';
-import { UsageTypes, CsrFormatTypes } from '@/global';
+import { CsrFormatTypes } from '@/global';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -124,40 +107,23 @@ export default Vue.extend({
   },
   data() {
     return {
-      usageTypes: UsageTypes,
-      usageList: Object.values(UsageTypes),
-      csrFormatList: Object.values(CsrFormatTypes),
+      csrFormatList: Object.values(CsrFormatTypes) as string[],
     };
   },
   computed: {
     ...mapGetters([
-      'localMembersIds',
       'filteredServiceList',
       'isUsageReadOnly',
+      'selectedMemberId',
+      'usage',
     ]),
 
-    usage: {
-      get(): string {
-        return this.$store.getters.usage;
-      },
-      set(value: string) {
-        this.$store.commit('storeUsage', value);
-      },
-    },
     csrFormat: {
       get(): string {
         return this.$store.getters.csrFormat;
       },
       set(value: string) {
         this.$store.commit('storeCsrFormat', value);
-      },
-    },
-    client: {
-      get(): string {
-        return this.$store.getters.csrClient;
-      },
-      set(value: string) {
-        this.$store.commit('storeCsrClient', value);
       },
     },
     certificationService: {
@@ -188,17 +154,17 @@ export default Vue.extend({
         this.certificationService = val[0].name;
       }
     },
-    localMembersIds(val) {
-      // Set first client selected as default when the list is updated
-      if (val?.length === 1) {
-        this.client = val[0].id;
-      }
-    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
+
+.readonly-info-field {
+  max-width: 300px;
+  height: 60px;
+  padding-top: 12px;
+}
 </style>
 
