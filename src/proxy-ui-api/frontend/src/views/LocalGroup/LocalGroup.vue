@@ -128,29 +128,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions } from '@/global';
+import { GroupMember, LocalGroup } from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import AddMembersDialog from './AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
-
-interface IGroupMember {
-  id: string;
-  name: string;
-  created_at: string;
-}
-
-interface ILocalGroup {
-  id: number;
-  code: string;
-  description: string;
-  member_count: number;
-  updated_at: string;
-  members: IGroupMember[];
-}
-
-type GroupMember = undefined | IGroupMember;
-type LocalGroup = undefined | ILocalGroup;
 
 export default Vue.extend({
   components: {
@@ -174,9 +157,9 @@ export default Vue.extend({
       confirmGroup: false,
       confirmMember: false,
       confirmAllMembers: false,
-      selectedMember: undefined as GroupMember,
+      selectedMember: undefined as GroupMember | undefined,
       description: undefined,
-      group: undefined as LocalGroup,
+      group: undefined as LocalGroup | undefined,
       groupCode: '',
       addMembersDialogVisible: false,
     };
@@ -198,9 +181,7 @@ export default Vue.extend({
     },
 
     hasMembers(): boolean {
-      const tempGroup: any = this.group;
-
-      if (tempGroup && tempGroup.members && tempGroup.members.length > 0) {
+      if (this.group && this.group.members && this.group.members.length > 0) {
         return true;
       }
       return false;
@@ -251,7 +232,7 @@ export default Vue.extend({
         .post(`/local-groups/${this.groupId}/members`, {
           items: selectedIds,
         })
-        .then((res) => {
+        .then(() => {
           this.fetchData(this.clientId, this.groupId);
         })
         .catch((error) => {
@@ -268,24 +249,27 @@ export default Vue.extend({
     },
 
     doRemoveAllMembers(): void {
-      const ids: string[] = [];
-      const tempGroup: LocalGroup = this.group;
-
-      if (tempGroup) {
-        tempGroup.members.forEach((member: IGroupMember) => {
-          ids.push(member.id);
-        });
-        this.removeArrayOfMembers(ids);
+      if (!this.group?.members) {
+        return;
       }
+      const ids: string[] = [];
+
+      this.group.members.forEach((member: GroupMember) => {
+        ids.push(member.id);
+      });
+      this.removeArrayOfMembers(ids);
 
       this.confirmAllMembers = false;
     },
 
-    removeMember(member: IGroupMember): void {
+    removeMember(member: GroupMember): void {
       this.confirmMember = true;
       this.selectedMember = member as GroupMember;
     },
     doRemoveMember() {
+      if (!this.selectedMember) {
+        return;
+      }
       const member: GroupMember = this.selectedMember;
 
       if (member && member.id) {
