@@ -66,7 +66,7 @@ const PASSWORD_MATCH_ERROR: string = i18n.t('initialConfiguration.pin.pinMatchEr
 
 extend('password', {
   params: ['target'],
-  validate(value, { target }) {
+  validate(value, { target }: Record<string, any>) {
     return value === target;
   },
   message: PASSWORD_MATCH_ERROR,
