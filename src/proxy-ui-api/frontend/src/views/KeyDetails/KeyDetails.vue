@@ -157,7 +157,7 @@ export default Vue.extend({
 
       api
         .patch(`/keys/${this.id}`, this.key)
-        .then((res: any) => {
+        .then(() => {
           this.saveBusy = false;
           this.$store.dispatch('showSuccess', 'keys.keySaved');
           this.close();
