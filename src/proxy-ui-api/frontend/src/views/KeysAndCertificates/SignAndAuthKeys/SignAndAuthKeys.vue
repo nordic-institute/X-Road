@@ -12,7 +12,9 @@
       </v-text-field>
     </div>
 
-    <div v-if="filtered && filtered.length < 1">{{$t('services.noMatches')}}</div>
+    <div v-if="filtered && filtered.length < 1">
+      {{ $t('services.noMatches') }}
+    </div>
 
     <template v-if="filtered">
       <token-expandable
@@ -34,7 +36,11 @@
       @accept="acceptTokenLogout()"
     />
 
-    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
+    <TokenLoginDialog
+      :dialog="loginDialog"
+      @cancel="loginDialog = false"
+      @save="tokenLogin"
+    />
   </div>
 </template>
 
@@ -192,4 +198,3 @@ export default Vue.extend({
   max-width: 300px;
 }
 </style>
-

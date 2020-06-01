@@ -8,7 +8,7 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('services.url')}}</div>
+        <div class="dlg-row-title">{{ $t('services.url') }}</div>
         <ValidationProvider
           rules="required|wsdlUrl"
           ref="serviceUrl"
@@ -28,7 +28,6 @@
     </div>
   </simpleDialog>
 </template>
-
 
 <script lang="ts">
 import Vue from 'vue';
@@ -79,4 +78,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 </style>
-

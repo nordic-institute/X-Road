@@ -1,17 +1,17 @@
 <template>
   <div data-test="finish-content">
     <p>
-      {{$t('wizard.finish.infoLine1')}}
+      {{ $t('wizard.finish.infoLine1') }}
       <br />
-      {{$t('wizard.finish.infoLine2')}}
+      {{ $t('wizard.finish.infoLine2') }}
     </p>
     <br />
-    <p>{{$t('wizard.finish.todo1')}}</p>
-    <p>{{$t('wizard.finish.todo2')}}</p>
-    <p>{{$t('wizard.finish.todo3')}}</p>
+    <p>{{ $t('wizard.finish.todo1') }}</p>
+    <p>{{ $t('wizard.finish.todo2') }}</p>
+    <p>{{ $t('wizard.finish.todo3') }}</p>
     <br />
     <br />
-    <p>{{$t('wizard.finish.note')}}</p>
+    <p>{{ $t('wizard.finish.note') }}</p>
     <p></p>
 
     <div v-if="showRegisterOption" class="row-wrap">
@@ -31,7 +31,8 @@
           @click="cancel"
           :disabled="disableCancel"
           data-test="cancel-button"
-        >{{$t('action.cancel')}}</large-button>
+          >{{ $t('action.cancel') }}</large-button
+        >
       </div>
 
       <div>
@@ -41,13 +42,15 @@
           :disabled="disableCancel"
           class="previous-button"
           data-test="previous-button"
-        >{{$t('action.previous')}}</large-button>
+          >{{ $t('action.previous') }}</large-button
+        >
 
         <large-button
           @click="done"
           data-test="submit-button"
           :loading="submitLoading"
-        >{{$t('action.submit')}}</large-button>
+          >{{ $t('action.submit') }}</large-button
+        >
       </div>
     </div>
   </div>
@@ -179,4 +182,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/wizards';
 </style>
-

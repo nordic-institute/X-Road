@@ -1,4 +1,3 @@
-
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import VuexPersistence from 'vuex-persist';

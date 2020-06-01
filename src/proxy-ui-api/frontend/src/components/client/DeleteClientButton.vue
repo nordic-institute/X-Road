@@ -3,7 +3,8 @@
     <LargeButton
       data-test="delete-client-button"
       @click="confirmDelete = true"
-    >{{$t('action.delete')}}</LargeButton>
+      >{{ $t('action.delete') }}</LargeButton
+    >
 
     <!-- Confirm dialog for delete client -->
     <ConfirmDialog

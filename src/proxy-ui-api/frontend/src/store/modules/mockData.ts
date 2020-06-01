@@ -7,7 +7,6 @@ import { RootState } from '../types';
 // import mockJson from './fi-all';
 // import mockJson from './ee-all';
 
-
 export interface Client {
   id: string;
   name?: string | null;
@@ -23,7 +22,7 @@ export interface Client {
   subsystems?: Client[];
 }
 
-export interface ClientsArray extends Array<Client> { }
+export type ClientsArray = Array<Client>;
 
 export interface DataState {
   clients: ClientsArray;
@@ -41,11 +40,10 @@ export const getters: GetterTree<DataState, RootState> = {
     return state.clients;
   },
   mockClientsFlat(state): object[] {
-
     // New arrays to separate members and subsystems
     const members: object[] = [];
     const subsystems: object[] = [];
-    const UNKNOWN_NAME: string = 'unknown member';
+    const UNKNOWN_NAME = 'unknown member';
 
     // Find the owner member (there is only one) it has member_name, but no subsystem_code
     state.clients.forEach((element, index) => {
@@ -61,7 +59,6 @@ export const getters: GetterTree<DataState, RootState> = {
       }
     });
 
-
     // Pick out the members
     state.clients.forEach((element) => {
       // Check if the member is already in the members array
@@ -69,7 +66,10 @@ export const getters: GetterTree<DataState, RootState> = {
         const cli = value as Client;
 
         // TODO: check the full id ?
-        if (cli.member_class === element.member_class && cli.member_code === element.member_code) {
+        if (
+          cli.member_class === element.member_class &&
+          cli.member_code === element.member_code
+        ) {
           return true;
         }
 
@@ -130,7 +130,13 @@ export const getters: GetterTree<DataState, RootState> = {
 
 function createSortId(client: Client, sortName: string): any {
   // Create a sort id for client in form  "ACMEGOV:1234 MANAGEMENT"
-  return sortName + client.member_class + client.member_code + ' ' + client.subsystem_code;
+  return (
+    sortName +
+    client.member_class +
+    client.member_code +
+    ' ' +
+    client.subsystem_code
+  );
 }
 
 function createMemberAscSortId(client: Client, sortName: string | null): any {
@@ -143,7 +149,6 @@ function createMemberDescSortId(client: Client, sortName: any): any {
   return sortName + client.member_class + client.member_code + '!';
 }
 
-
 export const mutations: MutationTree<DataState> = {
   setLoading(state, loading: boolean) {
     state.loading = loading;
@@ -152,10 +157,10 @@ export const mutations: MutationTree<DataState> = {
 
 export const actions: ActionTree<DataState, RootState> = {
   fetchData({ commit, rootGetters }) {
-
     commit('setLoading', true);
 
-    return axios.get('/clients')
+    return axios
+      .get('/clients')
       .then((res) => {
         console.log(res);
       })

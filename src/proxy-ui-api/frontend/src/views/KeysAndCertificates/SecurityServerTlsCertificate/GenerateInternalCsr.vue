@@ -1,24 +1,35 @@
 <template>
   <v-container class="xrd-view-common justify-center wrapper">
-    <SubViewTitle :title="$t('ssTlsCertificate.generateInternalCsr.title')" :show-close="false"></SubViewTitle>
+    <SubViewTitle
+      :title="$t('ssTlsCertificate.generateInternalCsr.title')"
+      :show-close="false"
+    ></SubViewTitle>
     <v-row class="first-action">
-      <v-col>{{$t('ssTlsCertificate.generateInternalCsr.step1.description')}}</v-col>
+      <v-col>{{
+        $t('ssTlsCertificate.generateInternalCsr.step1.description')
+      }}</v-col>
     </v-row>
     <v-row>
       <v-col cols="3" class="mt-6">
-        <HelpIcon :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')" />
-        {{$t('ssTlsCertificate.generateInternalCsr.step1.label')}}
+        <HelpIcon
+          :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')"
+        />
+        {{ $t('ssTlsCertificate.generateInternalCsr.step1.label') }}
       </v-col>
       <v-col cols="8">
         <v-text-field
           v-model="distinguishedName"
           data-text="generate-internal-csr-distinguished-name-field"
-          :placeholder="$t('ssTlsCertificate.generateInternalCsr.step1.placeholder')"
+          :placeholder="
+            $t('ssTlsCertificate.generateInternalCsr.step1.placeholder')
+          "
         />
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="8" class="mt-2">{{$t('ssTlsCertificate.generateInternalCsr.step2.description')}}</v-col>
+      <v-col cols="8" class="mt-2">{{
+        $t('ssTlsCertificate.generateInternalCsr.step2.description')
+      }}</v-col>
       <v-col cols="4" class="text-right">
         <large-button
           outlined
@@ -26,7 +37,10 @@
           :disabled="distinguishedName.length === 0 || csrGenerated"
           :loading="generatingCsr"
           @click="generateCsr"
-        >{{$t('ssTlsCertificate.generateInternalCsr.step2.generateCSR')}}</large-button>
+          >{{
+            $t('ssTlsCertificate.generateInternalCsr.step2.generateCSR')
+          }}</large-button
+        >
       </v-col>
     </v-row>
     <v-row class="bottom-buttons-wrapper">
@@ -36,14 +50,16 @@
           :disabled="csrGenerated || generatingCsr"
           outlined
           data-test="generate-internal-csr-cancel-button"
-        >{{$t('ssTlsCertificate.generateInternalCsr.cancel')}}</large-button>
+          >{{ $t('ssTlsCertificate.generateInternalCsr.cancel') }}</large-button
+        >
       </v-col>
       <v-col cols="6" class="text-right">
         <large-button
           @click="back"
           :disabled="!csrGenerated"
           data-test="generate-internal-csr-done-button"
-        >{{$t('ssTlsCertificate.generateInternalCsr.done')}}</large-button>
+          >{{ $t('ssTlsCertificate.generateInternalCsr.done') }}</large-button
+        >
       </v-col>
     </v-row>
   </v-container>
@@ -124,4 +140,3 @@ $spacing: 12rem;
   margin-top: $spacing;
 }
 </style>
-

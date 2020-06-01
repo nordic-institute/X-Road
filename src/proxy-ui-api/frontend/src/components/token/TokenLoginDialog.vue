@@ -10,7 +10,7 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('fields.tokenPin')}}</div>
+        <div class="dlg-row-title">{{ $t('fields.tokenPin') }}</div>
         <ValidationProvider
           rules="required"
           ref="tokenPin"
@@ -32,7 +32,6 @@
     </div>
   </simpleDialog>
 </template>
-
 
 <script lang="ts">
 import Vue from 'vue';
@@ -116,4 +115,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/dialogs';
 </style>
-

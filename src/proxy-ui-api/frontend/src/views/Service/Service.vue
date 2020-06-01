@@ -1,25 +1,43 @@
 <template>
-    <div class="xrd-tab-max-width">
-        <subViewTitle :title="service.service_code" @close="close" class="sub-view-title-spacing" />
+  <div class="xrd-tab-max-width">
+    <subViewTitle
+      :title="service.service_code"
+      @close="close"
+      class="sub-view-title-spacing"
+    />
 
-        <v-tabs v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL" v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4" >
-            <v-tabs-slider color="secondary"></v-tabs-slider>
-            <v-tab v-for="tab in tabs" v-bind:key="tab.key"
-                   :to="tab.to" data-test="service-tab">{{ $t(tab.name) }}</v-tab>
-        </v-tabs>
+    <v-tabs
+      v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL"
+      v-model="tab"
+      class="xrd-tabs"
+      color="secondary"
+      grow
+      slider-size="4"
+    >
+      <v-tabs-slider color="secondary"></v-tabs-slider>
+      <v-tab
+        v-for="tab in tabs"
+        v-bind:key="tab.key"
+        :to="tab.to"
+        data-test="service-tab"
+        >{{ $t(tab.name) }}</v-tab
+      >
+    </v-tabs>
 
-        <router-view v-on:updateService="fetchData" service="service" class="sub-view-spacing" />
-
-    </div>
+    <router-view
+      v-on:updateService="fetchData"
+      service="service"
+      class="sub-view-spacing"
+    />
+  </div>
 </template>
-
 
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import {RouteName} from '@/global';
-import {ServiceTypeEnum} from '@/domain';
+import { RouteName } from '@/global';
+import { ServiceTypeEnum } from '@/domain';
 
 export default Vue.extend({
   components: {
@@ -34,7 +52,6 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-
   },
   data() {
     return {
@@ -68,7 +85,6 @@ export default Vue.extend({
   },
 
   methods: {
-
     fetchData(serviceId: string): void {
       api
         .get(`/services/${serviceId}`)
@@ -105,16 +121,14 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-    @import '../../assets/colors';
-    @import '../../assets/tables';
+@import '../../assets/colors';
+@import '../../assets/tables';
 
-    .sub-view-title-spacing {
-        margin-bottom: 30px;
-    }
+.sub-view-title-spacing {
+  margin-bottom: 30px;
+}
 
-    .sub-view-spacing {
-        margin-top: 20px;
-    }
-
+.sub-view-spacing {
+  margin-top: 20px;
+}
 </style>
-

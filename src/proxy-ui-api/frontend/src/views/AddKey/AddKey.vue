@@ -1,14 +1,27 @@
-
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
-    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+    <subViewTitle
+      class="view-title"
+      :title="$t('csr.generateCsr')"
+      :showClose="false"
+    />
+    <v-stepper
+      :alt-labels="true"
+      v-model="currentStep"
+      class="stepper noshadow"
+    >
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('keys.detailsTitle')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{
+          $t('keys.detailsTitle')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{
+          $t('csr.csrDetails')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('csr.generateCsr')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 3" step="3">{{
+          $t('csr.generateCsr')
+        }}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
@@ -18,11 +31,20 @@
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageCsrDetails @cancel="cancel" @previous="currentStep = 1" @done="save" />
+          <WizardPageCsrDetails
+            @cancel="cancel"
+            @previous="currentStep = 1"
+            @done="save"
+          />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content step="3">
-          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 2" @done="done" keyAndCsr/>
+          <WizardPageGenerateCsr
+            @cancel="cancel"
+            @previous="currentStep = 2"
+            @done="done"
+            keyAndCsr
+          />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>

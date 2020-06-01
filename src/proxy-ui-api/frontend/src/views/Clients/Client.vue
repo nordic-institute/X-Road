@@ -1,23 +1,33 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <v-flex mb-4 class="title-action">
-      <h1
-        v-if="client && client.owner"
-        class="display-1 mb-3"
-      >{{client.member_name}} ({{ $t("client.owner") }})</h1>
-      <h1
-        v-else-if="client"
-        class="display-1 mb-3"
-      >{{client.member_name}} ({{ $t("client.member") }})</h1>
+      <h1 v-if="client && client.owner" class="display-1 mb-3">
+        {{ client.member_name }} ({{ $t('client.owner') }})
+      </h1>
+      <h1 v-else-if="client" class="display-1 mb-3">
+        {{ client.member_name }} ({{ $t('client.member') }})
+      </h1>
 
       <div>
         <DeleteClientButton v-if="showDelete" :id="id" />
-        <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchClient" />
+        <UnregisterClientButton
+          v-if="showUnregister"
+          :id="id"
+          @done="fetchClient"
+        />
       </div>
     </v-flex>
-    <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
+    <v-tabs
+      v-model="tab"
+      class="xrd-tabs"
+      color="secondary"
+      grow
+      slider-size="4"
+    >
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
     </v-tabs>
 
     <router-view />

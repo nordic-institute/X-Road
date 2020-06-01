@@ -1,11 +1,13 @@
 <template>
   <div>
     <div v-if="sourceObject[childKey]">
-      <b v-if="label" class="cert-label">{{label}}:</b>
-      <b v-else class="cert-label">{{childKey | prettyTitle | upperCaseWords}}:</b>
+      <b v-if="label" class="cert-label">{{ label }}:</b>
+      <b v-else class="cert-label"
+        >{{ childKey | prettyTitle | upperCaseWords }}:</b
+      >
 
       <div v-if="chunk" class="chunk">
-        <pre>{{sourceObject[childKey] | colonize | lineBreaks}}</pre>
+        <pre>{{ sourceObject[childKey] | colonize | lineBreaks }}</pre>
       </div>
 
       <span v-else>{{ formattedData() }}</span>
@@ -110,4 +112,3 @@ export default Vue.extend({
   padding-left: 20px;
 }
 </style>
-

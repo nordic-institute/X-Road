@@ -8,26 +8,29 @@
         rounded
         class="rounded-button elevation-0 rest-button"
         data-test="endpoint-add"
-      >{{$t('endpoints.addEndpoint')}}</v-btn>
+        >{{ $t('endpoints.addEndpoint') }}</v-btn
+      >
     </div>
 
     <table class="xrd-table">
       <thead>
         <tr>
-          <th>{{$t('endpoints.httpRequestMethod')}}</th>
-          <th>{{$t('endpoints.path')}}</th>
+          <th>{{ $t('endpoints.httpRequestMethod') }}</th>
+          <th>{{ $t('endpoints.path') }}</th>
           <th></th>
         </tr>
       </thead>
       <tbody v-if="service.endpoints">
         <template v-for="endpoint in service.endpoints">
           <template v-if="!isBaseEndpoint(endpoint)">
-            <tr v-bind:class="{generated: endpoint.generated}">
+            <tr v-bind:class="{ generated: endpoint.generated }">
               <td>
-                <span v-if="endpoint.method === '*'">{{$t('endpoints.all')}}</span>
-                <span v-else>{{endpoint.method}}</span>
+                <span v-if="endpoint.method === '*'">{{
+                  $t('endpoints.all')
+                }}</span>
+                <span v-else>{{ endpoint.method }}</span>
               </td>
-              <td>{{endpoint.path}}</td>
+              <td>{{ endpoint.path }}</td>
               <td class="wrap-right-tight">
                 <v-btn
                   v-if="!endpoint.generated"
@@ -38,7 +41,8 @@
                   class="xrd-small-button xrd-table-button"
                   data-test="endpoint-edit"
                   @click="editEndpoint(endpoint)"
-                >{{$t('action.edit')}}</v-btn>
+                  >{{ $t('action.edit') }}</v-btn
+                >
                 <v-btn
                   small
                   outlined
@@ -47,7 +51,8 @@
                   class="xrd-small-button xrd-table-button"
                   data-test="endpoint-edit-accessrights"
                   @click="editAccessRights(endpoint)"
-                >{{$t('accessRights.title')}}</v-btn>
+                  >{{ $t('accessRights.title') }}</v-btn
+                >
               </td>
             </tr>
           </template>

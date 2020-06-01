@@ -1,13 +1,13 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <div class="apply-to-all" v-if="showApplyToAll">
-      <div class="apply-to-all-text">{{$t('services.applyToAll')}}</div>
+      <div class="apply-to-all-text">{{ $t('services.applyToAll') }}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
       <div class="edit-row">
         <div class="edit-title">
-          {{$t('services.serviceUrl')}}
+          {{ $t('services.serviceUrl') }}
           <helpIcon :text="$t('services.urlTooltip')" />
         </div>
 
@@ -42,7 +42,7 @@
 
       <div class="edit-row">
         <div class="edit-title">
-          {{$t('services.timeoutSec')}}
+          {{ $t('services.timeoutSec') }}
           <helpIcon :text="$t('services.timeoutTooltip')" />
         </div>
         <div class="edit-input">
@@ -78,7 +78,7 @@
 
       <div class="edit-row">
         <div class="edit-title">
-          {{$t('services.verifyTls')}}
+          {{ $t('services.verifyTls') }}
           <helpIcon :text="$t('services.tlsTooltip')" />
         </div>
         <div class="edit-input">
@@ -104,46 +104,49 @@
 
       <div class="button-wrap">
         <large-button
-          :disabled="invalid || disableSave"
+          :disabled="invalid || disableSave"
           @click="save()"
           data-test="save-service-parameters"
-        >{{$t('action.save')}}</large-button>
+          >{{ $t('action.save') }}</large-button
+        >
       </div>
     </ValidationObserver>
 
     <div class="group-members-row">
-      <div class="row-title">{{$t('accessRights.title')}}</div>
+      <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
         <large-button
           :disabled="!hasServiceClients"
           outlined
           @click="removeAllServiceClients()"
           data-test="remove-subjects"
-        >{{$t('action.removeAll')}}</large-button>
+          >{{ $t('action.removeAll') }}</large-button
+        >
         <large-button
           outlined
           class="add-members-button"
           @click="showAddServiceClientDialog()"
           data-test="show-add-subjects"
-        >{{$t('accessRights.addServiceClients')}}</large-button>
+          >{{ $t('accessRights.addServiceClients') }}</large-button
+        >
       </div>
     </div>
 
     <v-card flat>
       <table class="xrd-table group-members-table">
         <tr>
-          <th>{{$t('services.memberNameGroupDesc')}}</th>
-          <th>{{$t('services.idGroupCode')}}</th>
-          <th>{{$t('type')}}</th>
-          <th>{{$t('accessRights.rightsGiven')}}</th>
+          <th>{{ $t('services.memberNameGroupDesc') }}</th>
+          <th>{{ $t('services.idGroupCode') }}</th>
+          <th>{{ $t('type') }}</th>
+          <th>{{ $t('accessRights.rightsGiven') }}</th>
           <th></th>
         </tr>
         <template v-if="serviceClients">
           <tr v-for="sc in serviceClients" v-bind:key="sc.id">
-            <td>{{sc.name}}</td>
-            <td>{{sc.id}}</td>
-            <td>{{sc.service_client_type}}</td>
-            <td>{{sc.rights_given_at | formatDateTime}}</td>
+            <td>{{ sc.name }}</td>
+            <td>{{ sc.id }}</td>
+            <td>{{ sc.service_client_type }}</td>
+            <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td>
               <div class="button-wrap">
                 <v-btn
@@ -154,7 +157,8 @@
                   class="xrd-small-button"
                   @click="removeServiceClient(sc)"
                   data-test="remove-subject"
-                >{{$t('action.remove')}}</v-btn>
+                  >{{ $t('action.remove') }}</v-btn
+                >
               </div>
             </td>
           </tr>
@@ -162,7 +166,9 @@
       </table>
 
       <div class="footer-buttons-wrap">
-        <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
+        <large-button @click="close()" data-test="close">{{
+          $t('action.close')
+        }}</large-button>
       </div>
     </v-card>
 
@@ -196,8 +202,6 @@
   </div>
 </template>
 
-
-
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
@@ -208,7 +212,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
-import {ServiceClient} from '@/openapi-types';
+import { ServiceClient } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 
 type NullableServiceClient = undefined | ServiceClient;
@@ -309,7 +313,10 @@ export default Vue.extend({
           items: selected,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'accessRights.addServiceClientsSuccess');
+          this.$store.dispatch(
+            'showSuccess',
+            'accessRights.addServiceClientsSuccess',
+          );
           this.fetchData(this.serviceId);
         })
         .catch((error) => {
@@ -326,7 +333,7 @@ export default Vue.extend({
     },
 
     doRemoveAllServiveClient(): void {
-      const items: any[] = this.serviceClients.map( (sc: ServiceClient) => ({
+      const items: any[] = this.serviceClients.map((sc: ServiceClient) => ({
         id: sc.id,
         service_client_type: sc.service_client_type,
       }));
@@ -355,7 +362,10 @@ export default Vue.extend({
           items: serviceClients,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'accessRights.removeServiceClientsSuccess');
+          this.$store.dispatch(
+            'showSuccess',
+            'accessRights.removeServiceClientsSuccess',
+          );
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -474,4 +484,3 @@ export default Vue.extend({
   padding-top: 20px;
 }
 </style>
-

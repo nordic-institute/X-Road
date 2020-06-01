@@ -12,11 +12,18 @@
     <div class="auth-container" v-if="isAuthenticated">
       <div class="separator"></div>
       <div class="server-type">Security Server</div>
-      <div class="white--text server-name" data-test="app-toolbar-server-name" v-show="currentSecurityServer.id" :title="currentSecurityServer.server_address">
-          {{`${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`}}
+      <div
+        class="white--text server-name"
+        data-test="app-toolbar-server-name"
+        v-show="currentSecurityServer.id"
+        :title="currentSecurityServer.server_address"
+      >
+        {{
+          `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
+        }}
       </div>
       <v-spacer></v-spacer>
-      {{username}}
+      {{ username }}
       <v-menu bottom left>
         <template v-slot:activator="{ on }">
           <v-btn icon v-on="on">
@@ -26,7 +33,9 @@
 
         <v-list>
           <v-list-item id="logout-list-tile" @click="logout">
-            <v-list-item-title id="logout-title">{{$t('login.logOut')}}</v-list-item-title>
+            <v-list-item-title id="logout-title">{{
+              $t('login.logOut')
+            }}</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>

@@ -1,22 +1,41 @@
-
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
-    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+    <subViewTitle
+      class="view-title"
+      :title="$t('csr.generateCsr')"
+      :showClose="false"
+    />
+    <v-stepper
+      :alt-labels="true"
+      v-model="currentStep"
+      class="stepper noshadow"
+    >
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{
+          $t('csr.csrDetails')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.generateCsr')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{
+          $t('csr.generateCsr')
+        }}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageCsrDetails @cancel="cancel" @done="save" :showPreviousButton="false" />
+          <WizardPageCsrDetails
+            @cancel="cancel"
+            @done="save"
+            :showPreviousButton="false"
+          />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="cancel" />
+          <WizardPageGenerateCsr
+            @cancel="cancel"
+            @previous="currentStep = 1"
+            @done="cancel"
+          />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>

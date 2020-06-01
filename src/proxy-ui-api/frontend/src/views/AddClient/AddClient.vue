@@ -1,4 +1,3 @@
-
 <template>
   <div class="view-wrap">
     <subViewTitle
@@ -7,19 +6,35 @@
       :showClose="false"
       data-test="wizard-title"
     />
-    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+    <v-stepper
+      :alt-labels="true"
+      v-model="currentStep"
+      class="stepper noshadow"
+    >
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.clientDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{
+          $t('wizard.clientDetails')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('wizard.token.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{
+          $t('wizard.token.title')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 3" step="3">{{$t('wizard.signKey.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 3" step="3">{{
+          $t('wizard.signKey.title')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 4" step="4">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 4" step="4">{{
+          $t('csr.csrDetails')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 5" step="5">{{
+          $t('csr.generateCsr')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 6" step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 6" step="6">{{
+          $t('wizard.finish.title')
+        }}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
@@ -29,11 +44,19 @@
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <TokenPage @cancel="cancel" @previous="tokenPrevious" @done="tokenReady" />
+          <TokenPage
+            @cancel="cancel"
+            @previous="tokenPrevious"
+            @done="tokenReady"
+          />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content step="3">
-          <SignKeyPage @cancel="cancel" @previous="signKeyPrevious" @done="signKeyReady" />
+          <SignKeyPage
+            @cancel="cancel"
+            @previous="signKeyPrevious"
+            @done="signKeyReady"
+          />
         </v-stepper-content>
         <!-- Step 4 -->
         <v-stepper-content step="4">
@@ -55,7 +78,11 @@
         </v-stepper-content>
         <!-- Step 6 -->
         <v-stepper-content step="6">
-          <FinishPage @cancel="cancel" @previous="finishPrevious" @done="done" />
+          <FinishPage
+            @cancel="cancel"
+            @previous="finishPrevious"
+            @done="done"
+          />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>

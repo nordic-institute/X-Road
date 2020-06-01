@@ -22,25 +22,29 @@
           v-if="showDelete"
           @click="showDeletePopup(serviceDesc.type)"
           outlined
-        >{{$t('action.delete')}}</large-button>
+          >{{ $t('action.delete') }}</large-button
+        >
       </div>
     </div>
 
     <div class="edit-row">
-      <div>{{$t('services.serviceType')}}</div>
+      <div>{{ $t('services.serviceType') }}</div>
 
       <div class="code-input" v-if="serviceDesc.type === serviceTypeEnum.REST">
-        {{$t('services.restApiBasePath')}}
+        {{ $t('services.restApiBasePath') }}
       </div>
-      <div class="code-input" v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3">
-        {{$t('services.OpenApi3Description')}}
+      <div
+        class="code-input"
+        v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3"
+      >
+        {{ $t('services.OpenApi3Description') }}
       </div>
-      <div class="code-input" v-else>{{$t('services.wsdlDescription')}}</div>
+      <div class="code-input" v-else>{{ $t('services.wsdlDescription') }}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
       <div class="edit-row">
-        <div>{{$t('services.editUrl')}}</div>
+        <div>{{ $t('services.editUrl') }}</div>
 
         <ValidationProvider
           rules="required|wsdlUrl"
@@ -61,8 +65,13 @@
       </div>
 
       <div class="edit-row">
-        <template v-if="serviceDesc.type === serviceTypeEnum.REST || serviceDesc.type === serviceTypeEnum.OPENAPI3">
-          <div>{{$t('services.serviceCode')}}</div>
+        <template
+          v-if="
+            serviceDesc.type === serviceTypeEnum.REST ||
+              serviceDesc.type === serviceTypeEnum.OPENAPI3
+          "
+        >
+          <div>{{ $t('services.serviceCode') }}</div>
 
           <ValidationProvider
             rules="required"
@@ -71,9 +80,11 @@
             class="validation-provider"
           >
             <v-text-field
-              v-model="serviceDesc.services
-              && serviceDesc.services[0]
-              && serviceDesc.services[0].service_code"
+              v-model="
+                serviceDesc.services &&
+                  serviceDesc.services[0] &&
+                  serviceDesc.services[0].service_code
+              "
               single-line
               class="code-input"
               name="code_field"
@@ -88,13 +99,16 @@
 
       <v-card flat>
         <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+          <large-button @click="close()" outlined>{{
+            $t('action.cancel')
+          }}</large-button>
           <large-button
             class="save-button"
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
-          >{{$t('action.save')}}</large-button>
+            >{{ $t('action.save') }}</large-button
+          >
         </div>
       </v-card>
     </ValidationObserver>
@@ -334,4 +348,3 @@ export default Vue.extend({
   margin-left: 20px;
 }
 </style>
-

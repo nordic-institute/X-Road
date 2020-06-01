@@ -1,7 +1,7 @@
 <template>
   <div class="row-wrap">
     <StatusIcon :status="statusIconType" />
-    <div>{{$t(status)}}</div>
+    <div>{{ $t(status) }}</div>
   </div>
 </template>
 
@@ -72,7 +72,6 @@ export default Vue.extend({
   methods: {},
 });
 </script>
-
 
 <style lang="scss" scoped>
 .row-wrap {

@@ -83,4 +83,3 @@ export default Vue.extend({
   margin-left: 20px;
 }
 </style>
-
