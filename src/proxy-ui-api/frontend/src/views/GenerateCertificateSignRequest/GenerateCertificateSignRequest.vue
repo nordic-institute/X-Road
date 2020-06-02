@@ -74,11 +74,6 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
-    fetchLocalMembers(): void {
-      this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
         this.$store.dispatch('showError', error);
@@ -88,7 +83,6 @@ export default Vue.extend({
   created() {
     this.$store.commit('storeKeyId', this.keyId);
     this.fetchKeyData(this.keyId);
-    this.fetchLocalMembers();
     this.fetchCertificateAuthorities();
   },
   beforeDestroy() {
