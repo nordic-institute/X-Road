@@ -215,7 +215,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        downloadAndSaveCsr(state.keyId, response.data.csr_id);
+        saveResponseAsFile(response);
       }).catch((error: any) => {
         throw error;
       });
@@ -237,7 +237,13 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-        downloadAndSaveCsr(response.data.key.id, response.data.csr_id);
+
+        // Fetch and save the CSR file data
+        api
+          .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
+          .then((response) => {
+            saveResponseAsFile(response);
+          });
       })
       .catch((error) => {
         throw error;
@@ -279,18 +285,8 @@ export const actions: ActionTree<CsrState, RootState> = {
         throw error;
       });
   },
-
 };
 
-
-const downloadAndSaveCsr = (keyId: string, csrId: string) => {
-  // Fetch the CSR file from backend and save it via browser
-  api
-    .get(`/keys/${keyId}/csrs/${csrId}`)
-    .then((response) => {
-      saveResponseAsFile(response);
-    });
-};
 
 export const csrModule: Module<CsrState, RootState> = {
   namespaced: false,
