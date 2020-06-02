@@ -2,7 +2,7 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/openapi-types';
+import { Key, CertificateAuthority, CsrSubjectFieldDescription, Client } from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
 
@@ -18,6 +18,7 @@ export interface CsrState {
   form: CsrSubjectFieldDescription[];
   keyLabel: string | undefined;
   tokenId: string | undefined;
+  memberIds: string[];
 }
 
 const getDefaultState = () => {
@@ -32,6 +33,7 @@ const getDefaultState = () => {
     form: [],
     keyLabel: undefined,
     tokenId: undefined,
+    memberIds: [],
   };
 };
 
@@ -64,7 +66,7 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   keyId(state): string {
     return state.keyId;
   },
-  keyLabel(state): string | undefined {
+  keyLabel(state): string | undefined {
     return state.keyLabel;
   },
   isUsageReadOnly(state): boolean {
@@ -105,6 +107,9 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   csrTokenId(state): string | undefined {
     return state.tokenId;
   },
+  memberIds(state): string[] {
+    return state.memberIds;
+  },
 };
 
 export const mutations: MutationTree<CsrState> = {
@@ -140,6 +145,9 @@ export const mutations: MutationTree<CsrState> = {
   },
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
+  },
+  storeMemberIds(state, ids: string[]) {
+    state.memberIds = ids;
   },
 };
 
@@ -250,6 +258,28 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeCsrKey', templateKey);
     commit('storeUsage', UsageTypes.SIGNING);
   },
+
+  fetchAllMemberIds({ commit, rootGetters }) {
+    return api.get('/clients?show_members=true')
+      .then((res) => {
+
+        const idArray: string[] = [];
+        res.data.forEach((client: Client) => {
+          // Create id:s without possible subsystem code
+          const partialId = `${client.instance_id}:${client.member_class}:${client.member_code}`;
+
+          if (!idArray.includes(partialId)) {
+            idArray.push(partialId);
+          }
+        });
+
+        commit('storeMemberIds', idArray);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
 };
 
 

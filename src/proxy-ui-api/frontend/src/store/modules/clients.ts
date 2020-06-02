@@ -59,10 +59,6 @@ export const getters: GetterTree<ClientsState, RootState> = {
     return state.localMembers;
   },
 
-  localMembersIds(state): Client[] {
-    return state.localMembers;
-  },
-
   clientsLoading(state): boolean {
     return state.clientsLoading;
   },
