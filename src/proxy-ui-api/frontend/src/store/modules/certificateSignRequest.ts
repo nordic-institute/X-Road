@@ -241,8 +241,8 @@ export const actions: ActionTree<CsrState, RootState> = {
         // Fetch and save the CSR file data
         api
           .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
-          .then((response) => {
-            saveResponseAsFile(response);
+          .then((res) => {
+            saveResponseAsFile(res);
           });
       })
       .catch((error) => {
