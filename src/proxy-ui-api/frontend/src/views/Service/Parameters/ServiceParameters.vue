@@ -20,7 +20,7 @@
           >
             <v-text-field
               v-model="service.url"
-              @input="setTouched()"
+              @input="changeUrl()"
               single-line
               class="description-input"
               name="serviceUrl"
@@ -83,7 +83,7 @@
         </div>
         <div class="edit-input">
           <v-checkbox
-            :disabled="!isHttps"
+            :disabled="!isHttpsMethod()"
             @change="setTouched()"
             v-model="service.ssl_auth"
             color="primary"
@@ -249,9 +249,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['service', 'serviceClients']),
-    isHttps(): boolean {
-      return this.service.url.startsWith('https');
-    },
+
     hasServiceClients(): boolean {
       return this.serviceClients?.length > 0;
     },
@@ -266,10 +264,15 @@ export default Vue.extend({
 
   methods: {
     save(): void {
+      /**
+       * For the current service backend returns ssl_auth as undefined if current service is using http.
+       * If service is https then it can be either false or true. When saving service parameters however the ssl_auth
+       * must be a boolean even if the service is using http. Backend will handle saving correct data.
+       */
       const serviceUpdate: ServiceUpdate = {
         url: this.service.url,
         timeout: this.service.timeout,
-        ssl_auth: this.service.ssl_auth,
+        ssl_auth: this.service.ssl_auth ?? false, // set false as backup as backend takes boolean
         timeout_all: this.timeout_all,
         url_all: this.url_all,
         ssl_auth_all: this.ssl_auth_all,
@@ -373,12 +376,13 @@ export default Vue.extend({
         params: { id: this.clientId },
       });
     },
-  },
-  watch: {
-    isHttps(val) {
-      // If user edits http to https --> change "ssl auth" to true
-      if (val === true) {
-        this.service.ssl_auth = true;
+    isHttpsMethod(): boolean {
+      return this.service.url.startsWith('https');
+    },
+    changeUrl(): void {
+      this.setTouched();
+      if (!this.isHttpsMethod() && this.service.ssl_auth === true) {
+        this.service.ssl_auth = false;
       }
     },
   },

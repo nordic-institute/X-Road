@@ -76,11 +76,6 @@ export default Vue.extend({
         .then((res) => {
 
           // Set ssl_auth to true if it is returned as null from backend
-          const service: Service = res.data;
-          if (typeof service.ssl_auth !== 'boolean') {
-            service.ssl_auth = true;
-          }
-          this.service = service;
           this.$store.dispatch('setService', res.data);
         })
         .catch((error) => {
