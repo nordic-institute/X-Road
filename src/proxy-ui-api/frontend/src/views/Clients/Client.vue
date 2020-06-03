@@ -71,14 +71,12 @@ export default Vue.extend({
 
     showMakeOwner(): boolean {
       // TODO: needs a proper permission
-      /*
       return (
         this.client &&
-        this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
         this.client.status === 'REGISTERED' &&
         !this.client.owner
-      ); */
-      return true;
+      ); 
     },
     showUnregister(): boolean {
       return (
