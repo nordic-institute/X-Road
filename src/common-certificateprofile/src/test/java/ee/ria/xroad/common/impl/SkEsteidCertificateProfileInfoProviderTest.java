@@ -23,20 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.impl;
 
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the implementation of SkEsteidCertificateProfileInfoProvider.
@@ -50,7 +50,7 @@ public class SkEsteidCertificateProfileInfoProviderTest {
      */
     @Test
     public void getSubjectIdentifier() throws Exception {
-        assertEquals(
+        Assert.assertEquals(
                 ClientId.create("XX", "PERSON", "foobar"),
                 id("SERIALNUMBER=foobar")
         );

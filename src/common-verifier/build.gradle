@@ -13,6 +13,7 @@ configurations {
 
 dependencies {
     compile project(':common-util')
+    compile project(':common-certificateprofile')
     testCompile project(':common-test').sourceSets.main.output
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"

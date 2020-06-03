@@ -23,15 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.impl;
 
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
+import ee.ria.xroad.common.certificateprofile.impl.AuthCertificateProfileInfoParameters;
+import ee.ria.xroad.common.certificateprofile.impl.DnFieldLabelLocalizationKey;
+import ee.ria.xroad.common.certificateprofile.impl.DnFieldValueImpl;
+import ee.ria.xroad.common.certificateprofile.impl.EjbcaAuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider;
+import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.impl.EnumLocalizedFieldDescriptionImpl;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.util.Arrays;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -157,7 +166,7 @@ public class EjbcaCertificateProfileInfoProviderTest {
                 new X500Principal("C=XX, O=Foo, CN=bar")
         );
 
-        assertEquals(
+        Assert.assertEquals(
                 ClientId.create("XX", "Foo", "bar"),
                 getSignProfile().getSubjectIdentifier(mockCert)
         );

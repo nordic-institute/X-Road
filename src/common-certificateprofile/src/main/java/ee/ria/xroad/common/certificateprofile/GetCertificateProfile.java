@@ -26,10 +26,10 @@
 package ee.ria.xroad.common.certificateprofile;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 
 import lombok.RequiredArgsConstructor;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Utility class for getting the certificate profile instance.
@@ -50,10 +50,10 @@ public class GetCertificateProfile {
         try {
             return klass().newInstance();
         } catch (InstantiationException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e,
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e,
                     "Could not instantiate %s: %s", className, e.getMessage());
         } catch (IllegalAccessException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 
@@ -71,12 +71,12 @@ public class GetCertificateProfile {
             if (CertificateProfileInfoProvider.class.isAssignableFrom(clazz)) {
                 return (Class<CertificateProfileInfoProvider>) clazz;
             } else {
-                throw new CodedException(X_INTERNAL_ERROR,
+                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
                         "%s must implement %s", className,
                         CertificateProfileInfoProvider.class);
             }
         } catch (ClassNotFoundException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e,
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e,
                     "%s could not be found in classpath", className);
         }
     }

@@ -23,16 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.impl;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.impl.DnFieldLabelLocalizationKey;
+import ee.ria.xroad.common.certificateprofile.impl.EnumLocalizedFieldDescriptionImpl;
+import ee.ria.xroad.common.certificateprofile.impl.SkKlass3CertificateProfileInfoProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.bouncycastle.util.Arrays;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -40,8 +45,6 @@ import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
 
-import static org.bouncycastle.util.Arrays.areEqual;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -62,8 +65,8 @@ public class SkKlass3CertificateProfileInfoProviderTest {
                         "CN", DnFieldLabelLocalizationKey.COMMON_NAME, "foobar").setReadOnly(true)
         };
 
-        assertTrue(areEqual(expected, getSignProfile().getSubjectFields()));
-        assertTrue(areEqual(expected, getAuthProfile().getSubjectFields()));
+        assertTrue(Arrays.areEqual(expected, getSignProfile().getSubjectFields()));
+        assertTrue(Arrays.areEqual(expected, getAuthProfile().getSubjectFields()));
     }
 
     /**
@@ -76,69 +79,69 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         ClientId parts;
 
         parts = id("SERIALNUMBER=16543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("16543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("16543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=26543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("26543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("26543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=36543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("36543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("36543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=46543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("46543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("46543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=56543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("56543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("56543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=66543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("66543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("66543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=76543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("GOV", parts.getMemberClass());
-        assertEquals("76543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("GOV", parts.getMemberClass());
+        Assert.assertEquals("76543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=86543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("NGO", parts.getMemberClass());
-        assertEquals("86543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("NGO", parts.getMemberClass());
+        Assert.assertEquals("86543212", parts.getMemberCode());
 
         parts = id("SERIALNUMBER=96543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("NGO", parts.getMemberClass());
-        assertEquals("96543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("NGO", parts.getMemberClass());
+        Assert.assertEquals("96543212", parts.getMemberCode());
 
         parts = id("2.5.4.97=NTREE-16543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("COM", parts.getMemberClass());
-        assertEquals("16543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("COM", parts.getMemberClass());
+        Assert.assertEquals("16543212", parts.getMemberCode());
 
         parts = id("2.5.4.97=GO:EE-86543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("GOV", parts.getMemberClass());
-        assertEquals("86543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("GOV", parts.getMemberClass());
+        Assert.assertEquals("86543212", parts.getMemberCode());
 
         parts = id("2.5.4.97=NP:EE-96543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("NGO", parts.getMemberClass());
-        assertEquals("96543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("NGO", parts.getMemberClass());
+        Assert.assertEquals("96543212", parts.getMemberCode());
 
         parts = id("2.5.4.97=NP:FI-96543212");
-        assertEquals("XX", parts.getXRoadInstance());
-        assertEquals("NEE", parts.getMemberClass());
-        assertEquals("NP:FI-96543212", parts.getMemberCode());
+        Assert.assertEquals("XX", parts.getXRoadInstance());
+        Assert.assertEquals("NEE", parts.getMemberClass());
+        Assert.assertEquals("NP:FI-96543212", parts.getMemberCode());
     }
 
     /**
@@ -179,9 +182,9 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         X509Certificate cert = TestCertUtil.getCert("/NTREE.pem");
         ClientId clientId = getSignProfile().getSubjectIdentifier(cert);
 
-        assertEquals("XX", clientId.getXRoadInstance());
-        assertEquals("COM", clientId.getMemberClass());
-        assertEquals("10747013", clientId.getMemberCode());
+        Assert.assertEquals("XX", clientId.getXRoadInstance());
+        Assert.assertEquals("COM", clientId.getMemberClass());
+        Assert.assertEquals("10747013", clientId.getMemberCode());
     }
 
     // ------------------------------------------------------------------------
