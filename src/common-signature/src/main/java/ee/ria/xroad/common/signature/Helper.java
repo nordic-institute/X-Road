@@ -27,6 +27,7 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -46,13 +47,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
-
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 
 /**
  * Local helper class for constructing Xades signatures.
@@ -185,7 +179,7 @@ final class Helper {
      */
     static Element createDigestMethodElement(Document doc, String hashMethod) throws Exception {
         Element digestMethodElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
-        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, getDigestAlgorithmURI(hashMethod));
+        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, CryptoUtils.getDigestAlgorithmURI(hashMethod));
 
         return digestMethodElement;
     }
@@ -195,7 +189,7 @@ final class Helper {
      */
     static Element createDigestValueElement(Document doc, byte[] hashValue) {
         Element digestValueElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
-        digestValueElement.setTextContent(encodeBase64(hashValue));
+        digestValueElement.setTextContent(CryptoUtils.encodeBase64(hashValue));
 
         return digestValueElement;
     }
@@ -211,16 +205,16 @@ final class Helper {
         String digestMethod = ((Element) digAlgAndValueElement.getFirstChild()).getAttribute(ALGORITHM_ATTRIBUTE);
         String digestValue = digAlgAndValueElement.getLastChild().getTextContent();
 
-        byte[] digest = calculateDigest(getAlgorithmId(digestMethod), data);
+        byte[] digest = CryptoUtils.calculateDigest(CryptoUtils.getAlgorithmId(digestMethod), data);
 
-        return MessageDigestAlgorithm.isEqual(decodeBase64(digestValue), digest);
+        return MessageDigestAlgorithm.isEqual(CryptoUtils.decodeBase64(digestValue), digest);
     }
 
     /**
      * Shortcut for adding a reference to a manifest.
      */
     static void addManifestReference(Manifest manifest, String uri) throws Exception {
-        manifest.addDocument(null, "#" + uri, null, DEFAULT_DIGEST_ALGORITHM_URI, null, null);
+        manifest.addDocument(null, "#" + uri, null, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI, null, null);
     }
 
     /**

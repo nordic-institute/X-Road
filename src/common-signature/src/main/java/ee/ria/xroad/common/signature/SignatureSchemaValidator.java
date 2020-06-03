@@ -41,7 +41,7 @@ public class SignatureSchemaValidator extends SchemaValidator {
     private static Schema schema;
 
     static {
-        schema = createSchema(FILE);
+        schema = SchemaValidator.createSchema(FILE);
     }
 
     /**
@@ -50,6 +50,6 @@ public class SignatureSchemaValidator extends SchemaValidator {
      * @throws Exception if validation is unsuccessful
      */
     public static void validate(Source source) throws Exception {
-        validate(schema, source, ErrorCodes.X_MALFORMED_SIGNATURE);
+        SchemaValidator.validate(schema, source, ErrorCodes.X_MALFORMED_SIGNATURE);
     }
 }

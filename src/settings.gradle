@@ -43,4 +43,5 @@ include "addons:proxymonitor:common"
 include "addons:proxymonitor:metaservice"
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+include 'common-signature'
 
