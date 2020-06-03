@@ -425,7 +425,6 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
-
     @InitBinder("clientAdd")
     @PreAuthorize("permitAll()")
     protected void initClientAddBinder(WebDataBinder binder) {
@@ -539,7 +538,7 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException  e) {
+        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -547,9 +546,11 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_OWNER_CHANGE_REQ')")
-    public ResponseEntity<Void> changeOwner(Client client) {
+    public ResponseEntity<Void> changeOwner(String encodedClientId) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
-            clientService.changeOwner(client.getMemberClass(), client.getMemberCode(), client.getSubsystemCode());
+            clientService.changeOwner(clientId.getMemberClass(), clientId.getMemberCode(),
+                    clientId.getSubsystemCode());
         } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
@@ -654,7 +655,7 @@ public class ClientsApiController implements ClientsApi {
 
     private Set<String> getServiceCodes(AccessRights accessRights) {
         Set<String> serviceCodes = new HashSet<>();
-        for (AccessRight accessRight: accessRights.getItems()) {
+        for (AccessRight accessRight : accessRights.getItems()) {
             serviceCodes.add(accessRight.getServiceCode());
         }
         return serviceCodes;
