@@ -70,9 +70,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -85,7 +84,9 @@ export default Vue.extend({
     },
     selectableClients: {
       type: Array,
-      required: true,
+      default() {
+        return [];
+      },
     },
   },
 

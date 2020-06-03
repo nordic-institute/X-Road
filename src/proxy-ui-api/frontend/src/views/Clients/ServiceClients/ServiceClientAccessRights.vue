@@ -90,17 +90,17 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue';
-  import * as api from '@/util/api';
-  import {AccessRight, AccessRights, ServiceClient, ServiceDescription} from '@/types';
-  import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-  import LargeButton from '@/components/ui/LargeButton.vue';
-  import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
-  import {serviceCandidatesForServiceClient} from '@/util/serviceClientUtils';
-  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-  import {ServiceCandidate} from '@/ui-types';
+import Vue from 'vue';
+import * as api from '@/util/api';
+import {AccessRight, AccessRights, ServiceClient, ServiceDescription} from '@/openapi-types';
+import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
+import {serviceCandidatesForServiceClient} from '@/util/serviceClientUtils';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import {ServiceCandidate} from '@/ui-types';
 
-  export default Vue.extend({
+export default Vue.extend({
   components: {
     SubViewTitle,
     LargeButton,

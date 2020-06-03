@@ -2,7 +2,7 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { SecurityServer, Version } from '@/types';
+import { SecurityServer, Version } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import i18n from '@/i18n';
@@ -108,15 +108,11 @@ export const actions: ActionTree<UserState, RootState> = {
   },
 
   async fetchUserData({ commit, dispatch }) {
-
-    commit('setLoading', true);
-
     return axios.get('/user')
       .then((res) => {
         console.log(res);
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
-
       })
       .catch((error) => {
         console.log(error);

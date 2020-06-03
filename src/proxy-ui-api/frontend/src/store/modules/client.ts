@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 export interface ClientState {
   client: Client | null;
@@ -172,14 +172,12 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   },
 
-  registerClient({ commit, state }, { instanceId, memberClass, memberCode, subsystemCode }) {
-    const clientId = instanceId + ':' + memberClass + ':' + memberCode + ':' + subsystemCode;
+  registerClient({ commit, state }, clientId: string ) {
     return axios.put(`/clients/${clientId}/register`, {});
   },
 
-  unregisterClient({ commit, state }, client: Client) {
-    const clientId = client.instance_id + ':' + client.member_class + ':' + client.member_code + ':' + client.subsystem_code;
-    return axios.put(`/clients/${clientId}/unregister`, {});
+  unregisterClient({ commit, state }, clientId) {
+       return axios.put(`/clients/${clientId}/unregister`, {});
   },
 
   addSubsystem({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {

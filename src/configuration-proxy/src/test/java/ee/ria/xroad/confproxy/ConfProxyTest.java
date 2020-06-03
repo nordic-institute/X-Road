@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -67,7 +68,7 @@ public final class ConfProxyTest {
                     conf.getConfigurationDownloadPath(SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION));
 
             OutputBuilder output = new OutputBuilder(confDir, conf,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
+                    SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
             output.buildSignedDirectory();
             output.moveAndCleanup();
         } catch (Exception ex) {

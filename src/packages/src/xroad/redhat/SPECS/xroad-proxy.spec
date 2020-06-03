@@ -52,7 +52,6 @@ mkdir -p %{buildroot}/etc/nginx/conf.d
 
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{_sourcedir}/proxy/xroad-proxy-port-redirect.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
@@ -109,8 +108,8 @@ rm -rf %{buildroot}
 %attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-proxy
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-setup.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-initdb.sh
-%attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh
 %attr(544,root,xroad) /usr/share/xroad/bin/xroad-add-admin-user.sh
+%attr(540,root,xroad) /usr/share/xroad/scripts/setup_serverconf_db.sh
 
 %defattr(-,root,root,-)
 /usr/bin/xroad-add-admin-user
@@ -138,9 +137,6 @@ if [ $1 -gt 1 ] ; then
     # remove the previous port forwarding rules (if any)
     if [ -e /etc/sysconfig/xroad-proxy ]; then
         source /etc/sysconfig/xroad-proxy
-    fi
-    if [ -x /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh ]; then
-        /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh disable
     fi
 
     mkdir -p %{_localstatedir}/lib/rpm-state/%{name}

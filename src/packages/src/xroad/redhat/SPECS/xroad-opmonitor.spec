@@ -51,6 +51,7 @@ cp -p %{srcdir}/common/op-monitor/etc/xroad/services/opmonitor.conf %{buildroot}
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/db/op-monitor/*.xml %{buildroot}/usr/share/xroad/db/op-monitor/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/db/op-monitor-changelog.xml %{buildroot}/usr/share/xroad/db/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/bin/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
+cp -p %{srcdir}/common/op-monitor/usr/share/xroad/scripts/setup_opmonitor_db.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/common/op-monitor/generate-opmonitor-certificate.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-opmonitor/
@@ -75,6 +76,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/op-monitor-changelog.xml
 
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
+%attr(540,root,xroad) /usr/share/xroad/scripts/setup_opmonitor_db.sh
 %attr(754,xroad,xroad) /usr/share/xroad/bin/xroad-opmonitor
 %attr(644,root,root) %{_unitdir}/xroad-opmonitor.service
 

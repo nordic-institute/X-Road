@@ -1,13 +1,18 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <v-flex mb-4 class="title-action">
-      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} ({{ $t("client.owner") }})</h1>
+      <h1
+        v-if="client && client.owner"
+        class="display-1 mb-3"
+      >{{client.member_name}} ({{ $t("client.owner") }})</h1>
+      <h1
+        v-else-if="client"
+        class="display-1 mb-3"
+      >{{client.member_name}} ({{ $t("client.member") }})</h1>
 
       <div>
-        <LargeButton
-          v-if="showUnregister"
-          @click="confirmUnregisterClient = true"
-        >{{$t('action.unregister')}}</LargeButton>
+        <DeleteClientButton v-if="showDelete" :id="id" />
+        <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchClient" />
       </div>
     </v-flex>
     <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
@@ -16,16 +21,6 @@
     </v-tabs>
 
     <router-view />
-
-    <!-- Confirm dialog for unregister client -->
-    <ConfirmDialog
-      :dialog="confirmUnregisterClient"
-      :loading="unregisterLoading"
-      title="client.action.unregister.confirmTitle"
-      text="client.action.unregister.confirmText"
-      @cancel="confirmUnregisterClient = false"
-      @accept="unregisterClient()"
-    />
   </div>
 </template>
 
@@ -34,13 +29,13 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
+import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    ConfirmDialog,
+    UnregisterClientButton,
+    DeleteClientButton,
   },
   props: {
     id: {
@@ -50,16 +45,31 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: null,
-      confirmUnregisterClient: false,
-      unregisterLoading: false,
+      tab: undefined as undefined | Tab,
     };
   },
   computed: {
     ...mapGetters(['client']),
     showUnregister(): boolean {
+      return (
+        this.client &&
+        this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        (this.client.status === 'REGISTERED' ||
+          this.client.status === 'REGISTRATION_IN_PROGRESS')
+      );
+    },
+    showDelete(): boolean {
+      if (
+        !this.client ||
+        this.client.status === 'REGISTERED' ||
+        this.client.status === 'REGISTRATION_IN_PROGRESS'
+      ) {
+        return false;
+      }
+
       return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ);
     },
+
     tabs(): Tab[] {
       const allTabs = [
         {
@@ -83,12 +93,6 @@ export default Vue.extend({
 
       return this.$store.getters.getAllowedTabs(allTabs);
     },
-    localGroupsRoute(): object {
-      return {
-        name: RouteName.SubsystemLocalGroups,
-        params: { id: this.id },
-      };
-    },
   },
   created() {
     this.fetchClient(this.id);
@@ -98,28 +102,6 @@ export default Vue.extend({
       this.$store.dispatch('fetchClient', id).catch((error) => {
         this.$store.dispatch('showError', error);
       });
-    },
-
-    unregisterClient(): void {
-      this.unregisterLoading = true;
-      this.$store
-        .dispatch('unregisterClient', this.client)
-        .then(
-          () => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.unregister.success',
-            );
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          this.fetchClient(this.id);
-          this.confirmUnregisterClient = false;
-          this.unregisterLoading = false;
-        });
     },
   },
 });

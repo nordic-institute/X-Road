@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -52,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -486,21 +488,50 @@ public class ServicesApiControllerIntegrationTest {
 
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
-    public void addDuplicateAccessRight() {
+    public void addDuplicateAccessRight() throws Exception {
         when(globalConfService.clientsExist(any())).thenReturn(true);
         when(globalConfService.globalGroupsExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
+        // add subsystem TestUtils.CLIENT_ID_SS2 as duplicate
         ServiceClients clientsToAdd = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
-
         servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
     }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
+    public void addDuplicatePreExistingAccessRight() {
+        // try adding duplicate local group that already exists
+        ServiceClients existingLocalGroup = new ServiceClients()
+                .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
+                        ServiceClientType.LOCALGROUP));
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, existingLocalGroup);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
+    public void addDuplicateIdenticalAccessrights() {
+        // try adding two identical localgroups
+        List<ServiceClient> itemsBefore =
+                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        ServiceClient localGroup = new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
+                ServiceClientType.LOCALGROUP);
+        ServiceClients duplicateLocalGroups = new ServiceClients().addItemsItem(localGroup).addItemsItem(localGroup);
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
+        List<ServiceClient> itemsAfter =
+                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertTrue(itemsBefore.size() + 1 == itemsAfter.size());
+        assertTrue(itemsAfter.stream()
+                .filter(item -> item.getId().equals(TestUtils.DB_LOCAL_GROUP_ID_2))
+                .collect(Collectors.toList()).size() == 1);
+    }
+
 
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })

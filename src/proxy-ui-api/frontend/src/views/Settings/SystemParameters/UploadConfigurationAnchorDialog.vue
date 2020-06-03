@@ -94,7 +94,7 @@ import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Anchor } from '@/types';
+import { Anchor } from '@/openapi-types';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
@@ -129,7 +129,7 @@ export default Vue.extend({
           return;
         }
         api
-          .post('/system/anchor/preview', e.target.result, {
+          .post('/system/anchor/previews', e.target.result, {
             headers: {
               'Content-Type': 'application/octet-stream',
             },
@@ -146,7 +146,7 @@ export default Vue.extend({
     uploadAnchor(): void {
       this.uploading = true;
       api
-        .post('/system/anchor', this.uploadedFile, {
+        .put('/system/anchor', this.uploadedFile, {
           headers: {
             'Content-Type': 'application/octet-stream',
           },

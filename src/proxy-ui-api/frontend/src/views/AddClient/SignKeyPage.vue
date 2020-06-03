@@ -54,7 +54,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: true,
+      disableDone: true as boolean,
     };
   },
   methods: {

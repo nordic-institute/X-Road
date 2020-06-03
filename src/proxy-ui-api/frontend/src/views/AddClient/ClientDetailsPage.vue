@@ -19,20 +19,20 @@
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="selectedMember" data-test="selected-member-name">{{selectedMember.member_name}}</div>
+        <div data-test="selected-member-name">{{selectedMemberName}}</div>
       </div>
 
       <div class="row-wrap">
         <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
 
         <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
+          <v-select
+            :items="memberClasses"
             :error-messages="errors"
+            class="form-input"
             v-model="memberClass"
             data-test="member-class-input"
-          ></v-text-field>
+          ></v-select>
         </ValidationProvider>
       </div>
       <div class="row-wrap">
@@ -89,8 +89,8 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SelectClientDialog from './SelectClientDialog.vue';
-import { Client } from '@/types';
+import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
+import { Client } from '@/openapi-types';
 import { containsClient } from '@/util/helpers';
 
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
@@ -104,7 +104,12 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedClients', 'selectableClients']),
+    ...mapGetters([
+      'reservedClients',
+      'selectableClients',
+      'memberClasses',
+      'selectedMemberName',
+    ]),
 
     memberClass: {
       get(): string {
@@ -133,17 +138,13 @@ export default Vue.extend({
       },
     },
 
-    selectedMember: {
-      get(): Client {
-        return this.$store.getters.selectedMember;
-      },
-      set(value: Client) {
-        this.$store.commit('setMember', value);
-      },
-    },
-
     duplicateClient(): boolean {
-      return containsClient(this.reservedClients, this.memberClass, this.memberCode, this.subsystemCode);
+      return containsClient(
+        this.reservedClients,
+        this.memberClass,
+        this.memberCode,
+        this.subsystemCode,
+      );
     },
   },
   data() {
@@ -175,6 +176,16 @@ export default Vue.extend({
   },
   created() {
     this.$store.dispatch('fetchSelectableClients');
+    this.$store.dispatch('fetchMemberClasses');
+  },
+
+  watch: {
+    memberClasses(val) {
+      // Set first member class selected as default when the list is updated
+      if (val?.length === 1) {
+        this.memberClass = val[0];
+      }
+    },
   },
 });
 </script>

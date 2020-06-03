@@ -1,6 +1,6 @@
 
 import * as Helpers from '@/util/helpers';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 const arr: Client[] = [
   {

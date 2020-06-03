@@ -73,7 +73,7 @@ import Vue from 'vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import {Prop} from 'vue/types/options';
 import {ServiceCandidate} from '@/ui-types';
-import {AccessRight, AccessRights, ServiceClient} from '@/types';
+import {AccessRight, AccessRights, ServiceClient} from '@/openapi-types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 

@@ -100,7 +100,7 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Key, Token } from '@/types';
+import { Key, Token } from '@/openapi-types';
 import { UsageTypes, CsrFormatTypes } from '@/global';
 import * as api from '@/util/api';
 
@@ -184,13 +184,13 @@ export default Vue.extend({
   watch: {
     filteredServiceList(val) {
       // Set first certification service selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.certificationService = val[0].name;
       }
     },
     localMembersIds(val) {
-      // Set first client selected as defaulg when the list is updated
-      if (val && val.length === 1) {
+      // Set first client selected as default when the list is updated
+      if (val?.length === 1) {
         this.client = val[0].id;
       }
     },

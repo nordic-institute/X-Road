@@ -1,6 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Key, Token, TokenType, TokenCertificate } from '@/types';
+import { Key, Token, TokenType, TokenCertificate } from '@/openapi-types';
 import axios from 'axios';
 import { cloneDeep } from 'lodash';
 import * as api from '@/util/api';

@@ -7,7 +7,7 @@
  * General purpose component for status icon with color
  */
 import Vue from 'vue';
-import { Client, ClientStatus } from '@/types';
+import { Client, ClientStatus } from '@/openapi-types';
 
 export default Vue.extend({
   props: {

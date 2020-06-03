@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,6 +28,7 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.hibernate.Session;
@@ -132,6 +134,21 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
         qb.append("select c from ClientType as c where :endpoint member of c.endpoint");
         Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
         query.setParameter("endpoint", endpointType);
+        return findOne(query);
+    }
+
+    /**
+     * Returns ClientType containing localGroupType given as parameter
+     *
+     * @param session       the session
+     * @param localGroupType  localGroupType entity
+     * @return the client, or null if matching client was not found for the localGroupType
+     */
+    public ClientType getClientByLocalGroup(Session session, LocalGroupType localGroupType) {
+        StringBuilder qb = new StringBuilder();
+        qb.append("select c from ClientType as c where :localGroup member of c.localGroup");
+        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        query.setParameter("localGroup", localGroupType);
         return findOne(query);
     }
 }

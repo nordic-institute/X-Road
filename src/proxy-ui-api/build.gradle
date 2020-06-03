@@ -3,7 +3,6 @@ buildscript {
         openapiGeneratorVersion = '4.2.0'
         nodePluginVersion = '1.3.1'
         nodeVersion = '12.16.3'
-        npmVersion = '6.14.4'
         swaggerParserVersion = '2.0.19'
     }
     repositories {
@@ -60,9 +59,7 @@ ext['hikaricp.version'] = '3.2.0'
 node {
     download = true
     version = nodeVersion
-    npmVersion = npmVersion
-    npmWorkDir = file("frontend")
-    nodeModulesDir = file("frontend/node_modules")
+    nodeModulesDir = file("frontend")
 }
 
 task buildFront(type: NpmTask) {
@@ -96,18 +93,25 @@ if (!project.hasProperty("testTargetUrl")) {
     ext.testTargetUrl = ""
 }
 
+if (!project.hasProperty("testDataUrl")) {
+    ext.testDataUrl = ""
+}
+
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     doFirst {
         if (testTargetUrl.isEmpty()) {
             throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
         }
+        if (testDataUrl.isEmpty()) {
+            throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
+        }
     }
 
     inputs.dir("frontend")
     outputs.dir("frontend")
 
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl]
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl ]
 
     execOverrides {
         it.workingDir = 'frontend'
