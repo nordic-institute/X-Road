@@ -632,7 +632,7 @@ client.
 
 - 4a. The inserted URL already exists.
     - 4a.1. System displays the error message “Failed to add WSDL: WSDL address already exists.” or “Failed to add REST: REST address already exists.”.
-    - 4a.2. System logs the event “Add service description” to the audit log.
+    - 4a.2. System logs the event “Add service description failed” to the audit log.
     - 4a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 4a.3a. SS administrator selects to terminate the use case.
 
@@ -654,7 +654,8 @@ client.
 
 - 6c. The process of validating the WSDL or REST file was finished with a warning message.
     - 6c.1. System prompts the warning message from the validation process. “WSDL ('X') validation gave the following warnings: 'Y'. Do you want to continue? (where “X” is the URL of the WSDL or REST and “Y” is the message from the validation process).
-    - 6c.2. SS administrator chooses to continue with adding the WSDL or REST. Use case continues from step 7.
+    - 6b.2. System logs the event “Add service description failed” to the audit log.
+    - 6c.3. SS administrator chooses to continue with adding the WSDL or REST. Use case continues from step 7.
         - 6c.2a. SS administrator selects to terminate the use case.
 
 - 6d. The address of the WSDL or REST validator program is incorrect and system was not able to run the validation program.
@@ -1095,8 +1096,9 @@ reloads the WSDL file from the WSDL or REST address.
 
 - 5a. The composition of the services in the downloaded WSDL or REST differ from the current version.
     - 5a.1. System prompts the warning “Adding services: 'X' Deleting services: 'Y'” (where “X” and “Y” is the list of the service codes that have been added to or removed from the WSDL or REST) and asks for confirmation to continue.
-    - 5a.2. SS administrator selects to continue with the refreshing process. Use case continues from step 6.
-        - 5a.2a. SS administrator selects to terminate the use case.
+    - 5a.2. System logs the event “Adding service description failed” to the audit log.
+    - 5a.3. SS administrator selects to continue with the refreshing process. Use case continues from step 6.
+        - 5a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
