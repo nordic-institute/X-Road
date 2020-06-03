@@ -32,13 +32,13 @@ export function selectedFilter(arr: any[], search: string, excluded?: string): a
 }
 
 // Checks if the given WSDL URL valid
-export function isValidWsdlURL(str: string) {
+export function isValidWsdlURL(str: string): boolean {
   const pattern = new RegExp('(^(https?):\/\/\/?)[-a-zA-Z0-9]');
   return !!pattern.test(str);
 }
 
 // Checks if the given REST URL is valid
-export function isValidRestURL(str: string) {
+export function isValidRestURL(str: string): boolean {
   return isValidWsdlURL(str);
 }
 
@@ -72,7 +72,7 @@ export function saveResponseAsFile(response: any, defaultFileName: string = 'cer
 }
 
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
-export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string) {
+export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string): boolean {
 
   if (!memberClass || !memberCode || !subsystemCode) {
     return false;
@@ -98,4 +98,38 @@ export function containsClient(clients: Client[], memberClass: string, memberCod
   }
 
   return false;
+}
+
+
+// Create a client ID
+export function createClientId(
+  instanceId: string,
+  memberClass: string,
+  memberCode: string,
+  subsystemCode?: string): string {
+
+  if (subsystemCode) {
+    return `${instanceId}:${memberClass}:${memberCode}:${subsystemCode}`;
+  }
+
+  return `${instanceId}:${memberClass}:${memberCode}`;
+}
+
+// Debounce function
+export const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+  let timeout: number | undefined;
+
+  return (...args: Parameters<F>): Promise<ReturnType<F>> =>
+    new Promise((resolve) => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+
+      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+    });
+};
+
+// Check if a string or array is empty, null or undefined
+export function isEmpty(str: string | []): boolean {
+  return (!str || 0 === str.length);
 }

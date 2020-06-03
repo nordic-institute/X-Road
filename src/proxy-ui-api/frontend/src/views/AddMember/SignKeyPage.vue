@@ -42,7 +42,6 @@ export default Vue.extend({
     ValidationProvider,
   },
   computed: {
-    ...mapGetters(['csrForm']),
     keyLabel: {
       get(): string {
         return this.$store.getters.keyLabel;
@@ -54,7 +53,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: true as boolean,
+      disableDone: true,
     };
   },
   methods: {

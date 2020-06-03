@@ -16,7 +16,7 @@
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="done" />
+          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="cancel" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -67,26 +67,18 @@ export default Vue.extend({
       );
     },
     cancel(): void {
-      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
-    done(): void {
-      this.$store.dispatch('resetCsrState');
-      this.$router.replace({ name: RouteName.SignAndAuthKeys });
-    },
-
     fetchKeyData(id: string): void {
       this.$store.dispatch('fetchKeyData').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },
-
     fetchLocalMembers(): void {
       this.$store.dispatch('fetchLocalMembers').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },
-
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
         this.$store.dispatch('showError', error);
@@ -98,6 +90,10 @@ export default Vue.extend({
     this.fetchKeyData(this.keyId);
     this.fetchLocalMembers();
     this.fetchCertificateAuthorities();
+  },
+  beforeDestroy() {
+    // Clear the vuex store
+    this.$store.dispatch('resetCsrState');
   },
 });
 </script>

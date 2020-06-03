@@ -15,6 +15,7 @@ import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AddClient from '@/views/AddClient/AddClient.vue';
+import AddMember from '@/views/AddMember/AddMember.vue';
 import Subsystem from '@/views/Clients/Subsystem.vue';
 import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
 import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
@@ -144,6 +145,16 @@ const router = new Router({
           path: '/add-client',
           components: {
             default: AddClient,
+          },
+        },
+        {
+          name: RouteName.AddMember,
+          path: '/add-member/:instanceId/:memberClass/:memberCode',
+          components: {
+            default: AddMember,
+          },
+          props: {
+            default: true,
           },
         },
         {

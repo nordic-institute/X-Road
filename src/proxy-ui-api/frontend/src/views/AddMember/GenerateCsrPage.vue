@@ -22,22 +22,9 @@
           </ValidationProvider>
         </div>
       </div>
-      <div class="generate-row">
-        <div>{{$t('csr.saveInfo')}}</div>
-        <large-button
-          @click="generateCsr"
-          :disabled="invalid || !disableDone"
-          data-test="generate-csr-button"
-        >{{$t('csr.generateCsr')}}</large-button>
-      </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button
-            outlined
-            @click="cancel"
-            :disabled="!disableDone"
-            data-test="cancel-button"
-          >{{$t('action.cancel')}}</large-button>
+          <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
         </div>
         <div>
           <large-button
@@ -45,11 +32,10 @@
             outlined
             class="previous-button"
             data-test="previous-button"
-            :disabled="!disableDone"
           >{{$t('action.previous')}}</large-button>
           <large-button
             @click="done"
-            :disabled="disableDone"
+            :disabled="invalid"
             data-test="save-button"
           >{{$t(saveButtonText)}}</large-button>
         </div>
@@ -75,19 +61,13 @@ export default Vue.extend({
       type: String,
       default: 'action.done',
     },
-    // Creating Key + CSR or just CSR
-    keyAndCsr: {
+    showGenerateButton: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   computed: {
     ...mapGetters(['csrForm']),
-  },
-  data() {
-    return {
-      disableDone: true,
-    };
   },
   methods: {
     cancel(): void {
@@ -98,31 +78,6 @@ export default Vue.extend({
     },
     done(): void {
       this.$emit('done');
-    },
-    generateCsr(): void {
-      const tokenId = this.$store.getters.csrTokenId;
-
-      if (this.keyAndCsr) {
-        // Create key and CSR
-        this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-          (response) => {
-            this.disableDone = false;
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        );
-      } else {
-        // Create only CSR
-        this.$store.dispatch('generateCsr').then(
-          (response) => {
-            this.disableDone = false;
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        );
-      }
     },
   },
 });
