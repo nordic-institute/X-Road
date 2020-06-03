@@ -140,6 +140,9 @@ public class ServiceService {
         }
 
         ServiceDescriptionType serviceDescriptionType = serviceType.getServiceDescription();
+        if (DescriptionType.REST.equals(serviceDescriptionType.getType())) {
+            serviceDescriptionType.setUrl(url);
+        }
 
         serviceDescriptionType.getService().forEach(service -> {
             boolean serviceMatch = service == serviceType;

@@ -2,8 +2,8 @@
   "decisions": {
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1588578292034,
-      "expiresAt": 1591170276771
+      "madeAt": 1591174605046,
+      "expiresAt": 1593766576707
     },
     "1500|@vue/cli-service>webpack-dev-server>yargs>yargs-parser": {
       "decision": "ignore",
@@ -17,8 +17,8 @@
     },
     "1500|npm-audit-resolver>audit-resolve-core>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1588578292034,
-      "expiresAt": 1591170276771
+      "madeAt": 1591174605046,
+      "expiresAt": 1593766576707
     },
     "1486|@vue/cli-service>webpack-dev-server>http-proxy-middleware>http-proxy": {
       "decision": "ignore",

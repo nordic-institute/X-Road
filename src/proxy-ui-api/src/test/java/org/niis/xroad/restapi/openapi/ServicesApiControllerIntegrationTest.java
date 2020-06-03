@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -80,6 +81,9 @@ public class ServicesApiControllerIntegrationTest {
 
     @Autowired
     private ServicesApiController servicesApiController;
+
+    @Autowired
+    private ServiceDescriptionsApiController serviceDescriptionsApiController;
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
@@ -203,6 +207,31 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(60, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
         assertEquals(TestUtils.URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
+    public void updateRestServiceUrl() {
+        String initialUrl = "https://restservice.com/api/v1/nosuchservice";
+        String changedUrl = "https://restservice.com/api/v1/changedurl";
+
+        Service service = servicesApiController.getService(TestUtils.SS1_REST_SERVICECODE).getBody();
+        assertEquals(initialUrl, service.getUrl());
+
+        ServiceDescription serviceDescription = serviceDescriptionsApiController.getServiceDescription("5").getBody();
+        assertEquals(initialUrl, serviceDescription.getUrl());
+
+        service.setUrl(changedUrl);
+        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        Service updatedService =
+                servicesApiController.updateService(TestUtils.SS1_REST_SERVICECODE, serviceUpdate).getBody();
+
+        ServiceDescription updatedServiceDescription =
+                serviceDescriptionsApiController.getServiceDescription("5").getBody();
+
+        assertEquals(changedUrl, updatedService.getUrl());
+        assertEquals(changedUrl, updatedServiceDescription.getUrl());
+
     }
 
     @Test

@@ -84,7 +84,7 @@ values (5, 3, 'bodyMassIndexOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/bod
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (6, 1, 'getRandom', 'v2', 'getrandom-v2-title', 'https://soapservice.com/v1/Endpoint', true, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
-values (7, 5, 'rest-servicecode', 'v1', null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
+values (7, 5, 'rest-servicecode', null, null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (8, 6, 'openapi3-test', 'v1', null, 'file:src/test/resources/openapiparser/valid.yaml', false, 60);
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
