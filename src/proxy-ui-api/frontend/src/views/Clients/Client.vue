@@ -70,7 +70,6 @@ export default Vue.extend({
     ...mapGetters(['client']),
 
     showMakeOwner(): boolean {
-      // TODO: needs a proper permission
       return (
         this.client &&
         this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
