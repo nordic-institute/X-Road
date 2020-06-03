@@ -6,6 +6,7 @@ dependencies {
     compile project(':serverconf')
     compile project(':signer-protocol')
     compile project(':common-messagelog')
+    compile project(':common-monitoring')
     compile project(':common-op-monitoring')
 
     compile "org.eclipse.jetty:jetty-xml:$jettyVersion"

@@ -45,7 +45,6 @@ import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
@@ -569,7 +568,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         SoapMessageImpl soap = requestMessage.getSoap();
 
-        return new MessageInfo(Origin.SERVER_PROXY, soap.getClient(), requestServiceId, soap.getUserId(),
+        return new MessageInfo(MessageInfo.Origin.SERVER_PROXY, soap.getClient(), requestServiceId, soap.getUserId(),
                 soap.getQueryId());
     }
 
