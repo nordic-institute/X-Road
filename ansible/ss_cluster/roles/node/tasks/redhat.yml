@@ -9,10 +9,20 @@
 - name: create the database
   environment:
       PGSETUP_INITDB_OPTIONS: "--auth-local=peer --auth-host=md5"
+  command: "postgresql-setup --initdb --unit postgresql-serverconf --port 5433"
+  args:
+      creates: /var/lib/pgsql/serverconf
+  register: create_database
+  when: ansible_distribution_major_version == "8"
+
+- name: create the database
+  environment:
+      PGSETUP_INITDB_OPTIONS: "--auth-local=peer --auth-host=md5"
   command: "postgresql-setup initdb postgresql-serverconf"
   args:
       creates: /var/lib/pgsql/serverconf
   register: create_database
+  when: ansible_distribution_major_version == "7"
 
 - name: allow postgresql port
   command: semanage port -a -t postgresql_port_t -p tcp "{{ serverconf_db_port }}"
