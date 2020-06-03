@@ -58,7 +58,7 @@ export default Vue.extend({
       this.makeOwnerLoading = true;
 
       api
-        .put(`/clients/owner`, { id: this.id })
+        .put(`/clients/${this.id}/make-owner`, {})
         .then(
           () => {
             this.$store.dispatch(
@@ -74,27 +74,7 @@ export default Vue.extend({
           this.$emit('done', this.id);
           this.confirmMakeOwner = false;
           this.makeOwnerLoading = false;
-        });
-
-      /*
-      this.$store
-        .dispatch('unregisterClient', this.id)
-        .then(
-          () => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.unregister.success',
-            );
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          this.$emit('done', this.id);
-          this.confirmMakeOwner = false;
-          this.makeOwnerLoading = false;
-        }); */
+        }); 
     },
   },
 });
