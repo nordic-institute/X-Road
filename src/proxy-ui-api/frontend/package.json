@@ -55,7 +55,7 @@
     "prettier": "^1.19.1",
     "sass": "^1.26.3",
     "sass-loader": "^8.0.2",
-    "ts-jest": "^25.1.0",
+    "ts-jest": "^26.1.0",
     "typescript": "3.8.3",
     "vue-cli-plugin-i18n": "^0.6.0",
     "vue-cli-plugin-vuetify": "^2.0.3",
