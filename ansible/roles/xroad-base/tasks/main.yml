@@ -39,7 +39,7 @@
 - name: clean xroad logs at boot
   cron:
     name: xroad log cleanup
-    job: "/usr/bin/find /var/log/xroad -type f -not -name audit.log \\( -name '*.log' -o -name '*.log.zip' \\) -mtime +1 -exec rm {{ '{} \\;' }} > /dev/null 2>&1"
+    job: "/usr/bin/find /var/log/xroad -type f -not -name audit.log \\( -name '*.log' -o -name '*.log.zip' \\) -mtime +7 -exec rm {{ '{} \\;' }} > /dev/null 2>&1"
     special_time: reboot
     cron_file: xroad_log_cleanup
     user: xroad
