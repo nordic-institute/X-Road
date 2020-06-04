@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { cloneDeep } from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
@@ -50,7 +49,7 @@ export const getters: GetterTree<DataState, RootState> = {
     // Find the owner member (there is only one) it has member_name, but no subsystem_code
     state.clients.forEach((element, index) => {
       if (!element.subsystem_code) {
-        const clone = cloneDeep(element);
+        const clone = JSON.parse(JSON.stringify(element));
         clone.type = 'owner';
         clone.subsystem_code = null;
         clone.name = clone.member_name;
@@ -78,7 +77,7 @@ export const getters: GetterTree<DataState, RootState> = {
 
       if (!memberAlreadyExists) {
         // If member is not in members array, create and add it
-        const clone = cloneDeep(element);
+        const clone = JSON.parse(JSON.stringify(element));
         clone.type = 'client';
 
         // Create member id
@@ -104,7 +103,7 @@ export const getters: GetterTree<DataState, RootState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = cloneDeep(element);
+        const clone = JSON.parse(JSON.stringify(element));
         clone.name = clone.subsystem_code;
 
         if (element.member_name) {

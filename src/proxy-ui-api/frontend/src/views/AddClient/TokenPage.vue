@@ -1,6 +1,7 @@
 <template>
   <div>
     {{$t('wizard.token.info')}}
+
     <v-text-field
       v-model="search"
       :label="$t('wizard.token.tokenName')"
