@@ -73,6 +73,7 @@ Doc. ID: UG-SS
  26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
  30.03.2020 | 2.39    | Added description of pre-restore backups | Ilkka Seppälä
  01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
+ 05.06.2020 | 2.41    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -190,6 +191,7 @@ Doc. ID: UG-SS
     - [19.1.5 API key caching](#1915-api-key-caching)
   - [19.2 Executing REST calls](#192-executing-rest-calls)
   - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
+  - [19.4 Validation errors](#194-validation-errors)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
@@ -2113,6 +2115,20 @@ For example, these log messages are related to an API call with correlation ID `
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.c.HttpSessionSecurityContextRepository - The HttpSession is currently null, and the HttpSessionSecurityContextRepository is prohibited from creating an HttpSession (because the allowSessionCreation property is false) - SecurityContext thus not stored for next request
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.a.ExceptionTranslationFilter - Chain processed normally
+```
+
+### 19.4 Validation errors
+
+An error response from the REST API can include validation errors if an unsupported parameter was provided with the request. 
+
+In addition to the validation messages declared in Java Validation API, the following validation errors are possible:
+```
+Normalized
+NoColons
+NoSemicolons
+NoForwardslashes
+NoBackslashes
+NoPercents
 ```
 
 ## 20 Migrating to Remote Database Host
