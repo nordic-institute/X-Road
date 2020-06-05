@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t(title)}}</span>
+        <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
@@ -14,7 +14,9 @@
             <v-expansion-panel-content class="elevation-0">
               <template v-slot:header>
                 <v-spacer />
-                <div class="exp-title">{{$t('localGroup.searchOptions')}}</div>
+                <div class="exp-title">
+                  {{ $t('localGroup.searchOptions') }}
+                </div>
               </template>
 
               <div>
@@ -63,7 +65,9 @@
                 </div>
 
                 <div class="search-wrap">
-                  <large-button @click="search()">{{$t('action.search')}}</large-button>
+                  <large-button @click="search()">{{
+                    $t('action.search')
+                  }}</large-button>
                 </div>
               </div>
             </v-expansion-panel-content>
@@ -76,35 +80,42 @@
           <thead>
             <tr>
               <th></th>
-              <th>{{$t('name')}}</th>
-              <th>{{$t('localGroup.id')}}</th>
+              <th>{{ $t('name') }}</th>
+              <th>{{ $t('localGroup.id') }}</th>
             </tr>
           </thead>
           <tbody v-if="members && members.length > 0">
             <tr v-for="member in members" v-bind:key="member.id">
               <td>
                 <div class="checkbox-wrap">
-                  <v-checkbox @change="checkboxChange(member.id, $event)" color="primary"></v-checkbox>
+                  <v-checkbox
+                    @change="checkboxChange(member.id, $event)"
+                    color="primary"
+                  ></v-checkbox>
                 </div>
               </td>
 
-              <td>{{member.member_name}}</td>
-              <td>{{member.id}}</td>
+              <td>{{ member.member_name }}</td>
+              <td>{{ member.id }}</td>
             </tr>
           </tbody>
         </table>
         <div v-if="members.length < 1 && !noResults" class="empty-row"></div>
 
         <div v-if="noResults" class="empty-row">
-          <p>{{$t('localGroup.noResults')}}</p>
+          <p>{{ $t('localGroup.noResults') }}</p>
         </div>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button class="button-margin" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+        <large-button class="button-margin" outlined @click="cancel()">{{
+          $t('action.cancel')
+        }}</large-button>
 
-        <large-button :disabled="!canSave" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
+        <large-button :disabled="!canSave" @click="save()">{{
+          $t('localGroup.addSelected')
+        }}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -235,4 +246,3 @@ export default Vue.extend({
 @import '../../assets/tables';
 @import '../../assets/add-dialogs';
 </style>
-

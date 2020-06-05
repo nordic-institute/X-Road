@@ -1,11 +1,13 @@
-
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-import { Key, CertificateAuthority, CsrSubjectFieldDescription, Client } from '@/openapi-types';
+import {
+  Key,
+  CertificateAuthority,
+  CsrSubjectFieldDescription,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
-
 
 export interface CsrState {
   csrKey: Key | null;
@@ -39,7 +41,6 @@ const getDefaultState = () => {
 
 // Initial state. The state can be reseted with this.
 const csrState = getDefaultState();
-
 
 export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
@@ -176,8 +177,7 @@ export const actions: ActionTree<CsrState, RootState> = {
         `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
         `&member_id=${state.csrClient}`;
     } else {
-      query =
-        `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
+      query = `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
     }
 
     return api

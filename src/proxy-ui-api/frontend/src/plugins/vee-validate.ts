@@ -3,7 +3,6 @@ import { required, email, min, between } from 'vee-validate/dist/rules';
 import i18n from '../i18n';
 import * as Helpers from '@/util/helpers';
 
-
 configure({
   defaultMessage: (field, values: any): string => {
     // override the field name.
@@ -24,7 +23,6 @@ extend('min', min);
 
 // Install between rule and message.
 extend('between', between);
-
 
 extend('restUrl', {
   validate: (value) => {

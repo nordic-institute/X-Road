@@ -1,5 +1,7 @@
 <template>
-  <v-icon small :color="getServiceIconColor(service)">{{getServiceIcon(service)}}</v-icon>
+  <v-icon small :color="getServiceIconColor(service)">{{
+    getServiceIcon(service)
+  }}</v-icon>
 </template>
 
 <script lang="ts">

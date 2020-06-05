@@ -31,15 +31,27 @@ export const clientsState: ClientsState = {
 
 function createSortName(client: Client, sortName: string): any {
   // Create a sort id for client in form  "ACMEGOV:1234 MANAGEMENT"
-  return sortName + client.member_class + client.member_code + ' ' + client.subsystem_code;
+  return (
+    sortName +
+    client.member_class +
+    client.member_code +
+    ' ' +
+    client.subsystem_code
+  );
 }
 
-function createMemberAscSortName(client: Client, sortName: string | undefined): any {
+function createMemberAscSortName(
+  client: Client,
+  sortName: string | undefined,
+): any {
   // Create a sort id for member in form  "ACMEGOV:1234"
   return sortName + client.member_class + client.member_code;
 }
 
-function createMemberDescSortName(client: Client, sortName: string | undefined): any {
+function createMemberDescSortName(
+  client: Client,
+  sortName: string | undefined,
+): any {
   // Create a sort id for member in form  "ACMEGOV:1234!"
   return sortName + client.member_class + client.member_code + '!';
 }
@@ -60,7 +72,6 @@ export const getters: GetterTree<ClientsState, RootState> = {
   ownerMember(state): Client | undefined {
     return state.ownerMember;
   },
-
 };
 
 export const mutations: MutationTree<ClientsState> = {
@@ -76,9 +87,8 @@ export const mutations: MutationTree<ClientsState> = {
 
     // Find members. Owner member (there is only one) and possible other member
     state.clients.forEach((element: Client) => {
-
       if (!element.subsystem_code) {
-        const clone = {...element} as ExtendedClient;
+        const clone = { ...element } as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
         clone.visibleName = clone.member_name;
@@ -100,14 +110,16 @@ export const mutations: MutationTree<ClientsState> = {
     // Pick out the members
     state.clients.forEach((element) => {
       // Check if the member is already in the members array
-      const memberAlreadyExists = members.find((member: ExtendedClient) =>
-        member.member_class === element.member_class &&
-        member.member_code === element.member_code &&
-        member.instance_id === element.instance_id);
+      const memberAlreadyExists = members.find(
+        (member: ExtendedClient) =>
+          member.member_class === element.member_class &&
+          member.member_code === element.member_code &&
+          member.instance_id === element.instance_id,
+      );
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = {...element} as any;
+        const clone = { ...element } as any;
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
@@ -128,7 +140,10 @@ export const mutations: MutationTree<ClientsState> = {
         if (clone.member_name) {
           clone.visibleName = clone.member_name;
           clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name);
-          clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name);
+          clone.sortNameDesc = createMemberDescSortName(
+            clone,
+            clone.member_name,
+          );
         } else {
           clone.visibleName = UNKNOWN_NAME;
           clone.sortNameAsc = createMemberAscSortName(clone, UNKNOWN_NAME);
@@ -141,7 +156,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = {...element} as ExtendedClient;
+        const clone = { ...element } as ExtendedClient;
         clone.visibleName = clone.subsystem_code;
         clone.type = ClientTypes.SUBSYSTEM;
 
@@ -171,10 +186,10 @@ export const mutations: MutationTree<ClientsState> = {
 
 export const actions: ActionTree<ClientsState, RootState> = {
   fetchClients({ commit, rootGetters }) {
-
     commit('setLoading', true);
 
-    return axios.get('/clients')
+    return axios
+      .get('/clients')
       .then((res) => {
         commit('storeClients', res.data);
       })

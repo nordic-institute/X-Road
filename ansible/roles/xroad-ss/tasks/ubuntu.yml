@@ -34,3 +34,6 @@
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
     force: yes
+  tags:
+    - install-xroad-ss-packages
+

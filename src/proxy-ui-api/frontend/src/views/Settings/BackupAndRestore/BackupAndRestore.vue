@@ -36,13 +36,16 @@
           data-test="backup-upload"
           >{{ $t('backup.uploadBackup.button') }}
         </large-button>
-        <confirm-dialog :dialog="needsConfirmation" title="backup.uploadBackup.confirmationDialog.title"
-                        data-test="backup-upload-confirm-overwrite-dialog"
-                        text="backup.uploadBackup.confirmationDialog.confirmation"
-                        :data="{...uploadedFile}"
-                        :loading="uploadingBackup"
-                        @cancel="needsConfirmation = false"
-                        @accept="overwriteBackup"/>
+        <confirm-dialog
+          :dialog="needsConfirmation"
+          title="backup.uploadBackup.confirmationDialog.title"
+          data-test="backup-upload-confirm-overwrite-dialog"
+          text="backup.uploadBackup.confirmationDialog.confirmation"
+          :data="{ ...uploadedFile }"
+          :loading="uploadingBackup"
+          @cancel="needsConfirmation = false"
+          @accept="overwriteBackup"
+        />
       </div>
     </div>
     <BackupsDataTable
@@ -67,15 +70,18 @@ import { Backup } from '@/openapi-types';
 import { AxiosResponse } from 'axios';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
-const uploadBackup = (backupFile: File, ignoreWarnings: boolean = false) => {
+const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
   formData.set('file', backupFile, backupFile.name);
-  return api
-    .post(`/backups/upload?ignore_warnings=${ignoreWarnings}`, formData, {
+  return api.post(
+    `/backups/upload?ignore_warnings=${ignoreWarnings}`,
+    formData,
+    {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-    });
+    },
+  );
 };
 
 export default Vue.extend({
@@ -140,25 +146,41 @@ export default Vue.extend({
       uploadBackup(fileList[0])
         .then(() => {
           this.fetchData();
-          this.$store.dispatch('showSuccessRaw', this.$t('backup.uploadBackup.success', {file: this.uploadedFile?.name}));
+          this.$store.dispatch(
+            'showSuccessRaw',
+            this.$t('backup.uploadBackup.success', {
+              file: this.uploadedFile?.name,
+            }),
+          );
         })
         .catch((error) => {
-          const warnings = error.response?.data?.warnings as Array<{ code: string }>;
-          if (error.response?.status === 400
-            && warnings?.some((warning) => warning.code === 'warning_file_already_exists')) {
+          const warnings = error.response?.data?.warnings as Array<{
+            code: string;
+          }>;
+          if (
+            error.response?.status === 400 &&
+            warnings?.some(
+              (warning) => warning.code === 'warning_file_already_exists',
+            )
+          ) {
             this.needsConfirmation = true;
             return;
           }
           this.$store.dispatch('showError', error);
         })
-        .finally(() => this.uploadingBackup = false);
+        .finally(() => (this.uploadingBackup = false));
     },
     async overwriteBackup() {
       this.uploadingBackup = true;
       return uploadBackup(this.uploadedFile!, true)
         .then(() => {
           this.fetchData();
-          this.$store.dispatch('showSuccessRaw', this.$t('backup.uploadBackup.success', {file: this.uploadedFile?.name}));
+          this.$store.dispatch(
+            'showSuccessRaw',
+            this.$t('backup.uploadBackup.success', {
+              file: this.uploadedFile?.name,
+            }),
+          );
         })
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => {

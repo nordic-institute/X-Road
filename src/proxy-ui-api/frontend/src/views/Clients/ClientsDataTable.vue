@@ -24,12 +24,14 @@
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
-        >{{$t('action.addMember')}}</LargeButton>
+          >{{ $t('action.addMember') }}</LargeButton
+        >
         <LargeButton
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
-        >{{$t('action.addClient')}}</LargeButton>
+          >{{ $t('action.addClient') }}</LargeButton
+        >
       </div>
     </div>
 
@@ -50,31 +52,48 @@
       <template v-slot:item.sortNameAsc="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
-          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open</v-icon>
+          <v-icon color="grey darken-2" class="icon-member icon-size"
+            >mdi-folder-open</v-icon
+          >
           <span
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openClient(item)"
-          >{{item.visibleName}} ({{ $t("client.owner") }})</span>
+            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+          >
 
-          <span v-else class="font-weight-bold name">{{item.visibleName}} ({{ $t("client.owner") }})</span>
+          <span v-else class="font-weight-bold name"
+            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+          >
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
-          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
+          <v-icon color="grey darken-2" class="icon-member icon-size"
+            >mdi-folder-open-outline</v-icon
+          >
           <span
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openClient(item)"
-          >{{item.visibleName}}</span>
-          <span v-else class="font-weight-bold name">{{item.visibleName}}</span>
+            >{{ item.visibleName }}</span
+          >
+          <span v-else class="font-weight-bold name">{{
+            item.visibleName
+          }}</span>
         </template>
         <!-- Name - virtual member -->
         <template
-          v-else-if="item.type === clientTypes.VIRTUAL_MEMBER || item.type === clientTypes.MEMBER"
+          v-else-if="
+            item.type === clientTypes.VIRTUAL_MEMBER ||
+              item.type === clientTypes.MEMBER
+          "
         >
-          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
-          <span class="font-weight-bold name-member">{{item.visibleName}}</span>
+          <v-icon color="grey darken-2" class="icon-member icon-size"
+            >mdi-folder-open-outline</v-icon
+          >
+          <span class="font-weight-bold name-member">{{
+            item.visibleName
+          }}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
@@ -82,13 +101,17 @@
             color="grey darken-2"
             class="icon-member icon-size"
             :class="{ 'icon-subsystem': treeMode }"
-          >mdi-card-bulleted-outline</v-icon>
+            >mdi-card-bulleted-outline</v-icon
+          >
           <span
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openSubsystem(item)"
-          >{{item.visibleName}}</span>
-          <span v-else class="font-weight-bold name">{{item.visibleName}}</span>
+            >{{ item.visibleName }}</span
+          >
+          <span v-else class="font-weight-bold name">{{
+            item.visibleName
+          }}</span>
         </template>
       </template>
 
@@ -99,23 +122,33 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <SmallButton
-            v-if="(item.type === clientTypes.OWNER_MEMBER || item.type === clientTypes.VIRTUAL_MEMBER) && item.member_name && showAddClient "
+            v-if="
+              (item.type === clientTypes.OWNER_MEMBER ||
+                item.type === clientTypes.VIRTUAL_MEMBER) &&
+                item.member_name &&
+                showAddClient
+            "
             @click="addSubsystem(item)"
-          >{{$t('action.addSubsystem')}}</SmallButton>
+            >{{ $t('action.addSubsystem') }}</SmallButton
+          >
 
           <SmallButton
-            v-if="item.type !== clientTypes.OWNER_MEMBER && item.type !== clientTypes.VIRTUAL_MEMBER && item.status === 'SAVED' && showRegister"
+            v-if="
+              item.type !== clientTypes.OWNER_MEMBER &&
+                item.type !== clientTypes.VIRTUAL_MEMBER &&
+                item.status === 'SAVED' &&
+                showRegister
+            "
             @click="registerClient(item)"
-          >{{$t('action.register')}}</SmallButton>
+            >{{ $t('action.register') }}</SmallButton
+          >
         </div>
       </template>
 
-      <template slot="no-data">{{$t('action.noData')}}</template>
-      <v-alert
-        slot="no-results"
-        :value="true"
-        color="error"
-      >{{ $t('action.emptySearch', { msg: search }) }}</v-alert>
+      <template slot="no-data">{{ $t('action.noData') }}</template>
+      <v-alert slot="no-results" :value="true" color="error">{{
+        $t('action.emptySearch', { msg: search })
+      }}</v-alert>
     </v-data-table>
 
     <ConfirmDialog
