@@ -3,6 +3,7 @@ import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
 import {
   Key,
+  Client,
   CertificateAuthority,
   CsrSubjectFieldDescription,
 } from '@/openapi-types';
