@@ -3,7 +3,7 @@
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
-          <span data-test="dialog-title" class="headline">{{$t(title)}}</span>
+          <span data-test="dialog-title" class="headline">{{ $t(title) }}</span>
         </slot>
         <v-spacer />
         <i v-if="showClose" @click="cancel()" id="dlg-close-x"></i>
@@ -17,13 +17,15 @@
           data-test="dialog-cancel-button"
           outlined
           @click="cancel()"
-        >{{$t(cancelButtonText)}}</large-button>
+          >{{ $t(cancelButtonText) }}</large-button
+        >
         <large-button
           data-test="dialog-save-button"
           :disabled="disableSaveButton"
           :loading="loading"
           @click="save()"
-        >{{$t(saveButtonText)}}</large-button>
+          >{{ $t(saveButtonText) }}</large-button
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -126,4 +128,3 @@ export default Vue.extend({
   content: '\00d7';
 }
 </style>
-

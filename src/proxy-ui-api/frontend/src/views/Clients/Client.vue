@@ -75,7 +75,7 @@ export default Vue.extend({
         this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
         this.client.status === 'REGISTERED' &&
         !this.client.owner
-      ); 
+      );
     },
     showUnregister(): boolean {
       return (

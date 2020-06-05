@@ -1,6 +1,6 @@
 <template>
   <div class="label">
-    {{$t(labelText)}}
+    {{ $t(labelText) }}
     <helpIcon v-if="helpText" :text="$t(helpText)" />
   </div>
 </template>
@@ -37,4 +37,3 @@ export default Vue.extend({
   align-items: baseline;
 }
 </style>
-

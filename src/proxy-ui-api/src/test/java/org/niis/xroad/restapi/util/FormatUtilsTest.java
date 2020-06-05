@@ -27,6 +27,9 @@ package org.niis.xroad.restapi.util;
 
 import org.junit.Test;
 
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -69,5 +72,11 @@ public class FormatUtilsTest {
     @Test
     public void malformedUrlProtocol() {
         assertFalse(FormatUtils.isValidUrl(MALFORMED_PROTOCOL));
+    }
+
+    @Test
+    public void offsetDateTimeConversion() {
+        Date now = new Date();
+        assertEquals(now, FormatUtils.fromOffsetDateTimeToDate(FormatUtils.fromDateToOffsetDateTime(now)));
     }
 }

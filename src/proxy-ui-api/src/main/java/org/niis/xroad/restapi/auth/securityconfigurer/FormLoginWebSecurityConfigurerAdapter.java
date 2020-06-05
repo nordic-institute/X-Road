@@ -25,6 +25,9 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +43,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +52,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
 
 /**
  * form login / session cookie authentication
@@ -57,12 +62,19 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_P
  */
 @Configuration
 @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
+@Slf4j
 public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     public static final String LOGIN_URL = "/login";
 
     @Autowired
     @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
     private AuthenticationProvider authenticationProvider;
+
+    @Autowired
+    private UsernameHelper usernameHelper;
+
+    @Autowired
+    private AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -86,8 +98,21 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 .and()
             .logout()
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+                .addLogoutHandler(new AuditLoggingLogoutHandler())
                 .permitAll();
     }
+
+    class AuditLoggingLogoutHandler implements LogoutHandler {
+        @Override
+        public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+            try {
+                auditEventLoggingFacade.auditLogSuccess(FORM_LOGOUT);
+            } catch (Exception e) {
+                log.error("failed to audit log logout", e);
+            }
+        }
+    }
+
 
     @Override
     protected void configure(AuthenticationManagerBuilder builder) {

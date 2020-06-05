@@ -1,38 +1,51 @@
-
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('wizard.subsystem.title')" :showClose="false" />
+    <subViewTitle
+      class="view-title"
+      :title="$t('wizard.subsystem.title')"
+      :showClose="false"
+    />
 
     <div class="content">
       <div class="info-block">
         <div>
-          {{$t('wizard.subsystem.info1')}}
+          {{ $t('wizard.subsystem.info1') }}
           <br />
           <br />
-          {{$t('wizard.subsystem.info2')}}
+          {{ $t('wizard.subsystem.info2') }}
         </div>
         <div class="action-block">
           <large-button
             @click="showSelectClient = true"
             outlined
             data-test="select-subsystem-button"
-          >{{$t('wizard.subsystem.selectSubsystem')}}</large-button>
+            >{{ $t('wizard.subsystem.selectSubsystem') }}</large-button
+          >
         </div>
       </div>
 
       <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
         <div class="row-wrap">
-          <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-          <div data-test="selected-member-name">{{memberName}}</div>
+          <FormLabel
+            labelText="wizard.memberName"
+            helpText="wizard.client.memberNameTooltip"
+          />
+          <div data-test="selected-member-name">{{ memberName }}</div>
         </div>
 
         <div class="row-wrap">
-          <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
-          <div data-test="selected-member-class">{{memberClass}}</div>
+          <FormLabel
+            labelText="wizard.memberClass"
+            helpText="wizard.client.memberClassTooltip"
+          />
+          <div data-test="selected-member-class">{{ memberClass }}</div>
         </div>
         <div class="row-wrap">
-          <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
-          <div data-test="selected-member-code">{{memberCode}}</div>
+          <FormLabel
+            labelText="wizard.memberCode"
+            helpText="wizard.client.memberCodeTooltip"
+          />
+          <div data-test="selected-member-code">{{ memberCode }}</div>
         </div>
 
         <div class="row-wrap">
@@ -41,7 +54,11 @@
             helpText="wizard.client.subsystemCodeTooltip"
           />
 
-          <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
+          <ValidationProvider
+            name="addClient.subsystemCode"
+            rules="required"
+            v-slot="{ errors }"
+          >
             <v-text-field
               class="form-input"
               type="text"
@@ -51,7 +68,9 @@
             ></v-text-field>
           </ValidationProvider>
         </div>
-        <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
+        <div v-if="duplicateClient" class="duplicate-warning">
+          {{ $t('wizard.client.memberExists') }}
+        </div>
 
         <div class="row-wrap">
           <FormLabel labelText="wizard.subsystem.registerSubsystem" />
@@ -68,13 +87,15 @@
               outlined
               @click="exitView"
               data-test="cancel-button"
-            >{{$t('action.cancel')}}</large-button>
+              >{{ $t('action.cancel') }}</large-button
+            >
           </div>
           <large-button
             @click="done"
             :disabled="invalid || duplicateClient"
             data-test="submit-add-subsystem-button"
-          >{{$t('action.addSubsystem')}}</large-button>
+            >{{ $t('action.addSubsystem') }}</large-button
+          >
         </div>
       </ValidationObserver>
 
@@ -181,20 +202,23 @@ export default Vue.extend({
     },
 
     registerSubsystem(): void {
-      const clientId = createClientId(this.instanceId, this.memberClass, this.memberCode, this.subsystemCode);
+      const clientId = createClientId(
+        this.instanceId,
+        this.memberClass,
+        this.memberCode,
+        this.subsystemCode,
+      );
 
-      this.$store
-        .dispatch('registerClient', clientId)
-        .then(
-          () => {
-            this.disableDone = false;
-            this.exitView();
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-            this.exitView();
-          },
-        );
+      this.$store.dispatch('registerClient', clientId).then(
+        () => {
+          this.disableDone = false;
+          this.exitView();
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+          this.exitView();
+        },
+      );
     },
 
     exitView(): void {

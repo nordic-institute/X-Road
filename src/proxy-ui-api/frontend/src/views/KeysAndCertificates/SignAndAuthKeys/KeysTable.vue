@@ -5,11 +5,11 @@
       <template v-if="tokenType === 'SOFTWARE'">
         <thead>
           <tr>
-            <th>{{$t(title)}}</th>
-            <th>{{$t('keys.id')}}</th>
-            <th>{{$t('keys.ocsp')}}</th>
-            <th>{{$t('keys.expires')}}</th>
-            <th>{{$t('keys.status')}}</th>
+            <th>{{ $t(title) }}</th>
+            <th>{{ $t('keys.id') }}</th>
+            <th>{{ $t('keys.ocsp') }}</th>
+            <th>{{ $t('keys.expires') }}</th>
+            <th>{{ $t('keys.status') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -19,11 +19,11 @@
       <template v-if="tokenType === 'HARDWARE'">
         <thead>
           <tr>
-            <th>{{$t(title)}}</th>
-            <th>{{$t('keys.id')}}</th>
-            <th>{{$t('keys.ocsp')}}</th>
-            <th>{{$t('keys.expires')}}</th>
-            <th>{{$t('keys.status')}}</th>
+            <th>{{ $t(title) }}</th>
+            <th>{{ $t('keys.id') }}</th>
+            <th>{{ $t('keys.ocsp') }}</th>
+            <th>{{ $t('keys.expires') }}</th>
+            <th>{{ $t('keys.status') }}</th>
             <th></th>
             <th></th>
           </tr>
@@ -36,7 +36,9 @@
           <tr>
             <div class="name-wrap-top">
               <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
-              <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+              <div class="clickable-link" @click="keyClick(key)">
+                {{ key.name }}
+              </div>
             </div>
             <td class="no-border"></td>
             <td class="no-border"></td>
@@ -48,32 +50,43 @@
                 class="table-button-fix"
                 :disabled="disableGenerateCsr(key)"
                 @click="generateCsr(key)"
-              >{{$t('keys.generateCsr')}}</SmallButton>
+                >{{ $t('keys.generateCsr') }}</SmallButton
+              >
             </td>
           </tr>
 
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
+                <i
+                  class="icon-xrd_certificate icon clickable"
+                  @click="certificateClick(cert, key)"
+                ></i>
                 <div
                   class="clickable-link"
                   @click="certificateClick(cert, key)"
-                >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
+                >
+                  {{ cert.certificate_details.issuer_common_name }}
+                  {{ cert.certificate_details.serial }}
+                </div>
               </div>
             </td>
-            <td>{{cert.owner_id}}</td>
+            <td>{{ cert.owner_id }}</td>
             <td>{{ cert.ocsp_status | ocspStatus }}</td>
-            <td>{{cert.certificate_details.not_after | formatDate}}</td>
+            <td>{{ cert.certificate_details.not_after | formatDate }}</td>
             <td class="status-cell">
               <certificate-status :certificate="cert" />
             </td>
             <td class="td-align-right">
               <SmallButton
                 class="table-button-fix test-register"
-                v-if="showRegisterCertButton && cert.possible_actions.includes('REGISTER')"
+                v-if="
+                  showRegisterCertButton &&
+                    cert.possible_actions.includes('REGISTER')
+                "
                 @click="showRegisterCertDialog(cert)"
-              >{{$t('action.register')}}</SmallButton>
+                >{{ $t('action.register') }}</SmallButton
+              >
             </td>
           </tr>
         </template>
@@ -83,7 +96,9 @@
           <tr>
             <div class="name-wrap-top">
               <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
-              <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+              <div class="clickable-link" @click="keyClick(key)">
+                {{ key.name }}
+              </div>
             </div>
             <td class="no-border"></td>
             <td class="no-border"></td>
@@ -96,23 +111,30 @@
                 class="table-button-fix"
                 :disabled="disableGenerateCsr(key)"
                 @click="generateCsr(key)"
-              >{{$t('keys.generateCsr')}}</SmallButton>
+                >{{ $t('keys.generateCsr') }}</SmallButton
+              >
             </td>
           </tr>
 
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
+                <i
+                  class="icon-xrd_certificate icon clickable"
+                  @click="certificateClick(cert, key)"
+                ></i>
                 <div
                   class="clickable-link"
                   @click="certificateClick(cert, key)"
-                >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
+                >
+                  {{ cert.certificate_details.issuer_common_name }}
+                  {{ cert.certificate_details.serial }}
+                </div>
               </div>
             </td>
-            <td>{{cert.owner_id}}</td>
+            <td>{{ cert.owner_id }}</td>
             <td>{{ cert.ocsp_status | ocspStatus }}</td>
-            <td>{{cert.certificate_details.not_after | formatDate}}</td>
+            <td>{{ cert.certificate_details.not_after | formatDate }}</td>
             <td class="status-cell">
               <certificate-status :certificate="cert" />
             </td>
@@ -122,23 +144,30 @@
                 class="table-button-fix"
                 v-if="!cert.saved_to_configuration && hasPermission"
                 @click="importCert()"
-              >{{$t('keys.importCert')}}</SmallButton>
+                >{{ $t('keys.importCert') }}</SmallButton
+              >
             </td>
           </tr>
         </template>
 
         <!-- CSRs -->
         <template
-          v-if="key.certificate_signing_requests && key.certificate_signing_requests.length > 0"
+          v-if="
+            key.certificate_signing_requests &&
+              key.certificate_signing_requests.length > 0
+          "
         >
-          <tr v-for="req in key.certificate_signing_requests" v-bind:key="req.id">
+          <tr
+            v-for="req in key.certificate_signing_requests"
+            v-bind:key="req.id"
+          >
             <td class="td-name">
               <div class="name-wrap">
                 <i class="icon-xrd_certificate icon"></i>
-                <div>{{$t('keys.request')}}</div>
+                <div>{{ $t('keys.request') }}</div>
               </div>
             </td>
-            <td>{{req.id}}</td>
+            <td>{{ req.id }}</td>
             <td></td>
             <td></td>
             <td class="status-cell"></td>
@@ -147,7 +176,8 @@
                 class="table-button-fix"
                 v-if="hasPermission && req.possible_actions.includes('DELETE')"
                 @click="showDeleteCsrDialog(req, key)"
-              >{{$t('keys.deleteCsr')}}</SmallButton>
+                >{{ $t('keys.deleteCsr') }}</SmallButton
+              >
             </td>
           </tr>
         </template>
@@ -179,7 +209,11 @@ import CertificateStatus from './CertificateStatus.vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
+import {
+  Key,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
 import { Permissions, UsageTypes, PossibleActions } from '@/global';
 import * as api from '@/util/api';
 
@@ -312,7 +346,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';

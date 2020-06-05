@@ -4,12 +4,18 @@
       <v-flex sm8 md4 class="set-width">
         <v-card flat>
           <v-toolbar flat class="login-form-toolbar">
-            <v-toolbar-title class="login-form-toolbar-title">{{$t('login.logIn')}}</v-toolbar-title>
+            <v-toolbar-title class="login-form-toolbar-title">{{
+              $t('login.logIn')
+            }}</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
             <v-form>
               <ValidationObserver ref="form" v-slot="{ validate }">
-                <ValidationProvider name="username" rules="required" v-slot="{ errors }">
+                <ValidationProvider
+                  name="username"
+                  rules="required"
+                  v-slot="{ errors }"
+                >
                   <v-text-field
                     id="username"
                     name="username"
@@ -21,7 +27,11 @@
                   ></v-text-field>
                 </ValidationProvider>
 
-                <ValidationProvider name="password" rules="required" v-slot="{ errors }">
+                <ValidationProvider
+                  name="password"
+                  rules="required"
+                  v-slot="{ errors }"
+                >
                   <v-text-field
                     id="password"
                     name="password"
@@ -46,7 +56,7 @@
               rounded
               :disabled="isDisabled"
               :loading="loading"
-            >{{$t('login.logIn')}}
+              >{{ $t('login.logIn') }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -112,7 +122,7 @@ export default (Vue as VueConstructor<
       this.$store
         .dispatch('login', loginData)
         .then(
-          (response) => {
+          () => {
             // Auth ok. Start phase 2 (fetch user data and current security server info).
             this.fetchUserData();
             this.fetchCurrentSecurityServer();
@@ -149,7 +159,7 @@ export default (Vue as VueConstructor<
       this.$store
         .dispatch('fetchUserData')
         .then(
-          (response) => {
+          () => {
             this.$router.replace({ name: RouteName.Clients });
           },
           (error) => {
@@ -201,4 +211,3 @@ export default (Vue as VueConstructor<
   max-width: 420px;
 }
 </style>
-

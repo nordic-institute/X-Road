@@ -2,7 +2,7 @@
   <div>
     <v-card flat class="xrd-card" v-if="showConnectionType">
       <v-flex>
-        <h1 class="title mb-3">{{$t('internalServers.connectionType')}}</h1>
+        <h1 class="title mb-3">{{ $t('internalServers.connectionType') }}</h1>
         <v-select
           v-model="connectionType"
           :items="connectionTypes"
@@ -12,12 +12,12 @@
           :readonly="!canEditConnectionType"
         ></v-select>
       </v-flex>
-      <div class="conn-info">{{$t('internalServers.connectionInfo')}}</div>
+      <div class="conn-info">{{ $t('internalServers.connectionInfo') }}</div>
     </v-card>
 
     <v-card flat class="xrd-card">
       <div class="tls-title-wrap">
-        <h1 class="title mb-3">{{$t('internalServers.tlsTitle')}}</h1>
+        <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
         <v-btn
           v-if="canAddTlsCert"
           outlined
@@ -25,7 +25,8 @@
           color="primary"
           class="rounded-button elevation-0"
           @click="$refs.inputUpload.click()"
-        >{{$t('action.add')}}</v-btn>
+          >{{ $t('action.add') }}</v-btn
+        >
         <input
           v-show="false"
           ref="inputUpload"
@@ -34,10 +35,13 @@
           @change="onFileChange"
         />
       </div>
-      <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
+      <div class="cert-table-title">{{ $t('internalServers.certHash') }}</div>
       <table class="certificate-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
-          <tr v-for="certificate in tlsCertificates" v-bind:key="certificate.hash">
+          <tr
+            v-for="certificate in tlsCertificates"
+            v-bind:key="certificate.hash"
+          >
             <td class="cert-icon">
               <certificateIcon />
             </td>
@@ -46,8 +50,9 @@
                 v-if="canViewTlsCertDetails"
                 @click="openCertificate(certificate)"
                 class="certificate-link"
-              >{{certificate.hash | colonize}}</span>
-              <span v-else>{{certificate.hash | colonize}}</span>
+                >{{ certificate.hash | colonize }}</span
+              >
+              <span v-else>{{ certificate.hash | colonize }}</span>
             </td>
           </tr>
         </template>
@@ -55,8 +60,8 @@
     </v-card>
 
     <v-card v-if="canViewSSCert" flat class="xrd-card">
-      <h1 class="title mb-3">{{$t('internalServers.ssCertTitle')}}</h1>
-      <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
+      <h1 class="title mb-3">{{ $t('internalServers.ssCertTitle') }}</h1>
+      <div class="cert-table-title">{{ $t('internalServers.certHash') }}</div>
       <table class="certificate-table server-certificates">
         <template v-if="ssCertificate">
           <tr>
@@ -64,7 +69,7 @@
               <certificateIcon />
             </td>
             <td>
-              <span>{{ssCertificate.hash | colonize}}</span>
+              <span>{{ ssCertificate.hash | colonize }}</span>
             </td>
 
             <td class="column-button">
@@ -76,7 +81,8 @@
                 color="primary"
                 class="xrd-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"
-              >{{$t('action.export')}}</v-btn>
+                >{{ $t('action.export') }}</v-btn
+              >
             </td>
           </tr>
         </template>
@@ -295,4 +301,3 @@ export default Vue.extend({
   cursor: pointer;
 }
 </style>
-
