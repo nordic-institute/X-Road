@@ -1,4 +1,3 @@
-
 <template>
   <div class="view-wrap">
     <subViewTitle
@@ -7,41 +6,43 @@
       :showClose="false"
       data-test="wizard-title"
     />
-    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+    <v-stepper
+      :alt-labels="true"
+      v-model="currentStep"
+      class="stepper noshadow"
+    >
       <!-- Headers without anchor page -->
       <v-stepper-header v-if="isAnchorImported" class="noshadow">
-        <v-stepper-step
-          :complete="currentStep > 1"
-          step="1"
-        >{{$t('initialConfiguration.member.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{
+          $t('initialConfiguration.member.title')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step
-          :complete="currentStep > 2"
-          step="2"
-        >{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{
+          $t('initialConfiguration.pin.title')
+        }}</v-stepper-step>
       </v-stepper-header>
       <!-- Headers with anchor page -->
       <v-stepper-header v-else class="noshadow">
-        <v-stepper-step
-          :complete="currentStep > 1"
-          step="1"
-        >{{$t('initialConfiguration.anchor.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{
+          $t('initialConfiguration.anchor.title')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step
-          :complete="currentStep > 2"
-          step="2"
-        >{{$t('initialConfiguration.member.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{
+          $t('initialConfiguration.member.title')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step
-          :complete="currentStep > 3"
-          step="3"
-        >{{$t('initialConfiguration.pin.title')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 3" step="3">{{
+          $t('initialConfiguration.pin.title')
+        }}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items v-if="isAnchorImported" class="stepper-content">
         <!-- Member step -->
         <v-stepper-content step="1">
-          <OwnerMemberStep @done="ownerMemberReady" :showPreviousButton="false" />
+          <OwnerMemberStep
+            @done="ownerMemberReady"
+            :showPreviousButton="false"
+          />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="2">
@@ -56,11 +57,18 @@
         </v-stepper-content>
         <!-- Member step -->
         <v-stepper-content step="2">
-          <OwnerMemberStep @previous="currentStep = 1" @done="ownerMemberReady" />
+          <OwnerMemberStep
+            @previous="currentStep = 1"
+            @done="ownerMemberReady"
+          />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="3">
-          <TokenPinStep @previous="currentStep = 2" @done="tokenPinReady" :saveBusy="pinSaveBusy" />
+          <TokenPinStep
+            @previous="currentStep = 2"
+            @done="tokenPinReady"
+            :saveBusy="pinSaveBusy"
+          />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>

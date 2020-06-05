@@ -83,7 +83,9 @@ export const actions: ActionTree<State, RootState> = {
 
   fetchMemberName({ commit }, { memberClass, memberCode }) {
     return api
-      .get(`/member-names?member_class=${memberClass}&member_code=${memberCode}`)
+      .get(
+        `/member-names?member_class=${memberClass}&member_code=${memberCode}`,
+      )
       .then((res) => {
         commit('storeMemberName', res.data.member_name);
       })

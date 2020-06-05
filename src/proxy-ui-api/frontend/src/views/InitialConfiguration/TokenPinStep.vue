@@ -1,10 +1,14 @@
 <template>
   <div>
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
-      {{$t('initialConfiguration.pin.info1')}}
+      {{ $t('initialConfiguration.pin.info1') }}
       <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.pin.pin')}}</div>
-        <ValidationProvider name="pin" rules="required|password:@confirmPin" v-slot="{ errors }">
+        <div class="label">{{ $t('initialConfiguration.pin.pin') }}</div>
+        <ValidationProvider
+          name="pin"
+          rules="required|password:@confirmPin"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             name="pin"
@@ -17,8 +21,12 @@
       </div>
 
       <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.pin.confirmPin')}}</div>
-        <ValidationProvider name="confirmPin" rules="required" v-slot="{ errors }">
+        <div class="label">{{ $t('initialConfiguration.pin.confirmPin') }}</div>
+        <ValidationProvider
+          name="confirmPin"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             name="confirmPin"
@@ -29,10 +37,10 @@
           ></v-text-field>
         </ValidationProvider>
       </div>
-      {{$t('initialConfiguration.pin.info2')}}
+      {{ $t('initialConfiguration.pin.info2') }}
       <br />
       <br />
-      {{$t('initialConfiguration.pin.info3')}}
+      {{ $t('initialConfiguration.pin.info3') }}
       <div class="button-footer">
         <v-spacer></v-spacer>
         <div>
@@ -41,13 +49,15 @@
             outlined
             class="previous-button"
             data-test="previous-button"
-          >{{$t('action.previous')}}</large-button>
+            >{{ $t('action.previous') }}</large-button
+          >
           <large-button
             :disabled="invalid"
             :loading="saveBusy"
             @click="done"
             data-test="save-button"
-          >{{$t('action.submit')}}</large-button>
+            >{{ $t('action.submit') }}</large-button
+          >
         </div>
       </div>
     </ValidationObserver>
@@ -62,7 +72,9 @@ import * as api from '@/util/api';
 import { extend } from 'vee-validate';
 import i18n from '@/i18n';
 
-const PASSWORD_MATCH_ERROR: string = i18n.t('initialConfiguration.pin.pinMatchError') as string;
+const PASSWORD_MATCH_ERROR: string = i18n.t(
+  'initialConfiguration.pin.pinMatchError',
+) as string;
 
 extend('password', {
   params: ['target'],
@@ -110,4 +122,3 @@ export default Vue.extend({
   padding-top: 12px;
 }
 </style>
-

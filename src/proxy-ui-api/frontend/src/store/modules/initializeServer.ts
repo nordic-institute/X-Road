@@ -1,4 +1,3 @@
-
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import * as api from '@/util/api';
@@ -30,7 +29,6 @@ const getDefaultState = () => {
 const moduleState = getDefaultState();
 
 export const getters: GetterTree<InitServerState, RootState> = {
-
   initServerMemberClass(state): string | undefined {
     return state.memberClass;
   },
@@ -60,8 +58,11 @@ export const getters: GetterTree<InitServerState, RootState> = {
   },
 
   needsInitialization: (state) => {
-    if (state.initializationStatus?.is_anchor_imported && state.initializationStatus.is_server_code_initialized &&
-      state.initializationStatus.is_server_owner_initialized && state.initializationStatus.is_software_token_initialized
+    if (
+      state.initializationStatus?.is_anchor_imported &&
+      state.initializationStatus.is_server_code_initialized &&
+      state.initializationStatus.is_server_owner_initialized &&
+      state.initializationStatus.is_software_token_initialized
     ) {
       return false;
     }

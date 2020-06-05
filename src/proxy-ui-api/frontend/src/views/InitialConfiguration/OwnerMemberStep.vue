@@ -2,14 +2,22 @@
   <div>
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="memberName" data-test="selected-member-name">{{memberName}}</div>
+        <FormLabel
+          labelText="wizard.memberName"
+          helpText="wizard.client.memberNameTooltip"
+        />
+        <div v-if="memberName" data-test="selected-member-name">
+          {{ memberName }}
+        </div>
       </div>
 
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
+        <FormLabel
+          labelText="wizard.memberClass"
+          helpText="wizard.client.memberClassTooltip"
+        />
 
-        <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
+        <ValidationProvider name="addClient.memberClass" rules="required">
           <v-select
             v-model="memberClass"
             :items="memberClassesCurrentInstance"
@@ -20,9 +28,16 @@
         </ValidationProvider>
       </div>
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
+        <FormLabel
+          labelText="wizard.memberCode"
+          helpText="wizard.client.memberCodeTooltip"
+        />
 
-        <ValidationProvider name="addClient.memberCode" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="addClient.memberCode"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             type="text"
@@ -40,7 +55,11 @@
           helpText="initialConfiguration.member.serverCodeHelp"
         />
 
-        <ValidationProvider name="securityServerCode" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="securityServerCode"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             type="text"
@@ -61,12 +80,14 @@
             outlined
             class="previous-button"
             data-test="previous-button"
-          >{{$t('action.previous')}}</large-button>
+            >{{ $t('action.previous') }}</large-button
+          >
           <large-button
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-          >{{$t(saveButtonText)}}</large-button>
+            >{{ $t(saveButtonText) }}</large-button
+          >
         </div>
       </div>
     </ValidationObserver>
@@ -77,18 +98,12 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { Key, Token, Client } from '@/openapi-types';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
     LargeButton,
-    SubViewTitle,
     ValidationObserver,
     ValidationProvider,
     FormLabel,
@@ -218,4 +233,3 @@ export default Vue.extend({
   padding-top: 12px;
 }
 </style>
-

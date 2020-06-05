@@ -15,13 +15,18 @@
         :loading="previewing"
         :requires-permission="permissions.UPLOAD_ANCHOR"
         class="ml-5"
-      >{{ $t('systemParameters.configurationAnchor.action.upload.button') }}</large-button>
+        >{{
+          $t('systemParameters.configurationAnchor.action.upload.button')
+        }}</large-button
+      >
     </template>
     <v-card class="xrd-card">
       <v-card-title>
         <span data-test="dialog-title" class="headline">
           {{
-          $t('systemParameters.configurationAnchor.action.upload.dialog.title')
+            $t(
+              'systemParameters.configurationAnchor.action.upload.dialog.title',
+            )
           }}
         </span>
       </v-card-title>
@@ -30,18 +35,18 @@
           <v-row class="mb-5">
             <v-col>
               {{
-              $t(
-              'systemParameters.configurationAnchor.action.upload.dialog.info',
-              )
+                $t(
+                  'systemParameters.configurationAnchor.action.upload.dialog.info',
+                )
               }}
             </v-col>
           </v-row>
           <v-row no-gutters>
             <v-col class="font-weight-bold" cols="12" sm="3">
               {{
-              $t(
-              'systemParameters.configurationAnchor.action.upload.dialog.field.hash',
-              )
+                $t(
+                  'systemParameters.configurationAnchor.action.upload.dialog.field.hash',
+                )
               }}
             </v-col>
             <v-col cols="12" sm="9">{{ anchorPreview.hash | colonize }}</v-col>
@@ -49,19 +54,21 @@
           <v-row no-gutters>
             <v-col class="font-weight-bold" cols="12" sm="3">
               {{
-              $t(
-              'systemParameters.configurationAnchor.action.upload.dialog.field.generated',
-              )
+                $t(
+                  'systemParameters.configurationAnchor.action.upload.dialog.field.generated',
+                )
               }}
             </v-col>
-            <v-col cols="12" sm="9">{{ anchorPreview.created_at | formatDateTime }}</v-col>
+            <v-col cols="12" sm="9">{{
+              anchorPreview.created_at | formatDateTime
+            }}</v-col>
           </v-row>
           <v-row class="mt-5">
             <v-col>
               {{
-              $t(
-              'systemParameters.configurationAnchor.action.upload.dialog.confirmation',
-              )
+                $t(
+                  'systemParameters.configurationAnchor.action.upload.dialog.confirmation',
+                )
               }}
             </v-col>
           </v-row>
@@ -73,12 +80,14 @@
           data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
           outlined
           @click="close"
-        >{{ $t('action.cancel') }}</large-button>
+          >{{ $t('action.cancel') }}</large-button
+        >
         <large-button
           data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
           @click="confirmUpload"
           :loading="uploading"
-        >{{ $t('action.confirm') }}</large-button>
+          >{{ $t('action.confirm') }}</large-button
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>

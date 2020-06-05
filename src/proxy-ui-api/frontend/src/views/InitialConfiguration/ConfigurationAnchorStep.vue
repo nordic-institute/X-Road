@@ -1,19 +1,28 @@
 <template>
   <div>
     <div class="action-row">
-      <div>{{$t('initialConfiguration.anchor.info')}}</div>
-      <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor" initMode />
+      <div>{{ $t('initialConfiguration.anchor.info') }}</div>
+      <upload-configuration-anchor-dialog
+        @uploaded="fetchConfigurationAnchor"
+        initMode
+      />
     </div>
 
     <template v-if="configuratonAnchor">
       <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.anchor.hash')}}</div>
-        <template v-if="configuratonAnchor">{{ configuratonAnchor.hash | colonize }}</template>
+        <div class="label">{{ $t('initialConfiguration.anchor.hash') }}</div>
+        <template v-if="configuratonAnchor">{{
+          configuratonAnchor.hash | colonize
+        }}</template>
       </div>
 
       <div class="row-wrap">
-        <div class="label">{{$t('initialConfiguration.anchor.generated')}}</div>
-        <template v-if="configuratonAnchor">{{ configuratonAnchor.created_at | formatDateTime }}</template>
+        <div class="label">
+          {{ $t('initialConfiguration.anchor.generated') }}
+        </div>
+        <template v-if="configuratonAnchor">{{
+          configuratonAnchor.created_at | formatDateTime
+        }}</template>
       </div>
     </template>
     <div v-else style="height: 120px;"></div>
@@ -25,7 +34,8 @@
           :disabled="!configuratonAnchor"
           @click="done"
           data-test="save-button"
-        >{{$t(saveButtonText)}}</large-button>
+          >{{ $t(saveButtonText) }}</large-button
+        >
       </div>
     </div>
   </div>
@@ -34,21 +44,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
     LargeButton,
-    SubViewTitle,
-    ValidationObserver,
-    ValidationProvider,
     UploadConfigurationAnchorDialog,
   },
   props: {
@@ -116,4 +119,3 @@ export default Vue.extend({
   padding-top: 12px;
 }
 </style>
-
