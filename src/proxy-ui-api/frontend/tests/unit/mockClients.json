@@ -1,52 +1,71 @@
 [
   {
     "id": "CS:GOV:2000:POP1",
-    "member_name": null,
+    "instance_id": "CS",
     "member_class": "GOV",
     "member_code": "2000",
+    "member_name": "VIRTUAL1",
     "subsystem_code": "POP1",
-    "created": null,
-    "status": "global error",
+    "status": "REGISTERED",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
     "owner": false
   },
   {
     "id": "CS:GOV:3000:POP2",
-    "member_name": null,
+    "instance_id": "CS",
     "member_class": "GOV",
     "member_code": "3000",
     "subsystem_code": "POP2",
-    "created": null,
-    "status": "global error",
+    "status": "REGISTERED",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
     "owner": false
   },
   {
     "id": "CS:GOV:1234:SUBS1",
+    "instance_id": "CS",
     "member_name": "ACME",
     "member_class": "GOV",
     "member_code": "1234",
     "subsystem_code": "SUBS1",
-    "created": null,
-    "status": "saved",
+    "status": "SAVED",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
     "owner": false
   },
   {
     "id": "CS:GOV:1234:MANAGEMENT",
+    "instance_id": "CS",
     "member_name": "ACME",
     "member_class": "GOV",
     "member_code": "1234",
     "subsystem_code": "MANAGEMENT",
-    "created": null,
-    "status": "saved",
+    "status": "SAVED",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
     "owner": false
   },
   {
     "id": "CS:GOV:1234",
+    "instance_id": "CS",
     "member_name": "ACME",
     "member_class": "GOV",
     "member_code": "1234",
-    "subsystem_code": null,
-    "created": null,
-    "status": "saved",
-    "owner": true
+    "status": "REGISTERED",
+    "owner": true,
+    "has_valid_local_sign_cert": true,
+    "connection_type": "HTTPS"
+  },
+  {
+    "id": "CS:GOV:7900",
+    "instance_id": "CS",
+    "member_name": "REALMEMBER1",
+    "member_class": "GOV",
+    "member_code": "2001",
+    "status": "REGISTERED",
+    "owner": false,
+    "has_valid_local_sign_cert": true,
+    "connection_type": "HTTPS"
   }
 ]

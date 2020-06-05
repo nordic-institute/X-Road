@@ -1,5 +1,9 @@
 <template>
-  <v-progress-linear indeterminate :height="height" :active="active"></v-progress-linear>
+  <v-progress-linear
+    indeterminate
+    :height="height"
+    :active="active"
+  ></v-progress-linear>
 </template>
 
 <script lang="ts">
@@ -18,4 +22,3 @@ export default Vue.extend({
   },
 });
 </script>
-

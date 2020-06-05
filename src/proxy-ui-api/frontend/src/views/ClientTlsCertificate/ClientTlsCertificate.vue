@@ -9,7 +9,8 @@
             v-if="showDeleteButton"
             outlined
             @click="deleteCertificate()"
-          >{{$t('action.delete')}}</large-button>
+            >{{ $t('action.delete') }}</large-button
+          >
         </div>
         <certificateInfo :certificate="certificate" />
       </template>
@@ -129,4 +130,3 @@ export default Vue.extend({
   margin-bottom: 20px;
 }
 </style>
-

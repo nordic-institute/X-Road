@@ -5536,10 +5536,28 @@ components:
       type: object
       description: object for updating a service or all services within service description
       required:
-        - service
+        - url
+        - timeout
+        - ssl_auth
       properties:
-        service:
-          $ref: '#/components/schemas/Service'
+        url:
+          type: string
+          format: url
+          description: service url
+          example: https://domain.com/service
+          minLength: 1
+          maxLength: 255
+        timeout:
+          type: integer
+          format: uint
+          description: service time out value
+          example: 60
+          minimum: 0
+          maximum: 1000
+        ssl_auth:
+          type: boolean
+          description: service ssl auth
+          example: true
         url_all:
           description: url is applied for all services
           type: boolean

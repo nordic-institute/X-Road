@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.InitializationStatus;
@@ -41,6 +42,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
 
 /**
  * Init (Security Server) controller
@@ -78,6 +81,7 @@ public class InitializationApiController implements InitializationApi {
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    @AuditEventMethod(event = INIT_SERVER_CONFIGURATION)
     public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
         String securityServerCode = initialServerConf.getSecurityServerCode();
         String ownerMemberClass = initialServerConf.getOwnerMemberClass();

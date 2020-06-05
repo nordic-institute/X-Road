@@ -2,12 +2,14 @@
   <div>
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
-        <div class="label">{{$t('certificateProfile.' + item.label_key)}}</div>
+        <div class="label">
+          {{ $t('certificateProfile.' + item.label_key) }}
+        </div>
 
         <div>
           <ValidationProvider
             :name="item.id"
-            :rules="(item.required) && 'required' "
+            :rules="item.required && 'required'"
             v-slot="{ errors }"
           >
             <v-text-field
@@ -17,17 +19,19 @@
               v-model="item.default_value"
               :disabled="item.read_only"
               :error-messages="errors"
+              data-test="dynamic-csr-input"
             ></v-text-field>
           </ValidationProvider>
         </div>
       </div>
       <div class="generate-row">
-        <div>{{$t('csr.saveInfo')}}</div>
+        <div>{{ $t('csr.saveInfo') }}</div>
         <large-button
           @click="generateCsr"
-          :disabled="invalid || !disableDone"
+          :disabled="invalid || !disableDone"
           data-test="generate-csr-button"
-        >{{$t('csr.generateCsr')}}</large-button>
+          >{{ $t('csr.generateCsr') }}</large-button
+        >
       </div>
       <div class="button-footer">
         <div class="button-group">
@@ -36,7 +40,8 @@
             @click="cancel"
             :disabled="!disableDone"
             data-test="cancel-button"
-          >{{$t('action.cancel')}}</large-button>
+            >{{ $t('action.cancel') }}</large-button
+          >
         </div>
         <div>
           <large-button
@@ -45,12 +50,14 @@
             class="previous-button"
             data-test="previous-button"
             :disabled="!disableDone"
-          >{{$t('action.previous')}}</large-button>
+            >{{ $t('action.previous') }}</large-button
+          >
           <large-button
             @click="done"
             :disabled="disableDone"
             data-test="save-button"
-          >{{$t(saveButtonText)}}</large-button>
+            >{{ $t(saveButtonText) }}</large-button
+          >
         </div>
       </div>
     </ValidationObserver>
@@ -74,6 +81,11 @@ export default Vue.extend({
       type: String,
       default: 'action.done',
     },
+    // Creating Key + CSR or just CSR
+    keyAndCsr: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     ...mapGetters(['csrForm']),
@@ -96,14 +108,27 @@ export default Vue.extend({
     generateCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
-      this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-        (response) => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      if (this.keyAndCsr) {
+        // Create key and CSR
+        this.$store.dispatch('generateKeyAndCsr', tokenId).then(
+          (response) => {
+            this.disableDone = false;
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
+      } else {
+        // Create only CSR
+        this.$store.dispatch('generateCsr').then(
+          (response) => {
+            this.disableDone = false;
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
+      }
     },
   },
 });
@@ -120,4 +145,3 @@ export default Vue.extend({
   justify-content: space-between;
 }
 </style>
-

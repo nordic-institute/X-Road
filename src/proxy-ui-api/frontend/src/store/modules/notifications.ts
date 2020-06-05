@@ -1,7 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
-
 export interface NotificationsState {
   successMessageCode: string;
   successMessageRaw: string;

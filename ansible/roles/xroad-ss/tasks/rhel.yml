@@ -57,6 +57,8 @@
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: present
+  tags:
+    - install-xroad-ss-packages
 
 # update all xroad packages to their latest version in the set up repo
 - name: update xroad security server to latest (RHEL)
@@ -65,6 +67,8 @@
     state: latest
     disablerepo: "*"
     enablerepo: xroad-{{package_source}}-repository
+  tags:
+    - install-xroad-ss-packages
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
