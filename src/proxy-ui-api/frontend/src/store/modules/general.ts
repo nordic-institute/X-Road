@@ -2,7 +2,6 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import * as api from '@/util/api';
 import { RootState } from '../types';
 
-
 export interface State {
   xroadInstances: string[];
   memberClasses: string[];

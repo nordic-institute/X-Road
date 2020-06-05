@@ -4,12 +4,18 @@
       <v-flex sm8 md4 class="set-width">
         <v-card flat>
           <v-toolbar flat class="login-form-toolbar">
-            <v-toolbar-title class="login-form-toolbar-title">{{$t('login.logIn')}}</v-toolbar-title>
+            <v-toolbar-title class="login-form-toolbar-title">{{
+              $t('login.logIn')
+            }}</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
             <v-form>
-              <ValidationObserver ref="form" v-slot="{ validate }">
-                <ValidationProvider name="username" rules="required" v-slot="{ errors }">
+              <ValidationObserver ref="form">
+                <ValidationProvider
+                  name="username"
+                  rules="required"
+                  v-slot="{ errors }"
+                >
                   <v-text-field
                     id="username"
                     name="username"
@@ -21,7 +27,11 @@
                   ></v-text-field>
                 </ValidationProvider>
 
-                <ValidationProvider name="password" rules="required" v-slot="{ errors }">
+                <ValidationProvider
+                  name="password"
+                  rules="required"
+                  v-slot="{ errors }"
+                >
                   <v-text-field
                     id="password"
                     name="password"
@@ -46,7 +56,8 @@
               rounded
               :disabled="isDisabled"
               :loading="loading"
-            >{{$t('login.logIn')}}</v-btn>
+              >{{ $t('login.logIn') }}
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -108,60 +119,56 @@ export default (Vue as VueConstructor<
       this.$refs.form.reset();
       this.loading = true;
 
-      this.$store
-        .dispatch('login', loginData)
-        .then(
-          (response) => {
-            // Auth ok. Start phase 2 (fetch user data and current security server info).
-            this.fetchUserData();
-            this.fetchSecurityServerVersion();
-          },
-          (error) => {
-            // Display invalid username/password error in inputs
-            if (error.response && error.response.status === 401) {
-              // Clear inputs
-              this.username = '';
-              this.password = '';
-              this.$refs.form.reset();
+      this.$store.dispatch('login', loginData).then(
+        () => {
+          // Auth ok. Start phase 2 (fetch user data and current security server info).
+          this.fetchUserData();
+          this.fetchSecurityServerVersion();
+        },
+        (error) => {
+          // Display invalid username/password error in inputs
+          if (error.response && error.response.status === 401) {
+            // Clear inputs
+            this.username = '';
+            this.password = '';
+            this.$refs.form.reset();
 
-              // The whole view needs to be rendered so the "required" rule doesn't block
-              // "wrong unsername or password" error in inputs
-              this.$nextTick(() => {
-                // Set inputs to error state
-                this.$refs.form.setErrors({
-                  username: [''],
-                  password: [this.$t('login.errorMsg401') as string],
-                });
+            // The whole view needs to be rendered so the "required" rule doesn't block
+            // "wrong unsername or password" error in inputs
+            this.$nextTick(() => {
+              // Set inputs to error state
+              this.$refs.form.setErrors({
+                username: [''],
+                password: [this.$t('login.errorMsg401') as string],
               });
-            }
-            this.$store.dispatch('showErrorMessageRaw', error.message);
-                      // Clear loading state
+            });
+          }
+          this.$store.dispatch('showErrorMessageRaw', error.message);
+          // Clear loading state
           this.loading = false;
-          },
-        );
+        },
+      );
     },
     async fetchUserData() {
       this.loading = true;
-      this.$store
-        .dispatch('fetchUserData')
-        .then(
-          (response) => {
-            // Check if initialization is needed
-            this.fetchInitializationData();
-          },
-          (error) => {
-            // Display error
-            this.$store.dispatch('showErrorMessageRaw', error.message);
-            this.loading = false;
-          },
-        );
+      this.$store.dispatch('fetchUserData').then(
+        () => {
+          // Check if initialization is needed
+          this.fetchInitializationData();
+        },
+        (error) => {
+          // Display error
+          this.$store.dispatch('showErrorMessageRaw', error.message);
+          this.loading = false;
+        },
+      );
     },
 
     async fetchInitializationData() {
       this.$store
         .dispatch('fetchInitializationStatus')
         .then(
-          (response) => {
+          () => {
             if (this.$store.getters.needsInitialization) {
               // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
@@ -227,4 +234,3 @@ export default (Vue as VueConstructor<
   max-width: 420px;
 }
 </style>
-

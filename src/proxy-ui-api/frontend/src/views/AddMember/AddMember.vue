@@ -1,4 +1,3 @@
-
 <template>
   <div class="view-wrap">
     <subViewTitle
@@ -8,40 +7,68 @@
       data-test="wizard-title"
     />
 
-    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+    <v-stepper
+      :alt-labels="true"
+      v-model="currentStep"
+      class="stepper noshadow"
+    >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
         <v-stepper-header class="noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 1" step="1">{{
+            $t('wizard.member.title')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 2" step="2">{{$t('wizard.token.title')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 2" step="2">{{
+            $t('wizard.token.title')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 3" step="3">{{$t('wizard.signKey.title')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 3" step="3">{{
+            $t('wizard.signKey.title')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 4" step="4">{{$t('csr.csrDetails')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 4" step="4">{{
+            $t('csr.csrDetails')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 5" step="5">{{$t('csr.generateCsr')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 5" step="5">{{
+            $t('csr.generateCsr')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step step="6">{{$t('wizard.finish.title')}}</v-stepper-step>
+          <v-stepper-step step="6">{{
+            $t('wizard.finish.title')
+          }}</v-stepper-step>
         </v-stepper-header>
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
         <v-stepper-header class="noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 1" step="1">{{
+            $t('wizard.member.title')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step step="2">{{$t('wizard.finish.title')}}</v-stepper-step>
+          <v-stepper-step step="2">{{
+            $t('wizard.finish.title')
+          }}</v-stepper-step>
         </v-stepper-header>
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
         <v-stepper-header class="noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{$t('wizard.member.title')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 1" step="1">{{
+            $t('wizard.member.title')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.csrDetails')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 2" step="2">{{
+            $t('csr.csrDetails')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 3" step="3">{{$t('csr.generateCsr')}}</v-stepper-step>
+          <v-stepper-step :complete="currentStep > 3" step="3">{{
+            $t('csr.generateCsr')
+          }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step step="4">{{$t('wizard.finish.title')}}</v-stepper-step>
+          <v-stepper-step step="4">{{
+            $t('wizard.finish.title')
+          }}</v-stepper-step>
         </v-stepper-header>
       </template>
 
@@ -52,11 +79,19 @@
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content :step="tokenPageNumber">
-          <TokenPage @cancel="cancel" @previous="previousPage" @done="tokenReady" />
+          <TokenPage
+            @cancel="cancel"
+            @previous="previousPage"
+            @done="tokenReady"
+          />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content :step="keyPageNumber">
-          <SignKeyPage @cancel="cancel" @previous="previousPage" @done="currentStep++" />
+          <SignKeyPage
+            @cancel="cancel"
+            @previous="previousPage"
+            @done="currentStep++"
+          />
         </v-stepper-content>
         <!-- Step 4 -->
         <v-stepper-content :step="csrDetailsPageNumber">
@@ -88,8 +123,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberDetailsPage from './MemberDetailsPage.vue';
 import TokenPage from './TokenPage.vue';
@@ -97,17 +130,12 @@ import SignKeyPage from './SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from './GenerateCsrPage.vue';
-
-import { Key, Token } from '@/openapi-types';
 import { RouteName, AddMemberWizardModes } from '@/global';
-import * as api from '@/util/api';
 
 const NO_SELECTION = 999;
 
 export default Vue.extend({
   components: {
-    HelpIcon,
-    LargeButton,
     SubViewTitle,
     MemberDetailsPage,
     TokenPage,
@@ -219,7 +247,7 @@ export default Vue.extend({
       this.$store.commit('storeCsrClient', idString);
 
       this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
+        () => {
           this.currentStep++;
         },
         (error) => {

@@ -2,17 +2,21 @@
   <v-layout align-center justify-center column fill-height elevation-0>
     <v-card class="xrd-card diagnostic-card">
       <v-card-title>
-        <span class="headline">{{$t('diagnostics.globalCongiguration.title')}}</span>
+        <span class="headline">{{
+          $t('diagnostics.globalCongiguration.title')
+        }}</span>
       </v-card-title>
       <ProgressLinear :active="globalConfLoading" />
       <v-card-text class="pt-4">
         <table class="xrd-table">
           <thead>
             <tr>
-              <th class="status-column">{{$t('diagnostics.status')}}</th>
-              <th>{{$t('diagnostics.message')}}</th>
-              <th class="time-column">{{$t('diagnostics.previousUpdate')}}</th>
-              <th class="time-column">{{$t('diagnostics.nextUpdate')}}</th>
+              <th class="status-column">{{ $t('diagnostics.status') }}</th>
+              <th>{{ $t('diagnostics.message') }}</th>
+              <th class="time-column">
+                {{ $t('diagnostics.previousUpdate') }}
+              </th>
+              <th class="time-column">{{ $t('diagnostics.nextUpdate') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -21,9 +25,20 @@
                 <StatusIcon :status="statusIconType(globalConf.status_class)" />
               </td>
 
-              <td>{{$t('diagnostics.globalCongiguration.configurationStatus.'+globalConf.status_code)}}</td>
-              <td class="time-column">{{globalConf.prev_update_at | formatHoursMins}}</td>
-              <td class="time-column">{{globalConf.next_update_at | formatHoursMins}}</td>
+              <td>
+                {{
+                  $t(
+                    'diagnostics.globalCongiguration.configurationStatus.' +
+                      globalConf.status_code,
+                  )
+                }}
+              </td>
+              <td class="time-column">
+                {{ globalConf.prev_update_at | formatHoursMins }}
+              </td>
+              <td class="time-column">
+                {{ globalConf.next_update_at | formatHoursMins }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -32,7 +47,7 @@
 
     <v-card class="xrd-card diagnostic-card">
       <v-card-title>
-        <span class="headline">{{$t('diagnostics.timestamping.title')}}</span>
+        <span class="headline">{{ $t('diagnostics.timestamping.title') }}</span>
       </v-card-title>
       <ProgressLinear :active="timestampingLoading" />
 
@@ -40,10 +55,10 @@
         <table class="xrd-table">
           <thead>
             <tr>
-              <th class="status-column">{{$t('diagnostics.status')}}</th>
-              <th class="url-column">{{$t('diagnostics.serviceUrl')}}</th>
-              <th>{{$t('diagnostics.message')}}</th>
-              <th class="time-column">{{$t('diagnostics.nextUpdate')}}</th>
+              <th class="status-column">{{ $t('diagnostics.status') }}</th>
+              <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+              <th>{{ $t('diagnostics.message') }}</th>
+              <th class="time-column">{{ $t('diagnostics.nextUpdate') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -52,11 +67,24 @@
               v-bind:key="timestampingService.url"
             >
               <td>
-                <StatusIcon :status="statusIconType(timestampingService.status_class)" />
+                <StatusIcon
+                  :status="statusIconType(timestampingService.status_class)"
+                />
               </td>
-              <td class="url-column" data-test="service-url">{{timestampingService.url}}</td>
-              <td>{{$t('diagnostics.timestamping.timestampingStatus.'+timestampingService.status_code)}}</td>
-              <td class="time-column">{{timestampingService.prev_update_at | formatHoursMins}}</td>
+              <td class="url-column" data-test="service-url">
+                {{ timestampingService.url }}
+              </td>
+              <td>
+                {{
+                  $t(
+                    'diagnostics.timestamping.timestampingStatus.' +
+                      timestampingService.status_code,
+                  )
+                }}
+              </td>
+              <td class="time-column">
+                {{ timestampingService.prev_update_at | formatHoursMins }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -65,7 +93,9 @@
 
     <v-card class="xrd-card diagnostic-card">
       <v-card-title>
-        <span class="headline">{{$t('diagnostics.ocspResponders.title')}}</span>
+        <span class="headline">{{
+          $t('diagnostics.ocspResponders.title')
+        }}</span>
       </v-card-title>
       <ProgressLinear :active="ocspLoading" />
       <v-card-text class="pt-4">
@@ -74,28 +104,48 @@
           v-bind:key="ocspDiags.distinguished_name"
         >
           <div class="cert-service-name">
-            <span>{{$t('diagnostics.ocspResponders.certificationService')}}</span>
-            {{ocspDiags.distinguished_name}}
+            <span>{{
+              $t('diagnostics.ocspResponders.certificationService')
+            }}</span>
+            {{ ocspDiags.distinguished_name }}
           </div>
           <table class="xrd-table">
             <thead>
               <tr>
-                <th class="status-column">{{$t('diagnostics.status')}}</th>
-                <th class="url-column">{{$t('diagnostics.serviceUrl')}}</th>
-                <th>{{$t('diagnostics.message')}}</th>
-                <th class="time-column">{{$t('diagnostics.previousUpdate')}}</th>
-                <th class="time-column">{{$t('diagnostics.nextUpdate')}}</th>
+                <th class="status-column">{{ $t('diagnostics.status') }}</th>
+                <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+                <th>{{ $t('diagnostics.message') }}</th>
+                <th class="time-column">
+                  {{ $t('diagnostics.previousUpdate') }}
+                </th>
+                <th class="time-column">{{ $t('diagnostics.nextUpdate') }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="ocsp in ocspDiags.ocsp_responders" v-bind:key="ocsp.url">
+              <tr
+                v-for="ocsp in ocspDiags.ocsp_responders"
+                v-bind:key="ocsp.url"
+              >
                 <td>
                   <StatusIcon :status="statusIconType(ocsp.status_class)" />
                 </td>
-                <td class="url-column" data-test="service-url">{{ocsp.url}}</td>
-                <td>{{$t('diagnostics.ocspResponders.ocspStatus.'+ocsp.status_code)}}</td>
-                <td class="time-column">{{ocsp.prev_update_at | formatHoursMins}}</td>
-                <td class="time-column">{{ocsp.next_update_at | formatHoursMins}}</td>
+                <td class="url-column" data-test="service-url">
+                  {{ ocsp.url }}
+                </td>
+                <td>
+                  {{
+                    $t(
+                      'diagnostics.ocspResponders.ocspStatus.' +
+                        ocsp.status_code,
+                    )
+                  }}
+                </td>
+                <td class="time-column">
+                  {{ ocsp.prev_update_at | formatHoursMins }}
+                </td>
+                <td class="time-column">
+                  {{ ocsp.next_update_at | formatHoursMins }}
+                </td>
               </tr>
             </tbody>
           </table>

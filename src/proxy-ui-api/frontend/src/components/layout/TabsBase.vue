@@ -1,8 +1,24 @@
 <template>
   <v-layout class="main-content" align-center justify-center column>
-    <v-tabs v-model="tab" class="main-tabs" grow mb-10 color="secondary" slider-size="4">
-      <v-tabs-slider color="secondary" class="xrd-main-tabs-slider"></v-tabs-slider>
-      <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to" exact>{{ $t(tab.name) }}</v-tab>
+    <v-tabs
+      v-model="tab"
+      class="main-tabs"
+      grow
+      mb-10
+      color="secondary"
+      slider-size="4"
+    >
+      <v-tabs-slider
+        color="secondary"
+        class="xrd-main-tabs-slider"
+      ></v-tabs-slider>
+      <v-tab
+        v-for="tab in allowedTabs"
+        v-bind:key="tab.key"
+        :to="tab.to"
+        exact
+        >{{ $t(tab.name) }}</v-tab
+      >
     </v-tabs>
   </v-layout>
 </template>
@@ -15,7 +31,7 @@ import { mainTabs } from '@/global';
 export default Vue.extend({
   data() {
     return {
-      tab: undefined as undefined | Tab,
+      tab: undefined as undefined | Tab,
     };
   },
   computed: {

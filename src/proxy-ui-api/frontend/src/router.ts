@@ -133,7 +133,8 @@ const router = new Router({
         },
         {
           name: RouteName.AddSubsystem,
-          path: '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
+          path:
+            '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
           components: {
             default: AddSubsystem,
           },
@@ -390,27 +391,25 @@ const router = new Router({
             }
 
             // Coming from somewhere else, needs a check
-            store
-              .dispatch('fetchInitializationStatus')
-              .then(
-                () => {
-                  if (store.getters.needsInitialization) {
-                    // Check if the user has permission to initialize the server
-                    if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
-                      store.dispatch(
-                        'showErrorMessage',
-                        'initialConfiguration.noPermission',
-                      );
-                      return;
-                    }
-                    next();
+            store.dispatch('fetchInitializationStatus').then(
+              () => {
+                if (store.getters.needsInitialization) {
+                  // Check if the user has permission to initialize the server
+                  if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+                    store.dispatch(
+                      'showErrorMessage',
+                      'initialConfiguration.noPermission',
+                    );
+                    return;
                   }
-                },
-                (error) => {
-                  // Display error
-                  store.dispatch('showError', error);
-                },
-              );
+                  next();
+                }
+              },
+              (error) => {
+                // Display error
+                store.dispatch('showError', error);
+              },
+            );
           },
         },
       ],

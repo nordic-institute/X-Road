@@ -2,30 +2,41 @@
   <div>
     <div class="info-block">
       <div>
-        {{$t('wizard.member.info1')}}
+        {{ $t('wizard.member.info1') }}
         <br />
         <br />
-        {{$t('wizard.member.info2')}}
+        {{ $t('wizard.member.info2') }}
       </div>
       <div class="action-block">
         <large-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-        >{{$t('wizard.member.select')}}</large-button>
+          >{{ $t('wizard.member.select') }}</large-button
+        >
       </div>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div data-test="selected-member-name">{{selectedMemberName}}</div>
+        <FormLabel
+          labelText="wizard.memberName"
+          helpText="wizard.client.memberNameTooltip"
+        />
+        <div data-test="selected-member-name">{{ selectedMemberName }}</div>
       </div>
 
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
+        <FormLabel
+          labelText="wizard.memberClass"
+          helpText="wizard.client.memberClassTooltip"
+        />
 
-        <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="addClient.memberClass"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="memberClasses"
             class="form-input"
@@ -35,9 +46,16 @@
         </ValidationProvider>
       </div>
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
+        <FormLabel
+          labelText="wizard.memberCode"
+          helpText="wizard.client.memberCodeTooltip"
+        />
 
-        <ValidationProvider name="addClient.memberCode" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="addClient.memberCode"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             type="text"
@@ -48,16 +66,21 @@
         </ValidationProvider>
       </div>
 
-      <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
+      <div v-if="duplicateClient" class="duplicate-warning">
+        {{ $t('wizard.client.memberExists') }}
+      </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+          <large-button outlined @click="cancel" data-test="cancel-button">{{
+            $t('action.cancel')
+          }}</large-button>
         </div>
         <large-button
           @click="done"
-          :disabled="invalid || duplicateClient || checkRunning"
+          :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
-        >{{$t('action.next')}}</large-button>
+          >{{ $t('action.next') }}</large-button
+        >
       </div>
     </ValidationObserver>
 
@@ -248,4 +271,3 @@ export default Vue.extend({
   font-size: 12px;
 }
 </style>
-
