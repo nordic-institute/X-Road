@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -53,7 +52,6 @@ public class ApplicationExceptionHandler {
     private ExceptionTranslator exceptionTranslator;
 
     @Autowired
-    @Lazy
     private AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
