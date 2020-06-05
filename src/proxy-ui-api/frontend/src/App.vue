@@ -75,4 +75,3 @@ export default Vue.extend({
   background: white;
 }
 </style>
-

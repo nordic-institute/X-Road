@@ -64,12 +64,12 @@ export const mutations: MutationTree<ClientState> = {
 
 export const actions: ActionTree<ClientState, RootState> = {
   fetchClient({ commit, rootGetters }, id: string) {
-
     if (!id) {
       throw new Error('Missing client id');
     }
 
-    return axios.get(`/clients/${id}`)
+    return axios
+      .get(`/clients/${id}`)
       .then((res) => {
         commit('storeClient', res.data);
       })
@@ -77,12 +77,13 @@ export const actions: ActionTree<ClientState, RootState> = {
         throw error;
       });
   },
-  fetchSignCertificates({ commit, rootGetters }, id: string) {
+  fetchSignCertificates({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing id');
     }
 
-    return axios.get(`/clients/${id}/sign-certificates`)
+    return axios
+      .get(`/clients/${id}/sign-certificates`)
       .then((res) => {
         commit('storeSignCertificates', res.data);
       })
@@ -91,12 +92,13 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
-  fetchTlsCertificates({ commit, rootGetters }, id: string) {
+  fetchTlsCertificates({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing id');
     }
 
-    return axios.get(`/clients/${id}/tls-certificates`)
+    return axios
+      .get(`/clients/${id}/tls-certificates`)
       .then((res) => {
         commit('storeTlsCertificates', res.data);
       })
@@ -105,13 +107,13 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
-  fetchSSCertificate({ commit, rootGetters }, id: string) {
-
+  fetchSSCertificate({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing id');
     }
 
-    return axios.get(`/system/certificate`)
+    return axios
+      .get(`/system/certificate`)
       .then((res) => {
         commit('storeSsCertificate', res.data);
       })
@@ -121,7 +123,6 @@ export const actions: ActionTree<ClientState, RootState> = {
   },
 
   fetchTlsCertificate({ commit, rootGetters }, { clientId, hash }) {
-
     if (!clientId) {
       throw new Error('Missing id');
     }
@@ -134,53 +135,56 @@ export const actions: ActionTree<ClientState, RootState> = {
   },
 
   deleteTlsCertificate({ commit, state }, { clientId, hash }) {
-
     return axios.delete(`/clients/${clientId}/tls-certificates/${hash}`);
   },
 
   downloadSSCertificate({ commit, state }, { hash }) {
-
-    axios.get(`/system/certificate/export`, { responseType: 'arraybuffer' }).then((response) => {
-      saveResponseAsFile(response);
-    });
+    axios
+      .get(`/system/certificate/export`, { responseType: 'arraybuffer' })
+      .then((response) => {
+        saveResponseAsFile(response);
+      });
   },
 
   uploadTlsCertificate({ commit, state }, data) {
-    return axios.post(`/clients/${data.clientId}/tls-certificates/`, data.fileData, {
-      headers: {
-        'Content-Type': 'application/octet-stream',
+    return axios.post(
+      `/clients/${data.clientId}/tls-certificates/`,
+      data.fileData,
+      {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
       },
-    });
+    );
   },
 
-  saveConnectionType({ commit, state }, { clientId, connType }) {
-
-    return axios.patch(`/clients/${clientId}`, {
-      connection_type: connType,
-    })
+  saveConnectionType({ commit }, { clientId, connType }) {
+    return axios
+      .patch(`/clients/${clientId}`, {
+        connection_type: connType,
+      })
       .then((res) => {
-
         if (res.data) {
           commit('storeClient', res.data);
-        } else {
-          console.error('no data');
         }
       })
       .catch((error) => {
         throw error;
       });
-
   },
 
-  registerClient({ commit, state }, clientId: string ) {
+  registerClient({ commit, state }, clientId: string) {
     return axios.put(`/clients/${clientId}/register`, {});
   },
 
   unregisterClient({ commit, state }, clientId) {
-       return axios.put(`/clients/${clientId}/unregister`, {});
+    return axios.put(`/clients/${clientId}/unregister`, {});
   },
 
-  addSubsystem({ commit, state }, { memberName, memberClass, memberCode, subsystemCode }) {
+  addSubsystem(
+    { commit, state },
+    { memberName, memberClass, memberCode, subsystemCode },
+  ) {
     const body = {
       client: {
         member_name: memberName,

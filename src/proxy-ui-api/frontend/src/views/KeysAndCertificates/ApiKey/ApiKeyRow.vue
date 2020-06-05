@@ -24,7 +24,10 @@
         >
           {{ $t('apiKey.table.action.edit.dialog.title', { id: apiKey.id }) }}
         </span>
-        <div slot="content" :data-test="`api-key-row-${apiKey.id}-edit-dialog-content`">
+        <div
+          slot="content"
+          :data-test="`api-key-row-${apiKey.id}-edit-dialog-content`"
+        >
           <v-row class="mt-12">
             <v-col>
               {{ $t('apiKey.table.action.edit.dialog.message') }}

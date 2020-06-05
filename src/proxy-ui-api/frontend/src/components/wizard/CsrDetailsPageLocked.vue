@@ -3,29 +3,31 @@
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.usage')}}
+          {{ $t('csr.usage') }}
           <helpIcon :text="$t('csr.helpUsage')" />
         </div>
-        <div class="readonly-info-field">{{usage}}</div>
+        <div class="readonly-info-field">{{ usage }}</div>
       </div>
 
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.client')}}
+          {{ $t('csr.client') }}
           <helpIcon :text="$t('csr.helpClient')" />
         </div>
-        <div
-          class="readonly-info-field"
-        >{{selectedMemberId}}</div>
+        <div class="readonly-info-field">{{ selectedMemberId }}</div>
       </div>
 
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.certificationService')}}
+          {{ $t('csr.certificationService') }}
           <helpIcon :text="$t('csr.helpCertificationService')" />
         </div>
 
-        <ValidationProvider name="crs.certService" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="crs.certService"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="filteredServiceList"
             item-text="name"
@@ -39,11 +41,15 @@
 
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.csrFormat')}}
+          {{ $t('csr.csrFormat') }}
           <helpIcon :text="$t('csr.helpCsrFormat')" />
         </div>
 
-        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="crs.crsFormat"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="csrFormatList"
             name="crs.crsFormat"
@@ -55,7 +61,9 @@
       </div>
 
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+        <large-button outlined @click="cancel" data-test="cancel-button">{{
+          $t('action.cancel')
+        }}</large-button>
 
         <div>
           <large-button
@@ -64,12 +72,14 @@
             outlined
             class="previous-button"
             data-test="previous-button"
-          >{{$t('action.previous')}}</large-button>
+            >{{ $t('action.previous') }}</large-button
+          >
           <large-button
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-          >{{$t(saveButtonText)}}</large-button>
+            >{{ $t(saveButtonText) }}</large-button
+          >
         </div>
       </div>
     </ValidationObserver>
@@ -82,16 +92,12 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Key, Token } from '@/openapi-types';
 import { CsrFormatTypes } from '@/global';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     HelpIcon,
     LargeButton,
-    SubViewTitle,
     ValidationObserver,
     ValidationProvider,
   },
@@ -167,4 +173,3 @@ export default Vue.extend({
   padding-top: 12px;
 }
 </style>
-

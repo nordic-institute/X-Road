@@ -12,13 +12,15 @@
           v-if="!token.logged_in"
           :disabled="!token.available"
           data-test="token-login-button"
-        >{{$t('keys.logIn')}}</large-button>
+          >{{ $t('keys.logIn') }}</large-button
+        >
         <large-button
           @click="confirmLogout()"
           v-if="token.logged_in"
           outlined
           data-test="token-logout-button"
-        >{{$t('keys.logOut')}}</large-button>
+          >{{ $t('keys.logOut') }}</large-button
+        >
       </template>
     </template>
 
@@ -27,7 +29,9 @@
         class="clickable-link"
         @click="tokenClick(token)"
         data-test="token-name"
-      >{{$t('keys.token')}} {{token.name}}</div>
+      >
+        {{ $t('keys.token') }} {{ token.name }}
+      </div>
     </template>
 
     <template v-slot:content>
@@ -38,14 +42,16 @@
             @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
-          >{{$t('keys.addKey')}}</large-button>
+            >{{ $t('keys.addKey') }}</large-button
+          >
           <large-button
             outlined
             class="button-spacing"
             :disabled="!token.logged_in"
             @click="$refs.certUpload.click()"
             data-test="token-import-cert-button"
-          >{{$t('keys.importCert')}}</large-button>
+            >{{ $t('keys.importCert') }}</large-button
+          >
           <input
             v-show="false"
             ref="certUpload"
@@ -107,8 +113,7 @@ import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
-import { mapGetters } from 'vuex';
-import { Key, Token, TokenType, TokenCertificate } from '@/openapi-types';
+import { Key, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -288,4 +293,3 @@ export default Vue.extend({
   margin-left: 20px;
 }
 </style>
-

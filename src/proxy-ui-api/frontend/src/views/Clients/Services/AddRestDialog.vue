@@ -8,27 +8,38 @@
     :disableSave="!isValid"
   >
     <div slot="content">
-
       <ValidationObserver ref="form" v-slot="{ validate, invalid }">
         <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{$t('services.serviceType')}}</div>
+          <div class="dlg-row-title">{{ $t('services.serviceType') }}</div>
 
           <ValidationProvider
             rules="required"
             name="serviceType"
             v-slot="{ errors }"
-            class="validation-provider dlg-row-input">
-
-            <v-radio-group v-model="serviceType" name="serviceType" :error-messages="errors" row>
-              <v-radio name="REST" :label="$t('services.restApiBasePath')" value="REST" ></v-radio>
-              <v-radio name="OPENAPI3" :label="$t('services.OpenApi3Description')" value="OPENAPI3" ></v-radio>
+            class="validation-provider dlg-row-input"
+          >
+            <v-radio-group
+              v-model="serviceType"
+              name="serviceType"
+              :error-messages="errors"
+              row
+            >
+              <v-radio
+                name="REST"
+                :label="$t('services.restApiBasePath')"
+                value="REST"
+              ></v-radio>
+              <v-radio
+                name="OPENAPI3"
+                :label="$t('services.OpenApi3Description')"
+                value="OPENAPI3"
+              ></v-radio>
             </v-radio-group>
-
           </ValidationProvider>
         </div>
 
         <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{$t('services.url')}}</div>
+          <div class="dlg-row-title">{{ $t('services.url') }}</div>
 
           <ValidationProvider
             rules="required|restUrl"
@@ -36,16 +47,18 @@
             v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
-            <v-text-field :placeholder="$t('services.urlPlaceholder')"
-                          v-model="url"
-                          single-line
-                          name="serviceUrl"
-                          :error-messages="errors"></v-text-field>
+            <v-text-field
+              :placeholder="$t('services.urlPlaceholder')"
+              v-model="url"
+              single-line
+              name="serviceUrl"
+              :error-messages="errors"
+            ></v-text-field>
           </ValidationProvider>
         </div>
 
         <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{$t('services.serviceCode')}}</div>
+          <div class="dlg-row-title">{{ $t('services.serviceCode') }}</div>
 
           <ValidationProvider
             rules="required"
@@ -98,7 +111,11 @@ export default Vue.extend({
   },
   computed: {
     isValid(): boolean {
-      if (isValidRestURL(this.url) && this.serviceCode.length > 0 && this.serviceType !== '') {
+      if (
+        isValidRestURL(this.url) &&
+        this.serviceCode.length > 0 &&
+        this.serviceType !== ''
+      ) {
         return true;
       }
 

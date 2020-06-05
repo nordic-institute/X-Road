@@ -9,7 +9,7 @@
     :showClose="false"
   >
     <div slot="content" data-test="dialog-content-text">
-      <template v-if="errorResponse">{{$t( 'keys.unregisterError')}}</template>
+      <template v-if="errorResponse">{{ $t('keys.unregisterError') }}</template>
     </div>
   </SimpleDialog>
 </template>
@@ -63,9 +63,6 @@ export default Vue.extend({
 });
 </script>
 
-
-
 <style lang="scss" scoped>
 @import '../../assets/dialogs';
 </style>
-

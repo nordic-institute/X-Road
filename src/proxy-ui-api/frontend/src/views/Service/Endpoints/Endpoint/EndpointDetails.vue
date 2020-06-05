@@ -8,13 +8,16 @@
           @click="showDeletePopup()"
           outlined
           data-test="delete-endpoint"
-        >{{$t('action.delete')}}</large-button>
+          >{{ $t('action.delete') }}</large-button
+        >
       </div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title long-row-title">{{$t('endpoints.httpRequestMethod')}}</div>
+        <div class="dlg-row-title long-row-title">
+          {{ $t('endpoints.httpRequestMethod') }}
+        </div>
         <v-select
           class="dlg-row-input"
           @input="touched = true"
@@ -25,7 +28,9 @@
       </div>
 
       <div class="dlg-edit-row">
-        <div class="dlg-row-title long-row-title">{{$t('endpoints.path')}}</div>
+        <div class="dlg-row-title long-row-title">
+          {{ $t('endpoints.path') }}
+        </div>
         <ValidationProvider
           rules="required"
           ref="path"
@@ -47,22 +52,25 @@
       <div class="dlg-edit-row helper-text">
         <div class="dlg-row-title long-row-title"></div>
         <div>
-          <div>{{$t('endpoints.endpointHelp1')}}</div>
-          <div>{{$t('endpoints.endpointHelp2')}}</div>
-          <div>{{$t('endpoints.endpointHelp3')}}</div>
-          <div>{{$t('endpoints.endpointHelp4')}}</div>
+          <div>{{ $t('endpoints.endpointHelp1') }}</div>
+          <div>{{ $t('endpoints.endpointHelp2') }}</div>
+          <div>{{ $t('endpoints.endpointHelp3') }}</div>
+          <div>{{ $t('endpoints.endpointHelp4') }}</div>
         </div>
       </div>
 
       <v-card flat>
         <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+          <large-button @click="close()" outlined>{{
+            $t('action.cancel')
+          }}</large-button>
           <large-button
             class="save-button"
             :loading="saveBusy"
             @click="saveEndpoint()"
             :disabled="!touched || invalid"
-          >{{$t('action.save')}}</large-button>
+            >{{ $t('action.save') }}</large-button
+          >
         </div>
       </v-card>
     </ValidationObserver>

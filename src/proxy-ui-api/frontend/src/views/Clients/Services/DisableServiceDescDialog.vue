@@ -8,8 +8,12 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('services.disableNotice')}}</div>
-        <v-text-field v-model="notice" single-line class="dlg-row-input"></v-text-field>
+        <div class="dlg-row-title">{{ $t('services.disableNotice') }}</div>
+        <v-text-field
+          v-model="notice"
+          single-line
+          class="dlg-row-input"
+        ></v-text-field>
       </div>
     </div>
   </simpleDialog>
@@ -60,4 +64,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 </style>
-
