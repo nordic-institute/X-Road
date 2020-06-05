@@ -216,7 +216,8 @@ export const actions: ActionTree<CsrState, RootState> = {
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
         saveResponseAsFile(response);
-      }).catch((error: any) => {
+      })
+      .catch((error: any) => {
         throw error;
       });
   },
@@ -237,7 +238,6 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-
         // Fetch and save the CSR file data
         api
           .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
@@ -266,9 +266,9 @@ export const actions: ActionTree<CsrState, RootState> = {
   },
 
   fetchAllMemberIds({ commit, rootGetters }) {
-    return api.get('/clients?show_members=true')
+    return api
+      .get('/clients?show_members=true')
       .then((res) => {
-
         const idArray: string[] = [];
         res.data.forEach((client: Client) => {
           // Create id:s without possible subsystem code
@@ -286,7 +286,6 @@ export const actions: ActionTree<CsrState, RootState> = {
       });
   },
 };
-
 
 export const csrModule: Module<CsrState, RootState> = {
   namespaced: false,
