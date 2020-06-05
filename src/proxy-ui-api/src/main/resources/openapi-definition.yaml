@@ -4901,7 +4901,8 @@ components:
           type: object
           additionalProperties: # https://swagger.io/docs/specification/data-models/dictionaries/
             type: array
-            description: array containing the validation errors of a field
+            description: Array containing the validation errors of a field. The possible validation error values
+              are listed in the X-Road User Guide
             items:
               type: string
               format: text
