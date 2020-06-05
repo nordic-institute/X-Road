@@ -74,7 +74,7 @@ export default Vue.extend({
           this.$emit('done', this.id);
           this.confirmMakeOwner = false;
           this.makeOwnerLoading = false;
-        }); 
+        });
     },
   },
 });
