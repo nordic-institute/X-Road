@@ -242,16 +242,12 @@ export default Vue.extend({
       );
     },
 
-    keyedServiceClientAccessRights() {
-      let index = 0;
-      const arrWithKeys = [];
-      for (const accessRight of this.serviceClientAccessRights) {
-        arrWithKeys[index] = accessRight as UiAccessRight;
-        arrWithKeys[index].uiKey = index;
-        index++;
-      }
-
-      return arrWithKeys;
+    keyedServiceClientAccessRights(): UiAccessRight[] {
+      return this.serviceClientAccessRights.map(
+        (sca: AccessRight, index: number) => {
+          return { ...sca, uiKey: index };
+        },
+      ) as UiAccessRight[];
     },
   },
   created(): void {
