@@ -84,11 +84,9 @@ export default Vue.extend({
     ...mapGetters(['service']),
 
     endpoints(): Endpoint[] {
-      const filtered = this.service.endpoints.filter((endpoint: Endpoint) => {
+      return this.service.endpoints.filter((endpoint: Endpoint) => {
         return !this.isBaseEndpoint(endpoint);
       });
-
-      return filtered;
     },
   },
   data() {
