@@ -85,7 +85,7 @@ export default Vue.extend({
 
     endpoints(): Endpoint[] {
       const filtered = this.service.endpoints.filter((endpoint: Endpoint) => {
-        return endpoint.method !== '*' && endpoint.path !== '**';
+        return !this.isBaseEndpoint(endpoint);
       });
 
       return filtered;
