@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
@@ -54,6 +55,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_REST_ENDPOINT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_REST_ENDPOINT;
 import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound;
 
 /**
@@ -105,6 +108,7 @@ public class EndpointsApiController implements EndpointsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_ENDPOINT')")
+    @AuditEventMethod(event = DELETE_REST_ENDPOINT)
     public ResponseEntity<Void> deleteEndpoint(String id) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         try {
@@ -121,6 +125,7 @@ public class EndpointsApiController implements EndpointsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3_ENDPOINT')")
+    @AuditEventMethod(event = EDIT_REST_ENDPOINT)
     public ResponseEntity<Endpoint> updateEndpoint(String id, EndpointUpdate endpointUpdate) {
         Long endpointId = parseLongIdOrThrowNotFound(id);
         Endpoint ep;

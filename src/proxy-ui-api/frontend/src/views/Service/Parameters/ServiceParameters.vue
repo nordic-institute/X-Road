@@ -208,7 +208,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
-import {ServiceClient} from '@/openapi-types';
+import {ServiceClient, ServiceUpdate} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 
 type NullableServiceClient = undefined | ServiceClient;
@@ -234,18 +234,17 @@ export default Vue.extend({
   },
   data() {
     return {
-      touched: false,
-      confirmGroup: false,
-      confirmMember: false,
-      confirmAllServiceClients: false,
+      touched: false as boolean,
+      confirmGroup: false as boolean,
+      confirmMember: false as boolean,
+      confirmAllServiceClients: false as boolean,
       selectedMember: undefined as NullableServiceClient,
-      description: undefined,
-      url: '',
-      addServiceClientDialogVisible: false,
-      timeout: 23,
-      url_all: false,
-      timeout_all: false,
-      ssl_auth_all: false,
+      url: '' as string,
+      addServiceClientDialogVisible: false as boolean,
+      timeout: 23 as number,
+      url_all: false as boolean,
+      timeout_all: false as boolean,
+      ssl_auth_all: false as boolean,
     };
   },
   computed: {
@@ -267,13 +266,17 @@ export default Vue.extend({
 
   methods: {
     save(): void {
+      const serviceUpdate: ServiceUpdate = {
+        url: this.service.url,
+        timeout: this.service.timeout,
+        ssl_auth: this.service.ssl_auth,
+        timeout_all: this.timeout_all,
+        url_all: this.url_all,
+        ssl_auth_all: this.ssl_auth_all,
+      };
+
       api
-        .patch(`/services/${this.serviceId}`, {
-          service: this.service,
-          timeout_all: this.timeout_all,
-          url_all: this.url_all,
-          ssl_auth_all: this.ssl_auth_all,
-        })
+        .patch(`/services/${this.serviceId}`, serviceUpdate)
         .then(() => {
           this.$store.dispatch('showSuccess', 'Service saved');
         })
