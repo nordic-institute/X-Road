@@ -104,7 +104,7 @@ public class KeyServiceTest {
 
     // allow all actions
     @MockBean
-    PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() throws Exception {

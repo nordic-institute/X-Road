@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -23,41 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.config.audit;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
-/**
- * Helper for working with security and authorization
- */
-public final class SecurityHelper {
+import static org.mockito.Mockito.mock;
 
-    private SecurityHelper() {
-        // noop
+@Configuration
+@Profile("!audit-test")
+public class AuditLogMockingConfiguration {
+
+    @Bean
+    @Primary
+    public AuditDataHelper mockAuditDataHelper() {
+        return mock(AuditDataHelper.class);
     }
 
-    /**
-     * Tells if current user / authentication has been granted given authority
-     * @param authority
-     * @return
-     */
-    public static boolean hasAuthority(String authority) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
+    @Bean
+    @Primary
+    public AuditEventHelper mockAuditEventHelper() {
+        return mock(AuditEventHelper.class);
     }
 
-    /**
-     * Verifies that current user / authentication has been granted given authority.
-     * If not, throws {@link AccessDeniedException}
-     * @param authority
-     * @throws AccessDeniedException if given authority has not been granted
-     */
-    public static void verifyAuthority(String authority) throws AccessDeniedException {
-        if (!hasAuthority(authority)) {
-            throw new AccessDeniedException("Missing authority: " + authority);
-        }
+    @Bean
+    @Primary
+    public AuditEventLoggingFacade mockAuditEventLoggingFacade() {
+        return mock(AuditEventLoggingFacade.class);
     }
 }

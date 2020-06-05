@@ -38,6 +38,7 @@ import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
+import { Service } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -55,9 +56,9 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: null,
-      service: {},
-      serviceTypeEnum: ServiceTypeEnum,
+      tab: null as any,
+      service: {} as {} | Service,
+      serviceTypeEnum: ServiceTypeEnum as any,
     };
   },
   computed: {
@@ -89,7 +90,12 @@ export default Vue.extend({
       api
         .get(`/services/${serviceId}`)
         .then((res) => {
-          this.service = res.data;
+          // Set ssl_auth to true if it is returned as null from backend
+          const service: Service = res.data;
+          if (typeof service.ssl_auth !== 'boolean') {
+            service.ssl_auth = true;
+          }
+          this.service = service;
           this.$store.dispatch('setService', res.data);
         })
         .catch((error) => {

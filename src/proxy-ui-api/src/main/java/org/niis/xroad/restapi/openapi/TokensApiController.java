@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.KeyConverter;
@@ -61,6 +62,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_KEY_AND_CSR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGIN_TOKEN;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGOUT_TOKEN;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_TOKEN_NAME;
 
 /**
  * tokens controller
@@ -112,6 +119,7 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
     @Override
+    @AuditEventMethod(event = LOGIN_TOKEN)
     public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
         if (tokenPassword == null
                 || tokenPassword.getPassword() == null
@@ -134,6 +142,7 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
     @Override
+    @AuditEventMethod(event = LOGOUT_TOKEN)
     public ResponseEntity<Token> logoutToken(String id) {
         try {
             tokenService.deactivateToken(id);
@@ -158,6 +167,7 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('EDIT_TOKEN_FRIENDLY_NAME')")
     @Override
+    @AuditEventMethod(event = UPDATE_TOKEN_NAME)
     public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
         try {
             TokenInfo tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());
@@ -172,6 +182,7 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('GENERATE_KEY')")
     @Override
+    @AuditEventMethod(event = GENERATE_KEY)
     public ResponseEntity<Key> addKey(String tokenId, KeyLabel keyLabel) {
         try {
             KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel());
@@ -187,6 +198,7 @@ public class TokensApiController implements TokensApi {
     @Override
     @PreAuthorize("hasAuthority('GENERATE_KEY') "
             + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))")
+    @AuditEventMethod(event = GENERATE_KEY_AND_CSR)
     public ResponseEntity<KeyWithCertificateSigningRequestId> addKeyAndCsr(String tokenId,
             KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
 
