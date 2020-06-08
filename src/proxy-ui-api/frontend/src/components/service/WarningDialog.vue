@@ -47,10 +47,6 @@ export default Vue.extend({
       type: String as Prop<string>,
       default: 'action.continue',
     },
-    url: {
-      type: String as Prop<string>,
-      required: true,
-    },
     maxWidth: {
       type: String as Prop<string>,
       default: '850',

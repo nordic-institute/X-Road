@@ -177,8 +177,7 @@ import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
-import { cloneDeep } from 'lodash';
-import { Service, ServiceDescription } from '@/openapi-types';
+import {Service, ServiceDescription} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 
@@ -208,7 +207,7 @@ export default Vue.extend({
       componentKey: 0 as number,
       expanded: [] as string[],
       serviceDescriptions: [] as ServiceDescription[],
-      warningInfo: undefined as undefined | string[],
+      warningInfo: [] as string[],
       saveWarningDialog: false as boolean,
       refreshWarningDialog: false as boolean,
       url: '' as string,
@@ -235,7 +234,8 @@ export default Vue.extend({
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      const arr = cloneDeep(this.serviceDescriptions).sort((a, b) => {
+      const arr = JSON.parse(JSON.stringify(this.serviceDescriptions))
+          .sort((a: ServiceDescription, b: ServiceDescription) => {
         if (a.id < b.id) {
           return -1;
         }
@@ -268,7 +268,7 @@ export default Vue.extend({
       });
 
       // Filter out services that don't include search term
-      filtered.forEach((element) => {
+      filtered.forEach((element: any) => {
         const filteredServices = element.services.filter((service: any) => {
           return service.service_code
             .toString()
