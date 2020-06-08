@@ -46,9 +46,15 @@ export default Vue.extend({
   },
   created() {
     // Set interval to poll backend for session
-    this.sessionPollInterval = setInterval(() => this.pollSessionStatus(), 30000);
+    this.sessionPollInterval = setInterval(
+      () => this.pollSessionStatus(),
+      30000,
+    );
     this.$store.dispatch('checkAlertStatus'); // Poll immediately to get initial alerts state
-    this.alertsPollInterval = setInterval(() => this.$store.dispatch('checkAlertStatus'), 30000);
+    this.alertsPollInterval = setInterval(
+      () => this.$store.dispatch('checkAlertStatus'),
+      30000,
+    );
   },
   methods: {
     closeLogoutDialog() {

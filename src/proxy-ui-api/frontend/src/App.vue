@@ -13,15 +13,15 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue';
-  import axios from 'axios';
-  import Snackbar from '@/components/ui/Snackbar.vue';
-  import { RouteName } from '@/global';
-  import AppFooter from '@/components/layout/AppFooter.vue';
-  import AppToolbar from '@/components/layout/AppToolbar.vue';
-  import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import Vue from 'vue';
+import axios from 'axios';
+import Snackbar from '@/components/ui/Snackbar.vue';
+import { RouteName } from '@/global';
+import AppFooter from '@/components/layout/AppFooter.vue';
+import AppToolbar from '@/components/layout/AppToolbar.vue';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
-  export default Vue.extend({
+export default Vue.extend({
   name: 'App',
   components: {
     AppToolbar,
