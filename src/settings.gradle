@@ -12,6 +12,7 @@ include "common-op-monitoring"
 include 'common-certificateprofile'
 include 'common-signature'
 include 'common-monitoring'
+include 'common-request'
 
 // Main projects
 include "proxy"
