@@ -29,17 +29,19 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     }
 
     // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-    const arr = JSON.parse(JSON.stringify(state.tokens)).sort((a: Token, b: Token) => {
-      if (a.id < b.id) {
-        return -1;
-      }
-      if (a.id > b.id) {
-        return 1;
-      }
+    const arr = JSON.parse(JSON.stringify(state.tokens)).sort(
+      (a: Token, b: Token) => {
+        if (a.id < b.id) {
+          return -1;
+        }
+        if (a.id > b.id) {
+          return 1;
+        }
 
-      // equal id:s. (should not happen)
-      return 0;
-    });
+        // equal id:s. (should not happen)
+        return 0;
+      },
+    );
 
     return arr;
   },
@@ -175,6 +177,7 @@ export const actions: ActionTree<TokensState, RootState> = {
       .then((res) => {
         // Update tokens
         this.dispatch('fetchTokens');
+        this.dispatch('checkAlertStatus');
       })
       .catch((error) => {
         throw error;
