@@ -59,7 +59,6 @@ export function saveResponseAsFile(
       suggestedFileName = matches[1].replace(/['"]/g, '');
     }
   }
-
   const effectiveFileName =
     suggestedFileName === undefined ? defaultFileName : suggestedFileName;
   const blob = new Blob([response.data]);
@@ -71,7 +70,10 @@ export function saveResponseAsFile(
   link.setAttribute('data-test', 'generated-download-link');
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link); // cleanup
+
+  // cleanup
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
 
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
