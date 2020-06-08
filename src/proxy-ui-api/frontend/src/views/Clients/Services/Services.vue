@@ -380,7 +380,7 @@ export default Vue.extend({
           url,
           type: this.serviceTypeEnum.WSDL,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'services.wsdlAdded');
           this.addBusy = false;
           this.fetchData();
@@ -389,14 +389,6 @@ export default Vue.extend({
           if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.saveWarningDialog = true;
-          } else if (
-            error?.response?.data?.error?.code === 'service_already_exists'
-          ) {
-            this.$store.dispatch(
-              'showErrorMessageRaw',
-              'service already exists',
-            );
-            this.addBusy = false;
           } else {
             this.$store.dispatch('showError', error);
             this.addBusy = false;

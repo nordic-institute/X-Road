@@ -229,7 +229,6 @@
     "noMatches": "No matching records",
     "disableSuccess": "Service description disabled",
     "enableSuccess": "Service description enabled",
-    "openApi3ParsingFailed": "Parsing OpenApi3 description failed",
     "openApi3Added": "OpenApi3 service added",
     "restAdded": "REST service added",
     "wsdlAdded": "WSDL added",
@@ -290,6 +289,7 @@
     "addMember": "Add member",
     "search": "Search",
     "add": "Add",
+    "copyId": "Copy ID",
     "export": "Export",
     "emptySearch": "Your search for {msg} found no results.",
     "noData": "No data",
@@ -739,5 +739,11 @@
         "UNKNOWN": "Unknown"
       }
     }
+  },
+  "error_code": {
+    "openapi_parsing_error": "Parsing OpenApi3 description failed",
+    "validation_failure": "Validation failure",
+    "service_already_exists": "Service already exists",
+    "url_already_exists": "URL already exists"
   }
 }
