@@ -538,7 +538,7 @@ public class PossibleActionsRuleEngineTest {
         assertTrue(actions.contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
 
         actions = getPossibleKeyActions(unsaved);
-        assertFalse(actions.contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
+        assertTrue(actions.contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
 
     }
 }
