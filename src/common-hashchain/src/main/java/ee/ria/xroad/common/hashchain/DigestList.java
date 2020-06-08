@@ -25,14 +25,13 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERUTF8String;
-
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static org.bouncycastle.asn1.ASN1Encoding.DER;
 
 final class DigestList {
 
@@ -45,8 +44,8 @@ final class DigestList {
      */
     static byte[] digestHashStep(String digestMethod, byte[]... items)
             throws Exception {
-        return calculateDigest(digestMethod,
-                concatDigests(getDigestAlgorithmURI(digestMethod), items));
+        return CryptoUtils.calculateDigest(digestMethod,
+                concatDigests(CryptoUtils.getDigestAlgorithmURI(digestMethod), items));
     }
 
     /**
@@ -62,7 +61,7 @@ final class DigestList {
         }
 
         DERSequence step = new DERSequence(digestList);
-        return step.getEncoded(DER);
+        return step.getEncoded(ASN1Encoding.DER);
     }
 
     /**
@@ -78,7 +77,7 @@ final class DigestList {
         }
 
         DERSequence step = new DERSequence(digestList);
-        return step.getEncoded(DER);
+        return step.getEncoded(ASN1Encoding.DER);
     }
 
     /**

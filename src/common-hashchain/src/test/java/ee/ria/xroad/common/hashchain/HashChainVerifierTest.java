@@ -25,7 +25,10 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ExpectedCodedException;
+import ee.ria.xroad.common.util.MessageFileNames;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,13 +41,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
 
 /**
  * Tests to verify that hash chain verification is correct.
@@ -68,10 +64,10 @@ public class HashChainVerifierTest {
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier1-hashchain.xml",
-                MESSAGE, "hc-verifier1-message.xml");
+                MessageFileNames.MESSAGE, "hc-verifier1-message.xml");
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, null);
+                MessageFileNames.MESSAGE, null);
 
         HashChainVerifier.verify(
                 load("hc-verifier1-hashchainresult.xml"),
@@ -90,7 +86,7 @@ public class HashChainVerifierTest {
                 HASH_CHAIN, "hc-verifier1-hashchain.xml");
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, "hc-verifier1-message.xml");
+                MessageFileNames.MESSAGE, "hc-verifier1-message.xml");
 
         HashChainVerifier.verify(
                 load("hc-verifier1-hashchainresult.xml"),
@@ -105,13 +101,13 @@ public class HashChainVerifierTest {
     public void simpleUnusedInputs() throws Exception {
         LOG.info("simpleUnusedInputs()");
 
-        thrown.expectErrorSuffix(X_HASHCHAIN_UNUSED_INPUTS);
+        thrown.expectErrorSuffix(ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS);
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier1-hashchain.xml");
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, "hc-verifier1-message.xml",
+                MessageFileNames.MESSAGE, "hc-verifier1-message.xml",
                 "/unused1", null,
                 "/unused2", null);
 
@@ -129,13 +125,13 @@ public class HashChainVerifierTest {
     public void simpleDigestMismatch() throws Exception {
         LOG.info("simpleDigestMismatch()");
 
-        thrown.expectErrorSuffix(X_INVALID_HASH_CHAIN_RESULT);
+        thrown.expectErrorSuffix(ErrorCodes.X_INVALID_HASH_CHAIN_RESULT);
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier1-hashchain.xml");
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, "hc-verifier1-hashchain.xml");
+                MessageFileNames.MESSAGE, "hc-verifier1-hashchain.xml");
 
         HashChainVerifier.verify(
                 load("hc-verifier1-hashchainresult.xml"),
@@ -153,10 +149,10 @@ public class HashChainVerifierTest {
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier4-hashchain1.xml",
                 "/hashchain2.xml", "hc-verifier4-hashchain2.xml",
-                MESSAGE, "hc-verifier4-message.xml");
+                MessageFileNames.MESSAGE, "hc-verifier4-message.xml");
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, null);
+                MessageFileNames.MESSAGE, null);
 
         HashChainVerifier.verify(
                 load("hc-verifier4-hashchainresult.xml"),
@@ -175,13 +171,13 @@ public class HashChainVerifierTest {
                 HASH_CHAIN, "hc-verifier2-hashchain.xml");
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, new DigestValue(
+                MessageFileNames.MESSAGE, new DigestValue(
                     DigestMethod.SHA256, new byte[] {(byte) 11 }),
-                attachment(1), new DigestValue(
+                MessageFileNames.attachment(1), new DigestValue(
                     DigestMethod.SHA256, new byte[] {(byte) 12 }),
-                attachment(2), new DigestValue(
+                MessageFileNames.attachment(2), new DigestValue(
                     DigestMethod.SHA256, new byte[] {(byte) 13 }),
-                attachment(3), new DigestValue(
+                MessageFileNames.attachment(3), new DigestValue(
                     DigestMethod.SHA256, new byte[] {(byte) 14 }));
 
         HashChainVerifier.verify(
@@ -213,7 +209,7 @@ public class HashChainVerifierTest {
         };
 
         Map<String, DigestValue> inputs = makeInputs(
-                MESSAGE, new DigestValue(
+                MessageFileNames.MESSAGE, new DigestValue(
                     DigestMethod.SHA256, new byte[] {(byte) 11 }));
 
         HashChainVerifier.verify(
@@ -231,9 +227,9 @@ public class HashChainVerifierTest {
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier3-hashchain.xml",
-                MESSAGE, "hc-verifier3-message.xml");
+                MessageFileNames.MESSAGE, "hc-verifier3-message.xml");
 
-        Map<String, DigestValue> inputs = makeInputs(MESSAGE, null);
+        Map<String, DigestValue> inputs = makeInputs(MessageFileNames.MESSAGE, null);
 
         HashChainVerifier.verify(
                 load("hc-verifier3-hashchainresult.xml"),
@@ -250,11 +246,11 @@ public class HashChainVerifierTest {
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier3-hashchain-invalid.xml",
-                MESSAGE, "hc-verifier3-message.xml");
+                MessageFileNames.MESSAGE, "hc-verifier3-message.xml");
 
-        Map<String, DigestValue> inputs = makeInputs(MESSAGE, null);
+        Map<String, DigestValue> inputs = makeInputs(MessageFileNames.MESSAGE, null);
 
-        thrown.expectErrorSuffix(X_INVALID_HASH_CHAIN_REF);
+        thrown.expectErrorSuffix(ErrorCodes.X_INVALID_HASH_CHAIN_REF);
 
         HashChainVerifier.verify(
                 load("hc-verifier3-hashchainresult.xml"),
@@ -274,8 +270,8 @@ public class HashChainVerifierTest {
                 ret.put(uri,
                         new DigestValue(
                                 DigestMethod.SHA256,
-                                calculateDigest(
-                                        getAlgorithmId(DigestMethod.SHA256),
+                                CryptoUtils.calculateDigest(
+                                        CryptoUtils.getAlgorithmId(DigestMethod.SHA256),
                                         load(fileName))));
             } else if (items[i + 1] instanceof DigestValue) {
                 ret.put(uri, (DigestValue) items[i + 1]);
@@ -284,8 +280,8 @@ public class HashChainVerifierTest {
                 ret.put(uri,
                         new DigestValue(
                                 DigestMethod.SHA256,
-                                calculateDigest(
-                                        getAlgorithmId(DigestMethod.SHA256),
+                                CryptoUtils.calculateDigest(
+                                        CryptoUtils.getAlgorithmId(DigestMethod.SHA256),
                                         data)));
             }
         }

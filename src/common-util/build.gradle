@@ -114,13 +114,6 @@ task xjc() {
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
 
-    // Generate classes for hash chains
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.hashchain',
-        schema: 'src/main/resources/hashchain.xsd',
-    )
-
     // Generate classes for service metainfo
     ant.xjc(
         destdir: project.ext.schemaTargetDir,

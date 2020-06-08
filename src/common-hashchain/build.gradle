@@ -1,0 +1,44 @@
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+configurations {
+    xjc
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+}
+
+dependencies {
+    compile project(':common-util')
+    compile 'org.apache.commons:commons-lang3:3.9'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.64'
+    compile 'commons-io:commons-io:2.6'
+    testCompile project(':common-util').sourceSets.test.output
+}
+
+task createDirs() {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc',
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
+
+        // Generate classes for hash chains
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.hashchain',
+            schema: 'src/main/resources/hashchain.xsd',
+        )
+
+    }
+}

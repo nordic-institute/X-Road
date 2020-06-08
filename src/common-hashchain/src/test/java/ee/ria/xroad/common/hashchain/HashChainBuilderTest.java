@@ -25,17 +25,16 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeHex;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 
@@ -68,7 +67,7 @@ public class HashChainBuilderTest {
     private static void runBuilder(int count) throws Exception {
         LOG.debug("Running build test for N={}", count);
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(CryptoUtils.SHA256_ID);
         for (int i = 0; i < count; ++i) {
             builder.addInputHash(new byte[] {(byte) i });
         }
@@ -86,7 +85,7 @@ public class HashChainBuilderTest {
         for (int treeSize = 2; treeSize < 353; ++treeSize) {
             LOG.debug("Running largeTreeBuilding test, n = {}", treeSize);
 
-            HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+            HashChainBuilder builder = new HashChainBuilder(CryptoUtils.SHA256_ID);
             for (int i = 0; i < treeSize; ++i) {
                 builder.addInputHash(String.valueOf(i).getBytes());
             }
@@ -112,7 +111,7 @@ public class HashChainBuilderTest {
     public void hashValues() throws Exception {
         LOG.info("hashValues()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(CryptoUtils.SHA256_ID);
         add(builder, "one");
         add(builder, "two");
         add(builder, "three");
@@ -120,11 +119,11 @@ public class HashChainBuilderTest {
 
         builder.finishBuilding();
         byte[] topHash = builder.getTreeTop();
-        LOG.info("Tophash HEX: {}", encodeHex(topHash));
-        LOG.info("Tophash BASE64: {}", encodeBase64(topHash));
+        LOG.info("Tophash HEX: {}", CryptoUtils.encodeHex(topHash));
+        LOG.info("Tophash BASE64: {}", CryptoUtils.encodeBase64(topHash));
 
-        assertEquals("D7oIIfhfp4ToT729xyx991PvstI5XvpW+d7oeWvXw8E=",
-                encodeBase64(topHash));
+        Assert.assertEquals("D7oIIfhfp4ToT729xyx991PvstI5XvpW+d7oeWvXw8E=",
+                CryptoUtils.encodeBase64(topHash));
 
         LOG.debug("Hash chain result:\n{}", builder.getHashChainResult("foo"));
 
@@ -142,7 +141,7 @@ public class HashChainBuilderTest {
     private static void add(HashChainBuilder builder, String data)
             throws Exception {
         builder.addInputHash(
-                calculateDigest(SHA256_ID,
+                CryptoUtils.calculateDigest(CryptoUtils.SHA256_ID,
                         data.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -155,7 +154,7 @@ public class HashChainBuilderTest {
     public void attachments() throws Exception {
         LOG.info("attachments()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(CryptoUtils.SHA256_ID);
         builder.addInputHash(new byte[][] {new byte[] {(byte) 0 }});
         builder.addInputHash(new byte[][] {
                 new byte[] {(byte) 11 },
@@ -183,7 +182,7 @@ public class HashChainBuilderTest {
     public void noInputs() throws Exception {
         LOG.info("noInputs()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(CryptoUtils.SHA256_ID);
         builder.finishBuilding();
 
         assertNull(builder.getHashChainResult("foo"));
@@ -198,7 +197,7 @@ public class HashChainBuilderTest {
     public void singleInputAttachment() throws Exception {
         LOG.info("singleInputAttachment()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(CryptoUtils.SHA256_ID);
         builder.addInputHash(new byte[][] {
                 new byte[] {(byte) 11 },
                 new byte[] {(byte) 12 },
@@ -207,7 +206,7 @@ public class HashChainBuilderTest {
         });
         builder.finishBuilding();
 
-        assertEquals("v3CBVgjKmzZT5hnJ6vj6waqBazZe334tdEoNiL2oM5E=",
+        Assert.assertEquals("v3CBVgjKmzZT5hnJ6vj6waqBazZe334tdEoNiL2oM5E=",
                 encodeBase64(builder.getTreeTop()));
 
         LOG.debug("Hash chain result:\n{}", builder.getHashChainResult("foo"));

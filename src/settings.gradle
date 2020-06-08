@@ -9,10 +9,11 @@ include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
 include "common-op-monitoring"
-include 'common-certificateprofile'
-include 'common-signature'
-include 'common-monitoring'
-include 'common-request'
+include "common-certificateprofile"
+include "common-signature"
+include "common-monitoring"
+include "common-request"
+include "common-hashchain"
 
 // Main projects
 include "proxy"

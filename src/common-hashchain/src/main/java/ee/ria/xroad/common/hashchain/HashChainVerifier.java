@@ -26,6 +26,8 @@
 package ee.ria.xroad.common.hashchain;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.SchemaValidator;
 import ee.ria.xroad.common.util.XmlUtils;
 
@@ -56,15 +58,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 
 /**
  * Verification of hash chains.
@@ -123,12 +116,12 @@ public final class HashChainVerifier {
         byte[] hashStepData = resolveHashStep(hashChainResult.getURI(), null);
 
         // Digest the last hash step result.
-        byte[] digestedData = calculateDigest(
-                getAlgorithmId(hashChainResult.getDigestMethod().getAlgorithm()), hashStepData);
+        byte[] digestedData = CryptoUtils.calculateDigest(
+                CryptoUtils.getAlgorithmId(hashChainResult.getDigestMethod().getAlgorithm()), hashStepData);
 
         // Compare with the signed hash chain result.
         if (!Arrays.equals(digestedData, hashChainResult.getDigestValue())) {
-            throw new CodedException(X_INVALID_HASH_CHAIN_RESULT,
+            throw new CodedException(ErrorCodes.X_INVALID_HASH_CHAIN_RESULT,
                     "Hash chain result does not match hash chain calculation");
         }
 
@@ -142,7 +135,7 @@ public final class HashChainVerifier {
         untouchedInputs.removeAll(usedInputs);
 
         if (!untouchedInputs.isEmpty()) {
-            throw new CodedException(X_HASHCHAIN_UNUSED_INPUTS,
+            throw new CodedException(ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS,
                     "Some inputs were not referenced by hash chain: %s", StringUtils.join(untouchedInputs, ", "));
         }
     }
@@ -219,7 +212,8 @@ public final class HashChainVerifier {
         String digestMethodUri = getValueDigestMethodUri(stepRef, currentChain);
 
         // Digest the hash step result.
-        return new DigestValue(digestMethodUri, calculateDigest(getAlgorithmId(digestMethodUri), resolved));
+        return new DigestValue(digestMethodUri,
+                CryptoUtils.calculateDigest(CryptoUtils.getAlgorithmId(digestMethodUri), resolved));
     }
 
     private DigestValue resolveDataRef(DataRefType dataRef, HashChainType currentChain) throws Exception {
@@ -254,16 +248,16 @@ public final class HashChainVerifier {
         }
 
         if (toDigest == null) {
-            throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", dataRef.getURI());
+            throw new CodedException(ErrorCodes.X_INVALID_REFERENCE, "Cannot resolve URI: %s", dataRef.getURI());
         }
 
-        byte[] digest = calculateDigest(getAlgorithmId(digestMethodUri), toDigest);
+        byte[] digest = CryptoUtils.calculateDigest(CryptoUtils.getAlgorithmId(digestMethodUri), toDigest);
 
         // Compare the calculated digest with the digest in the hash chain
         if (!Arrays.equals(digest, dataRef.getDigestValue())) {
-            log.debug("Calculated: {}", encodeBase64(digest));
+            log.debug("Calculated: {}", CryptoUtils.encodeBase64(digest));
 
-            throw new CodedException(X_INVALID_HASH_CHAIN_REF,
+            throw new CodedException(ErrorCodes.X_INVALID_HASH_CHAIN_REF,
                     "Invalid digest value in hash chain reference to %s", dataRef.getURI());
         }
 
@@ -326,7 +320,7 @@ public final class HashChainVerifier {
         int hashIndex = uri.indexOf('#');
 
         if (hashIndex < 0) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
+            throw new CodedException(ErrorCodes.X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
         }
 
         String baseUri = uri.substring(0, hashIndex);
@@ -334,7 +328,7 @@ public final class HashChainVerifier {
 
         if (fragment.isEmpty()) {
             // Hash step must be indicated by a fragment in a hash chain.
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
+            throw new CodedException(ErrorCodes.X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
         }
 
         HashChainType hashChain;
@@ -353,7 +347,7 @@ public final class HashChainVerifier {
         }
 
         // No hash step with given fragment ID found.
-        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
+        throw new CodedException(ErrorCodes.X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
     }
 
     private HashChainType getHashChain(String uri) throws Exception {
@@ -363,7 +357,7 @@ public final class HashChainVerifier {
             InputStream is = referenceResolver.resolve(uri);
 
             if (is == null) {
-                throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", uri);
+                throw new CodedException(ErrorCodes.X_INVALID_REFERENCE, "Cannot resolve URI: %s", uri);
             }
 
             ret = parseHashChain(is);
@@ -377,11 +371,11 @@ public final class HashChainVerifier {
         private static Schema schema;
 
         static {
-            schema = createSchema("hashchain.xsd");
+            schema = SchemaValidator.createSchema("hashchain.xsd");
         }
 
         public static void validate(Source source) throws Exception {
-            validate(schema, source, X_MALFORMED_HASH_CHAIN);
+            SchemaValidator.validate(schema, source, ErrorCodes.X_MALFORMED_HASH_CHAIN);
         }
     }
 

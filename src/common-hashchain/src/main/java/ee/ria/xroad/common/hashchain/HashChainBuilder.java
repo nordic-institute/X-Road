@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
@@ -124,7 +125,7 @@ public final class HashChainBuilder {
      */
     public HashChainBuilder(String hashAlgorithm) throws Exception {
         this.hashAlgorithm = hashAlgorithm;
-        hashAlgorithmUri = getDigestAlgorithmURI(hashAlgorithm);
+        hashAlgorithmUri = CryptoUtils.getDigestAlgorithmURI(hashAlgorithm);
 
         marshaller = jaxbCtx.createMarshaller();
         // Format the XML, good for debugging.
@@ -551,7 +552,7 @@ public final class HashChainBuilder {
             } else {
                 // All the other inputs are attachments, starting from 1.
                 ret.getHashValueOrStepRefOrDataRef().add(
-                        dataRef(attachment(i), inputSet[i]));
+                        dataRef(MessageFileNames.attachment(i), inputSet[i]));
             }
         }
 
