@@ -12,7 +12,9 @@
       </v-text-field>
     </div>
 
-    <div v-if="filtered && filtered.length < 1">{{$t('services.noMatches')}}</div>
+    <div v-if="filtered && filtered.length < 1">
+      {{ $t('services.noMatches') }}
+    </div>
 
     <template v-if="filtered">
       <token-expandable
@@ -34,7 +36,11 @@
       @accept="acceptTokenLogout()"
     />
 
-    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
+    <TokenLoginDialog
+      :dialog="loginDialog"
+      @cancel="loginDialog = false"
+      @save="tokenLogin"
+    />
   </div>
 </template>
 
@@ -47,7 +53,6 @@ import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
-
 
 export default Vue.extend({
   components: {
@@ -144,7 +149,7 @@ export default Vue.extend({
       }
 
       this.$store.dispatch('tokenLogout', token.id).then(
-        (response) => {
+        () => {
           this.$store.dispatch('showSuccess', 'keys.loggedOut');
         },
         (error) => {
@@ -154,7 +159,7 @@ export default Vue.extend({
 
       this.logoutDialog = false;
     },
-    tokenLogin(password: string): void {
+    tokenLogin(): void {
       this.fetchData();
       this.loginDialog = false;
     },
@@ -191,4 +196,3 @@ export default Vue.extend({
   max-width: 300px;
 }
 </style>
-

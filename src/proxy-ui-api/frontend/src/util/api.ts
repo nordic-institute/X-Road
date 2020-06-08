@@ -34,4 +34,3 @@ export function remove(uri: string) {
 export function get(uri: string, config?: AxiosRequestConfig) {
   return axios.get(uri, config);
 }
-

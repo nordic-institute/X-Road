@@ -124,10 +124,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(false);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -142,10 +142,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(true); // value does not matter if http - will aways be set to null
-        service.setUrl(TestUtils.URL_HTTP);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true); // value does not matter if http - will aways be set to null
+        serviceUpdate.setUrl(TestUtils.URL_HTTP);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -160,11 +160,11 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(false);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true)
+        ServiceUpdate serviceUpdate = new ServiceUpdate().urlAll(true)
                 .sslAuthAll(true).timeoutAll(true);
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -186,10 +186,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(true);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true);
+        ServiceUpdate serviceUpdate = new ServiceUpdate().urlAll(true);
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();

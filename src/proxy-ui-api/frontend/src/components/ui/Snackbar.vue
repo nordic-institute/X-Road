@@ -1,13 +1,27 @@
 <template>
   <div>
-    <v-snackbar data-test="error-snackbar" v-model="showErrorRaw" color="error" :timeout="timeout">
+    <v-snackbar
+      data-test="error-snackbar"
+      v-model="showErrorRaw"
+      color="error"
+      :timeout="timeout"
+    >
       {{ errorMessageRaw }}
-      <v-btn data-test="close-snackbar" text @click="closeError()">{{$t('action.close')}}</v-btn>
+      <v-btn data-test="close-snackbar" text @click="closeError()">{{
+        $t('action.close')
+      }}</v-btn>
     </v-snackbar>
 
-    <v-snackbar data-test="error-snackbar" v-model="showErrorCode" color="error" :timeout="timeout">
+    <v-snackbar
+      data-test="error-snackbar"
+      v-model="showErrorCode"
+      color="error"
+      :timeout="timeout"
+    >
       {{ $t(errorMessageCode) }}
-      <v-btn data-test="close-snackbar" text @click="closeError()">{{$t('action.close')}}</v-btn>
+      <v-btn data-test="close-snackbar" text @click="closeError()">{{
+        $t('action.close')
+      }}</v-btn>
     </v-snackbar>
 
     <v-snackbar
@@ -17,7 +31,9 @@
       :timeout="timeout"
     >
       {{ $t(successMessageCode) }}
-      <v-btn data-test="close-snackbar" text @click="closeSuccess()">{{$t('action.close')}}</v-btn>
+      <v-btn data-test="close-snackbar" text @click="closeSuccess()">{{
+        $t('action.close')
+      }}</v-btn>
     </v-snackbar>
 
     <v-snackbar
@@ -27,7 +43,9 @@
       :timeout="timeout"
     >
       {{ successMessageRaw }}
-      <v-btn data-test="close-snackbar" text @click="closeSuccess()">{{$t('action.close')}}</v-btn>
+      <v-btn data-test="close-snackbar" text @click="closeSuccess()">{{
+        $t('action.close')
+      }}</v-btn>
     </v-snackbar>
 
     <v-snackbar
@@ -41,8 +59,14 @@
       <br />
 
       <template v-if="errorObject.response">
-        {{ $t('id') }}: {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
-        <v-btn icon v-clipboard:copy="errorObject.response.headers['x-road-ui-correlation-id'] ">
+        {{ $t('id') }}:
+        {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
+        <v-btn
+          icon
+          v-clipboard:copy="
+            errorObject.response.headers['x-road-ui-correlation-id']
+          "
+        >
           <v-icon>mdi-content-copy</v-icon>
         </v-btn>
       </template>
@@ -52,7 +76,8 @@
         text
         @click="closeError()"
         outlined
-      >{{$t('action.close')}}</v-btn>
+        >{{ $t('action.close') }}</v-btn
+      >
     </v-snackbar>
   </div>
 </template>

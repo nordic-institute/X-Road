@@ -21,7 +21,8 @@
           rounded
           data-test="add-rest-button"
           class="rounded-button elevation-0 rest-button"
-        >{{$t('services.addRest')}}</v-btn>
+          >{{ $t('services.addRest') }}</v-btn
+        >
 
         <v-btn
           v-if="showAddButton"
@@ -32,11 +33,14 @@
           rounded
           data-test="add-wsdl-button"
           class="ma-0 rounded-button elevation-0"
-        >{{$t('services.addWsdl')}}</v-btn>
+          >{{ $t('services.addWsdl') }}</v-btn
+        >
       </div>
     </div>
 
-    <div v-if="filtered && filtered.length < 1">{{$t('services.noMatches')}}</div>
+    <div v-if="filtered && filtered.length < 1">
+      {{ $t('services.noMatches') }}
+    </div>
 
     <template v-if="filtered">
       <expandable
@@ -65,16 +69,19 @@
             v-if="canEditServiceDesc"
             @click="descriptionClick(serviceDesc)"
             data-test="service-description-header"
-          >{{serviceDesc.type}} ({{serviceDesc.url}})</div>
-          <div v-else>{{serviceDesc.type}} ({{serviceDesc.url}})</div>
+          >
+            {{ serviceDesc.type }} ({{ serviceDesc.url }})
+          </div>
+          <div v-else>{{ serviceDesc.type }} ({{ serviceDesc.url }})</div>
         </template>
 
         <template v-slot:content>
           <div>
             <div class="refresh-row">
-              <div
-                class="refresh-time"
-              >{{$t('services.lastRefreshed')}} {{serviceDesc.refreshed_at | formatDateTime}}</div>
+              <div class="refresh-time">
+                {{ $t('services.lastRefreshed') }}
+                {{ serviceDesc.refreshed_at | formatDateTime }}
+              </div>
               <v-btn
                 v-if="showRefreshButton(serviceDesc.type)"
                 :key="refreshButtonComponentKey"
@@ -86,25 +93,35 @@
                 class="xrd-small-button xrd-table-button"
                 @click="refresh(serviceDesc)"
                 data-test="refresh-button"
-              >{{$t('action.refresh')}}</v-btn>
+                >{{ $t('action.refresh') }}</v-btn
+              >
             </div>
 
             <table class="xrd-table">
               <thead>
                 <tr>
-                  <th>{{$t('services.serviceCode')}}</th>
-                  <th>{{$t('services.url')}}</th>
-                  <th>{{$t('services.timeout')}}</th>
+                  <th>{{ $t('services.serviceCode') }}</th>
+                  <th>{{ $t('services.url') }}</th>
+                  <th>{{ $t('services.timeout') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
-                  <td class="service-code" @click="serviceClick(serviceDesc, service)" data-test="service-link">{{service.service_code}}</td>
+                <tr
+                  v-for="service in serviceDesc.services"
+                  v-bind:key="service.id"
+                >
+                  <td
+                    class="service-code"
+                    @click="serviceClick(serviceDesc, service)"
+                    data-test="service-link"
+                  >
+                    {{ service.service_code }}
+                  </td>
                   <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
-                    {{service.url}}
+                    {{ service.url }}
                   </td>
-                  <td>{{service.timeout}}</td>
+                  <td>{{ service.timeout }}</td>
                 </tr>
               </tbody>
             </table>
@@ -113,8 +130,17 @@
       </expandable>
     </template>
 
-    <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="cancelAddWsdl" />
-    <addRestDialog :dialog="addRestDialog" @save="restSave" :clientId="this.id" @cancel="cancelAddRest" />
+    <addWsdlDialog
+      :dialog="addWsdlDialog"
+      @save="wsdlSave"
+      @cancel="cancelAddWsdl"
+    />
+    <addRestDialog
+      :dialog="addRestDialog"
+      @save="restSave"
+      :clientId="this.id"
+      @cancel="cancelAddRest"
+    />
     <disableServiceDescDialog
       :dialog="disableDescDialog"
       @cancel="disableDescCancel"
@@ -295,7 +321,7 @@ export default Vue.extend({
 
       api
         .put(`/service-descriptions/${serviceDesc.id}/enable`, {})
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'services.enableSuccess');
         })
         .catch((error) => {
@@ -363,7 +389,9 @@ export default Vue.extend({
           if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.saveWarningDialog = true;
-          } else if (error?.response?.data?.error?.code === 'service_already_exists') {
+          } else if (
+            error?.response?.data?.error?.code === 'service_already_exists'
+          ) {
             this.$store.dispatch(
               'showErrorMessageRaw',
               'service already exists',
@@ -385,7 +413,7 @@ export default Vue.extend({
           type: this.serviceTypeEnum.WSDL,
           ignore_warnings: true,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'services.wsdlAdded');
         })
         .catch((error) => {
@@ -425,7 +453,7 @@ export default Vue.extend({
         .put(`/service-descriptions/${serviceDescription.id}/refresh`, {
           ignore_warnings: false,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'services.refreshed');
           this.fetchData();
         })
@@ -438,7 +466,8 @@ export default Vue.extend({
             this.$store.dispatch('showError', error);
             this.fetchData();
           }
-        }).finally( () => {
+        })
+        .finally(() => {
           this.refreshBusy[serviceDescription.id] = false;
         });
     },
@@ -448,7 +477,7 @@ export default Vue.extend({
         .put(`/service-descriptions/${this.refreshId}/refresh`, {
           ignore_warnings: true,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'services.refreshed');
         })
         .catch((error) => {
@@ -559,6 +588,4 @@ export default Vue.extend({
   text-overflow: ellipsis;
   max-width: 700px;
 }
-
 </style>
-

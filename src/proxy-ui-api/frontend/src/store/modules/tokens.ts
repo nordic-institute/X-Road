@@ -4,7 +4,6 @@ import { Key, Token, TokenCertificate } from '@/openapi-types';
 import axios from 'axios';
 import * as api from '@/util/api';
 
-
 export interface TokensState {
   expandedTokens: string[];
   tokens: Token[];
@@ -25,7 +24,6 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     return state.tokens;
   },
   sortedTokens(state): Token[] {
-
     if (!state.tokens || state.tokens.length === 0) {
       return [];
     }
@@ -44,7 +42,6 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     });
 
     return arr;
-
   },
   selectedToken(state): Token | undefined {
     return state.selectedToken;
@@ -113,13 +110,10 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     return arr.filter((token: Token) => {
       return token.name.toLowerCase().includes(mysearch);
     });
-
   },
-
 };
 
 export const mutations: MutationTree<TokensState> = {
-
   setTokenHidden(state, id: string) {
     const index = state.expandedTokens.findIndex((element: any) => {
       return element === id;
@@ -147,7 +141,6 @@ export const mutations: MutationTree<TokensState> = {
   setSelectedToken(state, token: Token) {
     state.selectedToken = token;
   },
-
 };
 
 export const actions: ActionTree<TokensState, RootState> = {

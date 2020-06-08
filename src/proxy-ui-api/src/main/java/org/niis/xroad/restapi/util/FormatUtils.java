@@ -76,6 +76,17 @@ public final class FormatUtils {
     }
 
     /**
+     * Converts OffsetDateTime to Date
+     */
+    public static Date fromOffsetDateTimeToDate(OffsetDateTime offsetDateTime) {
+        if (offsetDateTime == null) {
+            return null;
+        } else {
+            return Date.from(offsetDateTime.toInstant());
+        }
+    }
+
+    /**
      * Converts LocalTime to OffsetDateTime with ZoneOffset.UTC
      * @param localTime
      * @return OffsetDateTime with offset ZoneOffset.UTC

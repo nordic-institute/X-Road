@@ -39,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -90,6 +92,9 @@ public class ClientService {
     private final IdentifierRepository identifierRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final AuditDataHelper auditDataHelper;
+
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -102,7 +107,9 @@ public class ClientService {
             ServerConfService serverConfService, GlobalConfService globalConfService,
             IdentifierRepository identifierRepository, ManagementRequestSenderService managementRequestSenderService,
             CurrentSecurityServerId currentSecurityServerId,
-            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates) {
+            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates,
+            AuditEventLoggingFacade auditEventLoggingFacade,
+            AuditDataHelper auditDataHelper) {
         this.clientRepository = clientRepository;
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
@@ -111,6 +118,8 @@ public class ClientService {
         this.managementRequestSenderService = managementRequestSenderService;
         this.currentSecurityServerId = currentSecurityServerId;
         this.currentSecurityServerSignCertificates = currentSecurityServerSignCertificates;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -239,9 +248,11 @@ public class ClientService {
      * @throws ClientNotFoundException if client was not found
      */
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
+        auditDataHelper.put(id);
         ClientType clientType = getLocalClientOrThrowNotFound(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
+        auditDataHelper.put(enumValue);
         clientType.setIsAuthentication(connectionType);
         clientRepository.saveOrUpdate(clientType);
         return clientType;
@@ -269,6 +280,7 @@ public class ClientService {
      */
     public CertificateType addTlsCertificate(ClientId id, byte[] certBytes)
             throws CertificateException, CertificateAlreadyExistsException, ClientNotFoundException {
+        auditDataHelper.put(id);
         X509Certificate x509Certificate;
         try {
             x509Certificate = CryptoUtils.readCertificate(certBytes);
@@ -276,6 +288,15 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
+        CertificateType certificateType = new CertificateType();
+        try {
+            certificateType.setData(x509Certificate.getEncoded());
+        } catch (CertificateEncodingException ex) {
+            // client cannot do anything about this
+            throw new RuntimeException(ex);
+        }
+        auditDataHelper.put(certificateType);
+
         ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> duplicate = clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
@@ -284,13 +305,6 @@ public class ClientService {
             throw new CertificateAlreadyExistsException("certificate already exists");
         }
 
-        CertificateType certificateType = new CertificateType();
-        try {
-            certificateType.setData(x509Certificate.getEncoded());
-        } catch (CertificateEncodingException ex) {
-            // client cannot do anything about this
-            throw new RuntimeException(ex);
-        }
         clientType.getIsCert().add(certificateType);
         clientRepository.saveOrUpdateAndFlush(clientType);
         return certificateType;
@@ -329,6 +343,9 @@ public class ClientService {
      */
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException, CertificateNotFoundException {
+
+        auditDataHelper.put(id);
+
         ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
@@ -336,6 +353,8 @@ public class ClientService {
         if (!certificateType.isPresent()) {
             throw new CertificateNotFoundException();
         }
+
+        auditDataHelper.put(certificateType.get());
 
         clientType.getIsCert().remove(certificateType.get());
         clientRepository.saveOrUpdate(clientType);
@@ -477,6 +496,9 @@ public class ClientService {
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotRegisterOwnerException, ActionNotPossibleException {
+
+        auditDataHelper.put(clientId);
+
         ClientType client = getLocalClientOrThrowNotFound(clientId);
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
@@ -486,8 +508,10 @@ public class ClientService {
             throw new ActionNotPossibleException("Only clients with status 'saved' can be registered");
         }
         try {
-            managementRequestSenderService.sendClientRegisterRequest(clientId);
+            Integer requestId = managementRequestSenderService.sendClientRegisterRequest(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
+            auditDataHelper.putClientStatus(client);
+            auditDataHelper.putManagementRequestId(requestId);
             clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
@@ -504,6 +528,9 @@ public class ClientService {
      */
     public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
+
+        auditDataHelper.put(clientId);
+
         ClientType client = getLocalClientOrThrowNotFound(clientId);
         List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
         if (!allowedStatuses.contains(client.getClientStatus())) {
@@ -514,7 +541,9 @@ public class ClientService {
             throw new CannotUnregisterOwnerException();
         }
         try {
-            managementRequestSenderService.sendClientUnregisterRequest(clientId);
+            Integer requestId = managementRequestSenderService.sendClientUnregisterRequest(clientId);
+            auditDataHelper.putClientStatus(client);
+            auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DELINPROG);
             clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
@@ -539,7 +568,9 @@ public class ClientService {
             throw new ActionNotPossibleException("Only member can be an owner");
         }
         ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(), memberClass, memberCode);
+        auditDataHelper.put(clientId);
         ClientType client = getLocalClientOrThrowNotFound(clientId);
+        auditDataHelper.putClientStatus(client);
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
@@ -549,7 +580,8 @@ public class ClientService {
         }
 
         try {
-            managementRequestSenderService.sendOwnerChangeRequest(clientId);
+            Integer requestId = managementRequestSenderService.sendOwnerChangeRequest(clientId);
+            auditDataHelper.putManagementRequestId(requestId);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -654,6 +686,10 @@ public class ClientService {
                 memberCode,
                 subsystemCode);
 
+
+        auditDataHelper.put(clientId);
+        auditDataHelper.put(isAuthentication);
+
         ClientType existingLocalClient = getLocalClient(clientId);
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (existingLocalClient != null) {
@@ -689,6 +725,8 @@ public class ClientService {
         } else {
             client.setClientStatus(ClientType.STATUS_SAVED);
         }
+        auditDataHelper.putClientStatus(client);
+
         client.setIsAuthentication(isAuthentication.name());
         ServerConfType serverConfType = serverConfService.getServerConf();
         client.setConf(serverConfType);
@@ -720,6 +758,9 @@ public class ClientService {
      */
     public void deleteLocalClient(ClientId clientId) throws ActionNotPossibleException,
             CannotDeleteOwnerException, ClientNotFoundException {
+
+        auditDataHelper.put(clientId);
+
         ClientType clientType = getLocalClientOrThrowNotFound(clientId);
         // cant delete owner
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
