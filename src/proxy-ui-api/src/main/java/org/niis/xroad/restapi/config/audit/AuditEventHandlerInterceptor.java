@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.config.audit;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -46,11 +45,9 @@ import java.lang.reflect.Method;
 public class AuditEventHandlerInterceptor implements HandlerInterceptor {
 
     @Autowired
-    @Lazy
     AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Autowired
-    @Lazy
     AuditEventHelper auditEventHelper;
 
     @Override

@@ -1,7 +1,7 @@
 <template>
   <div class="status-wrapper">
     <StatusIcon :status="statusIconType" />
-    <div class="status-text">{{getStatusText(status)}}</div>
+    <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
 </template>
 
@@ -84,7 +84,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style lang="scss" scoped>
 .status-wrapper {

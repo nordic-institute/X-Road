@@ -1,7 +1,7 @@
 <template>
   <div class="footer-content">
     <div>
-      <LargeButton @click="close()">{{$t('action.close')}}</LargeButton>
+      <LargeButton @click="close()">{{ $t('action.close') }}</LargeButton>
     </div>
   </div>
 </template>
@@ -34,4 +34,3 @@ export default Vue.extend({
   border-top: 1px solid $XRoad-Grey40;
 }
 </style>
-

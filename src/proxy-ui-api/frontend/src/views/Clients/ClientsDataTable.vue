@@ -18,19 +18,25 @@
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
-      <v-btn
-        v-if="showAddClient"
-        color="primary"
-        @click="addClient"
-        data-test="add-client-button"
-        rounded
-        dark
-        class="ma-0 rounded-button elevation-0"
-      >{{$t('action.addClient')}}</v-btn>
+      <div>
+        <LargeButton
+          v-if="showAddMember"
+          @click="addMember"
+          data-test="add-member-button"
+          class="add-member"
+          >{{ $t('action.addMember') }}</LargeButton
+        >
+        <LargeButton
+          v-if="showAddClient"
+          @click="addClient"
+          data-test="add-client-button"
+          >{{ $t('action.addClient') }}</LargeButton
+        >
+      </div>
     </div>
 
     <v-data-table
-      :loading="loading"
+      :loading="clientsLoading"
       :headers="headers"
       :items="clients"
       :search="search"
@@ -45,20 +51,49 @@
     >
       <template v-slot:item.sortNameAsc="{ item }">
         <!-- Name - Owner member -->
-        <template v-if="item.type == 'owner'">
-          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open</v-icon>
+        <template v-if="item.type === clientTypes.OWNER_MEMBER">
+          <v-icon color="grey darken-2" class="icon-member icon-size"
+            >mdi-folder-open</v-icon
+          >
           <span
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openClient(item)"
-          >{{item.name}} ({{ $t("client.owner") }})</span>
+            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+          >
 
-          <span v-else class="font-weight-bold name">{{item.name}} ({{ $t("client.owner") }})</span>
+          <span v-else class="font-weight-bold name"
+            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+          >
         </template>
-        <!-- Name - member -->
-        <template v-else-if="item.type == 'client'">
-          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
-          <span class="font-weight-bold name-member">{{item.name}}</span>
+        <!-- Name - Member -->
+        <template v-else-if="item.type === clientTypes.MEMBER">
+          <v-icon color="grey darken-2" class="icon-member icon-size"
+            >mdi-folder-open-outline</v-icon
+          >
+          <span
+            v-if="canOpenClient"
+            class="font-weight-bold name clickable"
+            @click="openClient(item)"
+            >{{ item.visibleName }}</span
+          >
+          <span v-else class="font-weight-bold name">{{
+            item.visibleName
+          }}</span>
+        </template>
+        <!-- Name - virtual member -->
+        <template
+          v-else-if="
+            item.type === clientTypes.VIRTUAL_MEMBER ||
+              item.type === clientTypes.MEMBER
+          "
+        >
+          <v-icon color="grey darken-2" class="icon-member icon-size"
+            >mdi-folder-open-outline</v-icon
+          >
+          <span class="font-weight-bold name-member">{{
+            item.visibleName
+          }}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
@@ -66,13 +101,17 @@
             color="grey darken-2"
             class="icon-member icon-size"
             :class="{ 'icon-subsystem': treeMode }"
-          >mdi-card-bulleted-outline</v-icon>
+            >mdi-card-bulleted-outline</v-icon
+          >
           <span
             v-if="canOpenClient"
             class="font-weight-bold name clickable"
             @click="openSubsystem(item)"
-          >{{item.name}}</span>
-          <span v-else class="font-weight-bold name">{{item.name}}</span>
+            >{{ item.visibleName }}</span
+          >
+          <span v-else class="font-weight-bold name">{{
+            item.visibleName
+          }}</span>
         </template>
       </template>
 
@@ -83,23 +122,33 @@
       <template v-slot:item.button="{ item }">
         <div class="button-wrap">
           <SmallButton
-            v-if="(item.type === 'owner' || item.type === 'client') && item.member_name && showAddClient "
+            v-if="
+              (item.type === clientTypes.OWNER_MEMBER ||
+                item.type === clientTypes.VIRTUAL_MEMBER) &&
+                item.member_name &&
+                showAddClient
+            "
             @click="addSubsystem(item)"
-          >{{$t('action.addSubsystem')}}</SmallButton>
+            >{{ $t('action.addSubsystem') }}</SmallButton
+          >
 
           <SmallButton
-            v-if="item.type !== 'owner' && item.type !== 'client' && item.status === 'SAVED' && showRegister"
+            v-if="
+              item.type !== clientTypes.OWNER_MEMBER &&
+                item.type !== clientTypes.VIRTUAL_MEMBER &&
+                item.status === 'SAVED' &&
+                showRegister
+            "
             @click="registerClient(item)"
-          >{{$t('action.register')}}</SmallButton>
+            >{{ $t('action.register') }}</SmallButton
+          >
         </div>
       </template>
 
-      <template slot="no-data">{{$t('action.noData')}}</template>
-      <v-alert
-        slot="no-results"
-        :value="true"
-        color="error"
-      >{{ $t('action.emptySearch', { msg: search }) }}</v-alert>
+      <template slot="no-data">{{ $t('action.noData') }}</template>
+      <v-alert slot="no-results" :value="true" color="error">{{
+        $t('action.emptySearch', { msg: search })
+      }}</v-alert>
     </v-data-table>
 
     <ConfirmDialog
@@ -120,8 +169,10 @@
  */
 import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, ClientTypes } from '@/global';
+import { createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -129,12 +180,14 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 export default Vue.extend({
   components: {
     ClientStatus,
+    LargeButton,
     SmallButton,
     ConfirmDialog,
   },
 
   data: () => ({
     search: '' as string,
+    clientTypes: ClientTypes,
     pagination: {
       sortBy: 'sortNameAsc' as string,
     },
@@ -144,7 +197,7 @@ export default Vue.extend({
   }),
 
   computed: {
-    ...mapGetters(['clients', 'loading']),
+    ...mapGetters(['clients', 'clientsLoading', 'ownerMember']),
     treeMode(): boolean {
       // Switch between the "tree" view and the "flat" view
       if (this.search) {
@@ -185,6 +238,9 @@ export default Vue.extend({
     showAddClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
+    showAddMember(): boolean {
+      return this.$store.getters.realMembers?.length < 2;
+    },
     showRegister(): boolean {
       return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
     },
@@ -214,6 +270,17 @@ export default Vue.extend({
       });
     },
 
+    addMember(): void {
+      this.$router.push({
+        name: RouteName.AddMember,
+        params: {
+          instanceId: this.ownerMember.instance_id,
+          memberClass: this.ownerMember.member_class,
+          memberCode: this.ownerMember.member_code,
+        },
+      });
+    },
+
     addSubsystem(item: Client): void {
       if (!item.instance_id || !item.member_name) {
         // Should not happen
@@ -238,13 +305,21 @@ export default Vue.extend({
 
     registerAccepted(item: Client) {
       this.registerClientLoading = true;
+
+      // This should not happen, but better to throw error than create an invalid client id
+      if (!item.instance_id) {
+        throw new Error('Missing instance id');
+      }
+
+      const clientId = createClientId(
+        item.instance_id,
+        item.member_class,
+        item.member_code,
+        item.subsystem_code,
+      );
+
       this.$store
-        .dispatch('registerClient', {
-          instanceId: item.instance_id,
-          memberClass: item.member_class,
-          memberCode: item.member_code,
-          subsystemCode: item.subsystem_code,
-        })
+        .dispatch('registerClient', clientId)
         .then(
           (response) => {
             this.$store.dispatch(
@@ -386,5 +461,9 @@ export default Vue.extend({
   width: 100%;
   display: flex;
   justify-content: flex-end;
+}
+
+.add-member {
+  margin-right: 20px;
 }
 </style>
