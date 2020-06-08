@@ -162,6 +162,79 @@ var localGroupPopupCommands = {
   }
 };
 
+var servicesWarningPopupCommands = {
+  accept: function() {
+    this.click('@warningContinueButton');
+    return this;
+  },
+  cancel: function() {
+    this.click('@warningCancelButton');
+    return this;
+  }
+};
+
+var clientServicesCommands = {
+  filterBy: function(filter) {
+    this.clearValue2('@filterServices');
+    this.setValue('@filterServices', filter);
+    return this;
+  },
+  openAddWSDL: function() {
+    this.click('@addWSDLButton');
+    return this;
+  },
+  openAddREST: function() {
+    this.click('@addRESTButton');
+    return this;
+  },
+  confirmAddDialog: function() {
+    this.click('@confirmAddServiceButton');
+    return this;
+  },
+  cancelAddDialog: function() {
+    this.click('@cancelAddServiceButton');
+    return this;
+  },
+  enterServiceUrl: function(url) {
+    this.clearValue2('@newServiceUrl');
+    this.setValue('@newServiceUrl', url);
+    return this;
+  },
+  openServiceDetails: function() {
+    this.click('@serviceDescription');
+    return this;
+  },
+  expandServiceDetails: function() {
+    this.click('@serviceExpandButton');
+    return this;
+  },
+  refreshServiceData: function() {
+    this.click('@refreshButton');
+    return this;
+  },
+  toggleEnabled: function() {
+    this.click('@serviceEnableToggle');
+    return this;
+  },
+  enterDisableNotice: function(notice) {
+    this.clearValue2('@disableNotice');
+    this.setValue('@disableNotice', notice);
+    return this;
+  },
+  confirmDisable: function() {
+    this.click('@confirmDisableButton');
+    return this;
+  },
+  cancelDisable: function() {
+    this.click('@cancelDisableButton');
+    return this;
+  },
+  openOperation: function(op) {
+    this.api.click(this.selector + '//td[contains(@data-test, "service-link") and contains(text(),"'+op+'")]');
+    return this;
+  }
+};
+
 var clientLocalGroupsCommands = {
   openAddLocalGroupDialog: function() {
     this.click('@addGroupButton');
@@ -208,6 +281,123 @@ var clientLocalGroupsCommands = {
   }
 };
 
+var serviceDetailsCommands = {
+  closeServiceDetails: function() {
+    this.click('@serviceDetailsCloseButton');
+    return this;
+  },
+  deleteService: function() {
+    this.click('@deleteServiceButton');
+    return this;
+  },
+  enterServiceUrl: function(url) {
+    this.clearValue2('@serviceURL');
+    this.setValue('@serviceURL', url);
+    return this;
+  },
+  confirmDelete: function() {
+    this.click('@confirmDeleteButton');
+    return this;
+  },
+  cancelDelete: function() {
+    this.click('@cancelDeleteButton');
+    return this;
+  },
+  confirmDialog: function() {
+    this.click('@confirmDialogButton');
+    return this;
+  },
+  cancelDialog: function() {
+    this.click('@cancelDialogButton');
+    return this;
+  }
+};
+
+var wsdlOperationCommands = {
+  saveParameters: function() {
+    this.click('@saveButton');
+    return this;
+  },
+  close: function() {
+    this.click('@closeButton');
+    return this;
+  },
+  toggleUrlApplyToAll: function() {
+    this.click('@urlApplyToAllCheckbox');
+    return this;
+  },
+  toggleTimeoutApplyToAll: function() {
+    this.click('@timeoutApplyToAllCheckbox');
+    return this;sslAuth
+  },
+  toggleVerifyCertApplyToAll: function() {
+    this.click('@verifyCertApplyToAllCheckbox');
+    return this;
+  },
+  enterUrl: function(url) {
+    this.clearValue2('@serviceURL');
+    this.setValue('@serviceURL', url);
+    return this;
+  },
+  enterTimeout: function(timeout) {
+    this.clearValue2('@timeout');
+    this.setValue('@timeout', timeout);
+    return this;
+  },
+  toggleCertVerification: function() {
+    this.click('@sslAuthClickarea');
+    return this;
+  },
+  openAddAccessRights: function() {
+    this.click('@addSubjectsButton');
+    return this;
+  },
+  removeAllAccessRights: function() {
+    this.click('@removeAllButton');
+    return this;
+  },
+  removeAccessRight: function(subject) {
+    this.api.click(this.selector + '//table[contains(@class, "group-members-table")]//tr[.//td[contains(text(), "'+subject+'")]]//button[@data-test="remove-subject"]');
+    return this;
+  }
+};
+
+var wsdlAddSubjectsCommands = {
+  startSearch: function() {
+    this.click('@searchButton');
+    return this;
+  },
+  addSelected: function() {
+    this.click('@addButton');
+    return this;
+  },
+  cancel: function() {
+    this.click('@cancelButton');
+    return this;
+  },
+  selectSubject: function(subject) {
+    this.api.click(this.selector + '//tr[.//td[contains(text(),"'+subject+'")]]//input[contains(@data-test, "sc-checkbox")]/following-sibling::div');
+    return this;
+  }
+};
+
+var confirmationDialogCommands = {
+  confirm: function() {
+    this.api.keys(this.api.Keys.TAB);
+    this.api.keys(this.api.Keys.TAB);
+    this.api.keys(this.api.Keys.SPACE);
+    //this.click('@yesButton');
+    return this;
+  },
+  cancel: function() {
+    this.api.keys(this.api.Keys.TAB);
+    this.api.keys(this.api.Keys.SPACE);
+    //this.click('@cancelButton');
+    return this;
+  }
+};
+
+
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
@@ -235,6 +425,9 @@ module.exports = {
       locateStrategy: 'xpath' },
     snackBarCloseButton: { 
       selector: '//div[contains(@class, "v-snack__content")]//button[.//*[contains(text(), "Close")]]', 
+      locateStrategy: 'xpath' },
+    snackBarMessage: { 
+      selector: '//div[contains(@class, "v-snack__content")]',
       locateStrategy: 'xpath' }
   },
   sections: {
@@ -337,6 +530,70 @@ module.exports = {
               selector: '//span[contains(text(),"cbb")]',
               locateStrategy: 'xpath' }
           }      
+        },
+        services: {
+          selector: '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "services")]]',
+          locateStrategy: 'xpath',
+          commands: [clientServicesCommands],
+          elements: {
+            addWSDLButton: { 
+              selector: '//button[contains(@data-test, "add-wsdl-button")]',
+              locateStrategy: 'xpath' },
+            addRESTButton: { 
+              selector: '//button[contains(@data-test, "add-rest-button")]',
+              locateStrategy: 'xpath' },
+            filterServices: { 
+              selector: '//input[contains(@data-test, "search-service")]',
+              locateStrategy: 'xpath' },
+            newServiceUrl: { 
+              selector: '//input[contains(@name, "serviceUrl")]',
+              locateStrategy: 'xpath' },
+            serviceUrlMessage: { 
+              selector: '//div[contains(@class, "v-messages__message")]',
+              locateStrategy: 'xpath' },
+            confirmAddServiceButton: { 
+              selector: '//button[contains(@data-test, "dialog-save-button")]',
+              locateStrategy: 'xpath' },
+            cancelAddServiceButton: {
+              selector: '//button[contains(@data-test, "dialog-cancel-button")]',
+              locateStrategy: 'xpath' },
+            serviceDescription: {
+              selector: '//*[contains(@data-test, "service-description-header")]',
+              locateStrategy: 'xpath' },
+            serviceExpandButton: {
+              selector: '//*[contains(@data-test, "service-description-accordion")]//button',
+              locateStrategy: 'xpath' },
+            refreshButton: { 
+              selector: '//button[contains(@data-test, "refresh-button")]',
+              locateStrategy: 'xpath' },
+            refreshTimestamp: {
+              selector: '//*[contains(@class, "refresh-time")]',
+              locateStrategy: 'xpath' },
+            serviceDetailsDeleteButton: { 
+              selector: '//button[.//*[contains(text(), "Delete")]]',
+              locateStrategy: 'xpath' },
+            serviceDetailsSaveButton: {
+              selector: '//button[.//*[contains(text(), "Save")]]',
+              locateStrategy: 'xpath' },
+            serviceDetailsCancelButton: { 
+              selector: '//button[.//*[contains(text(), "Cancel")]]',
+              locateStrategy: 'xpath' },
+            serviceEnableToggle: { 
+              selector: '//*[contains(@class, "v-input--selection-controls__ripple")]', //'//*[contains(@data-test, "service-description-enable-disable")]',
+              locateStrategy: 'xpath' },
+            confirmDisableButton: { 
+              selector: '//button[contains(@data-test, "dialog-save-button")]',
+              locateStrategy: 'xpath' },
+            cancelDisableButton: {
+              selector: '//button[contains(@data-test, "dialog-cancel-button")]',
+              locateStrategy: 'xpath' },
+            disableNotice: { 
+              selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(@class, "dlg-row-title") and contains(text(), "Disable notice")]]//input',
+              locateStrategy: 'xpath' },
+            operationUrl: { 
+              selector: '//td[contains(@data-test, "service-url")]',
+              locateStrategy: 'xpath' }
+          }      
         }
       }     
     },
@@ -412,6 +669,153 @@ module.exports = {
           locateStrategy: 'xpath' },
         localGroupPopupCloseButton: { 
           selector: '//button[.//*[contains(text(), "Close")]]',
+          locateStrategy: 'xpath' }
+      }
+    },
+    servicesWarningPopup: {
+      selector: '//div[contains(@class, "v-dialog") and .//*[contains(@class, "headline") and contains(text(),"Warning")]]',
+      locateStrategy: 'xpath',
+      commands: [servicesWarningPopupCommands],
+      elements: {
+        warningContinueButton: { 
+          selector: '//button[.//*[contains(text(), "Continue")]]',
+          locateStrategy: 'xpath' },
+        warningCancelButton: { 
+          selector: '//button[.//*[contains(text(), "Cancel")]]',
+          locateStrategy: 'xpath' }
+      }
+    },
+    serviceDetails: {
+      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "cert-headline") and contains(text(),"WSDL details")]]',
+      locateStrategy: 'xpath',
+      commands: [serviceDetailsCommands],
+      elements: {
+        serviceDetailsCloseButton: {
+          selector: '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
+          locateStrategy: 'xpath' },
+        deleteServiceButton: { 
+          selector: '//button[.//*[contains(text(), "Delete")]]',
+          locateStrategy: 'xpath' },
+        confirmDeleteButton: { 
+          selector: '//button[contains(@data-test, "dialog-save-button")]',
+          locateStrategy: 'xpath' },
+        cancelDeleteButton: {
+          selector: '//button[contains(@data-test, "dialog-cancel-button")]',
+          locateStrategy: 'xpath' },
+        serviceURL: { 
+          selector: '//*[contains(@class, "url-input")]//input',
+          locateStrategy: 'xpath' },
+        URLMessage: { 
+          selector: '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
+          locateStrategy: 'xpath' },
+        confirmDialogButton: { 
+          selector: '//button[.//*[contains(text(), "Save")]]',
+          locateStrategy: 'xpath' },
+        cancelDialogButton: { 
+          selector: '//button[.//*[contains(text(), "Cancel")]]',
+          locateStrategy: 'xpath' }
+      }
+    },
+    wsdlOperationDetails: {
+      selector: '//div[contains(@class, "base-full-width") and .//div[contains(@class, "apply-to-all-text") and contains(text(),"Apply to all in WSDL")]]',
+      locateStrategy: 'xpath',
+      commands: [wsdlOperationCommands],
+      elements: {
+        urlApplyToAllCheckbox: { 
+          selector: '//input[contains(@data-test, "url-all")]/following-sibling::div', 
+          locateStrategy: 'xpath' },
+        timeoutApplyToAllCheckbox: { 
+          selector: '//input[contains(@data-test, "timeout-all")]/following-sibling::div',
+          locateStrategy: 'xpath' },
+        verifyCertApplyToAllCheckbox: { 
+          selector: '//input[contains(@data-test, "ssl-auth-all")]/following-sibling::div',
+          locateStrategy: 'xpath' },
+        serviceURL: { 
+          selector: '//input[contains(@data-test, "service-url")]',
+          locateStrategy: 'xpath' },
+        timeout: { 
+          selector: '//input[contains(@data-test, "service-timeout")]',
+          locateStrategy: 'xpath' },
+        sslAuth: { 
+          selector: '//input[contains(@data-test, "ssl-auth")]',
+          locateStrategy: 'xpath' },
+        sslAuthClickarea: { 
+          selector: '//input[contains(@data-test, "ssl-auth")]/following-sibling::div',
+          locateStrategy: 'xpath' },
+        save2Button: { 
+          selector: '//button[contains(@data-test, "save-service-parameters")]/following-sibling::div',
+          locateStrategy: 'xpath' },
+        saveButton: { 
+          selector: '//button[contains(@data-test, "save-service-parameters")]',
+          locateStrategy: 'xpath' },
+        closeButton: { 
+          selector: '//button[contains(@data-test, "close")]',
+          locateStrategy: 'xpath' },
+        urlHelp: { 
+          selector: '//div[contains(@class, "edit-title") and contains(text(), "Service URL")]//i',
+          locateStrategy: 'xpath' },
+        timeoutHelp: { 
+          selector: '//div[contains(@class, "edit-title") and contains(text(), "Timeout")]//i',
+          locateStrategy: 'xpath' },
+        verifyCertHelp: { 
+          selector: '//div[contains(@class, "edit-title") and contains(text(), "Verify TLS certificate")]//i',
+          locateStrategy: 'xpath' },
+        activeTooltip: { 
+          selector: '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
+          locateStrategy: 'xpath' },
+        addSubjectsButton: { 
+          selector: '//button[contains(@data-test, "show-add-subjects")]',
+          locateStrategy: 'xpath' },
+        removeAllButton: { 
+          selector: '//button[contains(@data-test, "remove-subjects")]',
+          locateStrategy: 'xpath' }
+      }      
+    },
+    wsdlAddSubjectsPopup: {
+      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Add Subjects")]]',
+      locateStrategy: 'xpath',
+      commands: [wsdlAddSubjectsCommands],
+      elements: {
+        searchButton: { 
+          selector: '//button[@data-test="search-button"]',
+          locateStrategy: 'xpath' },
+        addButton: { 
+          selector: '//button[@data-test="save"]',
+          locateStrategy: 'xpath' },
+        cancelButton: { 
+          selector: '//button[@data-test="cancel-button"]',
+          locateStrategy: 'xpath' },
+        urlApplyToAllCheckbox: { 
+          selector: '//input[@data-test="url-all"]/following-sibling::div',
+          locateStrategy: 'xpath' },
+        timeoutApplyToAllCheckbox: { 
+          selector: '//input[@data-test="timeout-all"]/following-sibling::div',
+          locateStrategy: 'xpath' }
+      }
+    },
+    removeMemberPopup: {
+      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Remove member?")]]',
+      locateStrategy: 'xpath',
+      commands: [confirmationDialogCommands],
+      elements: {
+        yesButton: { 
+          selector: '//button[@data-test="dialog-save-button"]',
+          locateStrategy: 'xpath' },
+        cancelButton: { 
+          selector: '//button[@data-test="dialog-cancel-button"]',
+          locateStrategy: 'xpath' }
+      }
+    },
+    removeAllMembersPopup: {
+      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Remove all members?")]]',
+      locateStrategy: 'xpath',
+      commands: [confirmationDialogCommands],
+      elements: {
+        yesButton: { 
+          selector: '//button[@data-test="dialog-save-button"]',
+          locateStrategy: 'xpath' },
+        cancelButton: { 
+          selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath' }
       }
     }

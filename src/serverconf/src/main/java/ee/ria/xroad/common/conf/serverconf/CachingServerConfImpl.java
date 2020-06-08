@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -41,6 +42,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.Session;
 
 import java.util.Collections;
@@ -191,8 +193,12 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
     @Override
     public boolean isSslAuthentication(ServiceId service) {
-        return getService(service).map(ServiceType::getSslAuthentication)
-                .orElseThrow(() -> new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service));
+        Optional<ServiceType> serviceTypeOptional = getService(service);
+        if (!serviceTypeOptional.isPresent()) {
+            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service);
+        }
+        ServiceType serviceType = serviceTypeOptional.get();
+        return (boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true);
     }
 
     @Override

@@ -8,7 +8,7 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('services.url')}}</div>
+        <div class="dlg-row-title">{{ $t('services.url') }}</div>
         <ValidationProvider
           rules="required|wsdlUrl"
           ref="serviceUrl"
@@ -29,15 +29,14 @@
   </simpleDialog>
 </template>
 
-
 <script lang="ts">
 import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { ValidationProvider } from 'vee-validate';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidWsdlURL } from '@/util/helpers';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider, ValidationObserver },
+  components: { SimpleDialog, ValidationProvider },
   props: {
     dialog: {
       type: Boolean,
@@ -79,4 +78,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 </style>
-

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -71,7 +72,7 @@ public final class GenerateTestData {
             .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/" + SHARED_PARAMETERS_XML),
                     SHARED_PARAMETERS_XML)
             .addEntry(new ConfDirEntry("FOO", "EE", "/foo.xml"), "/foo.xml")
-            .save();
+                .save();
 
         // detached conf scenario
         new TestConfDir("test-conf-detached").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,

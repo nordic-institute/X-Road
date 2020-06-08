@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +38,13 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
+import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -51,9 +56,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
@@ -73,14 +83,23 @@ public class IdentifierValidationRestTemplateTest {
     public static final String HAS_PERCENT = "aa%bb";
     public static final String HAS_NON_NORMALIZED = "aa/../bb";
     public static final String HAS_BACKSLASH = "aa\\bb";
+
+    public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAdd.client.memberCode";
+    public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAdd.client.subsystemCode";
+
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @MockBean
+    private SystemService systemService;
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
     private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
+    private ObjectMapper testObjectMapper = new ObjectMapper();
 
     @Before
     public void setup() {
@@ -92,8 +111,8 @@ public class IdentifierValidationRestTemplateTest {
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(systemService.isAnchorImported()).thenReturn(false);
     }
 
     @Test
@@ -224,4 +243,34 @@ public class IdentifierValidationRestTemplateTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
+    @Test
+    public void testAddClientFieldValidationErrors() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        // member code with colon
+        expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
+                Collections.singletonList(IdentifierValidationErrorInfo.COLON.getErrorCode()));
+        assertAddClientFieldValidationErrorMessages(HAS_COLON, "aa", expectedFieldValidationErrors);
+
+        // member code with colon and a backslash
+        expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
+                Arrays.asList(IdentifierValidationErrorInfo.COLON.getErrorCode(),
+                        IdentifierValidationErrorInfo.BACKSLASH.getErrorCode()));
+        assertAddClientFieldValidationErrorMessages(HAS_COLON + HAS_BACKSLASH, "aa", expectedFieldValidationErrors);
+
+        // member code with colon and a backslash and subsystem code with percent
+        expectedFieldValidationErrors.put(FIELD_CLIENTADD_SUBSYSTEM_CODE,
+                Collections.singletonList(IdentifierValidationErrorInfo.PERCENT.getErrorCode()));
+        assertAddClientFieldValidationErrorMessages(HAS_COLON + HAS_BACKSLASH, HAS_PERCENT,
+                expectedFieldValidationErrors);
+    }
+
+    private void assertAddClientFieldValidationErrorMessages(String memberCode, String subsystemCode,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        ResponseEntity<Object> response = createTestClient(memberCode, subsystemCode);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
+        assertNotNull(errorResponse);
+        Map<String, List<String>> actualFieldValidationErrors = errorResponse.getError().getValidationErrors();
+        assertEquals(expectedFieldValidationErrors, actualFieldValidationErrors);
+    }
 }

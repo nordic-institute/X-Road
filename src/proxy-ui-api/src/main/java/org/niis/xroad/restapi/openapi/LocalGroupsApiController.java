@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,11 +28,13 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -45,6 +48,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GROUP_MEMBERS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_LOCAL_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_LOCAL_GROUP_DESC;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL_GROUP_MEMBERS;
 
 /**
  * groups api
@@ -82,6 +90,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
+    @AuditEventMethod(event = EDIT_LOCAL_GROUP_DESC)
     public ResponseEntity<LocalGroup> updateLocalGroup(String groupIdString,
             LocalGroupDescription localGroupDescription) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
@@ -97,6 +106,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
+    @AuditEventMethod(event = ADD_LOCAL_GROUP_MEMBERS)
     public ResponseEntity<Members> addLocalGroupMember(String groupIdString, Members members) {
         if (members == null || members.getItems() == null || members.getItems().size() < 1) {
             throw new BadRequestException("missing member id");
@@ -117,22 +127,27 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
+    @AuditEventMethod(event = DELETE_LOCAL_GROUP)
     public ResponseEntity<Void> deleteLocalGroup(String groupIdString) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         try {
             localGroupService.deleteLocalGroup(groupId);
         } catch (LocalGroupNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given localgroup with id: " + groupIdString);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
+    @AuditEventMethod(event = REMOVE_LOCAL_GROUP_MEMBERS)
     public ResponseEntity<Void> deleteLocalGroupMember(String groupIdString, Members members) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         try {
-            localGroupService.deleteGroupMember(localGroupType.getId(), clientConverter.convertIds(members.getItems()));
+            localGroupService.deleteGroupMembers(localGroupType.getId(),
+                    clientConverter.convertIds(members.getItems()));
         } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
             throw new ConflictException(e);
         }

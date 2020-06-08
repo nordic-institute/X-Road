@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,6 +26,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.BackupConverter;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -49,6 +51,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.BACKUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_BACKUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RESTORE_BACKUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_BACKUP;
 
 /**
  * Backups controller
@@ -86,6 +93,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = DELETE_BACKUP)
     public ResponseEntity<Void> deleteBackup(String filename) {
         try {
             backupService.deleteBackup(filename);
@@ -110,6 +118,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = BACKUP)
     public ResponseEntity<Backup> addBackup() {
         try {
             BackupFile backupFile = backupService.generateBackup();
@@ -121,6 +130,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = UPLOAD_BACKUP)
     public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
             BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
@@ -135,6 +145,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
+    @AuditEventMethod(event = RESTORE_BACKUP)
     public synchronized ResponseEntity<TokensLoggedOut> restoreBackup(String filename) {
         boolean hasHardwareTokens = tokenService.hasHardwareTokens();
         // If hardware tokens exist prior to the restore -> they will be logged out by the restore script

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -29,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,13 +57,15 @@ public class RestoreService {
     private final BackupRepository backupRepository;
     private final NotificationService notificationService;
     private final ApiKeyService apiKeyService;
+    private final AuditDataHelper auditDataHelper;
 
     @Autowired
     public RestoreService(ExternalProcessRunner externalProcessRunner,
             @Value("${script.restore-configuration.path}") String configurationRestoreScriptPath,
             @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
             CurrentSecurityServerId currentSecurityServerId, BackupRepository backupRepository,
-            NotificationService notificationService, ApiKeyService apiKeyService) {
+            NotificationService notificationService, ApiKeyService apiKeyService,
+            AuditDataHelper auditDataHelper) {
         this.externalProcessRunner = externalProcessRunner;
         this.configurationRestoreScriptPath = configurationRestoreScriptPath;
         this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
@@ -69,6 +73,7 @@ public class RestoreService {
         this.backupRepository = backupRepository;
         this.notificationService = notificationService;
         this.apiKeyService = apiKeyService;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -81,6 +86,7 @@ public class RestoreService {
      */
     public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
             InterruptedException, RestoreProcessFailedException {
+        auditDataHelper.putBackupFilename(backupRepository.getFilePath(fileName));
         if (notificationService.getBackupRestoreRunningSince() != null) {
             // should not happen because the method is synchronized
             throw new RuntimeException("There is a restore (started at "

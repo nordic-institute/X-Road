@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -149,7 +150,12 @@ public class BackupRepository {
         return new File(path.toString());
     }
 
-    private Path getFilePath(String filename) {
+    /**
+     * Return absolute path to (possible) backup file with given filename
+     * @param filename
+     * @return
+     */
+    public Path getFilePath(String filename) {
         return Paths.get(getConfigurationBackupPath(), filename);
     }
 

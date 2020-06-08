@@ -2,15 +2,18 @@ import Vue from 'vue';
 import i18n from './i18n';
 
 Vue.filter('capitalize', (value: string): string => {
-  if (!value) { return ''; }
+  if (!value) {
+    return '';
+  }
   value = value.toString();
   return value.charAt(0).toUpperCase() + value.slice(1);
 });
 
-
 // Add colon for every two characters.  xxxxxx -> xx:xx:xx
 Vue.filter('colonize', (value: string): string => {
-  if (!value) { return ''; }
+  if (!value) {
+    return '';
+  }
 
   const colonized = value.replace(/(.{2})/g, '$1:');
 
@@ -23,8 +26,9 @@ Vue.filter('colonize', (value: string): string => {
 
 // Upper case every word
 Vue.filter('upperCaseWords', (value: string): string => {
-
-  if (!value) { return ''; }
+  if (!value) {
+    return '';
+  }
   return value
     .toLowerCase()
     .split(' ')
@@ -42,9 +46,19 @@ Vue.filter('formatDate', (value: string): string => {
 
   const date = new Date(value);
 
-  return date.getFullYear() + '-'
-    + date.getMonth().toString().padStart(2, '0') + '-'
-    + date.getDay().toString().padStart(2, '0');
+  return (
+    date.getFullYear() +
+    '-' +
+    date
+      .getMonth()
+      .toString()
+      .padStart(2, '0') +
+    '-' +
+    date
+      .getDay()
+      .toString()
+      .padStart(2, '0')
+  );
 });
 
 // Format date string. Result YYYY-MM-DD HH:MM.
@@ -57,15 +71,32 @@ export const formatDateTime = (value: string): string => {
 
   const date = new Date(value);
 
-  return date.getFullYear() + '-'
-    + date.getMonth().toString().padStart(2, '0') + '-'
-    + date.getDay().toString().padStart(2, '0') + ' '
-    + date.getHours().toString().padStart(2, '0') + ':'
-    + date.getMinutes().toString().padStart(2, '0');
+  return (
+    date.getFullYear() +
+    '-' +
+    date
+      .getMonth()
+      .toString()
+      .padStart(2, '0') +
+    '-' +
+    date
+      .getDay()
+      .toString()
+      .padStart(2, '0') +
+    ' ' +
+    date
+      .getHours()
+      .toString()
+      .padStart(2, '0') +
+    ':' +
+    date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')
+  );
 };
 
 Vue.filter('formatDateTime', formatDateTime);
-
 
 // Format date string. Result HH:MM.
 Vue.filter('formatHoursMins', (value: string): string => {
@@ -76,7 +107,17 @@ Vue.filter('formatHoursMins', (value: string): string => {
   }
 
   const date = new Date(value);
-  return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+  return (
+    date
+      .getHours()
+      .toString()
+      .padStart(2, '0') +
+    ':' +
+    date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')
+  );
 });
 
 // Return readable string from OCSP status code
@@ -112,4 +153,3 @@ Vue.filter('ocspStatus', (value: string): string => {
 Vue.filter('commaSeparate', (value: string[]) => {
   return value.join(', ');
 });
-

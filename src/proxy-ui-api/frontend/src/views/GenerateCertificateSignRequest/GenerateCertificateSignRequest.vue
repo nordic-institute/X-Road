@@ -1,22 +1,41 @@
-
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
-    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
+    <subViewTitle
+      class="view-title"
+      :title="$t('csr.generateCsr')"
+      :showClose="false"
+    />
+    <v-stepper
+      :alt-labels="true"
+      v-model="currentStep"
+      class="stepper noshadow"
+    >
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{
+          $t('csr.csrDetails')
+        }}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.generateCsr')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{
+          $t('csr.generateCsr')
+        }}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageCsrDetails @cancel="cancel" @done="save" :showPreviousButton="false" />
+          <WizardPageCsrDetails
+            @cancel="cancel"
+            @done="save"
+            :showPreviousButton="false"
+          />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
-          <WizardPageGenerateCsr @cancel="cancel" @previous="currentStep = 1" @done="done" />
+          <WizardPageGenerateCsr
+            @cancel="cancel"
+            @previous="currentStep = 1"
+            @done="cancel"
+          />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -25,21 +44,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
-
-import { Key, Token } from '@/types';
-import { RouteName, UsageTypes } from '@/global';
-import * as api from '@/util/api';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
-    LargeButton,
     SubViewTitle,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
@@ -58,7 +69,7 @@ export default Vue.extend({
   methods: {
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
-        (response) => {
+        () => {
           this.currentStep = 2;
         },
         (error) => {
@@ -67,26 +78,18 @@ export default Vue.extend({
       );
     },
     cancel(): void {
-      this.$store.dispatch('resetCsrState');
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
-    done(): void {
-      this.$store.dispatch('resetCsrState');
-      this.$router.replace({ name: RouteName.SignAndAuthKeys });
-    },
-
     fetchKeyData(id: string): void {
       this.$store.dispatch('fetchKeyData').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },
-
     fetchLocalMembers(): void {
       this.$store.dispatch('fetchLocalMembers').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },
-
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
         this.$store.dispatch('showError', error);
@@ -98,6 +101,10 @@ export default Vue.extend({
     this.fetchKeyData(this.keyId);
     this.fetchLocalMembers();
     this.fetchCertificateAuthorities();
+  },
+  beforeDestroy() {
+    // Clear the vuex store
+    this.$store.dispatch('resetCsrState');
   },
 });
 </script>

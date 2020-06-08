@@ -46,7 +46,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped >
+<style lang="scss" scoped>
 @import '../../assets/colors';
 
 .no-hover:hover:before,
@@ -76,5 +76,3 @@ export default Vue.extend({
   padding: 10px;
 }
 </style>
-
-

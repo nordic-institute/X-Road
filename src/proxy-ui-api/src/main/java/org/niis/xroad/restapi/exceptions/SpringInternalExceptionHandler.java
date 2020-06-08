@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,6 +28,7 @@ package org.niis.xroad.restapi.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.LimitRequestSizesException;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -51,6 +53,9 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     private final ValidationErrorHelper validationErrorHelper;
 
     @Autowired
+    private AuditEventLoggingFacade auditEventLoggingFacade;
+
+    @Autowired
     public SpringInternalExceptionHandler(ValidationErrorHelper validationErrorHelper) {
         this.validationErrorHelper = validationErrorHelper;
     }
@@ -59,6 +64,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
+        auditEventLoggingFacade.auditLogFail(ex);
         log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo();
         if (causedBySizeLimitExceeded(ex)) {

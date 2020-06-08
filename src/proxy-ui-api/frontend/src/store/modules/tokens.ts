@@ -1,10 +1,8 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Key, Token, TokenType, TokenCertificate } from '@/types';
+import { Key, Token, TokenCertificate } from '@/openapi-types';
 import axios from 'axios';
-import { cloneDeep } from 'lodash';
 import * as api from '@/util/api';
-
 
 export interface TokensState {
   expandedTokens: string[];
@@ -26,13 +24,12 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     return state.tokens;
   },
   sortedTokens(state): Token[] {
-
     if (!state.tokens || state.tokens.length === 0) {
       return [];
     }
 
     // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-    const arr = cloneDeep(state.tokens).sort((a: Token, b: Token) => {
+    const arr = JSON.parse(JSON.stringify(state.tokens)).sort((a: Token, b: Token) => {
       if (a.id < b.id) {
         return -1;
       }
@@ -45,14 +42,13 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     });
 
     return arr;
-
   },
   selectedToken(state): Token | undefined {
     return state.selectedToken;
   },
   filteredTokens: (state, getters) => (search: string) => {
     // Filter term is applied to token namem key name and certificate owner id
-    let arr = cloneDeep(getters.sortedTokens);
+    let arr = JSON.parse(JSON.stringify(getters.sortedTokens));
 
     if (!search) {
       return arr;
@@ -114,13 +110,10 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
     return arr.filter((token: Token) => {
       return token.name.toLowerCase().includes(mysearch);
     });
-
   },
-
 };
 
 export const mutations: MutationTree<TokensState> = {
-
   setTokenHidden(state, id: string) {
     const index = state.expandedTokens.findIndex((element: any) => {
       return element === id;
@@ -148,7 +141,6 @@ export const mutations: MutationTree<TokensState> = {
   setSelectedToken(state, token: Token) {
     state.selectedToken = token;
   },
-
 };
 
 export const actions: ActionTree<TokensState, RootState> = {

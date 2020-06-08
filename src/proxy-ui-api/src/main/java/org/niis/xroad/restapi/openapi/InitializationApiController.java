@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,6 +26,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.InitializationStatus;
@@ -40,6 +42,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
 
 /**
  * Init (Security Server) controller
@@ -77,6 +81,7 @@ public class InitializationApiController implements InitializationApi {
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    @AuditEventMethod(event = INIT_SERVER_CONFIGURATION)
     public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
         String securityServerCode = initialServerConf.getSecurityServerCode();
         String ownerMemberClass = initialServerConf.getOwnerMemberClass();
@@ -86,10 +91,10 @@ public class InitializationApiController implements InitializationApi {
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                     ignoreWarnings);
-        } catch (AnchorNotFoundException e) {
+        } catch (AnchorNotFoundException | InitializationService.ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException | InitializationService.InvalidCharactersException
-                | InitializationService.WeakPinException | InitializationService.MissingInitParamsException e) {
+                | InitializationService.WeakPinException | InitializationService.InvalidInitParamsException e) {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);

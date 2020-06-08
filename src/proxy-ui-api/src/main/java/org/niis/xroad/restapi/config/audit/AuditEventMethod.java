@@ -22,41 +22,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.config.audit;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Helper for working with security and authorization
+ * Marks controller methods that are linked to a named audit event.
+ * Method success / fail is audit logged.
+ * Fail means method threw an exception
  */
-public final class SecurityHelper {
-
-    private SecurityHelper() {
-        // noop
-    }
-
-    /**
-     * Tells if current user / authentication has been granted given authority
-     * @param authority
-     * @return
-     */
-    public static boolean hasAuthority(String authority) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
-    }
-
-    /**
-     * Verifies that current user / authentication has been granted given authority.
-     * If not, throws {@link AccessDeniedException}
-     * @param authority
-     * @throws AccessDeniedException if given authority has not been granted
-     */
-    public static void verifyAuthority(String authority) throws AccessDeniedException {
-        if (!hasAuthority(authority)) {
-            throw new AccessDeniedException("Missing authority: " + authority);
-        }
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AuditEventMethod {
+    RestApiAuditEvent event();
 }

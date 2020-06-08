@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,18 +27,16 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.User;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,16 +50,10 @@ import java.util.stream.Collectors;
 @PreAuthorize("denyAll")
 public class UserApiController implements UserApi {
 
-    private final NativeWebRequest request;
+    private final UsernameHelper usernameHelper;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public UserApiController(NativeWebRequest request) {
-        this.request = request;
-    }
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    public UserApiController(UsernameHelper usernameHelper) {
+        this.usernameHelper = usernameHelper;
     }
 
     /**
@@ -71,14 +64,8 @@ public class UserApiController implements UserApi {
     @Override
     public ResponseEntity<User> getUser() {
         User user = new User();
+        user.setUsername(usernameHelper.getUsername());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = "unknown";
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof String) {
-            // principal is a String for both API key and PAM/session authentication
-            username = (String) principal;
-        }
-        user.setUsername(username);
         user.setPermissions(new ArrayList<>(getAuthorities(authentication, name -> !name.startsWith("ROLE_"))));
         user.setRoles(new ArrayList<>(getAuthorities(authentication, name -> name.startsWith("ROLE_"))));
         return new ResponseEntity<>(user, HttpStatus.OK);
@@ -113,7 +100,7 @@ public class UserApiController implements UserApi {
     private Set<String> getAuthorities(Authentication authentication,
                                        Predicate<String> authorityNamePredicate) {
         Set<String> roles = authentication.getAuthorities().stream()
-                .map(authority -> ((GrantedAuthority) authority).getAuthority())
+                .map(authority -> authority.getAuthority())
                 .filter(authorityNamePredicate)
                 .collect(Collectors.toSet());
         return roles;

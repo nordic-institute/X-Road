@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,7 +32,11 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -45,7 +50,11 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_KEY_FROM_TOKEN_AND_CONFIG;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIENDLY_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL;
 
 /**
  * Service that handles keys
@@ -60,6 +69,9 @@ public class KeyService {
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final ManagementRequestSenderService managementRequestSenderService;
+    private final SecurityHelper securityHelper;
+    private final AuditDataHelper auditDataHelper;
+    private final AuditEventHelper auditEventHelper;
 
     /**
      * KeyService constructor
@@ -67,11 +79,18 @@ public class KeyService {
     @Autowired
     public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
             PossibleActionsRuleEngine possibleActionsRuleEngine,
-            ManagementRequestSenderService managementRequestSenderService) {
+            ManagementRequestSenderService managementRequestSenderService,
+            SecurityHelper securityHelper,
+            AuditDataHelper auditDataHelper,
+            AuditEventHelper auditEventHelper,
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
         this.managementRequestSenderService = managementRequestSenderService;
+        this.securityHelper = securityHelper;
+        this.auditDataHelper = auditDataHelper;
+        this.auditEventHelper = auditEventHelper;
     }
 
     /**
@@ -117,7 +136,10 @@ public class KeyService {
 
         // check that updating friendly name is possible
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(id);
+
         KeyInfo keyInfo = getKey(tokenInfo, id);
+        auditDataHelper.put(KEY_ID, keyInfo.getId());
+        auditDataHelper.put(KEY_FRIENDLY_NAME, friendlyName);
         possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
                 tokenInfo, keyInfo);
 
@@ -152,6 +174,7 @@ public class KeyService {
 
         // check that adding a key is possible
         TokenInfo tokenInfo = tokenService.getToken(tokenId);
+        auditDataHelper.put(tokenInfo);
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.GENERATE_KEY,
                 tokenInfo);
 
@@ -163,6 +186,9 @@ public class KeyService {
         } catch (Exception other) {
             throw new RuntimeException("adding a new key failed", other);
         }
+        auditDataHelper.put(KEY_ID, keyInfo.getId());
+        auditDataHelper.put(KEY_LABEL, keyInfo.getLabel());
+        auditDataHelper.put(KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         return keyInfo;
     }
 
@@ -185,16 +211,19 @@ public class KeyService {
      */
     public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfOutdatedException {
+
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        auditDataHelper.put(tokenInfo);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
+        auditDataHelper.put(keyInfo);
 
         // verify permissions
         if (keyInfo.getUsage() == null) {
-            verifyAuthority("DELETE_KEY");
+            securityHelper.verifyAuthority("DELETE_KEY");
         } else if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-            verifyAuthority("DELETE_AUTH_KEY");
+            securityHelper.verifyAuthority("DELETE_AUTH_KEY");
         } else if (keyInfo.getUsage() == KeyUsageInfo.SIGNING) {
-            verifyAuthority("DELETE_SIGN_KEY");
+            securityHelper.verifyAuthority("DELETE_SIGN_KEY");
         }
 
         // verify that action is possible
@@ -209,6 +238,10 @@ public class KeyService {
                     unregisterAuthCert(certificateInfo);
                 }
             }
+        }
+
+        if (!auditDataHelper.dataIsForEvent(DELETE_ORPHANS)) {
+            auditEventHelper.changeRequestScopedEvent(DELETE_KEY_FROM_TOKEN_AND_CONFIG);
         }
 
         // delete key needs to be done twice. First call deletes the certs & csrs
@@ -228,7 +261,7 @@ public class KeyService {
     private void unregisterAuthCert(CertificateInfo certificateInfo)
             throws GlobalConfOutdatedException {
         // this permission is not checked by unregisterCertificate()
-        verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
+        securityHelper.verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
 
         // do not use tokenCertificateService.unregisterAuthCert because
         // - it does a bit of extra work to what we need (and makes us do extra work)

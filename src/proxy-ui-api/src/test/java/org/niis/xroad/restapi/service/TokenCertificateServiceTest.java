@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -396,6 +397,7 @@ public class TokenCertificateServiceTest {
                 case SIGNER_EX_INTERNAL_ERROR_HASH:
                 case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
                 case SIGNER_EX_TOKEN_READONLY_HASH:
+                case MOCK_CERTIFICATE_HASH:
                     return new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
                 default:
                     throw new CertificateNotFoundException("unknown cert: " + hash);

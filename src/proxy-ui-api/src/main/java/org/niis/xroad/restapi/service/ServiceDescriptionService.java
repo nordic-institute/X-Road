@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -35,6 +36,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -57,12 +60,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED_NOTICE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_ADDED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_DELETED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL_NEW;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL;
 
 /**
  * ServiceDescription service
@@ -91,6 +100,7 @@ public class ServiceDescriptionService {
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
     private final OpenApiParser openApiParser;
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * ServiceDescriptionService constructor
@@ -105,7 +115,7 @@ public class ServiceDescriptionService {
             ClientService clientService, ClientRepository clientRepository,
             ServiceChangeChecker serviceChangeChecker,
             WsdlValidator wsdlValidator, UrlValidator urlValidator,
-            OpenApiParser openApiParser) {
+            OpenApiParser openApiParser, AuditDataHelper auditDataHelper) {
 
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
@@ -114,61 +124,62 @@ public class ServiceDescriptionService {
         this.wsdlValidator = wsdlValidator;
         this.urlValidator = urlValidator;
         this.openApiParser = openApiParser;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
-     * Disable 1-n services
+     * Disable 1 services
      *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    public void disableServices(Collection<Long> serviceDescriptionIds,
+    public void disableServices(long serviceDescriptionId,
             String disabledNotice) throws ServiceDescriptionNotFoundException {
-        toggleServices(false, serviceDescriptionIds, disabledNotice);
+        toggleServices(false, serviceDescriptionId, disabledNotice);
     }
 
     /**
-     * Enable 1-n services
+     * Enable 1 service
      *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    public void enableServices(Collection<Long> serviceDescriptionIds) throws ServiceDescriptionNotFoundException {
-        toggleServices(true, serviceDescriptionIds, null);
+    public void enableServices(long serviceDescriptionId) throws ServiceDescriptionNotFoundException {
+        toggleServices(true, serviceDescriptionId, null);
     }
 
     /**
      * Change 1-n services to enabled/disabled
      *
-     * @param serviceDescriptionIds
+     * @param serviceDescriptionId
      * @param disabledNotice
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    private void toggleServices(boolean toEnabled, Collection<Long> serviceDescriptionIds,
+    private void toggleServices(boolean toEnabled, long serviceDescriptionId,
             String disabledNotice) throws ServiceDescriptionNotFoundException {
-        List<ServiceDescriptionType> possiblyNullServiceDescriptions = serviceDescriptionRepository
-                .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[] {}));
 
-        List<ServiceDescriptionType> serviceDescriptions = possiblyNullServiceDescriptions.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        if (serviceDescriptions.size() != serviceDescriptionIds.size()) {
-            Set<Long> foundIds = serviceDescriptions.stream()
-                    .map(serviceDescriptionType -> serviceDescriptionType.getId())
-                    .collect(Collectors.toSet());
-            Set<Long> missingIds = new HashSet<>(serviceDescriptionIds);
-            missingIds.removeAll(foundIds);
-            throw new ServiceDescriptionNotFoundException("Service descriptions with ids " + missingIds
-                    + " not found");
+        if (!toEnabled) {
+            auditDataHelper.put(DISABLED_NOTICE, disabledNotice);
         }
 
-        serviceDescriptions.stream()
-                .forEach(serviceDescriptionType -> {
-                    serviceDescriptionType.setDisabled(!toEnabled);
-                    if (!toEnabled) {
-                        serviceDescriptionType.setDisabledNotice(disabledNotice);
-                    }
-                    serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
-                });
+        ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository
+                .getServiceDescription(serviceDescriptionId);
+
+        if (serviceDescriptionType == null) {
+            throw createServiceDescriptionNotFoundException(serviceDescriptionId);
+        }
+
+        serviceDescriptionType.setDisabled(!toEnabled);
+        if (!toEnabled) {
+            serviceDescriptionType.setDisabledNotice(disabledNotice);
+        }
+        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
+        auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
+    }
+
+    private ServiceDescriptionNotFoundException createServiceDescriptionNotFoundException(long serviceDescriptionId) {
+        return new ServiceDescriptionNotFoundException("Service description with id "
+                + serviceDescriptionId
+                + " not found");
     }
 
     /**
@@ -179,9 +190,11 @@ public class ServiceDescriptionService {
     public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
         ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id " + id + " not found");
+            throw createServiceDescriptionNotFoundException(id);
         }
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
         ClientType client = serviceDescriptionType.getClient();
+        auditDataHelper.put(client.getIdentifier());
         cleanAccessRights(client, serviceDescriptionType);
         cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);
@@ -510,7 +523,7 @@ public class ServiceDescriptionService {
             WsdlUrlAlreadyExistsException, InterruptedException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString());
+            throw createServiceDescriptionNotFoundException(id);
         }
         return updateWsdlUrl(serviceDescriptionType, url, ignoreWarnings);
     }
@@ -539,9 +552,11 @@ public class ServiceDescriptionService {
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id "
-                    + serviceDescriptionType.toString() + " not found");
+            throw createServiceDescriptionNotFoundException(id);
         }
+
+        auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
 
         if (serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
             serviceDescriptionType = refreshWSDLServiceDescription(serviceDescriptionType, ignoreWarnings);
@@ -653,6 +668,9 @@ public class ServiceDescriptionService {
         }
 
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+        auditDataHelper.put(serviceDescription.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescription);
+        auditDataHelper.put(URL_NEW, url);
         if (!serviceDescription.getType().equals(DescriptionType.REST)) {
             throw new WrongServiceDescriptionTypeException("Expected description type REST");
         }
@@ -708,6 +726,10 @@ public class ServiceDescriptionService {
         if (serviceDescription == null) {
             throw new ServiceDescriptionNotFoundException("ServiceDescription with id: " + id + " wasn't found");
         }
+
+        auditDataHelper.put(serviceDescription.getClient().getIdentifier());
+        auditDataHelper.putServiceDescriptionUrl(serviceDescription);
+        auditDataHelper.put(URL_NEW, url);
 
         if (!serviceDescription.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
@@ -894,6 +916,14 @@ public class ServiceDescriptionService {
             WrongServiceDescriptionTypeException, UnhandledWarningsException,
             ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
 
+        auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
+        Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(WSDL);
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
+
+        if (auditDataHelper.dataIsForEvent(EDIT_SERVICE_DESCRIPTION)) {
+            auditDataHelper.put(URL_NEW, url);
+        }
+
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
             throw new WrongServiceDescriptionTypeException("Existing service description (id: "
@@ -912,6 +942,9 @@ public class ServiceDescriptionService {
         ServiceChangeChecker.ServiceChanges serviceChanges = serviceChangeChecker.check(
                 serviceDescriptionType.getService(),
                 newServices);
+
+        wsdlAuditData.put(SERVICES_ADDED, serviceChanges.getAddedFullServiceCodes());
+        wsdlAuditData.put(SERVICES_DELETED, serviceChanges.getRemovedFullServiceCodes());
 
         // collect all types of warnings, throw Exception if not ignored
         List<WarningDeviation> allWarnings = new ArrayList<>();

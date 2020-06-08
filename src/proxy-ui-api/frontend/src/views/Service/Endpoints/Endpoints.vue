@@ -8,50 +8,55 @@
         rounded
         class="rounded-button elevation-0 rest-button"
         data-test="endpoint-add"
-      >{{$t('endpoints.addEndpoint')}}</v-btn>
+        >{{ $t('endpoints.addEndpoint') }}</v-btn
+      >
     </div>
 
     <table class="xrd-table">
       <thead>
         <tr>
-          <th>{{$t('endpoints.httpRequestMethod')}}</th>
-          <th>{{$t('endpoints.path')}}</th>
+          <th>{{ $t('endpoints.httpRequestMethod') }}</th>
+          <th>{{ $t('endpoints.path') }}</th>
           <th></th>
         </tr>
       </thead>
       <tbody v-if="service.endpoints">
-        <template v-for="endpoint in service.endpoints">
-          <template v-if="!isBaseEndpoint(endpoint)">
-            <tr v-bind:class="{generated: endpoint.generated}">
-              <td>
-                <span v-if="endpoint.method === '*'">{{$t('endpoints.all')}}</span>
-                <span v-else>{{endpoint.method}}</span>
-              </td>
-              <td>{{endpoint.path}}</td>
-              <td class="wrap-right-tight">
-                <v-btn
-                  v-if="!endpoint.generated"
-                  small
-                  outlined
-                  rounded
-                  color="primary"
-                  class="xrd-small-button xrd-table-button"
-                  data-test="endpoint-edit"
-                  @click="editEndpoint(endpoint)"
-                >{{$t('action.edit')}}</v-btn>
-                <v-btn
-                  small
-                  outlined
-                  rounded
-                  color="primary"
-                  class="xrd-small-button xrd-table-button"
-                  data-test="endpoint-edit-accessrights"
-                  @click="editAccessRights(endpoint)"
-                >{{$t('accessRights.title')}}</v-btn>
-              </td>
-            </tr>
-          </template>
-        </template>
+        <tr
+          v-for="endpoint in endpoints"
+          :key="endpoint.id"
+          v-bind:class="{ generated: endpoint.generated }"
+        >
+          <td>
+            <span v-if="endpoint.method === '*'">{{
+              $t('endpoints.all')
+            }}</span>
+            <span v-else>{{ endpoint.method }}</span>
+          </td>
+          <td>{{ endpoint.path }}</td>
+          <td class="wrap-right-tight">
+            <v-btn
+              v-if="!endpoint.generated"
+              small
+              outlined
+              rounded
+              color="primary"
+              class="xrd-small-button xrd-table-button"
+              data-test="endpoint-edit"
+              @click="editEndpoint(endpoint)"
+              >{{ $t('action.edit') }}</v-btn
+            >
+            <v-btn
+              small
+              outlined
+              rounded
+              color="primary"
+              class="xrd-small-button xrd-table-button"
+              data-test="endpoint-edit-accessrights"
+              @click="editAccessRights(endpoint)"
+              >{{ $t('accessRights.title') }}</v-btn
+            >
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -66,7 +71,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Endpoint } from '@/types';
+import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
 import { RouteName } from '@/global';
@@ -77,8 +82,14 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['service']),
+
+    endpoints(): Endpoint[] {
+      return this.service.endpoints.filter((endpoint: Endpoint) => {
+        return !this.isBaseEndpoint(endpoint);
+      });
+    },
   },
-  data(): any {
+  data() {
     return {
       isAddEndpointDialogVisible: false,
     };
@@ -91,7 +102,7 @@ export default Vue.extend({
           path,
           service_code: this.service.service_code,
         })
-        .then((res: any) => {
+        .then(() => {
           this.$store.dispatch(
             'showSuccess',
             'endpoints.saveNewEndpointSuccess',
@@ -109,12 +120,18 @@ export default Vue.extend({
       return endpoint.method === '*' && endpoint.path === '**';
     },
     editEndpoint(endpoint: Endpoint): void {
+      if (!endpoint.id) {
+        return;
+      }
       this.$router.push({
         name: RouteName.EndpointDetails,
         params: { id: endpoint.id },
       });
     },
     editAccessRights(endpoint: Endpoint): void {
+      if (!endpoint.id) {
+        return;
+      }
       this.$router.push({
         name: RouteName.EndpointAccessRights,
         params: { id: endpoint.id },

@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t("wizard.client.addClient")}}</span>
+        <span class="headline">{{ $t('wizard.client.addClient') }}</span>
         <v-spacer />
         <i @click="cancel()" data-test="x-close-button"></i>
       </v-card-title>
@@ -25,8 +25,8 @@
             <thead>
               <tr>
                 <th class="checkbox-column"></th>
-                <th>{{$t('name')}}</th>
-                <th>{{$t('localGroup.id')}}</th>
+                <th>{{ $t('name') }}</th>
+                <th>{{ $t('localGroup.id') }}</th>
               </tr>
             </thead>
             <tbody v-if="selectableClients && selectableClients.length > 0">
@@ -37,15 +37,15 @@
                   </div>
                 </td>
 
-                <td>{{member.member_name}}</td>
-                <td>{{member.id}}</td>
+                <td>{{ member.member_name }}</td>
+                <td>{{ member.id }}</td>
               </tr>
             </tbody>
           </table>
         </v-radio-group>
 
         <div v-if="filteredMembers().length < 1" class="empty-row">
-          <p>{{$t('localGroup.noResults')}}</p>
+          <p>{{ $t('localGroup.noResults') }}</p>
         </div>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
@@ -56,13 +56,15 @@
           outlined
           @click="cancel()"
           data-test="cancel-button"
-        >{{$t('action.cancel')}}</large-button>
+          >{{ $t('action.cancel') }}</large-button
+        >
 
         <large-button
           :disabled="!selectedMember"
           @click="save()"
           data-test="save-button"
-        >{{$t('localGroup.addSelected')}}</large-button>
+          >{{ $t('localGroup.addSelected') }}</large-button
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -70,9 +72,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Client } from '@/types';
+import { Client } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -85,7 +86,9 @@ export default Vue.extend({
     },
     selectableClients: {
       type: Array,
-      required: true,
+      default() {
+        return [];
+      },
     },
   },
 
@@ -149,4 +152,3 @@ export default Vue.extend({
   width: 300px;
 }
 </style>
-

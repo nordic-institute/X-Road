@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,6 +26,8 @@
 package org.niis.xroad.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
@@ -56,13 +59,15 @@ public class ApiKeyService {
     private final PasswordEncoder passwordEncoder;
     private final ApiKeyRepository apiKeyRepository;
     private final CacheManager cacheManager;
+    private final AuditDataHelper auditDataHelper;
 
     @Autowired
     public ApiKeyService(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository,
-            CacheManager cacheManager) {
+            CacheManager cacheManager, AuditDataHelper auditDataHelper) {
         this.passwordEncoder = passwordEncoder;
         this.apiKeyRepository = apiKeyRepository;
         this.cacheManager = cacheManager;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -97,7 +102,18 @@ public class ApiKeyService {
         PersistentApiKeyType apiKey = new PersistentApiKeyType(plainKey, encodedKey,
                 Collections.unmodifiableCollection(roles));
         apiKeyRepository.saveOrUpdate(apiKey);
+        auditLog(apiKey);
         return apiKey;
+    }
+
+    private void auditLog(PersistentApiKeyType apiKey) {
+        auditDataHelper.put(RestApiAuditProperty.API_KEY_ID, apiKey.getId());
+        auditDataHelper.put(RestApiAuditProperty.API_KEY_ROLES, apiKey.getRoles());
+    }
+
+    private void auditLog(Long id, Collection<String> roleNames) {
+        auditDataHelper.put(RestApiAuditProperty.API_KEY_ID, id);
+        auditDataHelper.put(RestApiAuditProperty.API_KEY_ROLES, roleNames);
     }
 
     /**
@@ -122,6 +138,7 @@ public class ApiKeyService {
      */
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
+        auditLog(id, roleNames);
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
         if (apiKeyType == null) {
             throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
@@ -163,6 +180,7 @@ public class ApiKeyService {
      */
     public void remove(String key) throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = get(key);
+        auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
 
@@ -176,6 +194,7 @@ public class ApiKeyService {
         if (apiKeyType == null) {
             throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
         }
+        auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
 

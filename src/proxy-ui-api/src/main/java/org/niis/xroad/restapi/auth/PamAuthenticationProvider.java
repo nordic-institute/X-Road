@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,11 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -47,8 +46,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
-
 /**
  * PAM authentication provider.
  * Application has to be run as a user who has read access to /etc/shadow (
@@ -58,8 +55,6 @@ import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEME
  * Authentication is limited with an IP whitelist.
  */
 @Slf4j
-@Configuration
-@Profile("!devtools-test-auth")
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
@@ -67,42 +62,24 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
     public static final String FORM_LOGIN_PAM_AUTHENTICATION = "formLoginPam";
-    // allow all ipv4 and ipv6
-    private static final Iterable<String> FORM_LOGIN_IP_WHITELIST =
-            Arrays.asList("::/0", "0.0.0.0/0");
 
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
+    private final RestApiAuditEvent loginEvent; // login event to audit log
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     /**
      * constructor
      * @param authenticationIpWhitelist whitelist that limits the authentication
      */
     public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
-            GrantedAuthorityMapper grantedAuthorityMapper) {
+            GrantedAuthorityMapper grantedAuthorityMapper,
+            RestApiAuditEvent loginEvent,
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
-    }
-
-    /**
-     * PAM authentication for form login, with corresponding IP whitelist
-     * @return
-     */
-    @Bean(FORM_LOGIN_PAM_AUTHENTICATION)
-    public PamAuthenticationProvider formLoginPamAuthentication() {
-        AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
-        formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper);
-    }
-
-    /**
-     * PAM authentication for key management API, with corresponding IP whitelist
-     * @return
-     */
-    @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
-    public PamAuthenticationProvider keyManagementWhitelist(
-            @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper);
+        this.loginEvent = loginEvent;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
     }
 
     /**
@@ -115,9 +92,30 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        authenticationIpWhitelist.validateIpAddress(authentication);
-        String username = String.valueOf(authentication.getPrincipal());
+        boolean success = false;
+        String username = "unknown user";
+        Exception caughException = null;
+
+        try {
+            username = String.valueOf(authentication.getPrincipal());
+            Authentication result = doAuthenticateInternal(authentication, username);
+            success = true;
+            return result;
+        } catch (Exception e) {
+            caughException = e;
+            throw e;
+        } finally {
+            if (success) {
+                auditEventLoggingFacade.auditLogSuccess(loginEvent, username);
+            } else {
+                auditEventLoggingFacade.auditLogFail(loginEvent, caughException, username);
+            }
+        }
+    }
+
+    private Authentication doAuthenticateInternal(Authentication authentication, String username) {
         String password = String.valueOf(authentication.getCredentials());
+        authenticationIpWhitelist.validateIpAddress(authentication);
         PAM pam;
         try {
             pam = new PAM(PAM_SERVICE_NAME);
@@ -144,6 +142,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             pam.dispose();
         }
     }
+
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(

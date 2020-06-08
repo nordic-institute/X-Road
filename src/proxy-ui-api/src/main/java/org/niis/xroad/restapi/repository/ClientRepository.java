@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -36,6 +38,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -145,6 +148,22 @@ public class ClientRepository {
             throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
         }
 
+        return clientType;
+    }
+
+    /**
+     * Return ClientType containing the id matching local group
+     *
+     * @throws LocalGroupNotFoundException if local group is not found with given id
+     * @throws ClientNotFoundException if client is not found with given endpoint id
+     */
+    public ClientType getClientByLocalGroup(LocalGroupType localGroupType)
+            throws ClientNotFoundException {
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        ClientType clientType = clientDAO.getClientByLocalGroup(persistenceUtils.getCurrentSession(), localGroupType);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for localGroup with id: " + localGroupType.getId());
+        }
         return clientType;
     }
 

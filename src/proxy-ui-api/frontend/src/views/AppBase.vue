@@ -12,9 +12,9 @@
     <v-dialog v-model="logoutDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
-          <span class="headline">{{$t('logout.sessionExpired')}}</span>
+          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
-        <v-card-text class="pt-4">{{$t('logout.idleWarning')}}</v-card-text>
+        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -23,7 +23,8 @@
             dark
             class="mb-2 rounded-button elevation-0"
             @click="closeLogoutDialog()"
-          >{{$t('action.ok')}}</v-btn>
+            >{{ $t('action.ok') }}</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
