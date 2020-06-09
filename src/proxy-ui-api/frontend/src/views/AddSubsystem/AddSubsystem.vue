@@ -106,6 +106,15 @@
         @cancel="showSelectClient = false"
         @save="saveSelectedClient"
       />
+
+      <ConfirmDialog
+        :dialog="confirmRegisterClient"
+        title="clients.action.register.confirm.title"
+        text="clients.action.register.confirm.text"
+        @cancel="exitView"
+        @accept="registerSubsystem"
+        :loading="registerClientLoading"
+      />
     </div>
   </div>
 </template>
@@ -116,6 +125,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
@@ -130,6 +140,7 @@ export default Vue.extend({
     ValidationProvider,
     SelectClientDialog,
     SubViewTitle,
+    ConfirmDialog,
   },
   props: {
     instanceId: {
@@ -151,13 +162,14 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: false as boolean,
       showSelectClient: false as boolean,
       registerChecked: true as boolean,
       existingSubsystems: [] as Client[],
       selectableSubsystems: [] as Client[],
       subsystemCode: undefined as undefined | string,
       submitLoading: false as boolean,
+      confirmRegisterClient: false as boolean,
+      registerClientLoading: false as boolean,
     };
   },
   computed: {
@@ -186,15 +198,15 @@ export default Vue.extend({
         })
         .then(
           () => {
-            this.disableDone = false;
-
+            this.submitLoading = false;
+            this.$store.dispatch(
+              'showSuccess',
+              'wizard.subsystem.subsystemAdded',
+            );
             if (this.registerChecked) {
-              this.registerSubsystem();
+              //this.registerSubsystem();
+              this.confirmRegisterClient = true;
             } else {
-              this.$store.dispatch(
-                'showSuccess',
-                'wizard.subsystem.subsystemAdded',
-              );
               this.exitView();
             }
           },
@@ -206,6 +218,8 @@ export default Vue.extend({
     },
 
     registerSubsystem(): void {
+      this.registerClientLoading = true;
+
       const clientId = createClientId(
         this.instanceId,
         this.memberClass,
@@ -215,7 +229,6 @@ export default Vue.extend({
 
       this.$store.dispatch('registerClient', clientId).then(
         () => {
-          this.disableDone = false;
           this.$store.dispatch(
             'showSuccess',
             'wizard.subsystem.subsystemAdded',
@@ -230,6 +243,8 @@ export default Vue.extend({
     },
 
     exitView(): void {
+      this.registerClientLoading = false;
+      this.confirmRegisterClient = false;
       this.submitLoading = false;
       this.$router.replace({ name: RouteName.Clients });
     },

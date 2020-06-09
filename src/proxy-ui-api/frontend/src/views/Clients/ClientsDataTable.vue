@@ -321,7 +321,7 @@ export default Vue.extend({
       this.$store
         .dispatch('registerClient', clientId)
         .then(
-          (response) => {
+          () => {
             this.$store.dispatch(
               'showSuccess',
               'clients.action.register.success',
