@@ -87,6 +87,13 @@
         "confirmTitle": "Unregister client",
         "confirmText": "Do you want to unregister this client?"
       },
+      "makeOwner": {
+        "button": "Make Owner",
+        "success": "Owner changed",
+        "confirmTitle": "Make Owner Member",
+        "confirmText1": "Do you want to make the Member below the new Owner Member of this Security Server?",
+        "confirmText2": "As the \"Make owner\" button below is pressed, a request for changing the owner will be submitted to the X-Road governing authority."
+      },
       "delete": {
         "success": "Client deleted",
         "confirmTitle": "Delete client",
@@ -778,5 +785,10 @@
         "UNKNOWN": "Unknown"
       }
     }
+  },
+  "globalAlert": {
+    "globalConfigurationInvalid": "Global configuration is expired",
+    "softTokenPinNotEntered": "Please enter softtoken PIN",
+    "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}"
   }
 }

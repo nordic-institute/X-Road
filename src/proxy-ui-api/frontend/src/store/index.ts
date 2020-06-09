@@ -12,6 +12,7 @@ import { csrModule } from './modules/certificateSignRequest';
 import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
 import { module as initServer } from './modules/initializeServer';
+import { alertsModule } from '@/store/modules/alerts';
 
 Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({
@@ -34,6 +35,7 @@ const store: StoreOptions<RootState> = {
     addClientModule,
     notificationsModule,
     initServer,
+    alertsModule,
   },
   plugins: [vuexLocal.plugin],
 };

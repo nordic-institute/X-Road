@@ -8,7 +8,13 @@
         {{ client.member_name }} ({{ $t('client.member') }})
       </h1>
 
-      <div>
+      <div class="action-block">
+        <MakeOwnerButton
+          v-if="showMakeOwner"
+          :id="id"
+          @done="fetchClient"
+          class="first-button"
+        />
         <DeleteClientButton v-if="showDelete" :id="id" />
         <UnregisterClientButton
           v-if="showUnregister"
@@ -41,11 +47,13 @@ import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
+import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
 
 export default Vue.extend({
   components: {
     UnregisterClientButton,
     DeleteClientButton,
+    MakeOwnerButton,
   },
   props: {
     id: {
@@ -60,6 +68,15 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['client']),
+
+    showMakeOwner(): boolean {
+      return (
+        this.client &&
+        this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
+        this.client.status === 'REGISTERED' &&
+        !this.client.owner
+      );
+    },
     showUnregister(): boolean {
       return (
         this.client &&
@@ -122,5 +139,14 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.action-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.first-button {
+  margin-right: 20px;
 }
 </style>

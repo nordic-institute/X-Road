@@ -53,7 +53,6 @@ import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
-import { cloneDeep } from 'lodash';
 
 export default Vue.extend({
   components: {
@@ -76,17 +75,19 @@ export default Vue.extend({
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      let arr = cloneDeep(this.tokens).sort((a: Token, b: Token) => {
-        if (a.id < b.id) {
-          return -1;
-        }
-        if (a.id > b.id) {
-          return 1;
-        }
+      let arr = JSON.parse(JSON.stringify(this.tokens)).sort(
+        (a: Token, b: Token) => {
+          if (a.id < b.id) {
+            return -1;
+          }
+          if (a.id > b.id) {
+            return 1;
+          }
 
-        // equal id:s. (should not happen)
-        return 0;
-      });
+          // equal id:s. (should not happen)
+          return 0;
+        },
+      );
 
       if (!this.search) {
         return arr;
