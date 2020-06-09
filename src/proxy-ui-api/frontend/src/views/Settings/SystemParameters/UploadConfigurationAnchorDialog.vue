@@ -118,11 +118,11 @@ export default Vue.extend({
   },
   data() {
     return {
-      previewing: false,
-      uploading: false,
+      previewing: false as boolean,
+      uploading: false as boolean,
       anchorPreview: EmptyAnchorPreview,
       uploadedFile: null as string | ArrayBuffer | null,
-      showPreview: false,
+      showPreview: false as boolean,
       permissions: Permissions,
     };
   },

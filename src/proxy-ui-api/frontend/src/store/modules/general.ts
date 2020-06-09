@@ -17,32 +17,32 @@ export const generalState: State = {
 };
 
 export const getters: GetterTree<State, RootState> = {
-  xroadInstances: (state) => {
+  xroadInstances: (state: State) => {
     return state.xroadInstances;
   },
-  memberClasses: (state) => {
+  memberClasses: (state: State) => {
     return state.memberClasses;
   },
-  memberClassesCurrentInstance: (state) => {
+  memberClassesCurrentInstance: (state: State) => {
     return state.memberClassesCurrentInstance;
   },
 
-  memberName: (state) => {
+  memberName: (state: State) => {
     return state.memberName;
   },
 };
 
 export const mutations: MutationTree<State> = {
-  storeInstances(state, instances: string[]) {
+  storeInstances(state: State, instances: string[]) {
     state.xroadInstances = instances;
   },
-  storeMemberClasses(state, memberClasses: string[]) {
+  storeMemberClasses(state: State, memberClasses: string[]) {
     state.memberClasses = memberClasses;
   },
-  storeCurrentInstanceMemberClasses(state, memberClasses: string[]) {
+  storeCurrentInstanceMemberClasses(state: State, memberClasses: string[]) {
     state.memberClassesCurrentInstance = memberClasses;
   },
-  storeMemberName(state, name: string) {
+  storeMemberName(state: State, name: string) {
     state.memberName = name;
   },
 };

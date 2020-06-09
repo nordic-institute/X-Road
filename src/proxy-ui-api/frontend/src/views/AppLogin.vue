@@ -127,7 +127,7 @@ export default (Vue as VueConstructor<
         },
         (error) => {
           // Display invalid username/password error in inputs
-          if (error.response && error.response.status === 401) {
+          if (error?.response?.status === 401) {
             // Clear inputs
             this.username = '';
             this.password = '';
@@ -149,7 +149,7 @@ export default (Vue as VueConstructor<
         },
       );
     },
-    async fetchUserData() {
+    fetchUserData() {
       this.loading = true;
       this.$store.dispatch('fetchUserData').then(
         () => {
@@ -164,7 +164,7 @@ export default (Vue as VueConstructor<
       );
     },
 
-    async fetchInitializationData() {
+    fetchInitializationData() {
       this.$store
         .dispatch('fetchInitializationStatus')
         .then(

@@ -39,10 +39,7 @@
       <v-stepper-items v-if="isAnchorImported" class="stepper-content">
         <!-- Member step -->
         <v-stepper-content step="1">
-          <OwnerMemberStep
-            @done="ownerMemberReady"
-            :showPreviousButton="false"
-          />
+          <OwnerMemberStep @done="nextStep" :showPreviousButton="false" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="2">
@@ -53,14 +50,11 @@
       <v-stepper-items v-else class="stepper-content">
         <!-- Anchor step -->
         <v-stepper-content step="1">
-          <ConfigurationAnchorStep @done="configAnchorReady" />
+          <ConfigurationAnchorStep @done="nextStep" />
         </v-stepper-content>
         <!-- Member step -->
         <v-stepper-content step="2">
-          <OwnerMemberStep
-            @previous="currentStep = 1"
-            @done="ownerMemberReady"
-          />
+          <OwnerMemberStep @previous="currentStep = 1" @done="nextStep" />
         </v-stepper-content>
         <!-- PIN step -->
         <v-stepper-content step="3">
@@ -92,8 +86,7 @@ import TokenPinStep from './TokenPinStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import WarningDialog from './WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
-import { Key, Token } from '@/openapi-types';
-import { RouteName, UsageTypes } from '@/global';
+import { RouteName } from '@/global';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -104,7 +97,6 @@ export default Vue.extend({
     OwnerMemberStep,
     WarningDialog,
   },
-  props: {},
   computed: {
     ...mapGetters([
       'isAnchorImported',
@@ -114,19 +106,15 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentStep: 1,
-      pinSaveBusy: false,
-      warningInfo: [],
-      confirmInitWarning: false,
+      currentStep: 1 as number,
+      pinSaveBusy: false as boolean,
+      warningInfo: [] as string[],
+      confirmInitWarning: false as boolean,
       requestPayload: undefined as any,
     };
   },
   methods: {
-    configAnchorReady(): void {
-      this.currentStep++;
-    },
-
-    ownerMemberReady(): void {
+    nextStep(): void {
       this.currentStep++;
     },
 
@@ -161,14 +149,14 @@ export default Vue.extend({
     initServer(payload: any): void {
       api
         .post('/initialization', payload)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'initialConfiguration.success');
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
           this.$router.replace({ name: RouteName.Clients });
         })
         .catch((error) => {
-          if (error.response.data.warnings) {
+          if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.confirmInitWarning = true;
           } else {

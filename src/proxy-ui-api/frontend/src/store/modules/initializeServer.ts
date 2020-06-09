@@ -9,14 +9,14 @@ interface InitializationStatus {
   is_software_token_initialized: boolean;
 }
 
-export interface InitServerState {
+export interface State {
   memberClass: string | undefined;
   memberCode: string | undefined;
   securityServerCode: string | undefined;
   initializationStatus: InitializationStatus | undefined;
 }
 
-const getDefaultState = () => {
+export const getDefaultState = (): State => {
   return {
     memberClass: undefined,
     memberCode: undefined,
@@ -28,72 +28,69 @@ const getDefaultState = () => {
 // Initial state. The state can be reseted with this.
 const moduleState = getDefaultState();
 
-export const getters: GetterTree<InitServerState, RootState> = {
-  initServerMemberClass(state): string | undefined {
+export const getters: GetterTree<State, RootState> = {
+  initServerMemberClass(state: State): string | undefined {
     return state.memberClass;
   },
 
-  initServerMemberCode(state): string | undefined {
+  initServerMemberCode(state: State): string | undefined {
     return state.memberCode;
   },
 
-  initServerSSCode(state): string | undefined {
+  initServerSSCode(state: State): string | undefined {
     return state.securityServerCode;
   },
 
-  isAnchorImported(state): boolean {
-    return state.initializationStatus?.is_anchor_imported || false;
+  isAnchorImported(state: State): boolean {
+    return state.initializationStatus?.is_anchor_imported ?? false;
   },
 
-  isServerOwnerInitialized(state): boolean {
-    return state.initializationStatus?.is_server_owner_initialized || false;
+  isServerOwnerInitialized(state: State): boolean {
+    return state.initializationStatus?.is_server_owner_initialized ?? false;
   },
 
-  isServerCodeInitialized(state): boolean {
-    return state.initializationStatus?.is_server_code_initialized || false;
+  isServerCodeInitialized(state: State): boolean {
+    return state.initializationStatus?.is_server_code_initialized ?? false;
   },
 
-  isSoftwareTokenInitialized(state): boolean {
-    return state.initializationStatus?.is_software_token_initialized || false;
+  isSoftwareTokenInitialized(state: State): boolean {
+    return state.initializationStatus?.is_software_token_initialized ?? false;
   },
 
   needsInitialization: (state) => {
-    if (
+    return !(
       state.initializationStatus?.is_anchor_imported &&
       state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized &&
       state.initializationStatus.is_software_token_initialized
-    ) {
-      return false;
-    }
-    return true;
+    );
   },
 };
 
-export const mutations: MutationTree<InitServerState> = {
-  resetInitServerState(state) {
+export const mutations: MutationTree<State> = {
+  resetInitServerState(state: State) {
     Object.assign(state, getDefaultState());
   },
-  storeInitServerMemberCode(state, memberCode: string | undefined) {
+  storeInitServerMemberCode(state: State, memberCode: string | undefined) {
     state.memberCode = memberCode;
   },
-  storeInitServerMemberClass(state, memberClass: string | undefined) {
+  storeInitServerMemberClass(state: State, memberClass: string | undefined) {
     state.memberClass = memberClass;
   },
-  storeInitServerSSCode(state, code: string | undefined) {
+  storeInitServerSSCode(state: State, code: string | undefined) {
     state.securityServerCode = code;
   },
-  storeInitStatus(state, status: InitializationStatus) {
+  storeInitStatus(state: State, status: InitializationStatus) {
     state.initializationStatus = status;
   },
 };
 
-export const actions: ActionTree<InitServerState, any> = {
+export const actions: ActionTree<State, any> = {
   resetInitServerState({ commit }) {
     commit('resetInitServerState');
   },
 
-  fetchInitializationStatus({ commit, rootGetters, dispatch }) {
+  fetchInitializationStatus({ commit }) {
     return api
       .get('/initialization/status')
       .then((resp) => {
@@ -105,7 +102,7 @@ export const actions: ActionTree<InitServerState, any> = {
   },
 };
 
-export const module: Module<InitServerState, RootState> = {
+export const module: Module<State, RootState> = {
   namespaced: false,
   state: moduleState,
   getters,

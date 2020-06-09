@@ -8,24 +8,25 @@
       />
     </div>
 
-    <template v-if="configuratonAnchor">
-      <div class="row-wrap">
-        <div class="label">{{ $t('initialConfiguration.anchor.hash') }}</div>
-        <template v-if="configuratonAnchor">{{
-          configuratonAnchor.hash | colonize
-        }}</template>
-      </div>
-
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('initialConfiguration.anchor.generated') }}
+    <div style="height: 120px;">
+      <template v-if="configuratonAnchor">
+        <div class="row-wrap">
+          <div class="label">{{ $t('initialConfiguration.anchor.hash') }}</div>
+          <template v-if="configuratonAnchor">{{
+            configuratonAnchor.hash | colonize
+          }}</template>
         </div>
-        <template v-if="configuratonAnchor">{{
-          configuratonAnchor.created_at | formatDateTime
-        }}</template>
-      </div>
-    </template>
-    <div v-else style="height: 120px;"></div>
+
+        <div class="row-wrap">
+          <div class="label">
+            {{ $t('initialConfiguration.anchor.generated') }}
+          </div>
+          <template v-if="configuratonAnchor">{{
+            configuratonAnchor.created_at | formatDateTime
+          }}</template>
+        </div>
+      </template>
+    </div>
 
     <div class="button-footer">
       <v-spacer></v-spacer>
