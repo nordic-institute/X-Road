@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AlertStatus;
+import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,14 +53,17 @@ public class NotificationService {
     private OffsetDateTime backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
+    private final InitializationService initializationService;
 
     /**
      * constructor
      */
     @Autowired
-    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService) {
+    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService,
+            InitializationService initializationService) {
         this.globalConfFacade = globalConfFacade;
         this.tokenService = tokenService;
+        this.initializationService = initializationService;
     }
 
     /**
@@ -74,9 +78,22 @@ public class NotificationService {
             alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
             alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
         }
-        alertStatus.setGlobalConfValid(isGlobalConfValid());
-        alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
+        if (isSecurityServerFullyInitialized()) {
+            alertStatus.setGlobalConfValid(isGlobalConfValid());
+            alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
+        } else {
+            alertStatus.setGlobalConfValid(false);
+            alertStatus.setSoftTokenPinEntered(false);
+        }
         return alertStatus;
+    }
+
+    private boolean isSecurityServerFullyInitialized() {
+        InitializationStatusDto initStatusDto = initializationService.getSecurityServerInitializationStatus();
+        return initStatusDto.isAnchorImported()
+                && initStatusDto.isServerCodeInitialized()
+                && initStatusDto.isServerOwnerInitialized()
+                && initStatusDto.isSoftwareTokenInitialized();
     }
 
     /**
