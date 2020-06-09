@@ -273,15 +273,16 @@ public class CertificateAuthorityService {
      * @throws WrongKeyUsageException if attempted to read signing profile from authenticationOnly ca
      * @throws ClientNotFoundException if client with memberId was not found
      */
-    public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId)
+    public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId,
+            boolean isNewMember)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
             WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthorityInfo(caName);
         if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
         }
-        if (keyUsageInfo == KeyUsageInfo.SIGNING) {
-            // validate that the member exists or has a subsystem on this server
+        if (keyUsageInfo == KeyUsageInfo.SIGNING && !isNewMember) {
+            // validate that the member exists or has a subsystem on this server - except when adding a new client
             if (!clientService.getLocalClientMemberIds().contains(memberId)) {
                 throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, not found");
             }

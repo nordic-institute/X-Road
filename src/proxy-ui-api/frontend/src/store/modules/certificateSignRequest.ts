@@ -20,6 +20,7 @@ export interface CsrState {
   form: CsrSubjectFieldDescription[];
   keyLabel: string | undefined;
   tokenId: string | undefined;
+  isNewMember: boolean;
 }
 
 const getDefaultState = () => {
@@ -34,6 +35,7 @@ const getDefaultState = () => {
     form: [],
     keyLabel: undefined,
     tokenId: undefined,
+    isNewMember: false,
   };
 };
 
@@ -149,6 +151,9 @@ export const mutations: MutationTree<CsrState> = {
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
   },
+  storeCsrIsNewMember(state, isNewMember: boolean = false) {
+    state.isNewMember = isNewMember;
+  },
 };
 
 export const actions: ActionTree<CsrState, RootState> = {
@@ -174,7 +179,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     if (state.usage === UsageTypes.SIGNING) {
       query =
         `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
-        `&member_id=${state.csrClient}`;
+        `&member_id=${state.csrClient}&is_new_member=${state.isNewMember}`;
     } else {
       query = `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
     }

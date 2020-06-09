@@ -245,6 +245,7 @@ export default Vue.extend({
       // Add the selected client id in csr store
       const idString = this.$store.getters.selectedMemberId;
       this.$store.commit('storeCsrClient', idString);
+      this.$store.commit('storeCsrIsNewMember', true);
 
       this.$store.dispatch('fetchCsrForm').then(
         () => {
