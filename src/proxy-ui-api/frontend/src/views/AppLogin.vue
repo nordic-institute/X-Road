@@ -84,9 +84,9 @@ export default (Vue as VueConstructor<
   },
   data() {
     return {
-      loading: false,
-      username: 'xrd',
-      password: 'secret',
+      loading: false as boolean,
+      username: '' as string,
+      password: '' as string,
     };
   },
   computed: {
