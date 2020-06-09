@@ -62,30 +62,30 @@
       multi-line
     >
       <div class="row-wrapper">
-        <div>
-          {{ $t('error_code.' + errorObject.response.data.error.code) }}
+        <div v-if="errorCode">
+          {{ $t('error_code.' + errorCode) }}
+        </div>
+        <div v-else="">
+          {{ errorObject }}
         </div>
 
         <!-- Show the error metadata if it exists -->
-        <template v-if="errorObject.response.data.error.metadata">
-          <div
-            v-for="meta in errorObject.response.data.error.metadata"
-            :key="meta"
-          >
-            {{ meta }}
-          </div>
-        </template>
+        <div v-for="meta in errorMetadata" :key="meta">
+          {{ meta }}
+        </div>
+
         <!-- Error ID -->
-        <div v-if="errorObject.response">
+        <div v-if="errorId">
           {{ $t('id') }}:
-          {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
+          {{ errorId }}
         </div>
       </div>
 
-      <template v-if="errorObject.response">
+      <template v-if="errorId">
         <v-btn
           outlined
           color="white"
+          data-test="copy-id-button"
           v-clipboard:copy="
             errorObject.response.headers['x-road-ui-correlation-id']
           "
@@ -93,7 +93,12 @@
         </v-btn>
       </template>
 
-      <v-btn icon color="white" @click="closeError()">
+      <v-btn
+        icon
+        color="white"
+        data-test="close-snackbar"
+        @click="closeError()"
+      >
         <v-icon dark>mdi-close-circle</v-icon>
       </v-btn>
     </v-snackbar>
@@ -154,6 +159,27 @@ export default Vue.extend({
       set(value: string) {
         this.$store.commit('setErrorCodeVisible', value);
       },
+    },
+    errorCode(): string | undefined {
+      if (this.errorObject?.response?.data?.error?.code) {
+        return this.errorObject.response.data.error.code;
+      }
+
+      return undefined;
+    },
+    errorId(): string | undefined {
+      if (this.errorObject?.response?.headers['x-road-ui-correlation-id']) {
+        return this.errorObject.response.headers['x-road-ui-correlation-id'];
+      }
+
+      return undefined;
+    },
+    errorMetadata(): string[] {
+      if (this.errorObject?.response?.data?.error?.metadata) {
+        return this.errorObject.response.data.error.metadata;
+      }
+
+      return [];
     },
   },
 
