@@ -3,6 +3,7 @@
     <LargeButton
       data-test="unregister-client-button"
       @click="confirmUnregisterClient = true"
+      outlined
       >{{ $t('action.unregister') }}</LargeButton
     >
 

@@ -177,7 +177,6 @@ import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
-import { cloneDeep } from 'lodash';
 import { Service, ServiceDescription } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
@@ -208,7 +207,7 @@ export default Vue.extend({
       componentKey: 0 as number,
       expanded: [] as string[],
       serviceDescriptions: [] as ServiceDescription[],
-      warningInfo: undefined as undefined | string[],
+      warningInfo: [] as string[],
       saveWarningDialog: false as boolean,
       refreshWarningDialog: false as boolean,
       url: '' as string,
@@ -235,17 +234,19 @@ export default Vue.extend({
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      const arr = cloneDeep(this.serviceDescriptions).sort((a, b) => {
-        if (a.id < b.id) {
-          return -1;
-        }
-        if (a.id > b.id) {
-          return 1;
-        }
+      const arr = JSON.parse(JSON.stringify(this.serviceDescriptions)).sort(
+        (a: ServiceDescription, b: ServiceDescription) => {
+          if (a.id < b.id) {
+            return -1;
+          }
+          if (a.id > b.id) {
+            return 1;
+          }
 
-        // equal id:s. (should not happen)
-        return 0;
-      });
+          // equal id:s. (should not happen)
+          return 0;
+        },
+      );
 
       if (!this.search) {
         return arr;
@@ -268,7 +269,7 @@ export default Vue.extend({
       });
 
       // Filter out services that don't include search term
-      filtered.forEach((element) => {
+      filtered.forEach((element: any) => {
         const filteredServices = element.services.filter((service: any) => {
           return service.service_code
             .toString()
@@ -380,7 +381,7 @@ export default Vue.extend({
           url,
           type: this.serviceTypeEnum.WSDL,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'services.wsdlAdded');
           this.addBusy = false;
           this.fetchData();
@@ -389,14 +390,6 @@ export default Vue.extend({
           if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.saveWarningDialog = true;
-          } else if (
-            error?.response?.data?.error?.code === 'service_already_exists'
-          ) {
-            this.$store.dispatch(
-              'showErrorMessageRaw',
-              'service already exists',
-            );
-            this.addBusy = false;
           } else {
             this.$store.dispatch('showError', error);
             this.addBusy = false;

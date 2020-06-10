@@ -66,6 +66,7 @@ export default Vue.extend({
         .finally(() => {
           this.showConfirmation = false;
           this.restoring = false;
+          this.$store.dispatch('checkAlertStatus');
         });
     },
   },

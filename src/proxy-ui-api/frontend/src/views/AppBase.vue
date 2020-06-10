@@ -39,13 +39,22 @@ import * as api from '@/util/api';
 export default Vue.extend({
   data() {
     return {
-      interval: 0,
+      sessionPollInterval: 0,
+      alertsPollInterval: 0,
       logoutDialog: false,
     };
   },
   created() {
     // Set interval to poll backend for session
-    this.interval = setInterval(() => this.pollSessionStatus(), 30000);
+    this.sessionPollInterval = setInterval(
+      () => this.pollSessionStatus(),
+      30000,
+    );
+    this.$store.dispatch('checkAlertStatus'); // Poll immediately to get initial alerts state
+    this.alertsPollInterval = setInterval(
+      () => this.$store.dispatch('checkAlertStatus'),
+      30000,
+    );
   },
   methods: {
     closeLogoutDialog() {
@@ -56,7 +65,8 @@ export default Vue.extend({
       return api.get('/notifications/session-status').catch((error) => {
         if (error.response && error.response.status === 401) {
           this.logoutDialog = true;
-          clearInterval(this.interval);
+          clearInterval(this.sessionPollInterval);
+          clearInterval(this.alertsPollInterval);
         }
       });
     },

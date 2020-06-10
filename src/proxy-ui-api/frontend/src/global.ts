@@ -38,6 +38,7 @@ export enum RouteName {
   AddMember = 'add-member',
   EndpointAccessRights = 'endpoint-access-rights',
   ServiceClientAccessRights = 'service-client-access-rights',
+  InitialConfiguration = 'initial-configuration',
   AddServiceClientAccessRight = 'add-service-client-access-right',
 }
 
@@ -94,6 +95,7 @@ export enum Permissions {
   SEND_AUTH_CERT_REG_REQ = 'SEND_AUTH_CERT_REG_REQ', // sign and keys > register
   SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ',
   SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ',
+  SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR',
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES',
   VIEW_ANCHOR = 'VIEW_ANCHOR',
