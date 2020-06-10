@@ -64,8 +64,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 @PreAuthorize("isAuthenticated()")
 public class ServiceService {
 
-    private static final String HTTPS = "https";
-
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final UrlValidator urlValidator;
@@ -185,7 +183,7 @@ public class ServiceService {
             serviceFromSameDefinition.setTimeout(timeout);
         }
         if (sslAuthAll || serviceMatch) {
-            if (serviceFromSameDefinition.getUrl().startsWith(HTTPS)) {
+            if (FormatUtils.isHttpsUrl(serviceFromSameDefinition.getUrl())) {
                 serviceFromSameDefinition.setSslAuthentication(sslAuth);
             } else {
                 serviceFromSameDefinition.setSslAuthentication(null);

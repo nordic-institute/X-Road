@@ -110,9 +110,7 @@ public class PossibleActionsRuleEngine {
             actions.add(PossibleActionEnum.GENERATE_SIGN_CSR);
         }
         // EDIT_FRIENDLY_NAME
-        if (keyInfo.isSavedToConfiguration()) {
-            actions.add(PossibleActionEnum.EDIT_FRIENDLY_NAME);
-        }
+        actions.add(PossibleActionEnum.EDIT_FRIENDLY_NAME);
 
         return actions;
     }

@@ -15,7 +15,7 @@ export const servicesState: ServicesState = {
     service_code: '',
     code: '',
     timeout: 0,
-    ssl_auth: true,
+    ssl_auth: undefined,
     url: '',
   },
   serviceClients: [],

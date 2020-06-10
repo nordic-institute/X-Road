@@ -134,7 +134,7 @@ public final class FormatUtils {
         boolean hasValidProtocol;
         boolean hasValidHost;
         try {
-            hasValidProtocol = url.startsWith(HTTPS_PROTOCOL) || url.startsWith(HTTP_PROTOCOL);
+            hasValidProtocol = isHttpsUrl(url) || url.startsWith(HTTP_PROTOCOL);
             URL wsdlUrl = new URL(url);
             String asciiHost = IDN.toASCII(wsdlUrl.getHost());
             hasValidHost = asciiHost.matches(URL_HOST_REGEX);
@@ -142,6 +142,10 @@ public final class FormatUtils {
             return false;
         }
         return hasValidProtocol && hasValidHost;
+    }
+
+    public static boolean isHttpsUrl(String url) {
+        return url != null && url.startsWith(HTTPS_PROTOCOL);
     }
 
     /**

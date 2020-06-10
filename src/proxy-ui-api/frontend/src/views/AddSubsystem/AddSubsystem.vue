@@ -94,6 +94,7 @@
             @click="done"
             :disabled="invalid || duplicateClient"
             data-test="submit-add-subsystem-button"
+            :loading="submitLoading"
             >{{ $t('action.addSubsystem') }}</large-button
           >
         </div>
@@ -105,21 +106,27 @@
         @cancel="showSelectClient = false"
         @save="saveSelectedClient"
       />
+
+      <ConfirmDialog
+        :dialog="confirmRegisterClient"
+        title="clients.action.register.confirm.title"
+        text="clients.action.register.confirm.text"
+        @cancel="exitView"
+        @accept="registerSubsystem"
+        :loading="registerClientLoading"
+      />
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { Key, Token } from '@/openapi-types';
-import { RouteName, UsageTypes } from '@/global';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
@@ -133,6 +140,7 @@ export default Vue.extend({
     ValidationProvider,
     SelectClientDialog,
     SubViewTitle,
+    ConfirmDialog,
   },
   props: {
     instanceId: {
@@ -154,12 +162,14 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: false as boolean,
       showSelectClient: false as boolean,
       registerChecked: true as boolean,
       existingSubsystems: [] as Client[],
       selectableSubsystems: [] as Client[],
       subsystemCode: undefined as undefined | string,
+      submitLoading: false as boolean,
+      confirmRegisterClient: false as boolean,
+      registerClientLoading: false as boolean,
     };
   },
   computed: {
@@ -178,6 +188,7 @@ export default Vue.extend({
   },
   methods: {
     done(): void {
+      this.submitLoading = true;
       this.$store
         .dispatch('addSubsystem', {
           memberName: this.memberName,
@@ -187,21 +198,27 @@ export default Vue.extend({
         })
         .then(
           () => {
-            this.disableDone = false;
-
+            this.submitLoading = false;
+            this.$store.dispatch(
+              'showSuccess',
+              'wizard.subsystem.subsystemAdded',
+            );
             if (this.registerChecked) {
-              this.registerSubsystem();
+              this.confirmRegisterClient = true;
             } else {
               this.exitView();
             }
           },
           (error) => {
+            this.submitLoading = false;
             this.$store.dispatch('showError', error);
           },
         );
     },
 
     registerSubsystem(): void {
+      this.registerClientLoading = true;
+
       const clientId = createClientId(
         this.instanceId,
         this.memberClass,
@@ -211,7 +228,10 @@ export default Vue.extend({
 
       this.$store.dispatch('registerClient', clientId).then(
         () => {
-          this.disableDone = false;
+          this.$store.dispatch(
+            'showSuccess',
+            'wizard.subsystem.subsystemAdded',
+          );
           this.exitView();
         },
         (error) => {
@@ -222,6 +242,9 @@ export default Vue.extend({
     },
 
     exitView(): void {
+      this.registerClientLoading = false;
+      this.confirmRegisterClient = false;
+      this.submitLoading = false;
       this.$router.replace({ name: RouteName.Clients });
     },
     saveSelectedClient(selectedMember: Client): void {

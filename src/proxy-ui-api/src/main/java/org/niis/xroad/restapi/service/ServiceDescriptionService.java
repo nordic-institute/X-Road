@@ -475,6 +475,9 @@ public class ServiceDescriptionService {
         serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
         serviceType.setUrl(url);
         serviceType.setServiceDescription(serviceDescriptionType);
+        if (FormatUtils.isHttpsUrl(url)) {
+            serviceType.setSslAuthentication(true);
+        }
 
         // Add created servicedescription to client
         serviceDescriptionType.getService().add(serviceType);

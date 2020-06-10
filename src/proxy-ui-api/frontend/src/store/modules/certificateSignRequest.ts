@@ -217,11 +217,10 @@ export const actions: ActionTree<CsrState, RootState> = {
 
   generateCsr({ getters, state }) {
     const requestBody = getters.csrRequestBody;
-
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response);
+        saveResponseAsFile(response, `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`);
       })
       .catch((error: any) => {
         throw error;
@@ -237,7 +236,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     };
 
     // Add key label only if it has characters
-    if (getters.keyLabel && getters.keyLabel.lenght > 0) {
+    if (getters.keyLabel && getters.keyLabel.length > 0) {
       body.key_label = getters.keyLabel;
     }
 
