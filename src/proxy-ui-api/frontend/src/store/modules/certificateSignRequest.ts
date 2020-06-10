@@ -151,7 +151,7 @@ export const mutations: MutationTree<CsrState> = {
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
   },
-  storeCsrIsNewMember(state, isNewMember: boolean = false) {
+  storeCsrIsNewMember(state, isNewMember = false) {
     state.isNewMember = isNewMember;
   },
 };
