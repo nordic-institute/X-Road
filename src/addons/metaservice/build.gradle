@@ -1,5 +1,6 @@
 dependencies {
     compile project(':proxy')
+    compile project(':common-request')
 
     testCompile project(':common-test')
     testCompile project(':common-util')
