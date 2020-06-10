@@ -218,7 +218,10 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response, `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`);
+        saveResponseAsFile(
+          response,
+          `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
+        );
       })
       .catch((error: any) => {
         throw error;
