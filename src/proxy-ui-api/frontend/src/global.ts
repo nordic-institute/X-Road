@@ -38,6 +38,7 @@ export enum RouteName {
   AddMember = 'add-member',
   EndpointAccessRights = 'endpoint-access-rights',
   ServiceClientAccessRights = 'service-client-access-rights',
+  InitialConfiguration = 'initial-configuration',
   AddServiceClientAccessRight = 'add-service-client-access-right',
 }
 

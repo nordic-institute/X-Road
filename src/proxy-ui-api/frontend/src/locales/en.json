@@ -626,6 +626,42 @@
       }
     }
   },
+  "initialConfiguration": {
+    "title": "Initial configuration",
+    "noPermission": "You do not have sufficient permissions to complete the operation.",
+    "success": "Server initialised",
+    "anchor": {
+      "title": "Configuration Anchor",
+      "info": "Import the configuration anchor provided by the Central Server's administrator.",
+      "import": "Import",
+      "hash": "Hash (SHA-224)",
+      "generated": "Generated",
+      "dialogTitle": "Confirmation required",
+      "dialogDetails": "Configuration anchor details:",
+      "dialogQuestion": "Continue with import?"
+    },
+    "member": {
+      "title": "Owner Member",
+      "info": "Define the member that will act as the Security Server owner:",
+      "serverCodeHelp": "Info SS"
+    },
+    "pin": {
+      "title": "Token PIN",
+      "pin": "PIN",
+      "confirmPin": "Confirm PIN",
+      "pinMatchError": "Password confirmation does not match",
+      "info1": "The software token is the place where the Security Server’s AUTH keys is stored. Please define a PIN to log-in into the software token.",
+      "info2": "All required information is collected, press the Submit button to to initialise the Security Server.",
+      "info3": "Once the initialisation is done, you must complete the Security Server configuration - simply click the Configure button in the toast notification that will appear in a few moments."
+    },
+    "warning": {
+      "init_unregistered_member": "Member is unregistered",
+      "init_server_id_exists": "Server id exists",
+      "init_serverconf_exists": "Serverconf exists",
+      "init_server_owner_exists": "Server owner exists",
+      "init_software_token_initialized": "Software token is initialised"
+    }
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -671,6 +707,9 @@
     "tokenPin": "Token PIN",
     "dns": "DNS",
     "path": "path",
+    "pin": "PIN",
+    "confirmPin": "Confirm PIN",
+    "securityServerCode": "Security Server Code",
     "keys": {
       "friendlyName": "Friendly name"
     },
@@ -719,7 +758,7 @@
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
         "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
-        "ERROR_CODE_UNINITIALIZED": "The configuration client is initializing.",
+        "ERROR_CODE_UNINITIALIZED": "The configuration client is initialising.",
         "UNKNOWN": "Unknown"
       }
     },
