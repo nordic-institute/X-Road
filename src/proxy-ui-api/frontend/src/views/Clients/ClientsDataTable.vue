@@ -351,7 +351,7 @@ export default Vue.extend({
       }
 
       if (
-        item.name.toLowerCase().includes(search) ||
+        item.visibleName.toLowerCase().includes(search) ||
         item.id.toLowerCase().includes(search)
       ) {
         return true;
