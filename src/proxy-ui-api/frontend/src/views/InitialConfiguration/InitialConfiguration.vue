@@ -84,7 +84,7 @@ import { mapGetters } from 'vuex';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import TokenPinStep from './TokenPinStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
-import WarningDialog from './WarningDialog.vue';
+import WarningDialog from '@/components/ui/WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';

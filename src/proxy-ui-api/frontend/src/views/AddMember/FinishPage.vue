@@ -69,7 +69,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import WarningDialog from '@/views/InitialConfiguration/WarningDialog.vue';
+import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 
