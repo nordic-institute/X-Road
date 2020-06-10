@@ -220,7 +220,10 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response, `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`);
+        saveResponseAsFile(
+          response,
+          `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
+        );
       })
       .catch((error: any) => {
         throw error;
@@ -274,17 +277,14 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .get('/clients?show_members=true')
       .then((res) => {
-        const idArray: string[] = [];
-        res.data.forEach((client: Client) => {
-          // Create id:s without possible subsystem code
-          const partialId = `${client.instance_id}:${client.member_class}:${client.member_code}`;
-
-          if (!idArray.includes(partialId)) {
-            idArray.push(partialId);
-          }
+        const idSet = new Set();
+        res.data.map((client: Client) => {
+          idSet.add(
+            `${client.instance_id}:${client.member_class}:${client.member_code}`,
+          );
         });
 
-        commit('storeMemberIds', idArray);
+        commit('storeMemberIds', Array.from(idSet));
       })
       .catch((error) => {
         throw error;
