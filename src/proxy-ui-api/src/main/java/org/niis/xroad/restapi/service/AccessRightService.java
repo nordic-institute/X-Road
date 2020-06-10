@@ -40,6 +40,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -63,6 +64,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_CODES;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_IDS;
+
 /**
  * Service class for handling access rights.
  * This service has several methods that return "access rights holders".
@@ -76,28 +82,26 @@ public class AccessRightService {
 
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
-    private final ServiceService serviceService;
     private final IdentifierService identifierService;
     private final EndpointService endpointService;
-    private final LocalGroupService localGroupService;
+    private final AuditDataHelper auditDataHelper;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ClientService clientService;
 
     @Autowired
     public AccessRightService(GlobalConfFacade globalConfFacade,
-            ClientRepository clientRepository, ServiceService serviceService, IdentifierService identifierService,
+            ClientRepository clientRepository, IdentifierService identifierService,
             EndpointService endpointService,
-            LocalGroupService localGroupService,
             ServiceDescriptionService serviceDescriptionService,
-            ClientService clientService) {
+            ClientService clientService,
+            AuditDataHelper auditDataHelper) {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
-        this.serviceService = serviceService;
         this.identifierService = identifierService;
         this.endpointService = endpointService;
-        this.localGroupService = localGroupService;
         this.serviceDescriptionService = serviceDescriptionService;
         this.clientService = clientService;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -118,11 +122,34 @@ public class AccessRightService {
             throws ClientNotFoundException, AccessRightNotFoundException,
             ServiceNotFoundException {
 
+
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 
         EndpointType endpointType = endpointService.getBaseEndpointType(clientType, fullServiceCode);
 
+        addAuditData(clientId, subjectIds, endpointType.getServiceCode());
+
         deleteEndpointAccessRights(clientType, endpointType, subjectIds);
+    }
+
+    /**
+     * Adds clientId, serviceCodes, and subjectId
+     */
+    private void addAuditData(ClientId clientId, XRoadId subjectId, Set<String> serviceCodes) {
+        auditDataHelper.put(clientId);
+        auditDataHelper.put(SUBJECT_ID, subjectId.toString());
+        auditDataHelper.put(SERVICE_CODES, serviceCodes);
+    }
+
+    /**
+     * Adds clientId, serviceCode, and subjectIds
+     */
+    private void addAuditData(ClientId clientId, Set<XRoadId> subjectIds, String serviceCode) {
+        auditDataHelper.put(clientId);
+        auditDataHelper.put(SERVICE_CODE, serviceCode);
+        if (subjectIds != null) {
+            subjectIds.forEach(id -> auditDataHelper.addListPropertyItem(SUBJECT_IDS, id.toString()));
+        }
     }
 
     /**
@@ -189,6 +216,8 @@ public class AccessRightService {
         }
     }
 
+
+
     /**
      * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
@@ -216,6 +245,8 @@ public class AccessRightService {
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 
         EndpointType endpointType = endpointService.getBaseEndpointType(clientType, fullServiceCode);
+
+        addAuditData(clientId, subjectIds, endpointType.getServiceCode());
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
         return addEndpointAccessRights(clientType, endpointType, subjectIds);
@@ -291,6 +322,8 @@ public class AccessRightService {
             XRoadId subjectId) throws ServiceNotFoundException,
             DuplicateAccessRightException, ClientNotFoundException, ServiceClientNotFoundException {
 
+        addAuditData(clientId, subjectId, serviceCodes);
+
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 
         validateServiceClientObjectType(subjectId);
@@ -329,6 +362,8 @@ public class AccessRightService {
     public void deleteServiceClientAccessRights(ClientId clientId,
             Set<String> serviceCodes, XRoadId subjectId) throws AccessRightNotFoundException, ClientNotFoundException,
             ServiceNotFoundException {
+
+        addAuditData(clientId, subjectId, serviceCodes);
 
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 

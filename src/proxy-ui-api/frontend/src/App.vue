@@ -2,6 +2,7 @@
   <v-app class="xrd-app">
     <app-toolbar />
     <v-content app>
+      <alerts-container />
       <transition name="fade" mode="out-in">
         <router-view />
       </transition>
@@ -18,6 +19,7 @@ import Snackbar from '@/components/ui/Snackbar.vue';
 import { RouteName } from '@/global';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 export default Vue.extend({
   name: 'App',
@@ -25,6 +27,7 @@ export default Vue.extend({
     AppToolbar,
     AppFooter,
     Snackbar,
+    AlertsContainer,
   },
   created() {
     // Add a response interceptor
@@ -43,6 +46,7 @@ export default Vue.extend({
         ) {
           // if you ever get an unauthorized, logout the user
           this.$store.dispatch('clearAuth');
+          this.$store.dispatch('clearAlerts');
           this.$router.replace({ name: RouteName.Login });
         }
         // Do something with response error
@@ -75,4 +79,3 @@ export default Vue.extend({
   background: white;
 }
 </style>
-

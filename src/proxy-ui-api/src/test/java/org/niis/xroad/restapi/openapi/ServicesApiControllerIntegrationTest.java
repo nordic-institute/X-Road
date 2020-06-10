@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -123,10 +124,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(false);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -141,10 +142,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(true); // value does not matter if http - will aways be set to null
-        service.setUrl(TestUtils.URL_HTTP);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true); // value does not matter if http - will aways be set to null
+        serviceUpdate.setUrl(TestUtils.URL_HTTP);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -159,11 +160,11 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(false);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true)
+        ServiceUpdate serviceUpdate = new ServiceUpdate().urlAll(true)
                 .sslAuthAll(true).timeoutAll(true);
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -185,10 +186,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(true);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true);
+        ServiceUpdate serviceUpdate = new ServiceUpdate().urlAll(true);
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -485,7 +486,7 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
     }
 
-    @Test
+    @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addDuplicateAccessRight() throws Exception {
         when(globalConfService.clientsExist(any())).thenReturn(true);
@@ -500,32 +501,37 @@ public class ServicesApiControllerIntegrationTest {
                         ServiceClientType.LOCALGROUP))
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
-        try {
-            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
-            fail("Should throw Conflict exception in stead of this");
-        } catch (ConflictException e) { }
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
+    }
 
-        // try adding duplicate local group
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
+    public void addDuplicatePreExistingAccessRight() {
+        // try adding duplicate local group that already exists
         ServiceClients existingLocalGroup = new ServiceClients()
-                        .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
+                .addItemsItem(new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_1).serviceClientType(
                         ServiceClientType.LOCALGROUP));
-        try {
-            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, existingLocalGroup);
-            fail("Should throw Conflict exception in stead of this");
-        } catch (ConflictException e) { }
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, existingLocalGroup);
+    }
 
-
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
+    public void addDuplicateIdenticalAccessrights() {
         // try adding two identical localgroups
         List<ServiceClient> itemsBefore =
                 servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         ServiceClient localGroup = new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                 ServiceClientType.LOCALGROUP);
         ServiceClients duplicateLocalGroups = new ServiceClients().addItemsItem(localGroup).addItemsItem(localGroup);
-        try {
-            servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
-            fail("Should throw Conflict exception in stead of this");
-        } catch (ConflictException e) { }
+        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
+        List<ServiceClient> itemsAfter =
+                servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertTrue(itemsBefore.size() + 1 == itemsAfter.size());
+        assertTrue(itemsAfter.stream()
+                .filter(item -> item.getId().equals(TestUtils.DB_LOCAL_GROUP_ID_2))
+                .collect(Collectors.toList()).size() == 1);
     }
+
 
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })

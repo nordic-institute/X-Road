@@ -3,11 +3,15 @@
     <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.usage')}}
+          {{ $t('csr.usage') }}
           <helpIcon :text="$t('csr.helpUsage')" />
         </div>
 
-        <ValidationProvider name="crs.usage" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="crs.usage"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="usageList"
             class="form-input"
@@ -20,11 +24,15 @@
 
       <div class="row-wrap" v-if="usage === usageTypes.SIGNING">
         <div class="label">
-          {{$t('csr.client')}}
+          {{ $t('csr.client') }}
           <helpIcon :text="$t('csr.helpClient')" />
         </div>
 
-        <ValidationProvider name="crs.client" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="crs.client"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="localMembersIds"
             item-text="id"
@@ -38,11 +46,15 @@
 
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.certificationService')}}
+          {{ $t('csr.certificationService') }}
           <helpIcon :text="$t('csr.helpCertificationService')" />
         </div>
 
-        <ValidationProvider name="crs.certService" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="crs.certService"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="filteredServiceList"
             item-text="name"
@@ -56,11 +68,15 @@
 
       <div class="row-wrap">
         <div class="label">
-          {{$t('csr.csrFormat')}}
+          {{ $t('csr.csrFormat') }}
           <helpIcon :text="$t('csr.helpCsrFormat')" />
         </div>
 
-        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="crs.crsFormat"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-select
             :items="csrFormatList"
             name="crs.crsFormat"
@@ -72,7 +88,9 @@
       </div>
 
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+        <large-button outlined @click="cancel" data-test="cancel-button">{{
+          $t('action.cancel')
+        }}</large-button>
 
         <div>
           <large-button
@@ -81,12 +99,14 @@
             outlined
             class="previous-button"
             data-test="previous-button"
-          >{{$t('action.previous')}}</large-button>
+            >{{ $t('action.previous') }}</large-button
+          >
           <large-button
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-          >{{$t(saveButtonText)}}</large-button>
+            >{{ $t(saveButtonText) }}</large-button
+          >
         </div>
       </div>
     </ValidationObserver>
@@ -99,16 +119,12 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import { Key, Token } from '@/types';
 import { UsageTypes, CsrFormatTypes } from '@/global';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     HelpIcon,
     LargeButton,
-    SubViewTitle,
     ValidationObserver,
     ValidationProvider,
   },
@@ -184,13 +200,13 @@ export default Vue.extend({
   watch: {
     filteredServiceList(val) {
       // Set first certification service selected as default when the list is updated
-      if (val && val.length === 1) {
+      if (val?.length === 1) {
         this.certificationService = val[0].name;
       }
     },
     localMembersIds(val) {
-      // Set first client selected as defaulg when the list is updated
-      if (val && val.length === 1) {
+      // Set first client selected as default when the list is updated
+      if (val?.length === 1) {
         this.client = val[0].id;
       }
     },
@@ -201,4 +217,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/wizards';
 </style>
-

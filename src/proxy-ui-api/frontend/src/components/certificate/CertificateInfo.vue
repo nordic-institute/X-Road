@@ -2,13 +2,25 @@
   <div>
     <certificate-line childKey="version" :sourceObject="certificate" />
     <certificate-line childKey="serial" :sourceObject="certificate" />
-    <certificate-line childKey="signature_algorithm" :sourceObject="certificate" />
-    <certificate-line childKey="issuer_distinguished_name" :sourceObject="certificate" />
+    <certificate-line
+      childKey="signature_algorithm"
+      :sourceObject="certificate"
+    />
+    <certificate-line
+      childKey="issuer_distinguished_name"
+      :sourceObject="certificate"
+    />
     <certificate-line childKey="not_before" :sourceObject="certificate" date />
     <certificate-line childKey="not_after" :sourceObject="certificate" date />
-    <certificate-line childKey="subject_distinguished_name" :sourceObject="certificate" />
+    <certificate-line
+      childKey="subject_distinguished_name"
+      :sourceObject="certificate"
+    />
 
-    <certificate-line childKey="public_key_algorithm" :sourceObject="certificate" />
+    <certificate-line
+      childKey="public_key_algorithm"
+      :sourceObject="certificate"
+    />
     <certificate-line
       childKey="rsa_public_key_modulus"
       :label="$t('cert.rsaModulus')"
@@ -23,7 +35,11 @@
     />
 
     <certificate-line childKey="state" :sourceObject="certificate" />
-    <certificate-line childKey="key_usages" arrayType :sourceObject="certificate" />
+    <certificate-line
+      childKey="key_usages"
+      arrayType
+      :sourceObject="certificate"
+    />
     <certificate-line childKey="signature" :sourceObject="certificate" chunk />
   </div>
 </template>
@@ -49,6 +65,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
-
+<style lang="scss" scoped></style>

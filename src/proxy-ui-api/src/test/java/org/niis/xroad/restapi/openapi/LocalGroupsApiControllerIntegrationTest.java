@@ -131,12 +131,14 @@ public class LocalGroupsApiControllerIntegrationTest {
         ResponseEntity<Void> response =
                 localGroupsApiController.deleteLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
         try {
             localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             // success
         }
+        // Local group access right removal is tested in service tests
     }
 
     @Test

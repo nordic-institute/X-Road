@@ -23,7 +23,8 @@
               <restore-backup-button
                 :can-backup="canBackup"
                 :backup="backup"
-                @restored="refreshData"/>
+                @restored="refreshData"
+              />
               <delete-backup-button
                 :can-backup="canBackup"
                 :backup="backup"
@@ -40,13 +41,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { Backup } from '@/types';
+import { Backup } from '@/openapi-types';
 import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 import { Prop } from 'vue/types/options';
 import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
-
 
 export default Vue.extend({
   components: {

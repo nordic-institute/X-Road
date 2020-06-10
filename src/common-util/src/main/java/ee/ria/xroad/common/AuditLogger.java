@@ -46,6 +46,9 @@ public final class AuditLogger {
     private static final String EVENT_PARAM = "event";
     private static final String USER_PARAM = "user";
     private static final String REASON_PARAM = "reason";
+    private static final String UNHANDLED_WARNING_PARAM = "warning";
+    private static final String AUTH_PARAM = "auth";
+    private static final String URL_PARAM = "url";
     private static final String DATA_PARAM = "data";
 
     private static final String FAILURE_SUFFIX = " failed";
@@ -79,16 +82,12 @@ public final class AuditLogger {
      * @param data relevant details of the event
      */
     public static void log(String event, String user, Map<String, Object> data) {
-        Map<String, Object> message = new LinkedHashMap<>();
-        message.put(EVENT_PARAM, event);
-        message.put(USER_PARAM, user);
-        message.put(DATA_PARAM, data);
-
-        log(JsonUtils.getSerializer().toJson(message));
+        Map<String, Object> message = createSuccessMessageMap(event, user, data, null, null);
+        log(serializeJson(message));
     }
 
     /**
-     * Log a failure event with data for a user.
+     * Log a (non-warning) failure event with data for a user.
      * @param event logged event (suffix " failed" is added to the event)
      * @param user the user who initiated the event
      * @param reason the reason of the failure
@@ -96,12 +95,107 @@ public final class AuditLogger {
      */
     public static void log(String event, String user, String reason,
             Map<String, Object> data) {
-        Map<String, Object> message = new LinkedHashMap<>();
-        message.put(EVENT_PARAM, event + FAILURE_SUFFIX);
-        message.put(USER_PARAM, user);
-        message.put(REASON_PARAM, reason);
-        message.put(DATA_PARAM, data);
-
-        log(JsonUtils.getSerializer().toJson(message));
+        Map<String, Object> message = createMessageMap(event, user, reason, data, null, null, true, false);
+        log(serializeJson(message));
     }
+
+    /**
+     * Audit log a success message, with authentication type information
+     * @param event
+     * @param user
+     * @param data
+     * @param auth
+     * @param url
+     */
+    public static void log(String event, String user, Map<String, Object> data, String auth, String url) {
+        Map<String, Object> message = createSuccessMessageMap(event, user, data, auth, url);
+        log(serializeJson(message));
+    }
+
+    /**
+     * Audit log a failure message, with authentication type information
+     * @param event
+     * @param user
+     * @param reason
+     * @param data
+     * @param auth
+     * @param url
+     */
+    public static void log(String event, String user, String reason, Map<String, Object> data,
+            String auth, String url) {
+        Map<String, Object> message = createMessageMap(event, user, reason, data, auth, url, true, false);
+        log(serializeJson(message));
+    }
+
+    /**
+     * Audit log a failure message about unhandled warnings, with authentication type information
+     * @param event
+     * @param user
+     * @param reason
+     * @param data
+     * @param auth
+     * @param url
+     */
+    public static void logWarning(String event, String user, String reason, Map<String, Object> data,
+            String auth, String url) {
+        Map<String, Object> message = createMessageMap(event, user, reason, data, auth, url, true, true);
+        log(serializeJson(message));
+    }
+
+    private static String serializeJson(Map<String, Object> message) {
+        String result;
+        try {
+            // serialize nulls, like old Ruby implementation
+            result = JsonUtils.getSerializer(true).toJson(message);
+        } catch (Throwable t) {
+            log.error("could not json serialize audit json message map: " + message, t);
+            throw t;
+        }
+        return result;
+    }
+
+    // message map for successful event (no reason)
+    private static Map<String, Object> createSuccessMessageMap(String event, String user,
+            Map<String, Object> data, String auth, String url) {
+        return createMessageMap(event, user, null, data, auth, url, false, false);
+    }
+
+    /**
+     * @param event raw event name. " failure" postfix will be added for failures
+     * @param user user, always included (even if null)
+     * @param reason possible reason, only included if not null
+     * @param data data, always included (even if null)
+     * @param auth possible authentication type, only included if not null
+     * @param url possible url, only included if not null
+     * @param isFailure if true, this is about a failed event
+     * @param isWarning if true, include boolean that indicates this failure event is about unhandled warnings
+     */
+    private static Map<String, Object> createMessageMap(String event, String user, String reason,
+            Map<String, Object> data, String auth, String url, boolean isFailure, boolean isWarning) {
+        if (!isFailure && isWarning) {
+            throw new IllegalArgumentException("illegal parameter (!isFailure && isWarning)");
+        }
+        Map<String, Object> message = new LinkedHashMap<>();
+        String eventName = event;
+        if (isFailure) {
+            eventName = event + FAILURE_SUFFIX;
+        }
+        message.put(EVENT_PARAM, eventName);
+        message.put(USER_PARAM, user);
+        if (reason != null) {
+            message.put(REASON_PARAM, reason);
+        }
+        if (isFailure) {
+            message.put(UNHANDLED_WARNING_PARAM, isWarning);
+        }
+        if (auth != null) {
+            message.put(AUTH_PARAM, auth);
+        }
+        if (url != null) {
+            message.put(URL_PARAM, url);
+        }
+        message.put(DATA_PARAM, data);
+        return message;
+    }
+
 }

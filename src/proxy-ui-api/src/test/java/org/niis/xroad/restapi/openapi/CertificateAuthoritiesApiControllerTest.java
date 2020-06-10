@@ -58,6 +58,7 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
@@ -108,7 +109,7 @@ public class CertificateAuthoritiesApiControllerTest {
                 .authenticationOnly(false)
                 .build());
         when(certificateAuthorityService.getCertificateAuthorities(any())).thenReturn(approvedCAInfos);
-        when(certificateAuthorityService.getCertificateProfile(any(), any(), any()))
+        when(certificateAuthorityService.getCertificateProfile(any(), any(), any(), anyBoolean()))
                 .thenReturn(new CertificateProfileInfo() {
                     @Override
                     public DnFieldDescription[] getSubjectFields() {
@@ -158,11 +159,11 @@ public class CertificateAuthoritiesApiControllerTest {
     @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
     public void getSubjectFieldDescriptionsAuthWithAuthPermission() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.AUTHENTICATION,
-                GOOD_AUTH_KEY_ID, "FI:GOV:M1");
+                GOOD_AUTH_KEY_ID, "FI:GOV:M1", false);
 
         try {
             caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
-                    GOOD_SIGN_KEY_ID, "FI:GOV:M1");
+                    GOOD_SIGN_KEY_ID, "FI:GOV:M1", false);
             fail("should have thrown exception");
         } catch (AccessDeniedException expected) {
         }
@@ -172,11 +173,11 @@ public class CertificateAuthoritiesApiControllerTest {
     @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
     public void getSubjectFieldDescriptionsAuthWithSignPermission() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
-                GOOD_SIGN_KEY_ID, "FI:GOV:M1");
+                GOOD_SIGN_KEY_ID, "FI:GOV:M1", false);
 
         try {
             caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.AUTHENTICATION,
-                    GENERAL_PURPOSE_CA_NAME, "FI:GOV:M1");
+                    GENERAL_PURPOSE_CA_NAME, "FI:GOV:M1", false);
             fail("should have thrown exception");
         } catch (AccessDeniedException expected) {
         }
@@ -186,9 +187,9 @@ public class CertificateAuthoritiesApiControllerTest {
     @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ" })
     public void getSubjectFieldsKeyIsOptional() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
-                null, "FI:GOV:M1");
+                null, "FI:GOV:M1", false);
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.AUTHENTICATION,
-                null, "FI:GOV:M1");
+                null, "FI:GOV:M1", false);
         // for Sonar "Add at least one assertion to this test case"
         assertTrue("should not have thrown exception", true);
     }

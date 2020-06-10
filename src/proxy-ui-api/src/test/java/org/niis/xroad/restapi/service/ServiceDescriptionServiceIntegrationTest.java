@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -595,6 +596,22 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .map(EndpointType::getServiceCode)
                 .collect(Collectors.toList())
                 .contains("testcode"));
+        Boolean sslAuthentication = client.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(s -> s.getServiceCode().equals("testcode")).findFirst().get().getSslAuthentication();
+        assertNull(sslAuthentication);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addRestEndpointServiceDescriptionWithHttpsUrl() throws Exception {
+        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        assertEquals(7, client.getEndpoint().size());
+        serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "https://testurl.com", "testcode");
+        Boolean sslAuthentication = client.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(s -> s.getServiceCode().equals("testcode")).findFirst().get().getSslAuthentication();
+        assertFalse(Boolean.FALSE.equals(sslAuthentication));
     }
 
     @Test

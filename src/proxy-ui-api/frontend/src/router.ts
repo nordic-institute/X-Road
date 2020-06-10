@@ -15,6 +15,7 @@ import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AddClient from '@/views/AddClient/AddClient.vue';
+import AddMember from '@/views/AddMember/AddMember.vue';
 import Subsystem from '@/views/Clients/Subsystem.vue';
 import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
 import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
@@ -41,6 +42,7 @@ import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
+import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 import AddServiceClientAccessRights from '@/views/Clients/ServiceClients/AddServiceClientAccessRightsWizard.vue';
 
 // At the moment the vue router does not have a type for Next.
@@ -131,7 +133,8 @@ const router = new Router({
         },
         {
           name: RouteName.AddSubsystem,
-          path: '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
+          path:
+            '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
           components: {
             default: AddSubsystem,
           },
@@ -144,6 +147,16 @@ const router = new Router({
           path: '/add-client',
           components: {
             default: AddClient,
+          },
+        },
+        {
+          name: RouteName.AddMember,
+          path: '/add-member/:instanceId/:memberClass/:memberCode',
+          components: {
+            default: AddMember,
+          },
+          props: {
+            default: true,
           },
         },
         {
@@ -363,8 +376,45 @@ const router = new Router({
           },
           props: { default: true },
         },
+
+        {
+          name: RouteName.InitialConfiguration,
+          path: '/initial-configuration',
+          components: {
+            default: InitialConfiguration,
+          },
+          beforeEnter: (to, from, next) => {
+            // Coming from login is ok
+            if (from.name === RouteName.Login) {
+              next();
+              return;
+            }
+
+            // Coming from somewhere else, needs a check
+            store.dispatch('fetchInitializationStatus').then(
+              () => {
+                if (store.getters.needsInitialization) {
+                  // Check if the user has permission to initialize the server
+                  if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+                    store.dispatch(
+                      'showErrorMessage',
+                      'initialConfiguration.noPermission',
+                    );
+                    return;
+                  }
+                  next();
+                }
+              },
+              (error) => {
+                // Display error
+                store.dispatch('showError', error);
+              },
+            );
+          },
+        },
       ],
     },
+
     {
       path: '/login',
       name: RouteName.Login,

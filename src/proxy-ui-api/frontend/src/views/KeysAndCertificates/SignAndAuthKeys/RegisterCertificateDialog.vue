@@ -9,7 +9,7 @@
     <div slot="content">
       <ValidationObserver ref="form" v-slot="{ validate, invalid }">
         <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{$t('keys.certRegistrationInfo')}}</div>
+          <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
 
           <ValidationProvider
             rules="required"
@@ -17,7 +17,12 @@
             v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
-            <v-text-field v-model="url" single-line name="dns" :error-messages="errors"></v-text-field>
+            <v-text-field
+              v-model="url"
+              single-line
+              name="dns"
+              :error-messages="errors"
+            ></v-text-field>
           </ValidationProvider>
         </div>
       </ValidationObserver>
@@ -73,4 +78,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 </style>
-

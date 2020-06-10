@@ -21,7 +21,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { Backup } from '@/types';
+import { Backup } from '@/openapi-types';
 import * as api from '@/util/api';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -66,6 +66,7 @@ export default Vue.extend({
         .finally(() => {
           this.showConfirmation = false;
           this.restoring = false;
+          this.$store.dispatch('checkAlertStatus');
         });
     },
   },

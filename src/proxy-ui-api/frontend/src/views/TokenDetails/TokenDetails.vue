@@ -6,7 +6,7 @@
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
       <div class="edit-row">
-        <div>{{$t('keys.friendlyName')}}</div>
+        <div>{{ $t('keys.friendlyName') }}</div>
         <ValidationProvider
           rules="required"
           name="keys.friendlyName"
@@ -29,26 +29,29 @@
       </div>
 
       <div>
-        <h3 class="info-title">{{$t('keys.tokenInfo')}}</h3>
+        <h3 class="info-title">{{ $t('keys.tokenInfo') }}</h3>
         <div class="info-row">
-          <div class="row-title">{{$t('keys.tokenId')}}</div>
-          <div class="row-data">{{token.id}}</div>
+          <div class="row-title">{{ $t('keys.tokenId') }}</div>
+          <div class="row-data">{{ token.id }}</div>
         </div>
         <div class="info-row">
-          <div class="row-title">{{$t('keys.type')}}</div>
-          <div class="row-data">{{token.type}}</div>
+          <div class="row-title">{{ $t('keys.type') }}</div>
+          <div class="row-data">{{ token.type }}</div>
         </div>
       </div>
 
       <v-card flat>
         <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+          <large-button @click="close()" outlined>{{
+            $t('action.cancel')
+          }}</large-button>
           <large-button
             class="save-button"
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
-          >{{$t('action.save')}}</large-button>
+            >{{ $t('action.save') }}</large-button
+          >
         </div>
       </v-card>
     </ValidationObserver>
@@ -64,7 +67,6 @@ import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
@@ -105,7 +107,7 @@ export default Vue.extend({
 
       api
         .patch(`/tokens/${this.id}`, this.token)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.tokenSaved');
           this.$router.go(-1);
         })
@@ -117,7 +119,7 @@ export default Vue.extend({
         });
     },
 
-    fetchData(id: string): void {
+    fetchData(): void {
       this.loading = true;
       api
         .get(`/tokens/${this.id}`)
@@ -133,7 +135,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchData(this.id);
+    this.fetchData();
   },
 });
 </script>
@@ -141,4 +143,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/detail-views';
 </style>
-

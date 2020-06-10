@@ -122,7 +122,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             String caName,
             KeyUsageType keyUsageType,
             String keyId,
-            String encodedMemberId) {
+            String encodedMemberId,
+            Boolean isNewMember) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
@@ -154,7 +155,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
 
             CertificateProfileInfo profileInfo;
             profileInfo = certificateAuthorityService.getCertificateProfile(
-                    caName, keyUsageInfo, memberId);
+                    caName, keyUsageInfo, memberId, isNewMember);
             List<CsrSubjectFieldDescription> converted = subjectConverter.convert(
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
