@@ -499,6 +499,9 @@
       "info2": "If the subsystem is already existing, you can select it from the Global list.",
       "registerSubsystem": "Register subsystem",
       "subsystemAdded": "Subsystem added"
+    },
+    "warning": {
+      "unregistered_member": "Unregistered member"
     }
   },
   "systemParameters": {

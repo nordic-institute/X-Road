@@ -53,6 +53,14 @@
         >
       </div>
     </div>
+    <!-- Accept warnings -->
+    <warningDialog
+      :dialog="warningDialog"
+      :warnings="warningInfo"
+      localizationParent="wizard.warning"
+      @cancel="cancelSubmit()"
+      @accept="acceptWarnings()"
+    />
   </div>
 </template>
 
@@ -61,6 +69,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
+import WarningDialog from '@/views/InitialConfiguration/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 
@@ -68,6 +77,7 @@ export default Vue.extend({
   components: {
     LargeButton,
     FormLabel,
+    WarningDialog,
   },
   computed: {
     ...mapGetters([
@@ -91,6 +101,8 @@ export default Vue.extend({
       disableCancel: false as boolean,
       registerChecked: true as boolean,
       submitLoading: false as boolean,
+      warningInfo: [] as string[],
+      warningDialog: false as boolean,
     };
   },
   methods: {
@@ -101,10 +113,13 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
+      this.createMember(false);
+    },
+    createMember(ignoreWarnings: boolean): void {
       this.disableCancel = true;
       this.submitLoading = true;
 
-      this.$store.dispatch('createMember').then(
+      this.$store.dispatch('createMember', ignoreWarnings).then(
         () => {
           if (
             this.addMemberWizardMode ===
@@ -123,11 +138,25 @@ export default Vue.extend({
           }
         },
         (error) => {
-          this.$store.dispatch('showError', error);
-          this.disableCancel = false;
-          this.submitLoading = false;
+          if (error?.response?.data?.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.warningDialog = true;
+          } else {
+            this.$store.dispatch('showError', error);
+            this.disableCancel = false;
+            this.submitLoading = false;
+          }
         },
       );
+    },
+
+    cancelSubmit(): void {
+      this.disableCancel = false;
+      this.submitLoading = false;
+      this.warningDialog = false;
+    },
+    acceptWarnings(): void {
+      this.createMember(true);
     },
 
     generateCsr(): void {
