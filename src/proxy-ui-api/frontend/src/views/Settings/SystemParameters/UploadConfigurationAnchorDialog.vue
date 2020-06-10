@@ -12,17 +12,23 @@
         data-test="system-parameters-configuration-anchor-upload-button"
         outlined
         @click="$refs.anchorUpload.click()"
+        :loading="previewing"
         :requires-permission="permissions.UPLOAD_ANCHOR"
         class="ml-5"
+        >{{
+          $t('systemParameters.configurationAnchor.action.upload.button')
+        }}</large-button
       >
-        {{ $t('systemParameters.configurationAnchor.action.upload.button') }}
-      </large-button>
     </template>
     <v-card class="xrd-card">
       <v-card-title>
-        <span data-test="dialog-title" class="headline">{{
-          $t('systemParameters.configurationAnchor.action.upload.dialog.title')
-        }}</span>
+        <span data-test="dialog-title" class="headline">
+          {{
+            $t(
+              'systemParameters.configurationAnchor.action.upload.dialog.title',
+            )
+          }}
+        </span>
       </v-card-title>
       <v-card-text class="content-wrapper">
         <v-container>
@@ -43,9 +49,7 @@
                 )
               }}
             </v-col>
-            <v-col cols="12" sm="9">
-              {{ anchorPreview.hash | colonize }}
-            </v-col>
+            <v-col cols="12" sm="9">{{ anchorPreview.hash | colonize }}</v-col>
           </v-row>
           <v-row no-gutters>
             <v-col class="font-weight-bold" cols="12" sm="3">
@@ -55,9 +59,9 @@
                 )
               }}
             </v-col>
-            <v-col cols="12" sm="9">
-              {{ anchorPreview.created_at | formatDateTime }}
-            </v-col>
+            <v-col cols="12" sm="9">{{
+              anchorPreview.created_at | formatDateTime
+            }}</v-col>
           </v-row>
           <v-row class="mt-5">
             <v-col>
@@ -80,7 +84,7 @@
         >
         <large-button
           data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
-          @click="uploadAnchor"
+          @click="confirmUpload"
           :loading="uploading"
           >{{ $t('action.confirm') }}</large-button
         >
@@ -106,17 +110,36 @@ export default Vue.extend({
   components: {
     LargeButton,
   },
+  props: {
+    initMode: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
-      uploading: false,
+      previewing: false as boolean,
+      uploading: false as boolean,
       anchorPreview: EmptyAnchorPreview,
       uploadedFile: null as string | ArrayBuffer | null,
-      showPreview: false,
+      showPreview: false as boolean,
       permissions: Permissions,
     };
   },
   methods: {
     onUploadFileChanged(event: any): void {
+      if (this.initMode) {
+        this.previewAnchor(
+          event,
+          '/system/anchor/previews?validate_instance=false',
+        );
+      } else {
+        this.previewAnchor(event, '/system/anchor/previews');
+      }
+    },
+
+    previewAnchor(event: any, query: string): void {
+      this.previewing = true;
       const fileList = (event.target.files ||
         event.dataTransfer.files) as FileList;
       if (!fileList.length) {
@@ -129,29 +152,37 @@ export default Vue.extend({
           return;
         }
         api
-          .post('/system/anchor/previews', e.target.result, {
+          .post(query, e.target.result, {
             headers: {
               'Content-Type': 'application/octet-stream',
             },
           })
-          .then((resp) => {
+          .then((resp: any) => {
             this.uploadedFile = e.target!.result;
             this.anchorPreview = resp.data;
             this.showPreview = true;
           })
-          .catch((error) => this.$store.dispatch('showError', error));
+          .catch((error: any) => this.$store.dispatch('showError', error));
       };
       reader.readAsArrayBuffer(fileList[0]);
     },
-    uploadAnchor(): void {
+
+    confirmUpload(): void {
+      if (this.initMode) {
+        this.uploadAnchor(api.post);
+      } else {
+        this.uploadAnchor(api.put);
+      }
+    },
+
+    uploadAnchor(apiCall: any): void {
       this.uploading = true;
-      api
-        .put('/system/anchor', this.uploadedFile, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        })
-        .catch((error) => this.$store.dispatch('showError', error))
+      apiCall('/system/anchor', this.uploadedFile, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+      })
+        .catch((error: any) => this.$store.dispatch('showError', error))
         .finally(() => {
           this.uploading = false;
           this.close();
@@ -163,6 +194,7 @@ export default Vue.extend({
         });
     },
     close(): void {
+      this.previewing = false;
       this.showPreview = false;
       this.anchorPreview = EmptyAnchorPreview;
     },

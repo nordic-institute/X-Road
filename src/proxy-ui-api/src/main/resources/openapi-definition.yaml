@@ -1698,19 +1698,24 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /clients/owner:
+  /clients/{id}/make-owner:
     put: # ok
       tags:
         - security server
       summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
       operationId: changeOwner
       description: Administrator changes Security Server's owner.
-      requestBody:
-        description: client to be set as owner
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Client'
+      parameters:
+        - in: path
+          name: id
+          description: id of the client to be set as owner
+          required: true
+          schema:
+            type: string
+            example: FI:GOV:123
+            format: text
+            minLength: 1
+            maxLength: 1023
       responses:
         '204':
           description: client was set as owner
