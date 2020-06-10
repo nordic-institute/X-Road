@@ -204,7 +204,6 @@ export default Vue.extend({
               'wizard.subsystem.subsystemAdded',
             );
             if (this.registerChecked) {
-              //this.registerSubsystem();
               this.confirmRegisterClient = true;
             } else {
               this.exitView();
