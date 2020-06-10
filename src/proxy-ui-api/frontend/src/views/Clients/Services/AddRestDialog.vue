@@ -149,11 +149,7 @@ export default Vue.extend({
           this.clear();
         })
         .catch((error) => {
-          const errorMessage =
-            error?.response?.data?.error?.code === 'openapi_parsing_error'
-              ? this.$t('services.openApi3ParsingFailed')
-              : error.message;
-          this.$store.dispatch('showErrorMessageRaw', errorMessage);
+          this.$store.dispatch('showError', error);
         });
     },
     clear(): void {

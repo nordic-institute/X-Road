@@ -201,7 +201,7 @@ export default Vue.extend({
             fileData: e.target.result,
           })
           .then(
-            (response) => {
+            () => {
               // Refresh the tls cert list
               this.fetchTlsCertificates(this.id);
             },
@@ -212,12 +212,6 @@ export default Vue.extend({
       };
 
       reader.readAsArrayBuffer(fileList[0]);
-    },
-
-    fetchServer(id: string): void {
-      this.$store.dispatch('fetchServer').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
 
     fetchTlsCertificates(id: string): void {

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Error: raw text  -->
     <v-snackbar
       data-test="error-snackbar"
       v-model="showErrorRaw"
@@ -12,6 +13,7 @@
       }}</v-btn>
     </v-snackbar>
 
+    <!-- Error: localization code -->
     <v-snackbar
       data-test="error-snackbar"
       v-model="showErrorCode"
@@ -24,6 +26,7 @@
       }}</v-btn>
     </v-snackbar>
 
+    <!-- Success: localization code -->
     <v-snackbar
       data-test="success-snackbar"
       v-model="showSuccessCode"
@@ -36,6 +39,7 @@
       }}</v-btn>
     </v-snackbar>
 
+    <!-- Success: raw text -->
     <v-snackbar
       data-test="success-snackbar"
       v-model="showSuccessRaw"
@@ -48,36 +52,55 @@
       }}</v-btn>
     </v-snackbar>
 
+    <!-- Error: Object. Doesn't close automatically -->
     <v-snackbar
       data-test="indefinite-snackbar"
       v-if="errorObject"
       v-model="showError"
       :timeout="forever"
       color="error"
+      multi-line
     >
-      {{ errorObject.message }}
-      <br />
+      <div class="row-wrapper">
+        <div v-if="errorCode">
+          {{ $t('error_code.' + errorCode) }}
+        </div>
+        <div v-else="">
+          {{ errorObject }}
+        </div>
 
-      <template v-if="errorObject.response">
-        {{ $t('id') }}:
-        {{ errorObject.response.headers['x-road-ui-correlation-id'] }}
+        <!-- Show the error metadata if it exists -->
+        <div v-for="meta in errorMetadata" :key="meta">
+          {{ meta }}
+        </div>
+
+        <!-- Error ID -->
+        <div v-if="errorId">
+          {{ $t('id') }}:
+          {{ errorId }}
+        </div>
+      </div>
+
+      <template v-if="errorId">
         <v-btn
-          icon
+          outlined
+          color="white"
+          data-test="copy-id-button"
           v-clipboard:copy="
             errorObject.response.headers['x-road-ui-correlation-id']
           "
-        >
-          <v-icon>mdi-content-copy</v-icon>
+          >{{ $t('action.copyId') }}
         </v-btn>
       </template>
 
       <v-btn
-        data-test="snackbar-yes-button"
-        text
+        icon
+        color="white"
+        data-test="close-snackbar"
         @click="closeError()"
-        outlined
-        >{{ $t('action.close') }}</v-btn
       >
+        <v-icon dark>mdi-close-circle</v-icon>
+      </v-btn>
     </v-snackbar>
   </div>
 </template>
@@ -137,6 +160,27 @@ export default Vue.extend({
         this.$store.commit('setErrorCodeVisible', value);
       },
     },
+    errorCode(): string | undefined {
+      if (this.errorObject?.response?.data?.error?.code) {
+        return this.errorObject.response.data.error.code;
+      }
+
+      return undefined;
+    },
+    errorId(): string | undefined {
+      if (this.errorObject?.response?.headers['x-road-ui-correlation-id']) {
+        return this.errorObject.response.headers['x-road-ui-correlation-id'];
+      }
+
+      return undefined;
+    },
+    errorMetadata(): string[] {
+      if (this.errorObject?.response?.data?.error?.metadata) {
+        return this.errorObject.response.data.error.metadata;
+      }
+
+      return [];
+    },
   },
 
   data() {
@@ -158,3 +202,12 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.row-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overflow-wrap: break-word;
+}
+</style>
