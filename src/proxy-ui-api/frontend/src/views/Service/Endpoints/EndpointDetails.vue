@@ -178,7 +178,6 @@ export default Vue.extend({
     },
   },
   created(): void {
-    console.log(this.id);
     this.fetchData(this.id);
   },
 });
