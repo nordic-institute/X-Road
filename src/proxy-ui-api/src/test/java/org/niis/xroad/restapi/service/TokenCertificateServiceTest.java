@@ -78,6 +78,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -176,7 +177,7 @@ public class TokenCertificateServiceTest {
 
         DnFieldDescription editableField = new DnFieldDescriptionImpl("O", "x", "default")
                 .setReadOnly(false);
-        when(certificateAuthorityService.getCertificateProfile(any(), any(), any()))
+        when(certificateAuthorityService.getCertificateProfile(any(), any(), any(), anyBoolean()))
                 .thenReturn(new DnFieldTestCertificateProfileInfo(
                         editableField, true));
 

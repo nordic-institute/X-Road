@@ -197,7 +197,7 @@ public class TokenCertificateService {
 
         CertificateProfileInfo profile = null;
         try {
-            profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId);
+            profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId, false);
         } catch (CertificateProfileInstantiationException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

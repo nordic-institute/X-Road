@@ -3854,6 +3854,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 767
+        - in: query
+          name: is_new_member
+          description: whether or not the member in the member_id parameter is a new member
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: csr subject field objects
