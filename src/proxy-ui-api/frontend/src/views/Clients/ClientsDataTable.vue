@@ -173,7 +173,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import { Client } from '@/openapi-types';
+import { ExtendedClient } from '@/ui-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
@@ -193,7 +193,7 @@ export default Vue.extend({
     },
     confirmRegisterClient: false as boolean,
     registerClientLoading: false as boolean,
-    selectedClient: undefined as undefined | Client,
+    selectedClient: undefined as undefined | ExtendedClient,
   }),
 
   computed: {
@@ -250,14 +250,22 @@ export default Vue.extend({
   },
 
   methods: {
-    openClient(item: any): void {
+    openClient(item: ExtendedClient): void {
+      if (!item.id) {
+        // Should not happen
+        throw new Error('Invalid client');
+      }
       this.$router.push({
         name: RouteName.Client,
         params: { id: item.id },
       });
     },
 
-    openSubsystem(item: any): void {
+    openSubsystem(item: ExtendedClient): void {
+      if (!item.id) {
+        // Should not happen
+        throw new Error('Invalid client');
+      }
       this.$router.push({
         name: RouteName.Subsystem,
         params: { id: item.id },
@@ -281,7 +289,7 @@ export default Vue.extend({
       });
     },
 
-    addSubsystem(item: Client): void {
+    addSubsystem(item: ExtendedClient): void {
       if (!item.instance_id || !item.member_name) {
         // Should not happen
         throw new Error('Invalid client');
@@ -298,12 +306,12 @@ export default Vue.extend({
       });
     },
 
-    registerClient(item: Client): void {
+    registerClient(item: ExtendedClient): void {
       this.selectedClient = item;
       this.confirmRegisterClient = true;
     },
 
-    registerAccepted(item: Client) {
+    registerAccepted(item: ExtendedClient) {
       this.registerClientLoading = true;
 
       // This should not happen, but better to throw error than create an invalid client id
@@ -321,7 +329,7 @@ export default Vue.extend({
       this.$store
         .dispatch('registerClient', clientId)
         .then(
-          (response) => {
+          () => {
             this.$store.dispatch(
               'showSuccess',
               'clients.action.register.success',
