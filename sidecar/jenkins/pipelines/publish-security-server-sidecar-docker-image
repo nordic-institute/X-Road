@@ -1,13 +1,19 @@
 pipeline {
     agent any
+    parameters {
+        string(description: "Path to the Dockerfile to build", name: "DOCKERFILE_PATH", defaultValue: "${params?.DOCKERFILE_PATH}")
+        string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
+    }
     stages {
-        stage('Create Security server sidecar vanilla docker image') {
+        stage('Create Security server sidecar docker image') {
             steps {
                 build job: 'docker-build-security-server-sidecar',
                 parameters: [
                     string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION),
                     string(name: 'IMAGE_TAG', value: params.IMAGE_TAG),
                     booleanParam(name: 'IS_LATEST', value: params.IS_LATEST)
+                    string(name: "DOCKERFILE_PATH", defaultValue: "${params?.DOCKERFILE_PATH}")
+                    string(name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
                 ]
             }
         }
@@ -17,7 +23,7 @@ pipeline {
             }
             steps {
                 withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                    sh 'docker push niis/xroad-security-server-sidecar:latest'
+                    sh 'docker push niis/xroad-security-server-sidecar:${LATEST_TAG}'
                 }
             }
         }
