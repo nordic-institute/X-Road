@@ -58,7 +58,7 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rm -f sss || true'
+            sh 'docker rm -f sss-${IMAGE_TAG} || true'
         }
     }
 }
