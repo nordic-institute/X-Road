@@ -12,8 +12,8 @@ pipeline {
                     string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION),
                     string(name: 'IMAGE_TAG', value: params.IMAGE_TAG),
                     booleanParam(name: 'IS_LATEST', value: params.IS_LATEST),
-                    string(name: "DOCKERFILE_PATH", value: "params.DOCKERFILE_PATH"),
-                    string(name: "LATEST_TAG", value: "params.LATEST_TAG")
+                    string(name: 'DOCKERFILE_PATH', value: params.DOCKERFILE_PATH),
+                    string(name: 'LATEST_TAG', value: params.LATEST_TAG)
                 ]
             }
         }
