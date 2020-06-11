@@ -1,10 +1,8 @@
-
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
 import { generalModule } from './modules/general';
-import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
 import { clientModule } from './modules/client';
 import { tokensModule } from './modules/tokens';
@@ -13,6 +11,8 @@ import { addClientModule } from './modules/addClient';
 import { csrModule } from './modules/certificateSignRequest';
 import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
+import { module as initServer } from './modules/initializeServer';
+import { alertsModule } from '@/store/modules/alerts';
 
 Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({
@@ -27,7 +27,6 @@ const store: StoreOptions<RootState> = {
   modules: {
     user,
     generalModule,
-    mockDataModule,
     clientsModule,
     clientModule,
     tokensModule,
@@ -35,8 +34,9 @@ const store: StoreOptions<RootState> = {
     csrModule,
     addClientModule,
     notificationsModule,
+    initServer,
+    alertsModule,
   },
-  // @ts-ignore
   plugins: [vuexLocal.plugin],
 };
 

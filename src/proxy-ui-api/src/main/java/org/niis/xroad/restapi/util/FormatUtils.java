@@ -76,6 +76,17 @@ public final class FormatUtils {
     }
 
     /**
+     * Converts OffsetDateTime to Date
+     */
+    public static Date fromOffsetDateTimeToDate(OffsetDateTime offsetDateTime) {
+        if (offsetDateTime == null) {
+            return null;
+        } else {
+            return Date.from(offsetDateTime.toInstant());
+        }
+    }
+
+    /**
      * Converts LocalTime to OffsetDateTime with ZoneOffset.UTC
      * @param localTime
      * @return OffsetDateTime with offset ZoneOffset.UTC
@@ -123,7 +134,7 @@ public final class FormatUtils {
         boolean hasValidProtocol;
         boolean hasValidHost;
         try {
-            hasValidProtocol = url.startsWith(HTTPS_PROTOCOL) || url.startsWith(HTTP_PROTOCOL);
+            hasValidProtocol = isHttpsUrl(url) || url.startsWith(HTTP_PROTOCOL);
             URL wsdlUrl = new URL(url);
             String asciiHost = IDN.toASCII(wsdlUrl.getHost());
             hasValidHost = asciiHost.matches(URL_HOST_REGEX);
@@ -131,6 +142,10 @@ public final class FormatUtils {
             return false;
         }
         return hasValidProtocol && hasValidHost;
+    }
+
+    public static boolean isHttpsUrl(String url) {
+        return url != null && url.startsWith(HTTPS_PROTOCOL);
     }
 
     /**

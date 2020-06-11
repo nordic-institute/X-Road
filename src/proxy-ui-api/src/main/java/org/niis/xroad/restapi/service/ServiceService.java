@@ -34,6 +34,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -42,8 +44,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TIMEOUT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TLS_AUTH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 
 /**
  * service class for handling services
@@ -54,18 +64,18 @@ import java.util.Optional;
 @PreAuthorize("isAuthenticated()")
 public class ServiceService {
 
-    private static final String HTTPS = "https";
-
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final UrlValidator urlValidator;
+    private final AuditDataHelper auditDataHelper;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            UrlValidator urlValidator) {
+            UrlValidator urlValidator, AuditDataHelper auditDataHelper) {
         this.clientRepository = clientRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.urlValidator = urlValidator;
+        this.auditDataHelper = auditDataHelper;
     }
 
     /**
@@ -129,6 +139,9 @@ public class ServiceService {
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             boolean sslAuth, boolean sslAuthAll) throws InvalidUrlException, ServiceNotFoundException,
             ClientNotFoundException {
+
+        auditDataHelper.put(clientId);
+
         if (!urlValidator.isValidUrl(url)) {
             throw new InvalidUrlException("URL is not valid: " + url);
         }
@@ -144,26 +157,50 @@ public class ServiceService {
             serviceDescriptionType.setUrl(url);
         }
 
+        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
+
         serviceDescriptionType.getService().forEach(service -> {
-            boolean serviceMatch = service == serviceType;
-            if (urlAll || serviceMatch) {
-                service.setUrl(url);
-            }
-            if (timeoutAll || serviceMatch) {
-                service.setTimeout(timeout);
-            }
-            if (sslAuthAll || serviceMatch) {
-                if (service.getUrl().startsWith(HTTPS)) {
-                    service.setSslAuthentication(sslAuth);
-                } else {
-                    service.setSslAuthentication(null);
-                }
-            }
+            updateServiceFromSameDefinition(url, urlAll, timeout,
+                    timeoutAll, sslAuth, sslAuthAll,
+                    serviceType, service);
         });
 
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceType;
+    }
+
+    /**
+     * @param targetService service we are actually updating
+     * @param serviceFromSameDefinition another service from same service definition. Can be == targetService
+     */
+    private void updateServiceFromSameDefinition(String url, boolean urlAll, Integer timeout,
+            boolean timeoutAll, boolean sslAuth, boolean sslAuthAll,
+            ServiceType targetService, ServiceType serviceFromSameDefinition) {
+
+        boolean serviceMatch = serviceFromSameDefinition == targetService;
+        if (urlAll || serviceMatch) {
+            serviceFromSameDefinition.setUrl(url);
+        }
+        if (timeoutAll || serviceMatch) {
+            serviceFromSameDefinition.setTimeout(timeout);
+        }
+        if (sslAuthAll || serviceMatch) {
+            if (FormatUtils.isHttpsUrl(serviceFromSameDefinition.getUrl())) {
+                serviceFromSameDefinition.setSslAuthentication(sslAuth);
+            } else {
+                serviceFromSameDefinition.setSslAuthentication(null);
+            }
+        }
+        if (urlAll || timeoutAll || sslAuthAll || serviceMatch) {
+            // new audit log data item
+            HashMap<RestApiAuditProperty, Object> serviceAuditData = new LinkedHashMap<>();
+            auditDataHelper.addListPropertyItem(SERVICES, serviceAuditData);
+            serviceAuditData.put(ID, FormatUtils.getServiceFullName(serviceFromSameDefinition));
+            serviceAuditData.put(URL, serviceFromSameDefinition.getUrl());
+            serviceAuditData.put(TIMEOUT, serviceFromSameDefinition.getTimeout());
+            serviceAuditData.put(TLS_AUTH, serviceFromSameDefinition.getSslAuthentication());
+        }
     }
 
     /**

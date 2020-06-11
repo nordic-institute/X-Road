@@ -9,7 +9,9 @@
     :showClose="false"
     :loading="loading"
   >
-    <div slot="content" data-test="dialog-content-text">{{$t(text, data)}}</div>
+    <div slot="content" data-test="dialog-content-text">
+      {{ $t(text, data) }}
+    </div>
   </simpleDialog>
 </template>
 
@@ -68,4 +70,3 @@ export default Vue.extend({
   },
 });
 </script>
-

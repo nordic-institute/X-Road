@@ -3,7 +3,9 @@
     <LargeButton
       data-test="unregister-client-button"
       @click="confirmUnregisterClient = true"
-    >{{$t('action.unregister')}}</LargeButton>
+      outlined
+      >{{ $t('action.unregister') }}</LargeButton
+    >
 
     <!-- Confirm dialog for unregister client -->
     <ConfirmDialog

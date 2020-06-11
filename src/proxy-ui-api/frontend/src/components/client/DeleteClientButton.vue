@@ -3,7 +3,9 @@
     <LargeButton
       data-test="delete-client-button"
       @click="confirmDelete = true"
-    >{{$t('action.delete')}}</LargeButton>
+      outlined
+      >{{ $t('action.delete') }}</LargeButton
+    >
 
     <!-- Confirm dialog for delete client -->
     <ConfirmDialog
@@ -29,8 +31,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
@@ -58,7 +59,7 @@ export default Vue.extend({
     deleteClient(): void {
       this.deleteLoading = true;
       this.$store.dispatch('deleteClient', this.id).then(
-        (response) => {
+        () => {
           this.$store.dispatch('showSuccess', 'client.action.delete.success');
           this.checkOrphans();
         },
@@ -72,7 +73,7 @@ export default Vue.extend({
 
     checkOrphans(): void {
       this.$store.dispatch('getOrphans', this.id).then(
-        (response) => {
+        () => {
           this.confirmDelete = false;
           this.deleteLoading = false;
           this.confirmOrphans = true;
@@ -97,7 +98,7 @@ export default Vue.extend({
       this.$store
         .dispatch('deleteOrphans', this.id)
         .then(
-          (response) => {
+          () => {
             this.$store.dispatch(
               'showSuccess',
               'client.action.removeOrphans.success',

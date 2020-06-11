@@ -2,18 +2,18 @@
   <v-dialog :value="dialog" :width="width" persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t(title)}}</span>
+        <span class="headline">{{ $t(title) }}</span>
       </v-card-title>
       <v-card-text class="content-wrapper">
-        <v-img :src="require('./../../assets/'+imageSrc)"></v-img>
+        <v-img :src="require('./../../assets/' + imageSrc)"></v-img>
         <div class="title-wrap">
-          <h2>{{$t(title)}}</h2>
+          <h2>{{ $t(title) }}</h2>
         </div>
-        <div class="text-wrap">{{$t(text)}}</div>
+        <div class="text-wrap">{{ $t(text) }}</div>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button @click="cancel()">{{$t("keys.gotIt")}}</large-button>
+        <large-button @click="cancel()">{{ $t('keys.gotIt') }}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -79,4 +79,3 @@ export default Vue.extend({
   margin: 10px;
 }
 </style>
-

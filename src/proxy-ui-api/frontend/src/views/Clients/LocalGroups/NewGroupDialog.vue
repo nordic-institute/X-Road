@@ -8,13 +8,22 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('localGroup.code')}}</div>
-        <v-text-field v-model="code" single-line class="dlg-row-input"></v-text-field>
+        <div class="dlg-row-title">{{ $t('localGroup.code') }}</div>
+        <v-text-field
+          v-model="code"
+          single-line
+          class="dlg-row-input"
+        ></v-text-field>
       </div>
 
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('localGroup.description')}}</div>
-        <v-text-field v-model="description" hint single-line class="dlg-row-input"></v-text-field>
+        <div class="dlg-row-title">{{ $t('localGroup.description') }}</div>
+        <v-text-field
+          v-model="description"
+          hint
+          single-line
+          class="dlg-row-input"
+        ></v-text-field>
       </div>
     </div>
   </simpleDialog>
@@ -85,4 +94,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 </style>
-

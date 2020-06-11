@@ -1,11 +1,14 @@
-
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/openapi-types';
+import {
+  Key,
+  Client,
+  CertificateAuthority,
+  CsrSubjectFieldDescription,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
-
 
 export interface CsrState {
   csrKey: Key | null;
@@ -18,6 +21,8 @@ export interface CsrState {
   form: CsrSubjectFieldDescription[];
   keyLabel: string | undefined;
   tokenId: string | undefined;
+  memberIds: string[];
+  isNewMember: boolean;
 }
 
 const getDefaultState = () => {
@@ -32,12 +37,13 @@ const getDefaultState = () => {
     form: [],
     keyLabel: undefined,
     tokenId: undefined,
+    memberIds: [],
+    isNewMember: false,
   };
 };
 
 // Initial state. The state can be reseted with this.
 const csrState = getDefaultState();
-
 
 export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
@@ -64,7 +70,7 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   keyId(state): string {
     return state.keyId;
   },
-  keyLabel(state): string | undefined {
+  keyLabel(state): string | undefined {
     return state.keyLabel;
   },
   isUsageReadOnly(state): boolean {
@@ -105,6 +111,9 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   csrTokenId(state): string | undefined {
     return state.tokenId;
   },
+  memberIds(state): string[] {
+    return state.memberIds;
+  },
 };
 
 export const mutations: MutationTree<CsrState> = {
@@ -141,6 +150,12 @@ export const mutations: MutationTree<CsrState> = {
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
   },
+  storeMemberIds(state, ids: string[]) {
+    state.memberIds = ids;
+  },
+  storeCsrIsNewMember(state, isNewMember = false) {
+    state.isNewMember = isNewMember;
+  },
 };
 
 export const actions: ActionTree<CsrState, RootState> = {
@@ -166,10 +181,9 @@ export const actions: ActionTree<CsrState, RootState> = {
     if (state.usage === UsageTypes.SIGNING) {
       query =
         `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
-        `&member_id=${state.csrClient}`;
+        `&member_id=${state.csrClient}&is_new_member=${state.isNewMember}`;
     } else {
-      query =
-        `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
+      query = `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
     }
 
     return api
@@ -203,12 +217,15 @@ export const actions: ActionTree<CsrState, RootState> = {
 
   generateCsr({ getters, state }) {
     const requestBody = getters.csrRequestBody;
-
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        downloadAndSaveCsr(state.keyId, response.data.csr_id);
-      }).catch((error: any) => {
+        saveResponseAsFile(
+          response,
+          `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
+        );
+      })
+      .catch((error: any) => {
         throw error;
       });
   },
@@ -222,14 +239,19 @@ export const actions: ActionTree<CsrState, RootState> = {
     };
 
     // Add key label only if it has characters
-    if (getters.keyLabel && getters.keyLabel.lenght > 0) {
+    if (getters.keyLabel && getters.keyLabel.length > 0) {
       body.key_label = getters.keyLabel;
     }
 
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-        downloadAndSaveCsr(response.data.key.id, response.data.csr_id);
+        // Fetch and save the CSR file data
+        api
+          .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
+          .then((res) => {
+            saveResponseAsFile(res);
+          });
       })
       .catch((error) => {
         throw error;
@@ -250,16 +272,24 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeCsrKey', templateKey);
     commit('storeUsage', UsageTypes.SIGNING);
   },
-};
 
+  fetchAllMemberIds({ commit, rootGetters }) {
+    return api
+      .get('/clients?show_members=true')
+      .then((res) => {
+        const idSet = new Set();
+        res.data.forEach((client: Client) => {
+          idSet.add(
+            `${client.instance_id}:${client.member_class}:${client.member_code}`,
+          );
+        });
 
-const downloadAndSaveCsr = (keyId: string, csrId: string) => {
-  // Fetch the CSR file from backend and save it via browser
-  api
-    .get(`/keys/${keyId}/csrs/${csrId}`)
-    .then((response) => {
-      saveResponseAsFile(response);
-    });
+        commit('storeMemberIds', Array.from(idSet));
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
 };
 
 export const csrModule: Module<CsrState, RootState> = {

@@ -1,17 +1,17 @@
 <template>
   <div data-test="finish-content">
     <p>
-      {{$t('wizard.finish.infoLine1')}}
+      {{ $t('wizard.finish.infoLine1') }}
       <br />
-      {{$t('wizard.finish.infoLine2')}}
+      {{ $t('wizard.finish.infoLine2') }}
     </p>
     <br />
-    <p>{{$t('wizard.finish.todo1')}}</p>
-    <p>{{$t('wizard.finish.todo2')}}</p>
-    <p>{{$t('wizard.finish.todo3')}}</p>
+    <p>{{ $t('wizard.finish.todo1') }}</p>
+    <p>{{ $t('wizard.finish.todo2') }}</p>
+    <p>{{ $t('wizard.finish.todo3') }}</p>
     <br />
     <br />
-    <p>{{$t('wizard.finish.note')}}</p>
+    <p>{{ $t('wizard.finish.note') }}</p>
     <p></p>
 
     <div class="button-footer">
@@ -21,7 +21,8 @@
           @click="cancel"
           :disabled="disableCancel"
           data-test="cancel-button"
-        >{{$t('action.cancel')}}</large-button>
+          >{{ $t('action.cancel') }}</large-button
+        >
       </div>
 
       <div>
@@ -31,11 +32,25 @@
           :disabled="disableCancel"
           class="previous-button"
           data-test="previous-button"
-        >{{$t('action.previous')}}</large-button>
+          >{{ $t('action.previous') }}</large-button
+        >
 
-        <large-button @click="done" data-test="submit-button">{{$t('action.submit')}}</large-button>
+        <large-button
+          @click="done"
+          :loading="submitLoading"
+          data-test="submit-button"
+          >{{ $t('action.submit') }}</large-button
+        >
       </div>
     </div>
+    <!-- Accept warnings -->
+    <warningDialog
+      :dialog="warningDialog"
+      :warnings="warningInfo"
+      localizationParent="wizard.warning"
+      @cancel="cancelSubmit()"
+      @accept="acceptWarnings()"
+    />
   </div>
 </template>
 
@@ -43,13 +58,12 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import WarningDialog from '@/components/ui/WarningDialog.vue';
 
 export default Vue.extend({
   components: {
     LargeButton,
-    ValidationObserver,
-    ValidationProvider,
+    WarningDialog,
   },
   computed: {
     ...mapGetters(['csrForm']),
@@ -57,6 +71,9 @@ export default Vue.extend({
   data() {
     return {
       disableCancel: false,
+      submitLoading: false as boolean,
+      warningInfo: [] as string[],
+      warningDialog: false as boolean,
     };
   },
   methods: {
@@ -67,17 +84,35 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
+      this.createClient(false);
+    },
+    createClient(ignoreWarnings: boolean): void {
       this.disableCancel = true;
+      this.submitLoading = true;
 
-      this.$store.dispatch('createClient').then(
+      this.$store.dispatch('createClient', ignoreWarnings).then(
         () => {
           this.generateCsr();
         },
         (error) => {
-          this.$store.dispatch('showError', error);
-          this.disableCancel = false;
+          if (error?.response?.data?.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.warningDialog = true;
+          } else {
+            this.$store.dispatch('showError', error);
+            this.disableCancel = false;
+            this.submitLoading = false;
+          }
         },
       );
+    },
+    cancelSubmit(): void {
+      this.disableCancel = false;
+      this.submitLoading = false;
+      this.warningDialog = false;
+    },
+    acceptWarnings(): void {
+      this.createClient(true);
     },
 
     generateCsr(): void {
@@ -86,11 +121,13 @@ export default Vue.extend({
       this.$store.dispatch('generateKeyAndCsr', tokenId).then(
         () => {
           this.disableCancel = false;
+          this.submitLoading = false;
           this.$emit('done');
         },
         (error) => {
           this.$store.dispatch('showError', error);
           this.disableCancel = false;
+          this.submitLoading = false;
         },
       );
     },
@@ -101,4 +138,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/wizards';
 </style>
-
