@@ -21,12 +21,12 @@ pipeline {
                 ])
             }
         }
-        stage('Build X-Road Security Server Sidecar vanilla image') {
+        stage('Build X-Road Security Server Sidecar image') {
             steps {
                 sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
             }
         }
-        stage('Optionally add latest tag to X-Road Security Server Sidecar vanilla image') {
+        stage('Optionally add latest tag to X-Road Security Server Sidecar image') {
             when {
                 expression { params.IS_LATEST == true }
             }
