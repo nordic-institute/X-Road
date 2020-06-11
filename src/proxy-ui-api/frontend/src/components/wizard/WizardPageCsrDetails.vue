@@ -34,7 +34,7 @@
           v-slot="{ errors }"
         >
           <v-select
-            :items="localMembersIds"
+            :items="memberIds"
             item-text="id"
             item-value="id"
             class="form-input"
@@ -146,11 +146,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
-      'localMembersIds',
-      'filteredServiceList',
-      'isUsageReadOnly',
-    ]),
+    ...mapGetters(['memberIds', 'filteredServiceList', 'isUsageReadOnly']),
 
     usage: {
       get(): string {
@@ -197,6 +193,11 @@ export default Vue.extend({
     },
   },
 
+  created() {
+    // Fetch member id:s for the client selection dropdown
+    this.$store.dispatch('fetchAllMemberIds');
+  },
+
   watch: {
     filteredServiceList(val) {
       // Set first certification service selected as default when the list is updated
@@ -204,7 +205,7 @@ export default Vue.extend({
         this.certificationService = val[0].name;
       }
     },
-    localMembersIds(val) {
+    memberIds(val) {
       // Set first client selected as default when the list is updated
       if (val?.length === 1) {
         this.client = val[0].id;

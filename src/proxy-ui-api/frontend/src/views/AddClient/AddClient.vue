@@ -128,10 +128,6 @@ export default Vue.extend({
     tokenReady(): void {
       this.currentStep = 3;
 
-      this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
         this.$store.dispatch('showError', error);
       });

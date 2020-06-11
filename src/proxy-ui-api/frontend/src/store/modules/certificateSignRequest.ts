@@ -3,6 +3,7 @@ import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
 import {
   Key,
+  Client,
   CertificateAuthority,
   CsrSubjectFieldDescription,
 } from '@/openapi-types';
@@ -20,6 +21,7 @@ export interface CsrState {
   form: CsrSubjectFieldDescription[];
   keyLabel: string | undefined;
   tokenId: string | undefined;
+  memberIds: string[];
   isNewMember: boolean;
 }
 
@@ -35,19 +37,13 @@ const getDefaultState = () => {
     form: [],
     keyLabel: undefined,
     tokenId: undefined,
+    memberIds: [],
     isNewMember: false,
   };
 };
 
 // Initial state. The state can be reseted with this.
 const csrState = getDefaultState();
-
-const downloadAndSaveCsr = (keyId: string, csrId: string) => {
-  // Fetch the CSR file from backend and save it via browser
-  api.get(`/keys/${keyId}/csrs/${csrId}`).then((response) => {
-    saveResponseAsFile(response);
-  });
-};
 
 export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
@@ -115,6 +111,9 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   csrTokenId(state): string | undefined {
     return state.tokenId;
   },
+  memberIds(state): string[] {
+    return state.memberIds;
+  },
 };
 
 export const mutations: MutationTree<CsrState> = {
@@ -150,6 +149,9 @@ export const mutations: MutationTree<CsrState> = {
   },
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
+  },
+  storeMemberIds(state, ids: string[]) {
+    state.memberIds = ids;
   },
   storeCsrIsNewMember(state, isNewMember = false) {
     state.isNewMember = isNewMember;
@@ -218,7 +220,10 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response, `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`);
+        saveResponseAsFile(
+          response,
+          `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
+        );
       })
       .catch((error: any) => {
         throw error;
@@ -241,7 +246,12 @@ export const actions: ActionTree<CsrState, RootState> = {
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-        downloadAndSaveCsr(response.data.key.id, response.data.csr_id);
+        // Fetch and save the CSR file data
+        api
+          .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
+          .then((res) => {
+            saveResponseAsFile(res);
+          });
       })
       .catch((error) => {
         throw error;
@@ -261,6 +271,24 @@ export const actions: ActionTree<CsrState, RootState> = {
 
     commit('storeCsrKey', templateKey);
     commit('storeUsage', UsageTypes.SIGNING);
+  },
+
+  fetchAllMemberIds({ commit, rootGetters }) {
+    return api
+      .get('/clients?show_members=true')
+      .then((res) => {
+        const idSet = new Set();
+        res.data.forEach((client: Client) => {
+          idSet.add(
+            `${client.instance_id}:${client.member_class}:${client.member_code}`,
+          );
+        });
+
+        commit('storeMemberIds', Array.from(idSet));
+      })
+      .catch((error) => {
+        throw error;
+      });
   },
 };
 

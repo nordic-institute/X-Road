@@ -11,7 +11,6 @@ export interface ClientsState {
   clients: Client[];
   formattedClients: ExtendedClient[];
   clientsLoading: boolean;
-  localMembers: Client[];
   ownerMember: Client | undefined;
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
@@ -23,7 +22,6 @@ export const clientsState: ClientsState = {
   clients: [],
   formattedClients: [],
   clientsLoading: false,
-  localMembers: [],
   ownerMember: undefined,
   members: [],
   subsystems: [],
@@ -65,14 +63,6 @@ export const getters: GetterTree<ClientsState, RootState> = {
 
   realMembers(state): ExtendedClient[] {
     return state.realMembers;
-  },
-
-  localMembers(state): Client[] {
-    return state.localMembers;
-  },
-
-  localMembersIds(state): Client[] {
-    return state.localMembers;
   },
 
   clientsLoading(state): boolean {
@@ -189,9 +179,6 @@ export const mutations: MutationTree<ClientsState> = {
     state.formattedClients = [...new Set([...subsystems, ...members])];
   },
 
-  storeLocalMembers(state, clients: []) {
-    state.localMembers = clients;
-  },
   setLoading(state, loading: boolean) {
     state.clientsLoading = loading;
   },
@@ -211,21 +198,6 @@ export const actions: ActionTree<ClientsState, RootState> = {
       })
       .finally(() => {
         commit('setLoading', false);
-      });
-  },
-
-  fetchLocalMembers({ commit, rootGetters }) {
-    return axios
-      .get('/clients?show_members=true&internal_search=true')
-      .then((res) => {
-        const filtered = res.data.filter((client: Client) => {
-          return !client.subsystem_code;
-        });
-
-        commit('storeLocalMembers', filtered);
-      })
-      .catch((error) => {
-        throw error;
       });
   },
 };
