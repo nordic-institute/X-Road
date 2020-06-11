@@ -75,9 +75,13 @@ public class SkEsteIdCertificateProfileInfoProvider
         }
 
         @Override
-        public void validateSubjectField(DnFieldValue field) throws UnsupportedOperationException {
+        public void validateSubjectField(DnFieldValue field) throws Exception {
+            if (StringUtils.isBlank(field.getId()) || StringUtils.isBlank(field.getValue())) {
+                throw new RuntimeException(
+                        String.format("Field '%s (%s)' is missing value", field.getId(), field.getValue())
+                );
+            }
         }
-
     }
 
     private static class SkEsteidAuthCertificateProfile
