@@ -278,7 +278,7 @@ export const actions: ActionTree<CsrState, RootState> = {
       .get('/clients?show_members=true')
       .then((res) => {
         const idSet = new Set();
-        res.data.map((client: Client) => {
+        res.data.forEach((client: Client) => {
           idSet.add(
             `${client.instance_id}:${client.member_class}:${client.member_code}`,
           );
