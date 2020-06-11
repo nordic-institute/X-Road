@@ -103,12 +103,6 @@ export default Vue.extend({
       });
     },
 
-    fetchLocalMembers(): void {
-      this.$store.dispatch('fetchLocalMembers').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
     fetchCertificateAuthorities(): void {
       this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
         this.$store.dispatch('showError', error);
@@ -117,7 +111,6 @@ export default Vue.extend({
   },
   created() {
     this.$store.dispatch('setCsrTokenId', this.tokenId);
-    this.fetchLocalMembers();
     this.fetchCertificateAuthorities();
   },
 });
