@@ -139,7 +139,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     commit('resetAddClientState');
   },
 
-  fetchSelectableClients({ commit, rootGetters }, id: string) {
+  fetchSelectableClients({ commit }, id: string) {
     // Fetch clients from backend that can be selected
     return api
       .get(
@@ -153,7 +153,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchSelectableMembers({ commit, rootGetters }, id: string) {
+  fetchSelectableMembers({ commit }, id: string) {
     // Fetch clients from backend that can be selected
     return api
       .get('/clients?internal_search=false&show_members=true')
@@ -170,7 +170,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchReservedClients({ commit, rootGetters }, client: Client) {
+  fetchReservedClients({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
     return api
       .get(
@@ -184,7 +184,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchReservedMembers({ commit, rootGetters }, client: Client) {
+  fetchReservedMembers({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
     return api
       .get(
@@ -198,18 +198,18 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  setSelectedMember({ commit, rootGetters }, member: Client) {
+  setSelectedMember({ commit }, member: Client) {
     commit('setMember', member);
   },
 
-  createClient({ commit, state }) {
+  createClient({ state }, ignoreWarnings: boolean) {
     const body = {
       client: {
         member_class: state.memberClass,
         member_code: state.memberCode,
         subsystem_code: state.subsystemCode,
       },
-      ignore_warnings: false,
+      ignore_warnings: ignoreWarnings,
     };
 
     return api.post('/clients', body).catch((error) => {
@@ -217,13 +217,13 @@ export const actions: ActionTree<AddClientState, RootState> = {
     });
   },
 
-  createMember({ commit, state }) {
+  createMember({ state }, ignoreWarnings: boolean) {
     const body = {
       client: {
         member_class: state.memberClass,
         member_code: state.memberCode,
       },
-      ignore_warnings: false,
+      ignore_warnings: ignoreWarnings,
     };
 
     return api.post('/clients', body).catch((error) => {
