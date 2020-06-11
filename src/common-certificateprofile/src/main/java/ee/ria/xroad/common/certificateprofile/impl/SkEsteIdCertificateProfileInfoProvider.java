@@ -75,7 +75,7 @@ public class SkEsteIdCertificateProfileInfoProvider
         }
 
         @Override
-        public void validateSubjectField(DnFieldValue field) throws Exception {
+        public void validateSubjectField(DnFieldValue field) throws UnsupportedOperationException {
         }
 
     }
