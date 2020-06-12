@@ -222,7 +222,11 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(initialUrl, serviceDescription.getUrl());
 
         service.setUrl(changedUrl);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setUrl(service.getUrl());
+        serviceUpdate.setSslAuth(service.getSslAuth());
+        serviceUpdate.setTimeout(service.getTimeout());
+
         Service updatedService =
                 servicesApiController.updateService(TestUtils.SS1_REST_SERVICECODE, serviceUpdate).getBody();
 
