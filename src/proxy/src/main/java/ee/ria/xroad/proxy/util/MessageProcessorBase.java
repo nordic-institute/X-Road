@@ -67,13 +67,6 @@ public abstract class MessageProcessorBase {
         this.servletResponse = servletResponse;
         this.httpClient = httpClient;
 
-        cacheConfigurationForCurrentThread();
-    }
-
-    /**
-     * Verifies validity
-     */
-    private void cacheConfigurationForCurrentThread() {
         GlobalConf.verifyValidity();
     }
 

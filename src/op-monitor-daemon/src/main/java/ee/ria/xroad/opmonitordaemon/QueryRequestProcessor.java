@@ -74,13 +74,6 @@ class QueryRequestProcessor {
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 
-        cacheConfigurationForCurrentThread();
-    }
-
-    /**
-     * Verifies configuration validity
-     */
-    private void cacheConfigurationForCurrentThread() {
         GlobalConf.verifyValidity();
     }
 
