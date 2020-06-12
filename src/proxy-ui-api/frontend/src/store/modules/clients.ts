@@ -7,6 +7,8 @@ import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
 import i18n from './../../i18n';
 
+const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
+
 export interface ClientsState {
   clients: Client[];
   formattedClients: ExtendedClient[];
@@ -29,10 +31,19 @@ export const clientsState: ClientsState = {
   virtualMembers: [],
 };
 
-function createSortName(client: Client, sortName: string): any {
+function createSortName(client: Client): string {
   // Create a sort id for client in form  "ACMEGOV:1234 MANAGEMENT"
+  if (client.member_name) {
+    return (
+      client.member_name +
+      client.member_class +
+      client.member_code +
+      ' ' +
+      client.subsystem_code
+    );
+  }
   return (
-    sortName +
+    UNKNOWN_NAME +
     client.member_class +
     client.member_code +
     ' ' +
@@ -40,20 +51,21 @@ function createSortName(client: Client, sortName: string): any {
   );
 }
 
-function createMemberAscSortName(
-  client: Client,
-  sortName: string | undefined,
-): any {
+function createMemberAscSortName(client: Client): string {
   // Create a sort id for member in form  "ACMEGOV:1234"
-  return sortName + client.member_class + client.member_code;
+  if (client.member_name) {
+    return client.member_name + client.member_class + client.member_code;
+  }
+
+  return UNKNOWN_NAME + client.member_class + client.member_code;
 }
 
-function createMemberDescSortName(
-  client: Client,
-  sortName: string | undefined,
-): any {
+function createMemberDescSortName(client: Client): string {
   // Create a sort id for member in form  "ACMEGOV:1234!"
-  return sortName + client.member_class + client.member_code + '!';
+  if (client.member_name) {
+    return client.member_name + client.member_class + client.member_code + '!';
+  }
+  return UNKNOWN_NAME + client.member_class + client.member_code + '!';
 }
 
 export const getters: GetterTree<ClientsState, RootState> = {
@@ -83,7 +95,6 @@ export const mutations: MutationTree<ClientsState> = {
     const members: ExtendedClient[] = [];
     const virtualMembers: ExtendedClient[] = [];
     const subsystems: ExtendedClient[] = [];
-    const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
     // Find members. Owner member (there is only one) and possible other member
     state.clients.forEach((element: Client) => {
@@ -91,9 +102,9 @@ export const mutations: MutationTree<ClientsState> = {
         const clone = { ...element } as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
-        clone.visibleName = clone.member_name;
-        clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code;
-        clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code + '!';
+        clone.visibleName = clone.member_name || UNKNOWN_NAME;
+        clone.sortNameAsc = createMemberAscSortName(clone); // clone.member_name + clone.member_class + clone.member_code;
+        clone.sortNameDesc = createMemberDescSortName(clone); // clone.member_name + clone.member_class + clone.member_code + '!';
 
         if (element.owner) {
           clone.type = ClientTypes.OWNER_MEMBER;
@@ -135,22 +146,11 @@ export const mutations: MutationTree<ClientsState> = {
         );
 
         clone.subsystem_code = undefined;
-
-        // Create a name from member_name
-        if (clone.member_name) {
-          clone.visibleName = clone.member_name;
-          clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name);
-          clone.sortNameDesc = createMemberDescSortName(
-            clone,
-            clone.member_name,
-          );
-        } else {
-          clone.visibleName = UNKNOWN_NAME;
-          clone.sortNameAsc = createMemberAscSortName(clone, UNKNOWN_NAME);
-          clone.sortNameDesc = createMemberDescSortName(clone, UNKNOWN_NAME);
-        }
-
         clone.status = undefined;
+        // Create a name from member_name
+        clone.visibleName = clone.member_name || UNKNOWN_NAME;
+        clone.sortNameAsc = createMemberAscSortName(clone);
+        clone.sortNameDesc = createMemberDescSortName(clone);
         members.push(clone);
       }
 
@@ -159,15 +159,8 @@ export const mutations: MutationTree<ClientsState> = {
         const clone = { ...element } as ExtendedClient;
         clone.visibleName = clone.subsystem_code;
         clone.type = ClientTypes.SUBSYSTEM;
-
-        if (element.member_name) {
-          clone.sortNameAsc = createSortName(clone, element.member_name);
-          clone.sortNameDesc = createSortName(clone, element.member_name);
-        } else {
-          clone.sortNameAsc = createSortName(clone, UNKNOWN_NAME);
-          clone.sortNameDesc = createSortName(clone, UNKNOWN_NAME);
-        }
-
+        clone.sortNameAsc = createSortName(clone);
+        clone.sortNameDesc = createSortName(clone);
         subsystems.push(clone);
       }
     });
