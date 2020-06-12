@@ -2,13 +2,13 @@
   "decisions": {
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1591189034285,
-      "expiresAt": 1593781017323
+      "madeAt": 1591873926140,
+      "expiresAt": 1594465895044
     },
     "1500|npm-audit-resolver>audit-resolve-core>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1591189034285,
-      "expiresAt": 1593781017323
+      "madeAt": 1591873926140,
+      "expiresAt": 1594465895044
     }
   },
   "rules": {},
