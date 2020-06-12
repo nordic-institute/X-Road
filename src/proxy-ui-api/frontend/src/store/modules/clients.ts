@@ -99,7 +99,7 @@ export const mutations: MutationTree<ClientsState> = {
     // Find members. Owner member (there is only one) and possible other member
     state.clients.forEach((element: Client) => {
       if (!element.subsystem_code) {
-        const clone = { ...element } as ExtendedClient;
+        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
         clone.visibleName = clone.member_name || UNKNOWN_NAME;
@@ -130,7 +130,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = { ...element } as any;
+        const clone = JSON.parse(JSON.stringify(element)) as any;
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
@@ -156,7 +156,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = { ...element } as ExtendedClient;
+        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
         clone.visibleName = clone.subsystem_code;
         clone.type = ClientTypes.SUBSYSTEM;
         clone.sortNameAsc = createSortName(clone);
