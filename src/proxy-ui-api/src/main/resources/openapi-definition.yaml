@@ -1,12 +1,9 @@
 ---
 openapi: 3.0.0
-servers:
-  - description: X-Road API Design
-    url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
-  description: X-Road UI Based API
+  description: X-Road Security Server Admin API
   version: "1.0.27"
-  title: X-Road UI Based API
+  title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
     url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
@@ -16,9 +13,7 @@ info:
     url: https://opensource.org/licenses/MIT
 tags:
   - name: security server
-    description: <br>Security Server API design
-  - name: central server
-    description: <br>Central Server API design
+    description: <br>Security Server admin API design
 paths:
   /backups:
     get: # ok
