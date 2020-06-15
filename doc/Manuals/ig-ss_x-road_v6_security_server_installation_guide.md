@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.21  
+Version: 2.22  
 Doc. ID: IG-SS
 
 ---
@@ -46,7 +46,8 @@ Doc. ID: IG-SS
  20.09.2019 | 2.19    | Add instructions for using remote databases | Ilkka Seppälä
  12.04.2020 | 2.20    | Add note about the default value of the *connector-host* property in the EE-package | Petteri Kivimäki
  29.04.2020 | 2.21    | Add instructions how to use remote database located in Microsoft Azure | Ilkka Seppälä
-  
+ 12.06.2020 | 2.22    | Update reference data regarding JMX listening ports | Petteri Kivimäki
+   
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -133,8 +134,6 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.3    |                                         | Account name in the user interface
  1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
- &nbsp; | TCP 9999                                | Port for inbound connections (from the external network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
@@ -144,6 +143,8 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.6  | TCP 4000                                  | User interface (local network)
  1.7  | TCP 80                                    | Information system access points (in the local network)<br> Connections from information systems
  &nbsp; | TCP 443                                 | Information system access points (in the local network)<br> Connections from information systems
+ &nbsp; | TCP 9011                                | Port for inbound connections (from the local network to the security server)<br> Operational data monitoring daemon JMX listening port
+ &nbsp; | TCP 9999                                | Port for inbound connections (from the local network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.8  |                                           | Security server internal IP address(es) and hostname(s)
  1.9  |                                           | Security server public IP address, NAT address
  1.10 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate

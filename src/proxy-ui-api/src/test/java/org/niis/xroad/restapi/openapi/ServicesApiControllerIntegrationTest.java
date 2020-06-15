@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -80,6 +81,9 @@ public class ServicesApiControllerIntegrationTest {
 
     @Autowired
     private ServicesApiController servicesApiController;
+
+    @Autowired
+    private ServiceDescriptionsApiController serviceDescriptionsApiController;
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
@@ -124,10 +128,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(false);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -142,10 +146,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(true); // value does not matter if http - will aways be set to null
-        service.setUrl(TestUtils.URL_HTTP);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true); // value does not matter if http - will aways be set to null
+        serviceUpdate.setUrl(TestUtils.URL_HTTP);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -160,11 +164,11 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(false);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true)
+        ServiceUpdate serviceUpdate = new ServiceUpdate().urlAll(true)
                 .sslAuthAll(true).timeoutAll(true);
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -186,10 +190,10 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setTimeout(10);
-        service.setSslAuth(true);
-        service.setUrl(TestUtils.URL_HTTPS);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true);
+        ServiceUpdate serviceUpdate = new ServiceUpdate().urlAll(true);
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
@@ -203,6 +207,35 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(60, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
         assertEquals(TestUtils.URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
+    public void updateRestServiceUrl() {
+        String initialUrl = "https://restservice.com/api/v1/nosuchservice";
+        String changedUrl = "https://restservice.com/api/v1/changedurl";
+
+        Service service = servicesApiController.getService(TestUtils.SS1_REST_SERVICECODE).getBody();
+        assertEquals(initialUrl, service.getUrl());
+
+        ServiceDescription serviceDescription = serviceDescriptionsApiController.getServiceDescription("5").getBody();
+        assertEquals(initialUrl, serviceDescription.getUrl());
+
+        service.setUrl(changedUrl);
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setUrl(service.getUrl());
+        serviceUpdate.setSslAuth(service.getSslAuth());
+        serviceUpdate.setTimeout(service.getTimeout());
+
+        Service updatedService =
+                servicesApiController.updateService(TestUtils.SS1_REST_SERVICECODE, serviceUpdate).getBody();
+
+        ServiceDescription updatedServiceDescription =
+                serviceDescriptionsApiController.getServiceDescription("5").getBody();
+
+        assertEquals(changedUrl, updatedService.getUrl());
+        assertEquals(changedUrl, updatedServiceDescription.getUrl());
+
     }
 
     @Test

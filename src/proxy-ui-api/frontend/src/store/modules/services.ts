@@ -2,7 +2,6 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Endpoint, Service, ServiceClient } from '@/openapi-types';
 
-
 export interface ServicesState {
   expandedServiceDescriptions: string[];
   service: Service | {};
@@ -16,7 +15,7 @@ export const servicesState: ServicesState = {
     service_code: '',
     code: '',
     timeout: 0,
-    ssl_auth: true,
+    ssl_auth: undefined,
     url: '',
   },
   serviceClients: [],
@@ -36,13 +35,13 @@ export const getters: GetterTree<ServicesState, RootState> = {
   },
 };
 
-
 export const mutations: MutationTree<ServicesState> = {
-
   setHidden(state, id: string): void {
-    const index = state.expandedServiceDescriptions.findIndex((element: any) => {
-      return element === id;
-    });
+    const index = state.expandedServiceDescriptions.findIndex(
+      (element: any) => {
+        return element === id;
+      },
+    );
 
     if (index >= 0) {
       state.expandedServiceDescriptions.splice(index, 1);
@@ -50,9 +49,11 @@ export const mutations: MutationTree<ServicesState> = {
   },
 
   setExpanded(state, id: string): void {
-    const index = state.expandedServiceDescriptions.findIndex((element: any) => {
-      return element === id;
-    });
+    const index = state.expandedServiceDescriptions.findIndex(
+      (element: any) => {
+        return element === id;
+      },
+    );
 
     if (index === -1) {
       state.expandedServiceDescriptions.push(id);
@@ -61,8 +62,10 @@ export const mutations: MutationTree<ServicesState> = {
 
   setService(state, service: Service) {
     service.endpoints = service.endpoints?.sort((a: Endpoint, b: Endpoint) => {
-      const sortByGenerated = (a.generated === b.generated) ? 0 : a.generated ? -1 : 1;
-      const sortByPathSlashCount = a.path.split('/').length - b.path.split('/').length;
+      const sortByGenerated =
+        a.generated === b.generated ? 0 : a.generated ? -1 : 1;
+      const sortByPathSlashCount =
+        a.path.split('/').length - b.path.split('/').length;
       const sortByPathLength = a.path.length - b.path.length;
       return sortByGenerated || sortByPathSlashCount || sortByPathLength;
     });
@@ -75,7 +78,6 @@ export const mutations: MutationTree<ServicesState> = {
 };
 
 export const actions: ActionTree<ServicesState, RootState> = {
-
   expandDesc({ commit, rootGetters }, id: string) {
     commit('setExpanded', id);
   },

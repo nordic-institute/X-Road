@@ -1,31 +1,42 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <v-flex mb-4 class="title-action">
-      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} ({{ $t("client.owner") }})</h1>
+      <h1 v-if="client && client.owner" class="display-1 mb-3">
+        {{ client.member_name }} ({{ $t('client.owner') }})
+      </h1>
+      <h1 v-else-if="client" class="display-1 mb-3">
+        {{ client.member_name }} ({{ $t('client.member') }})
+      </h1>
 
-      <div>
-        <LargeButton
+      <div class="action-block">
+        <MakeOwnerButton
+          v-if="showMakeOwner"
+          :id="id"
+          @done="fetchClient"
+          class="first-button"
+        />
+        <DeleteClientButton v-if="showDelete" :id="id" />
+        <UnregisterClientButton
           v-if="showUnregister"
-          @click="confirmUnregisterClient = true"
-        >{{$t('action.unregister')}}</LargeButton>
+          :id="id"
+          @done="fetchClient"
+        />
       </div>
     </v-flex>
-    <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
+    <v-tabs
+      v-model="tab"
+      class="xrd-tabs"
+      color="secondary"
+      grow
+      slider-size="4"
+    >
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
     </v-tabs>
 
     <router-view />
-
-    <!-- Confirm dialog for unregister client -->
-    <ConfirmDialog
-      :dialog="confirmUnregisterClient"
-      :loading="unregisterLoading"
-      title="client.action.unregister.confirmTitle"
-      text="client.action.unregister.confirmText"
-      @cancel="confirmUnregisterClient = false"
-      @accept="unregisterClient()"
-    />
   </div>
 </template>
 
@@ -34,13 +45,15 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
+import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
+import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    ConfirmDialog,
+    UnregisterClientButton,
+    DeleteClientButton,
+    MakeOwnerButton,
   },
   props: {
     id: {
@@ -50,16 +63,40 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: null,
-      confirmUnregisterClient: false,
-      unregisterLoading: false,
+      tab: undefined as undefined | Tab,
     };
   },
   computed: {
     ...mapGetters(['client']),
+
+    showMakeOwner(): boolean {
+      return (
+        this.client &&
+        this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
+        this.client.status === 'REGISTERED' &&
+        !this.client.owner
+      );
+    },
     showUnregister(): boolean {
+      return (
+        this.client &&
+        this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        (this.client.status === 'REGISTERED' ||
+          this.client.status === 'REGISTRATION_IN_PROGRESS')
+      );
+    },
+    showDelete(): boolean {
+      if (
+        !this.client ||
+        this.client.status === 'REGISTERED' ||
+        this.client.status === 'REGISTRATION_IN_PROGRESS'
+      ) {
+        return false;
+      }
+
       return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ);
     },
+
     tabs(): Tab[] {
       const allTabs = [
         {
@@ -83,12 +120,6 @@ export default Vue.extend({
 
       return this.$store.getters.getAllowedTabs(allTabs);
     },
-    localGroupsRoute(): object {
-      return {
-        name: RouteName.SubsystemLocalGroups,
-        params: { id: this.id },
-      };
-    },
   },
   created() {
     this.fetchClient(this.id);
@@ -99,28 +130,6 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
-
-    unregisterClient(): void {
-      this.unregisterLoading = true;
-      this.$store
-        .dispatch('unregisterClient', this.client)
-        .then(
-          () => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.unregister.success',
-            );
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          this.fetchClient(this.id);
-          this.confirmUnregisterClient = false;
-          this.unregisterLoading = false;
-        });
-    },
   },
 });
 </script>
@@ -130,5 +139,14 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.action-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.first-button {
+  margin-right: 20px;
 }
 </style>

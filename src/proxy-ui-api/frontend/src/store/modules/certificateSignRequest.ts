@@ -1,11 +1,14 @@
-
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { saveResponseAsFile } from '@/util/helpers';
-import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/openapi-types';
+import {
+  Key,
+  Client,
+  CertificateAuthority,
+  CsrSubjectFieldDescription,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
-
 
 export interface CsrState {
   csrKey: Key | null;
@@ -16,8 +19,10 @@ export interface CsrState {
   certificationServiceList: CertificateAuthority[];
   keyId: string;
   form: CsrSubjectFieldDescription[];
-  keyLabel: string;
+  keyLabel: string | undefined;
   tokenId: string | undefined;
+  memberIds: string[];
+  isNewMember: boolean;
 }
 
 const getDefaultState = () => {
@@ -30,14 +35,15 @@ const getDefaultState = () => {
     certificationServiceList: [],
     keyId: '',
     form: [],
-    keyLabel: '',
+    keyLabel: undefined,
     tokenId: undefined,
+    memberIds: [],
+    isNewMember: false,
   };
 };
 
 // Initial state. The state can be reseted with this.
 const csrState = getDefaultState();
-
 
 export const crsGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
@@ -64,7 +70,7 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   keyId(state): string {
     return state.keyId;
   },
-  keyLabel(state): string {
+  keyLabel(state): string | undefined {
     return state.keyLabel;
   },
   isUsageReadOnly(state): boolean {
@@ -105,6 +111,9 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   csrTokenId(state): string | undefined {
     return state.tokenId;
   },
+  memberIds(state): string[] {
+    return state.memberIds;
+  },
 };
 
 export const mutations: MutationTree<CsrState> = {
@@ -141,16 +150,22 @@ export const mutations: MutationTree<CsrState> = {
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
   },
+  storeMemberIds(state, ids: string[]) {
+    state.memberIds = ids;
+  },
+  storeCsrIsNewMember(state, isNewMember = false) {
+    state.isNewMember = isNewMember;
+  },
 };
 
 export const actions: ActionTree<CsrState, RootState> = {
   resetCsrState({ commit }) {
     commit('resetCsrState');
   },
-  setCsrTokenId({ commit, dispatch, rootGetters }, tokenId: string) {
+  setCsrTokenId({ commit }, tokenId: string) {
     commit('storeCsrTokenId', tokenId);
   },
-  fetchCertificateAuthorities({ commit, rootGetters }) {
+  fetchCertificateAuthorities({ commit }) {
     api
       .get(`/certificate-authorities`)
       .then((res: any) => {
@@ -160,16 +175,15 @@ export const actions: ActionTree<CsrState, RootState> = {
         throw error;
       });
   },
-  fetchCsrForm({ commit, rootGetters, state }) {
+  fetchCsrForm({ commit, state }) {
     let query = '';
 
     if (state.usage === UsageTypes.SIGNING) {
       query =
         `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
-        `&member_id=${state.csrClient}`;
+        `&member_id=${state.csrClient}&is_new_member=${state.isNewMember}`;
     } else {
-      query =
-        `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
+      query = `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
     }
 
     return api
@@ -182,7 +196,7 @@ export const actions: ActionTree<CsrState, RootState> = {
       });
   },
 
-  fetchKeyData({ commit, rootGetters, state }) {
+  fetchKeyData({ commit, state }) {
     return api
       .get(`/keys/${state.keyId}`)
       .then((res: any) => {
@@ -197,41 +211,54 @@ export const actions: ActionTree<CsrState, RootState> = {
       });
   },
 
-  setCsrFormat({ commit, rootGetters }, csrFormat: string) {
+  setCsrFormat({ commit }, csrFormat: string) {
     commit('storeCsrFormat', csrFormat);
   },
 
-  generateCsr({ commit, getters, state }) {
+  generateCsr({ getters, state }) {
     const requestBody = getters.csrRequestBody;
-
     return api
       .post(`/keys/${state.keyId}/csrs`, requestBody)
       .then((response) => {
-        saveResponseAsFile(response);
-      }).catch((error: any) => {
+        saveResponseAsFile(
+          response,
+          `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
+        );
+      })
+      .catch((error: any) => {
         throw error;
       });
   },
 
-  generateKeyAndCsr({ commit, getters, state }, tokenId: string) {
+  generateKeyAndCsr({ getters }, tokenId: string) {
     const crtObject = getters.csrRequestBody;
 
     const body = {
-      key_label: getters.keyLabel,
+      key_label: undefined,
       csr_generate_request: crtObject,
     };
+
+    // Add key label only if it has characters
+    if (getters.keyLabel && getters.keyLabel.length > 0) {
+      body.key_label = getters.keyLabel;
+    }
 
     return api
       .post(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
-        saveResponseAsFile(response);
+        // Fetch and save the CSR file data
+        api
+          .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
+          .then((res) => {
+            saveResponseAsFile(res);
+          });
       })
       .catch((error) => {
         throw error;
       });
   },
 
-  setupSignKey({ commit, rootGetters }) {
+  setupSignKey({ commit }) {
     // Initialize the state with sign type Key. Needed for "add client" wizard.
     const templateKey: Key = {
       id: '',
@@ -246,6 +273,23 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeUsage', UsageTypes.SIGNING);
   },
 
+  fetchAllMemberIds({ commit, rootGetters }) {
+    return api
+      .get('/clients?show_members=true')
+      .then((res) => {
+        const idSet = new Set();
+        res.data.forEach((client: Client) => {
+          idSet.add(
+            `${client.instance_id}:${client.member_class}:${client.member_code}`,
+          );
+        });
+
+        commit('storeMemberIds', Array.from(idSet));
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
 };
 
 export const csrModule: Module<CsrState, RootState> = {

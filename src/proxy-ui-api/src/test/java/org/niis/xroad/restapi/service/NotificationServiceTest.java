@@ -30,9 +30,11 @@ import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.AlertStatus;
+import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,16 +45,16 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-
 
 /**
  * Test NotificationService
@@ -68,12 +70,21 @@ public class NotificationServiceTest {
     private GlobalConfFacade globalConfFacade;
 
     @MockBean
+    private InitializationService initializationService;
+
+    @MockBean
     private TokenService tokenService;
 
     @Autowired
     private NotificationService notificationService;
 
     private static final String SIGN_TOKEN_ID = "sign-token";
+
+    @Before
+    public void setup() {
+        InitializationStatusDto initDto = getInitStatus(true);
+        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
+    }
 
     @Test
     public void getAlertsAllOkNoBackupRestore() {
@@ -86,7 +97,7 @@ public class NotificationServiceTest {
                 .id(SignerProxy.SSL_TOKEN_ID)
                 .active(true)
                 .build();
-        List<TokenInfo> allTokens = Arrays.asList(new TokenInfo[] {tokenInfo});
+        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
 
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
@@ -108,7 +119,7 @@ public class NotificationServiceTest {
                 .id(SignerProxy.SSL_TOKEN_ID)
                 .active(false)
                 .build();
-        List<TokenInfo> allTokens = Arrays.asList(new TokenInfo[] {tokenInfo});
+        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
 
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
@@ -133,7 +144,7 @@ public class NotificationServiceTest {
                 .id(SIGN_TOKEN_ID)
                 .active(true)
                 .build();
-        List<TokenInfo> allTokens = Arrays.asList(new TokenInfo[] {tokenInfo});
+        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
 
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
@@ -145,4 +156,21 @@ public class NotificationServiceTest {
         }
     }
 
+    @Test
+    public void getAlertsNotInitialized() {
+        InitializationStatusDto initDto = getInitStatus(false);
+        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
+        AlertStatus alertStatus = notificationService.getAlerts();
+        assertFalse(alertStatus.getGlobalConfValid());
+        assertFalse(alertStatus.getSoftTokenPinEntered());
+    }
+
+    private InitializationStatusDto getInitStatus(boolean isFullyInitialized) {
+        InitializationStatusDto initDto = new InitializationStatusDto();
+        initDto.setSoftwareTokenInitialized(true);
+        initDto.setServerOwnerInitialized(true);
+        initDto.setServerCodeInitialized(true);
+        initDto.setAnchorImported(isFullyInitialized);
+        return initDto;
+    }
 }

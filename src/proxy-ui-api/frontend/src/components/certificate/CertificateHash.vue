@@ -1,7 +1,7 @@
 <template>
   <div class="cert-hash">
-    <div class="hash-info">{{$t('cert.hashInfo')}}</div>
-    <div>{{hash | colonize}}</div>
+    <div class="hash-info">{{ $t('cert.hashInfo') }}</div>
+    <div>{{ hash | colonize }}</div>
   </div>
 </template>
 
@@ -30,4 +30,3 @@ export default Vue.extend({
   font-size: 16px;
 }
 </style>
-

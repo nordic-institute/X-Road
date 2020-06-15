@@ -54,18 +54,23 @@ import javax.servlet.http.HttpSession;
 @RestController
 @RequestMapping(NotificationsApiController.NOTIFICATIONS_API_URL)
 @Slf4j
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class NotificationsApiController {
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private AlertDataConverter alertDataConverter;
     public static final String NOTIFICATIONS_API_URL = "/api/notifications";
+
+    private final NotificationService notificationService;
+    private final AlertDataConverter alertDataConverter;
+
+    @Autowired
+    public NotificationsApiController(
+            NotificationService notificationService, AlertDataConverter alertDataConverter) {
+        this.notificationService = notificationService;
+        this.alertDataConverter = alertDataConverter;
+    }
 
     /**
      * check if a HttpSession is currently alive
      */
-    @PreAuthorize("permitAll")
     @GetMapping(value = "/session-status", produces = { "application/json" })
     public ResponseEntity<StatusData> isSessionAlive(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -74,16 +79,9 @@ public class NotificationsApiController {
                 HttpStatus.OK);
     }
 
-    @Data
-    @AllArgsConstructor
-    private class StatusData {
-        private boolean valid;
-    }
-
     /**
      * check if there are alerts
      */
-    @PreAuthorize("permitAll")
     @GetMapping(value = "/alerts", produces = { "application/json" })
     public ResponseEntity<AlertData> checkAlerts() {
         AlertStatus alertStatus = notificationService.getAlerts();
@@ -93,10 +91,16 @@ public class NotificationsApiController {
     /**
      * reset "backupRestoreRunningSince" alert
      */
-    @PreAuthorize("permitAll")
+    @PreAuthorize("hasAnyAuthority('BACKUP_CONFIGURATION', 'RESTORE_CONFIGURATION')")
     @PutMapping(value = "/alerts/reset")
     public ResponseEntity<Void> resetBackupRestoreRunningSince() {
         notificationService.resetBackupRestoreRunningSince();
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private class StatusData {
+        private boolean valid;
     }
 }

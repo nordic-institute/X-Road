@@ -25,12 +25,18 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
+import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Helper class for transforming Spring validation errors into error dtos.
@@ -45,10 +51,10 @@ public class ValidationErrorHelper {
      * Error code = {@link ValidationErrorHelper#VALIDATION_FAILURE_ERROR}, metadata is the
      * String representation of {@link Errors}
      */
-    public CodeWithMetadata createError(Errors validationErrors) {
-        CodeWithMetadata result = new CodeWithMetadata();
+    public CodeWithDetails createError(Errors validationErrors) {
+        CodeWithDetails result = new CodeWithDetails();
         result.setCode(VALIDATION_FAILURE_ERROR);
-        result.setMetadata(Collections.singletonList(validationErrors.toString()));
+        result.setValidationErrors(getValidationErrorsAsMap(validationErrors));
         return result;
     }
 
@@ -57,10 +63,31 @@ public class ValidationErrorHelper {
      * Error code = {@link ValidationErrorHelper#VALIDATION_FAILURE_ERROR}, metadata is the
      * String representation of {@link Errors}
      */
-    public CodeWithMetadata createError(MethodArgumentNotValidException e) {
+    public CodeWithDetails createError(MethodArgumentNotValidException e) {
         Errors errors = e.getBindingResult();
         return createError(errors);
     }
 
+    private Map<String, List<String>> getValidationErrorsAsMap(Errors validationErrors) {
+        Map<String, List<String>> errorMap = new HashMap<>();
+        List<FieldError> fieldErrors = validationErrors.getFieldErrors();
+        Set<String> fields = fieldErrors.stream()
+                .map(FieldError::getField)
+                .collect(Collectors.toSet());
+        fields.forEach(fieldName -> {
+            String objectFieldName = null;
+            List<String> fieldValidationErrors = new ArrayList<>();
+            for (FieldError fieldError : fieldErrors) {
+                if (fieldError.getField().equals(fieldName)) {
+                    if (objectFieldName == null) {
+                        objectFieldName = fieldError.getObjectName() + "." + fieldName;
+                    }
+                    fieldValidationErrors.add(fieldError.getCode());
+                }
+            }
+            errorMap.put(objectFieldName, fieldValidationErrors);
+        });
+        return errorMap;
+    }
 
 }
