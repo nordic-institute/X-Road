@@ -101,7 +101,7 @@ public class NotificationsApiControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
     public void resetBackupRestoreRunningSince() {
         ResponseEntity<Void> response = notificationsApiController.resetBackupRestoreRunningSince();
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
