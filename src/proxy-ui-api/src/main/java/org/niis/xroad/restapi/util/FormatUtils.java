@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.niis.xroad.restapi.converter.Converters;
@@ -53,7 +52,6 @@ import java.util.regex.Pattern;
 /**
  * Format utils
  */
-@Slf4j
 public final class FormatUtils {
     public static final String HTTPS_PROTOCOL = "https://";
     public static final String HTTP_PROTOCOL = "http://";
