@@ -143,7 +143,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     // Fetch clients from backend that can be selected
     return api
       .get(
-        '/clients?exclude_local=true&member_missing_sign_cert=true&internal_search=false&show_members=false',
+        '/clients?exclude_local=true&internal_search=false&show_members=false',
       )
       .then((res) => {
         commit('storeSelectableClients', res.data);
