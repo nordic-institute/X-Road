@@ -356,7 +356,7 @@ public class ServiceDescriptionService {
         ServiceType serviceType = new ServiceType();
         serviceType.setServiceCode(serviceCode);
         serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
-        serviceType.setUrl(url);
+        serviceType.setUrl(result.getBaseUrl());
         serviceType.setServiceDescription(serviceDescriptionType);
 
         // Populate ServiceDescription
