@@ -61,7 +61,9 @@ export function saveResponseAsFile(
   }
   const effectiveFileName =
     suggestedFileName === undefined ? defaultFileName : suggestedFileName;
-  const blob = new Blob([response.data]);
+  const blob = new Blob([response.data], {
+    type: response.headers['content-type'],
+  });
 
   // Create a link to DOM and click it. This will trigger the browser to start file download.
   const link = document.createElement('a');
