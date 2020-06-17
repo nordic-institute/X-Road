@@ -134,21 +134,20 @@ export const mutations: MutationTree<AddClientState> = {
   },
 };
 
+// Compares two Clients on member level and returns true if the
+// member ids of the clients match. Otherwise returns false.
+const memberEquals = (client: Client, other: Client): boolean =>
+  client.member_class === other.member_class &&
+  client.member_code === other.member_code &&
+  client.instance_id === other.instance_id;
+
 // Filters out clients that have local relatives.
 // If the member owning the client or another subsystem
 // of the same member is already present locally,
 // the client is excluded.
 const excludeClientsWithLocalRelatives = (clients: Client[], localClients: Client[]): Client[] => {
   return clients.filter((client: Client) => {
-    let showClient = true;
-    localClients.forEach((localClient: Client) => {
-      if (localClient.member_class === client.member_class &&
-          localClient.member_code === client.member_code &&
-          localClient.instance_id === client.instance_id) {
-        showClient = false;
-      }
-    });
-    return showClient;
+    return !localClients.some( (localClient: Client) => memberEquals(localClient, client))
   });
 }
 
