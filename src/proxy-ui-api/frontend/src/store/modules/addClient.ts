@@ -158,24 +158,18 @@ export const actions: ActionTree<AddClientState, RootState> = {
   },
 
   fetchSelectableClients({ commit }, id: string) {
-    // Fetch clients from backend that can be selected
-    return api
-      .get(
-        '/clients?exclude_local=true&internal_search=false&show_members=false',
-      )
-      .then((globalClientsRes) => {
-        // Fetch list of local clients and filter out global clients
-        // that have local relatives
-        api.get('/clients').then((localClientsRes) => {
-            commit('storeSelectableClients',
-            excludeClientsWithLocalRelatives(globalClientsRes.data, localClientsRes.data));
-          })
-          .catch((localClientsError) => {
-            throw localClientsError;
-          });
+    const globalClientsPromise = api.get('/clients?exclude_local=true&internal_search=false&show_members=false');
+    const localClientsPromise = api.get('/clients');
+    // Fetch list of local clients and filter out global clients
+    // that have local relatives
+    return Promise.all([globalClientsPromise, localClientsPromise])
+      .then((response) => {
+        const globalClients = response[0];
+        const localClients = response[1];
+        commit('storeSelectableClients', excludeClientsWithLocalRelatives(globalClients.data, localClients.data));
       })
-      .catch((globalClientsError) => {
-        throw globalClientsError;
+      .catch((error) => {
+        throw error;
       });
   },
 
