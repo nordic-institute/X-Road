@@ -134,6 +134,24 @@ export const mutations: MutationTree<AddClientState> = {
   },
 };
 
+// Filters out clients that have local relatives.
+// If the member owning the client or another subsystem
+// of the same member is already present locally,
+// the client is excluded.
+const excludeClientsWithLocalRelatives = (clients: Client[], localClients: Client[]): Client[] => {
+  return clients.filter((client: Client) => {
+    let showClient = true;
+    localClients.forEach((localClient: Client) => {
+      if (localClient.member_class === client.member_class &&
+          localClient.member_code === client.member_code &&
+          localClient.instance_id === client.instance_id) {
+        showClient = false;
+      }
+    });
+    return showClient;
+  });
+}
+
 export const actions: ActionTree<AddClientState, RootState> = {
   resetAddClientState({ commit }) {
     commit('resetAddClientState');
@@ -145,11 +163,19 @@ export const actions: ActionTree<AddClientState, RootState> = {
       .get(
         '/clients?exclude_local=true&internal_search=false&show_members=false',
       )
-      .then((res) => {
-        commit('storeSelectableClients', res.data);
+      .then((globalClientsRes) => {
+        // Fetch list of local clients and filter out global clients
+        // that have local relatives
+        api.get('/clients').then((localClientsRes) => {
+            commit('storeSelectableClients',
+            excludeClientsWithLocalRelatives(globalClientsRes.data, localClientsRes.data));
+          })
+          .catch((localClientsError) => {
+            throw localClientsError;
+          });
       })
-      .catch((error) => {
-        throw error;
+      .catch((globalClientsError) => {
+        throw globalClientsError;
       });
   },
 
