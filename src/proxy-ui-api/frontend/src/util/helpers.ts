@@ -144,3 +144,8 @@ export const debounce = <F extends (...args: any[]) => any>(
 export function isEmpty(str: string | []): boolean {
   return !str || 0 === str.length;
 }
+
+// Convert a class with immutable fields to mutable
+export type Mutable<T> = {
+  -readonly [K in keyof T]: T[K];
+};
