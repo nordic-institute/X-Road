@@ -420,7 +420,6 @@ export default Vue.extend({
                     );
                   default:
                     // Just don't sort if the sorting field is unknown
-                    console.warn(`Unsupported sort field ${index}`);
                     return 0;
                 }
               }),
