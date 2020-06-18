@@ -10,7 +10,7 @@ BuildArch:          noarch
 Group:              Applications/Internet
 License:            MIT
 Requires:           xroad-securityserver = %version-%release, xroad-addon-opmonitoring = %version-%release
-Conflicts:          xroad-centralserver
+Conflicts:           xroad-centralserver
 
 %define src %{_topdir}/..
 
@@ -24,8 +24,12 @@ This is meta package of X-Road security server with Icelandic settings
 %build
 
 %install
+mkdir -p %{buildroot}/etc/xroad/conf.d
+cp -p %{srcdir}/default-configuration/override-securityserver-is.ini %{buildroot}/etc/xroad/conf.d/
 
 %files
+%defattr(-,xroad,xroad,-)
+%config /etc/xroad/conf.d/override-securityserver-is.ini
 
 %post
 
