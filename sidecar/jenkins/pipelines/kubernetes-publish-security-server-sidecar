@@ -13,10 +13,8 @@ pipeline {
             steps {
                 withAWS(credentials: 'AWS', region: 'us-east-1') {
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ss-sidecar-cluster'
-                
             }
         }
-
         stage('Build X-Road Security Server Sidecar image') {
              environment { 
                 AWS = credentials('AWS')
@@ -25,7 +23,6 @@ pipeline {
                 sh '${DEPLOYMENT_PATH} ${NUMBER_REPLICAS} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL}'
             }
         }
-        
         stage('Rollout status') {
             environment { 
                 AWS = credentials('AWS')
