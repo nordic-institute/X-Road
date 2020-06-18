@@ -255,7 +255,7 @@ export default Vue.extend({
       // Fetch selectable subsystems
       api
         .get(
-          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true`,
+          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
         )
         .then((res) => {
           this.selectableSubsystems = res.data;

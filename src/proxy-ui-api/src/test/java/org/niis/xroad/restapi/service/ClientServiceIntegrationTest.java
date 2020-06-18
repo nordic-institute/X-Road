@@ -184,11 +184,15 @@ public class ClientServiceIntegrationTest {
                 new CertificateTestUtils.CertificateInfoBuilder();
 
         // Create cert with good ocsp response status
+        // This certificate is valid for all subsystems owned by the member "FI/GOV/M1".
         ClientId clientId1 = ClientId.create("FI", "GOV", "M1", "SS1");
         certificateInfoBuilder.clientId(clientId1);
         CertificateInfo cert1 = certificateInfoBuilder.build();
 
         // Create cert with revoked ocsp response status
+        // N.B. This cert is ignored, and SS2 is considered to have valid sign cert since SS1 and SS2 have the
+        // same owner, and sign certs are issued to members and not subsystems. Therefore, the certificate issued
+        // to SS1 applies to SS2 too.
         ClientId clientId2 = ClientId.create("FI", "GOV", "M1", "SS2");
         certificateInfoBuilder.clientId(clientId2).ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold));
         CertificateInfo cert2 = certificateInfoBuilder.build();
@@ -199,6 +203,7 @@ public class ClientServiceIntegrationTest {
         CertificateInfo cert3 = certificateInfoBuilder.build();
 
         certificateInfos.addAll(Arrays.asList(cert2, cert3, cert1));
+
         return certificateInfos;
     }
 
@@ -807,10 +812,17 @@ public class ClientServiceIntegrationTest {
     public void findLocalClientsByOnlyLocalClientsWithValidSignCert() throws Exception {
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createCertificateInfoList());
         List<ClientType> clients = clientService.findLocalClients(null, null, null, null, null, false, true);
-        assertEquals(1, clients.size());
+        assertEquals(2, clients.size());
         assertTrue("GOV".equals(clients.get(0).getIdentifier().getMemberClass()));
         assertTrue("M1".equals(clients.get(0).getIdentifier().getMemberCode()));
         assertTrue("SS1".equals(clients.get(0).getIdentifier().getSubsystemCode()));
+        // SS2 has an invalid cert in the createCertificateInfoList. Since sign
+        // certificates are issued to members (not to subsystems), and M1 has a valid sign cert created
+        // for SS1, the certificate applies to SS2 too, because both SS1 and SS2 belong to the
+        // same member.
+        assertTrue("GOV".equals(clients.get(1).getIdentifier().getMemberClass()));
+        assertTrue("M1".equals(clients.get(1).getIdentifier().getMemberCode()));
+        assertTrue("SS2".equals(clients.get(1).getIdentifier().getSubsystemCode()));
     }
 
     /* Test GLOBAL client search */
