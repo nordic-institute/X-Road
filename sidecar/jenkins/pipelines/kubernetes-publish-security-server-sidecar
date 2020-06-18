@@ -26,6 +26,6 @@ pipeline {
             steps {
                 sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
             }
-        
+        }
     }
 }
