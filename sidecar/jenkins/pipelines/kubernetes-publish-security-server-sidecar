@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Apply cluster configuration') {
             steps {
-                withAWS(credentials: 'AWS', region: 'us-east-1') {
+                withAWS(credentials: 'AWSMFA') {
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ss-sidecar-cluster'
                 }
             }
