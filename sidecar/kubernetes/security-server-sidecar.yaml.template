@@ -7,8 +7,7 @@ XROAD_DB_PORT=$3
 XROAD_DB_PWD=$4
 XROAD_LOG_LEVEL=$5
 
-ls -l
-ls -a
+whoami
 
 # read the yml template from a file and substitute the string 
 # {{MYVARNAME}} with the value of the MYVARVALUE variable
