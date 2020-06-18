@@ -21,8 +21,7 @@ pipeline {
         
         stage('Rollout status') {
             environment { 
-                AWS = credentials('AWS'),
-                AWS_REGION = 'eu-west-1'
+                AWS = credentials('AWS')
             }
             steps {
                 sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
