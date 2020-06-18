@@ -17,6 +17,9 @@ export default Vue.extend({
   },
   methods: {
     getServiceIcon(service: any): string {
+      if (!service.url.startsWith('https')) {
+        return 'mdi-lock-open-outline';
+      }
       switch (service.ssl_auth) {
         case undefined:
           return 'mdi-lock-open-outline';
@@ -30,6 +33,9 @@ export default Vue.extend({
     },
 
     getServiceIconColor(service: any): string {
+      if (!service.url.startsWith('https')) {
+        return '';
+      }
       switch (service.ssl_auth) {
         case undefined:
           return '';

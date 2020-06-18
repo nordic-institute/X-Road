@@ -134,19 +134,38 @@ export const mutations: MutationTree<AddClientState> = {
   },
 };
 
+// Compares two Clients on member level and returns true if the
+// member ids of the clients match. Otherwise returns false.
+const memberEquals = (client: Client, other: Client): boolean =>
+  client.member_class === other.member_class &&
+  client.member_code === other.member_code &&
+  client.instance_id === other.instance_id;
+
+// Filters out clients that have local relatives.
+// If the member owning the client or another subsystem
+// of the same member is already present locally,
+// the client is excluded.
+const excludeClientsWithLocalRelatives = (clients: Client[], localClients: Client[]): Client[] => {
+  return clients.filter((client: Client) => {
+    return !localClients.some( (localClient: Client) => memberEquals(localClient, client))
+  });
+}
+
 export const actions: ActionTree<AddClientState, RootState> = {
   resetAddClientState({ commit }) {
     commit('resetAddClientState');
   },
 
   fetchSelectableClients({ commit }, id: string) {
-    // Fetch clients from backend that can be selected
-    return api
-      .get(
-        '/clients?exclude_local=true&member_missing_sign_cert=true&internal_search=false&show_members=false',
-      )
-      .then((res) => {
-        commit('storeSelectableClients', res.data);
+    const globalClientsPromise = api.get('/clients?exclude_local=true&internal_search=false&show_members=false');
+    const localClientsPromise = api.get('/clients');
+    // Fetch list of local clients and filter out global clients
+    // that have local relatives
+    return Promise.all([globalClientsPromise, localClientsPromise])
+      .then((response) => {
+        const globalClients = response[0];
+        const localClients = response[1];
+        commit('storeSelectableClients', excludeClientsWithLocalRelatives(globalClients.data, localClients.data));
       })
       .catch((error) => {
         throw error;
