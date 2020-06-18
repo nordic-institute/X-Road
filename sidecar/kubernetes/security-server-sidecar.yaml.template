@@ -7,6 +7,9 @@ XROAD_DB_PORT=$3
 XROAD_DB_PWD=$4
 XROAD_LOG_LEVEL=$5
 
+ls -l
+ls -a
+
 # read the yml template from a file and substitute the string 
 # {{MYVARNAME}} with the value of the MYVARVALUE variable
 template=`cat "sidecar/kubernetes/security-server-sidecar.yaml" | sed "s/{{NUMBER_REPLICAS}}/$NUMBER_REPLICAS/g" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" `
