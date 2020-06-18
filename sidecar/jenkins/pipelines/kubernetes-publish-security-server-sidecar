@@ -21,6 +21,9 @@ pipeline {
                     export AWS_ACCESS_KEY_ID=`echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId'`
                     export AWS_SECRET_ACCESS_KEY=`echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey'`
                     export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
+                    
+                    printenv
+                    whoami
                     aws eks --region eu-west-1 update-kubeconfig --name ss-sidecar-cluster
                 '''
             }
