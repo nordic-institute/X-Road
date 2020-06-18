@@ -9,7 +9,15 @@ pipeline {
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
     }
     stages {
-        
+        stage('Apply cluster configuration') {
+             environment { 
+                AWS = credentials('AWS')
+            }
+            steps {
+                sh 'aws eks --region eu-west-1 update-kubeconfig --name ss-sidecar-cluster'
+            }
+        }
+
         stage('Build X-Road Security Server Sidecar image') {
              environment { 
                 AWS = credentials('AWS')
