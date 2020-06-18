@@ -25,8 +25,7 @@ pipeline {
                 '''
             }
         }
-        stage('Build X-Road Security Server Sidecar image') 
-        
+        stage('Build X-Road Security Server Sidecar image') {
             steps {
                 sh '${DEPLOYMENT_PATH} ${NUMBER_REPLICAS} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL}'
             }
