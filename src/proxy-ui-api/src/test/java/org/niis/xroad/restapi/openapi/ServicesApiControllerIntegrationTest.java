@@ -57,7 +57,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -154,7 +153,7 @@ public class ServicesApiControllerIntegrationTest {
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
-        assertNull(updatedService.getSslAuth());
+        assertTrue(updatedService.getSslAuth());
         assertEquals(TestUtils.URL_HTTP, updatedService.getUrl());
     }
 
