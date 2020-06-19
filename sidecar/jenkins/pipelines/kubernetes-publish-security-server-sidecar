@@ -7,6 +7,8 @@ pipeline {
         string(description: "External database port", name: "XROAD_DB_PORT", defaultValue: "${params?.XROAD_DB_PORT}")
         string(description: "External database password", name: "XROAD_DB_PWD", defaultValue: "${params?.XROAD_DB_PWD}")
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
     }
     stages {
         stage('Apply cluster configuration') {
@@ -22,7 +24,7 @@ pipeline {
                     export AWS_SECRET_ACCESS_KEY=`echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey'`
                     export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
                     
-                    aws eks --region eu-west-1 update-kubeconfig --name ss-sidecar-cluster
+                    aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}
                 '''
             }
         }
