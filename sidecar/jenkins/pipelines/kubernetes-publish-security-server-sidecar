@@ -7,11 +7,13 @@ pipeline {
         string(description: "External database port", name: "XROAD_DB_PORT", defaultValue: "${params?.XROAD_DB_PORT}")
         string(description: "External database password", name: "XROAD_DB_PWD", defaultValue: "${params?.XROAD_DB_PWD}")
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
+        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
         string(description: "Name of the cluster", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
     }
     stages {
         stage('Login to AWS') {
-            sh '''
+            steps {
+                sh '''
                     unset AWS_SESSION_TOKEN
                     unset AWS_SECRET_ACCESS_KEY
                     unset AWS_ACCESS_KEY_ID
@@ -22,8 +24,8 @@ pipeline {
                     export AWS_SECRET_ACCESS_KEY=`jq -r '.Credentials.SecretAccessKey'`
                     export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
                 '''
+            }
         }
-
         stage('Apply cluster configuration') {
             steps {
                 sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'                
