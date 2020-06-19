@@ -22,9 +22,9 @@ pipeline {
                     export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
                 '''
         }
-        stage('Apply cluster configuration') {
+        stage('Scale number of nodes') {
             steps {
-                sh 'kubectl scale --replicas=${NUMBER_REPLICAS} deployment.v1.apps/security-server-sidecar'                
+                sh 'aws eks --region eu-west-1  update-nodegroup-config --cluster-name ${CLUSTER_NAME} --nodegroup-name ${NODE_GROUP_NAME} --scaling-config minSize=${MIN_SIZE},maxSize=${MAX_SIZE},desiredSize=${DESIRED_SIZE}'                
             }
         }
     }

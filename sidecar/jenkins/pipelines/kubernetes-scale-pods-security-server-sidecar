@@ -19,7 +19,7 @@ pipeline {
                     export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
                 '''
         }
-        stage('Apply cluster configuration') {
+        stage('Scale number of replicas') {
             steps {
                 sh 'kubectl scale --replicas=${NUMBER_REPLICAS} deployment.v1.apps/security-server-sidecar'                
             }
