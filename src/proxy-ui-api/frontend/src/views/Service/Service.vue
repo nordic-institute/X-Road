@@ -39,6 +39,7 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
 import { mapGetters } from 'vuex';
+import { Tab } from '@/ui-types';
 
 export default Vue.extend({
   components: {
@@ -56,14 +57,14 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: null as any,
-      serviceTypeEnum: ServiceTypeEnum as any,
+      tab: null,
+      serviceTypeEnum: ServiceTypeEnum,
     };
   },
   computed: {
     ...mapGetters(['service']),
-    tabs(): any[] {
-      const tabs = [
+    tabs(): Tab[] {
+      return [
         {
           key: 'parameters',
           name: 'tab.services.parameters',
@@ -81,7 +82,6 @@ export default Vue.extend({
           },
         },
       ];
-      return tabs;
     },
   },
 

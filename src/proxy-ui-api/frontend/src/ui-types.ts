@@ -3,25 +3,21 @@
  These are not in openapi definitions.
 */
 import { Client } from '@/openapi-types';
+import { Location } from 'vue-router';
 
 // Interface for Tab data
 export interface Tab {
   key: string;
   name: string;
-  to: {
-    name: string;
-    params?: {
-      id?: string;
-    };
-  };
+  to: string | Location; // Same type as https://router.vuejs.org/api/#to
   permission?: string;
 }
 
 // Extension for Client
 export interface ExtendedClient extends Client {
-  visibleName?: string | undefined;
-  sortNameAsc?: string | undefined;
-  sortNameDesc?: string | undefined;
+  visibleName?: string;
+  sortNameAsc?: string;
+  sortNameDesc?: string;
   type?: string;
 }
 

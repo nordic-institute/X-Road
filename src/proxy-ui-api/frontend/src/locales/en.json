@@ -310,6 +310,7 @@
     "refresh": "Refresh",
     "delete": "Delete",
     "download": "Download",
+    "upload": "Upload",
     "remove": "Remove",
     "removeAll": "Remove All",
     "register": "Register",
