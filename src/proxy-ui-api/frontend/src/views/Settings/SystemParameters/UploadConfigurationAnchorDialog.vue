@@ -101,6 +101,7 @@ import { Anchor } from '@/openapi-types';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { AxiosError } from 'axios';
 import { PostPutPatch } from '@/util/api';
+import { FileUploadResult } from '@/ui-types';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
@@ -130,15 +131,15 @@ export default Vue.extend({
     };
   },
   methods: {
-    fileUploaded(file: ArrayBuffer): void {
+    fileUploaded(result: FileUploadResult): void {
       this.previewing = true;
       if (this.initMode) {
         this.previewAnchor(
-          file,
+          result.buffer,
           '/system/anchor/previews?validate_instance=false',
         );
       } else {
-        this.previewAnchor(file, '/system/anchor/previews');
+        this.previewAnchor(result.buffer, '/system/anchor/previews');
       }
     },
 

@@ -16,6 +16,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import LargeButton from './LargeButton.vue';
+import { FileUploadResult } from '@/ui-types';
 
 type HTMLInputElementEvent = Event & {
   target: HTMLInputElement;
@@ -47,15 +48,22 @@ export default Vue.extend({
       const files = isDragEvent(event)
         ? event.dataTransfer?.files
         : event.target.files;
+      if (!files) {
+        return; // No files uploaded
+      }
+      const file = files[0];
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        if (!e?.target?.result) {
+        if (!e?.target?.result || !files) {
           return;
         }
-        this.$emit('fileChanged', e.target.result);
+        this.$emit('fileChanged', {
+          buffer: e.target.result as ArrayBuffer,
+          file: file,
+        } as FileUploadResult);
       };
-      files && reader.readAsArrayBuffer(files[0]);
+      reader.readAsArrayBuffer(file);
       (this.$refs.anchorUpload as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
     },
   },

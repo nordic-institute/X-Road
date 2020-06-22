@@ -27,3 +27,9 @@ export interface ServiceCandidate {
   service_title?: string;
   id: string;
 }
+
+// The result of the FileUpload components fileChanged event
+export type FileUploadResult = {
+  buffer: ArrayBuffer;
+  file: File;
+};
