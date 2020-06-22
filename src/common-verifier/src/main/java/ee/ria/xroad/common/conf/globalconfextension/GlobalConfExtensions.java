@@ -39,7 +39,7 @@ import java.nio.file.Path;
 public final class GlobalConfExtensions {
     private OcspNextUpdate ocspNextUpdate;
     private OcspFetchInterval ocspFetchInterval;
-    private static GlobalConfExtensions instance = null;
+    private static volatile GlobalConfExtensions instance = null;
 
     /**
      * @return instance
