@@ -86,9 +86,7 @@
           outlined
           color="white"
           data-test="copy-id-button"
-          v-clipboard:copy="
-            errorObject.response.headers['x-road-ui-correlation-id']
-          "
+          @click.prevent="copyId"
           >{{ $t('action.copyId') }}
         </v-btn>
       </template>
@@ -108,6 +106,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
+import { toClipboard } from '@/util/helpers';
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -198,6 +197,11 @@ export default Vue.extend({
       this.$store.commit('setErrorRawVisible', false);
       this.$store.commit('setErrorCodeVisible', false);
       this.$store.commit('setErrorObjectVisible', false);
+    },
+    copyId(): void {
+      if (this.errorId) {
+        toClipboard(this.errorId);
+      }
     },
   },
 });
