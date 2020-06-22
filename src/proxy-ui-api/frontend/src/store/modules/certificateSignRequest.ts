@@ -218,7 +218,9 @@ export const actions: ActionTree<CsrState, RootState> = {
   generateCsr({ getters, state }) {
     const requestBody = getters.csrRequestBody;
     return api
-      .post(`/keys/${state.keyId}/csrs`, requestBody)
+      .post(`/keys/${state.keyId}/csrs`, requestBody, {
+        responseType: 'arraybuffer',
+      })
       .then((response) => {
         saveResponseAsFile(
           response,
