@@ -61,7 +61,9 @@ export function saveResponseAsFile(
   }
   const effectiveFileName =
     suggestedFileName === undefined ? defaultFileName : suggestedFileName;
-  const blob = new Blob([response.data]);
+  const blob = new Blob([response.data], {
+    type: response.headers['content-type'],
+  });
 
   // Create a link to DOM and click it. This will trigger the browser to start file download.
   const link = document.createElement('a');
@@ -143,4 +145,25 @@ export const debounce = <F extends (...args: any[]) => any>(
 // Check if a string or array is empty, null or undefined
 export function isEmpty(str: string | []): boolean {
   return !str || 0 === str.length;
+}
+
+// Helper to copy text to clipboard
+export function toClipboard(val: string): void {
+  // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
+  const container =
+    document.getElementsByClassName('v-dialog--active')[0] || document.body;
+  const tempValueContainer = document.createElement('input');
+  tempValueContainer.setAttribute('type', 'text');
+  tempValueContainer.style.zIndex = '300';
+  tempValueContainer.style.opacity = '0';
+  tempValueContainer.style.filter = 'alpha(opacity=0)';
+  tempValueContainer.setAttribute(
+    'data-test',
+    'generated-temp-value-container',
+  );
+  tempValueContainer.value = val;
+  container.appendChild(tempValueContainer);
+  tempValueContainer.select();
+  document.execCommand('copy');
+  container.removeChild(tempValueContainer);
 }
