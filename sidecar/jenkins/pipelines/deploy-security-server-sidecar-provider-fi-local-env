@@ -1,8 +1,8 @@
 pipeline {
     agent any
     parameters {
-        string(description: "Cluster name", name: "CLUSTER_NAME", value:"params.CLUSTER_NAME")
-        string(description: "Token code for MFA login", name: "TOKEN_CODE", value:"params.TOKEN_CODE")
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
     }
     stages {
         stage('Apply cluster configuration') {
