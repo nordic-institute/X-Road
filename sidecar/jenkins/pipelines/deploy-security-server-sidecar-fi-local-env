@@ -24,12 +24,12 @@ pipeline {
         }
         stage('Build X-Road Security Server Sidecar image') {
             steps {
-                sh 'kubectl apply -f sidecar/kubernetes/security-server-sidecar-provider-fi.yaml'
+                sh 'kubectl apply -f sidecar/kubernetes/security-server-sidecar-fi.yaml'
             }
         }
         stage('Rollout status') {
             steps {
-                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-provider-fi'
+                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-fi'
             }
         }
     }
