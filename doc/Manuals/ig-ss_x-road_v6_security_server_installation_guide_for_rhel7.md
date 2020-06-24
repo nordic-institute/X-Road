@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: IG-SS-RHEL7
 
 ---
@@ -24,6 +24,7 @@ Doc. ID: IG-SS-RHEL7
  10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443        | Jarkko Hyöty
  30.04.2020 | 1.6     | Add instructions how to use remote database located in Microsoft Azure        | Ilkka Seppälä
  12.06.2020 | 1.7     | Update reference data regarding JMX listening ports | Petteri Kivimäki
+ 24.06.2020 | 1.8    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -98,7 +99,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | ------- | --------------------------| ----------------------------------------------------------
 | 1.0     | RHEL7 (v7.3 or newer), 64-bit2 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
 | 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key
+| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
 | 1.3     |                          | Account name in the user interface
 | 1.4     | TCP 5500                 | Port for inbound connections (from the external network to the security server)<br>Message exchange between security servers 
 |         | TCP 5577                 | Port for inbound connections (from the external network to the security server)<br>Querying of OCSP responses between security servers
