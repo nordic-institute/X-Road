@@ -4,7 +4,7 @@
 
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.8  
+Version: 0.9  
 Doc ID: TEST-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -13,6 +13,7 @@ Doc ID: TEST-OPMON
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc. | Tatu Repo |
 | 05.02.2020 | 0.8       | Update information about the test suites. | Ilkka Seppälä |
+| 25.06.2020 | 0.9       | Update information about the JMX interface. | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
@@ -166,11 +167,10 @@ Direct observation of JMX metrics in `jconsole` is described in the following se
 
 ### 6.1 Testing the JMXMP Interface Using jconsole
 
-By default, the JMX interface of the operational monitoring daemon has been configured to listen on localhost, with authentication disabled and TLS enabled. In order to conveniently access this interface from a remote host, either directly or through an SSH tunnel, the following configuration must be used in `/etc/xroad/services/local.conf`, effectively overriding the value of the variable OPMON_PARAMS:
+By default, the JMX interface of the operational monitoring daemon is disabled. In order to conveniently access this interface from a remote host, either directly or through an SSH tunnel, the following configuration must be used in `/etc/xroad/services/local.conf`, effectively making changes on the `OPMON_PARAMS` parameter value:
 
 ```bash
-OPMON_PARAMS=" -javaagent:$METRICS_BUGFIX_AGENT -Xms50m -Xmx256m -XX:MaxMetaspaceSize=70m \
--Dlogback.configurationFile=/etc/xroad/conf.d/op-monitor-logback.xml \
+OPMON_PARAMS="OPMON_PARAMS \
 -Djava.rmi.server.hostname=<address> \
 -Dcom.sun.management.jmxremote \
 -Dcom.sun.management.jmxremote.port=<port> \
