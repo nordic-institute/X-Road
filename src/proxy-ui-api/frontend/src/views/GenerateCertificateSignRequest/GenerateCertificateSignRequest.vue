@@ -80,7 +80,7 @@ export default Vue.extend({
     cancel(): void {
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
-    fetchKeyData(id: string): void {
+    fetchKeyData(): void {
       this.$store.dispatch('fetchKeyData').catch((error) => {
         this.$store.dispatch('showError', error);
       });
@@ -93,7 +93,7 @@ export default Vue.extend({
   },
   created() {
     this.$store.commit('storeKeyId', this.keyId);
-    this.fetchKeyData(this.keyId);
+    this.fetchKeyData();
     this.fetchCertificateAuthorities();
   },
   beforeDestroy() {

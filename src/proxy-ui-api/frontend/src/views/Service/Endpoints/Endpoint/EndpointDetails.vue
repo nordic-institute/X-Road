@@ -94,6 +94,7 @@ import { Permissions } from '@/global';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { Endpoint } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -109,9 +110,9 @@ export default Vue.extend({
       required: true,
     },
   },
-  data(): any {
+  data() {
     return {
-      endpoint: {},
+      endpoint: {} as Endpoint,
       confirmDelete: false,
       saveBusy: false,
       touched: false,
@@ -165,8 +166,8 @@ export default Vue.extend({
     },
     fetchData(id: string): void {
       api
-        .get(`/endpoints/${id}`)
-        .then((endpoint: any) => {
+        .get<Endpoint>(`/endpoints/${id}`)
+        .then((endpoint) => {
           this.endpoint = endpoint.data;
         })
         .catch((error) => {

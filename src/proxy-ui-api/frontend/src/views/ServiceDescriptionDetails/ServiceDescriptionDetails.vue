@@ -150,7 +150,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceTypeEnum } from '@/domain';
-import { ServiceDescription } from '@/openapi-types';
+import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -194,11 +194,10 @@ export default Vue.extend({
     save(): void {
       this.saveBusy = true;
 
-      const serviceDescriptionUpdate = {
-        id: this.serviceDesc.id,
+      const serviceDescriptionUpdate: ServiceDescriptionUpdate = {
         url: this.serviceDesc.url,
         type: this.serviceDesc.type,
-      } as any;
+      };
 
       if (
         serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
@@ -267,16 +266,15 @@ export default Vue.extend({
     },
 
     acceptEditWarning(): void {
-      const tempDesc: any = this.serviceDesc;
-
-      if (!tempDesc) {
+      if (!this.serviceDesc) {
         return;
       }
 
-      tempDesc.ignore_warnings = true;
-
       api
-        .patch(`/service-descriptions/${this.id}`, tempDesc)
+        .patch(`/service-descriptions/${this.id}`, {
+          ...this.serviceDesc,
+          ignore_warnings: true,
+        } as ServiceDescriptionUpdate)
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);

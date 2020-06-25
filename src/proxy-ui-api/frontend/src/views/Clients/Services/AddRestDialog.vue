@@ -8,7 +8,7 @@
     :disableSave="!isValid"
   >
     <div slot="content">
-      <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+      <ValidationObserver ref="form" v-slot="{}">
         <div class="dlg-edit-row">
           <div class="dlg-row-title">{{ $t('services.serviceType') }}</div>
 
@@ -134,7 +134,7 @@ export default Vue.extend({
           rest_service_code: this.serviceCode,
           type: this.serviceType,
         })
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch(
             'showSuccess',
             this.serviceType === 'OPENAPI3'

@@ -48,7 +48,7 @@ export const mutations: MutationTree<State> = {
 };
 
 export const actions: ActionTree<State, RootState> = {
-  fetchXroadInstances({ commit, rootGetters }) {
+  fetchXroadInstances({ commit }) {
     return api
       .get(`/xroad-instances`)
       .then((res) => {
@@ -59,7 +59,7 @@ export const actions: ActionTree<State, RootState> = {
       });
   },
 
-  fetchMemberClasses({ commit, rootGetters }) {
+  fetchMemberClasses({ commit }) {
     return api
       .get<string[]>(`/member-classes`)
       .then((res) => {
@@ -70,7 +70,7 @@ export const actions: ActionTree<State, RootState> = {
       });
   },
 
-  fetchMemberClassesForCurrentInstance({ commit, rootGetters }) {
+  fetchMemberClassesForCurrentInstance({ commit }) {
     return api
       .get<string[]>(`/member-classes?current_instance=true`)
       .then((res) => {
@@ -84,7 +84,7 @@ export const actions: ActionTree<State, RootState> = {
   fetchMemberName({ commit }, { memberClass, memberCode }) {
     // this is currently an inline schema and is not automatically generated to a typescript type
     return api
-      .get<{member_name: string}>(
+      .get<{ member_name: string }>(
         `/member-names?member_class=${memberClass}&member_code=${memberCode}`,
       )
       .then((res) => {

@@ -54,7 +54,7 @@ export default Vue.extend({
   data: () => ({
     tab: null,
     showHelp: false,
-    helpTab: null,
+    helpTab: null as KeysTab | null,
   }),
 
   computed: {
@@ -99,7 +99,7 @@ export default Vue.extend({
   },
 
   methods: {
-    helpClick(tab: any): void {
+    helpClick(tab: KeysTab): void {
       this.helpTab = tab;
       this.showHelp = true;
     },
