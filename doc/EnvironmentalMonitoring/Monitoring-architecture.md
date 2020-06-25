@@ -134,7 +134,7 @@ The service also publishes the monitoring data via JMX. Local monitoring agents 
 
 ![monitoring JMX agent](img/monitoring-jmx.png)
 
-JMX is enabled by adding the required configuration in `/etc/xroad/services/local.conf` file. The file is opened for editing and changes are made on the `PROXY_PARAMS` variable value. After the `PROXY_PARAMS` variable value has been updated, the `xroad-monitor` service must be restarted.
+JMX is enabled by adding the required configuration in `/etc/xroad/services/local.conf` file. The file is opened for editing and changes are made on the `MONITOR_PARAMS` variable value. After the `MONITOR_PARAMS` variable value has been updated, the `xroad-monitor` service must be restarted.
 
 The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled:
 
