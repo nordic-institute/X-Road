@@ -170,7 +170,7 @@ Direct observation of JMX metrics in `jconsole` is described in the following se
 By default, the JMX interface of the operational monitoring daemon is disabled. In order to conveniently access this interface from a remote host, either directly or through an SSH tunnel, the following configuration must be used in `/etc/xroad/services/local.conf`, effectively making changes on the `OPMON_PARAMS` parameter value:
 
 ```bash
-OPMON_PARAMS="OPMON_PARAMS \
+OPMON_PARAMS="$OPMON_PARAMS \
 -Djava.rmi.server.hostname=<address> \
 -Dcom.sun.management.jmxremote \
 -Dcom.sun.management.jmxremote.port=<port> \
