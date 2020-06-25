@@ -218,7 +218,7 @@ export default Vue.extend({
 
       api
         .remove(`/token-certificates/${this.hash}`)
-        .then((res) => {
+        .then(() => {
           this.close();
           this.$store.dispatch('showSuccess', 'cert.certDeleted');
         })
@@ -229,7 +229,7 @@ export default Vue.extend({
     activateCertificate(hash: string): void {
       api
         .put(`/token-certificates/${hash}/activate`, hash)
-        .then((res: any) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'cert.activateSuccess');
           this.fetchData(this.hash);
         })
@@ -238,7 +238,7 @@ export default Vue.extend({
     deactivateCertificate(hash: string): void {
       api
         .put(`token-certificates/${hash}/disable`, hash)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'cert.disableSuccess');
           this.fetchData(this.hash);
         })
@@ -257,7 +257,7 @@ export default Vue.extend({
           `/token-certificates/${this.certificate.certificate_details.hash}/unregister`,
           {},
         )
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyAdded');
         })
         .catch((error) => {
@@ -288,7 +288,7 @@ export default Vue.extend({
           `/token-certificates/${this.certificate.certificate_details.hash}/mark-for-deletion`,
           {},
         )
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.certMarkedForDeletion');
           this.confirmUnregisterError = false;
           this.$emit('refreshList');

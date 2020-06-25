@@ -55,7 +55,7 @@ const getDefaultState = () => {
 // Initial state. The state can be reseted with this.
 const tokensState: AddClientState = getDefaultState();
 
-export const getters: GetterTree<AddClientState, any> = {
+export const getters: GetterTree<AddClientState, RootState> = {
   selectableClients(state: AddClientState): Client[] {
     return state.selectableClients;
   },
@@ -90,7 +90,7 @@ export const getters: GetterTree<AddClientState, any> = {
       state.memberCode,
     );
   },
-  reservedMember(state: AddClientState): any {
+  reservedMember(state: AddClientState): ReservedMemberData | undefined {
     return state.reservedMemberData;
   },
 };
@@ -126,7 +126,7 @@ export const mutations: MutationTree<AddClientState> = {
   storeReservedClients(state: AddClientState, clients: Client[]) {
     state.reservedClients = clients;
   },
-  storeReservedMember(state: AddClientState, memberData: any) {
+  storeReservedMember(state: AddClientState, memberData?: ReservedMemberData) {
     state.reservedMemberData = memberData;
   },
   setAddMemberWizardMode(state: AddClientState, mode: string) {
@@ -172,7 +172,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchSelectableMembers({ commit }, id: string) {
+  fetchSelectableMembers({ commit }) {
     // Fetch clients from backend that can be selected
     return api
       .get<Client[]>('/clients?internal_search=false&show_members=true')
@@ -254,7 +254,9 @@ export const actions: ActionTree<AddClientState, RootState> = {
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
   ) {
-    const clientsResponse = await api.get<Client[]>(`/clients?instance=${instanceId}
+    const clientsResponse = await api.get<
+      Client[]
+    >(`/clients?instance=${instanceId}
     &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
     const matchingClient: boolean = clientsResponse.data.some(
@@ -280,8 +282,8 @@ export const actions: ActionTree<AddClientState, RootState> = {
     const ownerId = createClientId(instanceId, memberClass, memberCode);
 
     // Find if a token has a sign key with a certificate that has matching client data
-    tokenResponse.data.some((token: Token) => {
-      return token.keys.some((key: Key) => {
+    tokenResponse.data.forEach((token: Token) => {
+      token.keys.forEach((key: Key) => {
         if (key.usage === UsageTypes.SIGNING) {
           // Go through the keys certificates
           const foundCert: boolean = key.certificates.some(
@@ -291,17 +293,17 @@ export const actions: ActionTree<AddClientState, RootState> = {
                   'setAddMemberWizardMode',
                   AddMemberWizardModes.CERTIFICATE_EXISTS,
                 );
-                return true;
+                return;
               }
             },
           );
 
           if (foundCert) {
-            return true;
+            return;
           }
 
           // Go through the keys CSR:s
-          key.certificate_signing_requests.some(
+          key.certificate_signing_requests.forEach(
             (csr: TokenCertificateSigningRequest) => {
               if (ownerId === csr.owner_id) {
                 dispatch('setCsrTokenId', token.id);
