@@ -1,3 +1,6 @@
+// TODO: Remove after merge
+/* eslint-disable */
+
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
@@ -16,7 +19,6 @@ export interface ClientsState {
   ownerMember: Client | undefined;
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
-  virtualMembers: ExtendedClient[]; // local "virtual" members, generated from subsystem data
   subsystems: ExtendedClient[];
 }
 
@@ -28,7 +30,6 @@ export const clientsState: ClientsState = {
   members: [],
   subsystems: [],
   realMembers: [],
-  virtualMembers: [],
 };
 
 function createSortName(client: Client): string {
@@ -93,7 +94,6 @@ export const mutations: MutationTree<ClientsState> = {
     // New arrays to separate members and subsystems
     const realMembers: ExtendedClient[] = [];
     const members: ExtendedClient[] = [];
-    const virtualMembers: ExtendedClient[] = [];
     const subsystems: ExtendedClient[] = [];
 
     // Find members. Owner member (there is only one) and possible other member

@@ -85,7 +85,7 @@ export const mutations: MutationTree<State> = {
   },
 };
 
-export const actions: ActionTree<State, any> = {
+export const actions: ActionTree<State, RootState> = {
   resetInitServerState({ commit }) {
     commit('resetInitServerState');
   },
