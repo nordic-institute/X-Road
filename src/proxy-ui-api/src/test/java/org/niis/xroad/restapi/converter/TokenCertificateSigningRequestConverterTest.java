@@ -32,18 +32,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
-import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -53,22 +47,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class TokenCertificateSigningRequestConverterTest {
-
-    @Autowired
-    private TokenCertificateSigningRequestConverter csrConverter;
-
-    @MockBean
-    private PossibleActionsRuleEngine possibleActionsRuleEngine;
+public class TokenCertificateSigningRequestConverterTest extends BaseConverterMockTest {
 
     @Before
     public void setup() {
         doReturn(EnumSet.of(PossibleActionEnum.DELETE)).when(possibleActionsRuleEngine)
                 .getPossibleCsrActions(any());
     }
-
 
     @Test
     public void convert() {

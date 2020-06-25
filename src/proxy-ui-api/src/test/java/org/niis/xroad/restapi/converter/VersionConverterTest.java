@@ -27,12 +27,7 @@ package org.niis.xroad.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Version;
-import org.niis.xroad.restapi.service.VersionService;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -40,12 +35,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test VersionConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class VersionConverterTest {
-
-    @MockBean
-    private VersionService versionService;
+public class VersionConverterTest extends BaseConverterMockTest {
 
     private VersionConverter versionConverter;
 

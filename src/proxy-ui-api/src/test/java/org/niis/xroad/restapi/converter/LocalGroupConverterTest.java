@@ -32,13 +32,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,9 +45,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test LocalGroupConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class LocalGroupConverterTest {
+public class LocalGroupConverterTest extends BaseConverterMockTest {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 

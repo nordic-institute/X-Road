@@ -34,20 +34,14 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
-import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
@@ -61,15 +55,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class TokenCertificateConverterTest {
-
-    @Autowired
-    private TokenCertificateConverter tokenCertificateConverter;
-
-    @MockBean
-    private PossibleActionsRuleEngine possibleActionsRuleEngine;
+public class TokenCertificateConverterTest extends BaseConverterMockTest {
 
     @Before
     public void setup() {
