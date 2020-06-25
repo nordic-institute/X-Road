@@ -138,7 +138,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     return axios.delete(`/clients/${clientId}/tls-certificates/${hash}`);
   },
 
-  downloadSSCertificate({ commit, state }, { hash }) {
+  downloadSSCertificate({ commit, state }) {
     axios
       .get(`/system/certificate/export`, { responseType: 'arraybuffer' })
       .then((response) => {

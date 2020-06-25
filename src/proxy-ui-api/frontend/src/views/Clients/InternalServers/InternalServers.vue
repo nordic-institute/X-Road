@@ -18,22 +18,21 @@
     <v-card flat class="xrd-card">
       <div class="tls-title-wrap">
         <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
-        <v-btn
-          v-if="canAddTlsCert"
-          outlined
-          rounded
-          color="primary"
-          class="rounded-button elevation-0"
-          @click="$refs.inputUpload.click()"
-          >{{ $t('action.add') }}</v-btn
+        <file-upload
+          accepts=".pem, .cer, .der"
+          @fileChanged="onFileChange"
+          v-slot="{ upload }"
         >
-        <input
-          v-show="false"
-          ref="inputUpload"
-          type="file"
-          accept=".pem, .cer, .der"
-          @change="onFileChange"
-        />
+          <v-btn
+            v-if="canAddTlsCert"
+            outlined
+            rounded
+            color="primary"
+            class="rounded-button elevation-0"
+            @click="upload"
+            >{{ $t('action.add') }}</v-btn
+          >
+        </file-upload>
       </div>
       <div class="cert-table-title">{{ $t('internalServers.certHash') }}</div>
       <table class="certificate-table server-certificates">
@@ -80,7 +79,7 @@
                 rounded
                 color="primary"
                 class="xrd-small-button"
-                @click="exportSSCertificate(ssCertificate.hash)"
+                @click="exportSSCertificate"
                 >{{ $t('action.export') }}</v-btn
               >
             </td>
@@ -97,9 +96,13 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import CertificateIcon from './CertificateIcon.vue';
+import FileUpload from '@/components/ui/FileUpload.vue';
+import { FileUploadResult } from '@/ui-types';
+import { CertificateDetails } from '@/openapi-types';
 export default Vue.extend({
   components: {
     CertificateIcon,
+    FileUpload,
   },
   props: {
     id: {
@@ -181,37 +184,21 @@ export default Vue.extend({
     this.fetchTlsCertificates(this.id);
   },
   methods: {
-    onFileChange(event: any): void {
-      const fileList = event.target.files || event.dataTransfer.files;
-      if (!fileList.length) {
-        return;
-      }
-
-      const reader = new FileReader();
-
-      // Upload file when it's loaded in FileReader
-      reader.onload = (e: any) => {
-        if (!e || !e.target || !e.target.result) {
-          return;
-        }
-
-        this.$store
-          .dispatch('uploadTlsCertificate', {
-            clientId: this.id,
-            fileData: e.target.result,
-          })
-          .then(
-            () => {
-              // Refresh the tls cert list
-              this.fetchTlsCertificates(this.id);
-            },
-            (error) => {
-              this.$store.dispatch('showError', error);
-            },
-          );
-      };
-
-      reader.readAsArrayBuffer(fileList[0]);
+    onFileChange(event: FileUploadResult): void {
+      this.$store
+        .dispatch('uploadTlsCertificate', {
+          clientId: this.id,
+          fileData: event.buffer,
+        })
+        .then(
+          () => {
+            // Refresh the tls cert list
+            this.fetchTlsCertificates(this.id);
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
     },
 
     fetchTlsCertificates(id: string): void {
@@ -220,7 +207,7 @@ export default Vue.extend({
       });
     },
 
-    exportSSCertificate(hash: string): void {
+    exportSSCertificate(): void {
       this.$store.dispatch('downloadSSCertificate').catch((error) => {
         this.$store.dispatch('showError', error);
       });
@@ -232,7 +219,7 @@ export default Vue.extend({
       });
     },
 
-    openCertificate(cert: any): void {
+    openCertificate(cert: CertificateDetails): void {
       this.$router.push({
         name: RouteName.ClientTlsCertificate,
         params: {

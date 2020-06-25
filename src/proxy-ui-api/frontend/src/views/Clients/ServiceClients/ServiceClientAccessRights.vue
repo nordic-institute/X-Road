@@ -153,27 +153,27 @@ export default Vue.extend({
       this.fetchAccessRights();
       this.fetchServiceDescriptions();
       api
-        .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
-        .then((response: any) => (this.serviceClient = response.data))
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .get<ServiceClient>(
+          `/clients/${this.id}/service-clients/${this.serviceClientId}`,
+        )
+        .then((response) => (this.serviceClient = response.data))
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     fetchServiceDescriptions(): void {
       api
-        .get(`/clients/${this.id}/service-descriptions`)
-        .then((response: any) => {
+        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
+        .then((response) => {
           this.clientServiceDescriptions = response.data;
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     fetchAccessRights(): void {
       api
-        .get(
+        .get<AccessRight[]>(
           `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
         )
-        .then(
-          (response: any) => (this.serviceClientAccessRights = response.data),
-        )
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .then((response) => (this.serviceClientAccessRights = response.data))
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     close(): void {
       this.$router.go(-1);
@@ -192,7 +192,7 @@ export default Vue.extend({
             this.fetchAccessRights();
           }
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     addService(accessRights: AccessRight[]): void {
       this.hideAddService();
@@ -209,7 +209,7 @@ export default Vue.extend({
           );
           this.fetchAccessRights();
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
@@ -233,7 +233,7 @@ export default Vue.extend({
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
           this.serviceClientAccessRights = [];
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     serviceCandidates(): ServiceCandidate[] {
       return serviceCandidatesForServiceClient(

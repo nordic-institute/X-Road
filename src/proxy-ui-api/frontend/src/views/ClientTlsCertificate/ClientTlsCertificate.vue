@@ -95,7 +95,7 @@ export default Vue.extend({
           hash: this.hash,
         })
         .then(
-          (response) => {
+          () => {
             this.$store.dispatch('showSuccess', 'cert.certDeleted');
           },
           (error) => {

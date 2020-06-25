@@ -35,7 +35,7 @@
         <ValidationProvider
           name="addClient.memberClass"
           rules="required"
-          v-slot="{ errors }"
+          v-slot="{}"
         >
           <v-select
             :items="memberClasses"
@@ -101,9 +101,11 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
 import { debounce, isEmpty } from '@/util/helpers';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { AddMemberWizardModes } from '../../global';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { AddMemberWizardModes } from '@/global';
 
+// TODO: Check with Mikko about this
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default Vue.extend({

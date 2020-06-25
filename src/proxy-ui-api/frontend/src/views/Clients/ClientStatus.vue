@@ -7,7 +7,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client, ClientStatus } from '@/openapi-types';
 import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
@@ -43,25 +42,6 @@ export default Vue.extend({
   },
 
   methods: {
-    getStatusIconType(status: string): string {
-      if (!status) {
-        return '';
-      }
-      switch (status.toLowerCase()) {
-        case 'registered':
-          return 'green';
-        case 'registration_in_progress':
-          return 'green-ring';
-        case 'saved':
-          return 'orange-ring';
-        case 'deletion_in_progress':
-          return 'red-ring';
-        case 'global_error':
-          return 'red';
-        default:
-          return 'red';
-      }
-    },
     getStatusText(status: string): string {
       if (!status) {
         return '';

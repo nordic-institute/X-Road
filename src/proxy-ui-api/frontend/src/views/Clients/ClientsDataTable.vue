@@ -176,6 +176,7 @@ import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   components: {
@@ -207,23 +208,23 @@ export default Vue.extend({
       }
       return true;
     },
-    headers(): any[] {
+    headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('client.name'),
-          align: 'left',
+          text: this.$t('client.name') as string,
+          align: 'start',
           value: 'sortNameAsc',
           class: 'xrd-table-header',
         },
         {
-          text: this.$t('client.id'),
-          align: 'left',
+          text: this.$t('client.id') as string,
+          align: 'start',
           value: 'id',
           class: 'xrd-table-header',
         },
         {
-          text: this.$t('client.status'),
-          align: 'left',
+          text: this.$t('client.status') as string,
+          align: 'start',
           value: 'status',
           class: 'xrd-table-header',
         },
@@ -346,7 +347,11 @@ export default Vue.extend({
         });
     },
 
-    customFilter: (value: any, search: string | null, item: any): boolean => {
+    customFilter: (
+      value: never,
+      search: string | null,
+      item: ExtendedClient,
+    ): boolean => {
       // Override for the default filter function.
       // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
       if (search === null) {
@@ -359,8 +364,8 @@ export default Vue.extend({
       }
 
       if (
-        item.visibleName.toLowerCase().includes(search) ||
-        item.id.toLowerCase().includes(search)
+        item.visibleName?.toLowerCase().includes(search) ||
+        item.id?.toLowerCase().includes(search)
       ) {
         return true;
       }
@@ -368,6 +373,8 @@ export default Vue.extend({
       return false;
     },
 
+    // this method is fixed in another ticket
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customSort(items: any[], sortBy: string[], sortDesc: boolean[]): any[] {
       // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
       // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
