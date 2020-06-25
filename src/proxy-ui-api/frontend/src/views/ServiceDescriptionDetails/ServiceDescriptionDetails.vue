@@ -232,7 +232,7 @@ export default Vue.extend({
 
     fetchData(id: string): void {
       api
-        .get(`/service-descriptions/${id}`)
+        .get<ServiceDescription>(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
           this.initialServiceCode =

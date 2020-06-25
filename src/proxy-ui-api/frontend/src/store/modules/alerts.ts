@@ -42,10 +42,17 @@ export const mutations: MutationTree<AlertsState> = {
   },
 };
 
+type AlertsResponse = {
+  global_conf_valid: boolean;
+  soft_token_pin_entered: boolean;
+  backup_restore_running_since?: string;
+  current_time: string;
+}
+
 export const actions: ActionTree<AlertsState, RootState> = {
   checkAlertStatus({ commit, dispatch }, alertStatus: AlertStatus): void {
     api
-      .get('/notifications/alerts')
+      .get<AlertsResponse>('/notifications/alerts')
       .then((resp) =>
         commit('setAlertStatus', {
           globalConfValid: resp.data.global_conf_valid,

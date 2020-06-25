@@ -254,7 +254,7 @@ export default Vue.extend({
     fetchData(): void {
       // Fetch selectable subsystems
       api
-        .get(
+        .get<Client[]>(
           `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
         )
         .then((res) => {
@@ -266,7 +266,7 @@ export default Vue.extend({
 
       // Fetch existing subsystems
       api
-        .get(
+        .get<Client[]>(
           `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&internal_search=true`,
         )
         .then((res) => {

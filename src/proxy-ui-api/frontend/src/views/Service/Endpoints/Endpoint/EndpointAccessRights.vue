@@ -139,15 +139,15 @@ export default Vue.extend({
     },
     fetchData(): void {
       api
-        .get(`/endpoints/${this.id}`)
-        .then((endpoint: any) => {
+        .get<Endpoint>(`/endpoints/${this.id}`)
+        .then((endpoint) => {
           this.endpoint = endpoint.data;
         })
         .catch((error) => {
           this.$store.dispatch('showError', error.message);
         });
       api
-        .get(`/endpoints/${this.id}/service-clients`)
+        .get<ServiceClient[]>(`/endpoints/${this.id}/service-clients`)
         .then((accessRights) => {
           this.serviceClients = accessRights.data;
         })
@@ -177,7 +177,7 @@ export default Vue.extend({
     },
     doAddServiceClients(serviceClients: ServiceClient[]): void {
       api
-        .post(`/endpoints/${this.id}/service-clients`, {
+        .post<ServiceClient[]>(`/endpoints/${this.id}/service-clients`, {
           items: serviceClients,
         })
         .then((accessRights) => {

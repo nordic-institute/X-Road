@@ -5,7 +5,7 @@ import {
   Key,
   Client,
   CertificateAuthority,
-  CsrSubjectFieldDescription,
+  CsrSubjectFieldDescription, KeyWithCertificateSigningRequestId,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
@@ -244,14 +244,12 @@ export const actions: ActionTree<CsrState, RootState> = {
     }
 
     return api
-      .post(`/tokens/${tokenId}/keys-with-csrs`, body)
+      .post<KeyWithCertificateSigningRequestId>(`/tokens/${tokenId}/keys-with-csrs`, body)
       .then((response) => {
         // Fetch and save the CSR file data
         api
           .get(`/keys/${response.data.key.id}/csrs/${response.data.csr_id}`)
-          .then((res) => {
-            saveResponseAsFile(res);
-          });
+          .then(saveResponseAsFile);
       })
       .catch((error) => {
         throw error;
@@ -275,10 +273,10 @@ export const actions: ActionTree<CsrState, RootState> = {
 
   fetchAllMemberIds({ commit, rootGetters }) {
     return api
-      .get('/clients?show_members=true')
+      .get<Client[]>('/clients?show_members=true')
       .then((res) => {
         const idSet = new Set();
-        res.data.forEach((client: Client) => {
+        res.data.forEach((client) => {
           idSet.add(
             `${client.instance_id}:${client.member_class}:${client.member_code}`,
           );

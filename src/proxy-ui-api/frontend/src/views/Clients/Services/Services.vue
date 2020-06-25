@@ -499,7 +499,7 @@ export default Vue.extend({
 
     fetchData(): void {
       api
-        .get(`/clients/${this.id}/service-descriptions`)
+        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
         .then((res) => {
           this.serviceDescriptions = res.data;
         })

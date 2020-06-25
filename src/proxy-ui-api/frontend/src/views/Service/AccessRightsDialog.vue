@@ -156,7 +156,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -178,7 +178,7 @@ function initialState() {
     subsystemCode: '',
     serviceClientTypes: ServiceClientTypes,
     expandPanel: [0],
-    serviceClientCandidates: [],
+    serviceClientCandidates: [] as ServiceClient[],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
@@ -199,7 +199,7 @@ export default Vue.extend({
       required: true,
     },
     existingServiceClients: {
-      type: Array,
+      type: Array as PropType<ServiceClient[]>,
       required: true,
     },
   },
@@ -263,14 +263,14 @@ export default Vue.extend({
 
       const isExistingServiceClient = (sc: ServiceClient): boolean => {
         return !this.existingServiceClients.some(
-          (existing: any) =>
+          (existing) =>
             sc.id === existing.id &&
             sc.service_client_type === existing.service_client_type,
         );
       };
 
       api
-        .get(query)
+        .get<ServiceClient[]>(query)
         .then((res) => {
           if (this.existingServiceClients?.length > 0) {
             // Filter out subjects that are already added

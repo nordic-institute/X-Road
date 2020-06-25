@@ -175,7 +175,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
   fetchSelectableMembers({ commit }, id: string) {
     // Fetch clients from backend that can be selected
     return api
-      .get('/clients?internal_search=false&show_members=true')
+      .get<Client[]>('/clients?internal_search=false&show_members=true')
       .then((res) => {
         // Filter out subsystems
         const filtered = res.data.filter((client: Client) => {
@@ -254,7 +254,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
   ) {
-    const clientsResponse = await api.get(`/clients?instance=${instanceId}
+    const clientsResponse = await api.get<Client[]>(`/clients?instance=${instanceId}
     &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
     const matchingClient: boolean = clientsResponse.data.some(
@@ -275,7 +275,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     }
 
     // Fetch tokens from backend
-    const tokenResponse = await api.get(`/tokens`);
+    const tokenResponse = await api.get<Token[]>(`/tokens`);
     // Create a client id
     const ownerId = createClientId(instanceId, memberClass, memberCode);
 

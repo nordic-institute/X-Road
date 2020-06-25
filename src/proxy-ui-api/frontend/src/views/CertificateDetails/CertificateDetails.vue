@@ -192,7 +192,7 @@ export default Vue.extend({
     fetchData(hash: string): void {
       // Fetch certificate data
       api
-        .get(`/token-certificates/${hash}`)
+        .get<TokenCertificate>(`/token-certificates/${hash}`)
         .then((res) => {
           this.certificate = res.data;
         })
@@ -202,7 +202,7 @@ export default Vue.extend({
 
       // Fetch possible actions
       api
-        .get(`/token-certificates/${hash}/possible-actions`)
+        .get<string[]>(`/token-certificates/${hash}/possible-actions`)
         .then((res) => {
           this.possibleActions = res.data;
         })

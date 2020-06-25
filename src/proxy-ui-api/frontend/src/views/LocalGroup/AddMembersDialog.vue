@@ -122,10 +122,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { Client } from '@/openapi-types';
 
 function initialState() {
   return {
@@ -135,7 +136,7 @@ function initialState() {
     memberCode: '',
     subsystemCode: '',
     expandPanel: [0],
-    members: [],
+    members: [] as Client[],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
@@ -152,7 +153,7 @@ export default Vue.extend({
       required: true,
     },
     filtered: {
-      type: Array,
+      type: Array as PropType<Client[]>,
     },
     title: {
       type: String,
@@ -198,12 +199,12 @@ export default Vue.extend({
       }
 
       api
-        .get(query)
+        .get<Client[]>(query)
         .then((res) => {
           if (this.filtered && this.filtered.length > 0) {
             // Filter out members that are already added
-            this.members = res.data.filter((member: any) => {
-              return !this.filtered.find((item: any) => {
+            this.members = res.data.filter((member) => {
+              return !this.filtered.find((item) => {
                 return item.id === member.id;
               });
             });

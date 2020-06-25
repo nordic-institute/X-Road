@@ -1,4 +1,5 @@
 import { Client } from '@/openapi-types';
+import { AxiosResponse } from 'axios';
 
 // Filters an array of objects excluding specified object key
 export function selectedFilter(
@@ -46,7 +47,7 @@ export function isValidRestURL(str: string): boolean {
 
 // Save response data as a file
 export function saveResponseAsFile(
-  response: any,
+  response: AxiosResponse,
   defaultFileName = 'certs.tar.gz',
 ) {
   let suggestedFileName;

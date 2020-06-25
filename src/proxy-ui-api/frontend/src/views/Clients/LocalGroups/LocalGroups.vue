@@ -119,7 +119,7 @@ export default Vue.extend({
 
     fetchGroups(id: string): void {
       api
-        .get(`/clients/${id}/local-groups`)
+        .get<LocalGroup[]>(`/clients/${id}/local-groups`)
         .then((res) => {
           this.groups = res.data.sort((a: LocalGroup, b: LocalGroup) => {
             if (a.code < b.code) {
