@@ -168,22 +168,20 @@ enum ServiceClientTypes {
   SUBSYSTEM = 'SUBSYSTEM',
 }
 
-function initialState() {
-  return {
-    name: '',
-    serviceClientType: '',
-    instance: '',
-    memberClass: '',
-    memberCode: '',
-    subsystemCode: '',
-    serviceClientTypes: ServiceClientTypes,
-    expandPanel: [0],
-    serviceClientCandidates: [] as ServiceClient[],
-    selectedIds: [] as string[],
-    noResults: false,
-    checkbox1: true,
-  };
-}
+const initialState = {
+  name: '',
+  serviceClientType: '',
+  instance: '',
+  memberClass: '',
+  memberCode: '',
+  subsystemCode: '',
+  serviceClientTypes: ServiceClientTypes,
+  expandPanel: [0],
+  serviceClientCandidates: [] as ServiceClient[],
+  selectedIds: [] as ServiceClient[],
+  noResults: false,
+  checkbox1: true,
+};
 
 export default Vue.extend({
   components: {
@@ -205,15 +203,12 @@ export default Vue.extend({
   },
 
   data() {
-    return initialState();
+    return { ...initialState };
   },
   computed: {
     ...mapGetters(['xroadInstances', 'memberClasses']),
     canSave(): boolean {
-      if (this.selectedIds.length > 0) {
-        return true;
-      }
-      return false;
+      return this.selectedIds.length > 0;
     },
     ServiceClientTypeItems(): object[] {
       // Returns items for subject type select with translated texts
@@ -234,8 +229,8 @@ export default Vue.extend({
     },
   },
   methods: {
-    checkboxChange(subject: any, event: any): void {
-      if (event === true) {
+    checkboxChange(subject: ServiceClient, event: boolean): void {
+      if (event) {
         this.selectedIds.push(subject);
       } else {
         const index = this.selectedIds.indexOf(subject);
@@ -302,7 +297,7 @@ export default Vue.extend({
 
     clearForm(): void {
       // Reset initial state
-      Object.assign(this.$data, initialState());
+      Object.assign(this.$data, initialState);
     },
   },
   created() {
