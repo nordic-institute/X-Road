@@ -1,3 +1,6 @@
+// Ok to ignore any here because that is the axios contract as well
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export type PostPutPatch = <T>(

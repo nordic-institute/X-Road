@@ -117,7 +117,7 @@ export const tokensGetters: GetterTree<TokensState, RootState> = {
 
 export const mutations: MutationTree<TokensState> = {
   setTokenHidden(state, id: string) {
-    const index = state.expandedTokens.findIndex((element: any) => {
+    const index = state.expandedTokens.findIndex((element) => {
       return element === id;
     });
 
@@ -127,7 +127,7 @@ export const mutations: MutationTree<TokensState> = {
   },
 
   setTokenExpanded(state, id: string) {
-    const index = state.expandedTokens.findIndex((element: any) => {
+    const index = state.expandedTokens.findIndex((element) => {
       return element === id;
     });
 
@@ -146,23 +146,24 @@ export const mutations: MutationTree<TokensState> = {
 };
 
 export const actions: ActionTree<TokensState, RootState> = {
-  expandToken({ commit, rootGetters }, id: string) {
+  expandToken({ commit }, id: string) {
     commit('setTokenExpanded', id);
   },
-  hideToken({ commit, rootGetters }, id: string) {
+  hideToken({ commit }, id: string) {
     commit('setTokenHidden', id);
   },
-  uploadCertificate({ commit, state }, data) {
+  uploadCertificate(_, data) {
+    // TODO: Check with Tapio why this is in the store (doesn't change any state)
     return axios.post(`/token-certificates`, data.fileData, {
       headers: {
         'Content-Type': 'application/octet-stream',
       },
     });
   },
-  fetchTokens({ commit, rootGetters }, id: string) {
+  fetchTokens({ commit }) {
     // Fetch tokens from backend
     return api
-      .get(`/tokens`)
+      .get<Token[]>(`/tokens`)
       .then((res) => {
         commit('setTokens', res.data);
       })
@@ -171,20 +172,20 @@ export const actions: ActionTree<TokensState, RootState> = {
       });
   },
 
-  tokenLogout({ commit, dispatch, rootGetters }, id: string) {
+  tokenLogout({ dispatch }, id: string) {
     return api
       .put(`/tokens/${id}/logout`, {})
-      .then((res) => {
+      .then(() => {
         // Update tokens
-        this.dispatch('fetchTokens');
-        this.dispatch('checkAlertStatus');
+        dispatch('fetchTokens');
+        dispatch('checkAlertStatus');
       })
       .catch((error) => {
         throw error;
       });
   },
 
-  setSelectedToken({ commit, dispatch, rootGetters }, token: Token) {
+  setSelectedToken({ commit }, token: Token) {
     commit('setSelectedToken', token);
   },
 };

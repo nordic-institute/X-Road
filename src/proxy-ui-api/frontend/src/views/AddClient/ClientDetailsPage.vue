@@ -194,7 +194,7 @@ export default Vue.extend({
     },
     saveSelectedClient(selectedMember: Client): void {
       this.$store.dispatch('setSelectedMember', selectedMember).then(
-        (response) => {
+        () => {
           this.$store.dispatch('fetchReservedClients', selectedMember);
         },
         (error) => {
