@@ -1,7 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
-import axios from 'axios';
 import * as api from '@/util/api';
 
 export interface TokensState {
@@ -151,14 +150,6 @@ export const actions: ActionTree<TokensState, RootState> = {
   },
   hideToken({ commit }, id: string) {
     commit('setTokenHidden', id);
-  },
-  uploadCertificate(_, data) {
-    // TODO: Check with Tapio why this is in the store (doesn't change any state)
-    return axios.post(`/token-certificates`, data.fileData, {
-      headers: {
-        'Content-Type': 'application/octet-stream',
-      },
-    });
   },
   fetchTokens({ commit }) {
     // Fetch tokens from backend

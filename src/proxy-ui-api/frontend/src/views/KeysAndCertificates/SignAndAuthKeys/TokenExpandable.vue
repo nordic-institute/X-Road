@@ -216,9 +216,11 @@ export default Vue.extend({
     },
 
     importCert(event: FileUploadResult) {
-      this.$store
-        .dispatch('uploadCertificate', {
-          fileData: event.buffer,
+      api
+        .post(`/token-certificates`, event.buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
         })
         .then(
           () => {
