@@ -31,7 +31,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
@@ -212,36 +211,10 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void checkRequestIdentifiers() {
-        ClientId client = requestSoap.getClient();
-        if (client != null) {
-            checkIdentifier(client.getXRoadInstance(), "client.xRoadInstance");
-            checkIdentifier(client.getMemberClass(), "client.memberClass");
-            checkIdentifier(client.getMemberCode(), "client.memberCode");
-            checkIdentifier(client.getSubsystemCode(), "client.subsystemCode");
-        }
-        ServiceId service = requestSoap.getService();
-        if (service != null) {
-            checkIdentifier(service.getXRoadInstance(), "service.xRoadInstance");
-            checkIdentifier(service.getMemberClass(), "service.memberClass");
-            checkIdentifier(service.getMemberCode(), "service.memberCode");
-            checkIdentifier(service.getSubsystemCode(), "service.subsystemCode");
-            checkIdentifier(service.getServiceCode(), "service.serviceCode");
-            checkIdentifier(service.getServiceVersion(), "service.serviceVersion");
-        }
-        CentralServiceId centralService = requestSoap.getCentralService();
-        if (centralService != null) {
-            checkIdentifier(centralService.getXRoadInstance(), "centralService.xRoadInstance");
-            checkIdentifier(centralService.getMemberClass(), "centralService.memberClass");
-            checkIdentifier(centralService.getMemberCode(), "centralService.memberCode");
-            checkIdentifier(centralService.getSubsystemCode(), "centralService.subsystemCode");
-        }
-        SecurityServerId securityServer = requestSoap.getSecurityServer();
-        if (securityServer != null) {
-            checkIdentifier(securityServer.getXRoadInstance(), "securityServer.xRoadInstance");
-            checkIdentifier(securityServer.getMemberClass(), "securityServer.memberClass");
-            checkIdentifier(securityServer.getMemberCode(), "securityServer.memberCode");
-            checkIdentifier(securityServer.getServerCode(), "securityServer.subsystemCode");
-        }
+        checkIdentifier(requestSoap.getClient());
+        checkIdentifier(requestSoap.getService());
+        checkIdentifier(requestSoap.getCentralService());
+        checkIdentifier(requestSoap.getSecurityServer());
     }
 
     @Override

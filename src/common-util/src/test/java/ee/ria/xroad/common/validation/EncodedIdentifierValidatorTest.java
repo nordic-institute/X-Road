@@ -33,9 +33,9 @@ import java.util.EnumSet;
 
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.BACKSLASH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.COLON;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.CONTROL_CHAR;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.NON_PRINTABLE;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.PERCENT;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.SEMICOLON;
 import static org.junit.Assert.assertEquals;
@@ -108,16 +108,16 @@ public class EncodedIdentifierValidatorTest {
     }
 
     @Test
-    public void nonPrintable() {
-        assertEquals(EnumSet.of(NON_PRINTABLE),
+    public void controlChars() {
+        assertEquals(EnumSet.of(CONTROL_CHAR),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(tab)));
-        assertEquals(EnumSet.of(NON_PRINTABLE),
+        assertEquals(EnumSet.of(CONTROL_CHAR),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(newline)));
-        assertEquals(EnumSet.of(NON_PRINTABLE),
+        assertEquals(EnumSet.of(CONTROL_CHAR),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(cr)));
-        assertEquals(EnumSet.of(NON_PRINTABLE),
+        assertEquals(EnumSet.of(CONTROL_CHAR),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(esc)));
-        assertEquals(EnumSet.of(NON_PRINTABLE),
+        assertEquals(EnumSet.of(CONTROL_CHAR),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(sos)));
         assertEquals(EnumSet.noneOf(EncodedIdentifierValidator.ValidationError.class),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(space)));

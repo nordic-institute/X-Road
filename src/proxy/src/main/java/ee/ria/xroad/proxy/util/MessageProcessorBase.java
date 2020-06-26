@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.monitoring.MessageInfo;
@@ -37,6 +38,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +53,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 /**
  * Base class for message processors.
  */
+@Slf4j
 public abstract class MessageProcessorBase {
 
     /** The servlet request. */
@@ -190,4 +193,45 @@ public abstract class MessageProcessorBase {
         }
         throw new CodedException(X_INVALID_SOAPACTION, "Malformed SOAPAction header");
     }
+
+    /**
+     * Logs a warning if identifier contains invalid characters.
+     *
+     * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
+     * @see ee.ria.xroad.common.validation.EncodedIdentifierValidator
+     *
+     */
+    protected static boolean checkIdentifier(final XRoadId id) {
+        if (id != null) {
+            if (!validateIdentifierField(id.getXRoadInstance())) {
+                log.warn("Invalid character(s) in identifier {}", id.toString());
+                return false;
+            }
+
+            for (String f : id.getFieldsForStringFormat()) {
+                if (f != null && !validateIdentifierField(f)) {
+                    log.warn("Invalid character(s) in identifier {}", id.toString());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean validateIdentifierField(final CharSequence field) {
+        for (int i = 0; i < field.length(); i++) {
+            final char c = field.charAt(i);
+            //ISO control char
+            if (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f')) {
+                return false;
+            }
+            //Forbidden chars
+            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\') {
+                return false;
+            }
+            //"normalized path" check is redundant since path separators (/,\) are forbidden
+        }
+        return true;
+    }
+
 }

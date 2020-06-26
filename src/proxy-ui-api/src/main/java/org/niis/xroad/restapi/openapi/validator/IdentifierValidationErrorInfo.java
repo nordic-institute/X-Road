@@ -44,7 +44,7 @@ public enum IdentifierValidationErrorInfo {
     FORWARDSLASH("NoForwardslashes", "must not contain slashes"),
     BACKSLASH("NoBackslashes", "must not contain backslashes"),
     PERCENT("NoPercents", "must not contain percents"),
-    NON_PRINTABLE("NoNonPrintables", "must not contain non-printables");
+    CONTROL_CHAR("NoControlChars", "must not contain control characters");
 
     @Getter
     private String errorCode;

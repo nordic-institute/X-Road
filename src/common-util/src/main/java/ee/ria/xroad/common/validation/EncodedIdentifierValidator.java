@@ -68,8 +68,8 @@ public class EncodedIdentifierValidator {
         if (SpringFirewallValidationRules.containsSemicolon(s)) {
             errors.add(ValidationError.SEMICOLON);
         }
-        if (SpringFirewallValidationRules.containsNonPrintable(s)) {
-            errors.add(ValidationError.NON_PRINTABLE);
+        if (SpringFirewallValidationRules.containsIsoControlChars(s)) {
+            errors.add(ValidationError.CONTROL_CHAR);
         }
         if (!SpringFirewallValidationRules.isNormalized(s)) {
             errors.add(ValidationError.NON_NORMALIZED_PATH);
@@ -84,6 +84,6 @@ public class EncodedIdentifierValidator {
         FORWARDSLASH,
         BACKSLASH,
         PERCENT,
-        NON_PRINTABLE
+        CONTROL_CHAR
     }
 }

@@ -65,7 +65,7 @@ public final class SpringFirewallValidationRules {
         return s.contains(FORBIDDEN_BACKSLASH);
     }
 
-    public static boolean containsNonPrintable(String s) {
+    public static boolean containsIsoControlChars(String s) {
         return CharMatcher.javaIsoControl().matchesAnyOf(s);
     }
 

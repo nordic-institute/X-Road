@@ -234,7 +234,7 @@ module CommonUi
           SpringFirewallValidationRules::containsForwardslash(val) ||
           SpringFirewallValidationRules::containsBackslash(val) ||
           !SpringFirewallValidationRules::isNormalized(val) ||
-          SpringFirewallValidationRules::containsNonPrintable(val)
+          SpringFirewallValidationRules::containsIsoControlChars(val)
             raise ValidationError.new(param, :identifier),
                   I18n.t('validation.invalid_identifier', :param => param, :val => val)
         end

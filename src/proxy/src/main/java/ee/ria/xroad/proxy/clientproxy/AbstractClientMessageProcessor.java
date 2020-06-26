@@ -38,13 +38,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
 
@@ -56,7 +54,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -224,17 +221,6 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
         log.trace("verifyClientAuthentication()");
         IsAuthentication.verifyClientAuthentication(sender, clientCert);
-    }
-
-    protected void checkIdentifier(String id, String field) {
-        if (StringUtils.isNotEmpty(id)) {
-            EncodedIdentifierValidator encodedIdentifierValidator = new EncodedIdentifierValidator();
-            EnumSet<EncodedIdentifierValidator.ValidationError> validationErrors =
-                    encodedIdentifierValidator.getValidationErrors(id);
-            if (!validationErrors.isEmpty()) {
-                log.warn("Invalid identifier in '{}' field: {}", field, id);
-            }
-        }
     }
 
     @EqualsAndHashCode
