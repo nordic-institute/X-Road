@@ -47,11 +47,11 @@ spec:
   replicas: {{NUMBER_REPLICAS}}
   template:
     metadata:
-      labels:
-        run: security-server-sidecar
-    spec:
-      containers:
-      - name: security-server-sidecar
+      labels:"
+        run: security-server-sidecar"
+    spec:"
+      containers:"
+      - name: security-server-sidecar"
         image: niis/xroad-security-server-sidecar:latest-provider
         env:
         - name: XROAD_TOKEN_PIN

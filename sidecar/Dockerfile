@@ -59,6 +59,8 @@ COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chown=xroad:xroad files/local.conf /etc/xroad/services/local.conf
 COPY --chown=xroad:xroad files/*logback* /etc/xroad/conf.d/
+COPY --chown=xroad:xroad files/local.conf /tmp/local.conf
+COPY --chown=xroad:xroad files/*logback* /tmp/
 COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
 RUN sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh
