@@ -49,6 +49,10 @@ spec:
           value: "xrd"
         - name: XROAD_ADMIN_PASSWORD
           value: "secret"
+        - name: XROAD_DB_HOST
+          value: "127.0.0.1"
+        - name: XROAD_DB_PORT
+          value: "5432"
         ports:
         - containerPort: 80
         - containerPort: 443
