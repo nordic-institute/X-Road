@@ -8,7 +8,6 @@ pipeline {
         string(description: "External database password", name: "XROAD_DB_PWD", defaultValue: "${params?.XROAD_DB_PWD}")
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
         string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
-        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
     }
     stages {
         stage('Apply cluster configuration') {
