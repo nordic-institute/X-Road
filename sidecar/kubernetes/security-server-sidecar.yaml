@@ -44,7 +44,7 @@ spec:
   selector:
     matchLabels:
       run: security-server-sidecar
-  replicas: 1
+  replicas: {{NUMBER_REPLICAS}}
   template:
     metadata:
       labels:
