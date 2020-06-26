@@ -2,7 +2,6 @@ pipeline {
     agent any
     parameters {
         string(description: "Number of pod replicas", name: "NUMBER_REPLICAS", defaultValue: "${params?.NUMBER_REPLICAS}")
-        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
     }
     stages {
         stage('Scale replicas') {
