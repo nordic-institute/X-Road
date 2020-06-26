@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'dev-test' }
     parameters {
         string(description: "Number of pod replicas", name: "NUMBER_REPLICAS", defaultValue: "${params?.NUMBER_REPLICAS}")
     }

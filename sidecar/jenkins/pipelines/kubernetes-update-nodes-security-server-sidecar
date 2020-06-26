@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'dev-test' }
     parameters {
         string(description: "Nodes max size", name: "MAX_SIZE", defaultValue: "${params?.MAX_SIZE}")
         string(description: "Nodes min size", name: "MIN_SIZE", defaultValue: "${params?.MIN_SIZE}")
