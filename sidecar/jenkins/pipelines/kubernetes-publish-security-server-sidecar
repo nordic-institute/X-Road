@@ -19,7 +19,7 @@ pipeline {
                 AWS_BUCKET = "niis-xroad-development"
             }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS',
+                withCredentials([[credentialsId: 'AWS',
                         ACCESS_KEY: 'ACCESS_KEY', SECRET_KEY: 'SECRET_KEY']]) {
                     sh '''
                     aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}
