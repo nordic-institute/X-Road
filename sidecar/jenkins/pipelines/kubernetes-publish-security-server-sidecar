@@ -11,8 +11,15 @@ pipeline {
     }
     stages {
         stage('Apply cluster configuration') {
+            environment {
+                AWS_DEFAULT_REGION = 'eu-west-1'
+                AWS_REGION = 'eu-west-1'
+                HOME = '/tmp'
+                GPG_KEY = "jenkins@niis.org"
+                AWS_BUCKET = "niis-xroad-development"
+            }
             steps {
-                withAWS(credentials:'AWS') {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable:'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY'), file(credentialsId: "jenkins-gpg-key", variable: 'KEY')]) {
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
                 }
             }
