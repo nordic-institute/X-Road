@@ -1,0 +1,175 @@
+/**
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.restapi.openapi;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
+import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.service.BackupService;
+import org.niis.xroad.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.DiagnosticService;
+import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.service.InitializationService;
+import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
+import org.niis.xroad.restapi.service.RestoreService;
+import org.niis.xroad.restapi.service.ServerConfService;
+import org.niis.xroad.restapi.service.SystemService;
+import org.niis.xroad.restapi.service.TokenCertificateService;
+import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.service.UrlValidator;
+import org.niis.xroad.restapi.service.VersionService;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.wsdl.WsdlValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import static org.niis.xroad.restapi.util.TestUtils.mockServletRequestAttributes;
+
+/**
+ * Base for all api controller tests that need injected/mocked beans in the application context. All api controller
+ * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
+ * the execution time of the api controller tests
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
+@Transactional
+public abstract class ApiControllerTestContext {
+    @MockBean
+    public CertificateAuthorityService certificateAuthorityService;
+    @MockBean
+    public GlobalConfFacade globalConfFacade;
+    @MockBean
+    public BackupService backupService;
+    @MockBean
+    public RestoreService restoreService;
+    @MockBean
+    public SignerProxyFacade signerProxyFacade;
+    @MockBean
+    public UrlValidator urlValidator;
+    @MockBean
+    public ManagementRequestSenderService managementRequestSenderService;
+    @MockBean
+    public DiagnosticService diagnosticService;
+    @MockBean
+    public SystemService systemService;
+    @MockBean
+    public CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+    @MockBean
+    public CurrentSecurityServerId currentSecurityServerId;
+    @MockBean
+    public InitializationService initializationService;
+    @MockBean
+    public InternalTlsCertificateRepository mockRepository;
+    @MockBean
+    public VersionService versionService;
+    @SpyBean
+    public GlobalConfService globalConfService;
+    @SpyBean
+    public KeyService keyService;
+    @SpyBean
+    public TokenService tokenService;
+    @SpyBean
+    public TokenCertificateService tokenCertificateService;
+    @SpyBean
+    public ServerConfService serverConfService;
+    @SpyBean
+    public WsdlValidator wsdlValidator;
+    @SpyBean
+    public MockableAuditEventLoggingFacade auditEventLoggingFacade;
+    @SpyBean
+    public PossibleActionsRuleEngine possibleActionsRuleEngine;
+    @SpyBean
+    public ClientConverter clientConverter;
+    @Autowired
+    public SystemApiController systemApiController;
+    @Autowired
+    public KeysApiController keysApiController;
+    @Autowired
+    public CertificateAuthoritiesApiController caController;
+    @Autowired
+    public TestRestTemplate restTemplate;
+    @Autowired
+    public ClientService clientService;
+    @Autowired
+    public BackupsApiController backupsApiController;
+    @Autowired
+    public ClientsApiController clientsApiController;
+    @Autowired
+    public DiagnosticsApiController diagnosticsApiController;
+    @Autowired
+    public PersistenceUtils persistenceUtils;
+    @Autowired
+    public EndpointsApiController endpointsApiController;
+    @Autowired
+    public InitializationApiController initializationApiController;
+    @Autowired
+    public LocalGroupsApiController localGroupsApiController;
+    @Autowired
+    public MemberClassesApiController memberClassesApiController;
+    @Autowired
+    public SecurityServersApiController securityServersApiController;
+    @Autowired
+    public ServiceDescriptionsApiController serviceDescriptionsApiController;
+    @Autowired
+    public ServicesApiController servicesApiController;
+    @Autowired
+    public TimestampingServicesApiController timestampingServicesApiController;
+    @Autowired
+    public TokenCertificatesApiController tokenCertificatesApiController;
+    @Autowired
+    public TokensApiController tokensApiController;
+    @Autowired
+    public XroadInstancesApiController xroadInstancesApiController;
+
+    @Before
+    public void mockServlet() {
+        mockServletRequestAttributes();
+    }
+
+    @After
+    public void cleanUpServlet() {
+        RequestContextHolder.resetRequestAttributes();
+    }
+}

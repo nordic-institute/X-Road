@@ -29,57 +29,26 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
-import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.GlobalConfService;
-import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-public class EndpointsApiControllerTest {
-
-    @Autowired
-    private EndpointsApiController endpointsApiController;
-
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private PersistenceUtils persistenceUtils;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private GlobalConfService globalConfService;
-
+public class EndpointsApiControllerTest extends ApiControllerTestContext {
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
     @Test
-    @WithMockUser(authorities = {"VIEW_ENDPOINT"})
+    @WithMockUser(authorities = { "VIEW_ENDPOINT" })
     public void getEndpoint() {
         Endpoint endpoint = endpointsApiController.getEndpoint("12").getBody();
         assertTrue(endpoint.getId().equals("12"));
@@ -88,19 +57,19 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
+    @WithMockUser(authorities = { "DELETE_ENDPOINT" })
     public void deleteEndpointNotExist() {
         endpointsApiController.deleteEndpoint(NO_SUCH_ENDPOINT_ID);
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
+    @WithMockUser(authorities = { "DELETE_ENDPOINT" })
     public void deleteGeneratedEndpoint() {
         endpointsApiController.deleteEndpoint("10");
     }
 
     @Test
-    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
+    @WithMockUser(authorities = { "DELETE_ENDPOINT" })
     public void deleteEndpoint() {
         ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         int aclCount = client.getAcl().size();
@@ -110,7 +79,7 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
     public void updateGeneratedEndpoint() {
         EndpointUpdate pathAndMethod = new EndpointUpdate();
         pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
@@ -119,7 +88,7 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
     public void updateEndpointWithEmptyPathString() {
         EndpointUpdate pathAndMethod = new EndpointUpdate();
         pathAndMethod.setPath("");
@@ -127,14 +96,14 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
     public void updateEndpointWithEmptyPathAndMethod() {
         EndpointUpdate pathAndMethod = new EndpointUpdate();
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
     @Test
-    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
+    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
     public void updateEndpoint() {
         EndpointUpdate pathAndMethod = new EndpointUpdate();
         pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
@@ -150,13 +119,13 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
+    @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL" })
     public void getInexistingEndpointAccessRights() {
         endpointsApiController.getEndpointServiceClients("NON_EXISTING_ENDPOINT_ID");
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
+    @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL" })
     public void getEndpointAccesRights() {
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
@@ -167,9 +136,9 @@ public class EndpointsApiControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
+    @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL" })
     public void removeExistingEndpointAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         ServiceClients deletedScs = new ServiceClients()
@@ -183,9 +152,9 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
+    @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL" })
     public void removeInexistingEndpointAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         ServiceClients deletedScs = new ServiceClients()
@@ -195,10 +164,10 @@ public class EndpointsApiControllerTest {
     }
 
     @Test(expected = ConflictException.class)
-    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL"})
+    @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL" })
     public void addExistingEndpointAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         ServiceClients serviceClients = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
@@ -207,10 +176,10 @@ public class EndpointsApiControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL"})
+    @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL" })
     public void addEndpointAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         // add access rights for a subsystem and global group to endpoint
         List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
@@ -243,6 +212,5 @@ public class EndpointsApiControllerTest {
         assertTrue(localGroupTestServiceClients.stream().anyMatch(sc -> sc.getId()
                 .equals(TestUtils.DB_LOCAL_GROUP_ID_1)));
     }
-
 
 }

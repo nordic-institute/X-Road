@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test LocalGroupConverter
  */
-public class LocalGroupConverterTest extends BaseConverterMockTest {
+public class LocalGroupConverterTest extends ConverterTestContext {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 

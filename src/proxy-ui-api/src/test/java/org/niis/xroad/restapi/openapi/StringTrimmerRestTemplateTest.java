@@ -26,29 +26,21 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
@@ -58,17 +50,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
 /**
- * Test that user inputted strings are being trimmed correctly
+ * Test that user inputted strings are being trimmed correctly.
+ *
+ * TestRestTemplate requests will not be rolled back so the context will need to be reloaded after this test class
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-public class StringTrimmerRestTemplateTest {
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class StringTrimmerRestTemplateTest extends ApiControllerTestContext {
     public static final String MEMBER_CODE_WITH_SPACES = "  1234  ";
     public static final String MEMBER_CODE_WITHOUT_SPACES = "1234";
     public static final String SUBSYSTEM_CODE_WITH_SPACES = "  SS1  ";
@@ -77,15 +68,6 @@ public class StringTrimmerRestTemplateTest {
     public static final String GROUP_CODE_WITHOUT_SPACES = "GroupCode";
     public static final String GROUP_DESC_WITH_SPACES = "  Description of a group  ";
     public static final String GROUP_DESC_WITHOUT_SPACES = "Description of a group";
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
     @Before
     public void setup() {
@@ -99,9 +81,12 @@ public class StringTrimmerRestTemplateTest {
         });
 
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Test
+    @WithMockUser(authorities = "ADD_CLIENT")
     public void testAddClientWithSpaces() {
         ClientAdd clientAdd = createClientAdd(MEMBER_CODE_WITH_SPACES, SUBSYSTEM_CODE_WITH_SPACES);
         ResponseEntity<Client> response = restTemplate.postForEntity("/api/clients", clientAdd, Client.class);
@@ -113,6 +98,7 @@ public class StringTrimmerRestTemplateTest {
     }
 
     @Test
+    @WithMockUser(authorities = "ADD_LOCAL_GROUP")
     public void testAddLocalGroupWithSpaces() {
         LocalGroupAdd localGroupAdd = createLocalGroupAdd(GROUP_CODE_WITH_SPACES, GROUP_DESC_WITH_SPACES);
         ResponseEntity<LocalGroup> response = restTemplate.postForEntity("/api/clients/" + TestUtils.CLIENT_ID_SS1
@@ -125,12 +111,14 @@ public class StringTrimmerRestTemplateTest {
     }
 
     @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testFindClientsWithSpaces() {
         String findClientsApiPath = UriComponentsBuilder.fromPath("/api/clients")
                 .queryParam("subsystem_code", SUBSYSTEM_CODE_WITH_SPACES)
                 .build(false)
                 .toString();
-        ParameterizedTypeReference<List<Client>> typeRef = new ParameterizedTypeReference<List<Client>>() { };
+        ParameterizedTypeReference<List<Client>> typeRef = new ParameterizedTypeReference<List<Client>>() {
+        };
         ResponseEntity<List<Client>> response = restTemplate.exchange(findClientsApiPath, HttpMethod.GET, null,
                 typeRef);
         List<Client> foundClients = response.getBody();

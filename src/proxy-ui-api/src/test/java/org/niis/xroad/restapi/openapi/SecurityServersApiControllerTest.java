@@ -29,34 +29,24 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
-import org.niis.xroad.restapi.service.GlobalConfService;
-import org.niis.xroad.restapi.service.ServerConfService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
  * test securityservers api controller
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-public class SecurityServersApiControllerTest {
+public class SecurityServersApiControllerTest extends ApiControllerTestContext {
 
     // our global configuration has only this security server
     public static final SecurityServerId EXISTING_SERVER_ID = SecurityServerId.create(
@@ -65,26 +55,15 @@ public class SecurityServersApiControllerTest {
             "XRD2", "GOV", "M4", "owner");
     private static final String SERVER_ADDRESS = "foo.bar.baz";
 
-    @MockBean
-    private GlobalConfService globalConfService;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private ServerConfService serverConfService;
-
-    @Autowired
-    private SecurityServersApiController securityServersApiController;
-
     @Before
     public void setup() {
         // securityServerExists = true when parameter = EXISTING_SERVER_ID
-        when(globalConfService.securityServerExists(any()))
-                .thenAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID));
+        doAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID))
+                .when(globalConfService).securityServerExists(any());
         when(globalConfFacade.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
         when(globalConfFacade.getSecurityServers(any())).thenReturn(Arrays.asList(EXISTING_SERVER_ID, OWNER_SERVER_ID));
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Test

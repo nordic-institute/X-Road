@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * test ServiceConverter
  */
-public class ServiceConverterTest extends BaseConverterMockTest {
+public class ServiceConverterTest extends ConverterTestContext {
 
     public static final String CLIENT_ID_PREFIX_SS1 = "XRD2:GOV:M4:SS1:";
 

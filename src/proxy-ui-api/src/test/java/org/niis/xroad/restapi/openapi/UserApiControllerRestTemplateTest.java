@@ -25,22 +25,13 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.User;
-import org.niis.xroad.restapi.service.ApiKeyService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,25 +43,19 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
 
 /**
  * test user api with real rest requests
+ *
+ * If data source is altered with TestRestTemplate (e.g. POST, PUT or DELETE) in this test class,
+ * please remember to mark the context dirty with the following annotation:
+ * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-public class UserApiControllerRestTemplateTest {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
+public class UserApiControllerRestTemplateTest extends ApiControllerTestContext {
     @Before
-    public void setup() throws ApiKeyService.ApiKeyNotFoundException {
+    public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);
     }
 
     @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testGetUser() {
         ResponseEntity<User> response = restTemplate.getForEntity("/api/user", User.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());

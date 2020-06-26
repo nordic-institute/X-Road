@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test VersionConverter
  */
-public class VersionConverterTest extends BaseConverterMockTest {
+public class VersionConverterTest extends ConverterTestContext {
 
     private VersionConverter versionConverter;
 

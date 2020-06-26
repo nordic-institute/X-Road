@@ -27,26 +27,14 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
-import org.niis.xroad.restapi.service.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Map;
 
@@ -56,36 +44,24 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1;
+import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
 /**
  * Simple tests to validate that basic audit logging works
  */
-@ActiveProfiles({ "test", "audit-test" })
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-public class AuditLoggingRestTemplateTest {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
-    private ClientService clientService;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @SpyBean
-    private MockableAuditEventLoggingFacade auditEventLoggingFacade;
+@ActiveProfiles( { "test", "audit-test" }) // profile change forces to load a new application context
+public class AuditLoggingRestTemplateTest extends ApiControllerTestContext {
 
     @Before
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);
+        when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Test
@@ -165,6 +141,5 @@ public class AuditLoggingRestTemplateTest {
         assertEquals("/api/clients/" + missingClientId, urlCaptor.getValue());
         verifyNoMoreInteractions(auditEventLoggingFacade);
     }
-
 
 }
