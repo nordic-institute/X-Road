@@ -19,13 +19,9 @@ pipeline {
                 AWS_BUCKET = "niis-xroad-development"
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable:'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY'), file(credentialsId: "jenkins-gpg-key", variable: 'KEY')]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS',
+                        ACCESS_KEY: 'ACCESS_KEY', SECRET_KEY: 'SECRET_KEY']]) {
                     sh '''
-                    echo usernameVariable
-                    echo ${usernameVariable}
-                    echo $usernameVariable
-                    export usernameVariable
-                    export passwordVariable
                     aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}
                     '''
                 }
