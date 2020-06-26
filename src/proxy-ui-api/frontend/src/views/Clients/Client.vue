@@ -1,23 +1,39 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <v-flex mb-4 class="title-action">
-      <h1
-        v-if="client && client.owner"
-        class="display-1 mb-3"
-      >{{client.member_name}} ({{ $t("client.owner") }})</h1>
-      <h1
-        v-else-if="client"
-        class="display-1 mb-3"
-      >{{client.member_name}} ({{ $t("client.member") }})</h1>
+      <h1 v-if="client && client.owner" class="display-1 mb-3">
+        {{ client.member_name }} ({{ $t('client.owner') }})
+      </h1>
+      <h1 v-else-if="client" class="display-1 mb-3">
+        {{ client.member_name }} ({{ $t('client.member') }})
+      </h1>
 
-      <div>
+      <div class="action-block">
+        <MakeOwnerButton
+          v-if="showMakeOwner"
+          :id="id"
+          @done="fetchClient"
+          class="first-button"
+        />
         <DeleteClientButton v-if="showDelete" :id="id" />
-        <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchClient" />
+        <UnregisterClientButton
+          v-if="showUnregister"
+          :id="id"
+          @done="fetchClient"
+        />
       </div>
     </v-flex>
-    <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow slider-size="4">
+    <v-tabs
+      v-model="tab"
+      class="xrd-tabs"
+      color="secondary"
+      grow
+      slider-size="4"
+    >
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
     </v-tabs>
 
     <router-view />
@@ -31,11 +47,13 @@ import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
+import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
 
 export default Vue.extend({
   components: {
     UnregisterClientButton,
     DeleteClientButton,
+    MakeOwnerButton,
   },
   props: {
     id: {
@@ -50,6 +68,15 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['client']),
+
+    showMakeOwner(): boolean {
+      return (
+        this.client &&
+        this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
+        this.client.status === 'REGISTERED' &&
+        !this.client.owner
+      );
+    },
     showUnregister(): boolean {
       return (
         this.client &&
@@ -112,5 +139,14 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.action-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.first-button {
+  margin-right: 20px;
 }
 </style>

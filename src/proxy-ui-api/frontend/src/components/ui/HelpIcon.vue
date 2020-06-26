@@ -4,7 +4,7 @@
       <template v-slot:activator="{ on }">
         <v-icon color="#202020" small dark v-on="on">mdi-help-circle</v-icon>
       </template>
-      <span>{{text}}</span>
+      <span>{{ text }}</span>
     </v-tooltip>
   </div>
 </template>

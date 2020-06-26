@@ -108,37 +108,38 @@ export const actions: ActionTree<UserState, RootState> = {
   },
 
   async fetchUserData({ commit, dispatch }) {
-    return axios.get('/user')
+    return axios
+      .get('/user')
       .then((res) => {
-        console.log(res);
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       });
   },
 
   async fetchCurrentSecurityServer({ commit }) {
-    return axios.get<SecurityServer[]>('/security-servers?current_server=true')
+    return axios
+      .get<SecurityServer[]>('/security-servers?current_server=true')
       .then((resp) => {
         if (resp.data?.length !== 1) {
-          throw new Error(i18n.t('stores.user.currentSecurityServerNotFound') as string);
+          throw new Error(
+            i18n.t('stores.user.currentSecurityServerNotFound') as string,
+          );
         }
         commit('setCurrentSecurityServer', resp.data[0]);
       })
       .catch((error) => {
-        console.error(error);
         throw error;
       });
   },
 
   async fetchSecurityServerVersion({ commit }) {
-    return axios.get<Version>('/system/version')
+    return axios
+      .get<Version>('/system/version')
       .then((resp) => commit('setSecurityServerVersion', resp.data))
       .catch((error) => {
-        console.error(error);
         throw error;
       });
   },
@@ -148,26 +149,18 @@ export const actions: ActionTree<UserState, RootState> = {
     commit('clearAuthData');
 
     // Call backend for logout
-    axiosAuth.post('/logout')
+    axiosAuth
+      .post('/logout')
       .catch((error) => {
-        console.error(error);
-      }).finally(() => {
+        // Nothing to do
+      })
+      .finally(() => {
         // Reload the browser page to clean up the memory
         location.reload(true);
       });
-
-
   },
   clearAuth({ commit }) {
     commit('clearAuthData');
-  },
-  demoLogout({ commit, dispatch }) {
-    // This is for logging out on backend without changing the frontend
-    // For testing purposes!
-    axiosAuth.post('/logout')
-      .catch((error) => {
-        console.error(error);
-      });
   },
 };
 

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTimeUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
@@ -56,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -94,6 +96,12 @@ public class DiagnosticsApiControllerTest {
 
     @MockBean
     DiagnosticService diagnosticService;
+
+    @Before
+    public void setup() {
+        System.setProperty("user.timezone", "UTC");
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+    }
 
     @After
     public final void tearDown() {

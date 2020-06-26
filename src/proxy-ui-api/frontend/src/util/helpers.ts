@@ -1,8 +1,11 @@
 import { Client } from '@/openapi-types';
 
 // Filters an array of objects excluding specified object key
-export function selectedFilter(arr: any[], search: string, excluded?: string): any[] {
-
+export function selectedFilter(
+  arr: any[],
+  search: string,
+  excluded?: string,
+): any[] {
   // Clean the search string
   const mysearch = search.toString().toLowerCase();
   if (mysearch.trim() === '') {
@@ -10,7 +13,6 @@ export function selectedFilter(arr: any[], search: string, excluded?: string): a
   }
 
   const filtered = arr.filter((g: any) => {
-
     let filteredKeys = Object.keys(g);
 
     // If there is an excluded key remove it from the keys
@@ -33,7 +35,7 @@ export function selectedFilter(arr: any[], search: string, excluded?: string): a
 
 // Checks if the given WSDL URL valid
 export function isValidWsdlURL(str: string): boolean {
-  const pattern = new RegExp('(^(https?):\/\/\/?)[-a-zA-Z0-9]');
+  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
   return !!pattern.test(str);
 }
 
@@ -43,7 +45,10 @@ export function isValidRestURL(str: string): boolean {
 }
 
 // Save response data as a file
-export function saveResponseAsFile(response: any, defaultFileName: string = 'certs.tar.gz') {
+export function saveResponseAsFile(
+  response: any,
+  defaultFileName = 'certs.tar.gz',
+) {
   let suggestedFileName;
   const disposition = response.headers['content-disposition'];
 
@@ -54,12 +59,11 @@ export function saveResponseAsFile(response: any, defaultFileName: string = 'cer
       suggestedFileName = matches[1].replace(/['"]/g, '');
     }
   }
-
   const effectiveFileName =
-    suggestedFileName === undefined
-      ? defaultFileName
-      : suggestedFileName;
-  const blob = new Blob([response.data]);
+    suggestedFileName === undefined ? defaultFileName : suggestedFileName;
+  const blob = new Blob([response.data], {
+    type: response.headers['content-type'],
+  });
 
   // Create a link to DOM and click it. This will trigger the browser to start file download.
   const link = document.createElement('a');
@@ -68,12 +72,19 @@ export function saveResponseAsFile(response: any, defaultFileName: string = 'cer
   link.setAttribute('data-test', 'generated-download-link');
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link); // cleanup
+
+  // cleanup
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
 
 // Finds if an array of clients has a client with given member class, member code and subsystem code.
-export function containsClient(clients: Client[], memberClass: string, memberCode: string, subsystemCode: string): boolean {
-
+export function containsClient(
+  clients: Client[],
+  memberClass: string,
+  memberCode: string,
+  subsystemCode: string,
+): boolean {
   if (!memberClass || !memberCode || !subsystemCode) {
     return false;
   }
@@ -100,14 +111,13 @@ export function containsClient(clients: Client[], memberClass: string, memberCod
   return false;
 }
 
-
 // Create a client ID
 export function createClientId(
   instanceId: string,
   memberClass: string,
   memberCode: string,
-  subsystemCode?: string): string {
-
+  subsystemCode?: string,
+): string {
   if (subsystemCode) {
     return `${instanceId}:${memberClass}:${memberCode}:${subsystemCode}`;
   }
@@ -116,7 +126,10 @@ export function createClientId(
 }
 
 // Debounce function
-export const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+export const debounce = <F extends (...args: any[]) => any>(
+  func: F,
+  waitFor: number,
+) => {
   let timeout: number | undefined;
 
   return (...args: Parameters<F>): Promise<ReturnType<F>> =>
@@ -130,6 +143,27 @@ export const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: nu
 };
 
 // Check if a string or array is empty, null or undefined
-export function isEmpty(str: string | []): boolean {
-  return (!str || 0 === str.length);
+export function isEmpty(str: string | []): boolean {
+  return !str || 0 === str.length;
+}
+
+// Helper to copy text to clipboard
+export function toClipboard(val: string): void {
+  // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
+  const container =
+    document.getElementsByClassName('v-dialog--active')[0] || document.body;
+  const tempValueContainer = document.createElement('input');
+  tempValueContainer.setAttribute('type', 'text');
+  tempValueContainer.style.zIndex = '300';
+  tempValueContainer.style.opacity = '0';
+  tempValueContainer.style.filter = 'alpha(opacity=0)';
+  tempValueContainer.setAttribute(
+    'data-test',
+    'generated-temp-value-container',
+  );
+  tempValueContainer.value = val;
+  container.appendChild(tempValueContainer);
+  tempValueContainer.select();
+  document.execCommand('copy');
+  container.removeChild(tempValueContainer);
 }

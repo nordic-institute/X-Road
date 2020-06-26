@@ -5,9 +5,14 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { AddMemberWizardModes, UsageTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import { Token, Client, TokenCertificateSigningRequest, TokenCertificate, Key } from '@/openapi-types';
+import {
+  Token,
+  Client,
+  TokenCertificateSigningRequest,
+  TokenCertificate,
+  Key,
+} from '@/openapi-types';
 import * as api from '@/util/api';
-
 
 interface ReservedMemberData {
   instanceId: string;
@@ -51,7 +56,6 @@ const getDefaultState = () => {
 const tokensState: AddClientState = getDefaultState();
 
 export const getters: GetterTree<AddClientState, any> = {
-
   selectableClients(state: AddClientState): Client[] {
     return state.selectableClients;
   },
@@ -80,7 +84,11 @@ export const getters: GetterTree<AddClientState, any> = {
   },
   selectedMemberId(state: AddClientState, rootGetters): string | undefined {
     // Instance id is always the same with current server and members
-    return createClientId(rootGetters.currentSecurityServer.instance_id, state.memberClass, state.memberCode);
+    return createClientId(
+      rootGetters.currentSecurityServer.instance_id,
+      state.memberClass,
+      state.memberCode,
+    );
   },
   reservedMember(state: AddClientState): any {
     return state.reservedMemberData;
@@ -126,27 +134,49 @@ export const mutations: MutationTree<AddClientState> = {
   },
 };
 
+// Compares two Clients on member level and returns true if the
+// member ids of the clients match. Otherwise returns false.
+const memberEquals = (client: Client, other: Client): boolean =>
+  client.member_class === other.member_class &&
+  client.member_code === other.member_code &&
+  client.instance_id === other.instance_id;
+
+// Filters out clients that have local relatives.
+// If the member owning the client or another subsystem
+// of the same member is already present locally,
+// the client is excluded.
+const excludeClientsWithLocalRelatives = (clients: Client[], localClients: Client[]): Client[] => {
+  return clients.filter((client: Client) => {
+    return !localClients.some( (localClient: Client) => memberEquals(localClient, client))
+  });
+}
+
 export const actions: ActionTree<AddClientState, RootState> = {
   resetAddClientState({ commit }) {
     commit('resetAddClientState');
   },
 
-  fetchSelectableClients({ commit, rootGetters }, id: string) {
-    // Fetch clients from backend that can be selected
-    return api.get('/clients?exclude_local=true&member_missing_sign_cert=true&internal_search=false&show_members=false')
-      .then((res) => {
-        commit('storeSelectableClients', res.data);
+  fetchSelectableClients({ commit }, id: string) {
+    const globalClientsPromise = api.get('/clients?exclude_local=true&internal_search=false&show_members=false');
+    const localClientsPromise = api.get('/clients');
+    // Fetch list of local clients and filter out global clients
+    // that have local relatives
+    return Promise.all([globalClientsPromise, localClientsPromise])
+      .then((response) => {
+        const globalClients = response[0];
+        const localClients = response[1];
+        commit('storeSelectableClients', excludeClientsWithLocalRelatives(globalClients.data, localClients.data));
       })
       .catch((error) => {
         throw error;
       });
   },
 
-  fetchSelectableMembers({ commit, rootGetters }, id: string) {
+  fetchSelectableMembers({ commit }, id: string) {
     // Fetch clients from backend that can be selected
-    return api.get('/clients?internal_search=false&show_members=true')
+    return api
+      .get('/clients?internal_search=false&show_members=true')
       .then((res) => {
-
         // Filter out subsystems
         const filtered = res.data.filter((client: Client) => {
           return !client.subsystem_code;
@@ -159,9 +189,12 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchReservedClients({ commit, rootGetters }, client: Client) {
+  fetchReservedClients({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
-    return api.get(`/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`)
+    return api
+      .get(
+        `/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`,
+      )
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
@@ -170,9 +203,12 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchReservedMembers({ commit, rootGetters }, client: Client) {
+  fetchReservedMembers({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
-    return api.get(`/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`)
+    return api
+      .get(
+        `/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`,
+      )
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
@@ -181,51 +217,56 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  setSelectedMember({ commit, rootGetters }, member: Client) {
+  setSelectedMember({ commit }, member: Client) {
     commit('setMember', member);
   },
 
-  createClient({ commit, state }) {
+  createClient({ state }, ignoreWarnings: boolean) {
     const body = {
       client: {
         member_class: state.memberClass,
         member_code: state.memberCode,
         subsystem_code: state.subsystemCode,
       },
-      ignore_warnings: false,
+      ignore_warnings: ignoreWarnings,
     };
 
-    return api.post('/clients', body)
-      .catch((error) => {
-        throw error;
-      });
+    return api.post('/clients', body).catch((error) => {
+      throw error;
+    });
   },
 
-  createMember({ commit, state }) {
+  createMember({ state }, ignoreWarnings: boolean) {
     const body = {
       client: {
         member_class: state.memberClass,
         member_code: state.memberCode,
       },
-      ignore_warnings: false,
+      ignore_warnings: ignoreWarnings,
     };
 
-    return api.post('/clients', body)
-      .catch((error) => {
-        throw error;
-      });
+    return api.post('/clients', body).catch((error) => {
+      throw error;
+    });
   },
 
-  async searchTokens({ commit, dispatch }, { instanceId, memberClass, memberCode }) {
-
+  async searchTokens(
+    { commit, dispatch },
+    { instanceId, memberClass, memberCode },
+  ) {
     const clientsResponse = await api.get(`/clients?instance=${instanceId}
     &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
-    const matchingClient: boolean = clientsResponse.data.some((client: Client) => {
-      if (client.member_code === memberCode && client.member_class === memberClass) {
-        return true;
-      }
-    });
+    const matchingClient: boolean = clientsResponse.data.some(
+      (client: Client) => {
+        if (
+          client.member_code === memberCode &&
+          client.member_class === memberClass
+        ) {
+          return true;
+        }
+      },
+    );
 
     if (matchingClient) {
       // There is a client with valid sign certificate
@@ -242,25 +283,36 @@ export const actions: ActionTree<AddClientState, RootState> = {
     tokenResponse.data.some((token: Token) => {
       return token.keys.some((key: Key) => {
         if (key.usage === UsageTypes.SIGNING) {
-
           // Go through the keys certificates
-          const foundCert: boolean = key.certificates.some((certificate: TokenCertificate) => {
-            if (ownerId === certificate.owner_id) {
-              commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
-              return true;
-            }
-          });
+          const foundCert: boolean = key.certificates.some(
+            (certificate: TokenCertificate) => {
+              if (ownerId === certificate.owner_id) {
+                commit(
+                  'setAddMemberWizardMode',
+                  AddMemberWizardModes.CERTIFICATE_EXISTS,
+                );
+                return true;
+              }
+            },
+          );
 
-          if (foundCert) { return true; }
+          if (foundCert) {
+            return true;
+          }
 
           // Go through the keys CSR:s
-          key.certificate_signing_requests.some((csr: TokenCertificateSigningRequest) => {
-            if (ownerId === csr.owner_id) {
-              dispatch('setCsrTokenId', token.id);
-              commit('setAddMemberWizardMode', AddMemberWizardModes.CSR_EXISTS);
-              return true;
-            }
-          });
+          key.certificate_signing_requests.some(
+            (csr: TokenCertificateSigningRequest) => {
+              if (ownerId === csr.owner_id) {
+                dispatch('setCsrTokenId', token.id);
+                commit(
+                  'setAddMemberWizardMode',
+                  AddMemberWizardModes.CSR_EXISTS,
+                );
+                return true;
+              }
+            },
+          );
         }
       });
     });

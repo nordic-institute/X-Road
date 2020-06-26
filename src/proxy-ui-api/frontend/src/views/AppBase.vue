@@ -12,9 +12,9 @@
     <v-dialog v-model="logoutDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
-          <span class="headline">{{$t('logout.sessionExpired')}}</span>
+          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
-        <v-card-text class="pt-4">{{$t('logout.idleWarning')}}</v-card-text>
+        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -23,7 +23,8 @@
             dark
             class="mb-2 rounded-button elevation-0"
             @click="closeLogoutDialog()"
-          >{{$t('action.ok')}}</v-btn>
+            >{{ $t('action.ok') }}</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -38,13 +39,22 @@ import * as api from '@/util/api';
 export default Vue.extend({
   data() {
     return {
-      interval: 0,
+      sessionPollInterval: 0,
+      alertsPollInterval: 0,
       logoutDialog: false,
     };
   },
   created() {
     // Set interval to poll backend for session
-    this.interval = setInterval(() => this.pollSessionStatus(), 30000);
+    this.sessionPollInterval = setInterval(
+      () => this.pollSessionStatus(),
+      30000,
+    );
+    this.$store.dispatch('checkAlertStatus'); // Poll immediately to get initial alerts state
+    this.alertsPollInterval = setInterval(
+      () => this.$store.dispatch('checkAlertStatus'),
+      30000,
+    );
   },
   methods: {
     closeLogoutDialog() {
@@ -55,7 +65,8 @@ export default Vue.extend({
       return api.get('/notifications/session-status').catch((error) => {
         if (error.response && error.response.status === 401) {
           this.logoutDialog = true;
-          clearInterval(this.interval);
+          clearInterval(this.sessionPollInterval);
+          clearInterval(this.alertsPollInterval);
         }
       });
     },

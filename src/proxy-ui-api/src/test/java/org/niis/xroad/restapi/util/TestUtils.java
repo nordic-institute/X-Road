@@ -42,6 +42,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,6 +68,7 @@ public final class TestUtils {
     public static final String SS0_GET_RANDOM_V1 = "FI:GOV:M1:SS0:getRandom.v1";
     public static final String SS1_GET_RANDOM_V1 = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
+    public static final String SS1_REST_SERVICECODE = "FI:GOV:M1:SS1:rest-servicecode";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
     public static final String SS6_OPENAPI_TEST = "FI:GOV:M2:SS6:openapi3-test.v1";
     public static final String URL_HTTPS = "https://foo.bar";
@@ -312,6 +314,7 @@ public final class TestUtils {
      * @return
      */
     public static Long fromDateTimeToMilliseconds(String dateTimeStr) {
-        return LocalDateTime.parse(dateTimeStr).atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();
+        return LocalDateTime.parse(dateTimeStr).toInstant(OffsetDateTime.now().getOffset()).atOffset(ZoneOffset.UTC)
+                .toInstant().toEpochMilli();
     }
 }

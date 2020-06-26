@@ -10,7 +10,7 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('fields.tokenPin')}}</div>
+        <div class="dlg-row-title">{{ $t('fields.tokenPin') }}</div>
         <ValidationProvider
           rules="required"
           ref="tokenPin"
@@ -33,16 +33,15 @@
   </simpleDialog>
 </template>
 
-
 <script lang="ts">
 import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { ValidationProvider } from 'vee-validate';
 import { Token } from '@/openapi-types';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider, ValidationObserver },
+  components: { SimpleDialog, ValidationProvider },
   props: {
     dialog: {
       type: Boolean,
@@ -84,7 +83,7 @@ export default Vue.extend({
         .put(`/tokens/${token.id}/login`, {
           password: this.pin,
         })
-        .then((res) => {
+        .then(() => {
           this.loading = false;
           this.$store.dispatch('showSuccess', 'keys.loggedIn');
           this.$emit('save');
@@ -101,7 +100,8 @@ export default Vue.extend({
           }
 
           this.$store.dispatch('showError', error);
-        });
+        })
+        .finally(() => this.$store.dispatch('checkAlertStatus'));
 
       this.clear();
     },
@@ -116,4 +116,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/dialogs';
 </style>
-

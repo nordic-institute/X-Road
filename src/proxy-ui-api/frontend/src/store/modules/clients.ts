@@ -7,11 +7,12 @@ import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
 import i18n from './../../i18n';
 
+const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
+
 export interface ClientsState {
   clients: Client[];
   formattedClients: ExtendedClient[];
   clientsLoading: boolean;
-  localMembers: Client[];
   ownerMember: Client | undefined;
   members: ExtendedClient[]; // all local members, virtual and real
   realMembers: ExtendedClient[]; // local actual real members, owner +1
@@ -23,7 +24,6 @@ export const clientsState: ClientsState = {
   clients: [],
   formattedClients: [],
   clientsLoading: false,
-  localMembers: [],
   ownerMember: undefined,
   members: [],
   subsystems: [],
@@ -31,19 +31,41 @@ export const clientsState: ClientsState = {
   virtualMembers: [],
 };
 
-function createSortName(client: Client, sortName: string): any {
+function createSortName(client: Client): string {
   // Create a sort id for client in form  "ACMEGOV:1234 MANAGEMENT"
-  return sortName + client.member_class + client.member_code + ' ' + client.subsystem_code;
+  if (client.member_name) {
+    return (
+      client.member_name +
+      client.member_class +
+      client.member_code +
+      ' ' +
+      client.subsystem_code
+    );
+  }
+  return (
+    UNKNOWN_NAME +
+    client.member_class +
+    client.member_code +
+    ' ' +
+    client.subsystem_code
+  );
 }
 
-function createMemberAscSortName(client: Client, sortName: string | undefined): any {
+function createMemberAscSortName(client: Client): string {
   // Create a sort id for member in form  "ACMEGOV:1234"
-  return sortName + client.member_class + client.member_code;
+  if (client.member_name) {
+    return client.member_name + client.member_class + client.member_code;
+  }
+
+  return UNKNOWN_NAME + client.member_class + client.member_code;
 }
 
-function createMemberDescSortName(client: Client, sortName: string | undefined): any {
+function createMemberDescSortName(client: Client): string {
   // Create a sort id for member in form  "ACMEGOV:1234!"
-  return sortName + client.member_class + client.member_code + '!';
+  if (client.member_name) {
+    return client.member_name + client.member_class + client.member_code + '!';
+  }
+  return UNKNOWN_NAME + client.member_class + client.member_code + '!';
 }
 
 export const getters: GetterTree<ClientsState, RootState> = {
@@ -55,14 +77,6 @@ export const getters: GetterTree<ClientsState, RootState> = {
     return state.realMembers;
   },
 
-  localMembers(state): Client[] {
-    return state.localMembers;
-  },
-
-  localMembersIds(state): Client[] {
-    return state.localMembers;
-  },
-
   clientsLoading(state): boolean {
     return state.clientsLoading;
   },
@@ -70,7 +84,6 @@ export const getters: GetterTree<ClientsState, RootState> = {
   ownerMember(state): Client | undefined {
     return state.ownerMember;
   },
-
 };
 
 export const mutations: MutationTree<ClientsState> = {
@@ -82,18 +95,16 @@ export const mutations: MutationTree<ClientsState> = {
     const members: ExtendedClient[] = [];
     const virtualMembers: ExtendedClient[] = [];
     const subsystems: ExtendedClient[] = [];
-    const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
     // Find members. Owner member (there is only one) and possible other member
     state.clients.forEach((element: Client) => {
-
       if (!element.subsystem_code) {
-        const clone = {...element} as ExtendedClient;
+        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
-        clone.visibleName = clone.member_name;
-        clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code;
-        clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name); // clone.member_name + clone.member_class + clone.member_code + '!';
+        clone.visibleName = clone.member_name || UNKNOWN_NAME;
+        clone.sortNameAsc = createMemberAscSortName(clone); // clone.member_name + clone.member_class + clone.member_code;
+        clone.sortNameDesc = createMemberDescSortName(clone); // clone.member_name + clone.member_class + clone.member_code + '!';
 
         if (element.owner) {
           clone.type = ClientTypes.OWNER_MEMBER;
@@ -110,14 +121,16 @@ export const mutations: MutationTree<ClientsState> = {
     // Pick out the members
     state.clients.forEach((element) => {
       // Check if the member is already in the members array
-      const memberAlreadyExists = members.find((member: ExtendedClient) =>
-        member.member_class === element.member_class &&
-        member.member_code === element.member_code &&
-        member.instance_id === element.instance_id);
+      const memberAlreadyExists = members.find(
+        (member: ExtendedClient) =>
+          member.member_class === element.member_class &&
+          member.member_code === element.member_code &&
+          member.instance_id === element.instance_id,
+      );
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = {...element} as any;
+        const clone = JSON.parse(JSON.stringify(element)) as any;
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
@@ -133,36 +146,21 @@ export const mutations: MutationTree<ClientsState> = {
         );
 
         clone.subsystem_code = undefined;
-
-        // Create a name from member_name
-        if (clone.member_name) {
-          clone.visibleName = clone.member_name;
-          clone.sortNameAsc = createMemberAscSortName(clone, clone.member_name);
-          clone.sortNameDesc = createMemberDescSortName(clone, clone.member_name);
-        } else {
-          clone.visibleName = UNKNOWN_NAME;
-          clone.sortNameAsc = createMemberAscSortName(clone, UNKNOWN_NAME);
-          clone.sortNameDesc = createMemberDescSortName(clone, UNKNOWN_NAME);
-        }
-
         clone.status = undefined;
+        // Create a name from member_name
+        clone.visibleName = clone.member_name || UNKNOWN_NAME;
+        clone.sortNameAsc = createMemberAscSortName(clone);
+        clone.sortNameDesc = createMemberDescSortName(clone);
         members.push(clone);
       }
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = {...element} as ExtendedClient;
+        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
         clone.visibleName = clone.subsystem_code;
         clone.type = ClientTypes.SUBSYSTEM;
-
-        if (element.member_name) {
-          clone.sortNameAsc = createSortName(clone, element.member_name);
-          clone.sortNameDesc = createSortName(clone, element.member_name);
-        } else {
-          clone.sortNameAsc = createSortName(clone, UNKNOWN_NAME);
-          clone.sortNameDesc = createSortName(clone, UNKNOWN_NAME);
-        }
-
+        clone.sortNameAsc = createSortName(clone);
+        clone.sortNameDesc = createSortName(clone);
         subsystems.push(clone);
       }
     });
@@ -174,9 +172,6 @@ export const mutations: MutationTree<ClientsState> = {
     state.formattedClients = [...new Set([...subsystems, ...members])];
   },
 
-  storeLocalMembers(state, clients: []) {
-    state.localMembers = clients;
-  },
   setLoading(state, loading: boolean) {
     state.clientsLoading = loading;
   },
@@ -184,10 +179,10 @@ export const mutations: MutationTree<ClientsState> = {
 
 export const actions: ActionTree<ClientsState, RootState> = {
   fetchClients({ commit, rootGetters }) {
-
     commit('setLoading', true);
 
-    return axios.get('/clients')
+    return axios
+      .get('/clients')
       .then((res) => {
         commit('storeClients', res.data);
       })
@@ -198,21 +193,6 @@ export const actions: ActionTree<ClientsState, RootState> = {
         commit('setLoading', false);
       });
   },
-
-  fetchLocalMembers({ commit, rootGetters }) {
-    return axios.get('/clients?show_members=true&internal_search=true')
-      .then((res) => {
-        const filtered = res.data.filter((client: Client) => {
-          return !client.subsystem_code;
-        });
-
-        commit('storeLocalMembers', filtered);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
 };
 
 export const clientsModule: Module<ClientsState, RootState> = {

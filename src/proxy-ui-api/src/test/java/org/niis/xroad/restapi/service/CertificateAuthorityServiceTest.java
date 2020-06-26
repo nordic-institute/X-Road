@@ -366,35 +366,35 @@ public class CertificateAuthorityServiceTest {
         //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.SIGNING, ownerId);
+                KeyUsageInfo.SIGNING, ownerId, false);
         assertTrue(profile instanceof FiVRKSignCertificateProfileInfo);
         assertEquals("test-i/ss/test-mclass", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("test-mcode", profile.getSubjectFields()[3].getDefaultValue());
         assertTrue(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.AUTHENTICATION, ownerId);
+                KeyUsageInfo.AUTHENTICATION, ownerId, false);
         assertTrue(profile instanceof FiVRKAuthCertificateProfileInfo);
         assertEquals("test-i/ss/test-mclass", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("", profile.getSubjectFields()[3].getDefaultValue());
         assertFalse(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("est-auth-only",
-                KeyUsageInfo.AUTHENTICATION, ownerId);
+                KeyUsageInfo.AUTHENTICATION, ownerId, false);
         assertTrue(profile instanceof AuthCertificateProfileInfo);
         assertEquals(0, profile.getSubjectFields().length);
 
         // exceptions
         try {
             certificateAuthorityService.getCertificateProfile("est-auth-only",
-                    KeyUsageInfo.SIGNING, ownerId);
+                    KeyUsageInfo.SIGNING, ownerId, false);
             fail("should have thrown exception");
         } catch (WrongKeyUsageException expected) {
         }
 
         try {
             certificateAuthorityService.getCertificateProfile("this-does-not-exist",
-                    KeyUsageInfo.SIGNING, ownerId);
+                    KeyUsageInfo.SIGNING, ownerId, false);
             fail("should have thrown exception");
         } catch (CertificateAuthorityNotFoundException expected) {
         }
@@ -407,7 +407,7 @@ public class CertificateAuthorityServiceTest {
 
         try {
             certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
-                    KeyUsageInfo.SIGNING, ownerId);
+                    KeyUsageInfo.SIGNING, ownerId, false);
             fail("should have thrown exception");
         } catch (CertificateProfileInstantiationException expected) {
         }

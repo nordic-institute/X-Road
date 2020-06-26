@@ -5,68 +5,81 @@
     <v-card flat>
       <table class="xrd-table service-client-margin">
         <thead>
-        <tr>
-          <th>{{$t('serviceClients.name')}}</th>
-          <th>{{$t('serviceClients.id')}}</th>
-        </tr>
+          <tr>
+            <th>{{ $t('serviceClients.name') }}</th>
+            <th>{{ $t('serviceClients.id') }}</th>
+          </tr>
         </thead>
         <tr>
-          <td>{{serviceClient.name}}</td>
-          <td>{{serviceClient.id}}</td>
+          <td>{{ serviceClient.name }}</td>
+          <td>{{ serviceClient.id }}</td>
         </tr>
       </table>
     </v-card>
 
     <div class="group-members-row">
-      <div class="row-title">{{$t('serviceClients.accessRights')}}</div>
+      <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
       <div class="row-buttons">
         <large-button
           @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
           v-if="serviceClientAccessRights.length > 0"
-        >{{$t('serviceClients.removeAll')}}
+          >{{ $t('serviceClients.removeAll') }}
         </large-button>
         <large-button
           @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
-        >{{$t('serviceClients.addService')}}
+          >{{ $t('serviceClients.addService') }}
         </large-button>
       </div>
     </div>
 
-    <table class="xrd-table service-client-margin" v-if="serviceClientAccessRights.length > 0">
+    <table
+      class="xrd-table service-client-margin"
+      v-if="serviceClientAccessRights.length > 0"
+    >
       <thead>
         <tr>
-          <th>{{$t('serviceClients.serviceCode')}}</th>
-          <th>{{$t('serviceClients.title')}}</th>
-          <th>{{$t('serviceClients.accessRightsGiven')}}</th>
+          <th>{{ $t('serviceClients.serviceCode') }}</th>
+          <th>{{ $t('serviceClients.title') }}</th>
+          <th>{{ $t('serviceClients.accessRightsGiven') }}</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(accessRight, index) in serviceClientAccessRights" v-bind:index="index" >
-          <td>{{accessRight.service_code}}</td>
-          <td>{{accessRight.service_title}}</td>
-          <td>{{accessRight.rights_given_at}}</td>
-          <td class="button-wrap"><v-btn
-            small
-            outlined
-            rounded
-            color="primary"
-            class="xrd-small-button xrd-table-button"
-            data-test="access-right-remove"
-            @click="remove(accessRight)"
-          >{{$t('action.remove')}}</v-btn></td>
+        <tr
+          v-for="accessRight in keyedServiceClientAccessRights()"
+          :key="accessRight.uiKey"
+        >
+          <td>{{ accessRight.service_code }}</td>
+          <td>{{ accessRight.service_title }}</td>
+          <td>{{ accessRight.rights_given_at }}</td>
+          <td class="button-wrap">
+            <v-btn
+              small
+              outlined
+              rounded
+              color="primary"
+              class="xrd-small-button xrd-table-button"
+              data-test="access-right-remove"
+              @click="remove(accessRight)"
+              >{{ $t('action.remove') }}</v-btn
+            >
+          </td>
         </tr>
       </tbody>
     </table>
 
-    <h3 v-else class="service-client-margin">{{$t('serviceClients.noAccessRights')}}</h3>
+    <h3 v-else class="service-client-margin">
+      {{ $t('serviceClients.noAccessRights') }}
+    </h3>
 
     <div class="footer-buttons-wrap">
-      <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
+      <large-button @click="close()" data-test="close">{{
+        $t('action.close')
+      }}</large-button>
     </div>
 
     <AddServiceClientServiceDialog
@@ -74,7 +87,8 @@
       :dialog="isAddServiceDialogVisible"
       :serviceCandidates="serviceCandidates()"
       @save="addService"
-      @cancel="hideAddService">
+      @cancel="hideAddService"
+    >
     </AddServiceClientServiceDialog>
 
     <!-- Confirm dialog delete group -->
@@ -85,20 +99,28 @@
       @cancel="showConfirmDeleteAll = false"
       @accept="removeAll()"
     />
-
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import {AccessRight, AccessRights, ServiceClient, ServiceDescription} from '@/openapi-types';
+import {
+  AccessRight,
+  AccessRights,
+  ServiceClient,
+  ServiceDescription,
+} from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
-import {serviceCandidatesForServiceClient} from '@/util/serviceClientUtils';
+import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import {ServiceCandidate} from '@/ui-types';
+import { ServiceCandidate } from '@/ui-types';
+
+interface UiAccessRight extends AccessRight {
+  uiKey: number;
+}
 
 export default Vue.extend({
   components: {
@@ -128,36 +150,40 @@ export default Vue.extend({
   },
   methods: {
     fetchData(): void {
-
       this.fetchAccessRights();
       this.fetchServiceDescriptions();
       api
         .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
-        .then( (response: any) => this.serviceClient = response.data)
-        .catch( (error: any) => this.$store.dispatch('showError', error));
-
+        .then((response: any) => (this.serviceClient = response.data))
+        .catch((error: any) => this.$store.dispatch('showError', error));
     },
     fetchServiceDescriptions(): void {
       api
         .get(`/clients/${this.id}/service-descriptions`)
-        .then( (response: any) => {
+        .then((response: any) => {
           this.clientServiceDescriptions = response.data;
         })
-        .catch( (error: any) => this.$store.dispatch('showError', error));
+        .catch((error: any) => this.$store.dispatch('showError', error));
     },
     fetchAccessRights(): void {
       api
-        .get(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`)
-        .then( (response: any) => this.serviceClientAccessRights = response.data)
-        .catch( (error: any) => this.$store.dispatch('showError', error));
+        .get(
+          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
+        )
+        .then(
+          (response: any) => (this.serviceClientAccessRights = response.data),
+        )
+        .catch((error: any) => this.$store.dispatch('showError', error));
     },
     close(): void {
       this.$router.go(-1);
     },
     remove(accessRight: AccessRight): void {
       api
-        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          {items: [{service_code: accessRight.service_code}]})
+        .post(
+          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          { items: [{ service_code: accessRight.service_code }] },
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
           if (this.serviceClientAccessRights.length === 1) {
@@ -172,12 +198,18 @@ export default Vue.extend({
       this.hideAddService();
       const accessRightsObject: AccessRights = { items: accessRights };
       api
-        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`, accessRightsObject)
-        .then( (response: any) => {
-          this.$store.dispatch('showSuccess', 'serviceClients.addServiceClientAccessRightSuccess');
+        .post(
+          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
+          accessRightsObject,
+        )
+        .then(() => {
+          this.$store.dispatch(
+            'showSuccess',
+            'serviceClients.addServiceClientAccessRightSuccess',
+          );
           this.fetchAccessRights();
         })
-        .catch( (error: any) => this.$store.dispatch('showError', error));
+        .catch((error: any) => this.$store.dispatch('showError', error));
     },
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
@@ -189,23 +221,38 @@ export default Vue.extend({
       this.showConfirmDeleteAll = false;
 
       api
-        .post(`/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          {items: this.serviceClientAccessRights.map((item: AccessRight) => ({service_code: item.service_code}))})
+        .post(
+          `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
+          {
+            items: this.serviceClientAccessRights.map((item: AccessRight) => ({
+              service_code: item.service_code,
+            })),
+          },
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
           this.serviceClientAccessRights = [];
         })
         .catch((error: any) => this.$store.dispatch('showError', error));
-
     },
     serviceCandidates(): ServiceCandidate[] {
-      return serviceCandidatesForServiceClient(this.clientServiceDescriptions, this.serviceClientAccessRights);
+      return serviceCandidatesForServiceClient(
+        this.clientServiceDescriptions,
+        this.serviceClientAccessRights,
+      );
+    },
+
+    keyedServiceClientAccessRights(): UiAccessRight[] {
+      return this.serviceClientAccessRights.map(
+        (sca: AccessRight, index: number) => {
+          return { ...sca, uiKey: index };
+        },
+      ) as UiAccessRight[];
     },
   },
   created(): void {
     this.fetchData();
   },
-
 });
 </script>
 
@@ -235,7 +282,6 @@ export default Vue.extend({
     font-weight: 500;
     letter-spacing: 0.5px;
   }
-
 }
 
 .button-wrap {
@@ -255,5 +301,4 @@ export default Vue.extend({
   border-top: 1px solid $XRoad-Grey40;
   padding-top: 20px;
 }
-
 </style>

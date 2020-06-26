@@ -29,6 +29,8 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -56,10 +58,14 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERVICE_DESCRIPTION;
 
 /**
  * service descriptions api
@@ -74,6 +80,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceConverter serviceConverter;
+    private final AuditEventHelper auditEventHelper;
 
     /**
      * ServiceDescriptionsApiController constructor
@@ -86,10 +93,12 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Autowired
     public ServiceDescriptionsApiController(ServiceDescriptionService serviceDescriptionService,
             ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceConverter serviceConverter) {
+            ServiceConverter serviceConverter,
+            AuditEventHelper auditEventHelper) {
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceConverter = serviceConverter;
+        this.auditEventHelper = auditEventHelper;
     }
 
     @InitBinder("serviceDescriptionUpdate")
@@ -100,10 +109,11 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
+    @AuditEventMethod(event = ENABLE_SERVICE_DESCRIPTION)
     public ResponseEntity<Void> enableServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
-            serviceDescriptionService.enableServices(Collections.singletonList(serviceDescriptionId));
+            serviceDescriptionService.enableServices(serviceDescriptionId.longValue());
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
         }
@@ -112,6 +122,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
+    @AuditEventMethod(event = DISABLE_SERVICE_DESCRIPTION)
     public ResponseEntity<Void> disableServiceDescription(String id,
             ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
         String disabledNotice = null;
@@ -120,7 +131,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         }
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
-            serviceDescriptionService.disableServices(Collections.singletonList(serviceDescriptionId),
+            serviceDescriptionService.disableServices(serviceDescriptionId.longValue(),
                     disabledNotice);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
@@ -130,6 +141,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_WSDL')")
+    @AuditEventMethod(event = DELETE_SERVICE_DESCRIPTION)
     public ResponseEntity<Void> deleteServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
@@ -142,6 +154,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAnyAuthority('EDIT_WSDL', 'EDIT_OPENAPI3', 'EDIT_REST')")
+    @AuditEventMethod(event = EDIT_SERVICE_DESCRIPTION)
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
             ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
@@ -195,6 +208,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAnyAuthority('REFRESH_WSDL', 'REFRESH_REST', 'REFRESH_OPENAPI3')")
+    @AuditEventMethod(event = REFRESH_SERVICE_DESCRIPTION)
     public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, IgnoreWarnings ignoreWarnings) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription = null;

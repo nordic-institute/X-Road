@@ -1,38 +1,51 @@
-
 <template>
   <div class="view-wrap">
-    <subViewTitle class="view-title" :title="$t('wizard.subsystem.title')" :showClose="false" />
+    <subViewTitle
+      class="view-title"
+      :title="$t('wizard.subsystem.title')"
+      :showClose="false"
+    />
 
     <div class="content">
       <div class="info-block">
         <div>
-          {{$t('wizard.subsystem.info1')}}
+          {{ $t('wizard.subsystem.info1') }}
           <br />
           <br />
-          {{$t('wizard.subsystem.info2')}}
+          {{ $t('wizard.subsystem.info2') }}
         </div>
         <div class="action-block">
           <large-button
             @click="showSelectClient = true"
             outlined
             data-test="select-subsystem-button"
-          >{{$t('wizard.subsystem.selectSubsystem')}}</large-button>
+            >{{ $t('wizard.subsystem.selectSubsystem') }}</large-button
+          >
         </div>
       </div>
 
       <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
         <div class="row-wrap">
-          <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-          <div data-test="selected-member-name">{{memberName}}</div>
+          <FormLabel
+            labelText="wizard.memberName"
+            helpText="wizard.client.memberNameTooltip"
+          />
+          <div data-test="selected-member-name">{{ memberName }}</div>
         </div>
 
         <div class="row-wrap">
-          <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
-          <div data-test="selected-member-class">{{memberClass}}</div>
+          <FormLabel
+            labelText="wizard.memberClass"
+            helpText="wizard.client.memberClassTooltip"
+          />
+          <div data-test="selected-member-class">{{ memberClass }}</div>
         </div>
         <div class="row-wrap">
-          <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
-          <div data-test="selected-member-code">{{memberCode}}</div>
+          <FormLabel
+            labelText="wizard.memberCode"
+            helpText="wizard.client.memberCodeTooltip"
+          />
+          <div data-test="selected-member-code">{{ memberCode }}</div>
         </div>
 
         <div class="row-wrap">
@@ -41,7 +54,11 @@
             helpText="wizard.client.subsystemCodeTooltip"
           />
 
-          <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
+          <ValidationProvider
+            name="addClient.subsystemCode"
+            rules="required"
+            v-slot="{ errors }"
+          >
             <v-text-field
               class="form-input"
               type="text"
@@ -51,7 +68,9 @@
             ></v-text-field>
           </ValidationProvider>
         </div>
-        <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
+        <div v-if="duplicateClient" class="duplicate-warning">
+          {{ $t('wizard.client.memberExists') }}
+        </div>
 
         <div class="row-wrap">
           <FormLabel labelText="wizard.subsystem.registerSubsystem" />
@@ -68,13 +87,16 @@
               outlined
               @click="exitView"
               data-test="cancel-button"
-            >{{$t('action.cancel')}}</large-button>
+              >{{ $t('action.cancel') }}</large-button
+            >
           </div>
           <large-button
             @click="done"
             :disabled="invalid || duplicateClient"
             data-test="submit-add-subsystem-button"
-          >{{$t('action.addSubsystem')}}</large-button>
+            :loading="submitLoading"
+            >{{ $t('action.addSubsystem') }}</large-button
+          >
         </div>
       </ValidationObserver>
 
@@ -84,21 +106,27 @@
         @cancel="showSelectClient = false"
         @save="saveSelectedClient"
       />
+
+      <ConfirmDialog
+        :dialog="confirmRegisterClient"
+        title="clients.action.register.confirm.title"
+        text="clients.action.register.confirm.text"
+        @cancel="exitView"
+        @accept="registerSubsystem"
+        :loading="registerClientLoading"
+      />
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import SubsystemDetailsPage from './SubsystemDetailsPage.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import { Key, Token } from '@/openapi-types';
-import { RouteName, UsageTypes } from '@/global';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
@@ -112,6 +140,7 @@ export default Vue.extend({
     ValidationProvider,
     SelectClientDialog,
     SubViewTitle,
+    ConfirmDialog,
   },
   props: {
     instanceId: {
@@ -133,12 +162,14 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: false as boolean,
       showSelectClient: false as boolean,
       registerChecked: true as boolean,
       existingSubsystems: [] as Client[],
       selectableSubsystems: [] as Client[],
       subsystemCode: undefined as undefined | string,
+      submitLoading: false as boolean,
+      confirmRegisterClient: false as boolean,
+      registerClientLoading: false as boolean,
     };
   },
   computed: {
@@ -157,6 +188,7 @@ export default Vue.extend({
   },
   methods: {
     done(): void {
+      this.submitLoading = true;
       this.$store
         .dispatch('addSubsystem', {
           memberName: this.memberName,
@@ -166,38 +198,53 @@ export default Vue.extend({
         })
         .then(
           () => {
-            this.disableDone = false;
-
+            this.submitLoading = false;
+            this.$store.dispatch(
+              'showSuccess',
+              'wizard.subsystem.subsystemAdded',
+            );
             if (this.registerChecked) {
-              this.registerSubsystem();
+              this.confirmRegisterClient = true;
             } else {
               this.exitView();
             }
           },
           (error) => {
+            this.submitLoading = false;
             this.$store.dispatch('showError', error);
           },
         );
     },
 
     registerSubsystem(): void {
-      const clientId = createClientId(this.instanceId, this.memberClass, this.memberCode, this.subsystemCode);
+      this.registerClientLoading = true;
 
-      this.$store
-        .dispatch('registerClient', clientId)
-        .then(
-          () => {
-            this.disableDone = false;
-            this.exitView();
-          },
-          (error) => {
-            this.$store.dispatch('showError', error);
-            this.exitView();
-          },
-        );
+      const clientId = createClientId(
+        this.instanceId,
+        this.memberClass,
+        this.memberCode,
+        this.subsystemCode,
+      );
+
+      this.$store.dispatch('registerClient', clientId).then(
+        () => {
+          this.$store.dispatch(
+            'showSuccess',
+            'wizard.subsystem.subsystemAdded',
+          );
+          this.exitView();
+        },
+        (error) => {
+          this.$store.dispatch('showError', error);
+          this.exitView();
+        },
+      );
     },
 
     exitView(): void {
+      this.registerClientLoading = false;
+      this.confirmRegisterClient = false;
+      this.submitLoading = false;
       this.$router.replace({ name: RouteName.Clients });
     },
     saveSelectedClient(selectedMember: Client): void {
@@ -208,7 +255,7 @@ export default Vue.extend({
       // Fetch selectable subsystems
       api
         .get(
-          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true`,
+          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
         )
         .then((res) => {
           this.selectableSubsystems = res.data;
