@@ -1,8 +1,7 @@
 pipeline {
-    agent any
+    agent { label 'dev-test' }
     stages {
         stage('Deploy Sidecar image with Finnish settings in Kubernetes local env') {
-            agent { label 'dev-test' }
             steps {
                 sh 'kubectl apply -f sidecar/kubernetes/security-server-sidecar-fi.yaml'
             }
