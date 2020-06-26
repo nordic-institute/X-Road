@@ -3,12 +3,12 @@ pipeline {
     stages {
         stage('Deploy Sidecar image with Finnish settings in Kubernetes local env') {
             steps {
-                sh 'kubectl apply -f sidecar/kubernetes/security-server-sidecar-fi.yaml'
+                sh 'microk8s.kubectl apply -f sidecar/kubernetes/security-server-sidecar-fi.yaml'
             }
         }
         stage('Rollout status') {
             steps {
-                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-fi'
+                sh 'microk8s.kubectl rollout status deployment.v1.apps/security-server-sidecar-fi'
             }
         }
         stage('Test') {
@@ -16,7 +16,7 @@ pipeline {
                 retry (5) {
                     sleep(time: 10, unit: 'SECONDS')
                     script {
-                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
+                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(microk8s.kubectl get pods -l run=security-server-sidecar -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
                         if(response == '302') {
                             echo '========> Security server is successfully running'
                             currentBuild.result = 'SUCCESS'
@@ -31,7 +31,7 @@ pipeline {
     }
     post {
         always {
-            sh 'kubectl delete -f sidecar/kubernetes/security-server-sidecar-fi.yaml'
+            sh 'microk8s.kubectl delete -f sidecar/kubernetes/security-server-sidecar-fi.yaml'
         }
     }
 }
