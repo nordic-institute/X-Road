@@ -6,6 +6,7 @@ pipeline {
         string(description: "Nodes desired size", name: "DESIRED_SIZE", defaultValue: "${params?.DESIRED_SIZE}")
         string(description: "Name of the node group", name: "NODE_GROUP_NAME", defaultValue: "${params?.NODE_GROUP_NAME}")
         string(description: "Name of the cluster", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+    }
     stages {
         stage('Update node group') { 
             steps {
