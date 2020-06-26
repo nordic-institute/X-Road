@@ -1,5 +1,5 @@
 pipeline {
-    { label 'dev-test' } 
+    agent { label 'dev-test' } 
     parameters {
         string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
         string(description: "Number of deployment replicas", name: "NUMBER_REPLICAS", defaultValue: "1" )
