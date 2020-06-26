@@ -14,7 +14,6 @@ pipeline {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws ec2 describe-instances'
-                     AWS("aws ec2 describe-instances")
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
                 }
             }
