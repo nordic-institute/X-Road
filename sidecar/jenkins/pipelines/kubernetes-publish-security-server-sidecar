@@ -12,7 +12,8 @@ pipeline {
     stages {
         stage('Apply cluster configuration') {
             steps {
-                 withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                 withCredentials([$class: 'UsernamePasswordMultiBinding', credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']) {
+                    sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
                     AWS("--region=eu-west-1 s3 ls")
                 }
             }
