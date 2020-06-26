@@ -50,9 +50,16 @@ spec:
       labels:
         run: security-server-sidecar
     spec:
+      volumes:
+      - name: sidecar-config-volume
+        persistentVolumeClaim:
+          claimName: sidecar-config-claim
       containers:
       - name: security-server-sidecar
-        image: niis/xroad-security-server-sidecar:latest-provider
+        image: niis/xroad-security-server-sidecar:latest
+        volumeMounts:
+        - name: sidecar-config-volume
+          mountPath: /etc/xroad/
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"

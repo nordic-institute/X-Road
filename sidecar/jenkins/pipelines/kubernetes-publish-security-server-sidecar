@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'dev-test' } 
     parameters {
         string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
         string(description: "Number of deployment replicas", name: "NUMBER_REPLICAS", defaultValue: "1" )
@@ -8,34 +8,15 @@ pipeline {
         string(description: "External database password", name: "XROAD_DB_PWD", defaultValue: "${params?.XROAD_DB_PWD}")
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
         string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
-        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
     }
     stages {
-        stage('Apply cluster configuration') {
+        stage('Deploy pods') {
             steps {
-                sh '''
-                    unset AWS_SESSION_TOKEN
-                    unset AWS_SECRET_ACCESS_KEY
-                    unset AWS_ACCESS_KEY_ID
-
-                    CREDENTIALS=`aws sts get-session-token --serial-number arn:aws:iam::942718799483:mfa/alberto.fernandez --token-code $TOKEN_CODE`
-
-                    export AWS_ACCESS_KEY_ID=`echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId'`
-                    export AWS_SECRET_ACCESS_KEY=`echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey'`
-                    export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
-                    
-                    aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}
-                '''
-            }
-        }
-        stage('Build X-Road Security Server Sidecar image') {
-            steps {
-                sh '${DEPLOYMENT_PATH} ${NUMBER_REPLICAS} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL}'
-            }
-        }
-        stage('Rollout status') {
-            steps {
-                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {                 
+                    sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
+                    sh '${DEPLOYMENT_PATH} ${NUMBER_REPLICAS} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL}'
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
+                }
             }
         }
     }
