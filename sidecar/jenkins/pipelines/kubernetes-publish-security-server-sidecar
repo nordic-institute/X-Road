@@ -11,11 +11,10 @@ pipeline {
     }
     stages {
         stage('Apply cluster configuration') {
-            environment {
-                AWS = credentials('AWS')
-            }
             steps {
-                sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
+                withAWS(credentials:'AWS') {
+                    sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
+                }
             }
         }
         stage('Build X-Road Security Server Sidecar image') {
