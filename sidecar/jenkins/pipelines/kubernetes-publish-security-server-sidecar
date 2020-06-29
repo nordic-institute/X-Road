@@ -16,7 +16,7 @@ pipeline {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {                 
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
                     sh '${DEPLOYMENT_PATH} ${NUMBER_REPLICAS} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL} ${VERSION}'
-                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar${VERSION}'
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${VERSION}'
                 }
             }
         }
