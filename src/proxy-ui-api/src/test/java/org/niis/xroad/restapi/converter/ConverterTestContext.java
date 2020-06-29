@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
@@ -41,26 +40,25 @@ import org.springframework.test.context.junit4.SpringRunner;
  * inheriting this will have a common Spring Application Context therefore drastically reducing the execution
  * time of the converter tests
  */
-@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class ConverterTestContext {
+    @Autowired
+    SecurityServerConverter securityServerConverter;
+    @Autowired
+    TokenCertificateSigningRequestConverter csrConverter;
+    @Autowired
+    TokenCertificateConverter tokenCertificateConverter;
+    @Autowired
+    TokenConverter tokenConverter;
+    @Autowired
+    ServiceConverter serviceConverter;
     @MockBean
-    public VersionService versionService;
+    VersionService versionService;
     @MockBean
-    public GlobalConfFacade globalConfFacade;
+    GlobalConfFacade globalConfFacade;
     @SpyBean
-    public PossibleActionsRuleEngine possibleActionsRuleEngine;
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
     @SpyBean
-    public KeyConverter keyConverter;
-    @Autowired
-    public SecurityServerConverter securityServerConverter;
-    @Autowired
-    public TokenCertificateSigningRequestConverter csrConverter;
-    @Autowired
-    public TokenCertificateConverter tokenCertificateConverter;
-    @Autowired
-    public TokenConverter tokenConverter;
-    @Autowired
-    public ServiceConverter serviceConverter;
+    KeyConverter keyConverter;
 }

@@ -25,42 +25,27 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
-
-import org.junit.Test;
-import org.niis.xroad.restapi.util.TestUtils;
-
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * test IdentifierRepository
+ * Base for all repository tests that need injected/mocked beans in the application context. All repository
+ * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
+ * the execution time of the repository tests
  */
-public class IdentifierRepositoryIntegrationTest extends RepositoryTestContext {
-    @Test
-    public void getClientId() {
-        ClientId memberId = identifierRepository.getClientId(
-                TestUtils.getClientId("FI:GOV:M1"));
-        assertNotNull(memberId);
-        assertEquals(XRoadObjectType.MEMBER, memberId.getObjectType());
-        assertEquals("M1", memberId.getMemberCode());
-
-        ClientId subsystemId = identifierRepository.getClientId(
-                TestUtils.getClientId("FI:GOV:M1:SS2"));
-        assertNotNull(subsystemId);
-        assertEquals(XRoadObjectType.SUBSYSTEM, subsystemId.getObjectType());
-        assertEquals("M1", subsystemId.getMemberCode());
-
-        memberId = identifierRepository.getClientId(
-                TestUtils.getClientId("FI:GOV:MFOO"));
-        assertNull(memberId);
-
-        subsystemId = identifierRepository.getClientId(
-                TestUtils.getClientId("FI:GOV:MFOO:SS2"));
-        assertNull(subsystemId);
-    }
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
+@Transactional
+public abstract class RepositoryTestContext {
+    @Autowired
+    ClientRepository clientRepository;
+    @Autowired
+    IdentifierRepository identifierRepository;
+    @Autowired
+    ServerConfRepository serverConfRepository;
 }
-
-

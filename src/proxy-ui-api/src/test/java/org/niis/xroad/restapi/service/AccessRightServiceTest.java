@@ -35,24 +35,12 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,13 +67,7 @@ import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
 /**
  * test access rights service
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class AccessRightServiceTest {
+public class AccessRightServiceTest extends ServiceTestContext {
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -104,24 +86,6 @@ public class AccessRightServiceTest {
     private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
             TestUtils.INSTANCE_FI,
             TestUtils.INSTANCE_EE));
-
-    @Autowired
-    AccessRightService accessRightService;
-
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    GlobalConfService globalConfService;
-
-    @Autowired
-    EndpointService endpointService;
-
-    @Autowired
-    ClientRepository clientRepository;
-
-    @Autowired
-    private PersistenceTestUtil persistenceTestUtil;
 
     @Before
     public void setup() {
@@ -266,6 +230,7 @@ public class AccessRightServiceTest {
         } catch (AccessRightService.AccessRightNotFoundException expected) {
         }
     }
+
     @Test
     public void removeObsoleteSoapServiceAccessRights() throws Exception {
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
@@ -328,7 +293,6 @@ public class AccessRightServiceTest {
         assertEquals(initialAccessRights, countAccessRights());
     }
 
-
     @Test
     public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
         // openapi3-test has endpoints 8 (base), 9, 10, 11, 12
@@ -378,7 +342,6 @@ public class AccessRightServiceTest {
     @Test
     public void removeServiceClientAccessRightDoesNotExistSimple() throws Exception {
 
-
         ClientId serviceOwner = ClientId.create("FI", "GOV", "M2", "SS6");
         XRoadId ss6Id = serviceOwner;
 
@@ -422,7 +385,6 @@ public class AccessRightServiceTest {
         // test that remove succeeds when we dont try to remove openapi-servicecode
         // separate test since previous deleteServiceClientAccessRights
         // is not rolled back if in same test
-
 
         long initialAccessRights = countAccessRights();
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
@@ -481,7 +443,6 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightFromWrongServiceOwner() throws Exception {
-
 
         // bodyMassIndexOld belongs to ss2
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
@@ -596,7 +557,7 @@ public class AccessRightServiceTest {
 
         // should have 3 subjects with 3 identical access rights each
         assertEquals(3, dtosById.size());
-        for (XRoadId subjectId: dtosById.keySet()) {
+        for (XRoadId subjectId : dtosById.keySet()) {
             List<ServiceClientAccessRightDto> accessRights = dtosById.get(subjectId);
             assertNotNull(accessRights);
             assertEquals(3, accessRights.size());
@@ -753,7 +714,6 @@ public class AccessRightServiceTest {
         // 3 new subjects added - 3 identifiers created
         assertEquals(3, (countIdentifiers() - identifiers));
     }
-
 
     @Test
     public void addSoapServiceAccessRightsForObsoleteFails() throws Exception {

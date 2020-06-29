@@ -76,93 +76,98 @@ import static org.niis.xroad.restapi.util.TestUtils.mockServletRequestAttributes
 @AutoConfigureTestDatabase
 @Transactional
 public abstract class ApiControllerTestContext {
+    @Autowired
+    SystemApiController systemApiController;
+    @Autowired
+    KeysApiController keysApiController;
+    @Autowired
+    CertificateAuthoritiesApiController caController;
+    @Autowired
+    TestRestTemplate restTemplate;
+    @Autowired
+    ClientService clientService;
+    @Autowired
+    BackupsApiController backupsApiController;
+    @Autowired
+    ClientsApiController clientsApiController;
+    @Autowired
+    DiagnosticsApiController diagnosticsApiController;
+    @Autowired
+    PersistenceUtils persistenceUtils;
+    @Autowired
+    EndpointsApiController endpointsApiController;
+    @Autowired
+    InitializationApiController initializationApiController;
+    @Autowired
+    LocalGroupsApiController localGroupsApiController;
+    @Autowired
+    MemberClassesApiController memberClassesApiController;
+    @Autowired
+    SecurityServersApiController securityServersApiController;
+    @Autowired
+    ServiceDescriptionsApiController serviceDescriptionsApiController;
+    @Autowired
+    ServicesApiController servicesApiController;
+    @Autowired
+    TimestampingServicesApiController timestampingServicesApiController;
+    @Autowired
+    TokenCertificatesApiController tokenCertificatesApiController;
+    @Autowired
+    TokensApiController tokensApiController;
+    @Autowired
+    XroadInstancesApiController xroadInstancesApiController;
     @MockBean
-    public CertificateAuthorityService certificateAuthorityService;
+    CertificateAuthorityService certificateAuthorityService;
     @MockBean
-    public GlobalConfFacade globalConfFacade;
+    GlobalConfFacade globalConfFacade;
     @MockBean
-    public BackupService backupService;
+    BackupService backupService;
     @MockBean
-    public RestoreService restoreService;
+    RestoreService restoreService;
     @MockBean
-    public SignerProxyFacade signerProxyFacade;
+    SignerProxyFacade signerProxyFacade;
     @MockBean
-    public UrlValidator urlValidator;
+    UrlValidator urlValidator;
     @MockBean
-    public ManagementRequestSenderService managementRequestSenderService;
+    ManagementRequestSenderService managementRequestSenderService;
     @MockBean
-    public DiagnosticService diagnosticService;
+    DiagnosticService diagnosticService;
     @MockBean
-    public SystemService systemService;
+    SystemService systemService;
     @MockBean
-    public CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+    CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     @MockBean
-    public CurrentSecurityServerId currentSecurityServerId;
+    CurrentSecurityServerId currentSecurityServerId;
     @MockBean
-    public InitializationService initializationService;
+    InitializationService initializationService;
     @MockBean
-    public InternalTlsCertificateRepository mockRepository;
+    InternalTlsCertificateRepository mockRepository;
     @MockBean
-    public VersionService versionService;
+    VersionService versionService;
     @SpyBean
-    public GlobalConfService globalConfService;
+    GlobalConfService globalConfService;
     @SpyBean
-    public KeyService keyService;
+    KeyService keyService;
     @SpyBean
-    public TokenService tokenService;
+    TokenService tokenService;
     @SpyBean
-    public TokenCertificateService tokenCertificateService;
+    TokenCertificateService tokenCertificateService;
     @SpyBean
-    public ServerConfService serverConfService;
+    ServerConfService serverConfService;
     @SpyBean
-    public WsdlValidator wsdlValidator;
+    WsdlValidator wsdlValidator;
     @SpyBean
-    public MockableAuditEventLoggingFacade auditEventLoggingFacade;
+    MockableAuditEventLoggingFacade auditEventLoggingFacade;
     @SpyBean
-    public PossibleActionsRuleEngine possibleActionsRuleEngine;
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
     @SpyBean
-    public ClientConverter clientConverter;
-    @Autowired
-    public SystemApiController systemApiController;
-    @Autowired
-    public KeysApiController keysApiController;
-    @Autowired
-    public CertificateAuthoritiesApiController caController;
-    @Autowired
-    public TestRestTemplate restTemplate;
-    @Autowired
-    public ClientService clientService;
-    @Autowired
-    public BackupsApiController backupsApiController;
-    @Autowired
-    public ClientsApiController clientsApiController;
-    @Autowired
-    public DiagnosticsApiController diagnosticsApiController;
-    @Autowired
-    public PersistenceUtils persistenceUtils;
-    @Autowired
-    public EndpointsApiController endpointsApiController;
-    @Autowired
-    public InitializationApiController initializationApiController;
-    @Autowired
-    public LocalGroupsApiController localGroupsApiController;
-    @Autowired
-    public MemberClassesApiController memberClassesApiController;
-    @Autowired
-    public SecurityServersApiController securityServersApiController;
-    @Autowired
-    public ServiceDescriptionsApiController serviceDescriptionsApiController;
-    @Autowired
-    public ServicesApiController servicesApiController;
-    @Autowired
-    public TimestampingServicesApiController timestampingServicesApiController;
-    @Autowired
-    public TokenCertificatesApiController tokenCertificatesApiController;
-    @Autowired
-    public TokensApiController tokensApiController;
-    @Autowired
-    public XroadInstancesApiController xroadInstancesApiController;
+    ClientConverter clientConverter;
 
+    /**
+     * Add mock servlet request attributes to the RequestContextHolder. This is because testing a controller method
+     * by directly calling it is not actually considered a real request. Some tests will need a 'real' request
+     * (e.g. request scoped beans will not work without an existing request)
+     */
     @Before
     public void mockServlet() {
         mockServletRequestAttributes();

@@ -23,37 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.identifier.ClientId;
-
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 /**
- * test ServerConfRepository
+ * Base for all service tests that need injected/mocked beans in the application context. All service
+ * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
+ * the execution time of the service tests
  */
-public class ServerConfRepositoryIntegrationTest extends RepositoryTestContext {
-    @Test
-    public void getServerConf() {
-        ServerConfType serverConf = serverConfRepository.getServerConf();
-        assertNotNull(serverConf);
-        assertEquals("TEST-INMEM-SS", serverConf.getServerCode());
-        ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
-        assertEquals(clientId, serverConf.getOwner().getIdentifier());
-    }
-
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
+@Transactional
+@WithMockUser
+public abstract class ServiceTestContext {
+    @Autowired
+    EndpointService endpointService;
+    @Autowired
+    ClientRepository clientRepository;
+    @Autowired
+    PersistenceTestUtil persistenceTestUtil;
+    @Autowired
+    AccessRightService accessRightService;
+    @MockBean
+    GlobalConfFacade globalConfFacade;
+    @MockBean
+    GlobalConfService globalConfService;
 }
-
-
