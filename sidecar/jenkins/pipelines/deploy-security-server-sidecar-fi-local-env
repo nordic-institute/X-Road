@@ -48,7 +48,9 @@ pipeline {
     }
     post {
         always {
-            sh 'microk8s.kubectl delete -f sidecar/kubernetes/security-server-sidecar.yaml'
+            sh 'microk8s.kubectl delete -f security-server-sidecar-local-volume.yaml'
+            sh 'microk8s.kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
+            sh 'microk8s.kubectl delete service/security-server-sidecar-${VERSION}'
         }
     }
 }
