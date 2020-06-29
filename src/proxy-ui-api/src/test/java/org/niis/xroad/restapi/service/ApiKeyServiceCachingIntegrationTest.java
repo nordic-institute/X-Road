@@ -25,22 +25,13 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
@@ -59,19 +50,7 @@ import static org.mockito.Mockito.when;
  * Test api key service and api key authentication helper
  * caching while mocking DB
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-public class ApiKeyServiceCachingIntegrationTest {
-
-    @Autowired
-    private ApiKeyService apiKeyService;
-
-    @Autowired
-    ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
-
+public class ApiKeyServiceCachingIntegrationTest extends ServiceTestContext {
     @MockBean
     private EntityManager entityManager;
 
@@ -82,7 +61,6 @@ public class ApiKeyServiceCachingIntegrationTest {
     private Query query;
 
     @Test
-    @WithMockUser
     public void testList() throws Exception {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
@@ -99,7 +77,6 @@ public class ApiKeyServiceCachingIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     public void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
@@ -139,7 +116,6 @@ public class ApiKeyServiceCachingIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     public void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
