@@ -90,7 +90,7 @@ import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 /**
  * test certificates api
  */
-public class TokenCertificatesApiControllerIntegrationTest extends ApiControllerTestContext {
+public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     @Before
     public void setup() throws Exception {
         doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any());

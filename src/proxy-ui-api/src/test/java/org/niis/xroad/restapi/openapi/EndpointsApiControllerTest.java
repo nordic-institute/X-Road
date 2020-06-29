@@ -44,7 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
-public class EndpointsApiControllerTest extends ApiControllerTestContext {
+public class EndpointsApiControllerTest extends AbstractApiControllerTestContext {
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
     @Test

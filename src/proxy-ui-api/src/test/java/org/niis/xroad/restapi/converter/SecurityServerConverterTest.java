@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 /**
  * test SecurityServerConverter
  */
-public class SecurityServerConverterTest extends ConverterTestContext {
+public class SecurityServerConverterTest extends AbstractConverterTestContext {
 
     private static final String SERVER_ADDRESS = "foo.bar.baz";
 

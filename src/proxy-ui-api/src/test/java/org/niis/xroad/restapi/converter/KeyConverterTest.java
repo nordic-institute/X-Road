@@ -43,7 +43,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class KeyConverterTest extends ConverterTestContext {
+public class KeyConverterTest extends AbstractConverterTestContext {
 
     @Test
     public void convert() throws Exception {

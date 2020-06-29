@@ -45,7 +45,7 @@ import static org.mockito.Mockito.doThrow;
 /**
  * test init
  */
-public class InitializationApiControllerTest extends ApiControllerTestContext {
+public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
     private static final String OWNER_MEMBER_CLASS = "GOV";
     private static final String OWNER_MEMBER_CODE = "M1";
     private static final String SECURITY_SERVER_CODE = "SS3";

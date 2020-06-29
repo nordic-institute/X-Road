@@ -47,7 +47,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-public class TokenCertificateSigningRequestConverterTest extends ConverterTestContext {
+public class TokenCertificateSigningRequestConverterTest extends AbstractConverterTestContext {
 
     @Before
     public void setup() {

@@ -48,7 +48,7 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
  * please remember to mark the context dirty with the following annotation:
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
  */
-public class UserApiControllerRestTemplateTest extends ApiControllerTestContext {
+public class UserApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
     @Before
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);

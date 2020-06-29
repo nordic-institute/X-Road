@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test BackupService
  */
-public class BackupServiceTest extends ServiceTestContext {
+public class BackupServiceTest extends AbstractServiceTestContext {
     private static final String BASE_DIR = "/tmp/backups/";
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";

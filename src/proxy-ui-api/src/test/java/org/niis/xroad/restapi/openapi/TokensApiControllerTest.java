@@ -57,7 +57,7 @@ import static org.mockito.Mockito.doReturn;
 /**
  * test tokens api
  */
-public class TokensApiControllerTest extends ApiControllerTestContext {
+public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String KEY_LABEL = "key-label";

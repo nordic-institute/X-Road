@@ -104,7 +104,7 @@ import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSD
 /**
  * Test ClientsApiController
  */
-public class ClientsApiControllerIntegrationTest extends ApiControllerTestContext {
+public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     private static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(TestUtils.getM1Ss1ClientId(),
             "owner");
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(

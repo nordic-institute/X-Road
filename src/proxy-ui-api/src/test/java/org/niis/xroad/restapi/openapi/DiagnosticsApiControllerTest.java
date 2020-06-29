@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test DiagnosticsApiController
  */
-public class DiagnosticsApiControllerTest extends ApiControllerTestContext {
+public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
     private static final String CURRENT_TIME_BEFORE_MIDNIGHT = "2019-12-31T23:59:50.123";

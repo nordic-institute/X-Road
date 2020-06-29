@@ -60,7 +60,7 @@ import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERV
 /**
  * Test ServicesApiController
  */
-public class ServicesApiControllerIntegrationTest extends ApiControllerTestContext {
+public class ServicesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     private static final String FOO = "foo";
     public static final int SS1_GET_RANDOM_SERVICE_CLIENTS = 4;

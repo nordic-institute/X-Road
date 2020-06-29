@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test TimestampingServiceApiController
  */
-public class TimestampingServiceApiControllerTest extends ApiControllerTestContext {
+public class TimestampingServiceApiControllerTest extends AbstractApiControllerTestContext {
     private static final Map<String, TspType> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
 
     private static final String TSA_1_URL = "https://tsa.com";

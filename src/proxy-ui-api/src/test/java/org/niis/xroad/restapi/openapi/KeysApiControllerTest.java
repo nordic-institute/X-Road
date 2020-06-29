@@ -55,7 +55,7 @@ import static org.mockito.Mockito.doReturn;
 /**
  * test keys api
  */
-public class KeysApiControllerTest extends ApiControllerTestContext {
+public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";

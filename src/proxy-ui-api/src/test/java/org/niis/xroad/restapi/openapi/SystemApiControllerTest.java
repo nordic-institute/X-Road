@@ -68,7 +68,7 @@ import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 /**
  * test system api
  */
-public class SystemApiControllerTest extends ApiControllerTestContext {
+public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     private static final String TSA_1_URL = "https://tsa.com";
 
     private static final String TSA_1_NAME = "TSA 1";

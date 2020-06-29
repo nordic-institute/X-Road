@@ -59,7 +59,7 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
  * TestRestTemplate requests will not be rolled back so the context will need to be reloaded after this test class
  */
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class StringTrimmerRestTemplateTest extends ApiControllerTestContext {
+public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestContext {
     public static final String MEMBER_CODE_WITH_SPACES = "  1234  ";
     public static final String MEMBER_CODE_WITHOUT_SPACES = "1234";
     public static final String SUBSYSTEM_CODE_WITH_SPACES = "  SS1  ";

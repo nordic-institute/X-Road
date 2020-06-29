@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test BackupsApiController
  */
-public class BackupsApiControllerTest extends ApiControllerTestContext {
+public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";
 

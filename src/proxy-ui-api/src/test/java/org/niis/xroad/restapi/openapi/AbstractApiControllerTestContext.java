@@ -75,7 +75,7 @@ import static org.niis.xroad.restapi.util.TestUtils.mockServletRequestAttributes
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
 @Transactional
-public abstract class ApiControllerTestContext {
+public abstract class AbstractApiControllerTestContext {
     @Autowired
     SystemApiController systemApiController;
     @Autowired

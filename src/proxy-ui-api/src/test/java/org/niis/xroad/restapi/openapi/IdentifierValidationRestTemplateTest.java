@@ -70,7 +70,7 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
  * TestRestTemplate requests will not be rolled back so the context will need to be reloaded after this test class
  */
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class IdentifierValidationRestTemplateTest extends ApiControllerTestContext {
+public class IdentifierValidationRestTemplateTest extends AbstractApiControllerTestContext {
     public static final String HAS_COLON = "aa:bb";
     public static final String HAS_SEMICOLON = "aa;bb";
     public static final String HAS_PERCENT = "aa%bb";

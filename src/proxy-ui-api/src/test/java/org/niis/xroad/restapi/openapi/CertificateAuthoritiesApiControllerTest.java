@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
  * test cert auth api
  */
 @Transactional
-public class CertificateAuthoritiesApiControllerTest extends ApiControllerTestContext {
+public class CertificateAuthoritiesApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";

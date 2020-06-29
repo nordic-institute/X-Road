@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 /**
  * test xroad instances api controller
  */
-public class XroadInstancesApiControllerIntegrationTest extends ApiControllerTestContext {
+public class XroadInstancesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";

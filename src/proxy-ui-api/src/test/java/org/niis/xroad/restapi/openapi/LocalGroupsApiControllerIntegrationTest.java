@@ -52,7 +52,7 @@ import static org.niis.xroad.restapi.util.TestUtils.assertMissingLocationHeader;
 /**
  * Test LocalGroupsApiController
  */
-public class LocalGroupsApiControllerIntegrationTest extends ApiControllerTestContext {
+public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {

@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 /**
  * test member classes api controller
  */
-public class MemberClassesApiControllerIntegrationTest extends ApiControllerTestContext {
+public class MemberClassesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";

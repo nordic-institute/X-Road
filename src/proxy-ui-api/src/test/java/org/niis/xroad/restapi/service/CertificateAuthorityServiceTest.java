@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,14 +80,7 @@ import static org.mockito.Mockito.when;
 /**
  * test CertificateAuthorityService
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class CertificateAuthorityServiceTest {
-
+public class CertificateAuthorityServiceTest extends AbstractServiceTestContext {
     public static final String MOCK_AUTH_CERT_SUBJECT =
             "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
     public static final String MOCK_AUTH_CERT_ISSUER =
@@ -96,32 +90,7 @@ public class CertificateAuthorityServiceTest {
     public static final String MOCK_INTERMEDIATE_CA_SUBJECT_DN =
             "CN=int-cn, O=X-Road Test int";
 
-    @Autowired
-    CertificateAuthorityService certificateAuthorityService;
-
-    @Autowired
-    CertificateAuthorityService.CacheEvictor cacheEvictor;
-
-    @MockBean
-    GlobalConfService globalConfService;
-
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    SignerProxyFacade signerProxyFacade;
-
-    @MockBean
-    ServerConfService serverConfService;
-
-    @MockBean
-    ClientService clientService;
-
-    @MockBean
-    ServerConfRepository serverConfRepository;
-
     private ClientId ownerId;
-
 
     @Before
     public void setup() throws Exception {

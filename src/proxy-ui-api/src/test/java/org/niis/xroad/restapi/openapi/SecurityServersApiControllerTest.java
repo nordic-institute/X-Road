@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 /**
  * test securityservers api controller
  */
-public class SecurityServersApiControllerTest extends ApiControllerTestContext {
+public class SecurityServersApiControllerTest extends AbstractApiControllerTestContext {
 
     // our global configuration has only this security server
     public static final SecurityServerId EXISTING_SERVER_ID = SecurityServerId.create(

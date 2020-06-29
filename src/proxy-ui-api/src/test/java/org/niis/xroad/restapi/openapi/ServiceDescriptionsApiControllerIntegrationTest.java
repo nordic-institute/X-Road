@@ -61,7 +61,7 @@ import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
 /**
  * Test ServiceDescriptionsApiController
  */
-public class ServiceDescriptionsApiControllerIntegrationTest extends ApiControllerTestContext {
+public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {

@@ -25,12 +25,20 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.identifier.ClientId;
+
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.niis.xroad.restapi.util.PersistenceTestUtil;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,6 +46,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.mockito.Mockito.when;
 
 /**
  * Base for all service tests that need injected/mocked beans in the application context. All service
@@ -49,7 +59,21 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser
-public abstract class ServiceTestContext {
+public abstract class AbstractServiceTestContext {
+    @MockBean
+    GlobalConfFacade globalConfFacade;
+    @MockBean
+    ManagementRequestSenderService managementRequestSenderService;
+    @MockBean
+    SignerProxyFacade signerProxyFacade;
+    @MockBean
+    ExternalProcessRunner externalProcessRunner;
+
+    @MockBean
+    BackupRepository backupRepository;
+    @MockBean
+    ServerConfRepository serverConfRepository;
+
     @Autowired
     ApiKeyService apiKeyService;
     @Autowired
@@ -64,12 +88,25 @@ public abstract class ServiceTestContext {
     EndpointService endpointService;
     @Autowired
     PersistenceTestUtil persistenceTestUtil;
-    @MockBean
-    BackupRepository backupRepository;
-    @MockBean
-    ExternalProcessRunner externalProcessRunner;
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-    @MockBean
+    @Autowired
+    CertificateAuthorityService certificateAuthorityService;
+    @Autowired
+    CertificateAuthorityService.CacheEvictor cacheEvictor;
+    @Autowired
+    ClientService clientService;
+    @Autowired
+    ServerConfService serverConfService;
+    @Autowired
     GlobalConfService globalConfService;
+
+    @Before
+    public void setupCommonMocks() {
+        ServerConfType sct = new ServerConfType();
+        ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
+        ClientType owner = new ClientType();
+        owner.setIdentifier(clientId);
+        sct.setOwner(owner);
+        sct.setServerCode("some-servercode");
+        when(serverConfRepository.getServerConf()).thenReturn(sct);
+    }
 }

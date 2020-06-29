@@ -64,7 +64,7 @@ import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
  */
 @Slf4j
-public class TransactionHandlingRestTemplateTest extends ApiControllerTestContext {
+public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTestContext {
     @Before
     public void setup() {
         restTemplate.getRestTemplate().setInterceptors(

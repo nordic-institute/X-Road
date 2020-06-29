@@ -67,7 +67,7 @@ import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
 /**
  * test access rights service
  */
-public class AccessRightServiceTest extends ServiceTestContext {
+public class AccessRightServiceTest extends AbstractServiceTestContext {
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,

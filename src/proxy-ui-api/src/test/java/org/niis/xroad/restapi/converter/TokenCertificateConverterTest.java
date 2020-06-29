@@ -55,7 +55,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-public class TokenCertificateConverterTest extends ConverterTestContext {
+public class TokenCertificateConverterTest extends AbstractConverterTestContext {
 
     @Before
     public void setup() {
