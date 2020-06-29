@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test api key service and api key authentication helper
- * caching while mocking DB
+ * caching while mocking DB. Will aquire a new application context
  */
 public class ApiKeyServiceCachingIntegrationTest extends ServiceTestContext {
     @MockBean

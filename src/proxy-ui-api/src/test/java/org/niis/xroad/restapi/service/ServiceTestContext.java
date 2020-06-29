@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * the execution time of the service tests
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser

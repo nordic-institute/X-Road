@@ -25,18 +25,10 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,20 +42,10 @@ import static org.junit.Assert.assertFalse;
 /**
  * Test api key service
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-public class ApiKeyServiceIntegrationTest {
-
-    @Autowired
-    private ApiKeyService apiKeyService;
-
+public class ApiKeyServiceIntegrationTest extends ServiceTestContext {
     private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
 
     @Test
-    @WithMockUser
     public void testDelete() throws Exception {
         String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
@@ -88,7 +70,6 @@ public class ApiKeyServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     public void testSaveAndLoadAndUpdate() throws Exception {
         // Save
         String plainKey = apiKeyService.create(
@@ -113,28 +94,31 @@ public class ApiKeyServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     public void testDifferentRoles() throws Exception {
         try {
             String key = apiKeyService.create(new ArrayList<>()).getPlaintTextKey();
             fail("should fail due to missing roles");
-        } catch (InvalidRoleNameException expected) { }
+        } catch (InvalidRoleNameException expected) {
+        }
 
         try {
             String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                     "FOOBAR")).getPlaintTextKey();
             fail("should fail due to bad role");
-        } catch (InvalidRoleNameException expected) { }
+        } catch (InvalidRoleNameException expected) {
+        }
 
         try {
             PersistentApiKeyType key = apiKeyService.update(1, new ArrayList<>());
             fail("should fail due to missing roles");
-        } catch (InvalidRoleNameException expected) { }
+        } catch (InvalidRoleNameException expected) {
+        }
 
         try {
             PersistentApiKeyType key = apiKeyService.update(1, Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
             fail("should fail due to bad role");
-        } catch (InvalidRoleNameException expected) { }
+        } catch (InvalidRoleNameException expected) {
+        }
 
         String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                 "XROAD_REGISTRATION_OFFICER")).getPlaintTextKey();
