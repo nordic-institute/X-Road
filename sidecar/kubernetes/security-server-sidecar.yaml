@@ -40,7 +40,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    name: security-server-sidecar-fi
+    name: security-server-sidecar-{{VERSION}}
   name: security-server-sidecar-{{VERSION}}
 spec:
   selector:
