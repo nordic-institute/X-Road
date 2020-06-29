@@ -11,12 +11,16 @@ pipeline {
         XROAD_DB_PORT = '5432'
         XROAD_DB_PWD = 'secret1234'
         XROAD_LOG_LEVEL = 'INFO'
-        template=`cat "sidecar/kubernetes/security-server-sidecar.yaml" | sed "s/{{NUMBER_REPLICAS}}/$NUMBER_REPLICAS/g" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g"`
     }
     stages {
+        stage('Deploy Sidecar persistent and claim volumes in Kubernetes local env') {
+            steps {
+                sh 'microk8s.kubectl apply -f sidecar/kubernetes/security-server-sidecar-local-volume.yaml'
+            }
+        }
         stage('Deploy Sidecar image in Kubernetes local env') {
             steps {
-                sh 'echo "$template" | microk8s.kubectl apply -f -'
+                sh 'cat "sidecar/kubernetes/security-server-sidecar.yaml" | sed "s/{{NUMBER_REPLICAS}}/$NUMBER_REPLICAS/g" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | microk8s.kubectl apply -f -'
             }
         }
         stage('Rollout status') {
