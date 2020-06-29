@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.service;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,11 +57,17 @@ public abstract class ServiceTestContext {
     @Autowired
     AccessRightService accessRightService;
     @Autowired
+    BackupService backupService;
+    @Autowired
     ClientRepository clientRepository;
     @Autowired
     EndpointService endpointService;
     @Autowired
     PersistenceTestUtil persistenceTestUtil;
+    @MockBean
+    BackupRepository backupRepository;
+    @MockBean
+    ExternalProcessRunner externalProcessRunner;
     @MockBean
     GlobalConfFacade globalConfFacade;
     @MockBean
