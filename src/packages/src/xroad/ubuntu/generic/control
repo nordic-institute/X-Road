@@ -31,7 +31,7 @@ Package: xroad-base
 Architecture: amd64
 Pre-depends: dpkg (>= 1.15.7.2)
 Depends: ${misc:Depends}, openjdk-8-jre-headless, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo
-Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Replaces: xroad-proxy (<< 6.8.9), xroad-proxy-no-internal-db (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road base components
  X-Road base components and utilities
@@ -176,3 +176,114 @@ Depends: ${misc:Depends}
 Pre-depends: xroad-base (=${binary:Version}), xroad-proxy (=${binary:Version})
 Description: X-Road proxy UI REST API
  REST API for X-Road proxy UI and management operations
+
+Package: xroad-centralserver-monitoring-no-internal-db
+Conflicts: xroad-securityserver, xroad-securityserver-no-internal-db
+Architecture: all
+Depends: xroad-center-no-internal-db (=${binary:Version})
+Description: Monitoring client configuration for X-Road central without local PostgreSQL database
+ X-Road global monitoring  without local PostgreSQL database configuration file.
+
+Package: xroad-centralserver-no-internal-db
+Conflicts: xroad-securityserver, xroad-securityserver-no-internal-db, xtee55-center
+Architecture: all
+Depends: xroad-center-no-internal-db (=${binary:Version}), xroad-centralserver-monitoring-no-internal-db (=${binary:Version})
+Description: X-Road central server without local PostgreSQL database
+ This is meta-package of X-Road central server without local PostgreSQL database.
+
+Package: xroad-center-no-internal-db
+Conflicts: xroad-proxy, xroad-confproxy, xroad-proxy-no-internal-db, xroad-confproxy-no-internal-db, xtee55-center
+Architecture: all
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version})
+Description: X-Road central server without local PostgreSQL database
+ X-Road central server programs and utilities without local PostgreSQL database
+
+Package: xroad-securityserver-no-internal-db
+Conflicts: xroad-centralserver, xroad-centralserver-no-internal-db, uxp-addon-monitor (<=6.5)
+Architecture: all
+Depends: xroad-proxy-no-internal-db (=${binary:Version}), xroad-addon-metaservices-no-internal-db (=${binary:Version}), xroad-addon-messagelog-no-internal-db (=${binary:Version}), xroad-addon-proxymonitor-no-internal-db (=${binary:Version}), xroad-addon-wsdlvalidator-no-internal-db (=${binary:Version}), xroad-proxy-ui-api-no-internal-db (=${binary:Version})
+Description: X-Road security server without local PostgreSQL database
+ This is meta-package of X-Road security server without local PostgreSQL database.
+
+Package: xroad-proxy-no-internal-db
+Conflicts: xroad-center, xroad-center-no-internal-db, xroad-confproxy, xroad-confproxy-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version})
+Description: X-Road security server without local PostgreSQL database
+ X-Road security server programs and utilities without local PostgreSQL database
+
+Package: xroad-confproxy-no-internal-db
+Conflicts: xroad-center, xroad-proxy, xroad-center-no-internal-db, xroad-proxy-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version})
+Description: X-Road configuration proxy without local PostgreSQL database
+ X-Road configuration proxy without local PostgreSQL database
+
+Package: xroad-addon-messagelog-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy-no-internal-db (=${binary:Version})
+Conflicts: xroad-addon-legacy-securelog
+Description: X-Road AddOn: messagelog without local PostgreSQL database
+ AddOn for secure message log without local PostgreSQL database
+
+Package: xroad-addon-metaservices-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy-no-internal-db (=${binary:Version})
+Description: X-Road AddOn: metaservices without local PostgreSQL database
+ AddOn for metaservice reponders without local PostgreSQL database
+
+Package: xroad-addon-proxymonitor-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy-no-internal-db (=${binary:Version}), xroad-monitor (=${binary:Version})
+Description: X-Road AddOn: proxy monitoring metaservice without local PostgreSQL database
+ Addon for proxy monitoring without local PostgreSQL database
+
+Package: xroad-addon-wsdlvalidator-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy-no-internal-db (=${binary:Version})
+Description: X-Road AddOn: wsdlvalidator without local PostgreSQL database
+ AddOn for WSDL validator for the X-Road services without local PostgreSQL database
+
+Package: xroad-addon-opmonitoring-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy-no-internal-db (=${binary:Version}), xroad-opmonitor-no-internal-db (=${binary:Version})
+Description: X-Road AddOn: operations monitoring service without local PostgreSQL database
+ AddOn for operations monitoring without local PostgreSQL database.
+
+Package: xroad-securityserver-fi-no-internal-db
+Conflicts: xroad-centralserver, xroad-centralserver-no-internal-db
+Architecture: all
+Depends: xroad-securityserver-no-internal-db (=${binary:Version}), xroad-addon-opmonitoring-no-internal-db (=${binary:Version})
+Description: X-Road security server with Finnish settings and without local PostgreSQL database
+ This is meta-package of X-Road security server with Finnish settings and without local PostgreSQL database.
+
+Package: xroad-securityserver-is-no-internal-db
+Conflicts: xroad-centralserver, xroad-centralserver-no-internal-db
+Architecture: all
+Depends: xroad-securityserver-no-internal-db (=${binary:Version}), xroad-addon-opmonitoring-no-internal-db (=${binary:Version})
+Description: X-Road security server with Icelandic settings and without local PostgreSQL database
+ This is meta-package of X-Road security server with Icelandic settings and without local PostgreSQL database.
+
+Package: xroad-securityserver-ee-no-internal-db
+Conflicts: xroad-centralserver, xroad-centralserver-no-internal-db
+Architecture: all
+Depends: xroad-securityserver-no-internal-db (=${binary:Version}), xroad-addon-opmonitoring-no-internal-db (=${binary:Version})
+Description: X-Road security server with Estonian settings and without local PostgreSQL database
+ This is meta-package of X-Road security server with Estonian settings and without local PostgreSQL database.
+
+Package: xroad-opmonitor-no-internal-db
+Conflicts: xroad-center, xroad-center-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
+Description: X-Road operations monitoring daemon without local PostgreSQL database
+ X-Road operations monitoring daemon without local PostgreSQL database
+
+Package: xroad-proxy-ui-api-no-internal-db
+Architecture: all
+Depends: ${misc:Depends}
+Pre-depends: xroad-base (=${binary:Version}), xroad-proxy-no-internal-db (=${binary:Version})
+Description: X-Road proxy UI REST API without local PostgreSQL database
+ REST API for X-Road proxy UI and management operations without local PostgreSQL database
