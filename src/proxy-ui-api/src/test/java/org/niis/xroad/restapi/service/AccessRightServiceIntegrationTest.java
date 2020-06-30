@@ -85,7 +85,7 @@ import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
 @Slf4j
 @Transactional
 @WithMockUser
-public class AccessRightServiceTest {
+public class AccessRightServiceIntegrationTest {
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -266,7 +266,6 @@ public class AccessRightServiceTest {
         } catch (AccessRightService.AccessRightNotFoundException expected) {
         }
     }
-
     @Test
     public void removeObsoleteSoapServiceAccessRights() throws Exception {
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
@@ -329,6 +328,7 @@ public class AccessRightServiceTest {
         assertEquals(initialAccessRights, countAccessRights());
     }
 
+
     @Test
     public void removeServiceClientAccessRightsRemovesAllEndpoints() throws Exception {
         // openapi3-test has endpoints 8 (base), 9, 10, 11, 12
@@ -378,6 +378,7 @@ public class AccessRightServiceTest {
     @Test
     public void removeServiceClientAccessRightDoesNotExistSimple() throws Exception {
 
+
         ClientId serviceOwner = ClientId.create("FI", "GOV", "M2", "SS6");
         XRoadId ss6Id = serviceOwner;
 
@@ -421,6 +422,7 @@ public class AccessRightServiceTest {
         // test that remove succeeds when we dont try to remove openapi-servicecode
         // separate test since previous deleteServiceClientAccessRights
         // is not rolled back if in same test
+
 
         long initialAccessRights = countAccessRights();
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
@@ -479,6 +481,7 @@ public class AccessRightServiceTest {
 
     @Test
     public void removeServiceClientAccessRightFromWrongServiceOwner() throws Exception {
+
 
         // bodyMassIndexOld belongs to ss2
         ClientId ss1Id = TestUtils.getM1Ss1ClientId();
@@ -593,7 +596,7 @@ public class AccessRightServiceTest {
 
         // should have 3 subjects with 3 identical access rights each
         assertEquals(3, dtosById.size());
-        for (XRoadId subjectId : dtosById.keySet()) {
+        for (XRoadId subjectId: dtosById.keySet()) {
             List<ServiceClientAccessRightDto> accessRights = dtosById.get(subjectId);
             assertNotNull(accessRights);
             assertEquals(3, accessRights.size());
@@ -750,6 +753,7 @@ public class AccessRightServiceTest {
         // 3 new subjects added - 3 identifiers created
         assertEquals(3, (countIdentifiers() - identifiers));
     }
+
 
     @Test
     public void addSoapServiceAccessRightsForObsoleteFails() throws Exception {

@@ -30,20 +30,15 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -71,12 +66,7 @@ import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMeta
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
+@RunWith(MockitoJUnitRunner.class)
 public class InitializationServiceTest {
     private static final String INSTANCE = "CS";
     private static final String OWNER_MEMBER_CLASS = "GOV";
@@ -91,23 +81,22 @@ public class InitializationServiceTest {
     private static final SecurityServerId SERVER = SecurityServerId.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);
 
-    @Autowired
-    private InitializationService initializationService;
-
-    @MockBean
+    @Mock
     private TokenService tokenService;
-
-    @MockBean
+    @Mock
     private SystemService systemService;
-
-    @MockBean
+    @Mock
+    private ClientService clientService;
+    @Mock
     private GlobalConfFacade globalConfFacade;
-
-    @MockBean
+    @Mock
     private ServerConfService serverConfService;
-
-    @MockBean
+    @Mock
     private SignerProxyFacade signerProxyFacade;
+    @Mock
+    private AuditDataHelper auditDataHelper;
+
+    private InitializationService initializationService;
 
     @Before
     public void setup() {
@@ -118,6 +107,8 @@ public class InitializationServiceTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
+        initializationService = new InitializationService(systemService, serverConfService,
+                tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper);
         initializationService.setTokenPinEnforced(false);
     }
 
@@ -283,7 +274,6 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeFailTokenInvalidPin() throws Exception {
-        doThrow(new Exception()).when(signerProxyFacade).initSoftwareToken(any());
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -299,7 +289,6 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeFailTokenWeakPin() throws Exception {
-        doThrow(new Exception()).when(signerProxyFacade).initSoftwareToken(any());
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);

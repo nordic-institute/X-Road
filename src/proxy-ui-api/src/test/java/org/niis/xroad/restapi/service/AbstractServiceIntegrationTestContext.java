@@ -25,10 +25,19 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,10 +47,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.mockito.Mockito.when;
+
 /**
  * Base for all service integration tests that need injected/mocked beans in the application context. All service
  * integration test classes inheriting this will have a common Spring Application Context therefore drastically
  * reducing the execution time of the integration tests.
+ *
+ * Integration tests do not mock the repository layer.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -59,6 +72,8 @@ public abstract class AbstractServiceIntegrationTestContext {
     JdbcTemplate jdbcTemplate;
     @Autowired
     EndpointService endpointService;
+    @Autowired
+    KeyAndCertificateRequestService keyAndCertificateRequestService;
 
     @MockBean
     GlobalConfFacade globalConfFacade;
@@ -66,4 +81,20 @@ public abstract class AbstractServiceIntegrationTestContext {
     ManagementRequestSenderService managementRequestSenderService;
     @MockBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+    @MockBean
+    SignerProxyFacade signerProxyFacade;
+    @MockBean
+    CurrentSecurityServerId currentSecurityServerId;
+
+    static final ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
+
+    @Before
+    public void setupCommonMocks() {
+        ServerConfType sct = new ServerConfType();
+        ClientType owner = new ClientType();
+        owner.setIdentifier(commonOwnerId);
+        sct.setOwner(owner);
+        sct.setServerCode("SS1");
+        when(currentSecurityServerId.getServerId()).thenReturn(SecurityServerId.create(commonOwnerId, "SS1"));
+    }
 }

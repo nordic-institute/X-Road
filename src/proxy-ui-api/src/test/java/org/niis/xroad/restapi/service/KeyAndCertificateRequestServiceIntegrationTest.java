@@ -35,22 +35,11 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.TokenTestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,29 +55,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenService.KEY_NOT_FOUND_FAULT_CODE;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class KeyAndCertificateRequestServiceIntegrationTest {
+public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
     public static final String SOFTWARE_TOKEN_ID = PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
     public static final String OTHER_TOKEN_ID = "1";
     public static final String MOCK_CA = "mock-ca";
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
-
-    @MockBean
-    private CurrentSecurityServerId currentSecurityServerId;
-
-    @Autowired
-    private KeyAndCertificateRequestService keyAndCertificateRequestService;
 
     @Before
     public void setup() throws Exception {
@@ -151,8 +122,8 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
     }
 
     private KeyInfo getKey(Map<String, TokenInfo> tokens, String keyId) {
-        for (TokenInfo tokenInfo: tokens.values()) {
-            for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
+        for (TokenInfo tokenInfo : tokens.values()) {
+            for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (keyInfo.getId().equals(keyId)) {
                     return keyInfo;
                 }
@@ -162,8 +133,8 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
     }
 
     private TokenInfo getTokenWithKey(Map<String, TokenInfo> tokens, String keyId) {
-        for (TokenInfo tokenInfo: tokens.values()) {
-            for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
+        for (TokenInfo tokenInfo : tokens.values()) {
+            for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (keyInfo.getId().equals(keyId)) {
                     return tokenInfo;
                 }

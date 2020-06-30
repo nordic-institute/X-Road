@@ -32,29 +32,21 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -74,13 +66,7 @@ import static org.mockito.Mockito.when;
 /**
  * test key service.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class KeyServiceTest {
+public class KeyServiceTest extends AbstractServiceTestContext {
 
     // token ids for mocking
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
@@ -90,32 +76,16 @@ public class KeyServiceTest {
     private static final String REGISTERED_AUTH_CERT_ID = "registered-auth-cert";
     private static final String NONREGISTERED_AUTH_CERT_ID = "unregistered-auth-cert";
 
-    @Autowired
-    private KeyService keyService;
+    private static final TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+            .friendlyName("good-token").build();
 
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
+    private static final KeyInfo authKey = new KeyInfoBuilder()
+            .id(AUTH_KEY_ID)
+            .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+            .build();
 
-    @MockBean
-    private TokenService tokenService;
-
-    @MockBean
-    private ManagementRequestSenderService managementRequestSenderService;
-
-    // allow all actions
-    @MockBean
-    private PossibleActionsRuleEngine possibleActionsRuleEngine;
-
-    @Before
-    public void setup() throws Exception {
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .friendlyName("good-token").build();
-
+    static {
         // auth key
-        KeyInfo authKey = new KeyInfoBuilder()
-                .id(AUTH_KEY_ID)
-                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                .build();
         CertificateInfo registeredCert = new CertificateInfoBuilder()
                 .savedToConfiguration(true)
                 .certificateStatus(CertificateInfo.STATUS_REGISTERED)
@@ -144,8 +114,10 @@ public class KeyServiceTest {
         tokenInfo.getKeyInfo().add(authKey);
         tokenInfo.getKeyInfo().add(signKey);
         tokenInfo.getKeyInfo().add(typelessKey);
-        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+    }
 
+    @Before
+    public void setup() throws Exception {
         doAnswer(invocation -> {
             Object[] arguments = invocation.getArguments();
             String newKeyName = (String) arguments[1];
@@ -159,20 +131,33 @@ public class KeyServiceTest {
             }
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
-        doAnswer(invocation -> {
-            String keyId = (String) invocation.getArguments()[0];
-            if (AUTH_KEY_ID.equals(keyId)
-                    || SIGN_KEY_ID.equals(keyId)
-                    || TYPELESS_KEY_ID.equals(keyId)) {
-                return tokenInfo;
-            } else {
-                throw new KeyNotFoundException(keyId + " not supported");
-            }
-        }).when(tokenService).getTokenForKeyId(any());
 
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleKeyActions(any(), any());
+
+
+        // override instead of mocking for better performance
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngine, auditDataHelper) {
+            @Override
+            public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
+                if (AUTH_KEY_ID.equals(keyId)
+                        || SIGN_KEY_ID.equals(keyId)
+                        || TYPELESS_KEY_ID.equals(keyId)) {
+                    return tokenInfo;
+                } else {
+                    throw new KeyNotFoundException(keyId + " not supported");
+                }
+            }
+
+            @Override
+            public List<TokenInfo> getAllTokens() {
+                return Collections.singletonList(tokenInfo);
+            }
+        };
+        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngine,
+                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
+                auditEventLoggingFacade);
     }
 
     @Test

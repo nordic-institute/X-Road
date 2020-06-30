@@ -34,6 +34,8 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.AnchorRepository;
@@ -43,6 +45,7 @@ import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.niis.xroad.restapi.util.PersistenceTestUtil;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -60,7 +63,7 @@ import static org.mockito.Mockito.when;
  * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
  * the execution time of the service tests.
  *
- * The idea is to only mock the lower layers than what is being tested and only when really needed.
+ * Only repository, or anything below service layer, should be mocked here
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -76,7 +79,8 @@ public abstract class AbstractServiceTestContext {
     SignerProxyFacade signerProxyFacade;
     @MockBean
     ExternalProcessRunner externalProcessRunner;
-
+    @MockBean
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
     @MockBean
     BackupRepository backupRepository;
     @MockBean
@@ -89,9 +93,13 @@ public abstract class AbstractServiceTestContext {
     IdentifierRepository identifierRepository;
     @MockBean
     LocalGroupRepository localGroupRepository;
+
     @Autowired
     AuditDataHelper auditDataHelper;
-
+    @Autowired
+    AuditEventHelper auditEventHelper;
+    @Autowired
+    AuditEventLoggingFacade auditEventLoggingFacade;
     @Autowired
     ApiKeyService apiKeyService;
     @Autowired
@@ -120,8 +128,14 @@ public abstract class AbstractServiceTestContext {
     LocalGroupService localGroupService;
     @Autowired
     ServiceDescriptionService serviceDescriptionService;
+    @Autowired
+    TokenService tokenService;
+    @Autowired
+    KeyService keyService;
+    @Autowired
+    SecurityHelper securityHelper;
 
-    ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
+    static final ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
 
     @Before
     public void setupCommonMocks() {
@@ -144,6 +158,5 @@ public abstract class AbstractServiceTestContext {
             clientType.setIdentifier(identifier);
             return clientType;
         });
-        //when(globalConfFacade.getMembers()).thenReturn();
     }
 }
