@@ -34,23 +34,13 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,25 +66,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 /**
  * Test TokenCertificateService
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class OrphanRemovalServiceTest {
-
-    @Autowired
-    private OrphanRemovalService orphanRemovalService;
-
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private ClientService clientService;
+public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
 
     private static final ClientId NON_DELETED_CLIENT_ID_O1 =
             TestUtils.getClientId("FI:GOV:O_1:SS1");
@@ -244,11 +216,11 @@ public class OrphanRemovalServiceTest {
             clientType.setIdentifier(id);
             localClients.put(id, clientType);
         });
-        doReturn(new ArrayList(localClients.values())).when(clientService).getAllLocalClients();
+        doReturn(new ArrayList(localClients.values())).when(clientRepository).getAllLocalClients();
         doAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             return localClients.get(clientId);
-        }).when(clientService).getLocalClient(any());
+        }).when(clientRepository).getClient(any());
         doReturn(tokenInfo).when(signerProxyFacade).getTokenForKeyId(any());
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
@@ -263,7 +235,7 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
-    public void isOrphanKey() throws Exception {
+    public void isOrphanKey() {
         ClientId orphanMember = TestUtils.getClientId("FI:GOV:ORPHAN");
         ClientId orphanSubsystemDeleted = TestUtils.getClientId("FI:GOV:ORPHAN:DELETED");
         ClientId orphanSubsystemAlive = TestUtils.getClientId("FI:GOV:ORPHAN:ALIVE");
@@ -311,35 +283,35 @@ public class OrphanRemovalServiceTest {
     }
 
     @Test
-    public void orphansDontExistsIfClientExists() throws Exception {
+    public void orphansDontExistsIfClientExists() {
         // trying to find orphans for client which still exists
         assertFalse(orphanRemovalService.orphansExist(NON_DELETED_CLIENT_ID_O1));
     }
 
     @Test
-    public void orphansDontExistsIfSiblings() throws Exception {
+    public void orphansDontExistsIfSiblings() {
         // if there are other clients with same memberclass + code
         assertFalse(orphanRemovalService.orphansExist(DELETED_CLIENT_ID_WITH_SIBLINGS_O3));
     }
 
     @Test
-    public void orphansDontExistIfNoOrphanItems() throws Exception {
+    public void orphansDontExistIfNoOrphanItems() {
         // there are no orphan keys, certs or csrs
         assertFalse(orphanRemovalService.orphansExist(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4));
     }
 
     @Test
-    public void orphansExistIfCsr() throws Exception {
+    public void orphansExistIfCsr() {
         assertTrue(orphanRemovalService.orphansExist(DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5));
     }
 
     @Test
-    public void orphansExistIfCert() throws Exception {
+    public void orphansExistIfCert() {
         assertTrue(orphanRemovalService.orphansExist(DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6));
     }
 
     @Test
-    public void orphansForClientWithMultipleKeys() throws Exception {
+    public void orphansForClientWithMultipleKeys() {
         // client 7 has:
         // KEY_07_SIGN_ORPHAN_1_ID has only orphans for this client
         // KEY_07_SIGN_ORPHAN_2_ID has only orphans for this client

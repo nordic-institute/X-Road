@@ -33,6 +33,8 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
@@ -63,7 +65,7 @@ import static org.mockito.Mockito.when;
  * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
  * the execution time of the service tests.
  *
- * Only repository, or anything below service layer, should be mocked here
+ * Only repository layer (or anything below service layer) may be mocked
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -79,8 +81,6 @@ public abstract class AbstractServiceTestContext {
     SignerProxyFacade signerProxyFacade;
     @MockBean
     ExternalProcessRunner externalProcessRunner;
-    @MockBean
-    PossibleActionsRuleEngine possibleActionsRuleEngine;
     @MockBean
     BackupRepository backupRepository;
     @MockBean
@@ -134,6 +134,14 @@ public abstract class AbstractServiceTestContext {
     KeyService keyService;
     @Autowired
     SecurityHelper securityHelper;
+    @Autowired
+    OrphanRemovalService orphanRemovalService;
+    @Autowired
+    CurrentSecurityServerId currentSecurityServerId;
+    @Autowired
+    CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+    @Autowired
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     static final ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
 

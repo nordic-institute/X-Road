@@ -54,14 +54,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 /**
  * test key service.
@@ -131,33 +127,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
             }
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
-
-        // by default all actions are possible
-        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
-                .getPossibleKeyActions(any(), any());
-
-
-        // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngine, auditDataHelper) {
-            @Override
-            public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
-                if (AUTH_KEY_ID.equals(keyId)
-                        || SIGN_KEY_ID.equals(keyId)
-                        || TYPELESS_KEY_ID.equals(keyId)) {
-                    return tokenInfo;
-                } else {
-                    throw new KeyNotFoundException(keyId + " not supported");
-                }
-            }
-
-            @Override
-            public List<TokenInfo> getAllTokens() {
-                return Collections.singletonList(tokenInfo);
-            }
-        };
-        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngine,
-                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
-                auditEventLoggingFacade);
+        mockPossibleActionsRuleEngineAllowAll();
     }
 
     @Test
@@ -268,11 +238,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     @Test
     @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void deleteChecksPossibleActions() throws Exception {
-        // prepare so that no actions are possible
-        when(possibleActionsRuleEngine.getPossibleKeyActions(any(), any()))
-                .thenReturn(EnumSet.noneOf(PossibleActionEnum.class));
-        doThrow(new ActionNotPossibleException("")).when(possibleActionsRuleEngine)
-                .requirePossibleKeyAction(eq(PossibleActionEnum.DELETE), any(), any());
+        mockPossibleActionsRuleEngineDenyAll();
         try {
             keyService.deleteKey(AUTH_KEY_ID);
             fail("should not be possible");
@@ -288,4 +254,57 @@ public class KeyServiceTest extends AbstractServiceTestContext {
         assertEquals(allActions, new HashSet<>(possibleActions));
     }
 
+    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngine) {
+        // override instead of mocking for better performance
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngine, auditDataHelper) {
+            @Override
+            public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
+                if (AUTH_KEY_ID.equals(keyId)
+                        || SIGN_KEY_ID.equals(keyId)
+                        || TYPELESS_KEY_ID.equals(keyId)) {
+                    return tokenInfo;
+                } else {
+                    throw new KeyNotFoundException(keyId + " not supported");
+                }
+            }
+
+            @Override
+            public List<TokenInfo> getAllTokens() {
+                return Collections.singletonList(tokenInfo);
+            }
+        };
+        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngine,
+                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
+                auditEventLoggingFacade);
+    }
+
+    private void mockPossibleActionsRuleEngineAllowAll() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+            @Override
+            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+                    KeyInfo keyInfo) {
+                // by default all actions are possible
+                return EnumSet.allOf(PossibleActionEnum.class);
+            }
+        };
+        mockServices(possibleActionsRuleEngine);
+    }
+
+    private void mockPossibleActionsRuleEngineDenyAll() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+            @Override
+            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+                    KeyInfo keyInfo) {
+                // prepare so that no actions are possible
+                return EnumSet.noneOf(PossibleActionEnum.class);
+            }
+
+            @Override
+            public void requirePossibleKeyAction(PossibleActionEnum action, TokenInfo tokenInfo,
+                    KeyInfo keyInfo) throws ActionNotPossibleException {
+                throw new ActionNotPossibleException("");
+            }
+        };
+        mockServices(possibleActionsRuleEngine);
+    }
 }
