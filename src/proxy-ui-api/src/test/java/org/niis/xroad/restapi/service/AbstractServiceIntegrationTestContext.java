@@ -37,11 +37,16 @@ import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
+import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -78,6 +83,12 @@ public abstract class AbstractServiceIntegrationTestContext {
     LocalGroupService localGroupService;
     @Autowired
     ServiceClientService serviceClientService;
+    @Autowired
+    ServiceDescriptionService serviceDescriptionService;
+    @Autowired
+    ServiceDescriptionRepository serviceDescriptionRepository;
+    @Autowired
+    ClientRepository clientRepository;
 
     @MockBean
     GlobalConfFacade globalConfFacade;
@@ -89,6 +100,13 @@ public abstract class AbstractServiceIntegrationTestContext {
     SignerProxyFacade signerProxyFacade;
     @MockBean
     CurrentSecurityServerId currentSecurityServerId;
+    @MockBean
+    WsdlValidator wsdlValidator;
+    @MockBean
+    UrlValidator urlValidator;
+
+    @SpyBean
+    OpenApiParser openApiParser;
 
     static final ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
 
