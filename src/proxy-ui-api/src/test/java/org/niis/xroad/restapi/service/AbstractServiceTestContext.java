@@ -80,8 +80,6 @@ public abstract class AbstractServiceTestContext {
     @MockBean
     SignerProxyFacade signerProxyFacade;
     @MockBean
-    ExternalProcessRunner externalProcessRunner;
-    @MockBean
     BackupRepository backupRepository;
     @MockBean
     ClientRepository clientRepository;
@@ -142,6 +140,12 @@ public abstract class AbstractServiceTestContext {
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     @Autowired
     PossibleActionsRuleEngine possibleActionsRuleEngine;
+    @Autowired
+    RestoreService restoreService;
+    @Autowired
+    NotificationService notificationService;
+    @Autowired
+    ExternalProcessRunner externalProcessRunner;
 
     static final ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
 

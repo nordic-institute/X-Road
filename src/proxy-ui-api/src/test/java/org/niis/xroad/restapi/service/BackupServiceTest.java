@@ -163,10 +163,10 @@ public class BackupServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void addBackupFails() throws Exception {
-        when(externalProcessRunner.executeAndThrowOnFailure(any(), any())).thenThrow(new ProcessFailedException(""));
+        mockExternalProcessRunnerFail();
         try {
             backupService.generateBackup();
-            fail("should throw ProcessFailedException");
+            fail("should throw DeviationAwareRuntimeException");
         } catch (DeviationAwareRuntimeException expected) {
             // success
         }
@@ -254,5 +254,17 @@ public class BackupServiceTest extends AbstractServiceTestContext {
 
             return new MockMultipartFile(filename, filename, "multipart/form-data", baos.toByteArray());
         }
+    }
+
+    private void mockExternalProcessRunnerFail() {
+        externalProcessRunner = new ExternalProcessRunner() {
+            @Override
+            public ProcessResult executeAndThrowOnFailure(String command, String... args) throws
+                    ProcessNotExecutableException, ProcessFailedException, InterruptedException {
+                throw new ProcessFailedException("");
+            }
+        };
+        backupService = new BackupService(backupRepository, serverConfService, externalProcessRunner,
+                null, auditDataHelper);
     }
 }

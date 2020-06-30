@@ -25,42 +25,20 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.repository.BackupRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.time.OffsetDateTime;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class RestoreServiceTest {
-
-    @Autowired
-    private RestoreService configurationRestorer;
-    @MockBean
-    private BackupRepository backupRepository;
-    @MockBean
-    private NotificationService notificationService;
+public class RestoreServiceTest extends AbstractServiceTestContext {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -69,23 +47,28 @@ public class RestoreServiceTest {
 
     @Before
     public void setup() throws Exception {
-        configurationRestorer.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_SUCCESS_SCRIPT);
-        configurationRestorer.setConfigurationRestoreScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
+        restoreService.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_SUCCESS_SCRIPT);
+        restoreService.setConfigurationRestoreScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
         when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
-        when(notificationService.getBackupRestoreRunningSince()).thenReturn(null);
+        notificationService = new NotificationService(globalConfFacade, tokenService, initializationService) {
+            @Override
+            public synchronized OffsetDateTime getBackupRestoreRunningSince() {
+                return null;
+            }
+        };
     }
 
     @Test
     public void restoreFromBackup() throws Exception {
-        configurationRestorer.restoreFromBackup(tempBackupFilename);
+        restoreService.restoreFromBackup(tempBackupFilename);
         assertTrue(true);
     }
 
     @Test
     public void restoreFromNonExistingBackup() throws Exception {
         try {
-            configurationRestorer.restoreFromBackup("no-backups-here.tar");
+            restoreService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
         } catch (BackupFileNotFoundException e) {
             assertEquals(BackupFileNotFoundException.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
@@ -94,9 +77,9 @@ public class RestoreServiceTest {
 
     @Test
     public void restoreFromBackupFail() throws Exception {
-        configurationRestorer.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_FAIL_SCRIPT);
+        restoreService.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_FAIL_SCRIPT);
         try {
-            configurationRestorer.restoreFromBackup(tempBackupFilename);
+            restoreService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (RestoreProcessFailedException e) {
             assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
@@ -105,9 +88,9 @@ public class RestoreServiceTest {
 
     @Test
     public void restoreFromBackupNotExecutable() throws Exception {
-        configurationRestorer.setConfigurationRestoreScriptPath("path/to/nowhere.sh");
+        restoreService.setConfigurationRestoreScriptPath("path/to/nowhere.sh");
         try {
-            configurationRestorer.restoreFromBackup(tempBackupFilename);
+            restoreService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (RestoreProcessFailedException e) {
             assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
