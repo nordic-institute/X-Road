@@ -35,7 +35,6 @@ import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.conf.KeyConf;
 
 import org.apache.http.client.HttpClient;
 
@@ -68,18 +67,7 @@ public abstract class MessageProcessorBase {
         this.servletResponse = servletResponse;
         this.httpClient = httpClient;
 
-        cacheConfigurationForCurrentThread();
-    }
-
-    /**
-     * Saves the current configurations in thread local storage, to protect
-     * against configuration reloads during message processing.
-     */
-    private void cacheConfigurationForCurrentThread() {
-        GlobalConf.initForCurrentThread();
         GlobalConf.verifyValidity();
-
-        KeyConf.initForCurrentThread();
     }
 
     /**
