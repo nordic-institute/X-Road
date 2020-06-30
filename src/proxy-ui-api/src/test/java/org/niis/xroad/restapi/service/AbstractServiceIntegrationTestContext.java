@@ -76,6 +76,8 @@ public abstract class AbstractServiceIntegrationTestContext {
     KeyAndCertificateRequestService keyAndCertificateRequestService;
     @Autowired
     LocalGroupService localGroupService;
+    @Autowired
+    ServiceClientService serviceClientService;
 
     @MockBean
     GlobalConfFacade globalConfFacade;

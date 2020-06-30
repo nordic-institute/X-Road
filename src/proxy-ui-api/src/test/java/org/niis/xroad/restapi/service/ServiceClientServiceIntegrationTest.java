@@ -30,27 +30,14 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -59,8 +46,6 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_GGROUP_ID;
 import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SCS_BASE_ENDPOINT_ID;
 import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SCS_FULL_SERVICE_CODE;
@@ -70,40 +55,7 @@ import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
 /**
  * test Service client service
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class ServiceClientServiceTest {
-
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    GlobalConfService globalConfService;
-
-    @Autowired
-    ServiceClientService serviceClientService;
-
-    @Autowired
-    ClientRepository clientRepository;
-
-    @Before
-    public void setup() {
-        when(globalConfService.clientsExist(any())).thenAnswer(invocation -> {
-            Collection<XRoadId> identifiers = (Collection<XRoadId>) invocation.getArguments()[0];
-            if (identifiers == null) return true; // some further mocking later causes this null
-            return !identifiers.contains(OBSOLETE_SUBSYSTEM_ID);
-        });
-        when(globalConfService.globalGroupsExist(any())).thenAnswer(invocation -> {
-            Collection<XRoadId> identifiers = (Collection<XRoadId>) invocation.getArguments()[0];
-            if (identifiers == null) return true; // some further mocking later causes this null
-            return !identifiers.contains(OBSOLETE_GGROUP_ID);
-        });
-    }
-
+public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
     @Test(expected = ClientNotFoundException.class)
     public void getClientServiceClientsFromUnexistingClient() throws Exception {
         serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));

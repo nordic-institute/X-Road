@@ -91,6 +91,8 @@ public abstract class AbstractServiceTestContext {
     IdentifierRepository identifierRepository;
     @MockBean
     LocalGroupRepository localGroupRepository;
+    @MockBean
+    ServerConfType serverConfType;
 
     @Autowired
     AuditDataHelper auditDataHelper;
