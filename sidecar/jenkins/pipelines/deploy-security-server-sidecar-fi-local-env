@@ -45,12 +45,16 @@ pipeline {
                 }
             }
         }
+        stage (Clean up) {
+            steps {
+                sh 'microk8s.kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
+                sh 'microk8s.kubectl delete service/security-server-sidecar-${VERSION}'
+            }
+        }
     }
     post {
         always {
             sh 'microk8s.kubectl delete -f sidecar/kubernetes/security-server-sidecar-local-volume.yaml'
-            sh 'microk8s.kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
-            sh 'microk8s.kubectl delete service/security-server-sidecar-${VERSION}'
             sh 'microk8s.kubectl get pods --all-namespaces | grep -E \'ImagePullBackOff|ErrImagePull|Evicted\' | awk \'{print $2 " --namespace=" $1}\' | xargs microk8s.kubectl delete pod'
         }
     }
