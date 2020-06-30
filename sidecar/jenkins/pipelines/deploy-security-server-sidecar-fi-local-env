@@ -45,7 +45,7 @@ pipeline {
                 }
             }
         }
-        stage (Clean up) {
+        stage ('Clean up') {
             steps {
                 sh 'microk8s.kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
                 sh 'microk8s.kubectl delete service/security-server-sidecar-${VERSION}'
