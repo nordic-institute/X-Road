@@ -31,11 +31,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.IdentifierRepository;
+import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -47,12 +52,15 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
  * Base for all service tests that need injected/mocked beans in the application context. All service
  * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
- * the execution time of the service tests
+ * the execution time of the service tests.
+ *
+ * The idea is to only mock the lower layers than what is being tested and only when really needed.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -72,7 +80,17 @@ public abstract class AbstractServiceTestContext {
     @MockBean
     BackupRepository backupRepository;
     @MockBean
+    ClientRepository clientRepository;
+    @MockBean
     ServerConfRepository serverConfRepository;
+    @MockBean
+    AnchorRepository anchorRepository;
+    @MockBean
+    IdentifierRepository identifierRepository;
+    @MockBean
+    LocalGroupRepository localGroupRepository;
+    @Autowired
+    AuditDataHelper auditDataHelper;
 
     @Autowired
     ApiKeyService apiKeyService;
@@ -82,8 +100,6 @@ public abstract class AbstractServiceTestContext {
     AccessRightService accessRightService;
     @Autowired
     BackupService backupService;
-    @Autowired
-    ClientRepository clientRepository;
     @Autowired
     EndpointService endpointService;
     @Autowired
@@ -98,15 +114,36 @@ public abstract class AbstractServiceTestContext {
     ServerConfService serverConfService;
     @Autowired
     GlobalConfService globalConfService;
+    @Autowired
+    InitializationService initializationService;
+    @Autowired
+    LocalGroupService localGroupService;
+    @Autowired
+    ServiceDescriptionService serviceDescriptionService;
+
+    ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
 
     @Before
     public void setupCommonMocks() {
         ServerConfType sct = new ServerConfType();
-        ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
         ClientType owner = new ClientType();
-        owner.setIdentifier(clientId);
+        owner.setIdentifier(commonOwnerId);
         sct.setOwner(owner);
-        sct.setServerCode("some-servercode");
+        sct.setServerCode("SS1");
         when(serverConfRepository.getServerConf()).thenReturn(sct);
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+            Object[] args = invocation.getArguments();
+            ClientId identifier = (ClientId) args[0];
+            return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
+                    : TestUtils.NAME_FOR + "test-member";
+        });
+        when(clientRepository.getClient(any(ClientId.class))).thenAnswer((Answer<ClientType>) invocation -> {
+            Object[] args = invocation.getArguments();
+            ClientId identifier = (ClientId) args[0];
+            ClientType clientType = new ClientType();
+            clientType.setIdentifier(identifier);
+            return clientType;
+        });
+        //when(globalConfFacade.getMembers()).thenReturn();
     }
 }

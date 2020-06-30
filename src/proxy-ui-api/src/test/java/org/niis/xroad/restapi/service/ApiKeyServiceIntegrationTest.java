@@ -42,7 +42,7 @@ import static org.junit.Assert.assertFalse;
 /**
  * Test api key service
  */
-public class ApiKeyServiceIntegrationTest extends AbstractServiceTestContext {
+public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
     private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
 
     @Test

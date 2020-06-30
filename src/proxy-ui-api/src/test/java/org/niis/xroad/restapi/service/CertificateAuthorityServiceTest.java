@@ -31,30 +31,14 @@ import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileIn
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
-import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
@@ -62,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,8 +73,6 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     public static final String MOCK_INTERMEDIATE_CA_SUBJECT_DN =
             "CN=int-cn, O=X-Road Test int";
 
-    private ClientId ownerId;
-
     @Before
     public void setup() throws Exception {
         evictCache(); // start with empty cache
@@ -104,17 +85,17 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
         approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
-        when(globalConfService.getApprovedCAsForThisInstance()).thenReturn(approvedCAInfos);
+        when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         List<X509Certificate> caCerts = new ArrayList<>();
         caCerts.add(CertificateTestUtils.getMockCertificate());
         caCerts.add(CertificateTestUtils.getMockAuthCertificate());
         caCerts.add(CertificateTestUtils.getMockTopCaCertificate());
         caCerts.add(CertificateTestUtils.getMockIntermediateCaCertificate());
-        when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(caCerts);
+        when(globalConfFacade.getAllCaCerts(any())).thenReturn(caCerts);
 
-        when(globalConfService.getApprovedCAForThisInstance(any())).thenAnswer(invocation -> {
-            X509Certificate cert = (X509Certificate) invocation.getArguments()[0];
+        when(globalConfFacade.getApprovedCA(any(), any())).thenAnswer(invocation -> {
+            X509Certificate cert = (X509Certificate) invocation.getArguments()[1];
             for (int i = 0; i < caCerts.size(); i++) {
                 if (caCerts.get(i) == cert) {
                     return approvedCAInfos.get(i);
@@ -133,18 +114,9 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                     }
                 })
                 .collect(Collectors.toList())
-                .toArray(new String[]{});
+                .toArray(new String[] {});
         doReturn(ocspResponses).when(signerProxyFacade).getOcspResponses(any());
-
-        SecurityServerId securityServerId = SecurityServerId.create("test-i",
-                "test-mclass", "test-mcode", "test-scode");
-        ownerId = ClientId.create(securityServerId.getXRoadInstance(),
-                securityServerId.getMemberClass(),
-                securityServerId.getMemberCode());
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ownerId);
-        when(serverConfService.getSecurityServerId()).thenReturn(securityServerId);
-        when(clientService.getLocalClient(any())).thenReturn(new ClientType());
-        when(globalConfFacade.getMemberName(any())).thenReturn("mock-member-name");
+        when(clientRepository.getClient(any())).thenReturn(new ClientType());
     }
 
     @Test
@@ -166,16 +138,16 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         certificateAuthorityService.getCertificateAuthorities(null);
         int expectedExecutions = 1;
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
 
         // repeat comes from cache
         certificateAuthorityService.getCertificateAuthorities(null);
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
 
         // different parameter - different cache key
         certificateAuthorityService.getCertificateAuthorities(null, true);
         expectedExecutions++;
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
 
         // more parameters
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
@@ -183,23 +155,23 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, true);
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
         expectedExecutions += 4;
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
 
         // repeats come from cache
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
         certificateAuthorityService.getCertificateAuthorities(null, false);
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
 
         // evict cache
         evictCache();
         certificateAuthorityService.getCertificateAuthorities(null);
         expectedExecutions++;
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
 
         certificateAuthorityService.getCertificateAuthorities(null);
-        verify(globalConfService, times(expectedExecutions)).getAllCaCertsForThisInstance();
+        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
     }
 
     private void evictCache() {
@@ -288,8 +260,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
 
         cacheEvictor.evict();
-        when(globalConfService.getAllCaCertsForThisInstance()).thenReturn(new ArrayList<>());
-        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
+        when(globalConfFacade.getAllCaCerts(any())).thenReturn(new ArrayList<>());
+        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[] {});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
     }
@@ -321,13 +293,11 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(OffsetDateTime.parse("2040-02-28T07:53:49Z"), intermediateCa.getNotAfter());
     }
 
-
     @Test
     public void getCertificateProfile() throws Exception {
-        ClientId clientId = TestUtils.getClientId("test-i", "test-mclass", "test-mcode", null);
-        when(clientService.getLocalClientMemberIds()).thenReturn(new HashSet<>(Collections.singletonList(clientId)));
-        when(serverConfService.getSecurityServerId()).thenReturn(SecurityServerId.create(
-                clientId.getXRoadInstance(), clientId.getMemberClass(), clientId.getMemberCode(), "ss"));
+        ClientType client = new ClientType();
+        client.setIdentifier(commonOwnerId);
+        when(clientRepository.getAllLocalClients()).thenReturn(Collections.singletonList(client));
 
         // test handling of profile info parameters:
         //        private final SecurityServerId serverId;
@@ -335,35 +305,35 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.SIGNING, ownerId, false);
+                KeyUsageInfo.SIGNING, commonOwnerId, false);
         assertTrue(profile instanceof FiVRKSignCertificateProfileInfo);
-        assertEquals("test-i/ss/test-mclass", profile.getSubjectFields()[2].getDefaultValue());
-        assertEquals("test-mcode", profile.getSubjectFields()[3].getDefaultValue());
+        assertEquals("FI/SS1/GOV", profile.getSubjectFields()[2].getDefaultValue());
+        assertEquals("M1", profile.getSubjectFields()[3].getDefaultValue());
         assertTrue(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.AUTHENTICATION, ownerId, false);
+                KeyUsageInfo.AUTHENTICATION, commonOwnerId, false);
         assertTrue(profile instanceof FiVRKAuthCertificateProfileInfo);
-        assertEquals("test-i/ss/test-mclass", profile.getSubjectFields()[2].getDefaultValue());
+        assertEquals("FI/SS1/GOV", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("", profile.getSubjectFields()[3].getDefaultValue());
         assertFalse(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("est-auth-only",
-                KeyUsageInfo.AUTHENTICATION, ownerId, false);
+                KeyUsageInfo.AUTHENTICATION, commonOwnerId, false);
         assertTrue(profile instanceof AuthCertificateProfileInfo);
         assertEquals(0, profile.getSubjectFields().length);
 
         // exceptions
         try {
             certificateAuthorityService.getCertificateProfile("est-auth-only",
-                    KeyUsageInfo.SIGNING, ownerId, false);
+                    KeyUsageInfo.SIGNING, commonOwnerId, false);
             fail("should have thrown exception");
         } catch (WrongKeyUsageException expected) {
         }
 
         try {
             certificateAuthorityService.getCertificateProfile("this-does-not-exist",
-                    KeyUsageInfo.SIGNING, ownerId, false);
+                    KeyUsageInfo.SIGNING, commonOwnerId, false);
             fail("should have thrown exception");
         } catch (CertificateAuthorityNotFoundException expected) {
         }
@@ -372,11 +342,11 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("provider-class-does-not-exist", false,
                 "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider"));
-        when(globalConfService.getApprovedCAsForThisInstance()).thenReturn(approvedCAInfos);
+        when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         try {
             certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
-                    KeyUsageInfo.SIGNING, ownerId, false);
+                    KeyUsageInfo.SIGNING, commonOwnerId, false);
             fail("should have thrown exception");
         } catch (CertificateProfileInstantiationException expected) {
         }

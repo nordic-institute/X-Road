@@ -48,9 +48,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test api key service and api key authentication helper
- * caching while mocking DB. Will aquire a new application context
+ * caching while mocking DB. Will aquire a new application context because mocks EntityManager, Session and Query
  */
-public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceTestContext {
+public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrationTestContext {
     @MockBean
     private EntityManager entityManager;
 
