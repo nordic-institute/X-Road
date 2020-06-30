@@ -68,17 +68,13 @@ public class EncodedIdentifierValidator {
         if (SpringFirewallValidationRules.containsSemicolon(s)) {
             errors.add(ValidationError.SEMICOLON);
         }
-        if (SpringFirewallValidationRules.containsIsoControlChars(s)) {
+        if (SpringFirewallValidationRules.containsControlChars(s)) {
             errors.add(ValidationError.CONTROL_CHAR);
-        }
-        if (!SpringFirewallValidationRules.isNormalized(s)) {
-            errors.add(ValidationError.NON_NORMALIZED_PATH);
         }
         return errors;
     }
 
     public enum ValidationError {
-        NON_NORMALIZED_PATH,
         COLON,
         SEMICOLON,
         FORWARDSLASH,

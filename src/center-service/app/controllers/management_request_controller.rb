@@ -128,8 +128,7 @@ class ManagementRequestController < ApplicationController
           SpringFirewallValidationRules::containsColon(id) ||
           SpringFirewallValidationRules::containsForwardslash(id) ||
           SpringFirewallValidationRules::containsBackslash(id) ||
-          SpringFirewallValidationRules::containsIsoControlChars(id) ||
-          !SpringFirewallValidationRules::isNormalized(id)
+          SpringFirewallValidationRules::containsControlChars(id)
         raise I18n.t("request.invalid_identifier", :id => id)
       end
     end

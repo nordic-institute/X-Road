@@ -35,7 +35,6 @@ import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.Validati
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.COLON;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.CONTROL_CHAR;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.PERCENT;
 import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.SEMICOLON;
 import static org.junit.Assert.assertEquals;
@@ -60,29 +59,17 @@ public class EncodedIdentifierValidatorTest {
         assertTrue(encodedIdentifierValidator.getValidationErrors("列").isEmpty());
     }
 
-    @Test
-    public void nonNormalizedPaths() {
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("./"));
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("/../"));
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("/."));
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("aaa/../bbb"));
-    }
-
-    char semiColon = ';';
-    char colon = ':';
-    char slash = '/';
-    char backslash = '\\';
-    char percent = '%';
-    char tab = '\t';
-    char newline = '\n';
-    char cr = '\r';
-    char esc = '\u001b';
-    char sos = '\u0098';
-    char space = ' ';
+    final char semiColon = ';';
+    final char colon = ':';
+    final char slash = '/';
+    final char backslash = '\\';
+    final char percent = '%';
+    final char tab = '\t';
+    final char newline = '\n';
+    final char cr = '\r';
+    final char esc = '\u001b';
+    final char sos = '\u0098';
+    final char space = ' ';
 
     @Test
     public void semiOrFullColons() {
@@ -104,7 +91,7 @@ public class EncodedIdentifierValidatorTest {
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(percent)));
 
         assertEquals(EnumSet.of(FORWARDSLASH, BACKSLASH, PERCENT),
-                encodedIdentifierValidator.getValidationErrors("aaa/bbbb\\cccc%ddd"));
+                encodedIdentifierValidator.getValidationErrors("aaa/./bbbb\\cc/../cc%ddd"));
     }
 
     @Test

@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
  * (error code, error message)
  */
 public enum IdentifierValidationErrorInfo {
-    NON_NORMALIZED_PATH("Normalized", "must be url-normalized"),
     COLON("NoColons", "must not contain colons"),
     SEMICOLON("NoSemicolons", "must not contain semicolons"),
     FORWARDSLASH("NoForwardslashes", "must not contain slashes"),

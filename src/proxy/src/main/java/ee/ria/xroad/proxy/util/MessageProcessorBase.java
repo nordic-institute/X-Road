@@ -119,7 +119,7 @@ public abstract class MessageProcessorBase {
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
      * @param opMonitoringData monitoring data to update
-     * @param soapMessage SOAP message
+     * @param soapMessage      SOAP message
      */
     protected static void updateOpMonitoringDataBySoapMessage(
             OpMonitoringData opMonitoringData, SoapMessageImpl soapMessage) {
@@ -140,7 +140,6 @@ public abstract class MessageProcessorBase {
 
     /**
      * Update operational monitoring data with REST message header data
-     *
      */
     protected void updateOpMonitoringDataByRestRequest(OpMonitoringData opMonitoringData, RestRequest request) {
         if (opMonitoringData != null && request != null) {
@@ -170,7 +169,6 @@ public abstract class MessageProcessorBase {
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
-     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
@@ -196,10 +194,8 @@ public abstract class MessageProcessorBase {
 
     /**
      * Logs a warning if identifier contains invalid characters.
-     *
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.EncodedIdentifierValidator
-     *
      */
     protected static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
@@ -226,7 +222,7 @@ public abstract class MessageProcessorBase {
                 return false;
             }
             //Forbidden chars
-            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\') {
+            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\' || c == '\u200b' || c == '\ufeff') {
                 return false;
             }
             //"normalized path" check is redundant since path separators (/,\) are forbidden

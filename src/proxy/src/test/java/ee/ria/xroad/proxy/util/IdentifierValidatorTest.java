@@ -44,7 +44,7 @@ public class IdentifierValidatorTest {
 
     @Test
     public void testCheckIdentifierValid() {
-        final ClientId valid = ClientId.create("TEST", "CLASS", "CO DE");
+        final ServiceId valid = ServiceId.create("TEST", "CLASS", "CO DE", null, "SERVICE");
         assertTrue(MessageProcessorBase.checkIdentifier(valid));
     }
 
@@ -53,9 +53,13 @@ public class IdentifierValidatorTest {
         final XRoadId[] cases = {
                 ClientId.create("TEST", "CLASS", "CO\tDE"),
                 SecurityServerId.create("TEST", "CLASS", "MEMBER", "SER:VER"),
-                ServiceId.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
                 ServiceId.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE"),
-                CentralServiceId.create("TEST", "SERVICE;")
+                ServiceId.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE"),
+                ServiceId.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE"),
+                ServiceId.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
+                ServiceId.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
+                CentralServiceId.create("TEST", "SERVICE;"),
+                CentralServiceId.create("TE\ufeffST", "SERVICE")
         };
         for (XRoadId id : cases) {
             assertFalse(MessageProcessorBase.checkIdentifier(id));

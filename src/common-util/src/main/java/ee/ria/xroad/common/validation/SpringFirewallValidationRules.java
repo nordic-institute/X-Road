@@ -35,75 +35,48 @@ public final class SpringFirewallValidationRules {
     private SpringFirewallValidationRules() {
     }
 
-    private static final String FORBIDDEN_PERCENT = "%";
+    private static final char FORBIDDEN_PERCENT = '%';
 
-    private static final String FORBIDDEN_COLON = ":";
+    private static final char FORBIDDEN_COLON = ':';
 
-    private static final String FORBIDDEN_SEMICOLON = ";";
+    private static final char FORBIDDEN_SEMICOLON = ';';
 
-    private static final String FORBIDDEN_FORWARDSLASH = "/";
+    private static final char FORBIDDEN_FORWARDSLASH = '/';
 
-    private static final String FORBIDDEN_BACKSLASH = "\\";
+    private static final char FORBIDDEN_BACKSLASH = '\\';
+
+    //byte order mark / zero-width no-break space
+    private static final char FORBIDDEN_BOM = '\ufeff';
+
+    //zero-width space
+    private static final char FORBIDDEN_ZWSP = '\u200b';
+
 
     public static boolean containsPercent(String s) {
-        return s.contains(FORBIDDEN_PERCENT);
+        return s.indexOf(FORBIDDEN_PERCENT) >= 0;
     }
 
     public static boolean containsColon(String s) {
-        return s.contains(FORBIDDEN_COLON);
+        return s.indexOf(FORBIDDEN_COLON) >= 0;
     }
 
     public static boolean containsSemicolon(String s) {
-        return s.contains(FORBIDDEN_SEMICOLON);
+        return s.indexOf(FORBIDDEN_SEMICOLON) >= 0;
     }
 
     public static boolean containsForwardslash(String s) {
-        return s.contains(FORBIDDEN_FORWARDSLASH);
+        return s.indexOf(FORBIDDEN_FORWARDSLASH) >= 0;
     }
 
     public static boolean containsBackslash(String s) {
-        return s.contains(FORBIDDEN_BACKSLASH);
-    }
-
-    public static boolean containsIsoControlChars(String s) {
-        return CharMatcher.javaIsoControl().matchesAnyOf(s);
+        return s.indexOf(FORBIDDEN_BACKSLASH) >= 0;
     }
 
     /**
-     * from {@link org.springframework.security.web.firewall.StrictHttpFirewall#isNormalized(String)}
-     *
-     * Checks whether a path is normalized (doesn't contain path traversal
-     * sequences like "./", "/../" or "/.")
-     *
-     * @param path
-     *            the path to test
-     * @return true if the path doesn't contain any path-traversal character
-     *         sequences.
+     * checks if the string contains ISO control characters or zero-width spaces
      */
-    @SuppressWarnings("checkstyle:magicnumber")
-    public static boolean isNormalized(String path) {
-        if (path == null) {
-            return true;
-        }
-
-        if (path.indexOf("//") > -1) {
-            return false;
-        }
-
-        for (int j = path.length(); j > 0;) {
-            int i = path.lastIndexOf('/', j - 1);
-            int gap = j - i;
-
-            if (gap == 2 && path.charAt(i + 1) == '.') {
-                // ".", "/./" or "/."
-                return false;
-            } else if (gap == 3 && path.charAt(i + 1) == '.' && path.charAt(i + 2) == '.') {
-                return false;
-            }
-
-            j = i;
-        }
-
-        return true;
+    public static boolean containsControlChars(String s) {
+        return CharMatcher.javaIsoControl().matchesAnyOf(s) || s.indexOf(FORBIDDEN_BOM) >= 0
+                || s.indexOf(FORBIDDEN_ZWSP) >= 0;
     }
 }
