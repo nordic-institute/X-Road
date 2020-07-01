@@ -2,23 +2,20 @@ pipeline {
     agent { label 'dev-test' } 
     parameters {
         string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
-        string(description: "Number of deployment replicas", name: "NUMBER_REPLICAS", defaultValue: "1" )
         string(description: "External database host", name: "XROAD_DB_HOST", defaultValue: "${params?.XROAD_DB_HOST}")
         string(description: "External database port", name: "XROAD_DB_PORT", defaultValue: "${params?.XROAD_DB_PORT}")
         string(description: "External database password", name: "XROAD_DB_PWD", defaultValue: "${params?.XROAD_DB_PWD}")
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
         string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
-        string(description: "Sidecar version", name: "VERSION", defaultValue: "${params?.VERSION}")
+        string(description: "Volume claim name", name: "VOLUME_CLAIM", defaultValue: "${params?.VOLUME_CLAIM}")
     }
     stages {
         stage('Deploy pods') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {                 
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
-                    sh '${DEPLOYMENT_PATH} ${NUMBER_REPLICAS} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL} ${VERSION}'
-                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${VERSION}'
+                    sh '${DEPLOYMENT_PATH} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL} ${VOLUME_CLAIM}'
                 }
             }
         }
-    }
 }

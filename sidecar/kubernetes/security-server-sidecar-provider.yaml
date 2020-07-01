@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: security-server-sidecar-{{VERSION}}
+  name: security-server-sidecar-provider
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    run: security-server-sidecar-{{VERSION}}
+    run: security-server-sidecar-provider
 spec:
   type: LoadBalancer
   selector:
-    run: security-server-sidecar-{{VERSION}}
+    run: security-server-sidecar-provider
   ports:
   - port: 5500
     targetPort: 5500
@@ -19,44 +19,28 @@ spec:
     targetPort: 5577
     protocol: TCP
     name: ocsp
-  - port: 4000
-    targetPort: 4000
-    protocol: TCP
-    name: tcp-4000
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-    name: tcp-80
-  - port: 443
-    targetPort: 443
-    protocol: TCP
-    name: tcp-443
-  - port: 4001
-    targetPort: 4001
-    protocol: TCP
-    name: tcp-4001
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: security-server-sidecar-{{VERSION}}
+  name: security-server-sidecar-provider
 spec:
   selector:
     matchLabels:
-      run: security-server-sidecar-{{VERSION}}
+      run: security-server-sidecar-provider
   replicas: {{NUMBER_REPLICAS}}
   template:
     metadata:
       labels:
-        run: security-server-sidecar-{{VERSION}}
+        run: security-server-sidecar-provider
     spec:
       volumes:
       - name: sidecar-config-volume
         persistentVolumeClaim:
-          claimName: sidecar-config-claim
+          claimName: {{VOLUME_CLAIM}}
       containers:
       - name: security-server-sidecar
-        image: niis/xroad-security-server-sidecar:latest
+        image: niis/xroad-security-server-sidecar:latest-provider
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
