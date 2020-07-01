@@ -254,7 +254,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importInvalidSignCertificate() throws Exception {
-        Resource body = CertificateTestUtils.getResource(new byte[] { 0, 0, 0, 0 });
+        Resource body = CertificateTestUtils.getResource(new byte[] {0, 0, 0, 0});
         try {
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {

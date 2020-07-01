@@ -40,7 +40,6 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
@@ -61,7 +60,8 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
         doAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID))
                 .when(globalConfService).securityServerExists(any());
         when(globalConfFacade.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
-        when(globalConfFacade.getSecurityServers(any())).thenReturn(Arrays.asList(EXISTING_SERVER_ID, OWNER_SERVER_ID));
+        when(globalConfFacade.getSecurityServers(any()))
+                .thenReturn(Arrays.asList(EXISTING_SERVER_ID, OWNER_SERVER_ID));
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }

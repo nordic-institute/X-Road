@@ -72,10 +72,10 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     private static final String REGISTERED_AUTH_CERT_ID = "registered-auth-cert";
     private static final String NONREGISTERED_AUTH_CERT_ID = "unregistered-auth-cert";
 
-    private static final TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+    private static final TokenInfo TOKEN_INFO = new TokenTestUtils.TokenInfoBuilder()
             .friendlyName("good-token").build();
 
-    private static final KeyInfo authKey = new KeyInfoBuilder()
+    private static final KeyInfo AUTH_KEY = new KeyInfoBuilder()
             .id(AUTH_KEY_ID)
             .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
             .build();
@@ -92,11 +92,11 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .id(NONREGISTERED_AUTH_CERT_ID)
                 .build();
-        authKey.getCerts().add(registeredCert);
-        authKey.getCerts().add(nonregisteredCert);
+        AUTH_KEY.getCerts().add(registeredCert);
+        AUTH_KEY.getCerts().add(nonregisteredCert);
         CertRequestInfo certRequestInfo = new CertRequestInfoBuilder()
                 .build();
-        authKey.getCertRequests().add(certRequestInfo);
+        AUTH_KEY.getCertRequests().add(certRequestInfo);
 
         // sign and typeless keys
         KeyInfo signKey = new KeyInfoBuilder()
@@ -107,9 +107,9 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 .id(TYPELESS_KEY_ID)
                 .keyUsageInfo(null)
                 .build();
-        tokenInfo.getKeyInfo().add(authKey);
-        tokenInfo.getKeyInfo().add(signKey);
-        tokenInfo.getKeyInfo().add(typelessKey);
+        TOKEN_INFO.getKeyInfo().add(AUTH_KEY);
+        TOKEN_INFO.getKeyInfo().add(signKey);
+        TOKEN_INFO.getKeyInfo().add(typelessKey);
     }
 
     @Before
@@ -121,7 +121,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
             }
             if (arguments[0].equals(AUTH_KEY_ID)) {
-                ReflectionTestUtils.setField(authKey, "friendlyName", newKeyName);
+                ReflectionTestUtils.setField(AUTH_KEY, "friendlyName", newKeyName);
             } else {
                 throw new RuntimeException(arguments[0] + " not supported");
             }
@@ -262,7 +262,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 if (AUTH_KEY_ID.equals(keyId)
                         || SIGN_KEY_ID.equals(keyId)
                         || TYPELESS_KEY_ID.equals(keyId)) {
-                    return tokenInfo;
+                    return TOKEN_INFO;
                 } else {
                     throw new KeyNotFoundException(keyId + " not supported");
                 }
@@ -270,7 +270,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
             @Override
             public List<TokenInfo> getAllTokens() {
-                return Collections.singletonList(tokenInfo);
+                return Collections.singletonList(TOKEN_INFO);
             }
         };
         keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngine,

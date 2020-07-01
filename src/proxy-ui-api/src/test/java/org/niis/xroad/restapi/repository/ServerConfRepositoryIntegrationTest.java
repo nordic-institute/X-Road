@@ -28,15 +28,8 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -53,7 +46,6 @@ public class ServerConfRepositoryIntegrationTest extends RepositoryTestContext {
         ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
         assertEquals(clientId, serverConf.getOwner().getIdentifier());
     }
-
 }
 
 

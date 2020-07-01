@@ -54,7 +54,7 @@ import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 /**
  * Simple tests to validate that basic audit logging works
  */
-@ActiveProfiles( { "test", "audit-test" }) // profile change forces to load a new application context
+@ActiveProfiles({ "test", "audit-test" }) // profile change forces to load a new application context
 public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Before

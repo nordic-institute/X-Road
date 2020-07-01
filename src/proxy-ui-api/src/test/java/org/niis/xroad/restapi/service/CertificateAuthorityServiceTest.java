@@ -296,7 +296,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     @Test
     public void getCertificateProfile() throws Exception {
         ClientType client = new ClientType();
-        client.setIdentifier(commonOwnerId);
+        client.setIdentifier(COMMON_OWNER_ID);
         when(clientRepository.getAllLocalClients()).thenReturn(Collections.singletonList(client));
 
         // test handling of profile info parameters:
@@ -305,35 +305,35 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.SIGNING, commonOwnerId, false);
+                KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
         assertTrue(profile instanceof FiVRKSignCertificateProfileInfo);
         assertEquals("FI/SS1/GOV", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("M1", profile.getSubjectFields()[3].getDefaultValue());
         assertTrue(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.AUTHENTICATION, commonOwnerId, false);
+                KeyUsageInfo.AUTHENTICATION, COMMON_OWNER_ID, false);
         assertTrue(profile instanceof FiVRKAuthCertificateProfileInfo);
         assertEquals("FI/SS1/GOV", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("", profile.getSubjectFields()[3].getDefaultValue());
         assertFalse(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("est-auth-only",
-                KeyUsageInfo.AUTHENTICATION, commonOwnerId, false);
+                KeyUsageInfo.AUTHENTICATION, COMMON_OWNER_ID, false);
         assertTrue(profile instanceof AuthCertificateProfileInfo);
         assertEquals(0, profile.getSubjectFields().length);
 
         // exceptions
         try {
             certificateAuthorityService.getCertificateProfile("est-auth-only",
-                    KeyUsageInfo.SIGNING, commonOwnerId, false);
+                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
             fail("should have thrown exception");
         } catch (WrongKeyUsageException expected) {
         }
 
         try {
             certificateAuthorityService.getCertificateProfile("this-does-not-exist",
-                    KeyUsageInfo.SIGNING, commonOwnerId, false);
+                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
             fail("should have thrown exception");
         } catch (CertificateAuthorityNotFoundException expected) {
         }
@@ -346,7 +346,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         try {
             certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
-                    KeyUsageInfo.SIGNING, commonOwnerId, false);
+                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
             fail("should have thrown exception");
         } catch (CertificateProfileInstantiationException expected) {
         }

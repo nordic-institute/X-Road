@@ -82,7 +82,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
                 .active(false)
                 .key(inactiveKeyInfo)
                 .build();
-        allTokens = Arrays.asList(new TokenInfo[] { activeTokenInfo, inactiveTokenInfo });
+        allTokens = Arrays.asList(new TokenInfo[] {activeTokenInfo, inactiveTokenInfo});
 
         doReturn(allTokens).when(tokenService).getAllTokens();
 

@@ -35,8 +35,6 @@ import org.junit.Test;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.EnumSet;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;

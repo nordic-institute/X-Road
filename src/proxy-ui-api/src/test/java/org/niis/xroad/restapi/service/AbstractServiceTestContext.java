@@ -149,13 +149,13 @@ public abstract class AbstractServiceTestContext {
     @Autowired
     ExternalProcessRunner externalProcessRunner;
 
-    static final ClientId commonOwnerId = TestUtils.getClientId("FI", "GOV", "M1", null);
+    static final ClientId COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 
     @Before
     public void setupCommonMocks() {
         ServerConfType sct = new ServerConfType();
         ClientType owner = new ClientType();
-        owner.setIdentifier(commonOwnerId);
+        owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");
         when(serverConfRepository.getServerConf()).thenReturn(sct);
