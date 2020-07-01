@@ -751,13 +751,10 @@ public class ServiceDescriptionService {
         updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         // Parse openapi definition and handle updating endpoints and acls
-        if (!serviceDescription.getUrl().equals(url)) {
-            parseOpenApi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
-        }
+        parseOpenApi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
 
         serviceDescription.setRefreshedDate(new Date());
         serviceDescription.setUrl(url);
-        serviceDescription.getService().get(0).setUrl(url);
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
@@ -786,9 +783,6 @@ public class ServiceDescriptionService {
                     result.getWarnings());
             throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
         }
-
-        // Update url
-        updateServiceDescriptionUrl(serviceDescription, serviceCode, url);
 
         // Create endpoints from parsed results
         List<EndpointType> parsedEndpoints = result.getOperations().stream()
@@ -846,24 +840,6 @@ public class ServiceDescriptionService {
                 .orElseThrow(() -> new DeviationAwareRuntimeException("Service with servicecode: " + serviceCode
                         + " wasn't found from servicedescription with id: " + serviceDescriptiontype.getId()));
         service.setServiceCode(newserviceCode);
-    }
-
-    /**
-     * Updates the url of the given ServiceDescription and service attached to it with matching ServiceCode to one given
-     *
-     * @param serviceDescriptionType
-     * @param serviceCode
-     * @param url
-     */
-    private void updateServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType, String serviceCode,
-            String url) {
-        serviceDescriptionType.setUrl(url);
-        ServiceType service = serviceDescriptionType.getService().stream()
-                .filter(s -> serviceCode.equals(s.getServiceCode()))
-                .findFirst()
-                .orElseThrow(() -> new DeviationAwareRuntimeException("Service with servicecode: " + serviceCode
-                        + " wasn't found from servicedescription with id: " + serviceDescriptionType.getId()));
-        service.setUrl(url);
     }
 
     /**
