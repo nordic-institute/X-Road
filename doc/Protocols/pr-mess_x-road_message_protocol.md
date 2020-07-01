@@ -6,8 +6,8 @@
 # X-Road: Message Protocol v4.0
 **Technical Specification**
 
-Version: 4.0.21  
-06.03.2018  
+Version: 4.0.22  
+19.05.2020  
 Doc. ID: PR-MESS
 
 ---
@@ -37,44 +37,47 @@ Doc. ID: PR-MESS
  20.06.2017 | 4.0.19  | SOAPAction HTTP header is preserved                                                             | Jarkko Hyöty
  26.10.2017 | 4.0.20  | Added [Annex H](#annex-h-known-x-road-message-protocol-extensions) on known protocol extensions | Olli Lindgren
  06.03.2018 | 4.0.21  | Moved terms to term doc, added terms reference and doc link                                     | Tatu Repo
+ 19.05.2020 | 4.0.22  | Added chapter [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)    | Ilkka Seppälä
  
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
 ## Table of Contents
 
 <!-- toc -->
+<!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
+* [1 Introduction](#1-introduction)
   * [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
   * [1.2 References](#12-references)
   * [1.3 Identifying Entities](#13-identifying-entities)
-- [2 Format of Messages](#2-format-of-messages)
+* [2 Format of Messages](#2-format-of-messages)
   * [2.1 Identifiers](#21-identifiers)
   * [2.2 Message Headers](#22-message-headers)
   * [2.3 Message Body](#23-message-body)
   * [2.4 Attachments](#24-attachments)
   * [2.5 Fault Messages](#25-fault-messages)
   * [2.6 Character Encoding](#26-character-encoding)
-- [3 Describing Services](#3-describing-services)
+  * [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)
+* [3 Describing Services](#3-describing-services)
   * [3.1 General](#31-general)
   * [3.2 Describing Services with WSDL](#32-describing-services-with-wsdl)
-- [Annex A XML Schema for Identifiers](#annex-a-xml-schema-for-identifiers)
-- [Annex B XML Schema for Messages](#annex-b-xml-schema-for-messages)
-- [Annex C Example WSDL](#annex-c-example-wsdl)
-- [Annex D Example Fault Messages](#annex-d-example-fault-messages)
+* [Annex A XML Schema for Identifiers](#annex-a-xml-schema-for-identifiers)
+* [Annex B XML Schema for Messages](#annex-b-xml-schema-for-messages)
+* [Annex C Example WSDL](#annex-c-example-wsdl)
+* [Annex D Example Fault Messages](#annex-d-example-fault-messages)
   * [D.1 Technical](#d1-technical)
   * [D.2 Non-technical](#d2-non-technical)
-- [Annex E Example Messages](#annex-e-example-messages)
+* [Annex E Example Messages](#annex-e-example-messages)
   * [E.1 Request](#e1-request)
   * [E.2 Response](#e2-response)
-- [Annex F Example Request with Attachment](#annex-f-example-request-with-attachment)
-- [Annex G Example Request with MTOM Attachment](#annex-g-example-request-with-mtom-attachment)
-- [Annex H Known X-Road Message Protocol Extensions](#annex-h-known-x-road-message-protocol-extensions)
+* [Annex F Example Request with Attachment](#annex-f-example-request-with-attachment)
+* [Annex G Example Request with MTOM Attachment](#annex-g-example-request-with-mtom-attachment)
+* [Annex H Known X-Road Message Protocol Extensions](#annex-h-known-x-road-message-protocol-extensions)
 
+<!-- vim-markdown-toc -->
 <!-- tocstop -->
-
-## License
-
-This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
 ## 1 Introduction
 
@@ -331,9 +334,29 @@ In case the *charset* parameter is not determined in the HTTP *Content-Type* hea
 
 With UTF-8 encoding BOM (Byte Order Mark) bytes MAY be used in the beginning of XML message. Security servers MAY remove the BOM bytes when processing the message.
 
+### 2.7 Identifier Character Restrictions
 
+X-Road identifiers include, but are not restricted to:
+- Instance id
+- Member class
+- Member code
+- Subsystem code
+- Service code
+- Service version
+- Central service code
+- Security server code
+
+X-Road Message Protocol imposes some restrictions on the characters that can be used in X-Road identifiers. The following characters SHALL NOT be used in the identifier values:
+- Colon `:`
+- Semicolon `;`
+- Slash `/`
+- Backslash `\`
+- Percent `%`
+- Control characters and zero-width spaces
+  - U+0000—U+001F and U+007F—U+009F; includes chars like tab, newline, del etc.
+  - U+200B and U+FEFF
+  
 ## 3 Describing Services
-
 
 ### 3.1 General
 
@@ -342,7 +365,6 @@ Services are described using the Web Services Description Language (WSDL) 1.1 \[
 X-Road supports versioned services. Different versions of the service represent minor technical changes in the service description. For example, a new version must be created when restructuring the service description (e.g., renaming or refactoring types in the XML Schema) or when changing types or names of fields. However, when the service semantics or data content of messages changes, a new service with a new code must be created.
 
 In the context of service provision contracts, services are considered without version, meaning that all versions of the same service are considered to be equivalent. This also applies to access control restrictions applied in security servers – i.e., access control restrictions are specified for a service code without version. In order for this to work, all versions of the same service must implement the same contract.
-
 
 ### 3.2 Describing Services with WSDL
 

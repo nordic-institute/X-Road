@@ -52,6 +52,7 @@ class AuthCertRegistrationController < ManagementRequestController
     def handle_auth_cert_registration
         req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
         security_server = security_server_id(req_type.getServer())
+        check_security_server_identifiers(security_server)
         verify_xroad_instance(security_server)
         verify_owner(security_server)
 
