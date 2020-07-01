@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.validator;
+package ee.ria.xroad.common.validation;
 
 import java.util.EnumSet;
 
@@ -48,14 +48,12 @@ import java.util.EnumSet;
  */
 public class EncodedIdentifierValidator {
 
-    private static final String FORBIDDEN_COLON = ":";
-
     public EnumSet<ValidationError> getValidationErrors(String s) {
         EnumSet<ValidationError> errors = EnumSet.noneOf(ValidationError.class);
         if (s == null) {
             return errors;
         }
-        if (s.contains(FORBIDDEN_COLON)) {
+        if (SpringFirewallValidationRules.containsColon(s)) {
             errors.add(ValidationError.COLON);
         }
         if (SpringFirewallValidationRules.containsBackslash(s)) {
@@ -70,18 +68,18 @@ public class EncodedIdentifierValidator {
         if (SpringFirewallValidationRules.containsSemicolon(s)) {
             errors.add(ValidationError.SEMICOLON);
         }
-        if (!SpringFirewallValidationRules.isNormalized(s)) {
-            errors.add(ValidationError.NON_NORMALIZED_PATH);
+        if (SpringFirewallValidationRules.containsControlChars(s)) {
+            errors.add(ValidationError.CONTROL_CHAR);
         }
         return errors;
     }
 
     public enum ValidationError {
-        NON_NORMALIZED_PATH,
         COLON,
         SEMICOLON,
         FORWARDSLASH,
         BACKSLASH,
         PERCENT,
+        CONTROL_CHAR
     }
 }

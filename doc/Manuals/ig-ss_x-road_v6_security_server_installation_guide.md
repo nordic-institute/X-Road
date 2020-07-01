@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.21  
+Version: 2.24  
 Doc. ID: IG-SS
 
 ---
@@ -46,7 +46,10 @@ Doc. ID: IG-SS
  20.09.2019 | 2.19    | Add instructions for using remote databases | Ilkka Seppälä
  12.04.2020 | 2.20    | Add note about the default value of the *connector-host* property in the EE-package | Petteri Kivimäki
  29.04.2020 | 2.21    | Add instructions how to use remote database located in Microsoft Azure | Ilkka Seppälä
-  
+ 12.06.2020 | 2.22    | Update reference data regarding JMX listening ports | Petteri Kivimäki
+ 24.06.2020 | 2.23    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
+ 24.06.2020 | 2.24    | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
+     
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -129,12 +132,10 @@ The software can be installed both on physical and virtualized hardware (of the 
  ------ | --------------------------------------- | ----------------------------------------------------------
  1.0    | Ubuntu 18.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
- 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key
+ 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
  1.3    |                                         | Account name in the user interface
  1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
- &nbsp; | TCP 9999                                | Port for inbound connections (from the external network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server

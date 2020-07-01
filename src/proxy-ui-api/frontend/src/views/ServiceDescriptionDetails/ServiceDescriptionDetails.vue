@@ -22,25 +22,29 @@
           v-if="showDelete"
           @click="showDeletePopup(serviceDesc.type)"
           outlined
-        >{{$t('action.delete')}}</large-button>
+          >{{ $t('action.delete') }}</large-button
+        >
       </div>
     </div>
 
     <div class="edit-row">
-      <div>{{$t('services.serviceType')}}</div>
+      <div>{{ $t('services.serviceType') }}</div>
 
       <div class="code-input" v-if="serviceDesc.type === serviceTypeEnum.REST">
-        {{$t('services.restApiBasePath')}}
+        {{ $t('services.restApiBasePath') }}
       </div>
-      <div class="code-input" v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3">
-        {{$t('services.OpenApi3Description')}}
+      <div
+        class="code-input"
+        v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3"
+      >
+        {{ $t('services.OpenApi3Description') }}
       </div>
-      <div class="code-input" v-else>{{$t('services.wsdlDescription')}}</div>
+      <div class="code-input" v-else>{{ $t('services.wsdlDescription') }}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
       <div class="edit-row">
-        <div>{{$t('services.editUrl')}}</div>
+        <div>{{ $t('services.editUrl') }}</div>
 
         <ValidationProvider
           rules="required|wsdlUrl"
@@ -61,8 +65,13 @@
       </div>
 
       <div class="edit-row">
-        <template v-if="serviceDesc.type === serviceTypeEnum.REST || serviceDesc.type === serviceTypeEnum.OPENAPI3">
-          <div>{{$t('services.serviceCode')}}</div>
+        <template
+          v-if="
+            serviceDesc.type === serviceTypeEnum.REST ||
+              serviceDesc.type === serviceTypeEnum.OPENAPI3
+          "
+        >
+          <div>{{ $t('services.serviceCode') }}</div>
 
           <ValidationProvider
             rules="required"
@@ -71,9 +80,7 @@
             class="validation-provider"
           >
             <v-text-field
-              v-model="serviceDesc.services
-              && serviceDesc.services[0]
-              && serviceDesc.services[0].service_code"
+              v-model="currentServiceCode"
               single-line
               class="code-input"
               name="code_field"
@@ -88,13 +95,16 @@
 
       <v-card flat>
         <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+          <large-button @click="close()" outlined>{{
+            $t('action.cancel')
+          }}</large-button>
           <large-button
             class="save-button"
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
-          >{{$t('action.save')}}</large-button>
+            >{{ $t('action.save') }}</large-button
+          >
         </div>
       </v-card>
     </ValidationObserver>
@@ -139,8 +149,8 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ServiceDescription } from '@/types';
 import { ServiceTypeEnum } from '@/domain';
+import { ServiceDescription } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -165,6 +175,7 @@ export default Vue.extend({
       warningInfo: [],
       touched: false,
       serviceDesc: {} as ServiceDescription,
+      currentServiceCode: undefined as string | undefined,
       initialServiceCode: '',
       saveBusy: false,
       serviceTypeEnum: ServiceTypeEnum,
@@ -195,20 +206,15 @@ export default Vue.extend({
       ) {
         serviceDescriptionUpdate.ignore_warnings = false;
         serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
-        const currentServiceCode =
-          this.serviceDesc.services &&
-          this.serviceDesc.services[0] &&
-          this.serviceDesc.services[0].service_code;
-
         serviceDescriptionUpdate.new_rest_service_code =
-          serviceDescriptionUpdate.rest_service_code !== currentServiceCode
-            ? currentServiceCode
+          serviceDescriptionUpdate.rest_service_code !== this.currentServiceCode
+            ? this.currentServiceCode
             : serviceDescriptionUpdate.rest_service_code;
       }
 
       api
         .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
           this.$router.go(-1);
@@ -271,7 +277,7 @@ export default Vue.extend({
 
       api
         .patch(`/service-descriptions/${this.id}`, tempDesc)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
         })
@@ -290,6 +296,13 @@ export default Vue.extend({
   },
   created() {
     this.fetchData(this.id);
+  },
+  watch: {
+    serviceDesc(desc: ServiceDescription) {
+      if (desc.services?.[0]?.service_code) {
+        this.currentServiceCode = desc.services[0].service_code;
+      }
+    },
   },
 });
 </script>
@@ -334,4 +347,3 @@ export default Vue.extend({
   margin-left: 20px;
 }
 </style>
-

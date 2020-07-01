@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -97,6 +98,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public static final String HELLO_SERVICE = "helloService";
     public static final String BMI_SERVICE = "bodyMassIndex";
     public static final String SOAPSERVICEDESCRIPTION_URL = "https://soapservice.com/v1/Endpoint?wsdl";
+    public static final String OAS3_SERVICE_URL = "https://example.org/api";
 
     public static final int SS1_ENDPOINTS = 7;
 
@@ -292,6 +294,7 @@ public class ServiceDescriptionServiceIntegrationTest {
             assertEquals(Collections.singletonList("xroadGetRandom:aa"), expected.getErrorDeviation().getMetadata());
         }
     }
+
     @Test
     public void addWsdlServiceDescriptionWithIllegalServiceCodeAll() throws Exception {
         try {
@@ -305,6 +308,7 @@ public class ServiceDescriptionServiceIntegrationTest {
             assertEquals(invalidIdentifiers.size(), expected.getErrorDeviation().getMetadata().size());
         }
     }
+
     @Test
     public void addWsdlServiceDescriptionWithIllegalServiceVersion() throws Exception {
         try {
@@ -595,6 +599,22 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .map(EndpointType::getServiceCode)
                 .collect(Collectors.toList())
                 .contains("testcode"));
+        Boolean sslAuthentication = client.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(s -> s.getServiceCode().equals("testcode")).findFirst().get().getSslAuthentication();
+        assertNull(sslAuthentication);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addRestEndpointServiceDescriptionWithHttpsUrl() throws Exception {
+        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        assertEquals(7, client.getEndpoint().size());
+        serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "https://testurl.com", "testcode");
+        Boolean sslAuthentication = client.getServiceDescription().stream()
+                .flatMap(sd -> sd.getService().stream())
+                .filter(s -> s.getServiceCode().equals("testcode")).findFirst().get().getSslAuthentication();
+        assertFalse(Boolean.FALSE.equals(sslAuthentication));
     }
 
     @Test
@@ -611,14 +631,16 @@ public class ServiceDescriptionServiceIntegrationTest {
             serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
                     "http://testurl.com", "getRandom");
             throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) { }
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        }
 
         // Test adding service with duplicate full service code
         try {
             serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
                     "http:://testurl.com", "getRandom.v1");
             throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) { }
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        }
 
     }
 
@@ -628,7 +650,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/valid.yaml");
-        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+        String urlString = url.toString();
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, urlString, "testcode", false);
 
         client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS + 3, client.getEndpoint().size());
@@ -636,6 +659,9 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .map(EndpointType::getServiceCode)
                 .filter(s -> "testcode".equals(s))
                 .collect(Collectors.toList()).size() == 3);
+
+        OpenApiParser.Result parsedOasResult = openApiParser.parse(urlString);
+        assertEquals(OAS3_SERVICE_URL, parsedOasResult.getBaseUrl());
     }
 
     @Test

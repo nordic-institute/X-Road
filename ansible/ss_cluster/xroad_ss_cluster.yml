@@ -1,11 +1,11 @@
 ---
 - hosts: localhost
   tasks:
-      - name: Require ansible version >=2.1
+      - name: Require ansible version >=2.5
         assert:
           that: 
             - "{{ ansible_version is defined }}"
-            - "{{ ansible_version.full | version_compare(2.1,'>=') }}"
+            - "{{ ansible_version.full is version(2.5,'>=') }}"
 
 - hosts: slaves
   become: yes

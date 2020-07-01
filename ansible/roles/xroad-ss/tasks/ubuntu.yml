@@ -34,6 +34,8 @@
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
     force: yes
+  tags:
+    - install-xroad-ss-packages
 
 - name: install op-monitoring
   package: name=xroad-addon-opmonitoring state=latest
@@ -42,4 +44,3 @@
 - name: install hwtokens
   package: name=xroad-addon-hwtokens state=latest
   when: (xroad_install_hwtokens is defined) and (xroad_install_hwtokens)
-

@@ -1,6 +1,7 @@
 <template>
   <div>
-    {{$t('wizard.token.info')}}
+    {{ $t('wizard.token.info') }}
+
     <v-text-field
       v-model="search"
       :label="$t('wizard.token.tokenName')"
@@ -26,13 +27,15 @@
             v-if="!token.logged_in"
             :disabled="!token.available"
             data-test="token-login-button"
-          >{{$t('keys.logIn')}}</large-button>
+            >{{ $t('keys.logIn') }}</large-button
+          >
           <large-button
             v-if="token.logged_in"
             outlined
             disabled
             data-test="token-logout-button"
-          >{{$t('wizard.token.loggedIn')}}</large-button>
+            >{{ $t('wizard.token.loggedIn') }}</large-button
+          >
         </div>
       </div>
     </v-radio-group>
@@ -44,7 +47,8 @@
           @click="cancel"
           :disabled="!disableDone"
           data-test="cancel-button"
-        >{{$t('action.cancel')}}</large-button>
+          >{{ $t('action.cancel') }}</large-button
+        >
       </div>
 
       <div>
@@ -53,16 +57,22 @@
           outlined
           class="previous-button"
           data-test="previous-button"
-        >{{$t('action.previous')}}</large-button>
+          >{{ $t('action.previous') }}</large-button
+        >
 
         <large-button
           @click="done"
           :disabled="disableNext"
           data-test="next-button"
-        >{{$t('action.next')}}</large-button>
+          >{{ $t('action.next') }}</large-button
+        >
       </div>
     </div>
-    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
+    <TokenLoginDialog
+      :dialog="loginDialog"
+      @cancel="loginDialog = false"
+      @save="tokenLogin"
+    />
   </div>
 </template>
 
@@ -71,14 +81,11 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { Token } from '@/types';
+import { Token } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
     LargeButton,
-    ValidationObserver,
-    ValidationProvider,
     TokenLoginDialog,
   },
   computed: {
@@ -130,7 +137,7 @@ export default Vue.extend({
       this.$store.dispatch('setSelectedToken', token);
       this.loginDialog = true;
     },
-    tokenLogin(password: string): void {
+    tokenLogin(): void {
       this.fetchData();
       this.loginDialog = false;
     },
@@ -178,4 +185,3 @@ export default Vue.extend({
   padding-top: 5px;
 }
 </style>
-

@@ -13,17 +13,15 @@
       />
       <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
-        <large-button
-          v-if="canDelete"
-          @click="confirmDelete = true"
-          outlined
-        >{{$t('action.delete')}}</large-button>
+        <large-button v-if="canDelete" @click="confirmDelete = true" outlined>{{
+          $t('action.delete')
+        }}</large-button>
       </div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
       <div class="edit-row">
-        <div>{{$t('fields.keys.friendlyName')}}</div>
+        <div>{{ $t('fields.keys.friendlyName') }}</div>
         <ValidationProvider
           rules="required"
           name="keys.friendlyName"
@@ -45,30 +43,33 @@
       </div>
 
       <div>
-        <h3 class="info-title">{{$t('keys.keyInfo')}}</h3>
+        <h3 class="info-title">{{ $t('keys.keyInfo') }}</h3>
         <div class="info-row">
-          <div class="row-title">{{$t('keys.keyId')}}</div>
-          <div class="row-data">{{key.id}}</div>
+          <div class="row-title">{{ $t('keys.keyId') }}</div>
+          <div class="row-data">{{ key.id }}</div>
         </div>
         <div class="info-row">
-          <div class="row-title">{{$t('keys.label')}}</div>
-          <div class="row-data">{{key.label}}</div>
+          <div class="row-title">{{ $t('keys.label') }}</div>
+          <div class="row-data">{{ key.label }}</div>
         </div>
         <div class="info-row">
-          <div class="row-title">{{$t('keys.readOnly')}}</div>
-          <div class="row-data">{{key.read_only}}</div>
+          <div class="row-title">{{ $t('keys.readOnly') }}</div>
+          <div class="row-data">{{ key.read_only }}</div>
         </div>
       </div>
 
       <v-card flat>
         <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+          <large-button @click="close()" outlined>{{
+            $t('action.cancel')
+          }}</large-button>
           <large-button
             class="save-button"
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
-          >{{$t('action.save')}}</large-button>
+            >{{ $t('action.save') }}</large-button
+          >
         </div>
       </v-card>
     </ValidationObserver>
@@ -92,7 +93,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { UsageTypes, Permissions, PossibleActions } from '@/global';
-import { Key } from '@/types';
+import { Key } from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -156,7 +157,7 @@ export default Vue.extend({
 
       api
         .patch(`/keys/${this.id}`, this.key)
-        .then((res: any) => {
+        .then(() => {
           this.saveBusy = false;
           this.$store.dispatch('showSuccess', 'keys.keySaved');
           this.close();
@@ -213,4 +214,3 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/detail-views';
 </style>
-

@@ -32,16 +32,19 @@ import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
+import com.google.common.cache.Cache;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -51,7 +54,7 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
 import static org.junit.Assert.assertNotNull;
-
+import static org.junit.Assert.assertTrue;
 /**
  * Tests the OCSP verifier.
  */
@@ -239,6 +242,23 @@ public class OcspVerifierTest {
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
+    @Test
+    public void responseValidityCache() throws Exception {
+        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
+                    signer, signerKey, CertificateStatus.GOOD,
+                    thisUpdate, null);
+
+        OcspVerifier verifier =
+                    new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+        verifier.verifyValidity(ocsp, subject, issuer);
+        Field field = OcspVerifier.class.getDeclaredField("RESPONSE_VALIDITY_CACHE");
+        field.setAccessible(true);
+        Cache<String, SingleResp> cache = (Cache<String, SingleResp>) field.get(verifier);
+        assertTrue("Cache should be filled", cache != null && cache.size() > 0);
+
+    }
+
     /**
      * Loads the test certificates.
      * @throws Exception if an error occurs
@@ -270,7 +290,7 @@ public class OcspVerifierTest {
 
         @Override
         public X509Certificate getCaCert(String instanceIdentifier,
-                X509Certificate orgCert) {
+                                         X509Certificate orgCert) {
             return TestCertUtil.getCaCert();
         }
     }

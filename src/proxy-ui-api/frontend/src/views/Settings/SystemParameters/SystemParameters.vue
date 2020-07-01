@@ -18,7 +18,9 @@
             >
               {{ $t('systemParameters.configurationAnchor.action.download') }}
             </large-button>
-            <upload-configuration-anchor-dialog @uploaded="fetchConfigurationAnchor"/>
+            <upload-configuration-anchor-dialog
+              @uploaded="fetchConfigurationAnchor"
+            />
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
@@ -66,7 +68,10 @@
             </h3></v-col
           >
           <v-col class="text-right">
-            <add-timestamping-service-dialog :configured-timestamping-services="configuredTimestampingServices" @added="fetchConfiguredTimestampingServiced"/>
+            <add-timestamping-service-dialog
+              :configured-timestamping-services="configuredTimestampingServices"
+              @added="fetchConfiguredTimestampingServiced"
+            />
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
@@ -105,14 +110,21 @@
             </table>
           </v-col>
         </v-row>
-        <v-row no-gutters class="mt-10">
+        <v-row
+          no-gutters
+          class="mt-10"
+          v-if="hasPermission(permissions.GENERATE_AUTH_CERT_REQ)"
+        >
           <v-col
             ><h3>
               {{ $t('systemParameters.approvedCertificateAuthorities.title') }}
             </h3></v-col
           >
         </v-row>
-        <v-row no-gutters>
+        <v-row
+          no-gutters
+          v-if="hasPermission(permissions.GENERATE_AUTH_CERT_REQ)"
+        >
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -181,7 +193,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Anchor, CertificateAuthority, TimestampingService } from '@/types';
+import {
+  Anchor,
+  CertificateAuthority,
+  TimestampingService,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
@@ -207,7 +223,9 @@ export default Vue.extend({
   },
   computed: {
     orderedCertificateAuthorities(): CertificateAuthority[] {
-      return this.certificateAuthorities.sort((authorityA, authorityB) =>
+      const temp = this.certificateAuthorities;
+
+      return temp.sort((authorityA, authorityB) =>
         authorityA.path.localeCompare(authorityB.path),
       );
     },
@@ -246,9 +264,17 @@ export default Vue.extend({
     },
   },
   created(): void {
-    this.fetchConfigurationAnchor();
-    this.fetchConfiguredTimestampingServiced();
-    this.fetchApprovedCertificateAuthorities();
+    if (this.hasPermission(Permissions.VIEW_ANCHOR)) {
+      this.fetchConfigurationAnchor();
+    }
+
+    if (this.hasPermission(Permissions.VIEW_TSPS)) {
+      this.fetchConfiguredTimestampingServiced();
+    }
+
+    if (this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ)) {
+      this.fetchApprovedCertificateAuthorities();
+    }
   },
 });
 </script>

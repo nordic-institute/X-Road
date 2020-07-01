@@ -76,6 +76,17 @@ public final class FormatUtils {
     }
 
     /**
+     * Converts OffsetDateTime to Date
+     */
+    public static Date fromOffsetDateTimeToDate(OffsetDateTime offsetDateTime) {
+        if (offsetDateTime == null) {
+            return null;
+        } else {
+            return Date.from(offsetDateTime.toInstant());
+        }
+    }
+
+    /**
      * Converts LocalTime to OffsetDateTime with ZoneOffset.UTC
      * @param localTime
      * @return OffsetDateTime with offset ZoneOffset.UTC
@@ -84,8 +95,8 @@ public final class FormatUtils {
     public static OffsetDateTime fromLocalTimeToOffsetDateTime(LocalTime localTime) {
         // Use joda "LocalDate.now()" to enable better testability. Joda allows setting current system
         // time using "DateTimeUtils.setCurrentMillisFixed" method.
-        return LocalDateTime.of(LocalDate.parse(org.joda.time.LocalDate.now(DateTimeZone.UTC).toString()), localTime)
-                .toInstant(ZoneOffset.UTC).atOffset(ZoneOffset.UTC);
+        return LocalDateTime.of(LocalDate.parse(org.joda.time.LocalDate.now(DateTimeZone.getDefault()).toString()),
+                localTime).toInstant(OffsetDateTime.now().getOffset()).atOffset(ZoneOffset.UTC);
     }
 
     /**
@@ -101,7 +112,10 @@ public final class FormatUtils {
     public static OffsetDateTime fromLocalTimeToOffsetDateTime(LocalTime localTime, boolean isInPast) {
         OffsetDateTime offsetDateTime = fromLocalTimeToOffsetDateTime(localTime);
         // Use joda "LocalTime.now()" to enable better testability.
-        int currentHour = org.joda.time.LocalTime.now(DateTimeZone.UTC).getHourOfDay();
+        org.joda.time.LocalTime now = org.joda.time.LocalTime.now(DateTimeZone.getDefault());
+        LocalTime localTimeNow = LocalTime.of(now.getHourOfDay(), now.getMinuteOfHour(), now.getSecondOfMinute());
+        int currentHour = fromLocalTimeToOffsetDateTime(localTimeNow).getHour();
+
         if (isInPast && currentHour < offsetDateTime.getHour()) {
             // Minus one day if localTime was yesterday
             return offsetDateTime.minusDays(1);
@@ -123,7 +137,7 @@ public final class FormatUtils {
         boolean hasValidProtocol;
         boolean hasValidHost;
         try {
-            hasValidProtocol = url.startsWith(HTTPS_PROTOCOL) || url.startsWith(HTTP_PROTOCOL);
+            hasValidProtocol = isHttpsUrl(url) || url.startsWith(HTTP_PROTOCOL);
             URL wsdlUrl = new URL(url);
             String asciiHost = IDN.toASCII(wsdlUrl.getHost());
             hasValidHost = asciiHost.matches(URL_HOST_REGEX);
@@ -131,6 +145,10 @@ public final class FormatUtils {
             return false;
         }
         return hasValidProtocol && hasValidHost;
+    }
+
+    public static boolean isHttpsUrl(String url) {
+        return url != null && url.startsWith(HTTPS_PROTOCOL);
     }
 
     /**

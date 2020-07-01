@@ -7,7 +7,6 @@
  * General purpose component for status icon with color
  */
 import Vue from 'vue';
-import { Client, ClientStatus } from '@/types';
 
 export default Vue.extend({
   props: {
@@ -27,7 +26,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style lang="scss" scoped>
 .status-wrapper {

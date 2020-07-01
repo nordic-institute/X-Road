@@ -7,7 +7,8 @@
         outlined
         @click="generateDialog = true"
         data-test="security-server-tls-certificate-generate-key-button"
-      >{{$t('ssTlsCertificate.generateKey')}}</large-button>
+        >{{ $t('ssTlsCertificate.generateKey') }}</large-button
+      >
       <input
         v-show="false"
         ref="importUpload"
@@ -21,7 +22,8 @@
         outlined
         @click="$refs.importUpload.click()"
         data-test="security-server-tls-certificate-import-certificate-key"
-      >{{$t('ssTlsCertificate.importCertificate')}}</large-button>
+        >{{ $t('ssTlsCertificate.importCertificate') }}</large-button
+      >
       <large-button
         v-if="exportCertificateVisible"
         class="button-spacing"
@@ -29,7 +31,8 @@
         :loading="exportPending"
         @click="exportCertificate()"
         data-test="security-server-tls-certificate-export-certificate-button"
-      >{{$t('ssTlsCertificate.exportCertificate')}}</large-button>
+        >{{ $t('ssTlsCertificate.exportCertificate') }}</large-button
+      >
     </div>
 
     <generate-tls-and-certificate-dialog
@@ -38,22 +41,27 @@
       @saved="newCertificateGenerated"
     />
 
-    <div class="content-title">{{$t('ssTlsCertificate.keyCertTitle')}}</div>
+    <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
     <div class="horizontal-line-dark"></div>
 
     <div class="content-wrap">
       <div>
         <div class="key-wrap">
           <i class="icon-xrd_key icon"></i>
-          {{$t('ssTlsCertificate.keyText')}}
+          {{ $t('ssTlsCertificate.keyText') }}
         </div>
         <div class="cert-wrap">
-          <i class="icon-xrd_certificate icon clickable" @click="certificateClick()"></i>
+          <i
+            class="icon-xrd_certificate icon clickable"
+            @click="certificateClick()"
+          ></i>
           <div
             class="clickable-link"
             v-if="certificate"
             @click="certificateClick()"
-          >{{certificate.hash | colonize}}</div>
+          >
+            {{ certificate.hash | colonize }}
+          </div>
         </div>
       </div>
 
@@ -63,7 +71,8 @@
           class="table-button-fix"
           @click="generateCsr()"
           data-test="security-server-tls-certificate-generate-csr-button"
-        >{{$t('ssTlsCertificate.generateCsr')}}</SmallButton>
+          >{{ $t('ssTlsCertificate.generateCsr') }}</SmallButton
+        >
       </div>
     </div>
 
@@ -74,7 +83,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Key, CertificateDetails } from '@/types';
+import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
@@ -259,4 +268,3 @@ export default Vue.extend({
   height: 100%;
 }
 </style>
-

@@ -1,13 +1,13 @@
 <template>
   <div class="status-wrapper">
     <StatusIcon :status="statusIconType" />
-    <div class="status-text">{{getStatusText(status)}}</div>
+    <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client, ClientStatus } from '@/types';
+import { Client, ClientStatus } from '@/openapi-types';
 import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
@@ -84,7 +84,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style lang="scss" scoped>
 .status-wrapper {

@@ -2,7 +2,9 @@
   <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t('accessRights.addServiceClientsTitle')}}</span>
+        <span class="headline">{{
+          $t('accessRights.addServiceClientsTitle')
+        }}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x" data-test="cancel"></i>
       </v-card-title>
@@ -14,7 +16,9 @@
             <v-expansion-panel-content class="elevation-0">
               <template v-slot:header>
                 <v-spacer />
-                <div class="exp-title">{{$t('localGroup.searchOptions')}}</div>
+                <div class="exp-title">
+                  {{ $t('localGroup.searchOptions') }}
+                </div>
               </template>
 
               <div>
@@ -80,7 +84,9 @@
                 </div>
 
                 <div class="search-wrap">
-                  <large-button @click="search()" data-test="search-button">{{$t('action.search')}}</large-button>
+                  <large-button @click="search()" data-test="search-button">{{
+                    $t('action.search')
+                  }}</large-button>
                 </div>
               </div>
             </v-expansion-panel-content>
@@ -92,39 +98,58 @@
           <thead>
             <tr>
               <th class="first-column"></th>
-              <th>{{$t('services.memberNameGroupDesc')}}</th>
-              <th>{{$t('services.idGroupCode')}}</th>
-              <th>{{$t('type')}}</th>
+              <th>{{ $t('services.memberNameGroupDesc') }}</th>
+              <th>{{ $t('services.idGroupCode') }}</th>
+              <th>{{ $t('type') }}</th>
             </tr>
           </thead>
-          <tbody v-if="serviceClientCandidates && serviceClientCandidates.length > 0">
+          <tbody
+            v-if="serviceClientCandidates && serviceClientCandidates.length > 0"
+          >
             <tr v-for="sc in serviceClientCandidates" v-bind:key="sc.id">
               <td class="first-column">
                 <div class="checkbox-wrap">
-                  <v-checkbox @change="checkboxChange(sc, $event)" color="primary" data-test="sc-checkbox"></v-checkbox>
+                  <v-checkbox
+                    @change="checkboxChange(sc, $event)"
+                    color="primary"
+                    data-test="sc-checkbox"
+                  ></v-checkbox>
                 </div>
               </td>
-              <td>{{sc.name}}</td>
+              <td>{{ sc.name }}</td>
               <td
                 v-if="sc.service_client_type === serviceClientTypes.LOCALGROUP"
-              >{{sc.local_group_code}}</td>
-              <td v-else>{{sc.id}}</td>
-              <td>{{sc.service_client_type}}</td>
+              >
+                {{ sc.local_group_code }}
+              </td>
+              <td v-else>{{ sc.id }}</td>
+              <td>{{ sc.service_client_type }}</td>
             </tr>
           </tbody>
         </table>
-        <div v-if="serviceClientCandidates.length < 1 && !noResults" class="empty-row"></div>
+        <div
+          v-if="serviceClientCandidates.length < 1 && !noResults"
+          class="empty-row"
+        ></div>
 
         <div v-if="noResults" class="empty-row">
-          <p>{{$t('localGroup.noResults')}}</p>
+          <p>{{ $t('localGroup.noResults') }}</p>
         </div>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button class="button-margin" data-test="cancel-button" outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+        <large-button
+          class="button-margin"
+          data-test="cancel-button"
+          outlined
+          @click="cancel()"
+          >{{ $t('action.cancel') }}</large-button
+        >
 
-        <large-button :disabled="!canSave" data-test="save" @click="save()">{{$t('localGroup.addSelected')}}</large-button>
+        <large-button :disabled="!canSave" data-test="save" @click="save()">{{
+          $t('localGroup.addSelected')
+        }}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -135,7 +160,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import {ServiceClient} from '@/types';
+import { ServiceClient } from '@/openapi-types';
 
 enum ServiceClientTypes {
   GLOBALGROUP = 'GLOBALGROUP',
@@ -237,8 +262,11 @@ export default Vue.extend({
       }
 
       const isExistingServiceClient = (sc: ServiceClient): boolean => {
-        return !this.existingServiceClients.some( (existing: any) => sc.id === existing.id
-          && sc.service_client_type === existing.service_client_type);
+        return !this.existingServiceClients.some(
+          (existing: any) =>
+            sc.id === existing.id &&
+            sc.service_client_type === existing.service_client_type,
+        );
       };
 
       api
@@ -246,7 +274,9 @@ export default Vue.extend({
         .then((res) => {
           if (this.existingServiceClients?.length > 0) {
             // Filter out subjects that are already added
-            this.serviceClientCandidates = res.data.filter(isExistingServiceClient);
+            this.serviceClientCandidates = res.data.filter(
+              isExistingServiceClient,
+            );
           } else {
             // Show results straight if there is nothing to filter
             this.serviceClientCandidates = res.data;
@@ -290,4 +320,3 @@ export default Vue.extend({
   width: 40px;
 }
 </style>
-

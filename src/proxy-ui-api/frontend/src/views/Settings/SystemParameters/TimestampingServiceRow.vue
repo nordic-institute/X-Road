@@ -37,7 +37,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import { TimestampingService } from '@/types';
+import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import { Prop } from 'vue/types/options';
@@ -67,7 +67,7 @@ export default Vue.extend({
       this.deleting = true;
       api
         .post('/system/timestamping-services/delete', this.timestampingService)
-        .then((_) => {
+        .then(() => {
           this.deleting = false;
           this.confirmDeleteDialog = false;
           this.$emit('deleted');

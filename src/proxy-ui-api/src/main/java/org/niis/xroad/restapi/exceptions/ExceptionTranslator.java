@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
-import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
+import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -98,8 +98,8 @@ public class ExceptionTranslator {
     }
 
 
-    private CodeWithMetadata convert(Deviation deviation) {
-        CodeWithMetadata result = new CodeWithMetadata();
+    private CodeWithDetails convert(Deviation deviation) {
+        CodeWithDetails result = new CodeWithDetails();
         if (deviation != null) {
             result.setCode(deviation.getCode());
             if (deviation.getMetadata() != null && !deviation.getMetadata().isEmpty()) {

@@ -2,43 +2,61 @@
   <div>
     <div class="info-block">
       <div>
-        {{$t('wizard.clientInfo1')}}
+        {{ $t('wizard.clientInfo1') }}
         <br />
         <br />
-        {{$t('wizard.clientInfo2')}}
+        {{ $t('wizard.clientInfo2') }}
       </div>
       <div class="action-block">
         <large-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-        >{{$t('wizard.selectClient')}}</large-button>
+          >{{ $t('wizard.selectClient') }}</large-button
+        >
       </div>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberName" helpText="wizard.client.memberNameTooltip" />
-        <div v-if="selectedMember" data-test="selected-member-name">{{selectedMember.member_name}}</div>
+        <FormLabel
+          labelText="wizard.memberName"
+          helpText="wizard.client.memberNameTooltip"
+        />
+        <div data-test="selected-member-name">{{ selectedMemberName }}</div>
       </div>
 
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberClass" helpText="wizard.client.memberClassTooltip" />
+        <FormLabel
+          labelText="wizard.memberClass"
+          helpText="wizard.client.memberClassTooltip"
+        />
 
-        <ValidationProvider name="addClient.memberClass" rules="required" v-slot="{ errors }">
-          <v-text-field
-            class="form-input"
-            type="text"
+        <ValidationProvider
+          name="addClient.memberClass"
+          rules="required"
+          v-slot="{ errors }"
+        >
+          <v-select
+            :items="memberClasses"
             :error-messages="errors"
+            class="form-input"
             v-model="memberClass"
             data-test="member-class-input"
-          ></v-text-field>
+          ></v-select>
         </ValidationProvider>
       </div>
       <div class="row-wrap">
-        <FormLabel labelText="wizard.memberCode" helpText="wizard.client.memberCodeTooltip" />
+        <FormLabel
+          labelText="wizard.memberCode"
+          helpText="wizard.client.memberCodeTooltip"
+        />
 
-        <ValidationProvider name="addClient.memberCode" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="addClient.memberCode"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             type="text"
@@ -50,9 +68,16 @@
       </div>
 
       <div class="row-wrap">
-        <FormLabel labelText="wizard.subsystemCode" helpText="wizard.client.subsystemCodeTooltip" />
+        <FormLabel
+          labelText="wizard.subsystemCode"
+          helpText="wizard.client.subsystemCodeTooltip"
+        />
 
-        <ValidationProvider name="addClient.subsystemCode" rules="required" v-slot="{ errors }">
+        <ValidationProvider
+          name="addClient.subsystemCode"
+          rules="required"
+          v-slot="{ errors }"
+        >
           <v-text-field
             class="form-input"
             type="text"
@@ -62,16 +87,21 @@
           ></v-text-field>
         </ValidationProvider>
       </div>
-      <div v-if="duplicateClient" class="duplicate-warning">{{$t('wizard.client.memberExists')}}</div>
+      <div v-if="duplicateClient" class="duplicate-warning">
+        {{ $t('wizard.client.memberExists') }}
+      </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" data-test="cancel-button">{{$t('action.cancel')}}</large-button>
+          <large-button outlined @click="cancel" data-test="cancel-button">{{
+            $t('action.cancel')
+          }}</large-button>
         </div>
         <large-button
           @click="done"
           :disabled="invalid || duplicateClient"
           data-test="next-button"
-        >{{$t('action.next')}}</large-button>
+          >{{ $t('action.next') }}</large-button
+        >
       </div>
     </ValidationObserver>
 
@@ -89,8 +119,8 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import SelectClientDialog from './SelectClientDialog.vue';
-import { Client } from '@/types';
+import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
+import { Client } from '@/openapi-types';
 import { containsClient } from '@/util/helpers';
 
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
@@ -104,7 +134,12 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedClients', 'selectableClients']),
+    ...mapGetters([
+      'reservedClients',
+      'selectableClients',
+      'memberClasses',
+      'selectedMemberName',
+    ]),
 
     memberClass: {
       get(): string {
@@ -133,17 +168,13 @@ export default Vue.extend({
       },
     },
 
-    selectedMember: {
-      get(): Client {
-        return this.$store.getters.selectedMember;
-      },
-      set(value: Client) {
-        this.$store.commit('setMember', value);
-      },
-    },
-
     duplicateClient(): boolean {
-      return containsClient(this.reservedClients, this.memberClass, this.memberCode, this.subsystemCode);
+      return containsClient(
+        this.reservedClients,
+        this.memberClass,
+        this.memberCode,
+        this.subsystemCode,
+      );
     },
   },
   data() {
@@ -175,6 +206,16 @@ export default Vue.extend({
   },
   created() {
     this.$store.dispatch('fetchSelectableClients');
+    this.$store.dispatch('fetchMemberClasses');
+  },
+
+  watch: {
+    memberClasses(val) {
+      // Set first member class selected as default when the list is updated
+      if (val?.length === 1) {
+        this.memberClass = val[0];
+      }
+    },
   },
 });
 </script>
@@ -201,4 +242,3 @@ export default Vue.extend({
   font-size: 12px;
 }
 </style>
-

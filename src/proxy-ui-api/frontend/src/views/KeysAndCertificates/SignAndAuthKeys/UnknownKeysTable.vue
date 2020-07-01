@@ -3,8 +3,8 @@
     <table class="xrd-table">
       <thead>
         <tr>
-          <th>{{$t(title)}}</th>
-          <th>{{$t('keys.id')}}</th>
+          <th>{{ $t(title) }}</th>
+          <th>{{ $t('keys.id') }}</th>
         </tr>
       </thead>
       <tbody v-for="key in keys" v-bind:key="key.id">
@@ -14,18 +14,23 @@
             <td>
               <div class="name-wrap">
                 <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
-                <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+                <div class="clickable-link" @click="keyClick(key)">
+                  {{ key.name }}
+                </div>
               </div>
             </td>
             <td>
               <div class="id-wrap">
-                <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
+                <div class="clickable-link" @click="keyClick(key)">
+                  {{ key.id }}
+                </div>
                 <SmallButton
                   v-if="hasPermission"
                   class="table-button-fix"
                   :disabled="disableGenerateCsr(key)"
                   @click="generateCsr(key)"
-                >{{$t('keys.generateCsr')}}</SmallButton>
+                  >{{ $t('keys.generateCsr') }}</SmallButton
+                >
               </div>
             </td>
           </tr>
@@ -33,22 +38,29 @@
 
         <!-- Key type HARDWARE -->
         <template v-if="tokenType === 'HARDWARE'">
-          <tr v-bind:class="{borderless: hasCertificates(key)}">
+          <tr v-bind:class="{ borderless: hasCertificates(key) }">
             <td>
               <div class="name-wrap-top">
-                <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
-                <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+                <v-icon class="icon" @click="keyClick(key)"
+                  >mdi-key-outline</v-icon
+                >
+                <div class="clickable-link" @click="keyClick(key)">
+                  {{ key.name }}
+                </div>
               </div>
             </td>
             <td class="td-align-right">
               <div class="id-wrap">
-                <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
+                <div class="clickable-link" @click="keyClick(key)">
+                  {{ key.id }}
+                </div>
                 <SmallButton
                   v-if="hasPermission"
                   class="table-button-fix"
                   :disabled="disableGenerateCsr(key)"
                   @click="generateCsr(key)"
-                >{{$t('keys.generateCsr')}}</SmallButton>
+                  >{{ $t('keys.generateCsr') }}</SmallButton
+                >
               </div>
             </td>
           </tr>
@@ -60,19 +72,28 @@
               <td class="td-name">
                 <div class="name-wrap">
                   <v-icon
-                    v-bind:class="{hidden: showHardwareTokenImportCert(certificate)}"
+                    v-bind:class="{
+                      hidden: showHardwareTokenImportCert(certificate),
+                    }"
                     class="icon"
-                  >mdi-file-document-outline</v-icon>
-                  <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
+                    >mdi-file-document-outline</v-icon
+                  >
+                  <span
+                    >{{ certificate.certificate_details.issuer_common_name }}
+                    {{ certificate.certificate_details.serial }}</span
+                  >
                 </div>
               </td>
               <td>
                 <div class="id-wrap">
                   <SmallButton
-                    v-if="showHardwareTokenImportCert(certificate) && hasPermission"
+                    v-if="
+                      showHardwareTokenImportCert(certificate) && hasPermission
+                    "
                     @click="importCert(certificate.certificate_details.hash)"
                     class="table-button-fix"
-                  >{{$t('keys.importCert')}}</SmallButton>
+                    >{{ $t('keys.importCert') }}</SmallButton
+                  >
                 </div>
               </td>
             </tr>
@@ -89,8 +110,8 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, TokenCertificate } from '@/types';
-import { Permissions, PossibleActions, UsageTypes } from '@/global';
+import { Key, TokenCertificate } from '@/openapi-types';
+import { Permissions, PossibleActions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -154,7 +175,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';

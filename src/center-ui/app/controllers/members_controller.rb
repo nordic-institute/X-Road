@@ -269,8 +269,8 @@ class MembersController < ApplicationController
     authorize!(:add_new_member)
 
     validate_params({
-      :memberClass => [:required],
-      :memberCode => [:required],
+      :memberClass => [:required, :identifier],
+      :memberCode => [:required, :identifier],
       :memberName => [:required]
     })
 
@@ -347,7 +347,7 @@ class MembersController < ApplicationController
     validate_params({
       :memberClass => [:required],
       :memberCode => [:required],
-      :subsystemCode => [:required]
+      :subsystemCode => [:required, :identifier]
     })
 
     audit_log_data[:memberClass] = params[:memberClass]
@@ -416,7 +416,7 @@ class MembersController < ApplicationController
     authorize!(:add_security_server_reg_request)
 
     validate_params({
-      :serverCode => [:required],
+      :serverCode => [:required, :identifier],
       :ownerCode => [:required],
       :ownerClass => [:required],
       :tempCertId => [:required]
@@ -467,7 +467,7 @@ class MembersController < ApplicationController
     validate_params({
       :memberClass => [:required],
       :memberCode => [:required],
-      :subsystemCode => [],
+      :subsystemCode => [:identifier],
       :serverCode => [:required],
       :ownerClass => [:required],
       :ownerCode => [:required]
