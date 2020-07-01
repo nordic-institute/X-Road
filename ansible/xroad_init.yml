@@ -27,6 +27,7 @@
   vars_files:
     - vars_files/remote_repo.yml
     - vars_files/cs_database.yml
+    - vars_files/base.yml
 
 - hosts: cp_servers
   become: yes
@@ -37,6 +38,7 @@
     - cp
   vars_files:
     - vars_files/remote_repo.yml
+    - vars_files/base.yml
 
 - hosts: ss_servers
   become: yes
@@ -48,6 +50,7 @@
   vars_files:
     - vars_files/remote_repo.yml
     - vars_files/ss_database.yml
+    - vars_files/base.yml
 
 - hosts: ca_servers
   become: yes

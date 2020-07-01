@@ -1,4 +1,17 @@
 ---
+- name: Preserve hostname
+  lineinfile: "dest=/etc/cloud/cloud.cfg state=present regexp='preserve_hostname' line='preserve_hostname: true'"
+  when: (aws_preserve_hostname is defined) and (aws_preserve_hostname)
+
+- name: configure ssh password authentication
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication\s+(.*)$'
+    replace: "PasswordAuthentication {{ ssh_password_authentication | ternary('yes', 'no') }}"
+    validate: /usr/sbin/sshd -T -f %s
+  notify: restart ssh
+  when: ssh_password_authentication is defined
+
 - name: xroad user
   user:
     name: xroad
@@ -13,20 +26,20 @@
     name: "{{ xroad_ui_user }}"
     comment: "XRoad UI User"
     state: present
-    shell: "/bin/bash"
+    shell: "/bin/false"
     password: "{{ xroad_ui_user_password }}"
-    createhome: "yes"
+    createhome: "no"
 
-- import_tasks: ubuntu.yml
+- include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
-- import_tasks: rhel.yml
+- include_tasks: rhel.yml
   when: ansible_os_family == "RedHat"
 
 - name: clean xroad logs at boot
   cron:
     name: xroad log cleanup
-    job: "/usr/bin/find /var/log/xroad -type f -not -name audit.log \\( -name '*.log' -o -name '*.log.zip' \\) -mtime +1 -exec rm {{ '{} \\;' }} > /dev/null 2>&1"
+    job: "/usr/bin/find /var/log/xroad -type f -not -name audit.log \\( -name '*.log' -o -name '*.log.zip' \\) -mtime +7 -exec rm {{ '{} \\;' }} > /dev/null 2>&1"
     special_time: reboot
     cron_file: xroad_log_cleanup
     user: xroad

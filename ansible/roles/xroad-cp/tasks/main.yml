@@ -1,5 +1,10 @@
 ---
-- name: "install configuration proxy"
+- name: "update apt cache"
+  apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: "install xroad-confproxy via apt"
   apt:
     name: xroad-confproxy
     state: latest
