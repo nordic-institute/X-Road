@@ -945,10 +945,11 @@ public class ServiceDescriptionService {
                 serviceDescriptionType.getService(),
                 newServices);
 
-        // On refresh the service url should not change so they are reset to original values
-        if (serviceDescriptionType.getUrl().equals(url)) {
-            resetServiceUrls(serviceDescriptionType, newServices);
-        }
+        // On refresh the service properties (URL, timeout, SSL authentication) should not change
+        // so the existing values must be kept. This applies to a case when 1) the WSDL URL remains the same
+        // and 2) the WSDL URL is changed. When the WSDL URL is changed (2), the service properties must keep
+        // the same values in case the WSDL fetched from the new URL contains services with the same service code.
+        updateServicePoperties(serviceDescriptionType, newServices);
 
         wsdlAuditData.put(SERVICES_ADDED, serviceChanges.getAddedFullServiceCodes());
         wsdlAuditData.put(SERVICES_DELETED, serviceChanges.getRemovedFullServiceCodes());
@@ -1000,9 +1001,9 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * Reset the urls of each service to match its value before it was refreshed.
+     * Update the url, timeout and SSL authentication of each service to match its value before it was refreshed.
      */
-    private List<ServiceType> resetServiceUrls(ServiceDescriptionType serviceDescriptionType,
+    private List<ServiceType> updateServicePoperties(ServiceDescriptionType serviceDescriptionType,
             List<ServiceType> newServices) {
         return newServices.stream()
                 .map(newService -> {
@@ -1010,6 +1011,8 @@ public class ServiceDescriptionService {
                     serviceDescriptionType.getService().forEach(s -> {
                         if (newServiceFullName.equals(FormatUtils.getServiceFullName(s))) {
                             newService.setUrl(s.getUrl());
+                            newService.setTimeout(s.getTimeout());
+                            newService.setSslAuthentication(s.getSslAuthentication());
                         }
                     });
                     return newService;
