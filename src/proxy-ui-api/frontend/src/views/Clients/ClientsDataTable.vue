@@ -42,14 +42,14 @@
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      :sort-by="['sortNameAsc']"
+      :sort-by="['visibleName']"
       :custom-sort="customSort"
       :custom-filter="customFilter"
       hide-default-footer
       class="elevation-0 data-table"
       item-key="id"
     >
-      <template v-slot:item.sortNameAsc="{ item }">
+      <template v-slot:item.visibleName="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <v-icon color="grey darken-2" class="icon-member icon-size"
@@ -97,10 +97,7 @@
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
-          <v-icon
-            color="grey darken-2"
-            class="icon-member icon-size"
-            :class="{ 'icon-subsystem': treeMode }"
+          <v-icon color="grey darken-2" class="icon-subsystem icon-size"
             >mdi-card-bulleted-outline</v-icon
           >
           <span
@@ -191,7 +188,7 @@ export default Vue.extend({
     search: '' as string,
     clientTypes: ClientTypes,
     pagination: {
-      sortBy: 'sortNameAsc' as string,
+      sortBy: 'visibleName' as string,
     },
     confirmRegisterClient: false as boolean,
     registerClientLoading: false as boolean,
@@ -200,21 +197,12 @@ export default Vue.extend({
 
   computed: {
     ...mapGetters(['clients', 'clientsLoading', 'ownerMember']),
-    treeMode(): boolean {
-      // Switch between the "tree" view and the "flat" view
-      if (this.search) {
-        return false;
-      } else if (this.pagination.sortBy === 'status') {
-        return false;
-      }
-      return true;
-    },
     headers(): DataTableHeader[] {
       return [
         {
           text: this.$t('client.name') as string,
           align: 'start',
-          value: 'sortNameAsc',
+          value: 'visibleName',
           class: 'xrd-table-header',
         },
         {
@@ -349,56 +337,99 @@ export default Vue.extend({
     },
 
     customFilter: (
-      value: never,
+      value: unknown,
       search: string | null,
       item: ExtendedClient,
     ): boolean => {
       // Override for the default filter function.
-      // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
-      if (search === null) {
+      if (search === null || search.length === 0 || search?.trim() === '') {
         return true;
       }
 
       search = search.toString().toLowerCase();
-      if (search.trim() === '') {
-        return true;
+
+      const isFiltered =
+        item.visibleName.toLowerCase().includes(search) ||
+        item.id.toLowerCase().includes(search) ||
+        false;
+
+      if (item.type !== ClientTypes.SUBSYSTEM) {
+        item.isFiltered = !isFiltered;
+        return true; //We will filter these in sorting due to structure requirements
       }
 
-      if (
-        item.visibleName?.toLowerCase().includes(search) ||
-        item.id?.toLowerCase().includes(search)
-      ) {
-        return true;
-      }
-
-      return false;
+      return isFiltered;
     },
 
-    // this method is fixed in another ticket
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    customSort(items: any[], sortBy: string[], sortDesc: boolean[]): any[] {
-      // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
-      // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
-      const index = sortBy[0];
-      const isDesc = sortDesc[0];
+    customSort(
+      items: ExtendedClient[],
+      sortBy: string[],
+      sortDesc: boolean[],
+    ): ExtendedClient[] {
+      const index = sortBy[0] as keyof ExtendedClient;
+      const sortDirection = !sortDesc[0] ? 1 : -1;
 
-      items.sort((a, b) => {
-        if (index === 'sortNameAsc') {
-          if (!isDesc) {
-            return a[index] < b[index] ? -1 : 1;
-          } else {
-            // When sorting descending by name, replace the sort data
-            return b.sortNameDesc < a.sortNameDesc ? -1 : 1;
+      // Filter out all subsystems for later use
+      const subsystems = items.filter(
+        (client) => client.type === ClientTypes.SUBSYSTEM,
+      );
+
+      // First we order and filter the groups (filtering is based on the isFiltered attribute as well as if subsystems are visible)
+      const groups = items
+        .filter((client) => client.type !== ClientTypes.SUBSYSTEM)
+        .filter(
+          (client) =>
+            !this.search ||
+            !client.isFiltered ||
+            subsystems.some((item) => item.id.startsWith(client.id)),
+        )
+        .sort((clientA, clientB) => {
+          if (clientA.owner || clientB.owner) {
+            return clientA.owner ? -1 : 1;
           }
-        } else {
-          if (!isDesc) {
-            return a[index] < b[index] ? -1 : 1;
-          } else {
-            return b[index] < a[index] ? -1 : 1;
-          }
-        }
-      });
-      return items;
+
+          const groupSortDirection =
+            index !== 'visibleName' ? 1 : sortDirection;
+
+          return (
+            clientA.visibleName.localeCompare(clientB.visibleName) *
+            groupSortDirection
+          );
+        });
+
+      // Do local sorting inside the groups
+      return groups
+        .map<ExtendedClient[]>((group) => {
+          return [
+            group,
+            ...subsystems
+              .filter((client) => client.id.startsWith(group.id))
+              .sort((clientA, clientB) => {
+                switch (index) {
+                  case 'visibleName':
+                    return (
+                      clientA.visibleName.localeCompare(clientB.visibleName) *
+                      sortDirection
+                    );
+                  case 'id':
+                    return clientA.id.localeCompare(clientB.id) * sortDirection;
+                  case 'status':
+                    return (
+                      (clientA.status || '').localeCompare(
+                        clientB.status || '',
+                      ) * sortDirection
+                    );
+                  default:
+                    // Just don't sort if the sorting field is unknown
+                    return 0;
+                }
+              }),
+          ];
+        })
+        .reduce(
+          (previousValue, currentValue) => [...previousValue, ...currentValue],
+          [],
+        );
     },
 
     fetchClients() {

@@ -14,12 +14,12 @@ export interface Tab {
 }
 
 // Extension for Client
-export interface ExtendedClient extends Client {
-  visibleName?: string;
-  sortNameAsc?: string;
-  sortNameDesc?: string;
-  type?: string;
-}
+export type ExtendedClient = Client & {
+  visibleName: string;
+  isFiltered?: boolean;
+  type: string;
+  id: string;
+};
 
 // Used in service clients views for listing services than can be granted access rights to
 export interface ServiceCandidate {

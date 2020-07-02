@@ -120,6 +120,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     xRequestId
             );
 
+            // Check that incoming identifiers do not contain illegal characters
+            checkRequestIdentifiers();
+
             senderId = restRequest.getClientId();
             requestServiceId = restRequest.getServiceId();
 
@@ -137,6 +140,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 response.consume();
             }
         }
+    }
+
+    private void checkRequestIdentifiers() {
+        checkIdentifier(restRequest.getClientId());
+        checkIdentifier(restRequest.getServiceId());
+        checkIdentifier(restRequest.getTargetSecurityServer());
     }
 
     private void updateOpMonitoringClientSecurityServerAddress() {

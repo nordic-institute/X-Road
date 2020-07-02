@@ -26,9 +26,12 @@
 package org.niis.xroad.restapi.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * MVC configuration for static resources
@@ -46,10 +49,16 @@ public class MvcConfig implements WebMvcConfigurer {
     }
 
     private static final String RESOURCE_ROOT = "classpath:/public/";
+    private static final long CACHE_MAX_AGE = 365;
 
     private void addResourceLocationMapping(ResourceHandlerRegistry registry, String pathPattern,
-                                            String resourceLocation) {
-        registry.addResourceHandler(pathPattern).addResourceLocations(resourceLocation);
+                                            String resourceLocation, boolean enableCaching) {
+        if (enableCaching) {
+            registry.addResourceHandler(pathPattern).addResourceLocations(resourceLocation)
+                    .setCacheControl(CacheControl.maxAge(CACHE_MAX_AGE, TimeUnit.DAYS));
+        } else {
+            registry.addResourceHandler(pathPattern).addResourceLocations(resourceLocation);
+        }
     }
 
     /**
@@ -61,12 +70,12 @@ public class MvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        addResourceLocationMapping(registry, "/index.html", RESOURCE_ROOT);
-        addResourceLocationMapping(registry, "/favicon.ico", RESOURCE_ROOT);
-        addResourceLocationMapping(registry, "/css/**", RESOURCE_ROOT + "css/");
-        addResourceLocationMapping(registry, "/img/**", RESOURCE_ROOT + "img/");
-        addResourceLocationMapping(registry, "/js/**", RESOURCE_ROOT + "js/");
-        addResourceLocationMapping(registry, "/fonts/**", RESOURCE_ROOT + "fonts/");
+        addResourceLocationMapping(registry, "/index.html", RESOURCE_ROOT, false);
+        addResourceLocationMapping(registry, "/favicon.ico", RESOURCE_ROOT, true);
+        addResourceLocationMapping(registry, "/css/**", RESOURCE_ROOT + "css/", true);
+        addResourceLocationMapping(registry, "/img/**", RESOURCE_ROOT + "img/", true);
+        addResourceLocationMapping(registry, "/js/**", RESOURCE_ROOT + "js/", true);
+        addResourceLocationMapping(registry, "/fonts/**", RESOURCE_ROOT + "fonts/", true);
     }
 
 }

@@ -65,9 +65,6 @@ public final class GlobalConf {
         }
     }
 
-    private static final ThreadLocal<GlobalConfProvider> THREAD_LOCAL =
-            new InheritableThreadLocal<>();
-
     private static volatile GlobalConfProvider instance;
 
     private GlobalConf() {
@@ -77,32 +74,14 @@ public final class GlobalConf {
      * Returns the singleton instance of the configuration.
      */
     static GlobalConfProvider getInstance() {
-        if (THREAD_LOCAL.get() != null) {
-            return THREAD_LOCAL.get();
-        }
-
         if (instance == null) {
-            instance = instanceFactory.createInstance(true);
+            synchronized (GlobalConfProvider.class) {
+                if (instance == null) {
+                    instance = instanceFactory.createInstance(true);
+                }
+            }
         }
-
         return instance;
-    }
-
-    /**
-     * Initializes current instance of conf for the calling thread.
-     * Example usage: calling this method in RequestProcessor to have
-     * a copy of current config for the current message.
-     */
-    public static void initForCurrentThread() {
-        log.trace("initForCurrentThread()");
-
-        if (instance == null) {
-            instance = instanceFactory.createInstance(false);
-        }
-
-        reloadIfChanged();
-
-        THREAD_LOCAL.set(instance);
     }
 
     /**

@@ -1,13 +1,7 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import * as api from '@/util/api';
-
-interface InitializationStatus {
-  is_anchor_imported: boolean;
-  is_server_code_initialized: boolean;
-  is_server_owner_initialized: boolean;
-  is_software_token_initialized: boolean;
-}
+import { InitializationStatus } from '@/openapi-types';
 
 export interface State {
   memberClass: string | undefined;
