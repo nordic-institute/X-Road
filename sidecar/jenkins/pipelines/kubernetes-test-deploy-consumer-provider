@@ -14,7 +14,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {  
                 sh '''
                     CONSUMER_IP = kubectl get pods -l run=security-server-sidecar-consumer -o jsonpath={.items[].status.podIP}
-                    response = curl -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$CONSUMER_IP
+                    response = curl -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://${CONSUMER_IP}
                         if(response == '200') {
                             echo '========> Security server is successfully running'
                             currentBuild.result = 'SUCCESS'
