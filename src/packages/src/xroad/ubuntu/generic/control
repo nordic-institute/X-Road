@@ -158,8 +158,8 @@ Package: xroad-securityserver-fo
 Conflicts: xroad-centralserver
 Architecture: all
 Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
-Description: X-Road security server with the Faroe Islands settings
- This is meta-package of X-Road security server with the Faroe Islands settings.
+Description: X-Road security server with the Faroe Islands' settings
+ This is meta-package of X-Road security server with the Faroe Islands' settings.
 
 Package: xroad-opmonitor
 Conflicts: xroad-center
