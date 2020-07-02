@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.restapi.wsdl;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
@@ -56,6 +56,7 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -91,6 +92,8 @@ public final class WsdlParser {
     private static final String TRANSPORT = "http://schemas.xmlsoap.org/soap/http";
 
     private static final String VERSION = "version";
+    private static final int BUF_SIZE = 8192;
+    private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
 
     private WsdlParser() {
     }
@@ -100,13 +103,16 @@ public final class WsdlParser {
      * @param wsdlUrl the URL from which the WSDL is available
      * @return collection of ServiceInfo objects
      * @throws WsdlNotFoundException if a WSDL was not found at given URL
-     * @throws WsdlParseException if anything else than WsdlNotFoundException went wrong in parsing
+     * @throws WsdlParseException if anything else than WsdlNotFoundException went wrong in parsing (e.g. document
+     * size exceeds the limit defined by {@link #MAX_DESCRIPTION_SIZE})
      */
     public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException {
         try {
             return internalParseWSDL(wsdlUrl);
         } catch (PrivateWsdlNotFoundException e) {
             throw new WsdlNotFoundException(e);
+        } catch (WsdlParseException e) {
+            throw e;
         } catch (Exception e) {
             throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
@@ -282,22 +288,35 @@ public final class WsdlParser {
             this.wsdlUrl = wsdlUrl;
         }
 
+        // cannot change the method signature when overriding so we need to sneakily throw the WsdlParseException
+        @SneakyThrows(WsdlParseException.class)
         @Override
         public InputSource getBaseInputSource() {
-            try {
+            try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
                 URLConnection conn = new URL(wsdlUrl).openConnection();
                 if (conn instanceof HttpsURLConnection) {
                     configureHttps((HttpsURLConnection) conn);
                 }
 
-                // cache the response
-                byte[] response;
                 try (InputStream in = conn.getInputStream()) {
-                    response = IOUtils.toByteArray(in);
+                    long count = 0;
+                    int n;
+                    byte[] buf = new byte[BUF_SIZE];
+                    while ((n = in.read(buf)) != -1) {
+                        count += n;
+                        if (count > MAX_DESCRIPTION_SIZE) {
+                            throw new WsdlParseException(
+                                    "Error reading WSDL: Size exceeds " + MAX_DESCRIPTION_SIZE + " bytes.");
+                        }
+                        byteArrayOutputStream.write(buf, 0, n);
+                    }
                 }
+                byte[] response = byteArrayOutputStream.toByteArray();
                 log.trace("Received WSDL response: {}", new String(response));
 
                 return new InputSource(new ByteArrayInputStream(response));
+            } catch (WsdlParseException e) {
+                throw e;
             } catch (Throwable t) {
                 throw new PrivateWsdlNotFoundException(t);
             }
@@ -360,6 +379,10 @@ public final class WsdlParser {
     public static class WsdlParseException extends InvalidWsdlException {
         public WsdlParseException(Throwable t) {
             super(toListOrNull(t.getMessage()));
+        }
+
+        public WsdlParseException(String message) {
+            super(message);
         }
 
         private static List<String> toListOrNull(String message) {
