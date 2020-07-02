@@ -180,6 +180,7 @@ import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 import { Service, ServiceDescription } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
+import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -234,19 +235,17 @@ export default Vue.extend({
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      const arr = JSON.parse(JSON.stringify(this.serviceDescriptions)).sort(
-        (a: ServiceDescription, b: ServiceDescription) => {
-          if (a.id < b.id) {
-            return -1;
-          }
-          if (a.id > b.id) {
-            return 1;
-          }
+      const arr = deepClone(this.serviceDescriptions).sort((a, b) => {
+        if (a.id < b.id) {
+          return -1;
+        }
+        if (a.id > b.id) {
+          return 1;
+        }
 
-          // equal id:s. (should not happen)
-          return 0;
-        },
-      ) as ServiceDescription[];
+        // equal id:s. (should not happen)
+        return 0;
+      });
 
       if (!this.search) {
         return arr;

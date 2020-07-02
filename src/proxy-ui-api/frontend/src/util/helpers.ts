@@ -173,3 +173,8 @@ export function toClipboard(val: string): void {
   document.execCommand('copy');
   container.removeChild(tempValueContainer);
 }
+
+// Deep clones an object or array using JSON
+export function deepClone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
