@@ -185,7 +185,7 @@ The installation process from scratch has been tested in the following environme
 - Cores: 4.
 - Internet connection: 120 mbps download, 106 mbps upload.
 
-The time results were:
+The timing results were:
 - Download and install pre-requisites (Git): 1 minute.
 - Clone Security Server Sidecar repository: 10 seconds.
 - Download and install Docker: 30 seconds.
