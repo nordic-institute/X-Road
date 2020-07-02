@@ -44,7 +44,7 @@ public class InvalidWsdlException extends WsdlValidationException {
     }
 
     public InvalidWsdlException(String msg) {
-        super(new ErrorDeviation(ERROR_INVALID_WSDL, msg));
+        super(msg, new ErrorDeviation(ERROR_INVALID_WSDL));
     }
 
     public InvalidWsdlException(ErrorDeviation errorDeviation) {
