@@ -187,7 +187,7 @@ The installation process from scratch has been tested in the following environme
 
 The time results were:
 - Download and install pre-requisites (Git): 1 minute.
-- Clone Security Server Sidecar Repository: 10 seconds.
+- Clone Security Server Sidecar repository: 10 seconds.
 - Download and install Docker: 30 seconds.
 - Build Consumer image: 17 minutes 30 seconds.
 - Build Provider image (Using the consumer image as base): 3 minutes 30 seconds.
