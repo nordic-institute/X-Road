@@ -4,4 +4,5 @@ VOLUME_CLAIM=$1
 
 template=`cat "sidecar/kubernetes/security-server-sidecar-provider.yaml" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" `
 
+echo $template
 echo "$template" | kubectl delete -f -
