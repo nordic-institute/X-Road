@@ -3,8 +3,10 @@ pipeline {
     stages {
         stage('Check if consumer and provider are deployed in kubernetes') {
             steps {
-                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-consumer'
-                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-provider'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {  
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-consumer'
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-provider'
+                }
             }
         }
         stage('Test SOAP inteface') {
