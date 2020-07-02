@@ -3,7 +3,7 @@ pipeline {
     parameters {
         string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
         string(description: "Volume claim name", name: "VOLUME_CLAIM", defaultValue: "${params?.VOLUME_CLAIM}")
-    
+    }
     stages {
         stage('Scale replicas') {
             steps {
