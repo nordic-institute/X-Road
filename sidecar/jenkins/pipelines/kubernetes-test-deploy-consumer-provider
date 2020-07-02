@@ -1,7 +1,5 @@
 pipeline {
     agent { label 'dev-test' }
-    parameters {
-    }
     stages {
         stage('Check if consumer and provider are deployed in kubernetes') {
             steps {
