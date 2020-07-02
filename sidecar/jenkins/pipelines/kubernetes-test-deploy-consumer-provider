@@ -11,17 +11,20 @@ pipeline {
         }
         stage('Test SOAP inteface') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {  
-                sh '''
-                    response = curl -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$(kubectl get pods -l run=security-server-sidecar-consumer -o jsonpath={.items[].status.podIP})
-                        if(response == '200') {
-                            echo '========> Security server is successfully running'
-                            currentBuild.result = 'SUCCESS'
-                        } else {
-                            error("========> Security server returned " + response + " . Try again in 10s")
+                retry (5) {
+                    sleep(time: 10, unit: 'SECONDS')
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {  
+                       
+                            def response = sh(script: 'curl -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$(kubectl get pods -l run=security-server-sidecar-consumer -o jsonpath={.items[].status.podIP})', returnStdout:true)
+                                if(response == '200') {
+                                    echo '========> Security server is successfully running'
+                                    currentBuild.result = 'SUCCESS'
+                                } else {
+                                    error("========> Security server returned " + response + " . Try again in 10s")
+                                }
                         }
-                    
-                '''
+                    }
                 }
             }
         }
