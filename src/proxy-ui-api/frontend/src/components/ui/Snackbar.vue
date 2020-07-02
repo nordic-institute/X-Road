@@ -61,7 +61,7 @@
       color="error"
       multi-line
     >
-      <div class="row-wrapper">
+      <div class="row-wrapper scrollable">
         <div v-if="errorCode">
           {{ $t('error_code.' + errorCode) }}
         </div>
@@ -214,4 +214,10 @@ export default Vue.extend({
   overflow: auto;
   overflow-wrap: break-word;
 }
+
+.scrollable {
+  overflow-y: scroll;
+  max-height: 300px;
+}
+
 </style>
