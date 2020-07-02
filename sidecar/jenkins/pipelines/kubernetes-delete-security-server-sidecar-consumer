@@ -7,9 +7,12 @@ pipeline {
     stages {
         stage('Scale replicas') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {                 
-                    sh '${DEPLOYMENT_PATH} ${VOLUME_CLAIM}'
-                }
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '''
+                        template=`cat "${DEPLOYMENT_PATH}" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" `
+                        echo "$template" | kubectl delete -f -
+                    '''
+                
             }
         }
     }
