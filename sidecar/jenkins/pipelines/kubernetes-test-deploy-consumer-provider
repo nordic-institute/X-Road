@@ -16,7 +16,7 @@ pipeline {
                     script {
                         withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {  
                        
-                            def response = sh(script: 'curl -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$(kubectl get pods -l run=security-server-sidecar-consumer -o jsonpath={.items[].status.podIP})', returnStdout:true)
+                            def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$(kubectl get pods -l run=security-server-sidecar-consumer -o jsonpath={.items[].status.podIP})', returnStdout:true)
                                 if(response == '200') {
                                     echo '========> Security server is successfully running'
                                     currentBuild.result = 'SUCCESS'
