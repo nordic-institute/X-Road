@@ -186,7 +186,7 @@ The installation process from scratch has tested in the following environment:
 - Internet connection: 120 mbps download, 106 mbps upload.
 
 The time results were:
-- Download and install git: 1 minute.
+- Download and install pre-requisites (Git): 1 minute.
 - Clone Security Server Sidecar Repository: 10 seconds.
 - Download and install docker: 30seg
 - Build Consumer image: 17 minutes 30 seconds.
