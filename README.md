@@ -180,7 +180,7 @@ If we need to add environmental and operational monitoring in the consumer Sidec
 The installation process from scratch has been tested in the following environment:
 - Operating System: Ubuntu 18.04.4 LTS.
 - Memory: 16 GB .
-- DISK: 512GB SSD.
+- Disk: 512GB SSD.
 - CPU: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz.
 - Cores: 4.
 - Internet connection: 120 mbps download, 106 mbps upload.
