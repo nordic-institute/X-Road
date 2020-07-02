@@ -177,7 +177,7 @@ If we need to add environmental and operational monitoring in the consumer Sidec
 
 ## 1.10 Estimated time for new Security Server Sidecar Installation
 
-The installation process from scratch has tested in the following environment:
+The installation process from scratch has been tested in the following environment:
 - Operating System: Ubuntu 18.04.4 LTS.
 - Memory: 16 GB .
 - DISK: 512GB SSD.
