@@ -95,13 +95,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              title: BackupArchive
-              type: object
-              description: security server backup archive file
-              properties:
-                file:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/BackupArchive'
       responses:
         '201':
           description: item created
@@ -178,14 +172,7 @@ paths:
           content:
             application/json:
               schema:
-                description: response that tells if hsm tokens were logged out during the restore process
-                title: TokensLoggedOut
-                type: object
-                properties:
-                  hsm_tokens_logged_out:
-                    description: whether any hsm tokens were logged out during the restore process
-                    type: boolean
-                    default: false
+                $ref: '#/components/schemas/TokensLoggedOut'
         '400':
           description: request was invalid
         '401':
@@ -496,19 +483,7 @@ paths:
         content:
           application/json:
             schema:
-              title: SecurityServerAddress
-              type: object
-              required:
-                - address
-              properties:
-                address:
-                  type: string
-                  description: Security server's IP address or DNS name
-                  format: text
-                  minLength: 1
-                  maxLength: 255
-              example:
-                address: 127.0.0.1
+              $ref: '#/components/schemas/SecurityServerAddress'
       responses:
         '200':
           description: request was successful
@@ -792,12 +767,7 @@ paths:
         content:
           application/json:
             schema:
-              title: ConnectionTypeWrapper
-              type: object
-              description: connection type
-              properties:
-                connection_type:
-                  $ref: '#/components/schemas/ConnectionType'
+              $ref: '#/components/schemas/ConnectionTypeWrapper'
       responses:
         '200':
           description: client modified
@@ -952,12 +922,7 @@ paths:
           content:
             application/json:
               schema:
-                title: OrphanInformation
-                type: object
-                properties:
-                  orphans_exist:
-                    type: boolean
-                    default: false
+                $ref: '#/components/schemas/OrphanInformation'
         '400':
           description: request was invalid
         '401':
@@ -1855,22 +1820,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: InitializationStatus
-                description: Initialization status of the Security Server
-                properties:
-                  is_anchor_imported:
-                    type: boolean
-                    description: whether a configuration anchor has been imported or not
-                  is_server_code_initialized:
-                    type: boolean
-                    description: whether the server code of the security server has been initialized or not
-                  is_server_owner_initialized:
-                    type: boolean
-                    description: whether the server owner of the security server has been initialized or not
-                  is_software_token_initialized:
-                    type: boolean
-                    description: whether a software token has been initialized or not
+                $ref: '#/components/schemas/InitializationStatus'
         '400':
           description: request was invalid
         '401':
@@ -1941,19 +1891,7 @@ paths:
         content:
           application/json:
             schema:
-              title: LocalGroupDescription
-              type: object
-              required:
-                - description
-              properties:
-                description:
-                  type: string
-                  description: description for the LocalGroup
-                  format: text
-                  minLength: 1
-                  maxLength: 255
-              example:
-                name: This is an awesome local group!
+              $ref: '#/components/schemas/LocalGroupDescription'
       responses:
         '200':
           description: local group modified
@@ -2138,19 +2076,7 @@ paths:
         content:
           application/json:
             schema:
-              title: KeyName
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                  description: Friendly name of a key
-                  format: text
-                  minLength: 1
-                  maxLength: 255
-              example:
-                name: my-key-0
+              $ref: '#/components/schemas/KeyName'
       responses:
         '200':
           description: key modified
@@ -2528,13 +2454,7 @@ paths:
           content:
             application/json:
               schema:
-                title: MemberName
-                type: object
-                description: member's name
-                properties:
-                  member_name:
-                    type: string
-                    format: text
+                $ref: '#/components/schemas/MemberName'
         '400':
           description: request was invalid
         '401':
@@ -3292,15 +3212,7 @@ paths:
         content:
           application/json:
             schema:
-              title: ServiceDescriptionDisabledNotice
-              type: object
-              properties:
-                disabled_notice:
-                  type: string
-                  format: text
-                  description: disabled service notice
-                  minLength: 0
-                  maxLength: 255
+              $ref: '#/components/schemas/ServiceDescriptionDisabledNotice'
       responses:
         '204':
           description: service description disabled
@@ -3369,14 +3281,7 @@ paths:
         content:
           application/json:
             schema:
-              title: IgnoreWarnings
-              type: object
-              properties:
-                ignore_warnings:
-                  type: boolean
-                  default: false
-                  description: if true, any ignorable warnings are ignored. if false (or missing),
-                    any warnings cause request to fail
+              $ref: '#/components/schemas/IgnoreWarnings'
       responses:
         '200':
           description: service description refreshed
@@ -3696,18 +3601,7 @@ paths:
         content:
           application/json:
             schema:
-              required:
-                - distinguished_name
-              title: DistinguishedName
-              type: object
-              properties:
-                name:
-                  type: string
-                  format: text
-                  description: distinguished name
-                  example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
-                  minLength: 1
-                  maxLength: 255
+              $ref: '#/components/schemas/DistinguishedName'
       responses:
         '201':
           description: created CSR
@@ -4111,19 +4005,7 @@ paths:
         content:
           application/json:
             schema:
-              title: TokenName
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                  description: friendly name of the token
-                  format: text
-                  minLength: 1
-                  maxLength: 255
-              example:
-                name: my-token-0
+              $ref: '#/components/schemas/TokenName'
       responses:
         '200':
           description: token modified
@@ -4164,20 +4046,7 @@ paths:
         content:
           application/json:
             schema:
-              title: KeyLabelWithCsrGenerate
-              type: object
-              required:
-                - csr_generate_request
-              properties:
-                key_label:
-                  type: string
-                  format: text
-                  description: label for the new key
-                  minLength: 1
-                  maxLength: 255
-                  example: My new key
-                csr_generate_request:
-                  $ref: '#/components/schemas/CsrGenerate'
+              $ref: '#/components/schemas/KeyLabelWithCsrGenerate'
       responses:
         '201':
           description: key created for the token
@@ -4220,17 +4089,7 @@ paths:
         content:
           application/json:
             schema:
-              title: KeyLabel
-              type: object
-              properties:
-                label:
-                  type: string
-                  format: text
-                  description: label for the new key
-                  minLength: 1
-                  maxLength: 255
-              example:
-                label: My new key
+              $ref: '#/components/schemas/KeyLabel'
       responses:
         '201':
           description: key created for the token
@@ -4272,16 +4131,7 @@ paths:
         content:
           application/json:
             schema:
-              title: TokenPassword
-              type: object
-              properties:
-                password:
-                  type: string
-                  format: text
-                  description: password for logging in to the token
-                  minLength: 1
-              example:
-                password: sm3!!ycat
+              $ref: '#/components/schemas/TokenPassword'
       responses:
         '200':
           description: logged in
@@ -4459,6 +4309,13 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    BackupArchive: # ok
+      type: object
+      description: security server backup archive file
+      properties:
+        file:
+          type: string
+          format: binary
     TokenCertificateSigningRequest: # ok
       type: object
       description: CSR for certificate that is stored in a Token
@@ -4754,6 +4611,18 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
+    DistinguishedName: # ok
+      required:
+        - distinguished_name
+      type: object
+      properties:
+        name:
+          type: string
+          format: text
+          description: distinguished name
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
     PossibleActions: # ok
       type: array
       description: array containing the possible actions that can be done for this item
@@ -4926,6 +4795,12 @@ components:
         - HTTP
         - HTTPS
         - HTTPS_NO_AUTH
+    ConnectionTypeWrapper: # ok
+      type: object
+      description: connection type
+      properties:
+        connection_type:
+          $ref: '#/components/schemas/ConnectionType'
     CsrFormat: # ok
       type: string
       format: enum
@@ -5178,6 +5053,19 @@ components:
           example: description
           minLength: 1
           maxLength: 255
+    LocalGroupDescription: # ok
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          description: description for the LocalGroup
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        name: This is an awesome local group!
     GlobalConfDiagnostics: # ok
       type: object
       description: global configuration diagnostics
@@ -5240,6 +5128,30 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    IgnoreWarnings: # ok
+      type: object
+      properties:
+        ignore_warnings:
+          type: boolean
+          default: false
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+    InitializationStatus: # ok
+      type: object
+      description: Initialization status of the Security Server
+      properties:
+        is_anchor_imported:
+          type: boolean
+          description: whether a configuration anchor has been imported or not
+        is_server_code_initialized:
+          type: boolean
+          description: whether the server code of the security server has been initialized or not
+        is_server_owner_initialized:
+          type: boolean
+          description: whether the server owner of the security server has been initialized or not
+        is_software_token_initialized:
+          type: boolean
+          description: whether a software token has been initialized or not
     KeyWithCertificateSigningRequestId: # ok
       type: object
       description: Key and TokenCertificateSigningRequest id
@@ -5311,6 +5223,44 @@ components:
           description: possible actions that can be done to this object, e.g DELETE.
             Has value only for operationIds getToken and getTokens.
             Does not consider user authorization.
+    KeyName: # ok
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Friendly name of a key
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        name: my-key-0
+    KeyLabel: # ok
+      type: object
+      properties:
+        label:
+          type: string
+          format: text
+          description: label for the new key
+          minLength: 1
+          maxLength: 255
+      example:
+        label: My new key
+    KeyLabelWithCsrGenerate: # ok
+      type: object
+      required:
+        - csr_generate_request
+      properties:
+        key_label:
+          type: string
+          format: text
+          description: label for the new key
+          minLength: 1
+          maxLength: 255
+          example: My new key
+        csr_generate_request:
+          $ref: '#/components/schemas/CsrGenerate'
     KeyUsage: # ok
       type: string
       format: enum
@@ -5361,6 +5311,13 @@ components:
           minLength: 2
           maxLength: 2
           readOnly: true
+    MemberName: # ok
+      type: object
+      description: member's name
+      properties:
+        member_name:
+          type: string
+          format: text
     Members: # ok
       type: object
       description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
@@ -5427,6 +5384,12 @@ components:
         - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
         - UNKNOWN
+    OrphanInformation: # ok
+      type: object
+      properties:
+        orphans_exist:
+          type: boolean
+          default: false
     SecurityServer: # ok
       type: object
       description: security server information
@@ -5472,6 +5435,19 @@ components:
           description: security server address (ip or name)
           example: 192.168.1.100
           maxLength: 255
+    SecurityServerAddress: # ok
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          type: string
+          description: Security server's IP address or DNS name
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        address: 127.0.0.1
     Service: # ok
       type: object
       description: service for the service description
@@ -5758,6 +5734,15 @@ components:
           default: false
         type:
           $ref: '#/components/schemas/ServiceType'
+    ServiceDescriptionDisabledNotice: # ok
+      type: object
+      properties:
+        disabled_notice:
+          type: string
+          format: text
+          description: disabled service notice
+          minLength: 0
+          maxLength: 255
     ServiceDescriptionUpdate:
       type: object
       description: request object for updating a service description url or service code
@@ -5946,6 +5931,37 @@ components:
           description: possible actions that can be done to this object, e.g DELETE.
             Has value only for operationIds getToken and getTokens.
             Does not consider user authorization.
+    TokenName: # ok
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: friendly name of the token
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        name: my-token-0
+    TokensLoggedOut: # ok
+      description: response that tells if hsm tokens were logged out during the restore process
+      type: object
+      properties:
+        hsm_tokens_logged_out:
+          description: whether any hsm tokens were logged out during the restore process
+          type: boolean
+          default: false
+    TokenPassword: # ok
+      type: object
+      properties:
+        password:
+          type: string
+          format: text
+          description: password for logging in to the token
+          minLength: 1
+      example:
+        password: sm3!!ycat
     TokenStatus: # ok
       type: string
       format: text

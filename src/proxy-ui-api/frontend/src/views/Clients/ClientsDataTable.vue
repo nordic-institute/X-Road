@@ -121,6 +121,7 @@
           <SmallButton
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
+                item.type === clientTypes.MEMBER ||
                 item.type === clientTypes.VIRTUAL_MEMBER) &&
                 item.member_name &&
                 showAddClient

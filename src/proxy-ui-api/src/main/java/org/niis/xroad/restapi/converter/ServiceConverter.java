@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
+import org.apache.commons.lang.ObjectUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -92,7 +93,7 @@ public class ServiceConverter {
         service.setId(convertId(serviceType, clientId));
         service.setServiceCode(serviceType.getServiceCode());
         service.setFullServiceCode(FormatUtils.getServiceFullName(serviceType));
-        service.setSslAuth(serviceType.getSslAuthentication());
+        service.setSslAuth((boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true));
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
         service.setTitle(serviceType.getTitle());

@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.6  
+Version: 2.7  
 Doc. ID: UG-CP
 
 ## Version History
@@ -24,6 +24,7 @@ Doc. ID: UG-CP
 | 14.10.2018 | 2.4     | Update package repository address | Petteri Kivimäki |
 | 15.11.2018 | 2.5     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
 | 11.09.2019 | 2.6     | Remove Ubuntu 14.04 support | Jarkko Hyöty |
+| 24.06.2020 | 2.7    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -102,7 +103,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 |------|------------------------------------------|----------------------------|
 | 1.0  | Ubuntu 18.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
 | 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository.  |
-| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository’s key.       |
+| 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B) |
 | 1.3  | TCP 80                                   | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy). |
 | 1.4  | TCP 80                                   | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network). |
 | 1.5  |                                          | Configuration proxy’s public IP address, NAT address. |

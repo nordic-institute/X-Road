@@ -60,6 +60,7 @@ class InitController < ApplicationController
 
     unless SystemParameter.instance_identifier
       init_instance_identifier = required_validators.clone
+      init_instance_identifier << :identifier
     end
 
     unless SystemParameter.central_server_address

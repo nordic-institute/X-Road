@@ -1,6 +1,6 @@
 <template>
   <v-container
-    v-if="isAuthenticated && hasAlerts"
+    v-if="isAuthenticated && !needsInitialization && hasAlerts"
     fluid
     class="alerts-container"
   >
@@ -56,6 +56,7 @@ export default Vue.extend({
       'showRestoreInProgress',
       'restoreStartTime',
       'isAuthenticated',
+      'needsInitialization',
     ]),
   },
   methods: {

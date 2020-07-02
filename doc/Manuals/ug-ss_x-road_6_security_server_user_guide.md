@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.42
+Version: 2.43
 Doc. ID: UG-SS
 
 ---
@@ -75,7 +75,8 @@ Doc. ID: UG-SS
  01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
  03.06.2020 | 2.41    | Updated audit logging description | Janne Mattila
  05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
-
+ 25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details | Petteri Kivimäki
+ 
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -1832,7 +1833,7 @@ The configuration anchor (renamed as `configuration-anchor.xml`) file must be ma
 
 The operational monitoring daemon makes health data available over the JMXMP protocol. The Zabbix monitoring software can be configured to gather that data periodically, using its built in JMX interface type.
 
-By default, the operational monitoring daemon exposes health data over JMXMP on localhost, port 9011, with no authentication configured and TLS enabled (see `/etc/xroad/services/opmonitor.conf`). This configuration has to be customized for external tools such as Zabbix to be able to access the data. Please refer to the documentation at \[[JMX](#Ref_JMX)\] for instructions on configuring access to the JMX interface of the operational monitoring daemon.
+By default, the operational monitoring daemon JMXMP is disabled. JMXMP must be enabled for external tools such as Zabbix to be able to access the data. Please refer to the documentation at \[[JMX](#Ref_JMX)\] for instructions on configuring access to the JMX interface of the operational monitoring daemon.
 
 For Zabbix to be able to gather data over JMX, the Zabbix Java gateway must be installed. See \[[ZABBIX-GATEWAY](#Ref_ZABBIX-GATEWAY)\] for instructions.
 
@@ -1859,7 +1860,7 @@ Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD
 
 Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details.
 
-JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`.
+JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\].
 
 ### 16.3 Limiting environmental monitoring remote data set
 

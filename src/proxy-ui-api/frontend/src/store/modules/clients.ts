@@ -7,6 +7,8 @@ import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
 import i18n from './../../i18n';
 
+const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
+
 export interface ClientsState {
   clients: Client[];
   formattedClients: ExtendedClient[];
@@ -53,12 +55,11 @@ export const mutations: MutationTree<ClientsState> = {
     const realMembers: ExtendedClient[] = [];
     const members: ExtendedClient[] = [];
     const subsystems: ExtendedClient[] = [];
-    const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
     // Find members. Owner member (there is only one) and possible other member
     state.clients.forEach((element: Client) => {
       if (!element.subsystem_code) {
-        const clone = { ...element } as ExtendedClient;
+        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
         clone.visibleName = clone.member_name || UNKNOWN_NAME;
@@ -87,7 +88,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = { ...element } as Mutable<ExtendedClient>; // Type Mutable<T> removes readonly from fields
+        const clone = JSON.parse(JSON.stringify(element)) as Mutable<ExtendedClient>; // Type Mutable<T> removes readonly from fields
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
@@ -114,7 +115,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = { ...element } as ExtendedClient;
+        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
         clone.visibleName = clone.subsystem_code || UNKNOWN_NAME;
         clone.type = ClientTypes.SUBSYSTEM;
 

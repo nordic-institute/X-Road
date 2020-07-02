@@ -16,8 +16,6 @@ fi
 sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper devscripts
 sudo update-ca-certificates -f
 
-cd ~
-
 if ! command -v rvm &>/dev/null; then
     gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
     curl -L https://get.rvm.io | bash -s stable

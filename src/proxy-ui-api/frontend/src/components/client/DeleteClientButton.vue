@@ -23,7 +23,8 @@
       :loading="orphansLoading"
       title="client.action.removeOrphans.confirmTitle"
       text="client.action.removeOrphans.confirmText"
-      @cancel="confirmOrphans = false"
+      cancelButtonText="client.action.removeOrphans.cancelButtonText"
+      @cancel="notDeleteOrphans()"
       @accept="deleteOrphans()"
     />
   </div>
@@ -114,6 +115,11 @@ export default Vue.extend({
           this.orphansLoading = false;
           this.$router.replace({ name: RouteName.Clients });
         });
+    },
+
+    notDeleteOrphans(): void {
+      this.confirmOrphans = false;
+      this.$router.replace({ name: RouteName.Clients });
     },
   },
 });

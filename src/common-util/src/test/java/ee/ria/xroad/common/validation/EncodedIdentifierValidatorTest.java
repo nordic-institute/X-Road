@@ -23,23 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
 
 import java.util.EnumSet;
 
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.BACKSLASH;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.COLON;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.CONTROL_CHAR;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.PERCENT;
+import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.SEMICOLON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.BACKSLASH;
-import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.COLON;
-import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
-import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.NON_NORMALIZED_PATH;
-import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.PERCENT;
-import static org.niis.xroad.restapi.validator.EncodedIdentifierValidator.ValidationError.SEMICOLON;
 
 @Slf4j
 public class EncodedIdentifierValidatorTest {
@@ -60,23 +59,17 @@ public class EncodedIdentifierValidatorTest {
         assertTrue(encodedIdentifierValidator.getValidationErrors("列").isEmpty());
     }
 
-    @Test
-    public void nonNormalizedPaths() {
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("./"));
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("/../"));
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("/."));
-        assertEquals(EnumSet.of(NON_NORMALIZED_PATH, FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors("aaa/../bbb"));
-    }
-
-    char semiColon = ';';
-    char colon = ':';
-    char slash = '/';
-    char backslash = '\\';
-    char percent = '%';
+    final char semiColon = ';';
+    final char colon = ':';
+    final char slash = '/';
+    final char backslash = '\\';
+    final char percent = '%';
+    final char tab = '\t';
+    final char newline = '\n';
+    final char cr = '\r';
+    final char esc = '\u001b';
+    final char sos = '\u0098';
+    final char space = ' ';
 
     @Test
     public void semiOrFullColons() {
@@ -98,13 +91,29 @@ public class EncodedIdentifierValidatorTest {
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(percent)));
 
         assertEquals(EnumSet.of(FORWARDSLASH, BACKSLASH, PERCENT),
-                encodedIdentifierValidator.getValidationErrors("aaa/bbbb\\cccc%ddd"));
+                encodedIdentifierValidator.getValidationErrors("aaa/./bbbb\\cc/../cc%ddd"));
+    }
+
+    @Test
+    public void controlChars() {
+        assertEquals(EnumSet.of(CONTROL_CHAR),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(tab)));
+        assertEquals(EnumSet.of(CONTROL_CHAR),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(newline)));
+        assertEquals(EnumSet.of(CONTROL_CHAR),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(cr)));
+        assertEquals(EnumSet.of(CONTROL_CHAR),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(esc)));
+        assertEquals(EnumSet.of(CONTROL_CHAR),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(sos)));
+        assertEquals(EnumSet.noneOf(EncodedIdentifierValidator.ValidationError.class),
+                encodedIdentifierValidator.getValidationErrors(String.valueOf(space)));
     }
 
     @Test
     public void allErrors() {
         assertEquals(EnumSet.allOf(EncodedIdentifierValidator.ValidationError.class),
-                encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../ff"));
+                encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../f\tf"));
     }
 
 }

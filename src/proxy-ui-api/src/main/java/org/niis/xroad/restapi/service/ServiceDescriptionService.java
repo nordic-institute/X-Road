@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,6 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
@@ -356,7 +356,7 @@ public class ServiceDescriptionService {
         ServiceType serviceType = new ServiceType();
         serviceType.setServiceCode(serviceCode);
         serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
-        serviceType.setUrl(url);
+        serviceType.setUrl(result.getBaseUrl());
         serviceType.setServiceDescription(serviceDescriptionType);
 
         // Populate ServiceDescription
@@ -795,7 +795,7 @@ public class ServiceDescriptionService {
                 .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(),
                         true))
                 .collect(Collectors.toList());
-        parsedEndpoints.add(new EndpointType(serviceCode, "*", "**", true));
+        parsedEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
 
         // Change existing, manually added, endpoints to generated if they're found from parsedEndpoints
         serviceDescription.getClient().getEndpoint().forEach(ep -> {
@@ -811,10 +811,9 @@ public class ServiceDescriptionService {
 
 
         // Remove generated endpoints that are not found from the parsed endpoints
-        serviceDescription.getClient().getEndpoint().removeIf(ep -> {
-            return ep.isGenerated() && parsedEndpoints.stream()
-                    .noneMatch(parsedEp -> parsedEp.isEquivalent(ep));
-        });
+        serviceDescription.getClient().getEndpoint().removeIf(
+                ep -> ep.isGenerated() && parsedEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(ep))
+        );
 
         // Add parsed endpoints to endpoints list if it is not already there
         serviceDescription.getClient().getEndpoint().addAll(
@@ -946,6 +945,11 @@ public class ServiceDescriptionService {
                 serviceDescriptionType.getService(),
                 newServices);
 
+        // On refresh the service url should not change so they are reset to original values
+        if (serviceDescriptionType.getUrl().equals(url)) {
+            resetServiceUrls(serviceDescriptionType, newServices);
+        }
+
         wsdlAuditData.put(SERVICES_ADDED, serviceChanges.getAddedFullServiceCodes());
         wsdlAuditData.put(SERVICES_DELETED, serviceChanges.getRemovedFullServiceCodes());
 
@@ -993,6 +997,23 @@ public class ServiceDescriptionService {
         clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
+    }
+
+    /**
+     * Reset the urls of each service to match its value before it was refreshed.
+     */
+    private List<ServiceType> resetServiceUrls(ServiceDescriptionType serviceDescriptionType,
+            List<ServiceType> newServices) {
+        return newServices.stream()
+                .map(newService -> {
+                    String newServiceFullName = FormatUtils.getServiceFullName(newService);
+                    serviceDescriptionType.getService().forEach(s -> {
+                        if (newServiceFullName.equals(FormatUtils.getServiceFullName(s))) {
+                            newService.setUrl(s.getUrl());
+                        }
+                    });
+                    return newService;
+                }).collect(Collectors.toList());
     }
 
     /**

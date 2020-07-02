@@ -56,7 +56,7 @@ public final class ClientUtils {
                 log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
                 return false;
             }
-            if (clientId.equals(certificateInfo.getMemberId())
+            if (clientId.memberEquals(certificateInfo.getMemberId())
                     && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
                     && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {
                 return true;

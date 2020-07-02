@@ -70,6 +70,12 @@
   tags:
     - install-xroad-ss-packages
 
+- name: install opmonitoring
+  yum:
+    name: xroad-addon-opmonitoring
+    state: latest
+  when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
+      
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
 

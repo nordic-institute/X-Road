@@ -228,3 +228,8 @@ dependencyManagement {
         }
     }
 }
+
+test {
+    // Needed for the tests in DiagnosticsApiControllerTest class
+    systemProperty "user.timezone", "UTC"
+}

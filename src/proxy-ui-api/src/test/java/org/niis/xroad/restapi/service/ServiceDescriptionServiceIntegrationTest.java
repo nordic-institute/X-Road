@@ -98,6 +98,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public static final String HELLO_SERVICE = "helloService";
     public static final String BMI_SERVICE = "bodyMassIndex";
     public static final String SOAPSERVICEDESCRIPTION_URL = "https://soapservice.com/v1/Endpoint?wsdl";
+    public static final String OAS3_SERVICE_URL = "https://example.org/api";
 
     public static final int SS1_ENDPOINTS = 7;
 
@@ -293,6 +294,7 @@ public class ServiceDescriptionServiceIntegrationTest {
             assertEquals(Collections.singletonList("xroadGetRandom:aa"), expected.getErrorDeviation().getMetadata());
         }
     }
+
     @Test
     public void addWsdlServiceDescriptionWithIllegalServiceCodeAll() throws Exception {
         try {
@@ -306,6 +308,7 @@ public class ServiceDescriptionServiceIntegrationTest {
             assertEquals(invalidIdentifiers.size(), expected.getErrorDeviation().getMetadata().size());
         }
     }
+
     @Test
     public void addWsdlServiceDescriptionWithIllegalServiceVersion() throws Exception {
         try {
@@ -628,14 +631,16 @@ public class ServiceDescriptionServiceIntegrationTest {
             serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
                     "http://testurl.com", "getRandom");
             throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) { }
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        }
 
         // Test adding service with duplicate full service code
         try {
             serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
                     "http:://testurl.com", "getRandom.v1");
             throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) { }
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        }
 
     }
 
@@ -645,7 +650,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/valid.yaml");
-        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+        String urlString = url.toString();
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, urlString, "testcode", false);
 
         client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS + 3, client.getEndpoint().size());
@@ -653,6 +659,9 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .map(EndpointType::getServiceCode)
                 .filter(s -> "testcode".equals(s))
                 .collect(Collectors.toList()).size() == 3);
+
+        OpenApiParser.Result parsedOasResult = openApiParser.parse(urlString);
+        assertEquals(OAS3_SERVICE_URL, parsedOasResult.getBaseUrl());
     }
 
     @Test
