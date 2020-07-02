@@ -62,6 +62,15 @@ spec:
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
+        resources:
+          requests:
+            ephemeral-storage: "1Gi"
+          limits:
+            ephemeral-storage: "1Gi"
+          limits:
+            cpu: "1"
+          requests:
+            cpu: 500m
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"
