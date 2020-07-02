@@ -1,0 +1,28 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+    }
+    stages {
+        stage('Check if consumer and provider are deployed in kubernetes') {
+            steps {
+                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-consumer'
+                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-provider'
+            }
+        }
+        stage('Test SOAP inteface') {
+            steps {
+                sh '''
+                    CONSUMER_IP = kubectl get pods -l run=security-server-sidecar-consumer -o jsonpath={.items[].status.podIP}
+                    response = curl -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$CONSUMER_IP
+                        if(response == '200') {
+                            echo '========> Security server is successfully running'
+                            currentBuild.result = 'SUCCESS'
+                        } else {
+                            error("========> Security server returned " + response + " . Try again in 10s")
+                        }
+                    
+                '''
+            }
+        }
+    }
+}
