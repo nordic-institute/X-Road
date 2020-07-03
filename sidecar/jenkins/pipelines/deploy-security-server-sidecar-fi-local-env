@@ -28,7 +28,7 @@ pipeline {
         stage('Test') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    retry (5) {
+                    retry (8) {
                         sleep(time: 10, unit: 'SECONDS')
                         script {
                             def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
