@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: security-server-sidecar-consumer
+  name: security-server-sidecar-{{VERSION}}
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    run: security-server-sidecar-consumer
+    run: security-server-sidecar-{{VERSION}}
 spec:
   type: LoadBalancer
   selector:
-    run: security-server-sidecar-consumer
+    run: security-server-sidecar-{{VERSION}}
   ports:
   - port: 5500
     targetPort: 5500
@@ -23,16 +23,16 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: security-server-sidecar-consumer
+  name: security-server-sidecar-{{VERSION}}
 spec:
   selector:
     matchLabels:
-      run: security-server-sidecar-consumer
+      run: security-server-sidecar-{{VERSION}}
   replicas: 1
   template:
     metadata:
       labels:
-        run: security-server-sidecar-consumer
+        run: security-server-sidecar-{{VERSION}}
     spec:
       volumes:
       - name: sidecar-config-volume
