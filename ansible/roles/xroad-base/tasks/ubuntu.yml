@@ -1,4 +1,18 @@
 ---
+
+- name: disable automatic upgrades
+  copy:
+    src: 99override-auto
+    dest: /etc/apt/apt.conf.d/
+    owner: root
+    group: root
+  when: (disable_automatic_upgrades is defined) and (disable_automatic_upgrades)
+
+- name: Ensure that all packages are configured
+  shell: dpkg --configure -a
+  ignore_errors: yes
+
+
 - name: Update all packages to the latest version
   apt:
     force: yes
@@ -18,7 +32,18 @@
       - apt-utils
       - net-tools
       - locales
+      - aptitude
       - software-properties-common
+
+# ppa doesn't work with debian, only ubuntu
+- name: openjdk and nginx repositories
+  apt_repository:
+    repo: "ppa:{{ item }}"
+    update_cache: yes
+  with_items:
+    - openjdk-r/ppa
+    - nginx/stable
+  when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version < "16")
 
 - name: install bionic apt repo key
   apt_key:
@@ -26,10 +51,25 @@
     state: present
   when: package_source == "remote" and ansible_distribution_release == "bionic"
 
+- name: remove old repo config
+  file:
+    path: /etc/apt/sources.list.d/xroad.list
+    state: absent
+
+- name: xroad apt repository (trusty)
+  apt_repository:
+    repo: "deb {{ xroad_repo_baseurl }}/debian {{ xroad_repo_stability }} main"
+    state: present
+    filename: xroad
+    update_cache: yes
+  when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "14")
+
 - name: xroad bionic apt repository
   apt_repository:
     repo: "{{ubuntu_18_apt_repo}}"
     state: present
+    filename: xroad
+    update_cache: yes
   when: ansible_distribution_release == "bionic"
 
 - name: enable UTF-8 locales

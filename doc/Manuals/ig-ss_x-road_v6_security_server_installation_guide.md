@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.23  
+Version: 2.24  
 Doc. ID: IG-SS
 
 ---
@@ -48,7 +48,8 @@ Doc. ID: IG-SS
  29.04.2020 | 2.21    | Add instructions how to use remote database located in Microsoft Azure | Ilkka Seppälä
  12.06.2020 | 2.22    | Update reference data regarding JMX listening ports | Petteri Kivimäki
  24.06.2020 | 2.23    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
-    
+ 24.06.2020 | 2.24    | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
+     
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -144,8 +145,6 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.6  | TCP 4000                                  | User interface (local network)
  1.7  | TCP 80                                    | Information system access points (in the local network)<br> Connections from information systems
  &nbsp; | TCP 443                                 | Information system access points (in the local network)<br> Connections from information systems
- &nbsp; | TCP 9011                                | Port for inbound connections (from the local network to the security server)<br> Operational data monitoring daemon JMX listening port
- &nbsp; | TCP 9999                                | Port for inbound connections (from the local network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.8  |                                           | Security server internal IP address(es) and hostname(s)
  1.9  |                                           | Security server public IP address, NAT address
  1.10 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate

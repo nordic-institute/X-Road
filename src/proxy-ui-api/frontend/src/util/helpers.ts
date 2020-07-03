@@ -147,6 +147,11 @@ export function isEmpty(str: string | []): boolean {
   return !str || 0 === str.length;
 }
 
+// Convert a class with immutable fields to mutable
+export type Mutable<T> = {
+  -readonly [K in keyof T]: T[K];
+};
+
 // Helper to copy text to clipboard
 export function toClipboard(val: string): void {
   // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
