@@ -46,13 +46,11 @@ spec:
           mountPath: /etc/xroad/
         resources:
           requests:
-            ephemeral-storage: "1Gi"
-          limits:
+            cpu: 500m
             ephemeral-storage: "1Gi"
           limits:
             cpu: "1"
-          requests:
-            cpu: 500m
+            ephemeral-storage: "1Gi"
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"

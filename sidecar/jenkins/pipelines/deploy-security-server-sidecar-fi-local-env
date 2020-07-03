@@ -5,57 +5,51 @@ pipeline {
         string(description: "Sidecar version", name: "VERSION", defaultValue: "${params?.VERSION}")
     }
     environment {
-        DEPLOYMENT_PATH = 'sidecar/kubernetes/security-server-sidecar.yaml.template'
-        NUMBER_REPLICAS = '1'
         XROAD_DB_HOST = '127.0.0.1'
         XROAD_DB_PORT = '5432'
         XROAD_DB_PWD = 'secret1234'
         XROAD_LOG_LEVEL = 'OFF'
     }
     stages {
-        stage('Deploy Sidecar persistent and claim volumes in Kubernetes local env') {
+        stage('Deploy Sidecar image in AWS EKS environment') {
             steps {
-                sh 'microk8s.kubectl apply -f sidecar/kubernetes/security-server-sidecar-local-volume.yaml'
-            }
-        }
-        stage('Deploy Sidecar image in Kubernetes local env') {
-            steps {
-                sh 'cat "sidecar/kubernetes/security-server-sidecar.yaml" | sed "s/{{NUMBER_REPLICAS}}/$NUMBER_REPLICAS/g" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | microk8s.kubectl apply -f -'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'cat "sidecar/kubernetes/security-server-sidecar-consumer.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | kubectl apply -f -'
+                }
             }
         }
         stage('Rollout status') {
             steps {
-                sh 'microk8s.kubectl rollout status deployment.v1.apps/security-server-sidecar-${VERSION}'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${VERSION}'
+                }
             }
         }
         stage('Test') {
             steps {
-                retry (5) {
-                    sleep(time: 10, unit: 'SECONDS')
-                    script {
-                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(microk8s.kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
-                        if(response == '302') {
-                            echo '========> Security server is successfully running'
-                            currentBuild.result = 'SUCCESS'
-                        } else {
-                            error("========> Security server returned " + response + " . Try again in 10s")
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    retry (5) {
+                        sleep(time: 10, unit: 'SECONDS')
+                        script {
+                            def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
+                            if (response == '302') {
+                                echo '========> Security server is successfully running'
+                                currentBuild.result = 'SUCCESS'
+                            } else {
+                                error("========> Security server returned " + response + " . Try again in 10s")
+                            }
                         }
-
                     }
                 }
             }
         }
         stage ('Clean up') {
             steps {
-                sh 'microk8s.kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
-                sh 'microk8s.kubectl delete service/security-server-sidecar-${VERSION}'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
+                    sh 'kubectl delete service/security-server-sidecar-${VERSION}'
+                }
             }
-        }
-    }
-    post {
-        always {
-            sh 'microk8s.kubectl delete -f sidecar/kubernetes/security-server-sidecar-local-volume.yaml'
-            sh 'microk8s.kubectl get pods --all-namespaces | grep -E \'ImagePullBackOff|ErrImagePull|Evicted\' | awk \'{print $2 " --namespace=" $1}\' | xargs microk8s.kubectl delete pod'
         }
     }
 }
