@@ -115,7 +115,7 @@
                     @click="serviceClick(serviceDesc, service)"
                     data-test="service-link"
                   >
-                    {{ service.service_code }}
+                    {{ service.full_service_code }}
                   </td>
                   <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
