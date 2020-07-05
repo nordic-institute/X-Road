@@ -1,37 +1,55 @@
 pipeline {
     agent { label 'dev-test' }
+    parameters {
+        string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
+        string(description: "Sidecar version", name: "VERSION", defaultValue: "${params?.VERSION}")
+    }
+    environment {
+        XROAD_DB_HOST = '127.0.0.1'
+        XROAD_DB_PORT = '5432'
+        XROAD_DB_PWD = 'secret1234'
+        XROAD_LOG_LEVEL = 'OFF'
+    }
     stages {
-        stage('Deploy Sidecar provider image with Finnish settings in Kubernetes local env') {
+        stage('Deploy Security Server Sidecar provider image in AWS EKS environment') {
             steps {
-                sh 'microk8s.kubectl apply -f sidecar/kubernetes/security-server-sidecar-provider-fi.yaml'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'cat "sidecar/kubernetes/security-server-sidecar-provider.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | kubectl apply -f -'
+                }
             }
         }
         stage('Rollout status') {
             steps {
-                sh 'microk8s.kubectl rollout status deployment.v1.apps/security-server-sidecar-provider-fi'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${VERSION}'
+                }
             }
         }
         stage('Test') {
             steps {
-                retry (5) {
-                    sleep(time: 10, unit: 'SECONDS')
-                    script {
-                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(microk8s.kubectl get pods -l run=security-server-sidecar-provider-fi -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
-                        if(response == '302') {
-                            echo '========> Security server is successfully running'
-                            currentBuild.result = 'SUCCESS'
-                        } else {
-                            error("========> Security server returned " + response + " . Try again in 10s")
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    retry (8) {
+                        sleep(time: 10, unit: 'SECONDS')
+                        script {
+                            def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
+                            if (response == '302') {
+                                echo '========> Security server sidecar provider is successfully running'
+                                currentBuild.result = 'SUCCESS'
+                            } else {
+                                error("========> Security server sidecar provider returned " + response + " . Try again in 10s")
+                            }
                         }
-
                     }
                 }
             }
         }
-    }
-    post {
-        always {
-            sh 'microk8s.kubectl delete -f sidecar/kubernetes/security-server-sidecar-provider-fi.yaml'
+        stage ('Clean up') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
+                    sh 'kubectl delete service/security-server-sidecar-${VERSION}'
+                }
+            }
         }
     }
 }
