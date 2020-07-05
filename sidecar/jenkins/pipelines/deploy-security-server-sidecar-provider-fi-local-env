@@ -12,7 +12,7 @@ pipeline {
         VOLUME_CLAIM = 'sidecar-config-claim'
     }
     stages {
-        stage('Deploy Security Server Sidecar provider image in AWS EKS environment') {
+        stage('Deploy Security Server Sidecar image in AWS EKS environment') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'cat "sidecar/kubernetes/security-server-sidecar-provider.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | kubectl apply -f -'
@@ -34,10 +34,10 @@ pipeline {
                         script {
                             def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
                             if (response == '302') {
-                                echo '========> Security server sidecar provider is successfully running'
+                                echo '========> Security server sidecar {{LATEST_TAG}} is successfully running'
                                 currentBuild.result = 'SUCCESS'
                             } else {
-                                error("========> Security server sidecar provider returned " + response + " . Try again in 10s")
+                                error("========> Security server sidecar {{LATEST_TAG}} returned " + response + " . Try again in 10s")
                             }
                         }
                     }
