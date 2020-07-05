@@ -33,10 +33,10 @@ pipeline {
                         script {
                             def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
                             if (response == '302') {
-                                echo '========> Security server sidecar {{LATEST_TAG}} is successfully running'
+                                echo '========> Security server sidecar ${LATEST_TAG} is successfully running'
                                 currentBuild.result = 'SUCCESS'
                             } else {
-                                error("========> Security server sidecar {{LATEST_TAG}} returned " + response + " . Try again in 10s")
+                                error("========> Security server sidecar ${LATEST_TAG} returned " + response + " . Try again in 10s")
                             }
                         }
                     }
