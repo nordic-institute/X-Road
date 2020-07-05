@@ -37,7 +37,7 @@ spec:
       volumes:
       - name: sidecar-config-volume
         persistentVolumeClaim:
-          claimName: {{VOLUME_CLAIM}}
+          claimName: "{{VOLUME_CLAIM}}"
       containers:
       - name: security-server-sidecar-{{VERSION}}
         image: niis/xroad-security-server-sidecar:{{LATEST_TAG}}
