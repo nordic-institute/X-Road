@@ -216,7 +216,8 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getAllLocalClients() {
-        ClientId clientId = ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
+        ClientId clientId = ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV,
+                TestUtils.MEMBER_CODE_M1);
         when(globalConfFacade.getMemberName(clientId)).thenReturn(TestUtils.NAME_FOR + "Member");
         ResponseEntity<List<Client>> response = clientsApiController.findClients(null, null, null, null, null, true,
                 true, false, false);
