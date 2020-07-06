@@ -4,19 +4,21 @@ pipeline {
         string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
         string(description: "Sidecar version", name: "VERSION", defaultValue: "${params?.VERSION}")
     }
-    environment {
-        XROAD_DB_HOST = '127.0.0.1'
-        XROAD_DB_PORT = '5432'
-        XROAD_DB_PWD = 'secret1234'
-        XROAD_LOG_LEVEL = 'OFF'
-        VOLUME_CLAIM = 'sidecar-config-fi-claim'
-    }
     stages {
         stage('Deploy Security Server Sidecar image in AWS EKS environment') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh 'cat "sidecar/kubernetes/security-server-sidecar-provider.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" | sed "s/{{VERSION}}/$VERSION/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | kubectl apply -f -'
-                }
+                build job: 'kubernetes-publish-security-server-sidecar',
+                parameters: [
+                    string(name: 'DEPLOYMENT_PATH', value: 'sidecar/kubernetes/security-server-sidecar-provider.yaml.template'),
+                    string(name: 'CLUSTER_NAME', value: 'ss-sidecar-cluster'),
+                    string(name: 'XROAD_DB_HOST', value: '127.0.0.1'),
+                    string(name: 'XROAD_DB_PORT', value: '5432'),
+                    string(name: 'XROAD_DB_PWD', value: 'secret1234'),
+                    string(name: 'XROAD_LOG_LEVEL', value: 'OFF'),
+                    string(name: 'VOLUME_CLAIM', value: 'sidecar-config-fi-provider-claim'),
+                    string(name: 'LATEST_TAG', value: params.LATEST_TAG),
+                    string(name: 'VERSION', value: params.VERSION)
+                ]
             }
         }
         stage('Rollout status') {
