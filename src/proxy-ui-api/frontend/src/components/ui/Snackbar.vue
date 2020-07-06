@@ -216,7 +216,7 @@ export default Vue.extend({
 }
 
 .scrollable {
-  overflow-y: scroll;
+  overflow-y: auto;
   max-height: 300px;
 }
 
