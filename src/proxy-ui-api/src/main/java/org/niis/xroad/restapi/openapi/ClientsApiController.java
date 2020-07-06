@@ -88,6 +88,7 @@ import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.ClientUtils;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
@@ -210,6 +211,7 @@ public class ClientsApiController implements ClientsApi {
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 localValidSignCert, excludeLocal));
+        ClientUtils.sortClientsList(clients);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -463,6 +465,7 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
+        serviceClientHelper.sortServiceClientsList(serviceClients);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -616,6 +619,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             serviceClients = serviceClientConverter.
                     convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
+            serviceClientHelper.sortServiceClientsList(serviceClients);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

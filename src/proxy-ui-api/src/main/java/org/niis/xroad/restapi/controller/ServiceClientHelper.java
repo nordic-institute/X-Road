@@ -38,7 +38,9 @@ import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -103,5 +105,28 @@ public class ServiceClientHelper {
             ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
         return new BadRequestException(INVALID_SERVICE_CLIENT_ID + e.getServiceClientIdentifier(),
                 new ErrorDeviation(ERROR_INVALID_SERVICE_CLIENT_ID));
+    }
+
+    /**
+     * Sort a list of ServiceClient objects using member name / group description as the primary sort key, and client id
+     * as the secondary sort key.
+     * @param clients
+     */
+    public void sortServiceClientsList(List<ServiceClient> clients) {
+        clients.sort(new Comparator<ServiceClient>() {
+            @Override
+            public int compare(ServiceClient c1, ServiceClient c2) {
+                if (c1.getName() == null) {
+                    return 1;
+                } else if (c2.getName() == null) {
+                    return -1;
+                }
+                int compareTo = c1.getName().compareTo(c2.getName());
+                if (compareTo == 0) {
+                    return c1.getId().compareTo(c2.getId());
+                }
+                return compareTo;
+            }
+        });
     }
 }

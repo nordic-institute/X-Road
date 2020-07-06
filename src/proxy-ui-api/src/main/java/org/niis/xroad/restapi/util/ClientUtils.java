@@ -29,7 +29,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.Client;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -65,4 +67,26 @@ public final class ClientUtils {
         return false;
     }
 
+    /**
+     * Sort a list of Client objects using member name as the primary sort key, and client id
+     * as the secondary sort key.
+     * @param clients
+     */
+    public static void sortClientsList(List<Client> clients) {
+        clients.sort(new Comparator<Client>() {
+            @Override
+            public int compare(Client c1, Client c2) {
+                if (c1.getMemberName() == null) {
+                    return 1;
+                } else if (c2.getMemberName() == null) {
+                    return -1;
+                }
+                int compareTo = c1.getMemberName().compareTo(c2.getMemberName());
+                if (compareTo == 0) {
+                    return c1.getId().compareTo(c2.getId());
+                }
+                return compareTo;
+            }
+        });
+    }
 }

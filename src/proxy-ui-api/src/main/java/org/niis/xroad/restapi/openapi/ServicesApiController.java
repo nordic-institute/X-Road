@@ -152,6 +152,7 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
+        serviceClientHelper.sortServiceClientsList(serviceClients);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
