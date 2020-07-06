@@ -113,10 +113,10 @@ public class ServiceClientHelper {
      * @param clients
      */
     public void sortServiceClientsList(List<ServiceClient> clients) {
-        clients.sort(new Comparator<ServiceClient>() {
-            @Override
-            public int compare(ServiceClient c1, ServiceClient c2) {
-                if (c1.getName() == null) {
+        clients.sort((c1, c2) -> {
+                if (c1.getName() == null && c2.getName() == null) {
+                    return c1.getId().compareTo(c2.getId());
+                } else if (c1.getName() == null) {
                     return 1;
                 } else if (c2.getName() == null) {
                     return -1;
@@ -127,6 +127,6 @@ public class ServiceClientHelper {
                 }
                 return compareTo;
             }
-        });
+        );
     }
 }

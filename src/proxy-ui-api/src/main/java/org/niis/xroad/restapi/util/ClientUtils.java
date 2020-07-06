@@ -73,10 +73,10 @@ public final class ClientUtils {
      * @param clients
      */
     public static void sortClientsList(List<Client> clients) {
-        clients.sort(new Comparator<Client>() {
-            @Override
-            public int compare(Client c1, Client c2) {
-                if (c1.getMemberName() == null) {
+        clients.sort((c1, c2) -> {
+                if (c1.getMemberName() == null && c2.getMemberName() == null) {
+                    return c1.getId().compareTo(c2.getId());
+                } else if (c1.getMemberName() == null) {
                     return 1;
                 } else if (c2.getMemberName() == null) {
                     return -1;
@@ -87,6 +87,6 @@ public final class ClientUtils {
                 }
                 return compareTo;
             }
-        });
+        );
     }
 }
