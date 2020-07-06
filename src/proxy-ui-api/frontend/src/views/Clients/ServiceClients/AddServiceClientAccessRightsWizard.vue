@@ -53,7 +53,10 @@ import {
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { ServiceCandidate } from '@/ui-types';
-import {compareByServiceCode, sortServicesAscendingByFullServiceCode} from '@/util/sorting';
+import {
+  compareByServiceCode,
+  sortServicesAscendingByFullServiceCode,
+} from '@/util/sorting';
 
 export default Vue.extend({
   props: {
@@ -80,7 +83,7 @@ export default Vue.extend({
     candidateSelection(candidate: ServiceClient): void {
       this.serviceClientCandidateSelection = candidate;
     },
-    fetchData: function (): void {
+    fetchData: function(): void {
       api
         .get(`/clients/${this.id}/service-clients`, {})
         .then((response: any): void => (this.serviceClients = response.data))
@@ -93,13 +96,10 @@ export default Vue.extend({
 
           // Parse all services for the current client and map them to ServiceCandidates (manually added type for
           // objects that are used to add and list services that can be granted access rights to).
-          this.serviceCandidates = serviceDescriptions.reduce(
-            (curr: Service[], next: ServiceDescription) =>
-              curr.concat(...next.services),
-            [],
-          )
-          .sort(compareByServiceCode)
-          .map((service: Service) => ({
+          this.serviceCandidates = serviceDescriptions
+            .flatMap((serviceDescription) => serviceDescription.services)
+            .sort(compareByServiceCode)
+            .map((service: Service) => ({
               service_code: service.service_code,
               service_title: service.title,
               id: service.id,

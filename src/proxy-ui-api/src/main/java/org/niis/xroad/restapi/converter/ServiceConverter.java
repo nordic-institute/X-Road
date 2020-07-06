@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,7 @@ public class ServiceConverter {
     }
 
     /**
-     * Converts a group of ServiceTypes to a list of Services.
+     * Converts a group of ServiceTypes to a list of Services and sorts the list alphabetically by fullServiceCode.
      * This expects that serviceType.serviceDescription.client.endpoints have been fetched
      * @param serviceTypes
      * @return
@@ -77,6 +78,7 @@ public class ServiceConverter {
     public List<Service> convertServices(Iterable<ServiceType> serviceTypes, ClientId clientId) {
         return Streams.stream(serviceTypes)
                 .map(serviceType -> convert(serviceType, clientId))
+                .sorted(Comparator.comparing(Service::getFullServiceCode))
                 .collect(Collectors.toList());
     }
 
