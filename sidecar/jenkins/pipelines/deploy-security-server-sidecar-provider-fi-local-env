@@ -9,7 +9,7 @@ pipeline {
         XROAD_DB_PORT = '5432'
         XROAD_DB_PWD = 'secret1234'
         XROAD_LOG_LEVEL = 'OFF'
-        VOLUME_CLAIM = 'sidecar-config-claim'
+        VOLUME_CLAIM = 'sidecar-config-fi-claim'
     }
     stages {
         stage('Deploy Security Server Sidecar image in AWS EKS environment') {
