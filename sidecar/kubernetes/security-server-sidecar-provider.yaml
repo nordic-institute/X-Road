@@ -41,6 +41,7 @@ spec:
       containers:
       - name: security-server-sidecar
         image: niis/xroad-security-server-sidecar:latest-provider
+        imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
