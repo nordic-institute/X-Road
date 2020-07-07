@@ -31,7 +31,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.Client;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
