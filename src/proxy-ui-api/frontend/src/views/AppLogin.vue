@@ -176,6 +176,7 @@ export default (Vue as VueConstructor<
                   'showErrorMessage',
                   'initialConfiguration.noPermission',
                 );
+                this.$store.dispatch('logout');
                 return;
               }
               this.$router.replace({ name: RouteName.InitialConfiguration });
