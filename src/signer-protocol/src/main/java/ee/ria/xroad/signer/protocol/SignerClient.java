@@ -131,9 +131,14 @@ public final class SignerClient {
 
     static class SignerWatcher extends UntypedAbstractActor {
 
-        // Implementation note. The requestProcessor future will be completed by the internally used
-        // SignerWatcher actor, and replaced with a new one in case the Signer is restarted. The purpose is to avoid
-        // long request timeouts when the signer is not (yet) available, and to detect restarts.
+        /*
+         * Implementation notes.
+         *
+         * The requestProcessor future will be completed by the internally used
+         * SignerWatcher actor, and replaced with a new one in case the Signer is restarted. The purpose is to avoid
+         * long request timeouts when the signer is not (yet) available, and to detect restarts.
+         *
+         */
         private static volatile CompletableFuture<ActorRef> requestProcessor = null;
         private static final Duration WATCH_DELAY = Duration.ofSeconds(1);
         private static final int REF_GET_TIMEOUT = 7;
@@ -146,7 +151,7 @@ public final class SignerClient {
             try {
                 return processor.get(REF_GET_TIMEOUT, TimeUnit.SECONDS);
             } catch (ExecutionException | TimeoutException | CancellationException e) {
-                throw new CodedException(X_INTERNAL_ERROR, e, "Signer is not available");
+                throw new CodedException(X_INTERNAL_ERROR, e, "Signer is unreachable");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new CodedException(X_INTERNAL_ERROR, e, "Request to signer was interrupted");
@@ -158,6 +163,13 @@ public final class SignerClient {
                 requestProcessor = new CompletableFuture<>();
                 system.actorOf(Props.create(SignerWatcher.class, signerIpAddress));
             }
+        }
+
+        private static synchronized void resetRequestProcessor(CompletableFuture<ActorRef> processor) {
+            if (requestProcessor != null) {
+                requestProcessor.cancel(true);
+            }
+            requestProcessor = processor;
         }
 
         private long correlationId = 0;
@@ -183,8 +195,7 @@ public final class SignerClient {
             if (signerRef != null) {
                 context().unwatch(signerRef);
             }
-            requestProcessor.cancel(true);
-            requestProcessor = null;
+            resetRequestProcessor(null);
         }
 
         @Override
@@ -210,13 +221,12 @@ public final class SignerClient {
         }
 
         private void detachSigner(final Terminated message) {
-            if (signerRef != null) {
+            if (signerRef != null && signerRef.equals(message.getActor())) {
                 log.warn("Signer detached");
                 context().unwatch(signerRef);
                 signerRef = null;
+                resetRequestProcessor(new CompletableFuture<>());
             }
-            requestProcessor.cancel(true);
-            requestProcessor = new CompletableFuture<>();
         }
 
         private void attachSigner(final ActorIdentity message) {
@@ -228,14 +238,12 @@ public final class SignerClient {
                 if (signerRef != null) {
                     context().watch(signerRef);
                     if (!requestProcessor.complete(signerRef)) {
-                        requestProcessor.cancel(true);
-                        requestProcessor = CompletableFuture.completedFuture(signerRef);
+                        resetRequestProcessor(CompletableFuture.completedFuture(signerRef));
                     }
                     log.info("Signer attached");
                 } else {
-                    requestProcessor.cancel(true);
-                    requestProcessor = new CompletableFuture<>();
-                    log.debug("Signer not available");
+                    log.debug("Signer is unreachable");
+                    resetRequestProcessor(new CompletableFuture<>());
                 }
             }
         }

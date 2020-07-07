@@ -45,11 +45,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 //@Configuration
-public class StartStopListener implements ApplicationListener {
+public class StartStopListener implements ApplicationListener<ApplicationEvent> {
 
-    private static UIServices uiApiActorSystem;
+    private UIServices uiApiActorSystem;
 
-    private void stop() throws Exception {
+    private synchronized void stop() throws Exception {
         log.debug("stop");
 
         if (uiApiActorSystem != null) {
@@ -66,7 +66,7 @@ public class StartStopListener implements ApplicationListener {
      * Maybe be called multiple times since ContextRefreshedEvent can happen multiple times
      * @throws Exception
      */
-    private void start() throws Exception {
+    private synchronized void start() {
         log.debug("start");
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
