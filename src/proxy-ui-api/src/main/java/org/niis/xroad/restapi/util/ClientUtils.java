@@ -80,7 +80,7 @@ public final class ClientUtils {
                 } else if (c2.getMemberName() == null) {
                     return -1;
                 }
-                int compareTo = c1.getMemberName().compareTo(c2.getMemberName());
+                int compareTo = c1.getMemberName().toLowerCase().compareTo(c2.getMemberName().toLowerCase());
                 if (compareTo == 0) {
                     return c1.getId().compareTo(c2.getId());
                 }

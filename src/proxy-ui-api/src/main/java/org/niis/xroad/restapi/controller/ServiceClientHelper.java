@@ -120,7 +120,7 @@ public class ServiceClientHelper {
                 } else if (c2.getName() == null) {
                     return -1;
                 }
-                int compareTo = c1.getName().compareTo(c2.getName());
+                int compareTo = c1.getName().toLowerCase().compareTo(c2.getName().toLowerCase());
                 if (compareTo == 0) {
                     return c1.getId().compareTo(c2.getId());
                 }
