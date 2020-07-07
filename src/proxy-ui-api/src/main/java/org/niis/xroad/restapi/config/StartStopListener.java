@@ -54,6 +54,7 @@ public class StartStopListener implements ApplicationListener {
 
         if (uiApiActorSystem != null) {
             uiApiActorSystem.stop();
+            uiApiActorSystem = null;
         }
     }
 
@@ -69,9 +70,8 @@ public class StartStopListener implements ApplicationListener {
         log.debug("start");
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
+            SignerClient.init(uiApiActorSystem.getActorSystem(), signerIp);
         }
-
-        SignerClient.init(uiApiActorSystem.getActorSystem(), signerIp);
     }
 
 
