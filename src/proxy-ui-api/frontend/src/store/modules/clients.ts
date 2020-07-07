@@ -88,7 +88,9 @@ export const mutations: MutationTree<ClientsState> = {
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = JSON.parse(JSON.stringify(element)) as Mutable<ExtendedClient>; // Type Mutable<T> removes readonly from fields
+        const clone = JSON.parse(JSON.stringify(element)) as Mutable<
+          ExtendedClient
+        >; // Type Mutable<T> removes readonly from fields
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
