@@ -57,7 +57,7 @@ public class FoAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
                 // Server code
                 new EnumLocalizedFieldDescriptionImpl(
                         "CN",
-                        DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
+                        DnFieldLabelLocalizationKey.COMMON_NAME,
                         params.getServerId().toShortString()
                 ).setReadOnly(true),
         });
