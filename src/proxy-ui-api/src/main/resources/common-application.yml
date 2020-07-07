@@ -38,6 +38,14 @@ server:
 #  error:
 #    include-stacktrace: always
 #    include-exception: true
+    accesslog:
+      enabled: true
+      directory: /var/log/xroad
+      prefix: proxy_ui_api_access
+      suffix: .log
+      pattern: "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{X-Forwarded-For}i\""
+      renameOnRotate: true
+      rotatable: true
 
 request:
   sizelimit:
