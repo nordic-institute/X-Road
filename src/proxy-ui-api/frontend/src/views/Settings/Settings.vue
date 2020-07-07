@@ -31,14 +31,14 @@ export default Vue.extend({
   },
   computed: {
     tabs(): Tab[] {
-      const allTabs = [
+      const allTabs: Tab[] = [
         {
           key: 'system',
           name: 'tab.settings.systemParameters',
           to: {
             name: RouteName.SystemParameters,
           },
-          permission: Permissions.VIEW_SYS_PARAMS,
+          permissions: [Permissions.VIEW_SYS_PARAMS],
         },
         {
           key: 'backup',
@@ -46,7 +46,7 @@ export default Vue.extend({
           to: {
             name: RouteName.BackupAndRestore,
           },
-          permission: Permissions.BACKUP_CONFIGURATION,
+          permissions: [Permissions.BACKUP_CONFIGURATION],
         },
       ];
       return this.$store.getters.getAllowedTabs(allTabs);

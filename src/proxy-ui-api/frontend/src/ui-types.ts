@@ -14,7 +14,7 @@ export interface Tab {
       id?: string;
     };
   };
-  permission?: string;
+  permissions?: string[];
 }
 
 // Extension for Client
