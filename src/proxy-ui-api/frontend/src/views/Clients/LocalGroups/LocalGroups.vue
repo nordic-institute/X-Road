@@ -122,10 +122,10 @@ export default Vue.extend({
         .get(`/clients/${id}/local-groups`)
         .then((res) => {
           this.groups = res.data.sort((a: LocalGroup, b: LocalGroup) => {
-            if (a.code < b.code) {
+            if (a.code.toLowerCase() < b.code.toLowerCase()) {
               return -1;
             }
-            if (a.code > b.code) {
+            if (a.code.toLowerCase() > b.code.toLowerCase()) {
               return 1;
             }
 
