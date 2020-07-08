@@ -74,15 +74,15 @@ public final class ClientUtils {
     public static void sortClientsList(List<Client> clients) {
         clients.sort((c1, c2) -> {
                 if (c1.getMemberName() == null && c2.getMemberName() == null) {
-                    return c1.getId().compareTo(c2.getId());
+                    return c1.getId().compareToIgnoreCase(c2.getId());
                 } else if (c1.getMemberName() == null) {
                     return 1;
                 } else if (c2.getMemberName() == null) {
                     return -1;
                 }
-                int compareTo = c1.getMemberName().toLowerCase().compareTo(c2.getMemberName().toLowerCase());
+                int compareTo = c1.getMemberName().compareToIgnoreCase(c2.getMemberName());
                 if (compareTo == 0) {
-                    return c1.getId().compareTo(c2.getId());
+                    return c1.getId().compareToIgnoreCase(c2.getId());
                 }
                 return compareTo;
             }

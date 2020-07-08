@@ -114,15 +114,15 @@ public class ServiceClientHelper {
     public void sortServiceClientsList(List<ServiceClient> clients) {
         clients.sort((c1, c2) -> {
                 if (c1.getName() == null && c2.getName() == null) {
-                    return c1.getId().compareTo(c2.getId());
+                    return c1.getId().compareToIgnoreCase(c2.getId());
                 } else if (c1.getName() == null) {
                     return 1;
                 } else if (c2.getName() == null) {
                     return -1;
                 }
-                int compareTo = c1.getName().toLowerCase().compareTo(c2.getName().toLowerCase());
+                int compareTo = c1.getName().compareToIgnoreCase(c2.getName());
                 if (compareTo == 0) {
-                    return c1.getId().compareTo(c2.getId());
+                    return c1.getId().compareToIgnoreCase(c2.getId());
                 }
                 return compareTo;
             }
