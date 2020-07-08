@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.wsdl;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -57,7 +56,9 @@ import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.SecureRandom;
@@ -111,8 +112,6 @@ public final class WsdlParser {
             return internalParseWSDL(wsdlUrl);
         } catch (PrivateWsdlNotFoundException e) {
             throw new WsdlNotFoundException(e);
-        } catch (WsdlParseException e) {
-            throw e;
         } catch (Exception e) {
             throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
@@ -280,16 +279,12 @@ public final class WsdlParser {
 
     private static final class TrustAllSslCertsWsdlLocator implements WSDLLocator {
 
-        private static final int ERROR_RESPONSE_CODE = 500;
-
         private final String wsdlUrl;
 
         TrustAllSslCertsWsdlLocator(String wsdlUrl) {
             this.wsdlUrl = wsdlUrl;
         }
 
-        // cannot change the method signature when overriding so we need to sneakily throw the WsdlParseException
-        @SneakyThrows(WsdlParseException.class)
         @Override
         public InputSource getBaseInputSource() {
             try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
@@ -305,19 +300,21 @@ public final class WsdlParser {
                     while ((n = in.read(buf)) != -1) {
                         count += n;
                         if (count > MAX_DESCRIPTION_SIZE) {
-                            throw new WsdlParseException(
-                                    "Error reading WSDL: Size exceeds " + MAX_DESCRIPTION_SIZE + " bytes.");
+                            throw new UncheckedIOException("Error reading WSDL: Size exceeds "
+                                    + MAX_DESCRIPTION_SIZE + " bytes.", new IOException());
                         }
                         byteArrayOutputStream.write(buf, 0, n);
                     }
                 }
                 byte[] response = byteArrayOutputStream.toByteArray();
-                log.trace("Received WSDL response: {}", new String(response));
+                if (log.isTraceEnabled()) {
+                    log.trace("Received WSDL response: {}", new String(response));
+                }
 
                 return new InputSource(new ByteArrayInputStream(response));
-            } catch (WsdlParseException e) {
+            } catch (UncheckedIOException e) {
                 throw e;
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 throw new PrivateWsdlNotFoundException(t);
             }
         }
