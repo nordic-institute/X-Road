@@ -54,7 +54,7 @@ public class FoAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
                         params.getServerId().getXRoadInstance()
                 ).setReadOnly(true),
 
-                // Server code
+                // Common name
                 new EnumLocalizedFieldDescriptionImpl(
                         "CN",
                         DnFieldLabelLocalizationKey.COMMON_NAME,
