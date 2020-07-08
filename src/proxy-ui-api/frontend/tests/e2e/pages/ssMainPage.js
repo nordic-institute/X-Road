@@ -52,6 +52,14 @@ var clientTabCommands = {
   openTestService: function() {
     this.click('@testServiceListItem');
     return this;
+  },
+  openClient: function(name) {
+    this.api.click(this.selector + '//tbody//span[contains(text(),"'+name+'")]');
+    return this;
+  },
+  verifyRowName: function(row, name) {
+    this.api.waitForElementVisible('(//tbody/tr)['+row+']//span[contains(text(),"'+name+'")]');
+    return this;
   }
 };
 

@@ -18,7 +18,7 @@ module.exports = {
     // Open TestGov Internal Servers
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
@@ -61,7 +61,7 @@ module.exports = {
     // Open TestGov Internal Servers
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
@@ -143,7 +143,7 @@ module.exports = {
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
@@ -190,7 +190,7 @@ module.exports = {
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
@@ -250,7 +250,7 @@ module.exports = {
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
@@ -313,7 +313,7 @@ module.exports = {
     // Open TestGov Internal Servers and local group details view
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
