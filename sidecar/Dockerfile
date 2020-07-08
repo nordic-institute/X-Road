@@ -41,6 +41,7 @@ RUN pg_ctlcluster 10 main start \
 && userdel -r xrd \
 && rm -f /var/run/nginx.pid \
 && rm -f /etc/xroad/db.properties \
+&& rm -f /etc/xroad.properties \
 && rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
 && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
 
