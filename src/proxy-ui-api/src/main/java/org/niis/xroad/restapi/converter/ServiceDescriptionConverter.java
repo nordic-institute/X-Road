@@ -61,10 +61,9 @@ public class ServiceDescriptionConverter {
      */
     public List<ServiceDescription> convert(Iterable<ServiceDescriptionType> serviceDescriptionTypes) {
         return Streams.stream(serviceDescriptionTypes)
-                       .map(this::convert)
-                       .collect(Collectors.toList());
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
-
 
     /**
      * Convert a ServiceDescriptionType into ServiceDescription.
