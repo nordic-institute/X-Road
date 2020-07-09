@@ -166,7 +166,7 @@ public final class SignerClient {
         }
 
         private static synchronized void resetRequestProcessor(CompletableFuture<ActorRef> processor) {
-            if (requestProcessor != null) {
+            if (requestProcessor != null && !requestProcessor.isDone()) {
                 requestProcessor.cancel(true);
             }
             requestProcessor = processor;
@@ -243,7 +243,9 @@ public final class SignerClient {
                     log.info("Signer attached");
                 } else {
                     log.debug("Signer is unreachable");
-                    resetRequestProcessor(new CompletableFuture<>());
+                    if (requestProcessor.isDone()) {
+                        resetRequestProcessor(new CompletableFuture<>());
+                    }
                 }
             }
         }
