@@ -66,8 +66,8 @@ public class FoCertificateProfileInfoProviderTest {
                 "Must return instance of FoSignCertificateProfileInfo",
                 provider.getSignCertProfile(
                         new SignCertificateProfileInfoParameters(
-                                SecurityServerId.create("XX", "foo", "bar", "server"),
-                                ClientId.create("XX", "foo", "bar"), "foo"
+                                SecurityServerId.create("XX", "CLASS", "OWNER", "server"),
+                                ClientId.create("XX", "CLASS", "CLIENT"), "client"
                         )
                 ) instanceof FoSignCertificateProfileInfo
         );
@@ -79,17 +79,17 @@ public class FoCertificateProfileInfoProviderTest {
     @Test
     public void signProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FO")
-                .setReadOnly(true),
-            new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O, "XX")
-                .setReadOnly(true),
-            new EnumLocalizedFieldDescriptionImpl("OU", DnFieldLabelLocalizationKey.MEMBER_CLASS_OU, "foo")
-                .setReadOnly(true),
-            new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "bar")
-                .setReadOnly(true),
-            new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                    "XX/foo/bar/server")
-                .setReadOnly(false)
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FO")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O, "XX")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("OU", DnFieldLabelLocalizationKey.MEMBER_CLASS_OU, "COM")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "CLIENT")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        "YY/ORG/OWNER/server")
+                        .setReadOnly(false)
         };
 
         assertTrue(
@@ -248,18 +248,16 @@ public class FoCertificateProfileInfoProviderTest {
     private FoSignCertificateProfileInfo getSignProfile() {
         return new FoSignCertificateProfileInfo(
                 new SignCertificateProfileInfoParameters(
-                        SecurityServerId.create("XX", "foo", "bar", "server"),
-                        ClientId.create("XX", "Foo", "Bar"),
-                        "foo"
-                )
-        );
+                        SecurityServerId.create("YY", "ORG", "OWNER", "server"),
+                        ClientId.create("XX", "COM", "CLIENT"), "client"
+                ));
     }
 
     private FoAuthCertificateProfileInfo getAuthProfile() {
         return new FoAuthCertificateProfileInfo(
                 new AuthCertificateProfileInfoParameters(
                         SecurityServerId.create("XX", "foo", "bar", "server"),
-                        "foo"
+                        "owner"
                 )
         );
     }

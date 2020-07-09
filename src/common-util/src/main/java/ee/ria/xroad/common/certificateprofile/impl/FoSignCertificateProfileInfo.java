@@ -58,21 +58,21 @@ public class FoSignCertificateProfileInfo extends AbstractCertificateProfileInfo
                 new EnumLocalizedFieldDescriptionImpl(
                         "O",
                         DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O,
-                        params.getServerId().getXRoadInstance()
+                        params.getClientId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Member Class Identifier
                 new EnumLocalizedFieldDescriptionImpl(
                         "OU",
                         DnFieldLabelLocalizationKey.MEMBER_CLASS_OU,
-                        params.getServerId().getMemberClass()
+                        params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
                 new EnumLocalizedFieldDescriptionImpl(
                         "CN",
                         DnFieldLabelLocalizationKey.MEMBER_CODE,
-                        params.getServerId().getMemberCode()
+                        params.getClientId().getMemberCode()
                 ).setReadOnly(true),
 
                 // Serialnumber
