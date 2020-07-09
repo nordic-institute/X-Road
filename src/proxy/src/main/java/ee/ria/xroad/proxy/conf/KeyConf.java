@@ -49,9 +49,6 @@ public final class KeyConf {
 
     private static final Logger LOG = LoggerFactory.getLogger(KeyConf.class);
 
-    private static final ThreadLocal<KeyConfProvider> THREAD_LOCAL =
-            new InheritableThreadLocal<>();
-
     private static volatile KeyConfProvider instance = null;
 
     // Holds the potential initialization error that might occur when
@@ -66,34 +63,19 @@ public final class KeyConf {
      * Returns the singleton instance of the configuration.
      */
     static KeyConfProvider getInstance() {
-        if (THREAD_LOCAL.get() != null) {
-            return THREAD_LOCAL.get();
-        }
-
         if (initializationError != null) {
             throw initializationError;
         }
 
         if (instance == null) {
-            initInstance();
+            synchronized (KeyConfProvider.class) {
+                if (instance == null) {
+                    initInstance();
+                }
+            }
         }
 
         return instance;
-    }
-
-    /**
-     * Initializes current instance of configuration for the calling thread.
-     * Example usage: calling this method in RequestProcessor to have
-     * a copy of current configuration for the current message.
-     */
-    public static void initForCurrentThread() {
-        LOG.trace("initForCurrentThread()");
-
-        if (instance == null) {
-            initInstance();
-        }
-
-        THREAD_LOCAL.set(instance);
     }
 
     /**

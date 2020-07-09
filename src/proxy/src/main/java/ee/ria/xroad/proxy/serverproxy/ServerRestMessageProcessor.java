@@ -297,13 +297,17 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     private void checkRequest() {
-        if (requestMessage.getRest() == null) {
+        final RestRequest rest = requestMessage.getRest();
+        if (rest == null) {
             throw new CodedException(X_MISSING_REST, "Request does not have REST message");
         }
-
         if (requestMessage.getSignature() == null) {
             throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
+
+        checkIdentifier(rest.getClientId());
+        checkIdentifier(rest.getServiceId());
+        checkIdentifier(rest.getTargetSecurityServer());
     }
 
     private void verifyClientStatus() {

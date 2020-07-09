@@ -74,15 +74,6 @@ class QueryRequestProcessor {
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 
-        cacheConfigurationForCurrentThread();
-    }
-
-    /**
-     * Saves the current configurations in thread local storage, to protect
-     * against configuration reloads during message processing.
-     */
-    private void cacheConfigurationForCurrentThread() {
-        GlobalConf.initForCurrentThread();
         GlobalConf.verifyValidity();
     }
 

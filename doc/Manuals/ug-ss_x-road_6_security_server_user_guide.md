@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.42
+Version: 2.44
 Doc. ID: UG-SS
 
 ---
@@ -75,7 +75,9 @@ Doc. ID: UG-SS
  01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
  03.06.2020 | 2.41    | Updated audit logging description | Janne Mattila
  05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
-
+ 25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details | Petteri Kivimäki
+ 08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
+  
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -1082,7 +1084,7 @@ It is possible to define access rights on two levels for REST services:
 -   REST service level
 -   endpoint level
 
-In general, a REST service usually has multiple endpoints. When access rights are defined on the service level, they apply to all the endpoints of the REST service. Instead, defining access rights on the endpoint level gives access to specific endpoint(s) only.
+In general, a REST service usually has multiple endpoints. When access rights are defined on the service level, they apply to all the endpoints of the REST service. Instead, defining access rights on the endpoint level gives access to specific endpoint(s) only. The service level access rights support both service-based and service client-based access rights management. The endpoint level access rights support only service based access rights management.
 
 
 ### 7.1 Changing the Access Rights of a Service
@@ -1107,7 +1109,7 @@ To change the access rights to a service, follow these steps.
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-The service client view (**Configuration** -&gt; **Security Server Clients** -&gt; **Service Clients**) displays all the access rights subjects of the services mediated by this security server client. In other words, if an X-Road subsystem or group has been granted the access right to a service of this client, then the subject is shown in this view.
+The service client view (**Configuration** -&gt; **Security Server Clients** -&gt; **Service Clients**) displays all the service level access rights subjects of the services mediated by this security server client. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
 
 To add a service client, follow these steps.
 
@@ -1137,6 +1139,8 @@ To change the service client's access rights, follow these steps.
 -   To remove access rights to a service from the service client, select one or more services from the table and click **Remove Selected**, then click **Confirm**.
 
 -   To remove all access rights from the service client, click **Remove All** and then click **Confirm**.
+
+-   Removing service level access rights from the service client also removes all REST API endpoint level access rights to the endpoints of the service. In other words, removing access rights from the service client removes all access rights to a service and its endpoints.
 
 -   To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject (already granted services are displayed in gray) and click **Add Selected to ACL**. To add all services found by the search, click **Add All to ACL**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
@@ -1832,7 +1836,7 @@ The configuration anchor (renamed as `configuration-anchor.xml`) file must be ma
 
 The operational monitoring daemon makes health data available over the JMXMP protocol. The Zabbix monitoring software can be configured to gather that data periodically, using its built in JMX interface type.
 
-By default, the operational monitoring daemon exposes health data over JMXMP on localhost, port 9011, with no authentication configured and TLS enabled (see `/etc/xroad/services/opmonitor.conf`). This configuration has to be customized for external tools such as Zabbix to be able to access the data. Please refer to the documentation at \[[JMX](#Ref_JMX)\] for instructions on configuring access to the JMX interface of the operational monitoring daemon.
+By default, the operational monitoring daemon JMXMP is disabled. JMXMP must be enabled for external tools such as Zabbix to be able to access the data. Please refer to the documentation at \[[JMX](#Ref_JMX)\] for instructions on configuring access to the JMX interface of the operational monitoring daemon.
 
 For Zabbix to be able to gather data over JMX, the Zabbix Java gateway must be installed. See \[[ZABBIX-GATEWAY](#Ref_ZABBIX-GATEWAY)\] for instructions.
 
@@ -1859,7 +1863,7 @@ Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD
 
 Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details.
 
-JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`.
+JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\].
 
 ### 16.3 Limiting environmental monitoring remote data set
 
