@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.14  
+Version: 2.15  
 Doc. ID: IG-CS
 
 ---
@@ -32,7 +32,7 @@ Doc. ID: IG-CS
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
 | 26.11.2019 | 2.13    | Add instructions for using remote database | Ilkka Seppälä
 | 29.04.2020 | 2.14    | Add instructions how to use remote database located in Microsoft Azure | Ilkka Seppälä
-
+| 24.06.2020 | 2.15    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -111,7 +111,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 |----------------------|--------------------------------------------------|----------------------------------------------------|
 | 1.0  | Ubuntu 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
 | 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
-| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository key |
+| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B) |
 | 1.3  |  | Account name in the user interface |
 | 1.4  | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
 | 1.4.1| TCP 4002 management services | Port for inbound connections from the management security server |

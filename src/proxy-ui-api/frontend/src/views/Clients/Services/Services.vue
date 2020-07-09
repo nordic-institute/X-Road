@@ -115,7 +115,7 @@
                     @click="serviceClick(serviceDesc, service)"
                     data-test="service-link"
                   >
-                    {{ service.service_code }}
+                    {{ service.full_service_code }}
                   </td>
                   <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
@@ -180,6 +180,7 @@ import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 import { Service, ServiceDescription } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
+import { sortServiceDescriptionServices } from '@/util/sorting';
 
 export default Vue.extend({
   components: {
@@ -501,7 +502,10 @@ export default Vue.extend({
       api
         .get(`/clients/${this.id}/service-descriptions`)
         .then((res) => {
-          this.serviceDescriptions = res.data;
+          const serviceDescriptions: ServiceDescription[] = res.data;
+          this.serviceDescriptions = serviceDescriptions.map(
+            sortServiceDescriptionServices,
+          );
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

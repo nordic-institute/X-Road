@@ -52,6 +52,14 @@ var clientTabCommands = {
   openTestService: function() {
     this.click('@testServiceListItem');
     return this;
+  },
+  openClient: function(name) {
+    this.api.click(this.selector + '//tbody//span[contains(text(),"'+name+'")]');
+    return this;
+  },
+  verifyRowName: function(row, name) {
+    this.api.waitForElementVisible('(//tbody/tr)['+row+']//span[contains(text(),"'+name+'")]');
+    return this;
   }
 };
 
@@ -278,6 +286,14 @@ var clientLocalGroupsCommands = {
   openCbbDetails: function() {
     this.click('@groupCodeCellCbb');
     return this;
+  },
+  verifyGroupListRow: function(row, code) {
+    this.api.waitForElementVisible('(//table[contains(@class, "details-certificates")]/tr)['+row+']//span[contains(text(),"'+code+'")]');
+    return this;
+  },
+  openDetails: function(code) {
+    this.api.click(this.selector + '//table[contains(@class, "details-certificates")]//span[contains(text(),"'+code+'")]');
+    return this;
   }
 };
 
@@ -424,7 +440,7 @@ module.exports = {
       selector: '//div[contains(@class, "v-dialog")]//button[.//*[contains(text(), "Ok")]]', 
       locateStrategy: 'xpath' },
     snackBarCloseButton: { 
-      selector: '//div[contains(@class, "v-snack__content")]//button[.//*[contains(text(), "Close")]]', 
+      selector: '//button[@data-test="close-snackbar"]',
       locateStrategy: 'xpath' },
     snackBarMessage: { 
       selector: '//div[contains(@class, "v-snack__content")]',
@@ -579,7 +595,7 @@ module.exports = {
               selector: '//button[.//*[contains(text(), "Cancel")]]',
               locateStrategy: 'xpath' },
             serviceEnableToggle: { 
-              selector: '//*[contains(@class, "v-input--selection-controls__ripple")]', //'//*[contains(@data-test, "service-description-enable-disable")]',
+              selector: '//*[contains(@class, "v-input--selection-controls__ripple")]', 
               locateStrategy: 'xpath' },
             confirmDisableButton: { 
               selector: '//button[contains(@data-test, "dialog-save-button")]',

@@ -7,4 +7,4 @@ en:
   request:
     incorrect_instance: "Invalid management service address. Contact central server administrator."
     server_id_not_match_owner: "The security server owner identifier in the request (%{sec_serv_owner}) and the service client identifier (%{security_server}) in the SOAP header do not match"
-
+    invalid_identifier: "The management request contains an invalid identifier (%{id})."
