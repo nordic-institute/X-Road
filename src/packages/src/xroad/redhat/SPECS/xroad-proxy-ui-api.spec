@@ -39,7 +39,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib
 mkdir -p %{buildroot}/etc/xroad/conf.d
 
 
-cp -p %{_sourcedir}/proxy/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
+cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../proxy-ui-api/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy-ui-api.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/proxy-ui-api-logback.xml %{buildroot}/etc/xroad/conf.d
