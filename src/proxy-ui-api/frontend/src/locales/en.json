@@ -172,6 +172,8 @@
     "title": "Title",
     "accessRightsGiven": "Access Rights Given",
     "removeSuccess": "Access Rights successfully removed",
+    "removeOneTitle": "Remove access rights?",
+    "removeOneText": "Are you sure you want to remove access rights from this service client?",
     "removeAllTitle": "Remove all access rights",
     "removeAllText": "Are you sure you want to remove all access rights from this service client",
     "removeAll": "Remove all",
