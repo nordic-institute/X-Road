@@ -293,7 +293,9 @@
     "removeAllTitle": "Remove all access rights?",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "addServiceClientsSuccess": "Access rights added successfully",
-    "removeServiceClientsSuccess": "Access rights removed successfully"
+    "removeServiceClientsSuccess": "Access rights removed successfully",
+    "addSubjectsSuccess": "Access rights added successfully",
+    "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
     "addSubsystem": "add subsystem",
