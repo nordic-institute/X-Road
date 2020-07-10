@@ -397,7 +397,7 @@ const router = new Router({
                   // Check if the user has permission to initialize the server
                   if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                     store.dispatch(
-                      'showErrorMessage',
+                      'showErrorMessageCode',
                       'initialConfiguration.noPermission',
                     );
                     return;

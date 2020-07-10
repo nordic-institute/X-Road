@@ -173,7 +173,7 @@ export default (Vue as VueConstructor<
               // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                 this.$store.dispatch(
-                  'showErrorMessage',
+                  'showErrorMessageCode',
                   'initialConfiguration.noPermission',
                 );
                 this.$store.dispatch('logout');
