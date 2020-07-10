@@ -229,5 +229,4 @@ export default Vue.extend({
   overflow-y: auto;
   max-height: 300px;
 }
-
 </style>
