@@ -176,7 +176,13 @@ export default (Vue as VueConstructor<
                   'showErrorMessageCode',
                   'initialConfiguration.noPermission',
                 );
-                this.$store.dispatch('logout');
+                // Logout without page refresh
+                this.$store.dispatch('logout', false);
+                // Clear inputs
+                this.username = '';
+                this.password = '';
+                this.$refs.form.reset();
+
                 return;
               }
               this.$router.replace({ name: RouteName.InitialConfiguration });

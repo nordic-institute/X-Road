@@ -18,12 +18,12 @@
       </v-btn>
     </v-snackbar>
 
-    <!-- Error: localization code -->
+    <!-- Error: localization code. Doesn't close automatically  -->
     <v-snackbar
       data-test="error-snackbar"
       v-model="showErrorCode"
       color="error"
-      :timeout="timeout"
+      :timeout="forever"
     >
       {{ $t(errorMessageCode) }}
       <v-btn
