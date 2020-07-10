@@ -8,9 +8,14 @@
       :timeout="timeout"
     >
       {{ errorMessageRaw }}
-      <v-btn data-test="close-snackbar" text @click="closeError()">{{
-        $t('action.close')
-      }}</v-btn>
+      <v-btn
+        icon
+        color="white"
+        data-test="close-snackbar"
+        @click="closeError()"
+      >
+        <v-icon dark>mdi-close-circle</v-icon>
+      </v-btn>
     </v-snackbar>
 
     <!-- Error: localization code -->
@@ -21,9 +26,14 @@
       :timeout="timeout"
     >
       {{ $t(errorMessageCode) }}
-      <v-btn data-test="close-snackbar" text @click="closeError()">{{
-        $t('action.close')
-      }}</v-btn>
+      <v-btn
+        icon
+        color="white"
+        data-test="close-snackbar"
+        @click="closeError()"
+      >
+        <v-icon dark>mdi-close-circle</v-icon>
+      </v-btn>
     </v-snackbar>
 
     <!-- Success: localization code -->
