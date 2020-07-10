@@ -155,8 +155,9 @@ export const actions: ActionTree<UserState, RootState> = {
         // Nothing to do
       })
       .finally(() => {
-        // Reload the browser page to clean up the memory
-        location.reload(true);
+        if (reload) {
+          // Reload the browser page to clean up the memory
+          location.reload(true);
         }
       });
   },
