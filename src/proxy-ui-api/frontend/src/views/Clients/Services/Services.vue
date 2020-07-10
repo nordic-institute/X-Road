@@ -422,9 +422,8 @@ export default Vue.extend({
           this.fetchData();
           this.addBusy = false;
           this.saveLoading = false;
+          this.saveWarningDialog = false;
         });
-
-      this.saveWarningDialog = false;
     },
 
     cancelSaveWarning(): void {
@@ -488,14 +487,14 @@ export default Vue.extend({
         .finally(() => {
           this.fetchData();
           this.refreshLoading = false;
+          this.refreshWarningDialog = false;
         });
-
-      this.refreshWarningDialog = false;
     },
 
     cancelRefresh(): void {
       this.refreshLoading = false;
       this.refreshWarningDialog = false;
+      this.refreshLoading = false;
     },
 
     descClose(tokenId: string) {

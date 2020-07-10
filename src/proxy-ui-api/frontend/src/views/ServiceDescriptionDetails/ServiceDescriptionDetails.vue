@@ -130,6 +130,7 @@
     <warningDialog
       :dialog="confirmEditWarning"
       :warnings="warningInfo"
+      :loading="editLoading"
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
     ></warningDialog>
@@ -179,6 +180,7 @@ export default Vue.extend({
       initialServiceCode: '',
       saveBusy: false,
       serviceTypeEnum: ServiceTypeEnum,
+      editLoading: false as boolean,
     };
   },
   computed: {
@@ -267,6 +269,7 @@ export default Vue.extend({
     },
 
     acceptEditWarning(): void {
+      this.editLoading =  true;
       const tempDesc: any = this.serviceDesc;
 
       if (!tempDesc) {
@@ -286,12 +289,15 @@ export default Vue.extend({
         })
         .finally(() => {
           this.saveBusy = false;
+          this.editLoading =  false;
+          this.confirmEditWarning = false;
         });
     },
 
     cancelEditWarning(): void {
       this.confirmEditWarning = false;
       this.saveBusy = false;
+      this.editLoading =  false;
     },
   },
   created() {
