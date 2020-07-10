@@ -7,7 +7,6 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
-    const serviceDetails = mainPage.section.serviceDetails
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -19,7 +18,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -40,7 +39,7 @@ module.exports = {
     // Verify opening nonexisting URL
     clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Request failed with status code 400")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
     mainPage.closeSnackbar();
 
     // Verify successfull URL open
@@ -62,7 +61,6 @@ module.exports = {
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.wsdlOperationDetails;
 
-
     // Open SUT and check that page is loaded
     frontPage.navigate();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -73,7 +71,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -95,52 +93,50 @@ module.exports = {
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
     // Verify cancel
+    operationDetails.toggleCertVerification();
     operationDetails.enterUrl('https://www.niis.org/nosuch2/');
     operationDetails.enterTimeout('40');
-    operationDetails.toggleCertVerification();
-    operationDetails.toggleCertVerification();
+    operationDetails.toggleVerifyCertApplyToAll();
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
-    operationDetails.toggleVerifyCertApplyToAll();
-
     operationDetails.close();
 
     // Verify that options were not changed
     browser.assert.containsText(clientServices.elements.operationUrl, 'https://www.niis.org/nosuch1/');
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(@class, "mdi-lock-open-outline")]');
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(@class, "mdi-lock-open-outline")]');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, 'https://www.niis.org/nosuch1/');
     browser.assert.valueContains(operationDetails.elements.timeout, '60');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
-
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
 
     // Verify change single operation
     operationDetails.enterUrl('https://www.niis.org/nosuch2/');
     operationDetails.enterTimeout('40');
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
     operationDetails.saveParameters();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Service saved")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
     mainPage.closeSnackbar();
     operationDetails.close();
 
     browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(text(), "https://www.niis.org/nosuch2/")]');
     browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(text(), "https://www.niis.org/nosuch1/")]');
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
-   browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(@class, "mdi-lock-open-outline")]');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_off_style+'")]');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
 
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, 'https://www.niis.org/nosuch2/');
     browser.assert.valueContains(operationDetails.elements.timeout, '40');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
     operationDetails.close();
 
     clientServices.openOperation('testOpA');
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, 'https://www.niis.org/nosuch1/');
     browser.assert.valueContains(operationDetails.elements.timeout, '60');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 
     // Verify change all operations
@@ -153,28 +149,27 @@ module.exports = {
     operationDetails.enterTimeout('30');
     operationDetails.toggleCertVerification();
     operationDetails.saveParameters();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Service saved")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
     mainPage.closeSnackbar();
     operationDetails.close();
 
     browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(text(), "https://www.niis.org/nosuch3/")]');
     browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(text(), "https://www.niis.org/nosuch3/")]');
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_off_style+'")]');
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_off_style+'")]');
-
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOp1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "testOpA")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
 
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, 'https://www.niis.org/nosuch3/');
     browser.assert.valueContains(operationDetails.elements.timeout, '30');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 
     clientServices.openOperation('testOpA');
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, 'https://www.niis.org/nosuch3/');
     browser.assert.valueContains(operationDetails.elements.timeout, '30');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 
     browser.end();
@@ -199,7 +194,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -245,7 +240,6 @@ module.exports = {
     const removeMemberPopup = mainPage.section.removeMemberPopup;
     const removeAllMembersPopup = mainPage.section.removeAllMembersPopup;
 
-
     // Open SUT and check that page is loaded
     frontPage.navigate();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -256,7 +250,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -299,8 +293,6 @@ module.exports = {
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
-
-    browser.pause(2000);
     browser.end();
   },
   'Security server client edit wsdl service': browser => {
@@ -324,7 +316,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -332,7 +324,7 @@ module.exports = {
     clientServices.expandServiceDetails();
 
     clientServices.refreshServiceData();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Refreshed")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Refreshed');
     mainPage.closeSnackbar();
 
     browser
@@ -343,7 +335,7 @@ module.exports = {
 
     // Verify enabling
     clientServices.toggleEnabled();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Service description enabled")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description enabled');
     mainPage.closeSnackbar();
 
     // Verify disabling and canceling disable
@@ -356,7 +348,7 @@ module.exports = {
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
     clientServices.confirmDisable();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Service description disabled")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description disabled');
     mainPage.closeSnackbar();
 
     clientServices.toggleEnabled();
@@ -373,7 +365,8 @@ module.exports = {
     // verify missing file
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Request failed with status code 400")]]', 20000);
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
     mainPage.closeSnackbar();
 
     // Verify cancel
@@ -399,7 +392,7 @@ module.exports = {
     });
 
     servicesPopup.accept();     
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Description saved")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'WSDL ('+ browser.globals.testdata + '/' + browser.globals.wsdl_url_2+')');
     browser.waitForElementNotPresent('//td[contains(@data-test, "service-link") and contains(text(),"testOp1")]');
@@ -431,7 +424,7 @@ module.exports = {
     // Open TestGov Internal Servers
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -450,7 +443,7 @@ module.exports = {
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
 
-    browser.waitForElementVisible('//*[contains(@class, "v-snack") and .//*[contains(text(), "Service description deleted")]]');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description deleted');
     mainPage.closeSnackbar();
 
     browser.waitForElementNotPresent(clientServices.elements.serviceDescription);
