@@ -41,7 +41,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
 
@@ -49,7 +48,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_
  * Init (Security Server) controller
  */
 @Controller
-@RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
 public class InitializationApiController implements InitializationApi {

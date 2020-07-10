@@ -31,7 +31,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
@@ -39,7 +38,6 @@ import java.util.List;
  * controller for xroad instance identifiers
  */
 @Controller
-@RequestMapping("/api")
 @PreAuthorize("denyAll")
 public class XroadInstancesApiController implements XroadInstancesApi {
 

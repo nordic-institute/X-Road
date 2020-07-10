@@ -41,11 +41,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
+
 /**
  * User controller
  */
 @Controller
-@RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
 public class UserApiController implements UserApi {
@@ -77,7 +78,7 @@ public class UserApiController implements UserApi {
      * @return
      */
     @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/roles")
+    @RequestMapping(value = API_V1_PREFIX + "/roles")
     public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
         return new ResponseEntity<>(
                 getAuthorities(authentication, name -> name.startsWith("ROLE_")),
@@ -90,7 +91,7 @@ public class UserApiController implements UserApi {
      * @return
      */
     @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/permissions")
+    @RequestMapping(value = API_V1_PREFIX + "/permissions")
     public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
         return new ResponseEntity<>(
                 getAuthorities(authentication, name -> !name.startsWith("ROLE_")),

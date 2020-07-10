@@ -33,7 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +41,6 @@ import java.util.List;
  * member classes controller
  */
 @Controller
-@RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
 public class MemberClassesApiController implements MemberClassesApi {

@@ -46,7 +46,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -61,7 +60,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_BACKU
  * Backups controller
  */
 @Controller
-@RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {

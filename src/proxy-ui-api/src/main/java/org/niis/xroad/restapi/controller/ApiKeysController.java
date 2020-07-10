@@ -53,6 +53,7 @@ import java.util.List;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_CREATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_REMOVE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_UPDATE;
+import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 
 /**
  * Controller for rest apis for api key operations
@@ -63,13 +64,16 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.API_KEY_UPDA
 @PreAuthorize("hasRole('XROAD_SYSTEM_ADMINISTRATOR')")
 public class ApiKeysController {
 
-    public static final String API_KEYS_PATH = "/api/api-keys";
+    public static final String API_KEYS_PATH = API_V1_PREFIX + "/api-keys";
+
+    private final ApiKeyService apiKeyService;
+    private final PublicApiKeyDataConverter publicApiKeyDataConverter;
 
     @Autowired
-    private ApiKeyService apiKeyService;
-
-    @Autowired
-    private PublicApiKeyDataConverter publicApiKeyDataConverter;
+    public ApiKeysController(ApiKeyService apiKeyService, PublicApiKeyDataConverter publicApiKeyDataConverter) {
+        this.apiKeyService = apiKeyService;
+        this.publicApiKeyDataConverter = publicApiKeyDataConverter;
+    }
 
     /**
      * create a new api key
@@ -91,7 +95,7 @@ public class ApiKeysController {
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @AuditEventMethod(event = API_KEY_UPDATE)
     public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
-                                                          @RequestBody List<String> roles) {
+            @RequestBody List<String> roles) {
         try {
             PersistentApiKeyType key = apiKeyService.update(id, roles);
             return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
