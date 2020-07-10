@@ -152,7 +152,7 @@ export default Vue.extend({
     return {
       serviceClientAccessRights: [] as AccessRight[],
       serviceClient: {} as ServiceClient,
-      accessRightsToDelete: [] as AccessRight[],
+      accessRightToDelete: {} as any,
       isAddServiceDialogVisible: false as boolean,
       clientServiceDescriptions: [] as ServiceDescription[],
       showConfirmDeleteAll: false as boolean,
@@ -193,17 +193,17 @@ export default Vue.extend({
     },
     resetDeletionSettings(): void {
       this.showConfirmDeleteOne = false;
-      this.accessRightsToDelete = [];
+      this.accessRightToDelete = {};
     },
     remove(accessRight: AccessRight): void {
       this.showConfirmDeleteOne = true;
-      this.accessRightsToDelete = [accessRight];
+      this.accessRightToDelete = accessRight;
     },
     doRemoveAccessRight(): void {
       api
         .post(
           `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          { items: [{ service_code: this.accessRightsToDelete[0].service_code }] },
+          { items: [{ service_code: this.accessRightToDelete.service_code }] },
         )
         .then(() => {
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
@@ -216,7 +216,7 @@ export default Vue.extend({
         .catch((error: any) => this.$store.dispatch('showError', error))
         .finally(() => {
           this.showConfirmDeleteOne = false;
-          this.accessRightsToDelete = [];
+          this.accessRightToDelete = {};
         });
     },
     addService(accessRights: AccessRight[]): void {
