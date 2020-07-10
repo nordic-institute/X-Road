@@ -152,6 +152,7 @@
     <warningDialog
       :dialog="saveWarningDialog"
       :warnings="warningInfo"
+      :loading="saveLoading"
       @cancel="cancelSaveWarning()"
       @accept="acceptSaveWarning()"
     />
@@ -159,6 +160,7 @@
     <warningDialog
       :dialog="refreshWarningDialog"
       :warnings="warningInfo"
+      :loading="refreshLoading"
       @cancel="cancelRefresh()"
       @accept="acceptRefreshWarning()"
     />
@@ -217,6 +219,8 @@ export default Vue.extend({
       refreshBusy: {} as any,
       refreshButtonComponentKey: 0 as number,
       serviceTypeEnum: ServiceTypeEnum as any,
+      saveLoading: false as boolean,
+      refreshLoading: false as boolean,
     };
   },
   computed: {
@@ -401,6 +405,7 @@ export default Vue.extend({
     },
 
     acceptSaveWarning(): void {
+      this.saveLoading = true;
       api
         .post(`/clients/${this.id}/service-descriptions`, {
           url: this.url,
@@ -416,6 +421,7 @@ export default Vue.extend({
         .finally(() => {
           this.fetchData();
           this.addBusy = false;
+          this.saveLoading = false;
         });
 
       this.saveWarningDialog = false;
@@ -423,6 +429,7 @@ export default Vue.extend({
 
     cancelSaveWarning(): void {
       this.addBusy = false;
+      this.saveLoading = false;
       this.saveWarningDialog = false;
     },
 
@@ -467,6 +474,7 @@ export default Vue.extend({
     },
 
     acceptRefreshWarning(): void {
+      this.refreshLoading = true;
       api
         .put(`/service-descriptions/${this.refreshId}/refresh`, {
           ignore_warnings: true,
@@ -479,12 +487,14 @@ export default Vue.extend({
         })
         .finally(() => {
           this.fetchData();
+          this.refreshLoading = false;
         });
 
       this.refreshWarningDialog = false;
     },
 
     cancelRefresh(): void {
+      this.refreshLoading = false;
       this.refreshWarningDialog = false;
     },
 
