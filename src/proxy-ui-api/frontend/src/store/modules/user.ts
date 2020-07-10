@@ -144,7 +144,7 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  logout({ commit, dispatch }) {
+  logout({ commit, dispatch }, reload = true) {
     // Clear auth data
     commit('clearAuthData');
 
@@ -157,6 +157,7 @@ export const actions: ActionTree<UserState, RootState> = {
       .finally(() => {
         // Reload the browser page to clean up the memory
         location.reload(true);
+        }
       });
   },
   clearAuth({ commit }) {
