@@ -10,6 +10,8 @@ PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
     cp -a /tmp/local.conf /etc/xroad/services/local.conf
