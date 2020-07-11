@@ -156,7 +156,8 @@
       @cancel="cancelSaveWarning()"
       @accept="acceptSaveWarning()"
     />
-    <!-- Accept "refresh WSDL" warnings -->
+    <!-- Accept "refresh" warnings. -->
+    <!-- Covers WSDL, OPENAPI3 and REST. -->
     <warningDialog
       :dialog="refreshWarningDialog"
       :warnings="warningInfo"
