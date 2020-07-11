@@ -181,6 +181,7 @@ export default Vue.extend({
       saveBusy: false,
       serviceTypeEnum: ServiceTypeEnum,
       editLoading: false as boolean,
+      serviceDescriptionUpdate: {} as any,
     };
   },
   computed: {
@@ -196,29 +197,30 @@ export default Vue.extend({
     save(): void {
       this.saveBusy = true;
 
-      const serviceDescriptionUpdate = {
+      this.serviceDescriptionUpdate = {
         id: this.serviceDesc.id,
         url: this.serviceDesc.url,
         type: this.serviceDesc.type,
-      } as any;
+        ignore_warnings: false,
+      };
 
       if (
-        serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
-        serviceDescriptionUpdate.type === this.serviceTypeEnum.OPENAPI3
+        this.serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
+        this.serviceDescriptionUpdate.type === this.serviceTypeEnum.OPENAPI3
       ) {
-        serviceDescriptionUpdate.ignore_warnings = false;
-        serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
-        serviceDescriptionUpdate.new_rest_service_code =
-          serviceDescriptionUpdate.rest_service_code !== this.currentServiceCode
+        this.serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
+        this.serviceDescriptionUpdate.new_rest_service_code =
+          this.serviceDescriptionUpdate.rest_service_code !== this.currentServiceCode
             ? this.currentServiceCode
-            : serviceDescriptionUpdate.rest_service_code;
+            : this.serviceDescriptionUpdate.rest_service_code;
       }
 
       api
-        .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
+        .patch(`/service-descriptions/${this.id}`, this.serviceDescriptionUpdate)
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
+          this.serviceDescriptionUpdate = {};
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -228,6 +230,7 @@ export default Vue.extend({
           } else {
             this.$store.dispatch('showError', error);
             this.saveBusy = false;
+            this.serviceDescriptionUpdate = {};
           }
         });
     },
@@ -270,16 +273,10 @@ export default Vue.extend({
 
     acceptEditWarning(): void {
       this.editLoading =  true;
-      const tempDesc: any = this.serviceDesc;
-
-      if (!tempDesc) {
-        return;
-      }
-
-      tempDesc.ignore_warnings = true;
+      this.serviceDescriptionUpdate.ignore_warnings = true;
 
       api
-        .patch(`/service-descriptions/${this.id}`, tempDesc)
+        .patch(`/service-descriptions/${this.id}`, this.serviceDescriptionUpdate)
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
@@ -291,6 +288,7 @@ export default Vue.extend({
           this.saveBusy = false;
           this.editLoading =  false;
           this.confirmEditWarning = false;
+          this.serviceDescriptionUpdate = {};
         });
     },
 
