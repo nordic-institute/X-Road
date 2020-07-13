@@ -429,9 +429,20 @@ const router = new Router({
 
 router.beforeEach((to: Route, from: Route, next: Next) => {
   // Going to login
-  if (to.name === 'login') {
+  if (to.name === RouteName.Login) {
     next();
     return;
+  }
+
+  // Server is not initialized
+  if (store.getters.needsInitialization) {
+    if (to.name !== RouteName.InitialConfiguration) {
+      // Redirect to init
+      next({
+        name: RouteName.InitialConfiguration,
+      });
+      return;
+    }
   }
 
   if (store.getters.isAuthenticated) {
@@ -449,7 +460,7 @@ router.beforeEach((to: Route, from: Route, next: Next) => {
     return;
   } else {
     next({
-      path: '/login',
+      name: RouteName.Login,
     });
   }
 });
