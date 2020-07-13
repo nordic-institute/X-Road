@@ -125,7 +125,7 @@ export default Vue.extend({
       uploadedFile: null as string | ArrayBuffer | null,
       showPreview: false as boolean,
       permissions: Permissions,
-      anchorFile: undefined,
+      anchorFile: undefined as string | undefined,
     };
   },
   methods: {
