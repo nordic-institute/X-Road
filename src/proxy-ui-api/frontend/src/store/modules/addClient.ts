@@ -161,7 +161,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     commit('resetAddClientState');
   },
 
-  fetchSelectableClients({ commit }) {
+  fetchSelectableClients({ commit }, id: string) {
     const globalClientsPromise = api.get<Client[]>(
       '/clients?exclude_local=true&internal_search=false&show_members=false',
     );
@@ -295,8 +295,8 @@ export const actions: ActionTree<AddClientState, RootState> = {
     const ownerId = createClientId(instanceId, memberClass, memberCode);
 
     // Find if a token has a sign key with a certificate that has matching client data
-    tokenResponse.data.forEach((token: Token) => {
-      token.keys.forEach((key: Key) => {
+    tokenResponse.data.some((token: Token) => {
+      return token.keys.some((key: Key) => {
         if (key.usage === UsageTypes.SIGNING) {
           // Go through the keys certificates
           const foundCert: boolean = key.certificates.some(
@@ -306,17 +306,17 @@ export const actions: ActionTree<AddClientState, RootState> = {
                   'setAddMemberWizardMode',
                   AddMemberWizardModes.CERTIFICATE_EXISTS,
                 );
-                return;
+                return true;
               }
             },
           );
 
           if (foundCert) {
-            return;
+            return true;
           }
 
           // Go through the keys CSR:s
-          key.certificate_signing_requests.forEach(
+          key.certificate_signing_requests.some(
             (csr: TokenCertificateSigningRequest) => {
               if (ownerId === csr.owner_id) {
                 dispatch('setCsrTokenId', token.id);

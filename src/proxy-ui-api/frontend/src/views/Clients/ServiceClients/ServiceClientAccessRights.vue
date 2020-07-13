@@ -117,6 +117,7 @@ import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddSer
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ServiceCandidate } from '@/ui-types';
+import { sortAccessRightsByServiceCode } from '@/util/sorting';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
@@ -172,7 +173,11 @@ export default Vue.extend({
         .get<AccessRight[]>(
           `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
         )
-        .then((response) => (this.serviceClientAccessRights = response.data))
+        .then((response) => {
+          this.serviceClientAccessRights = sortAccessRightsByServiceCode(
+            response.data,
+          );
+        })
         .catch((error) => this.$store.dispatch('showError', error));
     },
     close(): void {

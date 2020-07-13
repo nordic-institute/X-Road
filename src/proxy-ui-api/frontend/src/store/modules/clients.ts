@@ -1,6 +1,3 @@
-// TODO: Remove after merge
-/* eslint-disable */
-
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
