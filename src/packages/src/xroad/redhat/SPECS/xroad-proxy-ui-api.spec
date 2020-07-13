@@ -36,9 +36,11 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
+mkdir -p %{buildroot}/usr/share/xroad/scripts
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/conf.d
 
-
+cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api-setup.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../proxy-ui-api/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy-ui-api.ini %{buildroot}/etc/xroad/conf.d
@@ -65,7 +67,7 @@ rm -rf %{buildroot}
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-ui-api-setup.sh
 
 %defattr(-,root,root,-)
-/usr/share/xroad/jlib/proxy-ui-api-1.0.jar
+/usr/share/xroad/jlib/proxy-ui-api*.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/CHANGELOG.md
