@@ -98,7 +98,7 @@ export default Vue.extend({
     },
 
     tabs(): Tab[] {
-      const allTabs = [
+      const allTabs: Tab[] = [
         {
           key: 'details',
           name: 'tab.client.details',
@@ -114,7 +114,7 @@ export default Vue.extend({
             name: RouteName.MemberServers,
             params: { id: this.id },
           },
-          permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS,
+          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
         },
       ];
 

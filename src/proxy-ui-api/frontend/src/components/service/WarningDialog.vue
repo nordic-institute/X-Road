@@ -16,9 +16,14 @@
         <v-btn color="primary" text outlined @click="cancel()">{{
           $t(cancelButtonText)
         }}</v-btn>
-        <v-btn color="primary" text outlined @click="accept()">{{
-          $t(acceptButtonText)
-        }}</v-btn>
+        <v-btn
+          color="primary"
+          text
+          outlined
+          :loading="loading"
+          @click="accept()"
+          >{{ $t(acceptButtonText) }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -50,6 +55,10 @@ export default Vue.extend({
     maxWidth: {
       type: String as Prop<string>,
       default: '850',
+    },
+    loading: {
+      type: Boolean,
+      default: false,
     },
   },
 
