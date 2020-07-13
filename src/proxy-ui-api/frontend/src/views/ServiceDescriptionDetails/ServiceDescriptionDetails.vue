@@ -210,13 +210,17 @@ export default Vue.extend({
       ) {
         this.serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
         this.serviceDescriptionUpdate.new_rest_service_code =
-          this.serviceDescriptionUpdate.rest_service_code !== this.currentServiceCode
+          this.serviceDescriptionUpdate.rest_service_code !==
+          this.currentServiceCode
             ? this.currentServiceCode
             : this.serviceDescriptionUpdate.rest_service_code;
       }
 
       api
-        .patch(`/service-descriptions/${this.id}`, this.serviceDescriptionUpdate)
+        .patch(
+          `/service-descriptions/${this.id}`,
+          this.serviceDescriptionUpdate,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
@@ -272,11 +276,14 @@ export default Vue.extend({
     },
 
     acceptEditWarning(): void {
-      this.editLoading =  true;
+      this.editLoading = true;
       this.serviceDescriptionUpdate.ignore_warnings = true;
 
       api
-        .patch(`/service-descriptions/${this.id}`, this.serviceDescriptionUpdate)
+        .patch(
+          `/service-descriptions/${this.id}`,
+          this.serviceDescriptionUpdate,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
@@ -286,7 +293,7 @@ export default Vue.extend({
         })
         .finally(() => {
           this.saveBusy = false;
-          this.editLoading =  false;
+          this.editLoading = false;
           this.confirmEditWarning = false;
           this.serviceDescriptionUpdate = {};
         });
@@ -295,7 +302,7 @@ export default Vue.extend({
     cancelEditWarning(): void {
       this.confirmEditWarning = false;
       this.saveBusy = false;
-      this.editLoading =  false;
+      this.editLoading = false;
     },
   },
   created() {
