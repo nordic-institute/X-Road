@@ -12,8 +12,46 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 tags:
-  - name: security server
-    description: <br>Security Server admin API design
+  - name: backups
+    description: backup endpoints
+  - name: certificate-authorities
+    description: CA endpoints
+  - name: clients
+    description: clients endpoints
+  - name: diagnostics
+    description: diagnostics endpoints
+  - name: endpoints
+    description: services' endpoints related endpoints
+  - name: initialization
+    description: initialization endpoints
+  - name: keys
+    description: keys endpoints
+  - name: language
+    description: language endpoints
+  - name: local-groups
+    description: local groups endpoints
+  - name: member-classes
+    description: member classes endpoints
+  - name: member-names
+    description: member names endpoints
+  - name: security-servers
+    description: security servers endpoints
+  - name: services
+    description: services endpoints
+  - name: service-descriptions
+    description: service descriptions endpoints
+  - name: system
+    description: system endpoints
+  - name: timestamping
+    description: timestamping endpoints
+  - name: token-certificate
+    description: token certificates endpoints
+  - name: tokens
+    description: tokens endpoints
+  - name: user
+    description: user endpoints
+  - name: xroad-instances
+    description: xroad-instances endpoints
 paths:
   /api/v1/backups:
     get: # ok
