@@ -6,6 +6,7 @@
         ref="anchorUpload"
         type="file"
         accept=".xml"
+        :value="anchorFile"
         @change="onUploadFileChanged"
       />
       <large-button
@@ -124,6 +125,7 @@ export default Vue.extend({
       uploadedFile: null as string | ArrayBuffer | null,
       showPreview: false as boolean,
       permissions: Permissions,
+      anchorFile: undefined,
     };
   },
   methods: {
@@ -158,11 +160,15 @@ export default Vue.extend({
             },
           })
           .then((resp: any) => {
-            this.uploadedFile = e.target!.result;
+            this.uploadedFile = e.target && e.target.result;
             this.anchorPreview = resp.data;
             this.showPreview = true;
           })
-          .catch((error: any) => this.$store.dispatch('showError', error));
+          .catch((error: any) => {
+            this.$store.dispatch('showError', error);
+            // Clear the anchor file
+            this.anchorFile = undefined;
+          });
       };
       reader.readAsArrayBuffer(fileList[0]);
     },
@@ -182,15 +188,17 @@ export default Vue.extend({
           'Content-Type': 'application/octet-stream',
         },
       })
-        .catch((error: any) => this.$store.dispatch('showError', error))
-        .finally(() => {
-          this.uploading = false;
-          this.close();
+        .then(() => {
           this.$store.dispatch(
             'showSuccess',
             'systemParameters.configurationAnchor.action.upload.dialog.success',
           );
           this.$emit('uploaded');
+        })
+        .catch((error: any) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.uploading = false;
+          this.close();
         });
     },
     close(): void {
