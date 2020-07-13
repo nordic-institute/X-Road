@@ -79,7 +79,7 @@ public class SessionTimeoutFilter extends GenericFilterBean {
                 return;
             }
 
-            if (httpRequest.getServletPath().startsWith(NotificationsApiController.NOTIFICATIONS_API_URL)) {
+            if (httpRequest.getServletPath().startsWith(NotificationsApiController.NOTIFICATIONS_API_V1_PATH)) {
                 // subtract session timeout when notifications api is called
                 if (session.getAttribute(ORIGINAL_MAX_INACTIVE_ATTR) == null) {
                     session.setAttribute(ORIGINAL_MAX_INACTIVE_ATTR,

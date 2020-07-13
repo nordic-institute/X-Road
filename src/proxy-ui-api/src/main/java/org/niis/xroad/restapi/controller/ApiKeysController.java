@@ -59,12 +59,12 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
  * Controller for rest apis for api key operations
  */
 @RestController
-@RequestMapping(ApiKeysController.API_KEYS_PATH)
+@RequestMapping(ApiKeysController.API_KEYS_V1_PATH)
 @Slf4j
 @PreAuthorize("hasRole('XROAD_SYSTEM_ADMINISTRATOR')")
 public class ApiKeysController {
 
-    public static final String API_KEYS_PATH = API_V1_PREFIX + "/api-keys";
+    public static final String API_KEYS_V1_PATH = API_V1_PREFIX + "/api-keys";
 
     private final ApiKeyService apiKeyService;
     private final PublicApiKeyDataConverter publicApiKeyDataConverter;

@@ -54,11 +54,11 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
  * {@link SessionTimeoutFilter}
  */
 @RestController
-@RequestMapping(NotificationsApiController.NOTIFICATIONS_API_URL)
+@RequestMapping(NotificationsApiController.NOTIFICATIONS_API_V1_PATH)
 @Slf4j
 @PreAuthorize("isAuthenticated()")
 public class NotificationsApiController {
-    public static final String NOTIFICATIONS_API_URL = API_V1_PREFIX + "/notifications";
+    public static final String NOTIFICATIONS_API_V1_PATH = API_V1_PREFIX + "/notifications";
 
     private final NotificationService notificationService;
     private final AlertDataConverter alertDataConverter;
