@@ -62,17 +62,19 @@
             @certificateClick="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
-              <SmallButton
-                class="table-button-fix"
-                v-if="!cert.saved_to_configuration && hasPermission"
-                @click="importCert(cert.certificate_details.hash)"
-                >{{ $t('keys.importCert') }}</SmallButton
-              >
+              <template v-if="!cert.saved_to_configuration && hasPermission">
+                <SmallButton
+                  v-if="key.usage !== 'AUTHENTICATION'"
+                  class="table-button-fix"
+                  @click="importCert(cert.certificate_details.hash)"
+                  >{{ $t('keys.importCert') }}</SmallButton
+                >
 
-              <!-- Special case where HW cert has auth usage -->
-              <div v-else-if="key.usage === 'AUTHENTICATION'">
-                {{ $t('keys.authNotSupported') }}
-              </div>
+                <!-- Special case where HW cert has auth usage -->
+                <div v-else>
+                  {{ $t('keys.authNotSupported') }}
+                </div>
+              </template>
             </div>
           </CertificateRow>
         </template>
