@@ -160,7 +160,7 @@ export default Vue.extend({
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.$store.dispatch('showError', error);
         });
     },
     fetchData(id: string): void {

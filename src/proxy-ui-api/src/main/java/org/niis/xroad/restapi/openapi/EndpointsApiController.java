@@ -40,11 +40,13 @@ import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -137,6 +139,10 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException(
+                    new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
+                    + "exists for this client"));
         }
 
         return new ResponseEntity<>(ep, HttpStatus.OK);
