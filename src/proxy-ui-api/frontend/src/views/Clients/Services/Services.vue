@@ -232,7 +232,7 @@ export default Vue.extend({
       addRestBusy: false as boolean,
       refreshBusy: {} as { [key: string]: boolean },
       refreshButtonComponentKey: 0 as number,
-      serviceTypeEnum: ServiceTypeEnum as any,
+      serviceTypeEnum: ServiceTypeEnum,
       saveWsdlLoading: false as boolean,
       saveRestLoading: false as boolean,
       refreshLoading: false as boolean,
