@@ -140,7 +140,7 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(
+            throw new BadRequestException(
                     new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
                     + "exists for this client"));
         }
