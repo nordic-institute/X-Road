@@ -61,7 +61,7 @@
       color="error"
       multi-line
     >
-      <div class="row-wrapper">
+      <div class="row-wrapper scrollable">
         <div v-if="errorCode">
           {{ $t('error_code.' + errorCode) }}
         </div>
@@ -86,9 +86,7 @@
           outlined
           color="white"
           data-test="copy-id-button"
-          v-clipboard:copy="
-            errorObject.response.headers['x-road-ui-correlation-id']
-          "
+          @click.prevent="copyId"
           >{{ $t('action.copyId') }}
         </v-btn>
       </template>
@@ -108,6 +106,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
+import { toClipboard } from '@/util/helpers';
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -199,6 +198,11 @@ export default Vue.extend({
       this.$store.commit('setErrorCodeVisible', false);
       this.$store.commit('setErrorObjectVisible', false);
     },
+    copyId(): void {
+      if (this.errorId) {
+        toClipboard(this.errorId);
+      }
+    },
   },
 });
 </script>
@@ -209,5 +213,10 @@ export default Vue.extend({
   flex-direction: column;
   overflow: auto;
   overflow-wrap: break-word;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
 }
 </style>

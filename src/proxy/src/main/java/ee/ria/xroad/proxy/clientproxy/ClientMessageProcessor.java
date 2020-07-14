@@ -179,6 +179,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             // If the handler thread excepted, do not continue.
             checkError();
 
+            // Check that incoming identifiers do not contain illegal characters
+            checkRequestIdentifiers();
+
             // Verify that the client is registered.
             ClientId client = requestSoap.getClient();
             verifyClientStatus(client);
@@ -205,6 +208,13 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
                 response.consume();
             }
         }
+    }
+
+    private void checkRequestIdentifiers() {
+        checkIdentifier(requestSoap.getClient());
+        checkIdentifier(requestSoap.getService());
+        checkIdentifier(requestSoap.getCentralService());
+        checkIdentifier(requestSoap.getSecurityServer());
     }
 
     @Override

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,6 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.restapi.validator.EncodedIdentifierValidator;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
@@ -751,13 +751,10 @@ public class ServiceDescriptionService {
         updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         // Parse openapi definition and handle updating endpoints and acls
-        if (!serviceDescription.getUrl().equals(url)) {
-            parseOpenApi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
-        }
+        parseOpenApi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
 
         serviceDescription.setRefreshedDate(new Date());
         serviceDescription.setUrl(url);
-        serviceDescription.getService().get(0).setUrl(url);
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
@@ -787,15 +784,12 @@ public class ServiceDescriptionService {
             throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
         }
 
-        // Update url
-        updateServiceDescriptionUrl(serviceDescription, serviceCode, url);
-
         // Create endpoints from parsed results
         List<EndpointType> parsedEndpoints = result.getOperations().stream()
                 .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(),
                         true))
                 .collect(Collectors.toList());
-        parsedEndpoints.add(new EndpointType(serviceCode, "*", "**", true));
+        parsedEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
 
         // Change existing, manually added, endpoints to generated if they're found from parsedEndpoints
         serviceDescription.getClient().getEndpoint().forEach(ep -> {
@@ -811,10 +805,9 @@ public class ServiceDescriptionService {
 
 
         // Remove generated endpoints that are not found from the parsed endpoints
-        serviceDescription.getClient().getEndpoint().removeIf(ep -> {
-            return ep.isGenerated() && parsedEndpoints.stream()
-                    .noneMatch(parsedEp -> parsedEp.isEquivalent(ep));
-        });
+        serviceDescription.getClient().getEndpoint().removeIf(
+                ep -> ep.isGenerated() && parsedEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(ep))
+        );
 
         // Add parsed endpoints to endpoints list if it is not already there
         serviceDescription.getClient().getEndpoint().addAll(
@@ -847,24 +840,6 @@ public class ServiceDescriptionService {
                 .orElseThrow(() -> new DeviationAwareRuntimeException("Service with servicecode: " + serviceCode
                         + " wasn't found from servicedescription with id: " + serviceDescriptiontype.getId()));
         service.setServiceCode(newserviceCode);
-    }
-
-    /**
-     * Updates the url of the given ServiceDescription and service attached to it with matching ServiceCode to one given
-     *
-     * @param serviceDescriptionType
-     * @param serviceCode
-     * @param url
-     */
-    private void updateServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType, String serviceCode,
-            String url) {
-        serviceDescriptionType.setUrl(url);
-        ServiceType service = serviceDescriptionType.getService().stream()
-                .filter(s -> serviceCode.equals(s.getServiceCode()))
-                .findFirst()
-                .orElseThrow(() -> new DeviationAwareRuntimeException("Service with servicecode: " + serviceCode
-                        + " wasn't found from servicedescription with id: " + serviceDescriptionType.getId()));
-        service.setUrl(url);
     }
 
     /**
@@ -946,6 +921,12 @@ public class ServiceDescriptionService {
                 serviceDescriptionType.getService(),
                 newServices);
 
+        // On refresh the service properties (URL, timeout, SSL authentication) should not change
+        // so the existing values must be kept. This applies to a case when 1) the WSDL URL remains the same
+        // and 2) the WSDL URL is changed. When the WSDL URL is changed (2), the service properties must keep
+        // the same values in case the WSDL fetched from the new URL contains services with the same service code.
+        updateServicePoperties(serviceDescriptionType, newServices);
+
         wsdlAuditData.put(SERVICES_ADDED, serviceChanges.getAddedFullServiceCodes());
         wsdlAuditData.put(SERVICES_DELETED, serviceChanges.getRemovedFullServiceCodes());
 
@@ -993,6 +974,25 @@ public class ServiceDescriptionService {
         clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
+    }
+
+    /**
+     * Update the url, timeout and SSL authentication of each service to match its value before it was refreshed.
+     */
+    private List<ServiceType> updateServicePoperties(ServiceDescriptionType serviceDescriptionType,
+            List<ServiceType> newServices) {
+        return newServices.stream()
+                .map(newService -> {
+                    String newServiceFullName = FormatUtils.getServiceFullName(newService);
+                    serviceDescriptionType.getService().forEach(s -> {
+                        if (newServiceFullName.equals(FormatUtils.getServiceFullName(s))) {
+                            newService.setUrl(s.getUrl());
+                            newService.setTimeout(s.getTimeout());
+                            newService.setSslAuthentication(s.getSslAuthentication());
+                        }
+                    });
+                    return newService;
+                }).collect(Collectors.toList());
     }
 
     /**

@@ -4,17 +4,15 @@
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
   
-- name: Update all packages to the latest version
-  apt:
-    update_cache: yes
-
 - name: install required packages
-  package:
-      name: "{{ item }}"
+  apt:
+      name: "{{ items }}"
       state: present
-  with_items:
-    - "acl"
-    - "nginx-light"
+      update_cache: yes
+  vars:
+    items:
+      - "acl"
+      - "nginx-light"
 
 - name: group ca
   group:

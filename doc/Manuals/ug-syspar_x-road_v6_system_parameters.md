@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.53
+Version: 2.55
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -64,6 +64,7 @@ Doc. ID: UG-SYSPAR
 | 03.04.2020 | 2.52     | Removed proxy parameter allow-get-wsdl-request. | Petteri Kivimäki |
 | 12.04.2020 | 2.53     | Updated *connector-host* property EE-package value. | Petteri Kivimäki |
 | 30.04.2020 | 2.54     | Added new parameter *enforce-client-is-cert-validity-period-check* | Märten Soo |
+| 01.07.2020 | 2.55     | Updated *enforce-token-pin-policy* property EE-package value. | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -286,7 +287,7 @@ to use for example MySQL as a data store for REST API module.
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
 | ocsp-cache-path                                  | /var/cache/xroad                           |   |   | Absolute path to the directory where the cached OCSP responses are stored. |
-| enforce-token-pin-policy                         | false                                      | true |   | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
+| enforce-token-pin-policy                         | false                                      | true |  true | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
 | client-timeout                                   | 60000                                      |   |   | Signing timeout in milliseconds. |
 | device-configuration-file                        | /etc/xroad/signer/devices.ini              |   |   | Absolute filename of the configuration file of the signature creation devices. |
 | key-configuration-file                           | /etc/xroad/signer/keyconf.xml              |   |   | Absolute filename of the configuration file containing signature and authentication keys and certificates. |

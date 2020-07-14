@@ -322,6 +322,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
         if (requestMessage.getSignature() == null) {
             throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
+        checkIdentifier(requestMessage.getSoap().getClient());
+        checkIdentifier(requestMessage.getSoap().getService());
+        checkIdentifier(requestMessage.getSoap().getSecurityServer());
+        checkIdentifier(requestMessage.getSoap().getCentralService());
     }
 
     private void verifyClientStatus() {

@@ -14,16 +14,16 @@ export interface Tab {
       id?: string;
     };
   };
-  permission?: string;
+  permissions?: string[];
 }
 
 // Extension for Client
-export interface ExtendedClient extends Client {
-  visibleName?: string | undefined;
-  sortNameAsc?: string | undefined;
-  sortNameDesc?: string | undefined;
-  type?: string;
-}
+export type ExtendedClient = Client & {
+  visibleName: string;
+  isFiltered?: boolean;
+  type: string;
+  id: string;
+};
 
 // Used in service clients views for listing services than can be granted access rights to
 export interface ServiceCandidate {

@@ -1,8 +1,8 @@
 ---
-- import_tasks: ubuntu.yml
+- include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
-- import_tasks: rhel.yml
+- include_tasks: rhel.yml
   when: ansible_os_family == "RedHat"
 
 - name: disable service postgresql and ensure it is masked in case we are using remote database server
@@ -11,4 +11,37 @@
     state: stopped
     enabled: no
     masked: yes
-  when: (database_admin_password != "") and (mask_local_postgresql)
+  when: (database_admin_password is defined) and (database_admin_password != "") and (mask_local_postgresql)
+
+# configuration tweaks
+- name: enable health check
+  ini_file:
+    path: /etc/xroad/conf.d/local.ini
+    section: proxy
+    option: health-check-port
+    value: "{{ xroad_proxy_health_check_port }}"
+  when: xroad_proxy_health_check_port is defined
+
+- name: delete archived files
+  ini_file:
+    path: /etc/xroad/conf.d/local.ini
+    section: "message-log"
+    option: "archive-transfer-command"
+    value: "rm -f /var/lib/xroad/mlog*.zip"
+  when: (xroad_delete_archive_files is defined) and (xroad_delete_archive_files)
+
+- name: set message log retention
+  ini_file:
+    path: /etc/xroad/conf.d/local.ini
+    section: "message-log"
+    option: "keep-records-for"
+    value: "{{ xroad_message_log_keep_records_for }}"
+  when: xroad_message_log_keep_records_for is defined
+
+- name: globalconf download interval
+  ini_file:
+    path: /etc/xroad/conf.d/local.ini
+    section: "configuration-client"
+    option: "update-interval"
+    value: "{{ xroad_configuration_update_interval }}"
+  when: xroad_configuration_update_interval is defined

@@ -27,10 +27,10 @@
     content: "postgres.connection.password = {{ database_admin_password }}"
     dest: /etc/xroad.properties
     mode: 0600
-  when: database_admin_password != ""
+  when: (database_admin_password is defined) and (database_admin_password != "")
 
 - name: install xroad central server
   apt:
     name: xroad-centralserver
-    state: present
+    state: latest
     force: yes

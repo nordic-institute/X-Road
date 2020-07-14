@@ -1,5 +1,9 @@
 import { AccessRight, Service, ServiceDescription } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
+import {
+  compareByServiceCode,
+  sortServicesAscendingByFullServiceCode,
+} from '@/util/sorting';
 
 // returns whether given access right is for given service
 const isNotAccessRightToService = (
@@ -35,6 +39,7 @@ export const serviceCandidatesForServiceClient = (
           curr.concat(...next.services),
         [],
       )
+      .sort(compareByServiceCode)
       // filter out services where this service client has access right already
       .filter((service: Service) =>
         noAccessRightsToService(service, serviceClientAccessRights),

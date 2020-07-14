@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: ARC-ENVMON
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -13,6 +13,7 @@ Doc. ID: ARC-ENVMON
 | 18.10.2017 | 1.5      |  | Joni Laurila |
 | 02.03.2018 | 1.6      | Added numbering, terms document references, removed unnecessary anchors | Tatu Repo
 | 20.01.2020 | 1.7      | Update XroadProcessLister description | Jarkko Hyöty
+| 25.06.2020 | 1.8      | Add chapter [2.2.1 JMX interface](#221-jmx-interface)| Petteri Kivimäki
 
 
 # Table of Contents
@@ -25,6 +26,7 @@ Doc. ID: ARC-ENVMON
 - [2 Components](#2-components)
   * [2.1 Monitoring metaservice (proxymonitor add-on)](#21-monitoring-metaservice-proxymonitor-add-on)
   * [2.2 Monitoring service (xroad-monitor)](#22-monitoring-service-xroad-monitor)
+      * [2.2.1 JMX interface](#221-jmx-interface)
   * [2.3 Central monitoring client](#23-central-monitoring-client)
   * [2.4 Central monitoring data collector](#24-central-monitoring-data-collector)
   * [2.5 Central server admin user interface](#25-central-server-admin-user-interface)
@@ -126,9 +128,23 @@ The following sensors produce monitoring data:
 
 Monitoring service is installed as a separate package, with name `xroad-monitor`. It runs in a separate process.
 
-The service also publishes the monitoring data via JMX. Local monitoring agents can use this as an alternative way to fetch monitoring data. With default configuration, JMX access is only allowed from localhost.
+#### 2.2.1 JMX interface
+
+The service also publishes the monitoring data via JMX. Local monitoring agents can use this as an alternative way to fetch monitoring data. With the default configuration, JMX is disabled.
 
 ![monitoring JMX agent](img/monitoring-jmx.png)
+
+JMX is enabled by adding the required configuration in `/etc/xroad/services/local.conf` file. The file is opened for editing and changes are made on the `MONITOR_PARAMS` variable value. After the `MONITOR_PARAMS` variable value has been updated, the `xroad-monitor` service must be restarted.
+
+The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled:
+
+```
+MONITOR_PARAMS="$MONITOR_PARAMS \
+-Djava.rmi.server.hostname=0.0.0.0 \
+-Dcom.sun.management.jmxremote.port=9999 \
+-Dcom.sun.management.jmxremote.authenticate=true \
+-Dcom.sun.management.jmxremote.ssl=true "
+```
 
 ### 2.3 Central monitoring client
 
