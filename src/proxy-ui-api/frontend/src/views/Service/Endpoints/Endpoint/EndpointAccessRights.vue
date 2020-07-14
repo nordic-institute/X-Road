@@ -57,13 +57,22 @@
       </tbody>
     </table>
 
+    <!-- Confirm dialog remove all Access Right subjects -->
+    <confirmDialog
+      :dialog="confirmDeleteAll"
+      title="accessRights.removeAllTitle"
+      text="accessRights.removeAllText"
+      @cancel="resetDeletionSettings(true)"
+      @accept="doRemoveSelectedServiceClients(true)"
+    />
+
     <!-- Confirm dialog remove Access Right subject -->
     <confirmDialog
-      :dialog="confirmDelete"
+      :dialog="confirmDeleteOne"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
-      @cancel="resetDeletionSettings()"
-      @accept="doRemoveSelectedServiceClients()"
+      @cancel="resetDeletionSettings(false)"
+      @accept="doRemoveSelectedServiceClients(false)"
     />
 
     <!-- Add access right subjects dialog -->
@@ -109,7 +118,8 @@ export default Vue.extend({
     return {
       endpoint: {} as Endpoint | {},
       serviceClients: [] as ServiceClient[],
-      confirmDelete: false as boolean,
+      confirmDeleteAll: false as boolean,
+      confirmDeleteOne: false as boolean,
       serviceClientsToDelete: [] as ServiceClient[],
       addSubjectsDialogVisible: false as boolean,
       serviceClientsToAdd: [] as ServiceClient[],
@@ -120,19 +130,20 @@ export default Vue.extend({
       this.$router.go(-1);
     },
     removeAll(): void {
-      this.toggleConfirmDeleteDialog();
+      this.confirmDeleteAll = true;
       this.serviceClientsToDelete = this.serviceClients;
     },
     remove(serviceClient: ServiceClient): void {
-      this.toggleConfirmDeleteDialog();
+      this.confirmDeleteOne = true;
       this.serviceClientsToDelete = [serviceClient];
     },
-    resetDeletionSettings(): void {
-      this.toggleConfirmDeleteDialog();
+    resetDeletionSettings(isDeleteAll: boolean): void {
+      if (isDeleteAll) {
+        this.confirmDeleteAll = false;
+      } else {
+        this.confirmDeleteOne = false;
+      }
       this.serviceClientsToDelete = [];
-    },
-    toggleConfirmDeleteDialog(): void {
-      this.confirmDelete = !this.confirmDelete;
     },
     toggleAddServiceClientsDialog(): void {
       this.addSubjectsDialogVisible = !this.addSubjectsDialogVisible;
@@ -155,7 +166,7 @@ export default Vue.extend({
           this.$store.dispatch('showError', error.message);
         });
     },
-    doRemoveSelectedServiceClients(): void {
+    doRemoveSelectedServiceClients(isDeleteAll: boolean): void {
       api
         .post(`/endpoints/${this.id}/service-clients/delete`, {
           items: this.serviceClientsToDelete,
@@ -171,8 +182,7 @@ export default Vue.extend({
           this.$store.dispatch('showError', error.message);
         })
         .finally(() => {
-          this.toggleConfirmDeleteDialog();
-          this.serviceClientsToDelete = [];
+          this.resetDeletionSettings(isDeleteAll);
         });
     },
     doAddServiceClients(serviceClients: ServiceClient[]): void {

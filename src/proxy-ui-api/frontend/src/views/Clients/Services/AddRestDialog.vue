@@ -97,10 +97,6 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    clientId: {
-      type: String,
-      required: true,
-    },
   },
   data() {
     return {
@@ -128,29 +124,8 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      api
-        .post(`/clients/${this.clientId}/service-descriptions`, {
-          url: this.url,
-          rest_service_code: this.serviceCode,
-          type: this.serviceType,
-        })
-        .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.serviceType === 'OPENAPI3'
-              ? 'services.openApi3Added'
-              : 'services.restAdded',
-          );
-          this.$emit('save', {
-            serviceType: this.serviceType,
-            url: this.url,
-            serviceCode: this.serviceCode,
-          });
-          this.clear();
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
+      this.$emit('save', this.serviceType, this.url, this.serviceCode);
+      this.clear();
     },
     clear(): void {
       this.url = '';
