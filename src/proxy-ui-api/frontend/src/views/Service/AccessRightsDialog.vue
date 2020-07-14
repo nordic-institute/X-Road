@@ -168,19 +168,21 @@ enum ServiceClientTypes {
   SUBSYSTEM = 'SUBSYSTEM',
 }
 
-const initialState = {
-  name: '',
-  serviceClientType: '',
-  instance: '',
-  memberClass: '',
-  memberCode: '',
-  subsystemCode: '',
-  serviceClientTypes: ServiceClientTypes,
-  expandPanel: [0],
-  serviceClientCandidates: [] as ServiceClient[],
-  selectedIds: [] as ServiceClient[],
-  noResults: false,
-  checkbox1: true,
+const initialState = () => {
+  return {
+    name: '',
+    serviceClientType: '',
+    instance: '',
+    memberClass: '',
+    memberCode: '',
+    subsystemCode: '',
+    serviceClientTypes: ServiceClientTypes,
+    expandPanel: [0],
+    serviceClientCandidates: [] as ServiceClient[],
+    selectedIds: [] as ServiceClient[],
+    noResults: false,
+    checkbox1: true,
+  };
 };
 
 export default Vue.extend({
@@ -203,7 +205,7 @@ export default Vue.extend({
   },
 
   data() {
-    return { ...initialState };
+    return { ...initialState() };
   },
   computed: {
     ...mapGetters(['xroadInstances', 'memberClasses']),
@@ -297,7 +299,7 @@ export default Vue.extend({
 
     clearForm(): void {
       // Reset initial state
-      Object.assign(this.$data, initialState);
+      Object.assign(this.$data, initialState());
     },
   },
   created() {

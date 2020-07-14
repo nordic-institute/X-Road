@@ -128,17 +128,19 @@ import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/openapi-types';
 
-const initialState = {
-  name: '',
-  instance: '',
-  memberClass: '',
-  memberCode: '',
-  subsystemCode: '',
-  expandPanel: [0],
-  members: [] as Client[],
-  selectedIds: [] as string[],
-  noResults: false,
-  checkbox1: true,
+const initialState = () => {
+  return {
+    name: '',
+    instance: '',
+    memberClass: '',
+    memberCode: '',
+    subsystemCode: '',
+    expandPanel: [0],
+    members: [] as Client[],
+    selectedIds: [] as string[],
+    noResults: false,
+    checkbox1: true,
+  };
 };
 
 export default Vue.extend({
@@ -160,7 +162,7 @@ export default Vue.extend({
   },
 
   data() {
-    return { ...initialState };
+    return { ...initialState() };
   },
   computed: {
     ...mapGetters(['xroadInstances', 'memberClasses']),
@@ -228,7 +230,7 @@ export default Vue.extend({
 
     clearForm(): void {
       // Reset initial state
-      Object.assign(this.$data, initialState);
+      Object.assign(this.$data, initialState());
     },
   },
   created() {
