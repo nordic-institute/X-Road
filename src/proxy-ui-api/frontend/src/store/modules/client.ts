@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveResponseAsFile } from '@/util/helpers';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 
 export interface ClientState {
@@ -122,50 +121,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  fetchTlsCertificate({ commit, rootGetters }, { clientId, hash }) {
-    if (!clientId) {
-      throw new Error('Missing id');
-    }
-
-    if (!hash) {
-      throw new Error('Missing certificate hash');
-    }
-
-    return axios.get(`/clients/${clientId}/tls-certificates/${hash}`);
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  deleteTlsCertificate({ commit, state }, { clientId, hash }) {
-    return axios.delete(`/clients/${clientId}/tls-certificates/${hash}`);
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  downloadSSCertificate({ commit, state }) {
-    axios
-      .get(`/system/certificate/export`, { responseType: 'arraybuffer' })
-      .then((response) => {
-        saveResponseAsFile(response);
-      });
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  uploadTlsCertificate({ commit, state }, data) {
-    return axios.post(
-      `/clients/${data.clientId}/tls-certificates/`,
-      data.fileData,
-      {
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      },
-    );
-  },
-
   saveConnectionType({ commit }, { clientId, connType }) {
     return axios
       .patch(`/clients/${clientId}`, {
@@ -179,55 +134,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       .catch((error) => {
         throw error;
       });
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  registerClient({ commit, state }, clientId: string) {
-    return axios.put(`/clients/${clientId}/register`, {});
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  unregisterClient({ commit, state }, clientId) {
-    return axios.put(`/clients/${clientId}/unregister`, {});
-  },
-
-  addSubsystem(
-    // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    { commit, state },
-    { memberName, memberClass, memberCode, subsystemCode },
-  ) {
-    const body = {
-      client: {
-        member_name: memberName,
-        member_class: memberClass,
-        member_code: memberCode,
-        subsystem_code: subsystemCode,
-      },
-      ignore_warnings: false,
-    };
-
-    return axios.post('/clients', body);
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  deleteClient({ commit, state }, clientId: string) {
-    return axios.delete(`/clients/${clientId}`);
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getOrphans({ commit, state }, clientId: string) {
-    return axios.get(`/clients/${clientId}/orphans`);
-  },
-
-  // TODO: Check with Mikko why this is in the store, it doesn't operate on state
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  deleteOrphans({ commit, state }, clientId: string) {
-    return axios.delete(`/clients/${clientId}/orphans`);
   },
 };
 

@@ -99,6 +99,9 @@ import CertificateIcon from './CertificateIcon.vue';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { FileUploadResult } from '@/ui-types';
 import { CertificateDetails } from '@/openapi-types';
+import { saveResponseAsFile } from '@/util/helpers';
+import * as api from '@/util/api';
+
 export default Vue.extend({
   components: {
     CertificateIcon,
@@ -185,10 +188,11 @@ export default Vue.extend({
   },
   methods: {
     onFileChange(event: FileUploadResult): void {
-      this.$store
-        .dispatch('uploadTlsCertificate', {
-          clientId: this.id,
-          fileData: event.buffer,
+      api
+        .post(`/clients/${this.id}/tls-certificates/`, event.buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
         })
         .then(
           () => {
@@ -208,9 +212,14 @@ export default Vue.extend({
     },
 
     exportSSCertificate(): void {
-      this.$store.dispatch('downloadSSCertificate').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      api
+        .get(`/system/certificate/export`, { responseType: 'arraybuffer' })
+        .then((response) => {
+          saveResponseAsFile(response);
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        });
     },
 
     fetchSSCertificate(id: string): void {

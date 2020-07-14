@@ -136,7 +136,7 @@ export const mutations: MutationTree<ClientsState> = {
 };
 
 export const actions: ActionTree<ClientsState, RootState> = {
-  fetchClients({ commit, rootGetters }) {
+  fetchClients({ commit }) {
     commit('setLoading', true);
 
     return axios

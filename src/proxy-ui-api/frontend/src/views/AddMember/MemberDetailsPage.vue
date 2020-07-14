@@ -104,7 +104,7 @@ import { debounce, isEmpty } from '@/util/helpers';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
 
-// TODO: Check with Mikko about this
+// To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 

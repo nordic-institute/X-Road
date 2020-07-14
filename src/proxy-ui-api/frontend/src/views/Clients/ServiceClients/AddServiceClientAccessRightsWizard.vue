@@ -53,10 +53,7 @@ import {
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { ServiceCandidate } from '@/ui-types';
-import {
-  compareByServiceCode,
-  sortServicesAscendingByFullServiceCode,
-} from '@/util/sorting';
+import { compareByServiceCode } from '@/util/sorting';
 
 export default Vue.extend({
   props: {

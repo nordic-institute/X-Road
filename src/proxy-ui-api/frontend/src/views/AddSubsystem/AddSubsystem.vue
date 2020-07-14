@@ -189,31 +189,34 @@ export default Vue.extend({
   methods: {
     done(): void {
       this.submitLoading = true;
-      this.$store
-        .dispatch('addSubsystem', {
-          memberName: this.memberName,
-          memberClass: this.memberClass,
-          memberCode: this.memberCode,
-          subsystemCode: this.subsystemCode,
-        })
-        .then(
-          () => {
-            this.submitLoading = false;
-            this.$store.dispatch(
-              'showSuccess',
-              'wizard.subsystem.subsystemAdded',
-            );
-            if (this.registerChecked) {
-              this.confirmRegisterClient = true;
-            } else {
-              this.exitView();
-            }
-          },
-          (error) => {
-            this.submitLoading = false;
-            this.$store.dispatch('showError', error);
-          },
-        );
+      const body = {
+        client: {
+          member_name: this.memberName,
+          member_class: this.memberClass,
+          member_code: this.memberCode,
+          subsystem_code: this.subsystemCode,
+        },
+        ignore_warnings: false,
+      };
+
+      api.post('/clients', body).then(
+        () => {
+          this.submitLoading = false;
+          this.$store.dispatch(
+            'showSuccess',
+            'wizard.subsystem.subsystemAdded',
+          );
+          if (this.registerChecked) {
+            this.confirmRegisterClient = true;
+          } else {
+            this.exitView();
+          }
+        },
+        (error) => {
+          this.submitLoading = false;
+          this.$store.dispatch('showError', error);
+        },
+      );
     },
 
     registerSubsystem(): void {
@@ -225,8 +228,7 @@ export default Vue.extend({
         this.memberCode,
         this.subsystemCode,
       );
-
-      this.$store.dispatch('registerClient', clientId).then(
+      api.put(`/clients/${clientId}/register`, {}).then(
         () => {
           this.$store.dispatch(
             'showSuccess',

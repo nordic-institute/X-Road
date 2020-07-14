@@ -10,7 +10,7 @@ export interface Tab {
   key: string;
   name: string;
   to: string | Location; // Same type as https://router.vuejs.org/api/#to
-  permission?: string[];
+  permissions?: string[];
 }
 
 // Extension for Client

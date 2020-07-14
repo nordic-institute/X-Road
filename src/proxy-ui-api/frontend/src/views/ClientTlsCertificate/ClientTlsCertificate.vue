@@ -36,6 +36,8 @@ import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
+import * as api from '@/util/api';
+import { CertificateDetails } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -58,7 +60,7 @@ export default Vue.extend({
   data() {
     return {
       confirm: false,
-      certificate: null,
+      certificate: null as CertificateDetails | null,
     };
   },
   computed: {
@@ -74,14 +76,18 @@ export default Vue.extend({
       this.$router.go(-1);
     },
     fetchData(clientId: string, hash: string): void {
-      this.$store.dispatch('fetchTlsCertificate', { clientId, hash }).then(
-        (response) => {
-          this.certificate = response.data;
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      api
+        .get<CertificateDetails>(
+          `/clients/${clientId}/tls-certificates/${hash}`,
+        )
+        .then(
+          (response) => {
+            this.certificate = response.data;
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
     },
     deleteCertificate(): void {
       this.confirm = true;
@@ -89,11 +95,8 @@ export default Vue.extend({
     doDeleteCertificate(): void {
       this.confirm = false;
 
-      this.$store
-        .dispatch('deleteTlsCertificate', {
-          clientId: this.id,
-          hash: this.hash,
-        })
+      api
+        .remove(`/clients/${this.id}/tls-certificates/${this.hash}`)
         .then(
           () => {
             this.$store.dispatch('showSuccess', 'cert.certDeleted');

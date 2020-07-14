@@ -161,7 +161,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     commit('resetAddClientState');
   },
 
-  fetchSelectableClients({ commit }, id: string) {
+  fetchSelectableClients({ commit }) {
     const globalClientsPromise = api.get<Client[]>(
       '/clients?exclude_local=true&internal_search=false&show_members=false',
     );
