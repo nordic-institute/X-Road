@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
@@ -49,6 +50,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * test init
@@ -69,6 +72,14 @@ public class InitializationApiControllerTest {
 
     @MockBean
     private InitializationService initializationService;
+
+    @Test
+    @WithMockUser
+    public void initStatus() {
+        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(new InitializationStatusDto());
+        initializationApiController.getInitializationStatus();
+        verify(initializationService).getSecurityServerInitializationStatus();
+    }
 
     @Test
     @WithMockUser(authorities = { "INIT_CONFIG" })
