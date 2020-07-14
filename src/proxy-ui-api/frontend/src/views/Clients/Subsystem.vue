@@ -97,7 +97,7 @@ export default Vue.extend({
             name: RouteName.SubsystemServiceClients,
             params: { id: this.id },
           },
-          permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS,
+          permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS],
         },
         {
           key: 'services',
@@ -106,7 +106,7 @@ export default Vue.extend({
             name: RouteName.SubsystemServices,
             params: { id: this.id },
           },
-          permission: Permissions.VIEW_CLIENT_SERVICES,
+          permissions: [Permissions.VIEW_CLIENT_SERVICES],
         },
         {
           key: 'internalServers',
@@ -115,7 +115,7 @@ export default Vue.extend({
             name: RouteName.SubsystemServers,
             params: { id: this.id },
           },
-          permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS,
+          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
         },
         {
           key: 'localGroups',
@@ -124,7 +124,7 @@ export default Vue.extend({
             name: RouteName.SubsystemLocalGroups,
             params: { id: this.id },
           },
-          permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS,
+          permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS],
         },
       ];
 

@@ -16,6 +16,7 @@
         <v-btn
           v-if="showAddButton"
           color="primary"
+          :loading="addRestBusy"
           @click="showAddRestDialog"
           outlined
           rounded
@@ -27,7 +28,7 @@
         <v-btn
           v-if="showAddButton"
           color="primary"
-          :loading="addBusy"
+          :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
           outlined
           rounded
@@ -138,7 +139,6 @@
     <addRestDialog
       :dialog="addRestDialog"
       @save="restSave"
-      :clientId="this.id"
       @cancel="cancelAddRest"
     />
     <disableServiceDescDialog
@@ -150,15 +150,26 @@
     />
     <!-- Accept "save WSDL" warnings -->
     <warningDialog
-      :dialog="saveWarningDialog"
+      :dialog="saveWsdlWarningDialog"
       :warnings="warningInfo"
-      @cancel="cancelSaveWarning()"
-      @accept="acceptSaveWarning()"
+      :loading="saveWsdlLoading"
+      @cancel="cancelSaveWsdlWarning()"
+      @accept="acceptSaveWsdlWarning()"
     />
-    <!-- Accept "refresh WSDL" warnings -->
+    <!-- Accept "save REST/OPENAPI3" warnings -->
+    <warningDialog
+      :dialog="saveRestWarningDialog"
+      :warnings="warningInfo"
+      :loading="saveRestLoading"
+      @cancel="cancelSaveRestWarning()"
+      @accept="acceptSaveRestWarning()"
+    />
+    <!-- Accept "refresh" warnings. -->
+    <!-- Covers WSDL, OPENAPI3 and REST. -->
     <warningDialog
       :dialog="refreshWarningDialog"
       :warnings="warningInfo"
+      :loading="refreshLoading"
       @cancel="cancelRefresh()"
       @accept="acceptRefreshWarning()"
     />
@@ -180,6 +191,7 @@ import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 import { Service, ServiceDescription } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
+import { sortServiceDescriptionServices } from '@/util/sorting';
 
 export default Vue.extend({
   components: {
@@ -208,14 +220,21 @@ export default Vue.extend({
       expanded: [] as string[],
       serviceDescriptions: [] as ServiceDescription[],
       warningInfo: [] as string[],
-      saveWarningDialog: false as boolean,
+      saveWsdlWarningDialog: false as boolean,
+      saveRestWarningDialog: false as boolean,
       refreshWarningDialog: false as boolean,
       url: '' as string,
+      serviceType: '' as string,
+      serviceCode: '' as string,
       refreshId: '' as string,
-      addBusy: false as boolean,
+      addWsdlBusy: false as boolean,
+      addRestBusy: false as boolean,
       refreshBusy: {} as any,
       refreshButtonComponentKey: 0 as number,
       serviceTypeEnum: ServiceTypeEnum as any,
+      saveWsdlLoading: false as boolean,
+      saveRestLoading: false as boolean,
+      refreshLoading: false as boolean,
     };
   },
   computed: {
@@ -375,7 +394,7 @@ export default Vue.extend({
 
     wsdlSave(url: string): void {
       this.url = url;
-      this.addBusy = true;
+      this.addWsdlBusy = true;
       api
         .post(`/clients/${this.id}/service-descriptions`, {
           url,
@@ -383,23 +402,24 @@ export default Vue.extend({
         })
         .then(() => {
           this.$store.dispatch('showSuccess', 'services.wsdlAdded');
-          this.addBusy = false;
+          this.addWsdlBusy = false;
           this.fetchData();
         })
         .catch((error) => {
           if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
-            this.saveWarningDialog = true;
+            this.saveWsdlWarningDialog = true;
           } else {
             this.$store.dispatch('showError', error);
-            this.addBusy = false;
+            this.addWsdlBusy = false;
           }
         });
 
       this.addWsdlDialog = false;
     },
 
-    acceptSaveWarning(): void {
+    acceptSaveWsdlWarning(): void {
+      this.saveWsdlLoading = true;
       api
         .post(`/clients/${this.id}/service-descriptions`, {
           url: this.url,
@@ -414,24 +434,88 @@ export default Vue.extend({
         })
         .finally(() => {
           this.fetchData();
-          this.addBusy = false;
+          this.addWsdlBusy = false;
+          this.saveWsdlLoading = false;
+          this.saveWsdlWarningDialog = false;
         });
-
-      this.saveWarningDialog = false;
     },
 
-    cancelSaveWarning(): void {
-      this.addBusy = false;
-      this.saveWarningDialog = false;
+    cancelSaveWsdlWarning(): void {
+      this.addWsdlBusy = false;
+      this.saveWsdlLoading = false;
+      this.saveWsdlWarningDialog = false;
     },
 
     cancelAddWsdl(): void {
       this.addWsdlDialog = false;
     },
 
-    restSave(): void {
-      this.fetchData();
+    restSave(serviceType: string, url: string, serviceCode: string): void {
+      this.serviceType = serviceType;
+      this.url = url;
+      this.serviceCode = serviceCode;
+      this.addRestBusy = true;
+      api
+        .post(`/clients/${this.id}/service-descriptions`, {
+          url: this.url,
+          rest_service_code: this.serviceCode,
+          type: this.serviceType,
+        })
+        .then(() => {
+          this.$store.dispatch(
+            'showSuccess',
+            this.serviceType === 'OPENAPI3'
+              ? 'services.openApi3Added'
+              : 'services.restAdded',
+          );
+          this.addRestBusy = false;
+          this.fetchData();
+        })
+        .catch((error) => {
+          if (error?.response?.data?.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.saveRestWarningDialog = true;
+          } else {
+            this.$store.dispatch('showError', error);
+            this.addRestBusy = false;
+          }
+        });
+
       this.addRestDialog = false;
+    },
+
+    acceptSaveRestWarning(): void {
+      this.saveRestLoading = true;
+      api
+        .post(`/clients/${this.id}/service-descriptions`, {
+          url: this.url,
+          rest_service_code: this.serviceCode,
+          type: this.serviceType,
+          ignore_warnings: true,
+        })
+        .then(() => {
+          this.$store.dispatch(
+            'showSuccess',
+            this.serviceType === 'OPENAPI3'
+              ? 'services.openApi3Added'
+              : 'services.restAdded',
+          );
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.fetchData();
+          this.addRestBusy = false;
+          this.saveRestLoading = false;
+          this.saveRestWarningDialog = false;
+        });
+    },
+
+    cancelSaveRestWarning(): void {
+      this.addRestBusy = false;
+      this.saveRestLoading = false;
+      this.saveRestWarningDialog = false;
     },
 
     cancelAddRest(): void {
@@ -466,6 +550,7 @@ export default Vue.extend({
     },
 
     acceptRefreshWarning(): void {
+      this.refreshLoading = true;
       api
         .put(`/service-descriptions/${this.refreshId}/refresh`, {
           ignore_warnings: true,
@@ -478,13 +563,15 @@ export default Vue.extend({
         })
         .finally(() => {
           this.fetchData();
+          this.refreshLoading = false;
+          this.refreshWarningDialog = false;
         });
-
-      this.refreshWarningDialog = false;
     },
 
     cancelRefresh(): void {
+      this.refreshLoading = false;
       this.refreshWarningDialog = false;
+      this.refreshLoading = false;
     },
 
     descClose(tokenId: string) {
@@ -501,7 +588,10 @@ export default Vue.extend({
       api
         .get(`/clients/${this.id}/service-descriptions`)
         .then((res) => {
-          this.serviceDescriptions = res.data;
+          const serviceDescriptions: ServiceDescription[] = res.data;
+          this.serviceDescriptions = serviceDescriptions.map(
+            sortServiceDescriptionServices,
+          );
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
