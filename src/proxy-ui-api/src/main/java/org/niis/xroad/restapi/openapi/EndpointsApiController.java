@@ -76,6 +76,7 @@ public class EndpointsApiController implements EndpointsApi {
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 
@@ -86,13 +87,15 @@ public class EndpointsApiController implements EndpointsApi {
             AccessRightService accessRightService,
             ServiceClientConverter serviceClientConverter,
             ServiceClientHelper serviceClientHelper,
-            ServiceClientService serviceClientService) {
+            ServiceClientService serviceClientService,
+            ServiceClientSortingComparator serviceClientSortingComparator) {
         this.endpointService = endpointService;
         this.endpointConverter = endpointConverter;
         this.accessRightService = accessRightService;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
+        this.serviceClientSortingComparator = serviceClientSortingComparator;
     }
 
     @Override
@@ -158,7 +161,7 @@ public class EndpointsApiController implements EndpointsApi {
         }
         List<ServiceClient> serviceClients = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        Collections.sort(serviceClients, new ServiceClientSortingComparator());
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -184,7 +187,7 @@ public class EndpointsApiController implements EndpointsApi {
 
         List<ServiceClient> serviceClientsResult = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        Collections.sort(serviceClientsResult, new ServiceClientSortingComparator());
+        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
     }
 

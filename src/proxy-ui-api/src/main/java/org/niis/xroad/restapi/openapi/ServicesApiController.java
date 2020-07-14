@@ -86,12 +86,13 @@ public class ServicesApiController implements ServicesApi {
     private final AccessRightService accessRightService;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
             ServiceService serviceService, AccessRightService accessRightService,
             EndpointConverter endpointConverter, ServiceClientHelper serviceClientHelper,
-            ServiceClientService serviceClientService) {
+            ServiceClientService serviceClientService, ServiceClientSortingComparator serviceClientSortingComparator) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
@@ -99,6 +100,7 @@ public class ServicesApiController implements ServicesApi {
         this.endpointConverter = endpointConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
+        this.serviceClientSortingComparator = serviceClientSortingComparator;
     }
 
     @Override
@@ -154,7 +156,7 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        Collections.sort(serviceClients, new ServiceClientSortingComparator());
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -200,7 +202,7 @@ public class ServicesApiController implements ServicesApi {
         }
         List<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
                 serviceClientDtos);
-        Collections.sort(serviceClientsResult, new ServiceClientSortingComparator());
+        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 

@@ -158,6 +158,8 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientService serviceClientService;
     private final ServiceClientHelper serviceClientHelper;
     private final AuditDataHelper auditDataHelper;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
+    private final ClientSortingComparator clientSortingComparator;
 
     /**
      * ClientsApiController constructor
@@ -174,7 +176,9 @@ public class ClientsApiController implements ClientsApi {
             AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
             ServiceClientHelper serviceClientHelper,
             ServiceClientIdentifierConverter serviceClientIdentifierConverter,
-            AuditDataHelper auditDataHelper) {
+            AuditDataHelper auditDataHelper,
+            ServiceClientSortingComparator serviceClientSortingComparator,
+            ClientSortingComparator clientSortingComparator) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -191,6 +195,8 @@ public class ClientsApiController implements ClientsApi {
         this.serviceClientService = serviceClientService;
         this.serviceClientHelper = serviceClientHelper;
         this.auditDataHelper = auditDataHelper;
+        this.serviceClientSortingComparator = serviceClientSortingComparator;
+        this.clientSortingComparator = clientSortingComparator;
     }
 
     /**
@@ -214,7 +220,7 @@ public class ClientsApiController implements ClientsApi {
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 localValidSignCert, excludeLocal));
-        Collections.sort(clients, new ClientSortingComparator());
+        Collections.sort(clients, clientSortingComparator);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -470,7 +476,7 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        Collections.sort(serviceClients, new ServiceClientSortingComparator());
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -624,7 +630,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             serviceClients = serviceClientConverter.
                     convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
-            Collections.sort(serviceClients, new ServiceClientSortingComparator());
+            Collections.sort(serviceClients, serviceClientSortingComparator);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
