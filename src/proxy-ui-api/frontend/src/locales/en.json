@@ -387,6 +387,7 @@
     "keyDeleted": "Key deleted",
     "certMarkedForDeletion": "Certificate marked for deletion",
     "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
+    "authNotSupported": "auth, not supported",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
