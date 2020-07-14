@@ -87,15 +87,14 @@ public class EndpointsApiController implements EndpointsApi {
             AccessRightService accessRightService,
             ServiceClientConverter serviceClientConverter,
             ServiceClientHelper serviceClientHelper,
-            ServiceClientService serviceClientService,
-            ServiceClientSortingComparator serviceClientSortingComparator) {
+            ServiceClientService serviceClientService) {
         this.endpointService = endpointService;
         this.endpointConverter = endpointConverter;
         this.accessRightService = accessRightService;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
-        this.serviceClientSortingComparator = serviceClientSortingComparator;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
     }
 
     @Override

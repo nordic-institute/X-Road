@@ -176,9 +176,7 @@ public class ClientsApiController implements ClientsApi {
             AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
             ServiceClientHelper serviceClientHelper,
             ServiceClientIdentifierConverter serviceClientIdentifierConverter,
-            AuditDataHelper auditDataHelper,
-            ServiceClientSortingComparator serviceClientSortingComparator,
-            ClientSortingComparator clientSortingComparator) {
+            AuditDataHelper auditDataHelper) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -195,8 +193,8 @@ public class ClientsApiController implements ClientsApi {
         this.serviceClientService = serviceClientService;
         this.serviceClientHelper = serviceClientHelper;
         this.auditDataHelper = auditDataHelper;
-        this.serviceClientSortingComparator = serviceClientSortingComparator;
-        this.clientSortingComparator = clientSortingComparator;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
+        this.clientSortingComparator = new ClientSortingComparator();
     }
 
     /**

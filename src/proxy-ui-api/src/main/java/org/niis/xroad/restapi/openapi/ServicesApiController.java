@@ -92,7 +92,7 @@ public class ServicesApiController implements ServicesApi {
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
             ServiceService serviceService, AccessRightService accessRightService,
             EndpointConverter endpointConverter, ServiceClientHelper serviceClientHelper,
-            ServiceClientService serviceClientService, ServiceClientSortingComparator serviceClientSortingComparator) {
+            ServiceClientService serviceClientService) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
@@ -100,7 +100,7 @@ public class ServicesApiController implements ServicesApi {
         this.endpointConverter = endpointConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
-        this.serviceClientSortingComparator = serviceClientSortingComparator;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
     }
 
     @Override
