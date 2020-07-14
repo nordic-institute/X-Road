@@ -51,7 +51,7 @@ import java.util.concurrent.TimeoutException;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
-import static ee.ria.xroad.signer.protocol.SignerClient.SignerWatcher.signerRef;
+import static ee.ria.xroad.signer.protocol.SignerClient.SignerWatcher.requestProcessor;
 
 /**
  * Signer client is used to send messages to signer from other components
@@ -93,7 +93,7 @@ public final class SignerClient {
      * @param receiver the receiver actor
      */
     public static void execute(Object message, ActorRef receiver) {
-        signerRef().tell(message, receiver);
+        requestProcessor().tell(message, receiver);
     }
 
     /**
@@ -106,7 +106,7 @@ public final class SignerClient {
      */
     public static <T> T execute(Object message) throws Exception {
         try {
-            return result(Await.result(Patterns.ask(signerRef(), message, TIMEOUT), TIMEOUT.duration()));
+            return result(Await.result(Patterns.ask(requestProcessor(), message, TIMEOUT), TIMEOUT.duration()));
         } catch (TimeoutException e) {
             throw new CodedException(X_INTERNAL_ERROR, e, "Request to Signer timed out");
         }
@@ -129,22 +129,36 @@ public final class SignerClient {
         }
     }
 
+    /**
+     * Watches Signer request processor actor using Akka actor lifecycle monitoring. Proactively keeps the
+     * actor reference up to date. For example, in case of a Signer restart, the watcher detects that the request
+     * processor disappears and is (eventually) replaced with an new actor.
+     *
+     * @see <a href="https://doc.akka.io/docs/akka/current/actors.html#actor-lifecycle">Akka documentation about Actor
+     * Lifecycle</a>
+     */
     static class SignerWatcher extends UntypedAbstractActor {
 
         /*
-         * Implementation notes.
-         *
-         * The requestProcessor future will be completed by the internally used
-         * SignerWatcher actor, and replaced with a new one in case the Signer is restarted. The purpose is to avoid
-         * long request timeouts when the signer is not (yet) available, and to detect restarts.
-         *
+         * the Future will be completed by the internally used SignerWatcher actor, and replaced with a new one in case
+         * the Signer is restarted. The purpose is to avoid long request timeouts when the signer is not (yet)
+         * available and make it possible to wait for the actor reference to appear.
          */
-        private static volatile CompletableFuture<ActorRef> requestProcessor = null;
+        private static volatile CompletableFuture<ActorRef> requestProcessorFuture = null;
+
         private static final Duration WATCH_DELAY = Duration.ofSeconds(1);
         private static final int REF_GET_TIMEOUT = 7;
 
-        static ActorRef signerRef() {
-            final CompletableFuture<ActorRef> processor = requestProcessor;
+        /**
+         * Returns an actor reference to the Signer request processor. Waits up to {@link #REF_GET_TIMEOUT} seconds
+         * for the reference to be available.
+         * @throws IllegalStateException if the signer client has not been initialized (see {@link #init(ActorSystem,
+         *                               String)})
+         * @throws CodedException        if the signer does not become available in {@link #REF_GET_TIMEOUT} seconds or
+         *                               the wait is interrupted.
+         */
+        static ActorRef requestProcessor() {
+            final CompletableFuture<ActorRef> processor = requestProcessorFuture;
             if (processor == null) {
                 throw new IllegalStateException("SignerClient is not initialized");
             }
@@ -159,22 +173,27 @@ public final class SignerClient {
         }
 
         static synchronized void init(ActorSystem system, String signerIpAddress) {
-            if (requestProcessor == null) {
-                requestProcessor = new CompletableFuture<>();
+            if (requestProcessorFuture == null) {
+                requestProcessorFuture = new CompletableFuture<>();
                 system.actorOf(Props.create(SignerWatcher.class, signerIpAddress));
             }
         }
 
-        private static synchronized void resetRequestProcessor(CompletableFuture<ActorRef> processor) {
-            if (requestProcessor != null && !requestProcessor.isDone()) {
-                requestProcessor.cancel(true);
+        private static synchronized void resetRequestProcessorFuture(CompletableFuture<ActorRef> processor) {
+            if (requestProcessorFuture != null && !requestProcessorFuture.isDone()) {
+                //cancel pending future (any waiters will get an exception)
+                requestProcessorFuture.cancel(true);
             }
-            requestProcessor = processor;
+            requestProcessorFuture = processor;
         }
 
         private long correlationId = 0;
-        private ActorRef signerRef;
-        private ActorSelection signer;
+
+        //the handle to the currently known SignerRequestProcessor actor
+        //can be null if the actor is not know yet (we are starting, or signer has just restarted)
+        private ActorRef requestProcessorRef;
+
+        private ActorSelection requestProcessorAddress;
         private final String signerIpAddress;
 
         interface Watch {
@@ -186,29 +205,33 @@ public final class SignerClient {
 
         @Override
         public void preStart() {
-            signer = context().actorSelection(getSignerPath() + "/user/" + REQUEST_PROCESSOR);
+            requestProcessorAddress = context().actorSelection(getSignerPath() + "/user/" + REQUEST_PROCESSOR);
             self().tell(Watch.class, self());
         }
 
         @Override
         public void postStop() {
-            if (signerRef != null) {
-                context().unwatch(signerRef);
+            if (requestProcessorRef != null) {
+                context().unwatch(requestProcessorRef);
             }
-            resetRequestProcessor(null);
+            resetRequestProcessorFuture(null);
         }
 
         @Override
         public void onReceive(final Object message) {
             if (Watch.class == message) {
-                if (signerRef == null) {
-                    identifyAgent();
+                if (requestProcessorRef == null) {
+                    // requestProcessor actor is not (yet) known, try to identify it
+                    identifyProcessor();
+                    // Schedule a new watch event to guarantee that we eventually get a response (unless
+                    // the Signer never comes online..).
                     scheduleWatch();
                 }
             } else if (message instanceof ActorIdentity) {
-                attachSigner((ActorIdentity)message);
+                attachProcessor((ActorIdentity)message);
             } else if (message instanceof Terminated) {
-                detachSigner((Terminated)message);
+                detachProcessor((Terminated)message);
+                //processor terminated, start polling again
                 scheduleWatch();
             } else {
                 unhandled(message);
@@ -220,39 +243,45 @@ public final class SignerClient {
                     .scheduleOnce(WATCH_DELAY, self(), Watch.class, context().system().dispatcher(), self());
         }
 
-        private void detachSigner(final Terminated message) {
-            if (signerRef != null && signerRef.equals(message.getActor())) {
-                log.warn("Signer detached");
-                context().unwatch(signerRef);
-                signerRef = null;
-                resetRequestProcessor(new CompletableFuture<>());
+        private void detachProcessor(final Terminated message) {
+            if (requestProcessorRef != null && requestProcessorRef.equals(message.getActor())) {
+                log.warn("Signer has terminated");
+                context().unwatch(requestProcessorRef);
+                requestProcessorRef = null;
+                resetRequestProcessorFuture(new CompletableFuture<>());
             }
         }
 
-        private void attachSigner(final ActorIdentity message) {
+        private void attachProcessor(final ActorIdentity message) {
             if (message.correlationId().equals(correlationId)) {
-                if (signerRef != null) {
-                    context().unwatch(signerRef);
+                // The correlationId is used to ignore responses to old Identify messages since there can be
+                // several in flight.
+                if (requestProcessorRef != null) {
+                    context().unwatch(requestProcessorRef);
                 }
-                signerRef = message.getActorRef().orElse(null);
-                if (signerRef != null) {
-                    context().watch(signerRef);
-                    if (!requestProcessor.complete(signerRef)) {
-                        resetRequestProcessor(CompletableFuture.completedFuture(signerRef));
+                requestProcessorRef = message.getActorRef().orElse(null);
+                if (requestProcessorRef != null) {
+                    context().watch(requestProcessorRef);
+                    if (!requestProcessorFuture.complete(requestProcessorRef)) {
+                        //In case the future was already completed, replace it
+                        //Should normally not happen, but it is difficult to prove that this can not happen in some
+                        //edge case
+                        resetRequestProcessorFuture(CompletableFuture.completedFuture(requestProcessorRef));
                     }
-                    log.info("Signer attached");
+                    log.info("Signer is available");
                 } else {
                     log.debug("Signer is unreachable");
-                    if (requestProcessor.isDone()) {
-                        resetRequestProcessor(new CompletableFuture<>());
+                    if (requestProcessorFuture.isDone()) {
+                        //Should normally not happen
+                        resetRequestProcessorFuture(new CompletableFuture<>());
                     }
                 }
             }
         }
 
-        private void identifyAgent() {
+        private void identifyProcessor() {
             correlationId++;
-            signer.tell(new Identify(correlationId), self());
+            requestProcessorAddress.tell(new Identify(correlationId), self());
         }
 
         private String getSignerPath() {
