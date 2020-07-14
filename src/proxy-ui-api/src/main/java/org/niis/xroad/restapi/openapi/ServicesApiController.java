@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
+import org.niis.xroad.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -59,6 +60,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -152,7 +154,7 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        serviceClientHelper.sortServiceClientsList(serviceClients);
+        Collections.sort(serviceClients, new ServiceClientSortingComparator());
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 

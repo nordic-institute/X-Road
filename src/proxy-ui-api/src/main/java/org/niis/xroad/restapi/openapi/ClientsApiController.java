@@ -50,6 +50,8 @@ import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.ServiceTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.converter.comparator.ClientSortingComparator;
+import org.niis.xroad.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -88,7 +90,6 @@ import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.restapi.util.ClientUtils;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
@@ -104,6 +105,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -212,7 +214,7 @@ public class ClientsApiController implements ClientsApi {
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 localValidSignCert, excludeLocal));
-        ClientUtils.sortClientsList(clients);
+        Collections.sort(clients, new ClientSortingComparator());
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -468,7 +470,7 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        serviceClientHelper.sortServiceClientsList(serviceClients);
+        Collections.sort(serviceClients, new ServiceClientSortingComparator());
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -622,7 +624,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             serviceClients = serviceClientConverter.
                     convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
-            serviceClientHelper.sortServiceClientsList(serviceClients);
+            Collections.sort(serviceClients, new ServiceClientSortingComparator());
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
