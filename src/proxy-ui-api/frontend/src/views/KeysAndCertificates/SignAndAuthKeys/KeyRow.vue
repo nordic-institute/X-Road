@@ -6,7 +6,7 @@
         {{ tokenKey.name }}
       </div>
     </div>
-    <td class="no-border" :colspan="colspan"></td>
+    <td class="no-border" colspan="4"></td>
     <td class="no-border td-align-right">
       <SmallButton
         v-if="hasPermission"
@@ -45,18 +45,6 @@ export default Vue.extend({
     },
     tokenLoggedIn: {
       type: Boolean,
-    },
-    tokenType: {
-      type: String,
-    },
-  },
-  computed: {
-    colspan(): number {
-      if (this.tokenType === 'SOFTWARE') {
-        return 4;
-      }
-      // Hardware
-      return 5;
     },
   },
   methods: {

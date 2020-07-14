@@ -63,15 +63,6 @@ export default Vue.extend({
   cursor: pointer;
 }
 
-.no-border {
-  border-bottom-width: 0 !important;
-}
-
-.table-button-fix {
-  margin-left: auto;
-  margin-right: 0;
-}
-
 .td-align-right {
   text-align: right;
 }
@@ -90,12 +81,5 @@ export default Vue.extend({
   i.v-icon.mdi-file-document-outline {
     margin-left: 42px;
   }
-}
-
-.name-wrap-top {
-  @extend .name-wrap;
-  margin-top: 18px;
-  margin-bottom: 5px;
-  min-width: 100%;
 }
 </style>
