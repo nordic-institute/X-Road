@@ -43,10 +43,12 @@
     key: "{{ rhel_repo_gpgkey }}"
 
 # repo already added by step Setup the correct repository for X-Road installation (RHEL)
-#- name: xroad repo
-#  template:
-#    src: "xroad.repo.j2"
-#    dest: "/etc/yum.repos.d/xroad.repo"
-#    owner: root
-#    group: root
-#    mode: 0644
+# to quickfix: comment out this "xroad repo" task
+# proper fix coming in XRDDEV-1200
+- name: xroad repo
+  template:
+    src: "xroad.repo.j2"
+    dest: "/etc/yum.repos.d/xroad.repo"
+    owner: root
+    group: root
+    mode: 0644

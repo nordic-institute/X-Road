@@ -12,10 +12,9 @@ Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
-Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           net-tools, tar
+Requires:           iproute, hostname
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
 
 %define src %{_topdir}/..
