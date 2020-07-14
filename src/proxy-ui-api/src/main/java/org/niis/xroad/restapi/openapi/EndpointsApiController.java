@@ -184,6 +184,7 @@ public class EndpointsApiController implements EndpointsApi {
 
         List<ServiceClient> serviceClientsResult = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
+        Collections.sort(serviceClientsResult, new ServiceClientSortingComparator());
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
     }
 

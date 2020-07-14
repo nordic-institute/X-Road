@@ -200,6 +200,7 @@ public class ServicesApiController implements ServicesApi {
         }
         List<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
                 serviceClientDtos);
+        Collections.sort(serviceClientsResult, new ServiceClientSortingComparator());
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 
