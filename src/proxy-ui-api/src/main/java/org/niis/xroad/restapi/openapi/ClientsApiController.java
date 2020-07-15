@@ -50,6 +50,8 @@ import org.niis.xroad.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.ServiceTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.converter.comparator.ClientSortingComparator;
+import org.niis.xroad.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -103,6 +105,8 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -154,6 +158,8 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientService serviceClientService;
     private final ServiceClientHelper serviceClientHelper;
     private final AuditDataHelper auditDataHelper;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
+    private final ClientSortingComparator clientSortingComparator;
 
     /**
      * ClientsApiController constructor
@@ -187,6 +193,8 @@ public class ClientsApiController implements ClientsApi {
         this.serviceClientService = serviceClientService;
         this.serviceClientHelper = serviceClientHelper;
         this.auditDataHelper = auditDataHelper;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
+        this.clientSortingComparator = new ClientSortingComparator();
     }
 
     /**
@@ -210,6 +218,7 @@ public class ClientsApiController implements ClientsApi {
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 localValidSignCert, excludeLocal));
+        Collections.sort(clients, clientSortingComparator);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -364,7 +373,9 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<LocalGroup>> getClientLocalGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
-        return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
+        List<LocalGroup> localGroups = localGroupConverter.convert(localGroupTypes);
+        localGroups.sort(Comparator.comparing(LocalGroup::getCode, String.CASE_INSENSITIVE_ORDER));
+        return new ResponseEntity<>(localGroups, HttpStatus.OK);
     }
 
     @Override
@@ -463,6 +474,7 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -616,6 +628,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             serviceClients = serviceClientConverter.
                     convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
+            Collections.sort(serviceClients, serviceClientSortingComparator);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

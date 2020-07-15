@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
+import org.niis.xroad.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
@@ -51,6 +52,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,6 +76,7 @@ public class EndpointsApiController implements EndpointsApi {
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 
@@ -91,6 +94,7 @@ public class EndpointsApiController implements EndpointsApi {
         this.serviceClientConverter = serviceClientConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
     }
 
     @Override
@@ -156,6 +160,7 @@ public class EndpointsApiController implements EndpointsApi {
         }
         List<ServiceClient> serviceClients = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -181,6 +186,7 @@ public class EndpointsApiController implements EndpointsApi {
 
         List<ServiceClient> serviceClientsResult = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
+        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
     }
 
