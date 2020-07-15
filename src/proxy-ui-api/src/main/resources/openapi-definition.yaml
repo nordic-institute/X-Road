@@ -2921,6 +2921,8 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: an existing item already exists
         '500':
           description: internal server error
     delete:
