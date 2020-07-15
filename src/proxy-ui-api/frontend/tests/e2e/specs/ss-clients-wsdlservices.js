@@ -323,8 +323,11 @@ module.exports = {
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
-    clientServices.expandServiceDetails();
+    browser.elements(mainPage.elements.snackBarMessage, res => {
+      if (res.value.length > 0) { mainPage.closeSnackbar(); }
+    });
 
+    clientServices.expandServiceDetails();
     clientServices.refreshServiceData();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Refreshed');
     mainPage.closeSnackbar();
