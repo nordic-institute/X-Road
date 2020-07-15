@@ -59,7 +59,8 @@ public abstract class AbstractRequestHandler<T> extends UntypedAbstractActor {
                 if (result instanceof Exception) {
                     handleError(translateException((Exception) result));
                 } else if (hasSender()) {
-                    getSender().tell(result, getSelf());
+                    //use parent as sender (avoids leaking the temp request handler ref)
+                    getSender().tell(result, context().parent());
                 }
             }
         } catch (ClassCastException e) {
@@ -91,7 +92,8 @@ public abstract class AbstractRequestHandler<T> extends UntypedAbstractActor {
         log.error("Error in request handler", e);
 
         if (hasSender()) {
-            getSender().tell(e.withPrefix(SIGNER_X), getSelf());
+            //use parent as sender (avoids leaking the temp request handler ref)
+            getSender().tell(e.withPrefix(SIGNER_X), context().parent());
         }
     }
 

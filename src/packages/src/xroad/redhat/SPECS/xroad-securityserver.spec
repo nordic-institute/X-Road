@@ -10,6 +10,7 @@ BuildArch:          noarch
 Group:              Applications/Internet
 License:            MIT
 Requires:           xroad-proxy = %version-%release
+Requires:           xroad-proxy-ui-api = %version-%release
 Requires:           xroad-addon-messagelog = %version-%release
 Requires:           xroad-addon-metaservices = %version-%release
 Requires:           xroad-addon-proxymonitor = %version-%release

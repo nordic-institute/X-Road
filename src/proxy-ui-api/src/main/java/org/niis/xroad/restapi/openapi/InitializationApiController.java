@@ -61,7 +61,7 @@ public class InitializationApiController implements InitializationApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
         InitializationStatusDto initializationStatusDto =
                 initializationService.getSecurityServerInitializationStatus();
