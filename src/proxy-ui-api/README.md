@@ -49,23 +49,6 @@ server {
 accessing signer from a remote IP.
 - other development profiles exist in a separate module, which is not included in a regular build. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
-
-# Api key database tables
-
-To prepare `serverconf` database to store API keys, execute one sql file.
-Executing SQL file by hand is a temporary solution, and will be replaced when
-packaging is implemented.
-
-Copy sql script to target, in this example a docker container:
-
-```
-$ docker cp src/main/resources/create_apikey_tables.sql <docker-container-name>:/
-```
-Execute sql script, in this example inside docker container, as `root`:
-```
-$ su -c "psql -d serverconf -a -f /create_apikey_tables.sql" postgres
-```
-
 # TLS
 
 Application listens to https in port 4000.
