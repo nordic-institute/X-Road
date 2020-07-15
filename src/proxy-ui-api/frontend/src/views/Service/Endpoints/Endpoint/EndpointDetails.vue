@@ -154,7 +154,7 @@ export default Vue.extend({
     },
     saveEndpoint(): void {
       api
-        .put(`/endpoints/${this.endpoint.id}`, this.endpoint)
+        .patch(`/endpoints/${this.endpoint.id}`, this.endpoint)
         .then(() => {
           this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
           this.$router.go(-1);

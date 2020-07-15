@@ -175,8 +175,8 @@
     <!-- Confirm dialog remove Access Right service clients -->
     <confirmDialog
       :dialog="confirmMember"
-      title="localGroup.removeTitle"
-      text="localGroup.removeText"
+      title="accessRights.removeTitle"
+      text="accessRights.removeText"
       @cancel="confirmMember = false"
       @accept="doRemoveServiceClient()"
     />
@@ -184,8 +184,8 @@
     <!-- Confirm dialog remove all Access Right service clients -->
     <confirmDialog
       :dialog="confirmAllServiceClients"
-      title="localGroup.removeAllTitle"
-      text="localGroup.removeAllText"
+      title="accessRights.removeAllTitle"
+      text="accessRights.removeAllText"
       @cancel="confirmAllServiceClients = false"
       @accept="doRemoveAllServiveClient()"
     />
