@@ -237,8 +237,8 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.wsdlOperationDetails;
-    const removeMemberPopup = mainPage.section.removeMemberPopup;
-    const removeAllMembersPopup = mainPage.section.removeAllMembersPopup;
+    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
+    const removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -261,14 +261,14 @@ module.exports = {
 
     // Verify cancel remove
     operationDetails.removeAccessRight('TestOrg');
-    browser.waitForElementVisible(removeMemberPopup);
-    removeMemberPopup.cancel();
+    browser.waitForElementVisible(removeAccessRightPopup);
+    removeAccessRightPopup.cancel();
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
 
     // Verify remove	
     operationDetails.removeAccessRight('TestOrg');
-    browser.waitForElementVisible(removeMemberPopup);
-    removeMemberPopup.confirm();
+    browser.waitForElementVisible(removeAccessRightPopup);
+    removeAccessRightPopup.confirm();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
@@ -278,15 +278,15 @@ module.exports = {
 
     // Verify cancel remove all
     operationDetails.removeAllAccessRights();
-    browser.waitForElementVisible(removeAllMembersPopup);
-    removeAllMembersPopup.cancel();
+    browser.waitForElementVisible(removeAllAccessRightsPopup);
+    removeAllAccessRightsPopup.cancel();
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     // Verify remove all
     operationDetails.removeAllAccessRights();
-    browser.waitForElementVisible(removeAllMembersPopup);
-    removeAllMembersPopup.confirm();
+    browser.waitForElementVisible(removeAllAccessRightsPopup);
+    removeAllAccessRightsPopup.confirm();
 
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
     mainPage.closeSnackbar();
