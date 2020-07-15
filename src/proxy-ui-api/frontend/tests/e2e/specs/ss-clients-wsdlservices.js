@@ -85,10 +85,12 @@ module.exports = {
     // Verify tooltips
     browser.moveToElement(operationDetails.elements.urlHelp,0,0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("The URL where requests targeted at the service are directed");
-
+    browser.moveToElement(operationDetails,0,0)
+    browser.expect.element(operationDetails.elements.activeTooltip).to.not.be.present;
     browser.moveToElement(operationDetails.elements.timeoutHelp,0,0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("The maximum duration of a request to the service, in seconds");
-
+    browser.moveToElement(operationDetails,0,0)
+    browser.expect.element(operationDetails.elements.activeTooltip).to.not.be.present;
     browser.moveToElement(operationDetails.elements.verifyCertHelp,0,0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
