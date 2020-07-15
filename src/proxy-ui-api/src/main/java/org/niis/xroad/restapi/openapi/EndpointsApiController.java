@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
@@ -141,6 +142,10 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
+        } catch (EndpointAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
 
         return new ResponseEntity<>(ep, HttpStatus.OK);
