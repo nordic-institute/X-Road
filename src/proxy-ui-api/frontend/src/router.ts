@@ -391,25 +391,17 @@ const router = new Router({
             }
 
             // Coming from somewhere else, needs a check
-            store.dispatch('fetchInitializationStatus').then(
-              () => {
-                if (store.getters.needsInitialization) {
-                  // Check if the user has permission to initialize the server
-                  if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
-                    store.dispatch(
-                      'showErrorMessageCode',
-                      'initialConfiguration.noPermission',
-                    );
-                    return;
-                  }
-                  next();
-                }
-              },
-              (error) => {
-                // Display error
-                store.dispatch('showError', error);
-              },
-            );
+            if (store.getters.needsInitialization) {
+              // Check if the user has permission to initialize the server
+              if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+                store.dispatch(
+                  'showErrorMessageCode',
+                  'initialConfiguration.noPermission',
+                );
+                return;
+              }
+              next();
+            }
           },
         },
       ],
@@ -434,18 +426,18 @@ router.beforeEach((to: Route, from: Route, next: Next) => {
     return;
   }
 
-  // Server is not initialized
-  if (store.getters.needsInitialization) {
-    if (to.name !== RouteName.InitialConfiguration) {
-      // Redirect to init
-      next({
-        name: RouteName.InitialConfiguration,
-      });
-      return;
-    }
-  }
-
   if (store.getters.isAuthenticated) {
+    // Server is not initialized
+    if (store.getters.needsInitialization) {
+      if (to.name !== RouteName.InitialConfiguration) {
+        // Redirect to init
+        next({
+          name: RouteName.InitialConfiguration,
+        });
+        return;
+      }
+    }
+
     if (!to.meta.permission) {
       next();
     } else if (store.getters.hasPermission(to.meta.permission)) {
