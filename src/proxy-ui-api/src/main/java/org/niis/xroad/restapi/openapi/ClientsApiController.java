@@ -100,6 +100,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
 import java.util.HashSet;
@@ -131,6 +132,7 @@ import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WS
  * clients api
  */
 @Controller
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
