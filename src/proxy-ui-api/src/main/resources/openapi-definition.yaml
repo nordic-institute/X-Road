@@ -11,14 +11,57 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
+servers:
+  - url: /api/v1
+    description: basepath for API v1
+  - url: https://app.swaggerhub.com/apis/Gofore/X-Road/1.0.28/api/v1
+    description: SwaggerHub API TEST URL for example requests
 tags:
-  - name: security server
-    description: <br>Security Server admin API design
+  - name: backups
+    description: backup endpoints
+  - name: certificate-authorities
+    description: CA endpoints
+  - name: clients
+    description: clients endpoints
+  - name: diagnostics
+    description: diagnostics endpoints
+  - name: endpoints
+    description: services' endpoints related endpoints
+  - name: initialization
+    description: initialization endpoints
+  - name: keys
+    description: keys endpoints
+  - name: language
+    description: language endpoints
+  - name: local-groups
+    description: local groups endpoints
+  - name: member-classes
+    description: member classes endpoints
+  - name: member-names
+    description: member names endpoints
+  - name: security-servers
+    description: security servers endpoints
+  - name: services
+    description: services endpoints
+  - name: service-descriptions
+    description: service descriptions endpoints
+  - name: system
+    description: system endpoints
+  - name: timestamping
+    description: timestamping endpoints
+  - name: token-certificate
+    description: token certificates endpoints
+  - name: tokens
+    description: tokens endpoints
+  - name: user
+    description: user endpoints
+  - name: xroad-instances
+    description: xroad-instances endpoints
 paths:
   /backups:
     get: # ok
       tags:
-        - security server
+        - backups
       summary: get security server backups
       operationId: getBackups
       description: Administrator views the backups for the security server.
@@ -47,7 +90,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - backups
       summary: add new backup for the security server
       operationId: addBackup
       description: Adds security server backup to the system
@@ -77,7 +120,7 @@ paths:
   /backups/upload:
     post: # ok
       tags:
-        - security server
+        - backups
       summary: upload new backup for the security server
       operationId: uploadBackup
       description: Uploads new security server backup to the system
@@ -122,7 +165,7 @@ paths:
   /backups/{filename}:
     delete: # ok
       tags:
-        - security server
+        - backups
       summary: delete security server backup
       operationId: deleteBackup
       description: Administrator deletes the backup of the security server.
@@ -152,7 +195,7 @@ paths:
   /backups/{filename}/restore:
     put: # ok
       tags:
-        - security server
+        - backups
       summary: restore security server configuration from backup
       operationId: restoreBackup
       description: Administrator restores the security server configuration from backup.
@@ -188,7 +231,7 @@ paths:
   /backups/{filename}/download:
     get: # ok
       tags:
-        - security server
+        - backups
       summary: download security server backup
       operationId: downloadBackup
       description: Administrator downloads the backup of the security server.
@@ -226,7 +269,7 @@ paths:
   /token-certificates:
     post: # ok
       tags:
-        - security server
+        - token-certificates
       summary: import new certificate
       operationId: importCertificate
       description: Imports certificate to the system
@@ -262,7 +305,7 @@ paths:
   /token-certificates/{hash}:
     get: # ok
       tags:
-        - security server
+        - token-certificates
       summary: get certificate information
       operationId: getCertificate
       description: Administrator views certificate details.
@@ -297,7 +340,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - token-certificates
       summary: delete certificate
       operationId: deleteCertificate
       description: Administrator deletes the certificate.
@@ -327,7 +370,7 @@ paths:
   /token-certificates/{hash}/activate:
     put: # ok
       tags:
-        - security server
+        - token-certificates
       summary: activate certificate
       operationId: activateCertificate
       description: Administrator activates selected certificate.
@@ -359,7 +402,7 @@ paths:
   /token-certificates/{hash}/disable:
     put: # ok
       tags:
-        - security server
+        - token-certificates
       summary: deactivate certificate
       operationId: disableCertificate
       description: Administrator deactivates selected certificate.
@@ -391,7 +434,7 @@ paths:
   /token-certificates/{hash}/import:
     post: # ok
       tags:
-        - security server
+        - token-certificates
       summary: import an existing certificate from a token by cert hash
       operationId: importCertificateFromToken
       description: Imports certificate from a token to the system
@@ -429,7 +472,7 @@ paths:
   /token-certificates/{hash}/possible-actions:
     get: # ok
       tags:
-        - security server
+        - token-certificates
       summary: get possible actions for one certificate
       operationId: getPossibleActionsForCertificate
       description: UI needs to know which actions can be done on one certificate
@@ -465,7 +508,7 @@ paths:
   /token-certificates/{hash}/register:
     put: # ok
       tags:
-        - security server
+        - token-certificates
       summary: register certificate
       operationId: registerCertificate
       description: Administrator registers selected certificate.
@@ -502,7 +545,7 @@ paths:
   /token-certificates/{hash}/unregister:
     put: # ok
       tags:
-        - security server
+        - token-certificates
       summary: unregister authentication certificate
       operationId: unregisterAuthCertificate
       description: Administrator unregisters selected authentication certificate.
@@ -534,7 +577,7 @@ paths:
   /token-certificates/{hash}/mark-for-deletion:
     put: # ok
       tags:
-        - security server
+        - token-certificates
       summary: marks an auth certificate for deletion
       operationId: markAuthCertForDeletion
       description: Administrator marks an auth certificate for deletion.
@@ -566,7 +609,7 @@ paths:
   /clients:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: find security server clients
       operationId: findClients
       description: Administrator views the clients of the security server.
@@ -669,7 +712,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - clients
       summary: Add new client for the security server.
       operationId: addClient
       description: >
@@ -714,7 +757,7 @@ paths:
   /clients/{id}:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get security server client information
       operationId: getClient
       description: Administrator views the client details of the security server.
@@ -749,7 +792,7 @@ paths:
           description: internal server error
     patch: # ok
       tags:
-        - security server
+        - clients
       summary: update security server client information
       operationId: updateClient
       description: Administrator updates the client information.
@@ -789,7 +832,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - clients
       summary: delete security server client
       operationId: deleteClient
       description: Administrator deletes the client of the security server.
@@ -819,7 +862,7 @@ paths:
   /clients/{id}/local-groups:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get local groups for the selected client
       operationId: getClientLocalGroups
       description: Administrator views the local groups for the client.
@@ -858,7 +901,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - clients
       summary: add new local group for the security server client
       operationId: addClientLocalGroup
       description: Administrator adds a new local group for the client.
@@ -902,7 +945,7 @@ paths:
   /clients/{id}/orphans:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get information about orphaned sign keys, certificates and csrs left behind a delete client
       operationId: getClientOrphans
       description: Administrator has deleted a client and wants to know if some orphaned sign keys, certificates or csrs exist
@@ -937,7 +980,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - clients
       summary: delete orphaned sign keys, certificates and csrs left behind a delete client
       operationId: deleteOrphans
       description: Administrator deletes the orphaned sign keys, certificates and csrs left behind a delete client.
@@ -967,7 +1010,7 @@ paths:
   /clients/{id}/register:
     put: # ok
       tags:
-        - security server
+        - clients
       summary: register security server client
       operationId: registerClient
       description: Administrator registers client.
@@ -999,7 +1042,7 @@ paths:
   /clients/{id}/service-clients:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get service clients for the selected client's services
       operationId: getClientServiceClients
       description: Administrator views the service clients for the client.
@@ -1039,7 +1082,7 @@ paths:
   /clients/{id}/service-clients/{sc_id}:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get single service client by client id and service client id
       operationId: getServiceClient
       description: Administrator views the information for a single service client
@@ -1084,7 +1127,7 @@ paths:
   /clients/{id}/service-clients/{sc_id}/access-rights:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get access rights for the selected service client.
       operationId: getServiceClientAccessRights
       description: Administrator views service client's access rights.
@@ -1132,7 +1175,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - clients
       summary: add new access rights for selected service client. If service client did not exist yet, one is created.
       operationId: addServiceClientAccessRights
       description: Adds access rights to the service client.
@@ -1188,7 +1231,7 @@ paths:
   /clients/{id}/service-clients/{sc_id}/access-rights/delete:
     post: # ok
       tags:
-        - security server
+        - clients
       summary: remove access rights
       operationId: deleteServiceClientAccessRights
       description: Administrator removes access rights from selected service client.
@@ -1237,7 +1280,7 @@ paths:
   /clients/{id}/sign-certificates:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get security server client certificates information
       operationId: getClientSignCertificates
       description: Administrator views the certificates for the client.
@@ -1277,7 +1320,7 @@ paths:
   /clients/{id}/tls-certificates:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get security server client TLS certificates information
       operationId: getClientTlsCertificates
       description: Administrator views the TLS certificates for the client.
@@ -1316,7 +1359,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - clients
       summary: add new certificate for the security server client
       operationId: addClientTlsCertificate
       description: Administrator adds a new certificate for the client.
@@ -1362,7 +1405,7 @@ paths:
   /clients/{id}/tls-certificates/{hash}:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get TLS certificate
       operationId: getClientTlsCertificate
       description: Administrator gets the TLS certificate for the selected client.
@@ -1406,7 +1449,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - clients
       summary: delete certificate
       operationId: deleteClientTlsCertificate
       description: Administrator deletes the certificate from selected client.
@@ -1445,7 +1488,7 @@ paths:
   /clients/{id}/unregister:
     put: # ok
       tags:
-        - security server
+        - clients
       summary: unregister security server client
       operationId: unregisterClient
       description: Administrator unregisters client.
@@ -1477,7 +1520,7 @@ paths:
   /clients/{id}/service-descriptions:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: get security server client service descriptions
       operationId: getClientServiceDescriptions
       description: Administrator views the service descriptions for the client.
@@ -1516,7 +1559,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - clients
       summary: add new service description for the security server client
       operationId: addClientServiceDescription
       description: Administrator adds a new service description for the client.
@@ -1566,7 +1609,7 @@ paths:
   /clients/{id}/service-client-candidates:
     get: # ok
       tags:
-        - security server
+        - clients
       summary: find ServiceClient candidates for a specific client
       operationId: findServiceClientCandidates
       description: Administrator views the clients, globalgroups and localgroups, that could be added as ServiceClients for given Client's services
@@ -1661,7 +1704,7 @@ paths:
   /clients/{id}/make-owner:
     put: # ok
       tags:
-        - security server
+        - clients
       summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
       operationId: changeOwner
       description: Administrator changes Security Server's owner.
@@ -1694,7 +1737,7 @@ paths:
   /diagnostics/globalconf:
     get: # ok
       tags:
-        - security server
+        - diagnostics
       summary: view global configuration diagnostics information
       operationId: getGlobalConfDiagnostics
       description: Administrator views the global configuration diagnostics information.
@@ -1720,7 +1763,7 @@ paths:
   /diagnostics/ocsp-responders:
     get: # ok
       tags:
-        - security server
+        - diagnostics
       summary: view ocsp responders diagnostics information
       operationId: getOcspRespondersDiagnostics
       description: Administrator views the ocsp responders diagnostics information.
@@ -1750,7 +1793,7 @@ paths:
   /diagnostics/timestamping-services:
     get: # ok
       tags:
-        - security server
+        - diagnostics
       summary: view timestamping services diagnostics information
       operationId: getTimestampingServicesDiagnostics
       description: Administrator views the timestamping services diagnostics information.
@@ -1780,7 +1823,7 @@ paths:
   /initialization:
     post: # ok
       tags:
-        - security server
+        - initialization
       summary: Initialize a new security server with the provided initial configuration
       operationId: initSecurityServer
       description: Administrator initializes a new security server with the provided initial configuration
@@ -1810,7 +1853,7 @@ paths:
   /initialization/status:
     get: # ok
       tags:
-        - security server
+        - initialization
       summary: Check the initialization status of the Security Server
       operationId: getInitializationStatus
       description: Administrator checks the initialization status of the Security Server
@@ -1838,7 +1881,7 @@ paths:
   /local-groups/{group_id}:
     get: # ok
       tags:
-        - security server
+        - local-groups
       summary: get local group information
       operationId: getLocalGroup
       description: Administrator views local group details.
@@ -1873,7 +1916,7 @@ paths:
           description: internal server error
     patch: # ok
       tags:
-        - security server
+        - local-groups
       summary: update local group information
       operationId: updateLocalGroup
       description: Administrator updates the local group information.
@@ -1913,7 +1956,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - local-groups
       summary: delete local group
       operationId: deleteLocalGroup
       description: Administrator deletes the local group.
@@ -1943,7 +1986,7 @@ paths:
   /local-groups/{group_id}/members:
     post: # ok
       tags:
-        - security server
+        - local-groups
       summary: add new member for the local group
       operationId: addLocalGroupMember
       description: Administrator adds a new member for the local group. The new member can be an X-Road member or a subsystem
@@ -1986,7 +2029,7 @@ paths:
   /local-groups/{group_id}/members/delete:
     post: # ok
       tags:
-        - security server
+        - local-groups
       summary: delete member from local group
       operationId: deleteLocalGroupMember
       description: Administrator deletes the member from local group.
@@ -2025,7 +2068,7 @@ paths:
   /keys/{id}:
     get: # ok
       tags:
-        - security server
+        - keys
       summary: get information for the selected key in selected token
       operationId: getKey
       description: Administrator views key details.
@@ -2059,7 +2102,7 @@ paths:
           description: internal server error
     patch: # ok
       tags:
-        - security server
+        - keys
       summary: update key information
       operationId: updateKey
       description: Administrator updates the key information.
@@ -2098,7 +2141,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - keys
       summary: delete key
       operationId: deleteKey
       description: Administrator deletes the key.
@@ -2127,7 +2170,7 @@ paths:
   /keys/{id}/csrs:
     post: # ok
       tags:
-        - security server
+        - keys
       summary: generate csr for the selected key
       operationId: generateCsr
       description: Administrator generates csr for the key.
@@ -2170,7 +2213,7 @@ paths:
   /keys/{id}/csrs/{csr_id}:
     get: # ok
       tags:
-        - security server
+        - keys
       summary: download a CSR binary
       operationId: downloadCsr
       description: Administrator downloads a csr that has been created earlier
@@ -2221,7 +2264,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - keys
       summary: delete csr from the selected key
       operationId: deleteCsr
       description: Administrator deletes csr from the key.
@@ -2261,7 +2304,7 @@ paths:
   /keys/{id}/csrs/{csr_id}/possible-actions:
     get: # ok
       tags:
-        - security server
+        - keys
       summary: get possible actions for one csr
       operationId: getPossibleActionsForCsr
       description: UI needs to know which actions can be done on one csr
@@ -2305,7 +2348,7 @@ paths:
   /keys/{id}/possible-actions:
     get: # ok
       tags:
-        - security server
+        - keys
       summary: get possible actions for one key
       operationId: getPossibleActionsForKey
       description: UI needs to know which actions can be done on one key
@@ -2340,7 +2383,7 @@ paths:
   /member-classes:
     get: # ok
       tags:
-        - security server
+        - member-classes
       summary: get list of known member classes
       operationId: getMemberClasses
       description: Administrator lists member classes.
@@ -2382,7 +2425,7 @@ paths:
   /member-classes/{id}:
     get: # ok
       tags:
-        - security server
+        - member-classes
       summary: get list of known member classes for a given instance
       operationId: getMemberClassesForInstance
       description: Administrator lists member classes for a given instance.
@@ -2425,7 +2468,7 @@ paths:
   /member-names:
     get: # ok
       tags:
-        - security server
+        - member-names
       summary: find member name by member class and member code
       operationId: findMemberName
       description: Administrator looks up member's name
@@ -2470,7 +2513,7 @@ paths:
   /language:
     put: # ok
       tags:
-        - security server
+        - language
       summary: change language
       operationId: language
       description: Administrator changes the language for the UI.
@@ -2506,7 +2549,7 @@ paths:
   /user:
     get: # ok
       tags:
-        - security server
+        - user
       summary: get user data for the logged user
       operationId: getUser
       description: Administrator gets user data from backend.
@@ -2532,7 +2575,7 @@ paths:
   /security-servers:
     get: # ok
       tags:
-        - security server
+        - security-servers
       summary: get all security servers
       operationId: getSecurityServers
       description: SS administrator views the details of all security servers
@@ -2570,7 +2613,7 @@ paths:
   /security-servers/{id}:
     get: # ok
       tags:
-        - security server
+        - security-servers
       summary: get security server information
       operationId: getSecurityServer
       description: SS administrator views the details of a security server.
@@ -2606,7 +2649,7 @@ paths:
   /services/{id}:
     get: # ok
       tags:
-        - security server
+        - services
       summary: get service
       operationId: getService
       description: Administrator views selected service.
@@ -2642,7 +2685,7 @@ paths:
           description: internal server error
     patch: # ok
       tags:
-        - security server
+        - services
       summary: update service
       operationId: updateService
       description: Administrator updates the service.
@@ -2684,7 +2727,7 @@ paths:
   /services/{id}/endpoints:
     post:
       tags:
-        - security server
+        - services
       summary: create endpoint
       operationId: addEndpoint
       description: Administrator creates a new endpoint.
@@ -2728,7 +2771,7 @@ paths:
   /services/{id}/service-clients:
     get: # ok
       tags:
-        - security server
+        - services
       summary: get service clients who have access rights for the selected service
       operationId: getServiceServiceClients
       description: Administrator views service clients who have access to the given service
@@ -2768,7 +2811,7 @@ paths:
           description: internal server error
     post:
       tags:
-        - security server
+        - services
       summary: add access rights to selected service for new ServiceClients
       operationId: addServiceServiceClients
       description: Adds access rights to selected service for new ServiceClients
@@ -2815,7 +2858,7 @@ paths:
   /services/{id}/service-clients/delete:
     post: # ok
       tags:
-        - security server
+        - services
       summary: remove access to selected service from given ServiceClients
       operationId: deleteServiceServiceClients
       description: Administrator removes access to selected service from given ServiceClients
@@ -2850,7 +2893,7 @@ paths:
   /endpoints/{id}:
     get:
       tags:
-        - security server
+        - endpoints
       operationId: getEndpoint
       description: Administrator fetches an endpoint
       parameters:
@@ -2885,7 +2928,7 @@ paths:
           description: internal server error
     patch:
       tags:
-        - security server
+        - endpoints
       operationId: updateEndpoint
       description: Administrator updates an endpoint
       parameters:
@@ -2927,7 +2970,7 @@ paths:
           description: internal server error
     delete:
       tags:
-        - security server
+        - endpoints
       summary: delete endpoint
       operationId: deleteEndpoint
       description: Administrator removes an endpoint
@@ -2960,7 +3003,7 @@ paths:
   /endpoints/{id}/service-clients:
     get:
       tags:
-        - security server
+        - endpoints
       summary: get service clients who have access rights for the selected endpoint
       operationId: getEndpointServiceClients
       description: Administrator views endpoints access rights
@@ -2998,7 +3041,7 @@ paths:
           description: internal server error
     post:
       tags:
-        - security server
+        - endpoints
       summary: add access rights for given service clients to the selected endpoint
       operationId: addEndpointServiceClients
       description: Administrator add access rights for a service clients to the selected endpoint
@@ -3045,7 +3088,7 @@ paths:
   /endpoints/{id}/service-clients/delete:
     post:
       tags:
-        - security server
+        - endpoints
       summary: remove access rights from specified service clients to the selected endpoint
       operationId: deleteEndpointServiceClients
       description: Administrator removes access rights from a service clients to an endpoint
@@ -3083,7 +3126,7 @@ paths:
   /service-descriptions/{id}:
     get: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: get service description with provided id
       operationId: getServiceDescription
       description: Administrator views a service description with a certain id.
@@ -3118,7 +3161,7 @@ paths:
           description: internal server error
     patch: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: update url or service code for the selected service description
       operationId: updateServiceDescription
       description: Administrator updates the selected service description.
@@ -3165,7 +3208,7 @@ paths:
           description: internal server error
     delete: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: delete service description
       operationId: deleteServiceDescription
       description: Administrator deletes the service description.
@@ -3195,7 +3238,7 @@ paths:
   /service-descriptions/{id}/disable:
     put: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: disable selected service description
       operationId: disableServiceDescription
       description: Administrator disables service description.
@@ -3233,7 +3276,7 @@ paths:
   /service-descriptions/{id}/enable:
     put: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: enable selected service description
       operationId: enableServiceDescription
       description: Administrator enables service description.
@@ -3265,7 +3308,7 @@ paths:
   /service-descriptions/{id}/refresh:
     put: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: refresh selected service description
       operationId: refreshServiceDescription
       description: Administrator refreshes service description.
@@ -3313,7 +3356,7 @@ paths:
   /service-descriptions/{id}/services:
     get: # ok
       tags:
-        - security server
+        - service-descriptions
       summary: get services for the selected service description
       operationId: getServiceDescriptionServices
       description: Administrator views the services for the selected service description.
@@ -3353,7 +3396,7 @@ paths:
   /system/anchor:
     get: # ok
       tags:
-        - security server
+        - system
       summary: view the configuration anchor information
       operationId: getAnchor
       description: Administrator views the configuration anchor information.
@@ -3378,7 +3421,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - system
       summary: Upload a new configuration anchor file when initializing a new security server.
         Calls to this endpoint only succeed if a configuration anchor is not already found – meaning that this endpoint can only be used when initializing a new security server.
         For updating the anchor for an already initialized security server use the PUT /system/anchor endpoint instead
@@ -3411,7 +3454,7 @@ paths:
           description: internal server error
     put: # ok
       tags:
-        - security server
+        - system
       summary: Upload a configuration anchor file to replace an existing one. Note that this only works if there already exists an anchor that can be replaced.
         When initalizing a new Security Server use endpoint POST /system/anchor instead
       operationId: replaceAnchor
@@ -3444,7 +3487,7 @@ paths:
   /system/anchor/previews:
     post: # ok
       tags:
-        - security server
+        - system
       summary: Read and the configuration anchor file and return the hash for a preview.
         The instance of the anchor is also validated unless the validate_instance query parameter is explicitly set to false.
         The anchor will not be saved
@@ -3492,7 +3535,7 @@ paths:
   /system/anchor/download:
     get: # ok
       tags:
-        - security server
+        - system
       summary: download configuration anchor information
       operationId: downloadAnchor
       description: Administrator downloads the configuration anchor information.
@@ -3520,7 +3563,7 @@ paths:
   /system/certificate:
     get: # ok
       tags:
-        - security server
+        - system
       summary: view the security server certificate information
       operationId: getSystemCertificate
       description: Administrator views the security server TLS certificate information.
@@ -3545,7 +3588,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - system
       summary: generate a new internal TLS key and cert
       operationId: generateSystemTlsKeyAndCertificate
       description: Administrator generates new internal TLS key and certificate
@@ -3567,7 +3610,7 @@ paths:
   /system/certificate/export:
     get: # ok
       tags:
-        - security server
+        - system
       summary: download the security server certificate as gzip compressed tar archive
       operationId: downloadSystemCertificate
       description: Administrator downloads the security server TLS certificate.
@@ -3595,7 +3638,7 @@ paths:
   /system/certificate/csr:
     post: # ok
       tags:
-        - security server
+        - system
       summary: generate new certificate request
       operationId: generateSystemCertificateRequest
       description: Administrator generates new certificate request.
@@ -3628,7 +3671,7 @@ paths:
   /system/certificate/import:
     post: # ok
       tags:
-        - security server
+        - system
       summary: import new internal TLS certificate.
       operationId: importSystemCertificate
       description: Administrator imports new internal TLS certificate
@@ -3664,7 +3707,7 @@ paths:
   /certificate-authorities:
     get: # ok
       tags:
-        - security server
+        - certificate-authorities
       summary: view the approved certificate authorities
       operationId: getApprovedCertificateAuthorities
       description: Administrator views the approved certificate authorities.
@@ -3706,7 +3749,7 @@ paths:
   /certificate-authorities/{ca_name}/csr-subject-fields:
     get: # ok
       tags:
-        - security server
+        - certificate-authorities
       summary: get description of subject DN fields for CSR
       operationId: getSubjectFieldDescriptions
       description: list DN field descriptions to collect CSR parameters
@@ -3778,7 +3821,7 @@ paths:
   /system/timestamping-services:
     get: # ok
       tags:
-        - security server
+        - system
       summary: view the configured timestamping services
       operationId: getConfiguredTimestampingServices
       description: Administrator views the configured timestamping services.
@@ -3807,7 +3850,7 @@ paths:
           description: internal server error
     post: # ok
       tags:
-        - security server
+        - system
       summary: add a configured timestamping service
       operationId: addConfiguredTimestampingService
       description: Administrator selects new timestamping service
@@ -3841,7 +3884,7 @@ paths:
   /system/timestamping-services/delete:
     post: # ok
       tags:
-        - security server
+        - system
       summary: delete configured timestamping service
       operationId: deleteConfiguredTimestampingService
       description: Administrator removes configured timestamping service.
@@ -3867,7 +3910,7 @@ paths:
   /system/version:
     get: # ok
       tags:
-        - security server
+        - system
       summary: get information for the system version
       operationId: systemVersion
       description: Administrator views key details.
@@ -3893,7 +3936,7 @@ paths:
   /timestamping-services:
     get: # ok
       tags:
-        - security server
+        - timestamping-services
       summary: view the approved timestamping services
       operationId: getApprovedTimestampingServices
       description: Administrator views the approved timestamping services.
@@ -3924,7 +3967,7 @@ paths:
   /tokens:
     get: # ok
       tags:
-        - security server
+        - tokens
       summary: get security server tokens
       operationId: getTokens
       description: Administrator views tokens of the security server.
@@ -3954,7 +3997,7 @@ paths:
   /tokens/{id}:
     get: # ok
       tags:
-        - security server
+        - tokens
       summary: get security server token information
       operationId: getToken
       description: Administrator views the token details of the security server.
@@ -3989,7 +4032,7 @@ paths:
           description: internal server error
     patch: # ok
       tags:
-        - security server
+        - tokens
       summary: update security server token information
       operationId: updateToken
       description: Administrator updates the token information.
@@ -4030,7 +4073,7 @@ paths:
   /tokens/{id}/keys-with-csrs:
     post: # ok
       tags:
-        - security server
+        - tokens
       summary: add a new key and generate a csr for it
       operationId: addKeyAndCsr
       description: Administrator adds a new key and generates a csr for it.
@@ -4073,7 +4116,7 @@ paths:
   /tokens/{id}/keys:
     post: # ok
       tags:
-        - security server
+        - tokens
       summary: add new key
       operationId: addKey
       description: Adds key for selected token.
@@ -4116,7 +4159,7 @@ paths:
   /tokens/{id}/login:
     put: # ok
       tags:
-        - security server
+        - tokens
       summary: login to token
       operationId: loginToken
       description: Login to token
@@ -4156,7 +4199,7 @@ paths:
   /tokens/{id}/logout:
     put: # ok
       tags:
-        - security server
+        - tokens
       summary: logout from token
       operationId: logoutToken
       description: Administrator logs out from token.
@@ -4191,7 +4234,7 @@ paths:
   /xroad-instances:
     get: # ok
       tags:
-        - security server
+        - xroad-instances
       summary: get list of known xroad instance identifiers
       operationId: getXroadInstances
       description: Administrator lists xroad instance identifiers
