@@ -2,7 +2,7 @@
   <div>
     <input
       v-show="false"
-      ref="anchorUpload"
+      ref="fileInput"
       type="file"
       :accept="accepts"
       @change="onUploadFileChanged"
@@ -42,7 +42,7 @@ export default Vue.extend({
   },
   methods: {
     upload() {
-      (this.$refs.anchorUpload as HTMLInputElement).click();
+      (this.$refs.fileInput as HTMLInputElement).click();
     },
     onUploadFileChanged(event: FileUploadEvent) {
       const files = isDragEvent(event)
@@ -64,7 +64,7 @@ export default Vue.extend({
         } as FileUploadResult);
       };
       reader.readAsArrayBuffer(file);
-      (this.$refs.anchorUpload as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
+      (this.$refs.fileInput as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
     },
   },
 });
