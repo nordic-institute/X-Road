@@ -45,6 +45,8 @@ import java.net.URI;
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ApiUtil {
 
+    public static final String API_V1_PREFIX = "/api/v1";
+
     /**
      * Create a specified example response, to return from endpoints not implemented yet
      * @param req

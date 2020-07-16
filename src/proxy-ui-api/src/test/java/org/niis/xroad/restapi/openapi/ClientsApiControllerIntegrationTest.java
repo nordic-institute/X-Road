@@ -221,7 +221,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(5, response.getBody().size());
         Client client = response.getBody().get(0);
-        assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
     }
 

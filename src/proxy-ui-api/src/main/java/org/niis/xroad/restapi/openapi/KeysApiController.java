@@ -75,7 +75,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_KEY_N
  * keys controller
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class KeysApiController implements KeysApi {

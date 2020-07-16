@@ -39,7 +39,7 @@ import java.util.List;
  * controller for xroad instance identifiers
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 public class XroadInstancesApiController implements XroadInstancesApi {
 

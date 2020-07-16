@@ -1,6 +1,6 @@
 #!/bin/bash
-
-echo "looping starts"
+# allow signer to start up
+sleep 3
 return_value=-1
 while [ $return_value -ne 0 ]
 do
@@ -12,5 +12,5 @@ do
         echo "wrong PIN, or PIN not available and should not retry"
         break
     fi
-    sleep 1
+    sleep 3
 done

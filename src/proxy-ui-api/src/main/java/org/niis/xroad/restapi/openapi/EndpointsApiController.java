@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
+import org.niis.xroad.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
@@ -40,6 +41,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
@@ -51,6 +53,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,7 +66,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound
  * Endpoints api
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class EndpointsApiController implements EndpointsApi {
@@ -74,6 +77,7 @@ public class EndpointsApiController implements EndpointsApi {
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 
@@ -91,6 +95,7 @@ public class EndpointsApiController implements EndpointsApi {
         this.serviceClientConverter = serviceClientConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
     }
 
     @Override
@@ -137,6 +142,10 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
             throw new BadRequestException("Updating is not allowed for generated endpoint " + id);
+        } catch (EndpointAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (ClientNotFoundException e) {
+            throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
 
         return new ResponseEntity<>(ep, HttpStatus.OK);
@@ -156,6 +165,7 @@ public class EndpointsApiController implements EndpointsApi {
         }
         List<ServiceClient> serviceClients = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -181,6 +191,7 @@ public class EndpointsApiController implements EndpointsApi {
 
         List<ServiceClient> serviceClientsResult = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
+        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
     }
 

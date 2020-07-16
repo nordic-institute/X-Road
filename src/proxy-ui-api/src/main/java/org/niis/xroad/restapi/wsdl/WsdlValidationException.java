@@ -40,4 +40,8 @@ public class WsdlValidationException extends ServiceException {
     public WsdlValidationException(Throwable t, ErrorDeviation errorDeviation) {
         super(t, errorDeviation);
     }
+
+    public WsdlValidationException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
+    }
 }
