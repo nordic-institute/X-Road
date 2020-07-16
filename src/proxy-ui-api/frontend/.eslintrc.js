@@ -19,5 +19,6 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     '@typescript-eslint/camelcase': 'off',
     'vue/no-unused-vars': 'warn',
+    '@typescript-eslint/no-explicit-any': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
   },
 };
