@@ -78,7 +78,10 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { UsageTypes, Permissions, PossibleActions } from '@/global';
-import { TokenCertificate } from '@/openapi-types';
+import {
+  TokenCertificate,
+  PossibleActions as PossibleActionsList,
+} from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -202,7 +205,9 @@ export default Vue.extend({
 
       // Fetch possible actions
       api
-        .get<string[]>(`/token-certificates/${hash}/possible-actions`)
+        .get<PossibleActionsList>(
+          `/token-certificates/${hash}/possible-actions`,
+        )
         .then((res) => {
           this.possibleActions = res.data;
         })
