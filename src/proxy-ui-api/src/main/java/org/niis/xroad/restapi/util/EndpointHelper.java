@@ -53,8 +53,7 @@ public class EndpointHelper {
 
     /**
      * Get endpoints from given service description
-     * @param service
-     * @param client
+     * @param serviceDescriptionType
      * @return
      */
     public List<EndpointType> getEndpoints(ServiceDescriptionType serviceDescriptionType) {

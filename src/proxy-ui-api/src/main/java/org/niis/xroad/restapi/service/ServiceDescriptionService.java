@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -106,6 +107,7 @@ public class ServiceDescriptionService {
 
     /**
      * ServiceDescriptionService constructor
+     *
      * @param serviceDescriptionRepository
      * @param clientService
      * @param clientRepository
@@ -133,6 +135,7 @@ public class ServiceDescriptionService {
 
     /**
      * Disable 1 services
+     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void disableServices(long serviceDescriptionId,
@@ -142,6 +145,7 @@ public class ServiceDescriptionService {
 
     /**
      * Enable 1 service
+     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void enableServices(long serviceDescriptionId) throws ServiceDescriptionNotFoundException {
@@ -150,6 +154,7 @@ public class ServiceDescriptionService {
 
     /**
      * Change 1-n services to enabled/disabled
+     *
      * @param serviceDescriptionId
      * @param disabledNotice
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
@@ -185,6 +190,7 @@ public class ServiceDescriptionService {
 
     /**
      * Delete one ServiceDescription
+     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given id was not found
      */
     public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
@@ -220,6 +226,7 @@ public class ServiceDescriptionService {
 
     /**
      * Add a new WSDL ServiceDescription
+     *
      * @param clientId
      * @param url
      * @param ignoreWarnings
@@ -270,6 +277,7 @@ public class ServiceDescriptionService {
     /**
      * Create a new {@link EndpointType} for all Services in the provided {@link ServiceDescriptionType}.
      * If an equal EndpointType already exists for the provided {@link ClientType} it will not be returned
+     *
      * @param client
      * @param newServiceDescription
      * @return Only the newly created EndpointTypes
@@ -302,6 +310,7 @@ public class ServiceDescriptionService {
 
     /**
      * Add openapi3 ServiceDescription
+     *
      * @param clientId
      * @param url
      * @param serviceCode
@@ -379,6 +388,7 @@ public class ServiceDescriptionService {
 
     /**
      * Check whether the ServiceDescriptions url already exists in the linked Client
+     *
      * @param serviceDescription
      * @throws UrlAlreadyExistsException if trying to add duplicate url
      */
@@ -394,6 +404,7 @@ public class ServiceDescriptionService {
 
     /**
      * Check whether the ServiceDescriptions ServiceCode already exists in the linked Client
+     *
      * @param serviceDescription
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
      */
@@ -431,6 +442,7 @@ public class ServiceDescriptionService {
 
     /**
      * Add a new REST ServiceDescription
+     *
      * @param clientId
      * @param url
      * @param serviceCode
@@ -490,6 +502,7 @@ public class ServiceDescriptionService {
 
     /**
      * Update the WSDL url of the selected ServiceDescription
+     *
      * @param id
      * @param url the new url
      * @return ServiceDescriptionType
@@ -522,6 +535,7 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh Service Description
+     *
      * @param id
      * @param ignoreWarnings
      * @return
@@ -560,6 +574,7 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh a ServiceDescription
+     *
      * @param serviceDescriptionType
      * @param ignoreWarnings
      * @return {@link ServiceDescriptionType}
@@ -598,6 +613,7 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh OPENAPI3 ServiceDescription
+     *
      * @param serviceDescriptionType
      * @param ignoreWarnings
      * @return {@link ServiceDescriptionType}
@@ -635,6 +651,7 @@ public class ServiceDescriptionService {
 
     /**
      * Update Rest service description
+     *
      * @param id
      * @param url
      * @param restServiceCode
@@ -688,6 +705,7 @@ public class ServiceDescriptionService {
 
     /**
      * Update OpenApi3 ServiceDescription
+     *
      * @param id
      * @param url
      * @param restServiceCode
@@ -750,6 +768,7 @@ public class ServiceDescriptionService {
 
     /**
      * Parse OpenApi3 description and update endpoints and acls in ServiceDescription accordingly
+     *
      * @param url
      * @param serviceCode
      * @param ignoreWarnings
@@ -787,32 +806,38 @@ public class ServiceDescriptionService {
         });
 
         // Remove ACLs that don't exist in the parsed endpoints list and belong to the service description in question
-        serviceDescription.getClient().getAcl().removeIf(acl ->
-                acl.getEndpoint().isGenerated()
-                        && parsedEndpoints.stream().noneMatch(endpoint -> acl.getEndpoint().isEquivalent(endpoint)
-                        && oldServiceDescriptionEndpoints.contains(endpoint)));
-
+        List<AccessRightType> aclToBeRemoved = serviceDescription.getClient().getAcl().stream()
+                .filter(accessRightType -> {
+                    EndpointType endpoint = accessRightType.getEndpoint();
+                    return endpoint.isGenerated()
+                            && oldServiceDescriptionEndpoints.contains(endpoint)
+                            && parsedEndpoints.stream()
+                            .noneMatch(parsedEndpoint -> parsedEndpoint.isEquivalent(endpoint));
+                })
+                .collect(Collectors.toList());
+        serviceDescription.getClient().getAcl().removeAll(aclToBeRemoved);
 
         /*
           Remove generated endpoints that are not found from the parsed endpoints and belong to the service
           description in question
         */
-        List<EndpointType> toBeRemoved = oldServiceDescriptionEndpoints.stream()
+        List<EndpointType> endpointsToBeRemoved = oldServiceDescriptionEndpoints.stream()
                 .filter(ep -> ep.isGenerated() && parsedEndpoints.stream()
                         .noneMatch(parsedEp -> parsedEp.isEquivalent(ep)))
                 .collect(Collectors.toList());
-        serviceDescription.getClient().getEndpoint().removeAll(toBeRemoved);
+        serviceDescription.getClient().getEndpoint().removeAll(endpointsToBeRemoved);
 
         // Add parsed endpoints to endpoints list if it is not already there
-        List<EndpointType> toBeAdded = parsedEndpoints.stream()
+        List<EndpointType> endpointsToBeAdded = parsedEndpoints.stream()
                 .filter(parsedEp -> serviceDescription.getClient().getEndpoint().stream()
                         .noneMatch(ep -> ep.isEquivalent(parsedEp)))
                 .collect(Collectors.toList());
-        serviceDescription.getClient().getEndpoint().addAll(toBeAdded);
+        serviceDescription.getClient().getEndpoint().addAll(endpointsToBeAdded);
     }
 
     /**
      * Updates the ServiceCodes of Endpoints and Service linked to given ServiceDescription
+     *
      * @param serviceCode
      * @param newserviceCode
      * @param serviceDescriptiontype
@@ -838,6 +863,7 @@ public class ServiceDescriptionService {
      * Return matching ServiceDescription or null.
      * serviceDescription.services and serviceDescription.client are always loaded
      * with Hibernate.init()
+     *
      * @param id
      * @return ServiceDescriptionType
      */
@@ -854,6 +880,7 @@ public class ServiceDescriptionService {
      * Returns title for client's service with specific serviceCode.
      * Current implementation picks title of the first matching service with given service code,
      * if multiple versions exist.
+     *
      * @param clientType
      * @param serviceCode
      * @return title, or null if no title exists.
@@ -873,8 +900,9 @@ public class ServiceDescriptionService {
      * Update the WSDL url of the selected ServiceDescription.
      * Refreshing a WSDL is also an update of wsdl,
      * it just updates to the same URL value
+     *
      * @param serviceDescriptionType
-     * @param url the new url
+     * @param url                    the new url
      * @return ServiceDescriptionType
      */
     private ServiceDescriptionType updateWsdlUrl(ServiceDescriptionType serviceDescriptionType, String url,
@@ -1067,6 +1095,7 @@ public class ServiceDescriptionService {
     /**
      * Validate a WSDL in given url. If fatal validation errors, throws exception.
      * If non-fatal warnings, return those.
+     *
      * @param url
      * @return list of validation warnings that can be ignored by choice
      * @throws WsdlValidator.WsdlValidationFailedException
@@ -1131,11 +1160,12 @@ public class ServiceDescriptionService {
      * Parse and validate a given wsdl and detect problems it may have.
      * Fatal problems result in thrown exception, warnings are returned in
      * WsdlProcessingResult
-     * @param client client who is associated with the wsdl
-     * @param url url of the wsdl
+     *
+     * @param client                      client who is associated with the wsdl
+     * @param url                         url of the wsdl
      * @param updatedServiceDescriptionId id of the service description we
-     * will update with this wsdl, or null
-     * if we're adding a new one
+     *                                    will update with this wsdl, or null
+     *                                    if we're adding a new one
      * @return parsed and validated wsdl and possible warnings
      * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
      * @throws InvalidUrlException if url was empty or invalid
@@ -1187,6 +1217,7 @@ public class ServiceDescriptionService {
 
     /**
      * validate that all services have legal service code (name) and version
+     *
      * @throws InvalidServiceIdentifierException if there was at least one
      * invalid service code or version
      */
