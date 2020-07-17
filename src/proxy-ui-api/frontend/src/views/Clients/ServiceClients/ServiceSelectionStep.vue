@@ -123,7 +123,7 @@ export default Vue.extend({
           );
           this.$router.push(`/subsystem/serviceclients/${this.id}`);
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
 
       this.clear();
     },

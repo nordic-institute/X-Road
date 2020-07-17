@@ -83,7 +83,7 @@ export default Vue.extend({
     // Fetch anchor data so it can be shown in the UI
     fetchConfigurationAnchor() {
       api
-        .get('/system/anchor')
+        .get<Anchor>('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
 

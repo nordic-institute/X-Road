@@ -121,7 +121,7 @@ export default Vue.extend({
   methods: {
     fetchApprovedTimestampingServices(): void {
       api
-        .get('/timestamping-services')
+        .get<TimestampingService[]>('/timestamping-services')
         .then((resp) => (this.approvedTimestampingServices = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },

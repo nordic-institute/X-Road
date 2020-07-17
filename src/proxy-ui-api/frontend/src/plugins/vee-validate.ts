@@ -4,6 +4,8 @@ import i18n from '../i18n';
 import * as Helpers from '@/util/helpers';
 
 configure({
+  // This should be ok, as it is the vee-validate contract
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultMessage: (field, values: any): string => {
     // override the field name.
     values._field_ = i18n.t(`fields.${field}`);

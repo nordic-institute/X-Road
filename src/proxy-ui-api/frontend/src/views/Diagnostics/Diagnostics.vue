@@ -186,7 +186,9 @@ export default Vue.extend({
       this.ocspLoading = true;
 
       api
-        .get(`/diagnostics/timestamping-services`)
+        .get<TimestampingServiceDiagnostics[]>(
+          `/diagnostics/timestamping-services`,
+        )
         .then((res) => {
           this.timestampingServices = res.data;
         })
@@ -198,7 +200,7 @@ export default Vue.extend({
         });
 
       api
-        .get(`/diagnostics/globalconf`)
+        .get<GlobalConfDiagnostics>(`/diagnostics/globalconf`)
         .then((res) => {
           this.globalConf = res.data;
         })
@@ -210,7 +212,7 @@ export default Vue.extend({
         });
 
       api
-        .get(`/diagnostics/ocsp-responders`)
+        .get<OcspResponderDiagnostics[]>(`/diagnostics/ocsp-responders`)
         .then((res) => {
           this.ocspResponderDiagnostics = res.data;
         })
