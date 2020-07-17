@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -107,9 +108,12 @@ public class EndpointService {
      * @throws EndpointNotFoundException                endpoint not found with given id
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
      * @throws IllegalArgumentException                 passing illegal combination of parameters
+     * @throws ClientNotFoundException                  client for the endpoint not found
+     * @throws EndpointAlreadyExistsException           equivalent endpoint already exists for this client
      */
     public EndpointType updateEndpoint(Long id, String method, String path)
-            throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException {
+            throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException, ClientNotFoundException,
+            EndpointAlreadyExistsException {
 
         if ("".equals(path)) {
             throw new IllegalArgumentException("Path can't be empty string when updating an endpoint: "
@@ -121,7 +125,13 @@ public class EndpointService {
                 + id.toString());
         }
 
-        EndpointType endpoint = getEndpoint(id);
+        ClientType client = clientRepository.getClientByEndpointId(id);
+        Optional<EndpointType> endpointType = client.getEndpoint().stream().filter(e -> e.getId() == id).findFirst();
+        if (!endpointType.isPresent()) {
+            throw new EndpointNotFoundException(id.toString());
+        }
+
+        EndpointType endpoint = endpointType.get();
 
         if (endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointUpdateException(id.toString());
@@ -133,6 +143,11 @@ public class EndpointService {
 
         if (method != null) {
             endpoint.setMethod(method);
+        }
+
+        if (client.getEndpoint().stream().filter(e -> e.getId() != id).anyMatch(e -> e.isEquivalent(endpoint))) {
+            throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
+                    + "exists for this client");
         }
 
         endpointRepository.saveOrUpdate(endpoint);

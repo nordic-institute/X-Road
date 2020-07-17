@@ -1,15 +1,14 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveResponseAsFile } from '@/util/helpers';
-import { Client } from '@/openapi-types';
+import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 
 export interface ClientState {
   client: Client | null;
-  signCertificates: any[];
+  signCertificates: TokenCertificate[];
   connection_type: string | null;
-  tlsCertificates: any[];
-  ssCertificate: any;
+  tlsCertificates: CertificateDetails[];
+  ssCertificate: CertificateDetails | null;
 }
 
 export const clientState: ClientState = {
@@ -24,7 +23,7 @@ export const getters: GetterTree<ClientState, RootState> = {
   client(state): Client | null {
     return state.client;
   },
-  signCertificates(state): any[] {
+  signCertificates(state): TokenCertificate[] {
     return state.signCertificates;
   },
   connectionType(state): string | null | undefined {
@@ -33,10 +32,10 @@ export const getters: GetterTree<ClientState, RootState> = {
     }
     return null;
   },
-  tlsCertificates(state): any[] {
+  tlsCertificates(state): CertificateDetails[] {
     return state.tlsCertificates;
   },
-  ssCertificate(state): any {
+  ssCertificate(state): CertificateDetails | null {
     return state.ssCertificate;
   },
 };
@@ -45,13 +44,13 @@ export const mutations: MutationTree<ClientState> = {
   storeClient(state, client: Client | null) {
     state.client = client;
   },
-  storeSsCertificate(state, certificate: any) {
+  storeSsCertificate(state, certificate: CertificateDetails) {
     state.ssCertificate = certificate;
   },
-  storeTlsCertificates(state, certificates: any[]) {
+  storeTlsCertificates(state, certificates: CertificateDetails[]) {
     state.tlsCertificates = certificates;
   },
-  storeSignCertificates(state, certificates: any[]) {
+  storeSignCertificates(state, certificates: TokenCertificate[]) {
     state.signCertificates = certificates;
   },
   clearAll(state) {
@@ -63,7 +62,7 @@ export const mutations: MutationTree<ClientState> = {
 };
 
 export const actions: ActionTree<ClientState, RootState> = {
-  fetchClient({ commit, rootGetters }, id: string) {
+  fetchClient({ commit }, id: string) {
     if (!id) {
       throw new Error('Missing client id');
     }
@@ -83,7 +82,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get(`/clients/${id}/sign-certificates`)
+      .get<TokenCertificate[]>(`/clients/${id}/sign-certificates`)
       .then((res) => {
         commit('storeSignCertificates', res.data);
       })
@@ -98,7 +97,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get(`/clients/${id}/tls-certificates`)
+      .get<CertificateDetails[]>(`/clients/${id}/tls-certificates`)
       .then((res) => {
         commit('storeTlsCertificates', res.data);
       })
@@ -113,49 +112,13 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get(`/system/certificate`)
+      .get<CertificateDetails>(`/system/certificate`)
       .then((res) => {
         commit('storeSsCertificate', res.data);
       })
       .catch((error) => {
         throw error;
       });
-  },
-
-  fetchTlsCertificate({ commit, rootGetters }, { clientId, hash }) {
-    if (!clientId) {
-      throw new Error('Missing id');
-    }
-
-    if (!hash) {
-      throw new Error('Missing certificate hash');
-    }
-
-    return axios.get(`/clients/${clientId}/tls-certificates/${hash}`);
-  },
-
-  deleteTlsCertificate({ commit, state }, { clientId, hash }) {
-    return axios.delete(`/clients/${clientId}/tls-certificates/${hash}`);
-  },
-
-  downloadSSCertificate({ commit, state }, { hash }) {
-    axios
-      .get(`/system/certificate/export`, { responseType: 'arraybuffer' })
-      .then((response) => {
-        saveResponseAsFile(response);
-      });
-  },
-
-  uploadTlsCertificate({ commit, state }, data) {
-    return axios.post(
-      `/clients/${data.clientId}/tls-certificates/`,
-      data.fileData,
-      {
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      },
-    );
   },
 
   saveConnectionType({ commit }, { clientId, connType }) {
@@ -171,43 +134,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       .catch((error) => {
         throw error;
       });
-  },
-
-  registerClient({ commit, state }, clientId: string) {
-    return axios.put(`/clients/${clientId}/register`, {});
-  },
-
-  unregisterClient({ commit, state }, clientId) {
-    return axios.put(`/clients/${clientId}/unregister`, {});
-  },
-
-  addSubsystem(
-    { commit, state },
-    { memberName, memberClass, memberCode, subsystemCode },
-  ) {
-    const body = {
-      client: {
-        member_name: memberName,
-        member_class: memberClass,
-        member_code: memberCode,
-        subsystem_code: subsystemCode,
-      },
-      ignore_warnings: false,
-    };
-
-    return axios.post('/clients', body);
-  },
-
-  deleteClient({ commit, state }, clientId: string) {
-    return axios.delete(`/clients/${clientId}`);
-  },
-
-  getOrphans({ commit, state }, clientId: string) {
-    return axios.get(`/clients/${clientId}/orphans`);
-  },
-
-  deleteOrphans({ commit, state }, clientId: string) {
-    return axios.delete(`/clients/${clientId}/orphans`);
   },
 };
 

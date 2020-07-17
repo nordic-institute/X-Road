@@ -86,11 +86,9 @@ describe('helper functions', () => {
 
     expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest', 'id')).toEqual([]);
     expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest')).toHaveLength(1);
-    expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest', 'foo')).toHaveLength(1);
     expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest', 'owner')).toHaveLength(1);
     expect(Helpers.selectedFilter(arr, 'SAVED', 'owner')).toHaveLength(3);
     expect(Helpers.selectedFilter(arr, 'SAVED')).toHaveLength(3);
-    expect(Helpers.selectedFilter(arr, 'SAVED', 'foo')).toHaveLength(3);
     expect(Helpers.selectedFilter(arr, 'SAVED', 'status')).toEqual([]);
   });
 

@@ -54,7 +54,7 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .antMatcher(ApiKeysController.API_KEYS_PATH + "/**")
+            .antMatcher(ApiKeysController.API_KEYS_V1_PATH + "/**")
             .authorizeRequests()
                 .anyRequest()
                 .hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())

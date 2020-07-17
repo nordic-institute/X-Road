@@ -158,7 +158,7 @@ export default Vue.extend({
       confirmMember: false,
       confirmAllMembers: false,
       selectedMember: undefined as GroupMember | undefined,
-      description: undefined,
+      description: undefined as string | undefined,
       group: undefined as LocalGroup | undefined,
       groupCode: '',
       addMembersDialogVisible: false,
@@ -194,7 +194,7 @@ export default Vue.extend({
 
     saveDescription(): void {
       api
-        .patch(`/local-groups/${this.groupId}`, {
+        .patch<LocalGroup>(`/local-groups/${this.groupId}`, {
           description: this.description,
         })
         .then((res) => {
@@ -210,7 +210,7 @@ export default Vue.extend({
 
     fetchData(clientId: string, groupId: number | string): void {
       api
-        .get(`/local-groups/${groupId}`)
+        .get<LocalGroup>(`/local-groups/${groupId}`)
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;

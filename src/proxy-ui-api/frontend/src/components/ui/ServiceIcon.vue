@@ -6,17 +6,18 @@
 
 <script lang="ts">
 // Icon for a service. Shows lock icon with proper color.
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
+import { Service } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
     service: {
-      type: Object,
+      type: Object as PropType<Service>,
       required: true,
     },
   },
   methods: {
-    getServiceIcon(service: any): string {
+    getServiceIcon(service: Service): string {
       if (!service.url.startsWith('https')) {
         return 'mdi-lock-open-outline';
       }
@@ -32,7 +33,7 @@ export default Vue.extend({
       }
     },
 
-    getServiceIconColor(service: any): string {
+    getServiceIconColor(service: Service): string {
       if (!service.url.startsWith('https')) {
         return '';
       }

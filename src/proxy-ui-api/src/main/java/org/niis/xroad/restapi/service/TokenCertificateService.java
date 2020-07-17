@@ -411,21 +411,24 @@ public class TokenCertificateService {
     /**
      * Activates certificate
      * @param hash
-     * @throws CertificateNotFoundException
-     * @throws AccessDeniedException
+     * @throws CertificateNotFoundException if cert with given hash was not found
+     * @throws AccessDeniedException if user did not have correct permission for (de)activate
+     * @throws ActionNotPossibleException if cannot (de)activate
      */
     public void activateCertificate(String hash) throws CertificateNotFoundException,
-            AccessDeniedException, InvalidCertificateException {
+            AccessDeniedException, ActionNotPossibleException {
         changeCertificateActivation(hash, true);
     }
 
     /**
      * Deactivates certificate
      * @param hash
-     * @throws CertificateNotFoundException
+     * @throws CertificateNotFoundException if cert with given hash was not found
+     * @throws AccessDeniedException if user did not have correct permission for (de)activate
+     * @throws ActionNotPossibleException if cannot (de)activate
      */
     public void deactivateCertificate(String hash) throws CertificateNotFoundException, AccessDeniedException,
-            InvalidCertificateException {
+            ActionNotPossibleException {
         changeCertificateActivation(hash, false);
     }
 
@@ -434,13 +437,27 @@ public class TokenCertificateService {
      */
     private void changeCertificateActivation(String hash, boolean activate) throws CertificateNotFoundException,
             AccessDeniedException,
-            InvalidCertificateException {
+            ActionNotPossibleException {
+
+        // verify correct authority
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         try {
             verifyActivateDisableAuthority(certificateInfo.getCertificateBytes());
         } catch (InvalidCertificateException e) {
-            throw e;
+            // cert from signer proxy was invalid, should not be possible
+            throw new RuntimeException(e);
         }
+
+        // verify possible actions
+        EnumSet<PossibleActionEnum> possibleActions =
+                getPossibleActionsForCertificateInternal(hash, certificateInfo, null, null);
+        PossibleActionEnum activationAction = null;
+        if (activate) {
+            activationAction = PossibleActionEnum.ACTIVATE;
+        } else {
+            activationAction = PossibleActionEnum.DISABLE;
+        }
+        possibleActionsRuleEngine.requirePossibleAction(activationAction, possibleActions);
 
         // audit log data
         auditLogTokenKeyAndCert(hash, certificateInfo, true);
