@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
@@ -561,25 +562,69 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
     }
 
+    @Test
     @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
-    public void activateCertificate() throws CertificateNotFoundException {
+    public void deActivateCertificateCheckPossibleActions() throws Exception {
+        // we want to use the real rules for this test
+        Mockito.reset(possibleActionsRuleEngine);
+        // EXISTING_CERT_IN_SIGN_KEY_HASH - active
+        // EXISTING_CERT_IN_AUTH_KEY_HASH - inactive
+        doAnswer(invocation -> {
+            String certHash = (String) invocation.getArguments()[0];
+            boolean active = false;
+            switch (certHash) {
+                case EXISTING_CERT_IN_SIGN_KEY_HASH:
+                    active = false;
+                    break;
+                case EXISTING_CERT_IN_AUTH_KEY_HASH:
+                    active = true;
+                    break;
+                default:
+                    throw new RuntimeException("bad switch option: " + certHash);
+            }
+            return new CertificateInfo(null, active, true, "status", "certID",
+                    getMockAuthCertificateBytes(), null);
+        }).when(signerProxyFacade).getCertForHash(any());
+
+        // can activate inactive
+        tokenCertificateService.activateCertificate(EXISTING_CERT_IN_SIGN_KEY_HASH);
+
+        // can deactivate active
+        tokenCertificateService.deactivateCertificate(EXISTING_CERT_IN_AUTH_KEY_HASH);
+
+        try {
+            // can not activate already active -> possible actions exception
+            tokenCertificateService.activateCertificate(EXISTING_CERT_IN_AUTH_KEY_HASH);
+            fail("should throw XYZException");
+        } catch (Exception expected) {
+        }
+
+        try {
+            // can not deactivate already disabled -> possible actions exception
+            tokenCertificateService.deactivateCertificate(EXISTING_CERT_IN_SIGN_KEY_HASH);
+            fail("should throw XYZException");
+        } catch (Exception expected) {
+        }
+
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
+    public void activateMissingCertificate() throws Exception {
         try {
             tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
-        } catch (InvalidCertificateException e) {
-            fail("shouldn't throw InvalidCertificateException");
-        } catch (CodedException expected) {
-            assertEquals(expected.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
+            fail("should throw CertificateNotFoundException");
+        } catch (CertificateNotFoundException expected) {
         }
     }
 
+    @Test
     @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
-    public void deactivateCertificate() throws CertificateNotFoundException {
+    public void deactivateMissingCertificate() throws Exception {
         try {
             tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH);
-        } catch (InvalidCertificateException e) {
-            fail("shouldn't throw InvalidCertificateException");
-        } catch (CodedException e) {
-            assertEquals(e.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
+            fail("should throw CertificateNotFoundException");
+        } catch (CertificateNotFoundException e) {
         }
     }
 

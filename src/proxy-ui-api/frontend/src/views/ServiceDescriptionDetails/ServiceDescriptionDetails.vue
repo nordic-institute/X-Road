@@ -130,6 +130,7 @@
     <warningDialog
       :dialog="confirmEditWarning"
       :warnings="warningInfo"
+      :loading="editLoading"
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
     ></warningDialog>
@@ -150,7 +151,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceTypeEnum } from '@/domain';
-import { ServiceDescription } from '@/openapi-types';
+import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -179,6 +180,8 @@ export default Vue.extend({
       initialServiceCode: '',
       saveBusy: false,
       serviceTypeEnum: ServiceTypeEnum,
+      editLoading: false as boolean,
+      serviceDescriptionUpdate: null as ServiceDescriptionUpdate | null,
     };
   },
   computed: {
@@ -194,29 +197,33 @@ export default Vue.extend({
     save(): void {
       this.saveBusy = true;
 
-      const serviceDescriptionUpdate = {
-        id: this.serviceDesc.id,
+      this.serviceDescriptionUpdate = {
         url: this.serviceDesc.url,
         type: this.serviceDesc.type,
-      } as any;
+        ignore_warnings: false,
+      };
 
       if (
-        serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
-        serviceDescriptionUpdate.type === this.serviceTypeEnum.OPENAPI3
+        this.serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
+        this.serviceDescriptionUpdate.type === this.serviceTypeEnum.OPENAPI3
       ) {
-        serviceDescriptionUpdate.ignore_warnings = false;
-        serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
-        serviceDescriptionUpdate.new_rest_service_code =
-          serviceDescriptionUpdate.rest_service_code !== this.currentServiceCode
+        this.serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
+        this.serviceDescriptionUpdate.new_rest_service_code =
+          this.serviceDescriptionUpdate.rest_service_code !==
+          this.currentServiceCode
             ? this.currentServiceCode
-            : serviceDescriptionUpdate.rest_service_code;
+            : this.serviceDescriptionUpdate.rest_service_code;
       }
 
       api
-        .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
+        .patch(
+          `/service-descriptions/${this.id}`,
+          this.serviceDescriptionUpdate,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
+          this.serviceDescriptionUpdate = null;
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -226,13 +233,14 @@ export default Vue.extend({
           } else {
             this.$store.dispatch('showError', error);
             this.saveBusy = false;
+            this.serviceDescriptionUpdate = null;
           }
         });
     },
 
     fetchData(id: string): void {
       api
-        .get(`/service-descriptions/${id}`)
+        .get<ServiceDescription>(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
           this.initialServiceCode =
@@ -267,16 +275,17 @@ export default Vue.extend({
     },
 
     acceptEditWarning(): void {
-      const tempDesc: any = this.serviceDesc;
+      this.editLoading = true;
 
-      if (!tempDesc) {
-        return;
+      if (this.serviceDescriptionUpdate) {
+        this.serviceDescriptionUpdate.ignore_warnings = true;
       }
 
-      tempDesc.ignore_warnings = true;
-
       api
-        .patch(`/service-descriptions/${this.id}`, tempDesc)
+        .patch(
+          `/service-descriptions/${this.id}`,
+          this.serviceDescriptionUpdate,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.$router.go(-1);
@@ -286,12 +295,16 @@ export default Vue.extend({
         })
         .finally(() => {
           this.saveBusy = false;
+          this.editLoading = false;
+          this.confirmEditWarning = false;
+          this.serviceDescriptionUpdate = null;
         });
     },
 
     cancelEditWarning(): void {
       this.confirmEditWarning = false;
       this.saveBusy = false;
+      this.editLoading = false;
     },
   },
   created() {

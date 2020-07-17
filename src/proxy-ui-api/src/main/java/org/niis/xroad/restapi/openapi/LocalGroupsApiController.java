@@ -58,7 +58,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL
  * groups api
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class LocalGroupsApiController implements LocalGroupsApi {

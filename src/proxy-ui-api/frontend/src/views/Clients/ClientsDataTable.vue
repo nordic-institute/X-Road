@@ -175,6 +175,7 @@ import { ExtendedClient } from '@/ui-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { DataTableHeader } from 'vuetify';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -316,8 +317,8 @@ export default Vue.extend({
         item.subsystem_code,
       );
 
-      this.$store
-        .dispatch('registerClient', clientId)
+      api
+        .put(`/clients/${clientId}/register`, {})
         .then(
           () => {
             this.$store.dispatch(

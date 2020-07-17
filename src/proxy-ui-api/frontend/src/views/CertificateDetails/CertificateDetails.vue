@@ -78,7 +78,10 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { UsageTypes, Permissions, PossibleActions } from '@/global';
-import { TokenCertificate } from '@/openapi-types';
+import {
+  TokenCertificate,
+  PossibleActions as PossibleActionsList,
+} from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -192,7 +195,7 @@ export default Vue.extend({
     fetchData(hash: string): void {
       // Fetch certificate data
       api
-        .get(`/token-certificates/${hash}`)
+        .get<TokenCertificate>(`/token-certificates/${hash}`)
         .then((res) => {
           this.certificate = res.data;
         })
@@ -202,7 +205,9 @@ export default Vue.extend({
 
       // Fetch possible actions
       api
-        .get(`/token-certificates/${hash}/possible-actions`)
+        .get<PossibleActionsList>(
+          `/token-certificates/${hash}/possible-actions`,
+        )
         .then((res) => {
           this.possibleActions = res.data;
         })
@@ -218,7 +223,7 @@ export default Vue.extend({
 
       api
         .remove(`/token-certificates/${this.hash}`)
-        .then((res) => {
+        .then(() => {
           this.close();
           this.$store.dispatch('showSuccess', 'cert.certDeleted');
         })
@@ -229,7 +234,7 @@ export default Vue.extend({
     activateCertificate(hash: string): void {
       api
         .put(`/token-certificates/${hash}/activate`, hash)
-        .then((res: any) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'cert.activateSuccess');
           this.fetchData(this.hash);
         })
@@ -238,7 +243,7 @@ export default Vue.extend({
     deactivateCertificate(hash: string): void {
       api
         .put(`token-certificates/${hash}/disable`, hash)
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'cert.disableSuccess');
           this.fetchData(this.hash);
         })
@@ -257,7 +262,7 @@ export default Vue.extend({
           `/token-certificates/${this.certificate.certificate_details.hash}/unregister`,
           {},
         )
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyAdded');
         })
         .catch((error) => {
@@ -288,7 +293,7 @@ export default Vue.extend({
           `/token-certificates/${this.certificate.certificate_details.hash}/mark-for-deletion`,
           {},
         )
-        .then((res) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.certMarkedForDeletion');
           this.confirmUnregisterError = false;
           this.$emit('refreshList');

@@ -53,10 +53,7 @@ import {
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { ServiceCandidate } from '@/ui-types';
-import {
-  compareByServiceCode,
-  sortServicesAscendingByFullServiceCode,
-} from '@/util/sorting';
+import { compareByServiceCode } from '@/util/sorting';
 
 export default Vue.extend({
   props: {
@@ -85,14 +82,14 @@ export default Vue.extend({
     },
     fetchData: function(): void {
       api
-        .get(`/clients/${this.id}/service-clients`, {})
-        .then((response: any): void => (this.serviceClients = response.data))
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .get<ServiceClient[]>(`/clients/${this.id}/service-clients`, {})
+        .then((response) => (this.serviceClients = response.data))
+        .catch((error) => this.$store.dispatch('showError', error));
 
       api
-        .get(`/clients/${this.id}/service-descriptions`)
-        .then((response: any) => {
-          const serviceDescriptions = response.data as ServiceDescription[];
+        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
+        .then((response) => {
+          const serviceDescriptions = response.data;
 
           // Parse all services for the current client and map them to ServiceCandidates (manually added type for
           // objects that are used to add and list services that can be granted access rights to).
@@ -105,7 +102,7 @@ export default Vue.extend({
               id: service.id,
             }));
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     previousStep(): void {
       this.step -= 1;

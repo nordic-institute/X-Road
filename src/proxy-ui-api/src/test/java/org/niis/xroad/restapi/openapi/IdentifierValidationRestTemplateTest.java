@@ -145,7 +145,7 @@ public class IdentifierValidationRestTemplateTest {
                 .subsystemCode(subsystemCode)
                 .status(ClientStatus.SAVED);
         ClientAdd clientAdd = new ClientAdd().client(client);
-        return restTemplate.postForEntity("/api/clients", clientAdd, Object.class);
+        return restTemplate.postForEntity("/api/v1/clients", clientAdd, Object.class);
     }
 
     @Test
@@ -165,7 +165,7 @@ public class IdentifierValidationRestTemplateTest {
                 .url("http://www.google.com")
                 .restServiceCode(restServiceCode)
                 .type(ServiceType.REST);
-        return restTemplate.postForEntity("/api/clients/FI:GOV:M1:SS1/service-descriptions",
+        return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/service-descriptions",
                 serviceDescriptionAdd, Object.class);
     }
 
@@ -193,7 +193,7 @@ public class IdentifierValidationRestTemplateTest {
                 .newRestServiceCode(restServiceCode)
                 .type(ServiceType.REST);
 
-        return restTemplate.patchForObject("/api/service-descriptions/1", serviceDescriptionUpdate, Object.class);
+        return restTemplate.patchForObject("/api/v1/service-descriptions/1", serviceDescriptionUpdate, Object.class);
     }
 
     private void assertUpdateServiceDescriptionValidationFailure(String restServiceCode) {
@@ -233,7 +233,7 @@ public class IdentifierValidationRestTemplateTest {
                 .ownerMemberClass(ownerMemberClass)
                 .ownerMemberCode(ownerMemberCode)
                 .softwareTokenPin("1234");
-        return restTemplate.postForEntity("/api/initialization", initialServerConf, Object.class);
+        return restTemplate.postForEntity("/api/v1/initialization", initialServerConf, Object.class);
     }
 
     private void assertInitialServerConfValidationError(String securityServerCode, String ownerMemberClass,

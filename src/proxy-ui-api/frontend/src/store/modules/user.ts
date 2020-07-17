@@ -2,7 +2,7 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { SecurityServer, Version } from '@/openapi-types';
+import { SecurityServer, User, Version } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import { InitializationStatus } from '@/openapi-types';
@@ -126,7 +126,7 @@ export const mutations: MutationTree<UserState> = {
 };
 
 export const actions: ActionTree<UserState, RootState> = {
-  login({ commit, dispatch }, authData): Promise<any> {
+  login({ commit }, authData) {
     const data = `username=${authData.username}&password=${authData.password}`;
 
     return axiosAuth({
@@ -137,7 +137,7 @@ export const actions: ActionTree<UserState, RootState> = {
       },
       data,
     })
-      .then((res) => {
+      .then(() => {
         commit('authUser');
       })
       .catch((error) => {
@@ -145,9 +145,9 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  async fetchUserData({ commit, dispatch }) {
+  async fetchUserData({ commit }) {
     return axios
-      .get('/user')
+      .get<User>('/user')
       .then((res) => {
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
@@ -182,14 +182,14 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  logout({ commit, dispatch }, reload = true) {
+  logout({ commit }, reload = true) {
     // Clear auth data
     commit('clearAuthData');
 
     // Call backend for logout
     axiosAuth
       .post('/logout')
-      .catch((error) => {
+      .catch(() => {
         // Nothing to do
       })
       .finally(() => {

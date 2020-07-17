@@ -71,7 +71,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERV
  * service descriptions api
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class ServiceDescriptionsApiController implements ServiceDescriptionsApi {

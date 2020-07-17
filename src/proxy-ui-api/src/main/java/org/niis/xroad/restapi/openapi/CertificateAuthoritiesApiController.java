@@ -61,7 +61,7 @@ import java.util.List;
  * certificate authorities api controller
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class CertificateAuthoritiesApiController implements CertificateAuthoritiesApi {

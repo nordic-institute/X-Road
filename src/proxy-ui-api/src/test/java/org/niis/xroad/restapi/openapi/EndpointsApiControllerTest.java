@@ -25,9 +25,12 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.identifier.ClientId;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -48,7 +51,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,6 +83,33 @@ public class EndpointsApiControllerTest {
     private GlobalConfService globalConfService;
 
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
+
+    @Before
+    public void setup() throws Exception {
+        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
+                // exists in serverconf
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM1),
+                // exists in serverconf
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
+                        TestUtils.SUBSYSTEM5),
+                // exists in serverconf
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
+                        TestUtils.SUBSYSTEM6)));
+        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
+        when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
+            ClientId clientId = (ClientId) invocation.getArguments()[0];
+            Optional<MemberInfo> m = globalMemberInfos.stream()
+                    .filter(g -> g.getId().equals(clientId))
+                    .findFirst();
+            if (m.isPresent()) {
+                return m.get().getName();
+            } else {
+                return null;
+            }
+        });
+        when(globalConfFacade.getGlobalGroupDescription(any())).thenReturn("");
+    }
 
     @Test
     @WithMockUser(authorities = {"VIEW_ENDPOINT"})

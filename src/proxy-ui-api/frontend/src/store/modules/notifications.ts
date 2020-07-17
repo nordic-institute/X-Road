@@ -8,6 +8,7 @@ export interface NotificationsState {
   showSuccessRaw: boolean;
   errorMessageCode: string;
   errorMessageRaw: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorObject: any;
   showErrorObject: boolean;
   showErrorRaw: boolean;
@@ -60,6 +61,7 @@ export const getters: GetterTree<NotificationsState, RootState> = {
   errorMessageCode(state: NotificationsState): string {
     return state.errorMessageCode;
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorObject(state: NotificationsState): any {
     return state.errorObject;
   },
@@ -85,6 +87,7 @@ export const mutations: MutationTree<NotificationsState> = {
     state.errorMessageRaw = val;
     state.showErrorRaw = true;
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setErrorObject(state: NotificationsState, errorObject: any): void {
     state.errorObject = errorObject;
     state.showErrorObject = true;
@@ -127,6 +130,7 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     // Show error snackbar without localisation
     commit('setErrorMessageRaw', messageText);
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   showError({ commit }, errorObject: any): void {
     // Show error using the error object
     commit('setErrorObject', errorObject);

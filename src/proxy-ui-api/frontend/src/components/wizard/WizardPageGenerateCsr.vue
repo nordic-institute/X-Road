@@ -111,7 +111,7 @@ export default Vue.extend({
       if (this.keyAndCsr) {
         // Create key and CSR
         this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-          (response) => {
+          () => {
             this.disableDone = false;
           },
           (error) => {
@@ -121,7 +121,7 @@ export default Vue.extend({
       } else {
         // Create only CSR
         this.$store.dispatch('generateCsr').then(
-          (response) => {
+          () => {
             this.disableDone = false;
           },
           (error) => {
