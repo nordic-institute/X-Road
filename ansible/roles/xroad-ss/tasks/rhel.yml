@@ -75,11 +75,17 @@
     name: xroad-addon-opmonitoring
     state: latest
   when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
-      
+  tags:
+    - install-xroad-ss-packages
+
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
+  tags:
+    - install-xroad-ss-packages
 
 - name: start xroad-proxy (RHEL)
   service:
     name: xroad-proxy
     state: started
+  tags:
+    - install-xroad-ss-packages

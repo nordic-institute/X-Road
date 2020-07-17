@@ -45,6 +45,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
+
 /**
  * Controller notifications that are polled.
  * Requests to these endpoints do not cause session to stay alive.
@@ -52,11 +54,11 @@ import javax.servlet.http.HttpSession;
  * {@link SessionTimeoutFilter}
  */
 @RestController
-@RequestMapping(NotificationsApiController.NOTIFICATIONS_API_URL)
+@RequestMapping(NotificationsApiController.NOTIFICATIONS_API_V1_PATH)
 @Slf4j
 @PreAuthorize("isAuthenticated()")
 public class NotificationsApiController {
-    public static final String NOTIFICATIONS_API_URL = "/api/notifications";
+    public static final String NOTIFICATIONS_API_V1_PATH = API_V1_PREFIX + "/notifications";
 
     private final NotificationService notificationService;
     private final AlertDataConverter alertDataConverter;

@@ -23,45 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.util;
+package org.niis.xroad.restapi.converter.comparator;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Comparator;
 
-import java.util.List;
-
-@Slf4j
-public final class ClientUtils {
-
-    public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local sign certificate";
-
-    private ClientUtils() {
-        // noop
-    }
+/**
+ * Comparator for comparing ServiceClients for sorting purposes.
+ */
+public class ServiceClientSortingComparator implements Comparator<ServiceClient> {
 
     /**
-     *
-     * @param clientId
-     * @param certificateInfos
+     * Compare ServiceClient objects using member name / group description as the primary sort key, and client id
+     * as the secondary sort key.
+     * @param c1
+     * @param c2
      * @return
      */
-    public static boolean hasValidLocalSignCert(ClientId clientId, List<CertificateInfo> certificateInfos) {
-        for (CertificateInfo certificateInfo : certificateInfos) {
-            String ocspResponseStatus = null;
-            try {
-                ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
-            } catch (OcspUtils.OcspStatusExtractionException | RuntimeException e) {
-                log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
-                return false;
-            }
-            if (clientId.memberEquals(certificateInfo.getMemberId())
-                    && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
-                    && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {
-                return true;
-            }
+    @Override
+    public int compare(ServiceClient c1, ServiceClient c2) {
+        if (c1.getName() == null && c2.getName() == null) {
+            return c1.getId().compareToIgnoreCase(c2.getId());
+        } else if (c1.getName() == null) {
+            return 1;
+        } else if (c2.getName() == null) {
+            return -1;
         }
-        return false;
+        int compareTo = c1.getName().compareToIgnoreCase(c2.getName());
+        if (compareTo == 0) {
+            return c1.getId().compareToIgnoreCase(c2.getId());
+        }
+        return compareTo;
     }
 }

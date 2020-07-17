@@ -93,7 +93,7 @@ public class AuditLoggingRestTemplateTest {
     public void testSuccessAuditLog() {
         ConnectionTypeWrapper connectionTypeWrapper = new ConnectionTypeWrapper();
         connectionTypeWrapper.setConnectionType(ConnectionType.HTTP);
-        restTemplate.patchForObject("/api/clients/" + CLIENT_ID_SS1, connectionTypeWrapper, Object.class);
+        restTemplate.patchForObject("/api/v1/clients/" + CLIENT_ID_SS1, connectionTypeWrapper, Object.class);
         ClientType clientType = clientService.getLocalClient(getClientId(CLIENT_ID_SS1));
         assertEquals("NOSSL", clientType.getIsAuthentication());
 
@@ -118,14 +118,14 @@ public class AuditLoggingRestTemplateTest {
         assertTrue(data.containsKey("isAuthentication"));
         assertEquals("HTTP", data.get("isAuthentication"));
         assertEquals("ApiKey", authCaptor.getValue());
-        assertEquals("/api/clients/" + CLIENT_ID_SS1, urlCaptor.getValue());
+        assertEquals("/api/v1/clients/" + CLIENT_ID_SS1, urlCaptor.getValue());
         verifyNoMoreInteractions(auditEventLoggingFacade);
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testUnloggedEndpoint() {
-        restTemplate.getForObject("/api/clients/" + CLIENT_ID_SS1, Object.class);
+        restTemplate.getForObject("/api/v1/clients/" + CLIENT_ID_SS1, Object.class);
         // auditLogSuccess will be called, but no actual calls to AuditLogger.log
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
         verifyNoMoreInteractions(auditEventLoggingFacade);
@@ -138,7 +138,7 @@ public class AuditLoggingRestTemplateTest {
         connectionTypeWrapper.setConnectionType(ConnectionType.HTTP);
         String missingClientId = "FI:GOV:MFOOBAR:SS555";
 
-        restTemplate.patchForObject("/api/clients/" + missingClientId, connectionTypeWrapper, Object.class);
+        restTemplate.patchForObject("/api/v1/clients/" + missingClientId, connectionTypeWrapper, Object.class);
 
         // verify mock audit log
         verify(auditEventLoggingFacade, times(1)).auditLogFail(any());
@@ -162,7 +162,7 @@ public class AuditLoggingRestTemplateTest {
         assertEquals(1, data.size());
         assertTrue(data.containsKey("clientIdentifier"));
         assertEquals("ApiKey", authCaptor.getValue());
-        assertEquals("/api/clients/" + missingClientId, urlCaptor.getValue());
+        assertEquals("/api/v1/clients/" + missingClientId, urlCaptor.getValue());
         verifyNoMoreInteractions(auditEventLoggingFacade);
     }
 
