@@ -1,6 +1,5 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import * as api from '@/util/api';
 
 export interface State {
   memberClass: string | undefined;
