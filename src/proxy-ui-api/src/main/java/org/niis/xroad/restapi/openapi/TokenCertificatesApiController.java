@@ -98,10 +98,10 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     public ResponseEntity<Void> activateCertificate(String hash) {
         try {
             tokenCertificateService.activateCertificate(hash);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (InvalidCertificateException e) {
-            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -112,10 +112,10 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     public ResponseEntity<Void> disableCertificate(String hash) {
         try {
             tokenCertificateService.deactivateCertificate(hash);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (InvalidCertificateException e) {
-            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
