@@ -64,51 +64,6 @@ import static org.niis.xroad.restapi.util.TestUtils.mockServletRequestAttributes
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
 
-    /*
-
-    @Autowired
-    SystemApiController systemApiController;
-    @Autowired
-    KeysApiController keysApiController;
-    @Autowired
-    CertificateAuthoritiesApiController caController;
-    @Autowired
-    TestRestTemplate restTemplate;
-    @Autowired
-    ClientService clientService;
-    @Autowired
-    BackupsApiController backupsApiController;
-    @Autowired
-    ClientsApiController clientsApiController;
-    @Autowired
-    DiagnosticsApiController diagnosticsApiController;
-    @Autowired
-    PersistenceUtils persistenceUtils;
-    @Autowired
-    EndpointsApiController endpointsApiController;
-    @Autowired
-    InitializationApiController initializationApiController;
-    @Autowired
-    LocalGroupsApiController localGroupsApiController;
-    @Autowired
-    MemberClassesApiController memberClassesApiController;
-    @Autowired
-    SecurityServersApiController securityServersApiController;
-    @Autowired
-    ServiceDescriptionsApiController serviceDescriptionsApiController;
-    @Autowired
-    ServicesApiController servicesApiController;
-    @Autowired
-    TimestampingServicesApiController timestampingServicesApiController;
-    @Autowired
-    TokenCertificatesApiController tokenCertificatesApiController;
-    @Autowired
-    TokensApiController tokensApiController;
-    @Autowired
-    XroadInstancesApiController xroadInstancesApiController;
-
-
-     */
     @MockBean
     CertificateAuthorityService certificateAuthorityService;
     @MockBean
