@@ -43,6 +43,7 @@ import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.InitializationService;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.ManagementRequestSenderService;
+import org.niis.xroad.restapi.service.NotificationService;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.service.RestoreService;
 import org.niis.xroad.restapi.service.ServerConfService;
@@ -144,6 +145,9 @@ public abstract class AbstractApiControllerTestContext {
     InternalTlsCertificateRepository mockRepository;
     @MockBean
     VersionService versionService;
+    // temporarily public accessor, I have plan to merge restapi.controller and restapi.openapi packages
+    @MockBean
+    public NotificationService notificationService;
 
     @SpyBean
     GlobalConfService globalConfService;
