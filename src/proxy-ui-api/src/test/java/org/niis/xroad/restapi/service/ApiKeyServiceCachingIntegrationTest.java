@@ -29,8 +29,10 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.persistence.EntityManager;
@@ -51,6 +53,14 @@ import static org.mockito.Mockito.when;
  * caching while mocking DB. Will aquire a new application context because mocks EntityManager, Session and Query
  */
 public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ApiKeyService apiKeyService;
+
+    @Autowired
+    ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
+
+    // TODO: this breaks AC caching
     @MockBean
     private EntityManager entityManager;
 

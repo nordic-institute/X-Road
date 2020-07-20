@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,6 +50,12 @@ import static org.junit.Assert.fail;
  * test LocalGroupService
  */
 public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    LocalGroupService localGroupService;
+
+    @Autowired
+    ClientService clientService;
 
     private static final Long GROUP_ID = 1L;
     private static final String FOO = "foo";

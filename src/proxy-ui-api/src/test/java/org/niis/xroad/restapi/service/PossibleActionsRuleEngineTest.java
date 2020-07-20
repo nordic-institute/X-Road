@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.EnumSet;
 
@@ -44,6 +45,9 @@ import static org.junit.Assert.fail;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
+
+    @Autowired
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Test
     public void getPossibleCertificateActionUnregister() {

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,9 @@ import static org.mockito.Mockito.when;
  * test ServerConfService
  */
 public class ServerConfServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    ServerConfService serverConfService;
 
     @Test
     public void getSecurityServerId() {

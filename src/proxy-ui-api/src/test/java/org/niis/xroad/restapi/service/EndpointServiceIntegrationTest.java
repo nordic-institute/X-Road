@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -41,6 +42,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    EndpointService endpointService;
+
     @Test
     public void getServiceBaseEndpoints() throws Exception {
         Set<String> serviceCodes = new HashSet<>(Arrays.asList("getRandom", "openapi-servicecode", "rest-servicecode"));

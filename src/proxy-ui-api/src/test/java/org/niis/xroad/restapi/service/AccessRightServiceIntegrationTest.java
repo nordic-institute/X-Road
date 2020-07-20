@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,13 @@ import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
  * test access rights service
  */
 public class AccessRightServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ClientRepository clientRepository;
+
+    @Autowired
+    EndpointService endpointService;
+
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
             TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,

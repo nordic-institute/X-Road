@@ -42,6 +42,8 @@ import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
 import java.security.cert.CertificateException;
@@ -70,6 +72,13 @@ import static org.mockito.Mockito.when;
  * test client service
  */
 public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     private byte[] pemBytes;
     private byte[] derBytes;
     private byte[] sqlFileBytes;

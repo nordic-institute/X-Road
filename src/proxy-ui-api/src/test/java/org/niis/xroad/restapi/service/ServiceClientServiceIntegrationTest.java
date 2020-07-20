@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -56,6 +57,10 @@ import static org.niis.xroad.restapi.util.TestUtils.OBSOLETE_SUBSYSTEM_ID;
  * test Service client service
  */
 public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ServiceClientService serviceClientService;
+
     @Test(expected = ClientNotFoundException.class)
     public void getClientServiceClientsFromUnexistingClient() throws Exception {
         serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));

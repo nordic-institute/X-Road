@@ -36,9 +36,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.io.File;
@@ -68,6 +70,15 @@ import static org.mockito.Mockito.when;
  * are independent of the files we actually read.
  */
 public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ServiceDescriptionService serviceDescriptionService;
+
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    ServiceDescriptionRepository serviceDescriptionRepository;
 
     public static final String BIG_ATTACHMENT_V1_SERVICECODE = "xroadBigAttachment.v1";
     public static final String SMALL_ATTACHMENT_V1_SERVICECODE = "xroadSmallAttachment.v1";

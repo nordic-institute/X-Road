@@ -29,8 +29,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,6 +56,19 @@ import static org.mockito.Mockito.when;
  * Test BackupService
  */
 public class BackupServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    BackupService backupService;
+
+    @Autowired
+    ExternalProcessRunner externalProcessRunner;
+
+    @Autowired
+    AuditDataHelper auditDataHelper;
+
+    @Autowired
+    ServerConfService serverConfService;
+
     private static final String BASE_DIR = "/tmp/backups/";
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";

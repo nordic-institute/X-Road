@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.time.OffsetDateTime;
@@ -39,6 +40,17 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 public class RestoreServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    RestoreService restoreService;
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    InitializationService initializationService;
+
+    private NotificationService notificationService;
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();

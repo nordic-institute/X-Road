@@ -32,7 +32,9 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -49,6 +51,15 @@ import static org.niis.xroad.restapi.service.TokenService.TOKEN_NOT_FOUND_FAULT_
  */
 @Slf4j
 public class TokenServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
+
+    @Autowired
+    AuditDataHelper auditDataHelper;
 
     // token ids for mocking
     private static final String WRONG_SOFTTOKEN_PIN_TOKEN_ID = "wrong-soft-pin";
@@ -203,9 +214,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
     }
 
-    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngine) {
+    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngine, auditDataHelper);
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper);
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {

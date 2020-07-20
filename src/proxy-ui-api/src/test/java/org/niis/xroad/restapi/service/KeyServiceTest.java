@@ -34,10 +34,15 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -63,6 +68,27 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * test key service.
  */
 public class KeyServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    KeyService keyService;
+
+    @Autowired
+    AuditDataHelper auditDataHelper;
+
+    @Autowired
+    AuditEventHelper auditEventHelper;
+
+    @Autowired
+    AuditEventLoggingFacade auditEventLoggingFacade;
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
+
+    @Autowired
+    SecurityHelper securityHelper;
 
     // token ids for mocking
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
@@ -254,9 +280,9 @@ public class KeyServiceTest extends AbstractServiceTestContext {
         assertEquals(allActions, new HashSet<>(possibleActions));
     }
 
-    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngine) {
+    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngine, auditDataHelper) {
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper) {
             @Override
             public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
                 if (AUTH_KEY_ID.equals(keyId)
@@ -273,7 +299,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 return Collections.singletonList(TOKEN_INFO);
             }
         };
-        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngine,
+        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngineParam,
                 managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
                 auditEventLoggingFacade);
     }

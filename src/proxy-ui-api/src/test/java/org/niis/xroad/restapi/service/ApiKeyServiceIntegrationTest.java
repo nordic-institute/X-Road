@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,9 @@ import static org.junit.Assert.assertFalse;
  */
 public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
     private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
+
+    @Autowired
+    ApiKeyService apiKeyService;
 
     @Test
     public void testDelete() throws Exception {

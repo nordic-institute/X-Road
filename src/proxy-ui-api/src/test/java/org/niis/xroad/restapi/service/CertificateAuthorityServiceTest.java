@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
@@ -64,6 +65,13 @@ import static org.mockito.Mockito.when;
  * test CertificateAuthorityService
  */
 public class CertificateAuthorityServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    CertificateAuthorityService certificateAuthorityService;
+
+    @Autowired
+    CertificateAuthorityService.CacheEvictor cacheEvictor;
+
     public static final String MOCK_AUTH_CERT_SUBJECT =
             "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
     public static final String MOCK_AUTH_CERT_ISSUER =

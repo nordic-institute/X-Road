@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
@@ -56,6 +57,9 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenService.KEY_NOT_FOUND_FAULT_CODE;
 
 public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    KeyAndCertificateRequestService keyAndCertificateRequestService;
 
     public static final String SOFTWARE_TOKEN_ID = PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
     public static final String OTHER_TOKEN_ID = "1";

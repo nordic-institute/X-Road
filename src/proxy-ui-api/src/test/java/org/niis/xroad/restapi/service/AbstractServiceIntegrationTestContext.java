@@ -31,88 +31,38 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.Mockito.when;
 
 /**
- * Base for all service integration tests that need injected/mocked beans in the application context. All service
- * integration test classes inheriting this will have a common Spring Application Context therefore drastically
- * reducing the execution time of the integration tests.
+ * Base for all service integration tests that need mocked beans in the application context. All service
+ * integration test classes inheriting this will shared the same mock bean configuration, and have a common
+ * Spring Application Context therefore drastically reducing the execution time of the integration tests.
  *
  * Integration tests do not mock the repository layer.
- *
- * They do mock low-level classes that should not execute in test context, such
- * as GlobalConfFacade (do not want to read global configuration from filesystem)
- * and SignerProxyFacade (do not want to execute real Akka calls to signer)
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@WithMockUser
-public abstract class AbstractServiceIntegrationTestContext {
-    @Autowired
-    ApiKeyService apiKeyService;
-    @Autowired
-    ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
-    @Autowired
-    ClientService clientService;
-    @Autowired
-    JdbcTemplate jdbcTemplate;
-    @Autowired
-    EndpointService endpointService;
-    @Autowired
-    KeyAndCertificateRequestService keyAndCertificateRequestService;
-    @Autowired
-    LocalGroupService localGroupService;
-    @Autowired
-    ServiceClientService serviceClientService;
-    @Autowired
-    ServiceDescriptionService serviceDescriptionService;
-    @Autowired
-    ServiceDescriptionRepository serviceDescriptionRepository;
-    @Autowired
-    ClientRepository clientRepository;
+public abstract class AbstractServiceIntegrationTestContext extends AbstractFacadeMockingTestContext {
     @SpyBean
     GlobalConfService globalConfService;
+    @SpyBean
+    OpenApiParser openApiParser;
 
     @MockBean
-    GlobalConfFacade globalConfFacade;
-    @MockBean
-    ManagementRequestSenderService managementRequestSenderService;
-    @MockBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-    @MockBean
-    SignerProxyFacade signerProxyFacade;
     @MockBean
     CurrentSecurityServerId currentSecurityServerId;
     @MockBean
     WsdlValidator wsdlValidator;
     @MockBean
     UrlValidator urlValidator;
-
-    @SpyBean
-    OpenApiParser openApiParser;
 
     static final ClientId COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 

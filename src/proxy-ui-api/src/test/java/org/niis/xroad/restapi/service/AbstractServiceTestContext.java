@@ -30,31 +30,16 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
-import org.niis.xroad.restapi.util.PersistenceTestUtil;
-import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -64,13 +49,10 @@ import static org.mockito.Mockito.when;
  * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
  * the execution time of the service tests.
  *
+ * TO DO: explain "you should not introduce mocks in inheriting classes"...
+ *
  * Only repository layer (or anything below service layer) may be mocked
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@WithMockUser
 public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
     @MockBean
     BackupRepository backupRepository;
@@ -86,61 +68,6 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     LocalGroupRepository localGroupRepository;
     @MockBean
     ServerConfType serverConfType;
-
-    @Autowired
-    AuditDataHelper auditDataHelper;
-    @Autowired
-    AuditEventHelper auditEventHelper;
-    @Autowired
-    AuditEventLoggingFacade auditEventLoggingFacade;
-    @Autowired
-    ApiKeyService apiKeyService;
-    @Autowired
-    ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
-    @Autowired
-    AccessRightService accessRightService;
-    @Autowired
-    BackupService backupService;
-    @Autowired
-    EndpointService endpointService;
-    @Autowired
-    PersistenceTestUtil persistenceTestUtil;
-    @Autowired
-    CertificateAuthorityService certificateAuthorityService;
-    @Autowired
-    CertificateAuthorityService.CacheEvictor cacheEvictor;
-    @Autowired
-    ClientService clientService;
-    @Autowired
-    ServerConfService serverConfService;
-    @Autowired
-    GlobalConfService globalConfService;
-    @Autowired
-    InitializationService initializationService;
-    @Autowired
-    LocalGroupService localGroupService;
-    @Autowired
-    ServiceDescriptionService serviceDescriptionService;
-    @Autowired
-    TokenService tokenService;
-    @Autowired
-    KeyService keyService;
-    @Autowired
-    SecurityHelper securityHelper;
-    @Autowired
-    OrphanRemovalService orphanRemovalService;
-    @Autowired
-    CurrentSecurityServerId currentSecurityServerId;
-    @Autowired
-    CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-    @Autowired
-    PossibleActionsRuleEngine possibleActionsRuleEngine;
-    @Autowired
-    RestoreService restoreService;
-    @Autowired
-    NotificationService notificationService;
-    @Autowired
-    ExternalProcessRunner externalProcessRunner;
 
     static final ClientId COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 

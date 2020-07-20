@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
@@ -67,6 +68,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * Test TokenCertificateService
  */
 public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    OrphanRemovalService orphanRemovalService;
 
     private static final ClientId NON_DELETED_CLIENT_ID_O1 =
             TestUtils.getClientId("FI:GOV:O_1:SS1");
