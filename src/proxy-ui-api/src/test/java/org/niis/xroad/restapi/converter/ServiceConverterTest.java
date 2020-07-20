@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
 
@@ -36,6 +37,9 @@ import static org.junit.Assert.assertEquals;
  * test ServiceConverter
  */
 public class ServiceConverterTest extends AbstractConverterTestContext {
+
+    @Autowired
+    ServiceConverter serviceConverter;
 
     public static final String CLIENT_ID_PREFIX_SS1 = "XRD2:GOV:M4:SS1:";
 

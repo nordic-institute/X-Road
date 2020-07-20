@@ -42,6 +42,7 @@ import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
@@ -56,6 +57,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 public class TokenCertificateConverterTest extends AbstractConverterTestContext {
+
+    @Autowired
+    TokenCertificateConverter tokenCertificateConverter;
 
     @Before
     public void setup() {

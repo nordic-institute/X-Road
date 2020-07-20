@@ -35,11 +35,10 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -72,13 +71,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser
-public abstract class AbstractServiceTestContext {
-    @MockBean
-    GlobalConfFacade globalConfFacade;
-    @MockBean
-    ManagementRequestSenderService managementRequestSenderService;
-    @MockBean
-    SignerProxyFacade signerProxyFacade;
+public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
     @MockBean
     BackupRepository backupRepository;
     @MockBean

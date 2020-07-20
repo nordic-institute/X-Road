@@ -40,22 +40,13 @@ import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,19 +63,9 @@ import static org.mockito.Mockito.when;
 /**
  * Test GlobalConfChecker
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
 @Slf4j
-@WithMockUser
-public class GlobalConfCheckerTest {
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-    @MockBean
-    private ManagementRequestSenderService managementRequestSenderService;
+public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
+
     @Autowired
     private GlobalConfChecker globalConfChecker;
     @Autowired

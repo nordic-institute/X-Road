@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +41,9 @@ import static org.mockito.Mockito.when;
  * test SecurityServerConverter
  */
 public class SecurityServerConverterTest extends AbstractConverterTestContext {
+
+    @Autowired
+    SecurityServerConverter securityServerConverter;
 
     private static final String SERVER_ADDRESS = "foo.bar.baz";
 

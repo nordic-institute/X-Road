@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -48,6 +49,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 public class TokenCertificateSigningRequestConverterTest extends AbstractConverterTestContext {
+
+    @Autowired
+    TokenCertificateSigningRequestConverter csrConverter;
 
     @Before
     public void setup() {

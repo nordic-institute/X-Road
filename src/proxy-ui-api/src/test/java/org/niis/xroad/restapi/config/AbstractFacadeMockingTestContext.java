@@ -23,24 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.config;
 
-import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
-import org.niis.xroad.restapi.service.VersionService;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for all converter tests that need some mocked beans in the application context.
- * All converter test classes inheriting this will have a common Spring Application Context
- * therefore drastically reducing the execution time of the converter tests
+ * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyFacade.
+ * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
+ * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
+ *
+ * Extending this base class also helps in keeping mock injections standard, and reduce number of different
+ * application contexts built for testing.
  */
-public abstract class AbstractConverterTestContext extends AbstractFacadeMockingTestContext {
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Transactional
+@WithMockUser
+public abstract class AbstractFacadeMockingTestContext {
     @MockBean
-    VersionService versionService;
-    @SpyBean
-    PossibleActionsRuleEngine possibleActionsRuleEngine;
-    @SpyBean
-    KeyConverter keyConverter;
+    protected GlobalConfFacade globalConfFacade;
+    @MockBean
+    protected ManagementRequestSenderService managementRequestSenderService;
+    @MockBean
+    protected SignerProxyFacade signerProxyFacade;
+
 }
