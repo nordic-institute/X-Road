@@ -115,6 +115,7 @@ public abstract class AbstractApiControllerTestContext {
     TokensApiController tokensApiController;
     @Autowired
     XroadInstancesApiController xroadInstancesApiController;
+
     @MockBean
     CertificateAuthorityService certificateAuthorityService;
     @MockBean
@@ -143,6 +144,7 @@ public abstract class AbstractApiControllerTestContext {
     InternalTlsCertificateRepository mockRepository;
     @MockBean
     VersionService versionService;
+
     @SpyBean
     GlobalConfService globalConfService;
     @SpyBean

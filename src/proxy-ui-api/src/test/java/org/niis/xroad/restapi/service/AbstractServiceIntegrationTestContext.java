@@ -60,6 +60,10 @@ import static org.mockito.Mockito.when;
  * reducing the execution time of the integration tests.
  *
  * Integration tests do not mock the repository layer.
+ *
+ * They do mock low-level classes that should not execute in test context, such
+ * as GlobalConfFacade (do not want to read global configuration from filesystem)
+ * and SignerProxyFacade (do not want to execute real Akka calls to signer)
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -89,6 +93,8 @@ public abstract class AbstractServiceIntegrationTestContext {
     ServiceDescriptionRepository serviceDescriptionRepository;
     @Autowired
     ClientRepository clientRepository;
+    @SpyBean
+    GlobalConfService globalConfService;
 
     @MockBean
     GlobalConfFacade globalConfFacade;

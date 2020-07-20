@@ -54,7 +54,17 @@ import java.util.List;
 @Transactional
 public class ClientRepository {
 
-    private final PersistenceUtils persistenceUtils;
+    /**
+     * For tests
+     * @param persistenceUtils
+     * @return
+     */
+    public ClientRepository setPersistenceUtils(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
+        return this;
+    }
+
+    private PersistenceUtils persistenceUtils;
 
     @Autowired
     public ClientRepository(PersistenceUtils persistenceUtils) {
