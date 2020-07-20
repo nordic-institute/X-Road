@@ -29,7 +29,9 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,7 +39,11 @@ import static org.junit.Assert.assertNotNull;
 /**
  * test ServerConfRepository
  */
-public class ServerConfRepositoryIntegrationTest extends RepositoryTestContext {
+public class ServerConfRepositoryIntegrationTest extends AbstractFacadeMockingTestContext {
+
+    @Autowired
+    ServerConfRepository serverConfRepository;
+
     @Test
     public void getServerConf() {
         ServerConfType serverConf = serverConfRepository.getServerConf();

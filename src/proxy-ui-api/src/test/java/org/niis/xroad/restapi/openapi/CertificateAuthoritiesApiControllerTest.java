@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,9 @@ import static org.mockito.Mockito.when;
  */
 @Transactional
 public class CertificateAuthoritiesApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    CertificateAuthoritiesApiController caController;
 
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";

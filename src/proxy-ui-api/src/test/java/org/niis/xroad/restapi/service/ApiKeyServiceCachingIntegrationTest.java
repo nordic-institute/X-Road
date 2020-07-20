@@ -60,7 +60,6 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
     @Autowired
     ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
 
-    // TODO: this breaks AC caching
     @MockBean
     private EntityManager entityManager;
 

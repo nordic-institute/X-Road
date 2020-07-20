@@ -35,6 +35,8 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -60,6 +62,10 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
  */
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TestRestTemplate restTemplate;
+
     public static final String MEMBER_CODE_WITH_SPACES = "  1234  ";
     public static final String MEMBER_CODE_WITHOUT_SPACES = "1234";
     public static final String SUBSYSTEM_CODE_WITH_SPACES = "  SS1  ";

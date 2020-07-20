@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -69,6 +70,10 @@ import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
  * test system api
  */
 public class SystemApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    SystemApiController systemApiController;
+
     private static final String TSA_1_URL = "https://tsa.com";
 
     private static final String TSA_1_NAME = "TSA 1";

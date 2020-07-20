@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -58,6 +59,10 @@ import static org.mockito.Mockito.doReturn;
  * test tokens api
  */
 public class TokensApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TokensApiController tokensApiController;
+
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String KEY_LABEL = "key-label";

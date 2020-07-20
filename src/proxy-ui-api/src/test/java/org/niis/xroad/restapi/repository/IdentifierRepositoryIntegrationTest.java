@@ -29,7 +29,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -38,7 +40,11 @@ import static org.junit.Assert.assertNotNull;
 /**
  * test IdentifierRepository
  */
-public class IdentifierRepositoryIntegrationTest extends RepositoryTestContext {
+public class IdentifierRepositoryIntegrationTest extends AbstractFacadeMockingTestContext {
+
+    @Autowired
+    IdentifierRepository identifierRepository;
+
     @Test
     public void getClientId() {
         ClientId memberId = identifierRepository.getClientId(

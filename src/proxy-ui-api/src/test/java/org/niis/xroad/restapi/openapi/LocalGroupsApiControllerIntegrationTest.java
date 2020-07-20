@@ -34,6 +34,7 @@ import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -53,6 +54,10 @@ import static org.niis.xroad.restapi.util.TestUtils.assertMissingLocationHeader;
  * Test LocalGroupsApiController
  */
 public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    LocalGroupsApiController localGroupsApiController;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -46,6 +47,9 @@ import static org.mockito.Mockito.when;
  * test securityservers api controller
  */
 public class SecurityServersApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    SecurityServersApiController securityServersApiController;
 
     // our global configuration has only this security server
     public static final SecurityServerId EXISTING_SERVER_ID = SecurityServerId.create(

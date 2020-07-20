@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -58,6 +59,9 @@ import static org.mockito.Mockito.when;
  * Test DiagnosticsApiController
  */
 public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    DiagnosticsApiController diagnosticsApiController;
 
     private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
     private static final String CURRENT_TIME_BEFORE_MIDNIGHT = "2019-12-31T23:59:50.123";

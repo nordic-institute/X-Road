@@ -53,6 +53,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,6 +92,10 @@ import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
  * test certificates api
  */
 public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TokenCertificatesApiController tokenCertificatesApiController;
+
     @Before
     public void setup() throws Exception {
         doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any());

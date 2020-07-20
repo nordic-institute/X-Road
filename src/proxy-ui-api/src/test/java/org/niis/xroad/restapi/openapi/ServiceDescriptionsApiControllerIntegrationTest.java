@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -62,6 +63,13 @@ import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
  * Test ServiceDescriptionsApiController
  */
 public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    ServiceDescriptionsApiController serviceDescriptionsApiController;
+
+    @Autowired
+    ClientsApiController clientsApiController;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {

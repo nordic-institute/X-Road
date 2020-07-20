@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.service.InvalidFilenameException;
 import org.niis.xroad.restapi.service.ProcessFailedException;
 import org.niis.xroad.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +64,9 @@ import static org.mockito.Mockito.when;
  * Test BackupsApiController
  */
 public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    BackupsApiController backupsApiController;
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";
 

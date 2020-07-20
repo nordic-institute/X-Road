@@ -42,6 +42,8 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -71,6 +73,10 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
  */
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class IdentifierValidationRestTemplateTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TestRestTemplate restTemplate;
+
     public static final String HAS_COLON = "aa:bb";
     public static final String HAS_SEMICOLON = "aa;bb";
     public static final String HAS_PERCENT = "aa%bb";

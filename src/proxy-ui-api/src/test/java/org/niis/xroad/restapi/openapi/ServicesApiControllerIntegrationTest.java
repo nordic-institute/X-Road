@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
@@ -61,6 +62,13 @@ import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERV
  * Test ServicesApiController
  */
 public class ServicesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    ServicesApiController servicesApiController;
+
+    @Autowired
+    ServiceDescriptionsApiController serviceDescriptionsApiController;
+
     private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     private static final String FOO = "foo";
     public static final int SS1_GET_RANDOM_SERVICE_CLIENTS = 4;

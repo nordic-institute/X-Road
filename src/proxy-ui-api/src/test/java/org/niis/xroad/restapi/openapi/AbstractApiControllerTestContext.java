@@ -27,22 +27,18 @@ package org.niis.xroad.restapi.openapi;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
-import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.DiagnosticService;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.InitializationService;
 import org.niis.xroad.restapi.service.KeyService;
-import org.niis.xroad.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.restapi.service.NotificationService;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.service.RestoreService;
@@ -52,16 +48,10 @@ import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.service.VersionService;
-import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import static org.niis.xroad.restapi.util.TestUtils.mockServletRequestAttributes;
@@ -71,11 +61,11 @@ import static org.niis.xroad.restapi.util.TestUtils.mockServletRequestAttributes
  * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
  * the execution time of the api controller tests
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Transactional
-public abstract class AbstractApiControllerTestContext {
+public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
+
+    /*
+
     @Autowired
     SystemApiController systemApiController;
     @Autowired
@@ -117,20 +107,16 @@ public abstract class AbstractApiControllerTestContext {
     @Autowired
     XroadInstancesApiController xroadInstancesApiController;
 
+
+     */
     @MockBean
     CertificateAuthorityService certificateAuthorityService;
-    @MockBean
-    GlobalConfFacade globalConfFacade;
     @MockBean
     BackupService backupService;
     @MockBean
     RestoreService restoreService;
     @MockBean
-    SignerProxyFacade signerProxyFacade;
-    @MockBean
     UrlValidator urlValidator;
-    @MockBean
-    ManagementRequestSenderService managementRequestSenderService;
     @MockBean
     DiagnosticService diagnosticService;
     @MockBean

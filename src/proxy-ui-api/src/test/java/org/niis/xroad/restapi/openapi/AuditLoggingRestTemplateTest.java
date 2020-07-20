@@ -33,6 +33,9 @@ import org.mockito.ArgumentCaptor;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
+import org.niis.xroad.restapi.service.ClientService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -56,6 +59,12 @@ import static org.niis.xroad.restapi.util.TestUtils.getClientId;
  */
 @ActiveProfiles({ "test", "audit-test" }) // profile change forces to load a new application context
 public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TestRestTemplate restTemplate;
+
+    @Autowired
+    ClientService clientService;
 
     @Before
     public void setup() {

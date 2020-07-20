@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -56,6 +57,10 @@ import static org.mockito.Mockito.doReturn;
  * test keys api
  */
 public class KeysApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    KeysApiController keysApiController;
+
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";

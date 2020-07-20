@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -41,6 +42,10 @@ import static org.mockito.Mockito.when;
  * test xroad instances api controller
  */
 public class XroadInstancesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    XroadInstancesApiController xroadInstancesApiController;
+
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";

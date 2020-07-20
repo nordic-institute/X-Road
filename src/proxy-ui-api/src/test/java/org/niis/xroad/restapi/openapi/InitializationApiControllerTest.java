@@ -30,6 +30,7 @@ import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -46,6 +47,10 @@ import static org.mockito.Mockito.doThrow;
  * test init
  */
 public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    InitializationApiController initializationApiController;
+
     private static final String OWNER_MEMBER_CLASS = "GOV";
     private static final String OWNER_MEMBER_CODE = "M1";
     private static final String SECURITY_SERVER_CODE = "SS3";

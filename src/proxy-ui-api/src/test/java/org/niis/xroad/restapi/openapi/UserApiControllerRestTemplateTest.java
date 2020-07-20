@@ -29,6 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -49,6 +51,10 @@ import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
  */
 public class UserApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TestRestTemplate restTemplate;
+
     @Before
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);

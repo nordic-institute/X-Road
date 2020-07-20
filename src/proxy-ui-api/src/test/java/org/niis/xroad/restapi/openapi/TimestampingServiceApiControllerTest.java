@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -50,6 +51,10 @@ import static org.mockito.Mockito.when;
  * Test TimestampingServiceApiController
  */
 public class TimestampingServiceApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TimestampingServicesApiController timestampingServicesApiController;
+
     private static final Map<String, TspType> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
 
     private static final String TSA_1_URL = "https://tsa.com";

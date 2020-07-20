@@ -34,7 +34,10 @@ import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
@@ -45,6 +48,16 @@ import static org.mockito.Mockito.doReturn;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
 public class EndpointsApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    EndpointsApiController endpointsApiController;
+
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    PersistenceUtils persistenceUtils;
+
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
     @Test

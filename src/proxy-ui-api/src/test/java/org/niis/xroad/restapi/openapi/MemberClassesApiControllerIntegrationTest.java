@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -51,6 +52,10 @@ import static org.mockito.Mockito.when;
  * test member classes api controller
  */
 public class MemberClassesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    MemberClassesApiController memberClassesApiController;
+
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";

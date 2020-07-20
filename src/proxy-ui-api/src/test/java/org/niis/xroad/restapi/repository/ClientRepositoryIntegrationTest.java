@@ -28,6 +28,8 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -36,7 +38,10 @@ import static org.junit.Assert.assertEquals;
 /**
  * test ClientRepository
  */
-public class ClientRepositoryIntegrationTest extends RepositoryTestContext {
+public class ClientRepositoryIntegrationTest extends AbstractFacadeMockingTestContext {
+
+    @Autowired
+    ClientRepository clientRepository;
 
     @Test
     public void getAllLocalClients() {
