@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.converter.EndpointConverter;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
+import org.niis.xroad.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -59,6 +60,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +74,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVI
  * services api
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class ServicesApiController implements ServicesApi {
@@ -84,6 +86,7 @@ public class ServicesApiController implements ServicesApi {
     private final AccessRightService accessRightService;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
@@ -97,6 +100,7 @@ public class ServicesApiController implements ServicesApi {
         this.endpointConverter = endpointConverter;
         this.serviceClientHelper = serviceClientHelper;
         this.serviceClientService = serviceClientService;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
     }
 
     @Override
@@ -152,6 +156,7 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
+        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -197,6 +202,7 @@ public class ServicesApiController implements ServicesApi {
         }
         List<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
                 serviceClientDtos);
+        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 

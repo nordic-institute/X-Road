@@ -138,7 +138,7 @@ public class CsrfWebMvcTest {
                 .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
         String expectedUserJsonString = new Gson().toJson(expectedUser);
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
@@ -156,7 +156,7 @@ public class CsrfWebMvcTest {
      */
     @Test
     public void getUserCsrfHeaderFail() throws Exception {
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, "wrong-value")
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
@@ -173,7 +173,7 @@ public class CsrfWebMvcTest {
      */
     @Test
     public void getUserCsrfCookieFail() throws Exception {
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, "wrong-value"));
@@ -195,7 +195,7 @@ public class CsrfWebMvcTest {
                 .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
         String expectedUserJsonString = new Gson().toJson(expectedUser);
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user");
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user");
         mockMvc.perform(mockRequest)
                 .andDo(print())
                 .andExpect(status().isOk())

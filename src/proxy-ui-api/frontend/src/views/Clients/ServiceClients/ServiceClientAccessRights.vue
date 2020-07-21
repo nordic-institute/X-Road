@@ -99,6 +99,14 @@
       @cancel="showConfirmDeleteAll = false"
       @accept="removeAll()"
     />
+
+    <confirmDialog
+      :dialog="showConfirmDeleteOne"
+      title="serviceClients.removeOneTitle"
+      text="serviceClients.removeOneText"
+      @cancel="resetDeletionSettings()"
+      @accept="doRemoveAccessRight()"
+    />
   </div>
 </template>
 
@@ -117,6 +125,7 @@ import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddSer
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ServiceCandidate } from '@/ui-types';
+import { sortAccessRightsByServiceCode } from '@/util/sorting';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
@@ -143,9 +152,11 @@ export default Vue.extend({
     return {
       serviceClientAccessRights: [] as AccessRight[],
       serviceClient: {} as ServiceClient,
+      accessRightToDelete: null as AccessRight | null,
       isAddServiceDialogVisible: false as boolean,
       clientServiceDescriptions: [] as ServiceDescription[],
       showConfirmDeleteAll: false as boolean,
+      showConfirmDeleteOne: false as boolean,
     };
   },
   methods: {
@@ -153,36 +164,48 @@ export default Vue.extend({
       this.fetchAccessRights();
       this.fetchServiceDescriptions();
       api
-        .get(`/clients/${this.id}/service-clients/${this.serviceClientId}`)
-        .then((response: any) => (this.serviceClient = response.data))
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .get<ServiceClient>(
+          `/clients/${this.id}/service-clients/${this.serviceClientId}`,
+        )
+        .then((response) => (this.serviceClient = response.data))
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     fetchServiceDescriptions(): void {
       api
-        .get(`/clients/${this.id}/service-descriptions`)
-        .then((response: any) => {
+        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
+        .then((response) => {
           this.clientServiceDescriptions = response.data;
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     fetchAccessRights(): void {
       api
-        .get(
+        .get<AccessRight[]>(
           `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights`,
         )
-        .then(
-          (response: any) => (this.serviceClientAccessRights = response.data),
-        )
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .then((response) => {
+          this.serviceClientAccessRights = sortAccessRightsByServiceCode(
+            response.data,
+          );
+        })
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     close(): void {
       this.$router.go(-1);
     },
+    resetDeletionSettings(): void {
+      this.showConfirmDeleteOne = false;
+      this.accessRightToDelete = null;
+    },
     remove(accessRight: AccessRight): void {
+      this.showConfirmDeleteOne = true;
+      this.accessRightToDelete = accessRight;
+    },
+    doRemoveAccessRight(): void {
       api
         .post(
           `/clients/${this.id}/service-clients/${this.serviceClientId}/access-rights/delete`,
-          { items: [{ service_code: accessRight.service_code }] },
+          { items: [{ service_code: this.accessRightToDelete?.service_code }] },
         )
         .then(() => {
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
@@ -192,7 +215,11 @@ export default Vue.extend({
             this.fetchAccessRights();
           }
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.showConfirmDeleteOne = false;
+          this.accessRightToDelete = null;
+        });
     },
     addService(accessRights: AccessRight[]): void {
       this.hideAddService();
@@ -209,7 +236,7 @@ export default Vue.extend({
           );
           this.fetchAccessRights();
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
@@ -233,7 +260,7 @@ export default Vue.extend({
           this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
           this.serviceClientAccessRights = [];
         })
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     serviceCandidates(): ServiceCandidate[] {
       return serviceCandidatesForServiceClient(

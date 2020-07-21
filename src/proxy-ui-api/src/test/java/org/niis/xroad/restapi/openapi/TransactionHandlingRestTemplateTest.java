@@ -100,8 +100,8 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void localGroupMembersAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/local-groups/"
-                        + 1L,
+        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/local-groups/"
+                + 1L,
                 Object.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -109,7 +109,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void localGroupMemberDeleteWorks() {
-        String localGroupEndpointUrl = "/api/local-groups/" + 1L;
+        String localGroupEndpointUrl = "/api/v1/local-groups/" + 1L;
         ResponseEntity<Object> response = restTemplate.getForEntity(localGroupEndpointUrl,
                 Object.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -146,7 +146,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientLocalGroupsAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/clients/"
+        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/"
                         + TestUtils.CLIENT_ID_SS1
                         + "/local-groups",
                 Object.class);
@@ -156,7 +156,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientTlsCertsAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/clients/"
+        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/"
                         + TestUtils.CLIENT_ID_SS1
                         + "/tls-certificates",
                 Object.class);
@@ -166,7 +166,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientServiceDescriptionsAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/clients/"
+        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/"
                         + TestUtils.CLIENT_ID_SS1
                         + "/service-descriptions",
                 Object.class);
@@ -177,7 +177,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void serviceDescriptionServicesAreFetched() {
         ResponseEntity<Object> response = restTemplate.getForEntity(
-                "/api/service-descriptions/1",
+                "/api/v1/service-descriptions/1",
                 Object.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -185,7 +185,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void normalClientConverterWorks() {
-        ResponseEntity<Client> clientResponse = restTemplate.getForEntity("/api/clients/" + TestUtils.CLIENT_ID_SS1,
+        ResponseEntity<Client> clientResponse = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
                 Client.class);
         assertEquals(HttpStatus.OK, clientResponse.getStatusCode());
         assertEquals("M1", clientResponse.getBody().getMemberCode());
@@ -201,7 +201,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
             return null;
         }).when(clientConverter).convert(any(ClientType.class));
 
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/clients/" + TestUtils.CLIENT_ID_SS1,
+        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
                 Object.class);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }

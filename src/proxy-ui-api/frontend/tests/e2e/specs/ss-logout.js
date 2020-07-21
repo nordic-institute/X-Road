@@ -46,12 +46,11 @@ module.exports = {
     browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Wait for the timeout message to appear
-    browser.waitForElementVisible('//span[contains(@class, "headline") and contains(text(), "Session expired")]', browser.globals.logout_timeout_ms + 60000, 1000);
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage, browser.globals.logout_timeout_ms + 60000, 1000); 
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Error: Request failed with status code 401');
+    mainPage.closeSnackbar();
 
-    // Accept timeout logout and verify
-    mainPage.acceptLogout();
     browser.waitForElementVisible('//*[@id="username"]');
-
     browser.end();
   }
 };

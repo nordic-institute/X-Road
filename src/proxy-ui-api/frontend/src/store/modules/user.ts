@@ -2,7 +2,7 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { SecurityServer, Version } from '@/openapi-types';
+import { SecurityServer, User, Version } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import i18n from '@/i18n';
@@ -39,10 +39,14 @@ export const userGetters: GetterTree<UserState, RootState> = {
   getAllowedTabs: (state, getters) => (tabs: Tab[]) => {
     // returns filtered array of objects based on the 'permission' attribute
     const filteredTabs = tabs.filter((tab: Tab) => {
-      if (!tab.permission) {
+      if (!tab.permissions || tab.permissions.length === 0) {
+        // No permission needed for this tab
         return true;
       }
-      if (getters.hasPermission(tab.permission)) {
+      if (
+        tab.permissions.some((permission) => getters.hasPermission(permission))
+      ) {
+        // Return true if the user has at least one of the tabs permissions
         return true;
       }
       return false;
@@ -88,7 +92,7 @@ export const mutations: MutationTree<UserState> = {
 };
 
 export const actions: ActionTree<UserState, RootState> = {
-  login({ commit, dispatch }, authData): Promise<any> {
+  login({ commit }, authData) {
     const data = `username=${authData.username}&password=${authData.password}`;
 
     return axiosAuth({
@@ -99,7 +103,7 @@ export const actions: ActionTree<UserState, RootState> = {
       },
       data,
     })
-      .then((res) => {
+      .then(() => {
         commit('authUser');
       })
       .catch((error) => {
@@ -107,9 +111,9 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  async fetchUserData({ commit, dispatch }) {
+  async fetchUserData({ commit }) {
     return axios
-      .get('/user')
+      .get<User>('/user')
       .then((res) => {
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
@@ -144,14 +148,14 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  logout({ commit, dispatch }) {
+  logout({ commit }) {
     // Clear auth data
     commit('clearAuthData');
 
     // Call backend for logout
     axiosAuth
       .post('/logout')
-      .catch((error) => {
+      .catch(() => {
         // Nothing to do
       })
       .finally(() => {

@@ -55,7 +55,7 @@ const getDefaultState = () => {
 // Initial state. The state can be reseted with this.
 const tokensState: AddClientState = getDefaultState();
 
-export const getters: GetterTree<AddClientState, any> = {
+export const getters: GetterTree<AddClientState, RootState> = {
   selectableClients(state: AddClientState): Client[] {
     return state.selectableClients;
   },
@@ -90,7 +90,7 @@ export const getters: GetterTree<AddClientState, any> = {
       state.memberCode,
     );
   },
-  reservedMember(state: AddClientState): any {
+  reservedMember(state: AddClientState): ReservedMemberData | undefined {
     return state.reservedMemberData;
   },
 };
@@ -126,7 +126,7 @@ export const mutations: MutationTree<AddClientState> = {
   storeReservedClients(state: AddClientState, clients: Client[]) {
     state.reservedClients = clients;
   },
-  storeReservedMember(state: AddClientState, memberData: any) {
+  storeReservedMember(state: AddClientState, memberData?: ReservedMemberData) {
     state.reservedMemberData = memberData;
   },
   setAddMemberWizardMode(state: AddClientState, mode: string) {
@@ -145,37 +145,50 @@ const memberEquals = (client: Client, other: Client): boolean =>
 // If the member owning the client or another subsystem
 // of the same member is already present locally,
 // the client is excluded.
-const excludeClientsWithLocalRelatives = (clients: Client[], localClients: Client[]): Client[] => {
+const excludeClientsWithLocalRelatives = (
+  clients: Client[],
+  localClients: Client[],
+): Client[] => {
   return clients.filter((client: Client) => {
-    return !localClients.some( (localClient: Client) => memberEquals(localClient, client))
+    return !localClients.some((localClient: Client) =>
+      memberEquals(localClient, client),
+    );
   });
-}
+};
 
 export const actions: ActionTree<AddClientState, RootState> = {
   resetAddClientState({ commit }) {
     commit('resetAddClientState');
   },
 
-  fetchSelectableClients({ commit }, id: string) {
-    const globalClientsPromise = api.get('/clients?exclude_local=true&internal_search=false&show_members=false');
-    const localClientsPromise = api.get('/clients');
+  fetchSelectableClients({ commit }) {
+    const globalClientsPromise = api.get<Client[]>(
+      '/clients?exclude_local=true&internal_search=false&show_members=false',
+    );
+    const localClientsPromise = api.get<Client[]>('/clients');
     // Fetch list of local clients and filter out global clients
     // that have local relatives
     return Promise.all([globalClientsPromise, localClientsPromise])
       .then((response) => {
         const globalClients = response[0];
         const localClients = response[1];
-        commit('storeSelectableClients', excludeClientsWithLocalRelatives(globalClients.data, localClients.data));
+        commit(
+          'storeSelectableClients',
+          excludeClientsWithLocalRelatives(
+            globalClients.data,
+            localClients.data,
+          ),
+        );
       })
       .catch((error) => {
         throw error;
       });
   },
 
-  fetchSelectableMembers({ commit }, id: string) {
+  fetchSelectableMembers({ commit }) {
     // Fetch clients from backend that can be selected
     return api
-      .get('/clients?internal_search=false&show_members=true')
+      .get<Client[]>('/clients?internal_search=false&show_members=true')
       .then((res) => {
         // Filter out subsystems
         const filtered = res.data.filter((client: Client) => {
@@ -254,7 +267,9 @@ export const actions: ActionTree<AddClientState, RootState> = {
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
   ) {
-    const clientsResponse = await api.get(`/clients?instance=${instanceId}
+    const clientsResponse = await api.get<
+      Client[]
+    >(`/clients?instance=${instanceId}
     &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
 
     const matchingClient: boolean = clientsResponse.data.some(
@@ -275,7 +290,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     }
 
     // Fetch tokens from backend
-    const tokenResponse = await api.get(`/tokens`);
+    const tokenResponse = await api.get<Token[]>(`/tokens`);
     // Create a client id
     const ownerId = createClientId(instanceId, memberClass, memberCode);
 

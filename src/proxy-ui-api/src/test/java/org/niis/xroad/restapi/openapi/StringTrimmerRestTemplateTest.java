@@ -95,7 +95,7 @@ public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestCont
     @WithMockUser(authorities = "ADD_CLIENT")
     public void testAddClientWithSpaces() {
         ClientAdd clientAdd = createClientAdd(MEMBER_CODE_WITH_SPACES, SUBSYSTEM_CODE_WITH_SPACES);
-        ResponseEntity<Client> response = restTemplate.postForEntity("/api/clients", clientAdd, Client.class);
+        ResponseEntity<Client> response = restTemplate.postForEntity("/api/v1/clients", clientAdd, Client.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Client addedClient = response.getBody();
         assertNotNull(addedClient);
@@ -107,7 +107,7 @@ public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestCont
     @WithMockUser(authorities = "ADD_LOCAL_GROUP")
     public void testAddLocalGroupWithSpaces() {
         LocalGroupAdd localGroupAdd = createLocalGroupAdd(GROUP_CODE_WITH_SPACES, GROUP_DESC_WITH_SPACES);
-        ResponseEntity<LocalGroup> response = restTemplate.postForEntity("/api/clients/" + TestUtils.CLIENT_ID_SS1
+        ResponseEntity<LocalGroup> response = restTemplate.postForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1
                 + "/local-groups", localGroupAdd, LocalGroup.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         LocalGroup addedGroup = response.getBody();
@@ -119,7 +119,7 @@ public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestCont
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testFindClientsWithSpaces() {
-        String findClientsApiPath = UriComponentsBuilder.fromPath("/api/clients")
+        String findClientsApiPath = UriComponentsBuilder.fromPath("/api/v1/clients")
                 .queryParam("subsystem_code", SUBSYSTEM_CODE_WITH_SPACES)
                 .build(false)
                 .toString();

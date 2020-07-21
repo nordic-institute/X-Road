@@ -8,7 +8,7 @@
     :disableSave="!isValid"
   >
     <div slot="content">
-      <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+      <ValidationObserver ref="form" v-slot="{}">
         <div class="dlg-edit-row">
           <div class="dlg-row-title long-row-title">
             {{ $t('endpoints.httpRequestMethod') }}
@@ -74,7 +74,7 @@ export default Vue.extend({
       required: true,
     },
   },
-  data(): any {
+  data() {
     return {
       methods: [
         { text: this.$t('endpoints.all'), value: '*' },

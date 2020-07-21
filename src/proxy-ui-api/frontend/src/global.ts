@@ -1,3 +1,5 @@
+import { Tab } from '@/ui-types';
+
 // A "single source of truth" for route names
 export enum RouteName {
   Keys = 'keys',
@@ -147,29 +149,33 @@ export enum CertificateStatus {
   GLOBAL_ERROR = 'GLOBAL_ERROR',
 }
 
-export const mainTabs = [
+export const mainTabs: Tab[] = [
   {
     to: { name: RouteName.Clients },
     key: 'clients',
     name: 'tab.main.clients',
-    permission: Permissions.VIEW_CLIENTS,
+    permissions: [Permissions.VIEW_CLIENTS],
   },
   {
     to: { name: RouteName.SignAndAuthKeys },
     key: 'keys',
     name: 'tab.main.keys',
-    permission: Permissions.VIEW_KEYS,
+    permissions: [Permissions.VIEW_KEYS],
   },
   {
     to: { name: RouteName.Diagnostics },
     key: 'diagnostics',
     name: 'tab.main.diagnostics',
-    permission: Permissions.DIAGNOSTICS,
+    permissions: [Permissions.DIAGNOSTICS],
   },
   {
     to: { name: RouteName.SystemParameters },
     key: 'settings',
     name: 'tab.main.settings',
+    permissions: [
+      Permissions.VIEW_SYS_PARAMS,
+      Permissions.BACKUP_CONFIGURATION,
+    ],
   },
 ];
 

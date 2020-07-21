@@ -175,8 +175,8 @@
     <!-- Confirm dialog remove Access Right service clients -->
     <confirmDialog
       :dialog="confirmMember"
-      title="localGroup.removeTitle"
-      text="localGroup.removeText"
+      title="accessRights.removeTitle"
+      text="accessRights.removeText"
       @cancel="confirmMember = false"
       @accept="doRemoveServiceClient()"
     />
@@ -184,8 +184,8 @@
     <!-- Confirm dialog remove all Access Right service clients -->
     <confirmDialog
       :dialog="confirmAllServiceClients"
-      title="localGroup.removeAllTitle"
-      text="localGroup.removeAllText"
+      title="accessRights.removeAllTitle"
+      text="accessRights.removeAllText"
       @cancel="confirmAllServiceClients = false"
       @accept="doRemoveAllServiveClient()"
     />
@@ -212,7 +212,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
-import { ServiceClient, ServiceUpdate } from '@/openapi-types';
+import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 
 type NullableServiceClient = undefined | ServiceClient;
@@ -311,13 +311,13 @@ export default Vue.extend({
       this.addServiceClientDialogVisible = true;
     },
 
-    doAddServiceClient(selected: any[]): void {
+    doAddServiceClient(selected: ServiceClient[]): void {
       this.addServiceClientDialogVisible = false;
 
       api
         .post(`/services/${this.serviceId}/service-clients`, {
           items: selected,
-        })
+        } as ServiceClients)
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
@@ -339,7 +339,7 @@ export default Vue.extend({
     },
 
     doRemoveAllServiveClient(): void {
-      const items: any[] = this.serviceClients.map((sc: ServiceClient) => ({
+      const items = this.serviceClients.map((sc: ServiceClient) => ({
         id: sc.id,
         service_client_type: sc.service_client_type,
       }));
@@ -347,7 +347,7 @@ export default Vue.extend({
       this.removeServiceClients(items);
       this.confirmAllServiceClients = false;
     },
-    removeServiceClient(member: any): void {
+    removeServiceClient(member: NullableServiceClient): void {
       this.confirmMember = true;
       this.selectedMember = member;
     },

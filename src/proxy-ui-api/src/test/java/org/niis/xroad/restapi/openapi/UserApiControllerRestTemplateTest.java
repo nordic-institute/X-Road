@@ -63,7 +63,7 @@ public class UserApiControllerRestTemplateTest extends AbstractApiControllerTest
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testGetUser() {
-        ResponseEntity<User> response = restTemplate.getForEntity("/api/user", User.class);
+        ResponseEntity<User> response = restTemplate.getForEntity("/api/v1/user", User.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("api-key-1", response.getBody().getUsername());
         assertEquals(Role.values().length, response.getBody().getRoles().size());

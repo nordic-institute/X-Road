@@ -93,7 +93,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { UsageTypes, Permissions, PossibleActions } from '@/global';
-import { Key } from '@/openapi-types';
+import { Key, PossibleActions as PossibleActionsList } from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -162,7 +162,7 @@ export default Vue.extend({
           this.$store.dispatch('showSuccess', 'keys.keySaved');
           this.close();
         })
-        .catch((error: any) => {
+        .catch((error) => {
           this.saveBusy = false;
           this.$store.dispatch('showError', error);
         });
@@ -170,23 +170,23 @@ export default Vue.extend({
 
     fetchData(id: string): void {
       api
-        .get(`/keys/${id}`)
-        .then((res: any) => {
+        .get<Key>(`/keys/${id}`)
+        .then((res) => {
           this.key = res.data;
           this.fetchPossibleActions(id);
         })
-        .catch((error: any) => {
+        .catch((error) => {
           this.$store.dispatch('showError', error);
         });
     },
 
     fetchPossibleActions(id: string): void {
       api
-        .get(`/keys/${id}/possible-actions`)
-        .then((res: any) => {
+        .get<PossibleActionsList>(`/keys/${id}/possible-actions`)
+        .then((res) => {
           this.possibleActions = res.data;
         })
-        .catch((error: any) => {
+        .catch((error) => {
           this.$store.dispatch('showError', error);
         });
     },
@@ -196,11 +196,11 @@ export default Vue.extend({
 
       api
         .remove(`/keys/${this.id}`)
-        .then((res: any) => {
+        .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyDeleted');
           this.close();
         })
-        .catch((error: any) => {
+        .catch((error) => {
           this.$store.dispatch('showError', error);
         });
     },

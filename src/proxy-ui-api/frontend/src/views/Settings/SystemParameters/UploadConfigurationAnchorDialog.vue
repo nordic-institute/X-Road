@@ -1,23 +1,22 @@
 <template>
   <v-dialog :value="showPreview" persistent max-width="850">
-    <template v-slot:activator="{ on }">
-      <input
-        v-show="false"
-        ref="anchorUpload"
-        type="file"
-        accept=".xml"
-        @change="onUploadFileChanged"
-      />
-      <large-button
-        data-test="system-parameters-configuration-anchor-upload-button"
-        outlined
-        @click="$refs.anchorUpload.click()"
-        :loading="previewing"
-        :requires-permission="permissions.UPLOAD_ANCHOR"
-        class="ml-5"
-        >{{
-          $t('systemParameters.configurationAnchor.action.upload.button')
-        }}</large-button
+    <template v-slot:activator="{}">
+      <file-upload
+        accepts=".xml"
+        @fileChanged="onUploadFileChanged"
+        v-slot="{ upload }"
+      >
+        <large-button
+          data-test="system-parameters-configuration-anchor-upload-button"
+          outlined
+          @click="upload"
+          :loading="previewing"
+          :requires-permission="permissions.UPLOAD_ANCHOR"
+          class="ml-5"
+          >{{
+            $t('systemParameters.configurationAnchor.action.upload.button')
+          }}</large-button
+        ></file-upload
       >
     </template>
     <v-card class="xrd-card">
@@ -99,6 +98,9 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Anchor } from '@/openapi-types';
+import FileUpload from '@/components/ui/FileUpload.vue';
+import { FileUploadResult } from '@/ui-types';
+import { PostPutPatch } from '@/util/api';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
@@ -109,6 +111,7 @@ export default Vue.extend({
   name: 'UploadConfigurationAnchorDialog',
   components: {
     LargeButton,
+    FileUpload,
   },
   props: {
     initMode: {
@@ -124,10 +127,11 @@ export default Vue.extend({
       uploadedFile: null as string | ArrayBuffer | null,
       showPreview: false as boolean,
       permissions: Permissions,
+      anchorFile: undefined as string | undefined,
     };
   },
   methods: {
-    onUploadFileChanged(event: any): void {
+    onUploadFileChanged(event: FileUploadResult): void {
       if (this.initMode) {
         this.previewAnchor(
           event,
@@ -138,33 +142,24 @@ export default Vue.extend({
       }
     },
 
-    previewAnchor(event: any, query: string): void {
+    previewAnchor(event: FileUploadResult, query: string): void {
       this.previewing = true;
-      const fileList = (event.target.files ||
-        event.dataTransfer.files) as FileList;
-      if (!fileList.length) {
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result) {
-          return;
-        }
-        api
-          .post(query, e.target.result, {
-            headers: {
-              'Content-Type': 'application/octet-stream',
-            },
-          })
-          .then((resp: any) => {
-            this.uploadedFile = e.target!.result;
-            this.anchorPreview = resp.data;
-            this.showPreview = true;
-          })
-          .catch((error: any) => this.$store.dispatch('showError', error));
-      };
-      reader.readAsArrayBuffer(fileList[0]);
+      api
+        .post<Anchor>(query, event.buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
+        })
+        .then((resp) => {
+          this.uploadedFile = event.buffer;
+          this.anchorPreview = resp.data;
+          this.showPreview = true;
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+          // Clear the anchor file
+          this.anchorFile = undefined;
+        });
     },
 
     confirmUpload(): void {
@@ -175,22 +170,24 @@ export default Vue.extend({
       }
     },
 
-    uploadAnchor(apiCall: any): void {
+    uploadAnchor(apiCall: PostPutPatch): void {
       this.uploading = true;
       apiCall('/system/anchor', this.uploadedFile, {
         headers: {
           'Content-Type': 'application/octet-stream',
         },
       })
-        .catch((error: any) => this.$store.dispatch('showError', error))
-        .finally(() => {
-          this.uploading = false;
-          this.close();
+        .then(() => {
           this.$store.dispatch(
             'showSuccess',
             'systemParameters.configurationAnchor.action.upload.dialog.success',
           );
           this.$emit('uploaded');
+        })
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.uploading = false;
+          this.close();
         });
     },
     close(): void {

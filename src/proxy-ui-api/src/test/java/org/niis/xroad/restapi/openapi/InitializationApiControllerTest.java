@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
@@ -42,6 +43,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * test init
@@ -55,6 +58,14 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     private static final String OWNER_MEMBER_CODE = "M1";
     private static final String SECURITY_SERVER_CODE = "SS3";
     private static final String SOFTWARE_TOKEN_PIN = "1234";
+
+    @Test
+    @WithMockUser
+    public void initStatus() {
+        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(new InitializationStatusDto());
+        initializationApiController.getInitializationStatus();
+        verify(initializationService).getSecurityServerInitializationStatus();
+    }
 
     @Test
     @WithMockUser(authorities = { "INIT_CONFIG" })

@@ -101,12 +101,9 @@ export default Vue.extend({
   methods: {
     fetchData(): void {
       api
-        .get(`/clients/${this.id}/service-client-candidates`)
-        .then(
-          (response: any) =>
-            (this.serviceClientCandidates = response.data as ServiceClient[]),
-        )
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .get<ServiceClient[]>(`/clients/${this.id}/service-client-candidates`)
+        .then((response) => (this.serviceClientCandidates = response.data))
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     cancel(): void {
       this.$router.go(-1);
