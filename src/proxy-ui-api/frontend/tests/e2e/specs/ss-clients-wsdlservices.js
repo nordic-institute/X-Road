@@ -323,10 +323,6 @@ module.exports = {
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
-    browser.elements(mainPage.elements.snackBarMessage, res => {
-      if (res.value.length > 0) { mainPage.closeSnackbar(); }
-    });
-
     clientServices.expandServiceDetails();
     clientServices.refreshServiceData();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Refreshed');
@@ -374,14 +370,23 @@ module.exports = {
     browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
     mainPage.closeSnackbar();
+    
+    // Part 1 wait until at least 1 min has passed since refresh at the start of the test
+    // Split this wait into two parts to not cause timeouts
+    browser.perform(function () {
+
+      endTime = new Date().getTime();
+      passedTime = endTime-startTime;
+      if (passedTime < 30000) {
+        console.log('Waiting', 30000 - passedTime, 'ms');
+        browser.pause(30000 - passedTime);
+      }
+    });
 
     // Verify cancel
     serviceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_2);
     serviceDetails.cancelDialog();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'WSDL ('+ browser.globals.testdata + '/' + browser.globals.wsdl_url_1+')');
-    browser.elements(mainPage.elements.snackBarMessage, res => {
-      if (res.value.length > 0) { mainPage.closeSnackbar(); }
-    });
 
     // Verify succesfull edit
     clientServices.openServiceDetails();
@@ -389,7 +394,7 @@ module.exports = {
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(servicesPopup);
  
-    // Wait until at least 1 min has passed since refresh at the start of the test
+    // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     browser.perform(function () {
 
       endTime = new Date().getTime();
@@ -401,9 +406,7 @@ module.exports = {
     });
 
     servicesPopup.accept(); 
-    browser.getText(mainPage.elements.snackBarMessage, function (res) {    
-      console.log('Snackbar: ' + res.value);
-    });
+
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'WSDL ('+ browser.globals.testdata + '/' + browser.globals.wsdl_url_2+')');
