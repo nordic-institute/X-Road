@@ -136,7 +136,7 @@ import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WS
  * clients api
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {

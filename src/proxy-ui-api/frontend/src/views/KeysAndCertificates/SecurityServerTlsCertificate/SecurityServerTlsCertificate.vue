@@ -9,21 +9,20 @@
         data-test="security-server-tls-certificate-generate-key-button"
         >{{ $t('ssTlsCertificate.generateKey') }}</large-button
       >
-      <input
-        v-show="false"
-        ref="importUpload"
-        type="file"
-        accept=".pem, .cer, .der"
-        @change="onImportFileChanged"
-      />
-      <large-button
-        v-if="importCertificateVisible"
-        class="button-spacing"
-        outlined
-        @click="$refs.importUpload.click()"
-        data-test="security-server-tls-certificate-import-certificate-key"
-        >{{ $t('ssTlsCertificate.importCertificate') }}</large-button
+      <file-upload
+        accepts=".pem, .cer, .der"
+        @fileChanged="onImportFileChanged"
+        v-slot="{ upload }"
       >
+        <large-button
+          v-if="importCertificateVisible"
+          class="button-spacing"
+          outlined
+          @click="upload"
+          data-test="security-server-tls-certificate-import-certificate-key"
+          >{{ $t('ssTlsCertificate.importCertificate') }}</large-button
+        >
+      </file-upload>
       <large-button
         v-if="exportCertificateVisible"
         class="button-spacing"
@@ -88,12 +87,16 @@ import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
+import { saveResponseAsFile } from '@/util/helpers';
+import FileUpload from '@/components/ui/FileUpload.vue';
+import { FileUploadResult } from '@/ui-types';
 
 export default Vue.extend({
   components: {
     LargeButton,
     SmallButton,
     GenerateTlsAndCertificateDialog,
+    FileUpload,
   },
   data() {
     return {
@@ -137,7 +140,7 @@ export default Vue.extend({
     },
     fetchData(): void {
       api
-        .get(`/system/certificate`)
+        .get<CertificateDetails>(`/system/certificate`)
         .then((res) => {
           this.certificate = res.data;
         })
@@ -153,49 +156,25 @@ export default Vue.extend({
       this.exportPending = true;
       api
         .get('/system/certificate/export', { responseType: 'blob' })
-        .then((res) => {
-          const tempLink = document.createElement('a');
-          tempLink.href = window.URL.createObjectURL(new Blob([res.data]));
-          tempLink.setAttribute('download', 'certs.tar.gz');
-          tempLink.setAttribute(
-            'data-test',
-            'security-server-tls-certificate-export-certificate-link',
-          );
-          document.body.appendChild(tempLink);
-          tempLink.click();
-          document.body.removeChild(tempLink); // cleanup
-        })
+        .then((res) => saveResponseAsFile(res, 'certs.tar.gz'))
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.exportPending = false));
     },
-    onImportFileChanged(event: any): void {
-      const fileList = (event.target.files ||
-        event.dataTransfer.files) as FileList;
-      if (!fileList.length) {
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result) {
-          return;
-        }
-        api
-          .post('/system/certificate/import', e.target.result, {
-            headers: {
-              'Content-Type': 'application/octet-stream',
-            },
-          })
-          .then(() => {
-            this.$store.dispatch(
-              'showSuccess',
-              'ssTlsCertificate.certificateImported',
-            );
-            this.fetchData();
-          })
-          .catch((error) => this.$store.dispatch('showError', error));
-      };
-      reader.readAsArrayBuffer(fileList[0]);
+    onImportFileChanged(result: FileUploadResult): void {
+      api
+        .post('/system/certificate/import', result.buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
+        })
+        .then(() => {
+          this.$store.dispatch(
+            'showSuccess',
+            'ssTlsCertificate.certificateImported',
+          );
+          this.fetchData();
+        })
+        .catch((error) => this.$store.dispatch('showError', error));
     },
   },
   created() {

@@ -6,6 +6,7 @@ import {
   Client,
   CertificateAuthority,
   CsrSubjectFieldDescription,
+  KeyWithCertificateSigningRequestId,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
@@ -94,9 +95,9 @@ export const crsGetters: GetterTree<CsrState, RootState> = {
   },
   csrRequestBody(state) {
     // Creates an object that can be used as body for generate CSR request
-    const subjectFieldValues: any = {};
+    const subjectFieldValues: { [key: string]: string | undefined } = {};
 
-    state.form.forEach((item: any) => {
+    state.form.forEach((item) => {
       subjectFieldValues[item.id] = item.default_value;
     });
 
@@ -167,11 +168,11 @@ export const actions: ActionTree<CsrState, RootState> = {
   },
   fetchCertificateAuthorities({ commit }) {
     api
-      .get(`/certificate-authorities`)
-      .then((res: any) => {
+      .get<CertificateAuthority[]>(`/certificate-authorities`)
+      .then((res) => {
         commit('storeCertificationServiceList', res.data);
       })
-      .catch((error: any) => {
+      .catch((error) => {
         throw error;
       });
   },
@@ -187,26 +188,26 @@ export const actions: ActionTree<CsrState, RootState> = {
     }
 
     return api
-      .get(query)
-      .then((res: any) => {
+      .get<CsrSubjectFieldDescription>(query)
+      .then((res) => {
         commit('storeForm', res.data);
       })
-      .catch((error: any) => {
+      .catch((error) => {
         throw error;
       });
   },
 
   fetchKeyData({ commit, state }) {
     return api
-      .get(`/keys/${state.keyId}`)
-      .then((res: any) => {
+      .get<Key>(`/keys/${state.keyId}`)
+      .then((res) => {
         commit('storeCsrKey', res.data);
 
         if (res.data.usage) {
           commit('storeUsage', res.data.usage);
         }
       })
-      .catch((error: any) => {
+      .catch((error) => {
         throw error;
       });
   },
@@ -227,7 +228,7 @@ export const actions: ActionTree<CsrState, RootState> = {
           `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
         );
       })
-      .catch((error: any) => {
+      .catch((error) => {
         throw error;
       });
   },
@@ -246,7 +247,10 @@ export const actions: ActionTree<CsrState, RootState> = {
     }
 
     return api
-      .post(`/tokens/${tokenId}/keys-with-csrs`, body)
+      .post<KeyWithCertificateSigningRequestId>(
+        `/tokens/${tokenId}/keys-with-csrs`,
+        body,
+      )
       .then((response) => {
         // Fetch and save the CSR file data
         api
@@ -280,12 +284,12 @@ export const actions: ActionTree<CsrState, RootState> = {
     commit('storeUsage', UsageTypes.SIGNING);
   },
 
-  fetchAllMemberIds({ commit, rootGetters }) {
+  fetchAllMemberIds({ commit }) {
     return api
-      .get('/clients?show_members=true')
+      .get<Client[]>('/clients?show_members=true')
       .then((res) => {
         const idSet = new Set();
-        res.data.forEach((client: Client) => {
+        res.data.forEach((client) => {
           idSet.add(
             `${client.instance_id}:${client.member_class}:${client.member_code}`,
           );

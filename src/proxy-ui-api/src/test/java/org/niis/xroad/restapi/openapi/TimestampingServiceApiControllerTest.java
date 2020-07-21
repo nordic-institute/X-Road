@@ -27,24 +27,14 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.service.GlobalConfService;
-import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,29 +44,16 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
  * Test TimestampingServiceApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class TimestampingServiceApiControllerTest {
-
-    @MockBean
-    GlobalConfService globalConfService;
-
-    @MockBean
-    ServerConfService serverConfService;
-
-    @MockBean
-    GlobalConfFacade globalConfFacade;
+public class TimestampingServiceApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private TimestampingServicesApiController timestampingServicesApiController;
+    TimestampingServicesApiController timestampingServicesApiController;
 
     private static final Map<String, TspType> APPROVED_TIMESTAMPING_SERVICES = new HashMap<>();
 
@@ -88,10 +65,6 @@ public class TimestampingServiceApiControllerTest {
 
     private static final String TSA_2_NAME = "TSA 2";
 
-    private static final boolean SHOW_CONFIGURED_FALSE = false;
-
-    private static final boolean SHOW_CONFIGURED_TRUE = true;
-
     @Before
     public void setup() {
         TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
@@ -100,12 +73,10 @@ public class TimestampingServiceApiControllerTest {
         APPROVED_TIMESTAMPING_SERVICES.put(tsa2.getName(), tsa2);
 
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
-        when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
-                Arrays.asList(tsa1, tsa2));
-        when(globalConfService.getApprovedTspName(TSA_1_URL))
-                .thenReturn(tsa1.getName());
-        when(globalConfService.getApprovedTspName(TSA_2_URL))
-                .thenReturn(tsa2.getName());
+
+        doReturn(Arrays.asList(tsa1, tsa2)).when(globalConfService).getApprovedTspsForThisInstance();
+        doReturn(tsa1.getName()).when(globalConfService).getApprovedTspName(TSA_1_URL);
+        doReturn(tsa2.getName()).when(globalConfService).getApprovedTspName(TSA_2_URL);
     }
 
     @Test

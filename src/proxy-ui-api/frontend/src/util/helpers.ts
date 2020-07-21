@@ -1,19 +1,20 @@
 import { Client } from '@/openapi-types';
+import { AxiosResponse } from 'axios';
 
 // Filters an array of objects excluding specified object key
-export function selectedFilter(
-  arr: any[],
+export function selectedFilter<T, K extends keyof T>(
+  arr: T[],
   search: string,
-  excluded?: string,
-): any[] {
+  excluded?: K,
+): T[] {
   // Clean the search string
   const mysearch = search.toString().toLowerCase();
   if (mysearch.trim() === '') {
     return arr;
   }
 
-  const filtered = arr.filter((g: any) => {
-    let filteredKeys = Object.keys(g);
+  const filtered = arr.filter((g) => {
+    let filteredKeys = Object.keys(g) as K[];
 
     // If there is an excluded key remove it from the keys
     if (excluded) {
@@ -22,9 +23,8 @@ export function selectedFilter(
       });
     }
 
-    return filteredKeys.find((key: string) => {
-      return g[key]
-        .toString()
+    return filteredKeys.find((key: K) => {
+      return String(g[key])
         .toLowerCase()
         .includes(mysearch);
     });
@@ -46,7 +46,7 @@ export function isValidRestURL(str: string): boolean {
 
 // Save response data as a file
 export function saveResponseAsFile(
-  response: any,
+  response: AxiosResponse,
   defaultFileName = 'certs.tar.gz',
 ) {
   let suggestedFileName;
@@ -126,6 +126,7 @@ export function createClientId(
 }
 
 // Debounce function
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debounce = <F extends (...args: any[]) => any>(
   func: F,
   waitFor: number,
@@ -171,4 +172,9 @@ export function toClipboard(val: string): void {
   tempValueContainer.select();
   document.execCommand('copy');
   container.removeChild(tempValueContainer);
+}
+
+// Deep clones an object or array using JSON
+export function deepClone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }

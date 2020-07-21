@@ -33,28 +33,18 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
@@ -81,37 +71,22 @@ import static org.mockito.Mockito.when;
 /**
  * test client service
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class ClientServiceIntegrationTest {
+public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
     @Autowired
-    private ClientService clientService;
+    ClientService clientService;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    JdbcTemplate jdbcTemplate;
 
     private byte[] pemBytes;
     private byte[] derBytes;
     private byte[] sqlFileBytes;
 
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
     private ClientId existingSavedClientId = ClientId.create("FI", "GOV", "M2", "SS6");
     private ClientId existingRegisteredClientId = ClientId.create("FI", "GOV", "M1", "SS1");
     private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
     private ClientId newOwnerClientId = ClientId.create("FI", "GOV", "M2", null);
-
-    @MockBean
-    private ManagementRequestSenderService managementRequestSenderService;
-
-    @MockBean
-    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
 
     @Before
     public void setup() throws Exception {
@@ -305,7 +280,6 @@ public class ClientServiceIntegrationTest {
         clientService.deleteLocalClient(clientId);
     }
 
-
     @Test
     public void deleteLocalClientNotPossible() throws Exception {
         long startMembers = countMembers();
@@ -326,7 +300,7 @@ public class ClientServiceIntegrationTest {
         List<String> allStatuses = Arrays.asList(STATUS_SAVED, STATUS_REGINPROG, STATUS_REGISTERED,
                 STATUS_DELINPROG, STATUS_GLOBALERR);
         int created = 0;
-        for (String status: allStatuses) {
+        for (String status : allStatuses) {
             created++;
             ClientId memberId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status);
             ClientId subsystemId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status

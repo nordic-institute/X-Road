@@ -54,7 +54,7 @@ export default Vue.extend({
   methods: {
     loadKeys(): void {
       api
-        .get('/api-keys')
+        .get<ApiKey[]>('/api-keys')
         .then((resp) => (this.apiKeys = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },

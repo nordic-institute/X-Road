@@ -8,7 +8,7 @@
     :disableSave="!isValid"
   >
     <div slot="content">
-      <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+      <ValidationObserver ref="form" v-slot="{}">
         <div class="dlg-edit-row">
           <div class="dlg-row-title">{{ $t('services.serviceType') }}</div>
 
@@ -88,7 +88,6 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidRestURL } from '@/util/helpers';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: { SimpleDialog, ValidationProvider, ValidationObserver },

@@ -32,29 +32,26 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -62,25 +59,36 @@ import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 /**
  * test key service.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class KeyServiceTest {
+public class KeyServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    KeyService keyService;
+
+    @Autowired
+    AuditDataHelper auditDataHelper;
+
+    @Autowired
+    AuditEventHelper auditEventHelper;
+
+    @Autowired
+    AuditEventLoggingFacade auditEventLoggingFacade;
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
+
+    @Autowired
+    SecurityHelper securityHelper;
 
     // token ids for mocking
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
@@ -90,32 +98,16 @@ public class KeyServiceTest {
     private static final String REGISTERED_AUTH_CERT_ID = "registered-auth-cert";
     private static final String NONREGISTERED_AUTH_CERT_ID = "unregistered-auth-cert";
 
-    @Autowired
-    private KeyService keyService;
+    private static final TokenInfo TOKEN_INFO = new TokenTestUtils.TokenInfoBuilder()
+            .friendlyName("good-token").build();
 
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
+    private static final KeyInfo AUTH_KEY = new KeyInfoBuilder()
+            .id(AUTH_KEY_ID)
+            .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+            .build();
 
-    @MockBean
-    private TokenService tokenService;
-
-    @MockBean
-    private ManagementRequestSenderService managementRequestSenderService;
-
-    // allow all actions
-    @MockBean
-    private PossibleActionsRuleEngine possibleActionsRuleEngine;
-
-    @Before
-    public void setup() throws Exception {
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .friendlyName("good-token").build();
-
+    static {
         // auth key
-        KeyInfo authKey = new KeyInfoBuilder()
-                .id(AUTH_KEY_ID)
-                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                .build();
         CertificateInfo registeredCert = new CertificateInfoBuilder()
                 .savedToConfiguration(true)
                 .certificateStatus(CertificateInfo.STATUS_REGISTERED)
@@ -126,11 +118,11 @@ public class KeyServiceTest {
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .id(NONREGISTERED_AUTH_CERT_ID)
                 .build();
-        authKey.getCerts().add(registeredCert);
-        authKey.getCerts().add(nonregisteredCert);
+        AUTH_KEY.getCerts().add(registeredCert);
+        AUTH_KEY.getCerts().add(nonregisteredCert);
         CertRequestInfo certRequestInfo = new CertRequestInfoBuilder()
                 .build();
-        authKey.getCertRequests().add(certRequestInfo);
+        AUTH_KEY.getCertRequests().add(certRequestInfo);
 
         // sign and typeless keys
         KeyInfo signKey = new KeyInfoBuilder()
@@ -141,11 +133,13 @@ public class KeyServiceTest {
                 .id(TYPELESS_KEY_ID)
                 .keyUsageInfo(null)
                 .build();
-        tokenInfo.getKeyInfo().add(authKey);
-        tokenInfo.getKeyInfo().add(signKey);
-        tokenInfo.getKeyInfo().add(typelessKey);
-        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        TOKEN_INFO.getKeyInfo().add(AUTH_KEY);
+        TOKEN_INFO.getKeyInfo().add(signKey);
+        TOKEN_INFO.getKeyInfo().add(typelessKey);
+    }
 
+    @Before
+    public void setup() throws Exception {
         doAnswer(invocation -> {
             Object[] arguments = invocation.getArguments();
             String newKeyName = (String) arguments[1];
@@ -153,26 +147,13 @@ public class KeyServiceTest {
                 throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
             }
             if (arguments[0].equals(AUTH_KEY_ID)) {
-                ReflectionTestUtils.setField(authKey, "friendlyName", newKeyName);
+                ReflectionTestUtils.setField(AUTH_KEY, "friendlyName", newKeyName);
             } else {
                 throw new RuntimeException(arguments[0] + " not supported");
             }
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
-        doAnswer(invocation -> {
-            String keyId = (String) invocation.getArguments()[0];
-            if (AUTH_KEY_ID.equals(keyId)
-                    || SIGN_KEY_ID.equals(keyId)
-                    || TYPELESS_KEY_ID.equals(keyId)) {
-                return tokenInfo;
-            } else {
-                throw new KeyNotFoundException(keyId + " not supported");
-            }
-        }).when(tokenService).getTokenForKeyId(any());
-
-        // by default all actions are possible
-        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
-                .getPossibleKeyActions(any(), any());
+        mockPossibleActionsRuleEngineAllowAll();
     }
 
     @Test
@@ -283,11 +264,7 @@ public class KeyServiceTest {
     @Test
     @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void deleteChecksPossibleActions() throws Exception {
-        // prepare so that no actions are possible
-        when(possibleActionsRuleEngine.getPossibleKeyActions(any(), any()))
-                .thenReturn(EnumSet.noneOf(PossibleActionEnum.class));
-        doThrow(new ActionNotPossibleException("")).when(possibleActionsRuleEngine)
-                .requirePossibleKeyAction(eq(PossibleActionEnum.DELETE), any(), any());
+        mockPossibleActionsRuleEngineDenyAll();
         try {
             keyService.deleteKey(AUTH_KEY_ID);
             fail("should not be possible");
@@ -303,4 +280,57 @@ public class KeyServiceTest {
         assertEquals(allActions, new HashSet<>(possibleActions));
     }
 
+    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
+        // override instead of mocking for better performance
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper) {
+            @Override
+            public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
+                if (AUTH_KEY_ID.equals(keyId)
+                        || SIGN_KEY_ID.equals(keyId)
+                        || TYPELESS_KEY_ID.equals(keyId)) {
+                    return TOKEN_INFO;
+                } else {
+                    throw new KeyNotFoundException(keyId + " not supported");
+                }
+            }
+
+            @Override
+            public List<TokenInfo> getAllTokens() {
+                return Collections.singletonList(TOKEN_INFO);
+            }
+        };
+        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngineParam,
+                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
+                auditEventLoggingFacade);
+    }
+
+    private void mockPossibleActionsRuleEngineAllowAll() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+            @Override
+            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+                    KeyInfo keyInfo) {
+                // by default all actions are possible
+                return EnumSet.allOf(PossibleActionEnum.class);
+            }
+        };
+        mockServices(possibleActionsRuleEngine);
+    }
+
+    private void mockPossibleActionsRuleEngineDenyAll() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+            @Override
+            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+                    KeyInfo keyInfo) {
+                // prepare so that no actions are possible
+                return EnumSet.noneOf(PossibleActionEnum.class);
+            }
+
+            @Override
+            public void requirePossibleKeyAction(PossibleActionEnum action, TokenInfo tokenInfo,
+                    KeyInfo keyInfo) throws ActionNotPossibleException {
+                throw new ActionNotPossibleException("");
+            }
+        };
+        mockServices(possibleActionsRuleEngine);
+    }
 }

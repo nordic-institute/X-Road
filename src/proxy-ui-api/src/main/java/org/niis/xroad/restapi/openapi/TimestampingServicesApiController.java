@@ -45,7 +45,7 @@ import java.util.List;
  * timestamping services api controller
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class TimestampingServicesApiController implements TimestampingServicesApi {

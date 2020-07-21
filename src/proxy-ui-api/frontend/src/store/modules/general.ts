@@ -1,6 +1,7 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import * as api from '@/util/api';
 import { RootState } from '../types';
+import { MemberName } from '@/openapi-types';
 
 export interface State {
   xroadInstances: string[];
@@ -48,7 +49,7 @@ export const mutations: MutationTree<State> = {
 };
 
 export const actions: ActionTree<State, RootState> = {
-  fetchXroadInstances({ commit, rootGetters }) {
+  fetchXroadInstances({ commit }) {
     return api
       .get(`/xroad-instances`)
       .then((res) => {
@@ -59,9 +60,9 @@ export const actions: ActionTree<State, RootState> = {
       });
   },
 
-  fetchMemberClasses({ commit, rootGetters }) {
+  fetchMemberClasses({ commit }) {
     return api
-      .get(`/member-classes`)
+      .get<string[]>(`/member-classes`)
       .then((res) => {
         commit('storeMemberClasses', res.data);
       })
@@ -70,9 +71,9 @@ export const actions: ActionTree<State, RootState> = {
       });
   },
 
-  fetchMemberClassesForCurrentInstance({ commit, rootGetters }) {
+  fetchMemberClassesForCurrentInstance({ commit }) {
     return api
-      .get(`/member-classes?current_instance=true`)
+      .get<string[]>(`/member-classes?current_instance=true`)
       .then((res) => {
         commit('storeCurrentInstanceMemberClasses', res.data);
       })
@@ -82,8 +83,9 @@ export const actions: ActionTree<State, RootState> = {
   },
 
   fetchMemberName({ commit }, { memberClass, memberCode }) {
+    // this is currently an inline schema and is not automatically generated to a typescript type
     return api
-      .get(
+      .get<MemberName>(
         `/member-names?member_class=${memberClass}&member_code=${memberCode}`,
       )
       .then((res) => {

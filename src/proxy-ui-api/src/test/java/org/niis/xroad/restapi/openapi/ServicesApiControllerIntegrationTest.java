@@ -30,9 +30,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
@@ -40,15 +38,9 @@ import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.AccessRightService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIENT_NOT_FOUND;
@@ -68,27 +61,17 @@ import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERV
 /**
  * Test ServicesApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-public class ServicesApiControllerIntegrationTest {
+public class ServicesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    ServicesApiController servicesApiController;
+
+    @Autowired
+    ServiceDescriptionsApiController serviceDescriptionsApiController;
 
     private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     private static final String FOO = "foo";
     public static final int SS1_GET_RANDOM_SERVICE_CLIENTS = 4;
-
-    @Autowired
-    private ServicesApiController servicesApiController;
-
-    @Autowired
-    private ServiceDescriptionsApiController serviceDescriptionsApiController;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private GlobalConfService globalConfService;
 
     @Before
     public void setup() {
@@ -119,6 +102,7 @@ public class ServicesApiControllerIntegrationTest {
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
                         null))
         ));
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
     }
 
     @Test
@@ -209,7 +193,7 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
     public void updateRestServiceUrl() {
         String initialUrl = "https://restservice.com/api/v1/nosuchservice";
         String changedUrl = "https://restservice.com/api/v1/changedurl";
@@ -316,8 +300,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
@@ -335,8 +319,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteMultipleServiceAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
@@ -356,8 +340,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteMultipleSameServiceAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
@@ -415,8 +399,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRightsWithRedundantSubjects() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
@@ -440,8 +424,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRightsLocalGroupsWithRedundantSubjects() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
@@ -497,8 +481,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addAccessRights() {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_CALCULATE_PRIME).getBody();
         int calculatePrimeClientsBefore = 1;
@@ -521,8 +505,8 @@ public class ServicesApiControllerIntegrationTest {
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addDuplicateAccessRight() throws Exception {
-        when(globalConfService.clientsExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        doReturn(true).when(globalConfService).clientsExist(any());
+        doReturn(true).when(globalConfService).globalGroupsExist(any());
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
@@ -564,12 +548,11 @@ public class ServicesApiControllerIntegrationTest {
                 .collect(Collectors.toList()).size() == 1);
     }
 
-
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addBogusAccessRight() {
-        when(globalConfService.clientsExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+        doReturn(false).when(globalConfService).clientsExist(any());
+        doReturn(false).when(globalConfService).globalGroupsExist(any());
         List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
@@ -604,7 +587,7 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities =  { "ADD_OPENAPI3_ENDPOINT" })
+    @WithMockUser(authorities = { "ADD_OPENAPI3_ENDPOINT" })
     public void addEndpointWithId() {
         Endpoint endpoint = new Endpoint();
         endpoint.setId("thereshouldntbeid");

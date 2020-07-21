@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.niis.xroad.restapi.converter.ClientConverter;
@@ -38,6 +39,9 @@ import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.File;
 import java.io.IOException;
@@ -136,6 +140,8 @@ public final class TestUtils {
     public static final long OBSOLETE_SCS_BASE_ENDPOINT_ID = 13L;
     public static final String OBSOLETE_SCS_SERVICE_CODE = "serviceWithObsoleteScs";
     public static final String OBSOLETE_SCS_FULL_SERVICE_CODE = OBSOLETE_SCS_SERVICE_CODE + ".v1";
+    public static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(
+            "XRD2", "GOV", "M4", "owner");
 
 
     private TestUtils() {
@@ -318,5 +324,11 @@ public final class TestUtils {
     public static Long fromDateTimeToMilliseconds(String dateTimeStr) {
         return LocalDateTime.parse(dateTimeStr).toInstant(OffsetDateTime.now().getOffset()).atOffset(ZoneOffset.UTC)
                 .toInstant().toEpochMilli();
+    }
+
+    public static void mockServletRequestAttributes() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        ServletRequestAttributes attributes = new ServletRequestAttributes(request);
+        RequestContextHolder.setRequestAttributes(attributes);
     }
 }

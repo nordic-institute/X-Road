@@ -66,7 +66,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound
  * Endpoints api
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class EndpointsApiController implements EndpointsApi {

@@ -25,34 +25,24 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
-import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.InvalidFilenameException;
 import org.niis.xroad.restapi.service.ProcessFailedException;
 import org.niis.xroad.restapi.service.RestoreProcessFailedException;
-import org.niis.xroad.restapi.service.RestoreService;
-import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
@@ -66,28 +56,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 /**
  * Test BackupsApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class BackupsApiControllerTest {
-
-    @MockBean
-    private BackupService backupService;
-    @MockBean
-    private RestoreService restoreService;
-    @MockBean
-    private TokenService tokenService;
+public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private BackupsApiController backupsApiController;
+    BackupsApiController backupsApiController;
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";
 
@@ -111,8 +90,8 @@ public class BackupsApiControllerTest {
         BackupFile bf2 = new BackupFile(BACKUP_FILE_2_NAME);
         bf2.setCreatedAt(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
-        when(backupService.getBackupFiles()).thenReturn(new ArrayList<>(Arrays.asList(bf1, bf2)));
-        when(tokenService.hasHardwareTokens()).thenReturn(false);
+        doReturn(new ArrayList<>(Arrays.asList(bf1, bf2))).when(backupService).getBackupFiles();
+        doReturn(false).when(tokenService).hasHardwareTokens();
     }
 
     @Test

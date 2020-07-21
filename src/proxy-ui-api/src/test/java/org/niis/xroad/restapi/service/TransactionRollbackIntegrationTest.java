@@ -27,27 +27,23 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
  * test that transactions roll back as they should
+ * @Transactional(propagation = Propagation.NEVER) settings makes it so that the
+ * test method execution is not executed in a transaction, but each service method execution is
+ * (otherwise we could not detect a transaction rollback from the test method).
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@WithMockUser
-public class TransactionRollbackIntegrationTest {
+@Transactional(propagation = Propagation.NEVER)
+public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTestContext {
 
     private static final Long GROUP_ID = 1L;
 
