@@ -357,6 +357,7 @@ module.exports = {
     mainPage.closeSnackbar();
 
     clientServices.toggleEnabled();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description enabled');
     mainPage.closeSnackbar();
 
     // Verify editing, malformed URL
@@ -399,7 +400,10 @@ module.exports = {
       }
     });
 
-    servicesPopup.accept();     
+    servicesPopup.accept(); 
+    browser.getText(mainPage.elements.snackBarMessage, function (res) {    
+      console.log('Snackbar: ' + res.value);
+    });
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'WSDL ('+ browser.globals.testdata + '/' + browser.globals.wsdl_url_2+')');
