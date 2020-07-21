@@ -378,6 +378,9 @@ module.exports = {
     serviceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_2);
     serviceDetails.cancelDialog();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'WSDL ('+ browser.globals.testdata + '/' + browser.globals.wsdl_url_1+')');
+    browser.elements(mainPage.elements.snackBarMessage, res => {
+      if (res.value.length > 0) { mainPage.closeSnackbar(); }
+    });
 
     // Verify succesfull edit
     clientServices.openServiceDetails();
