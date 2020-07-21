@@ -23,21 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi;
+package org.niis.xroad.restapi.converter;
 
-import org.junit.Test;
 import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
+import org.niis.xroad.restapi.service.VersionService;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 /**
- * application test
+ * Base for all converter tests that need some mocked beans in the application context.
+ * All converter test classes inheriting this will have a common Spring Application Context
+ * therefore drastically reducing the execution time of the converter tests
+ *
+ * Do not introduce new @MockBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
+ * creates a different applicationContext for the inherited class and other AbstractServiceTestContext classes,
+ * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
+ * in this base class instead.
+ *
+ * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
-public class ApplicationTests extends AbstractFacadeMockingTestContext {
 
-    /**
-     * test that spring context loads
-     */
-    @Test
-    public void contextLoads() {
-    }
-
+public abstract class AbstractConverterTestContext extends AbstractFacadeMockingTestContext {
+    @MockBean
+    VersionService versionService;
+    @SpyBean
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
+    @SpyBean
+    KeyConverter keyConverter;
 }

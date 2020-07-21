@@ -25,25 +25,13 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,37 +42,14 @@ import static org.mockito.Mockito.when;
 /**
  * test ServerConfService
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class ServerConfServiceTest {
+public class ServerConfServiceTest extends AbstractServiceTestContext {
 
     @Autowired
     ServerConfService serverConfService;
 
-    @MockBean
-    ServerConfRepository serverConfRepository;
-
-    @MockBean
-    ServerConfType serverConfType;
-
-    @Before
-    public void setup() {
-        ServerConfType sct = new ServerConfType();
-        ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
-        ClientType owner = new ClientType();
-        owner.setIdentifier(clientId);
-        sct.setOwner(owner);
-        sct.setServerCode("some-servercode");
-        when(serverConfRepository.getServerConf()).thenReturn(sct);
-    }
-
     @Test
     public void getSecurityServerId() {
-        SecurityServerId expected = SecurityServerId.create("FI", "GOV", "M1", "some-servercode");
+        SecurityServerId expected = SecurityServerId.create("FI", "GOV", "M1", "SS1");
         assertEquals(expected, serverConfService.getSecurityServerId());
     }
 
