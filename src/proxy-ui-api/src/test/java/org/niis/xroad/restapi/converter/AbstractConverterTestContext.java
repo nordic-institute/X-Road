@@ -35,7 +35,15 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
  * Base for all converter tests that need some mocked beans in the application context.
  * All converter test classes inheriting this will have a common Spring Application Context
  * therefore drastically reducing the execution time of the converter tests
+ *
+ * Do not introduce new @MockBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
+ * creates a different applicationContext for the inherited class and other AbstractServiceTestContext classes,
+ * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
+ * in this base class instead.
+ *
+ * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
+
 public abstract class AbstractConverterTestContext extends AbstractFacadeMockingTestContext {
     @MockBean
     VersionService versionService;

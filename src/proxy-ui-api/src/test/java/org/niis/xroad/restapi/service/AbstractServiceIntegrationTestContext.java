@@ -47,7 +47,18 @@ import static org.mockito.Mockito.when;
  * integration test classes inheriting this will shared the same mock bean configuration, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the integration tests.
  *
- * Integration tests do not mock the repository layer.
+ * Extend this when
+ * - you are implementing an service layer integration test
+ * - you do not want to mock other services
+ * - you want to use the real repository layer, and not mock it
+ *
+ * In case you want to mock some of the non-mocked dependencies (such as some other service) in some specific test,
+ * you can consider moving that dependency into this class as a SpyBean (like {@link GlobalConfService})
+ * but this should not be a common solution, and all inheriting tests that use the same dependency need to be updated
+ * when such change is made.
+ *
+ * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ *
  */
 public abstract class AbstractServiceIntegrationTestContext extends AbstractFacadeMockingTestContext {
     @SpyBean

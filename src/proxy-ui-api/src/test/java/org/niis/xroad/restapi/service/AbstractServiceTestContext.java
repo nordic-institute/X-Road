@@ -45,13 +45,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
- * Base for all service tests that need injected/mocked beans in the application context. All service
- * test classes inheriting this will have a common Spring Application Context therefore drastically reducing
- * the execution time of the service tests.
+ * Base for all service tests that need mocked beans in the application context. All service
+ * test classes inheriting this will shared the same mock bean configuration, and have a common
+ * Spring Application Context therefore drastically reducing the execution time of the tests.
  *
- * TO DO: explain "you should not introduce mocks in inheriting classes"...
+ * Do not introduce new @MockBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
+ * creates a different applicationContext for the inherited class and other AbstractServiceTestContext classes,
+ * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
+ * in this base class instead.
  *
- * Only repository layer (or anything below service layer) may be mocked
+ * Extend this when
+ * - you are implementing an service layer test
+ * - you do not want to mock other services
+ * - you want to mock the repository layer, instead of using the real repositories and data
+ *
+ * In case you want to mock some of the non-mocked dependencies (such as some other service) in some specific test,
+ * you can consider moving that dependency into this class as a SpyBean (example in
+ * {@link AbstractServiceIntegrationTestContext.globalConfService}) but this should not
+ * be a common solution, and all inheriting tests that use the same dependency need to be updated
+ * when such change is made.
+ *
+ * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
 public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
     @MockBean
