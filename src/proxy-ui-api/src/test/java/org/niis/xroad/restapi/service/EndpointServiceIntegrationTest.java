@@ -28,18 +28,9 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -50,22 +41,13 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class EndpointServiceIntegrationTest {
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
+public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
     @Autowired
-    private EndpointService endpointService;
+    ClientService clientService;
 
     @Autowired
-    private ClientService clientService;
+    EndpointService endpointService;
 
     @Test
     public void getServiceBaseEndpoints() throws Exception {

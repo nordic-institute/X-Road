@@ -175,6 +175,7 @@ import { ExtendedClient } from '@/ui-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { DataTableHeader } from 'vuetify';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -229,7 +230,10 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
     showAddMember(): boolean {
-      return this.$store.getters.realMembers?.length < 2;
+      return (
+        this.$store.getters.hasPermission(Permissions.ADD_CLIENT) &&
+        this.$store.getters.realMembers?.length < 2
+      );
     },
     showRegister(): boolean {
       return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
@@ -316,8 +320,8 @@ export default Vue.extend({
         item.subsystem_code,
       );
 
-      this.$store
-        .dispatch('registerClient', clientId)
+      api
+        .put(`/clients/${clientId}/register`, {})
         .then(
           () => {
             this.$store.dispatch(

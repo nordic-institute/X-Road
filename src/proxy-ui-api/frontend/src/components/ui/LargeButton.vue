@@ -17,7 +17,7 @@
 <script lang="ts">
 /** Wrapper for vuetify button with x-road look */
 
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import { Permissions } from '@/global';
 
 export default Vue.extend({
@@ -42,7 +42,7 @@ export default Vue.extend({
     },
     requiresPermission: {
       required: false,
-      type: String,
+      type: String as PropType<Permissions | undefined>,
       validator: (val) =>
         Object.values(Permissions).some((permission) => permission === val),
     },
@@ -56,7 +56,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    click(event: any): void {
+    click(event: MouseEvent): void {
       this.$emit('click', event);
     },
   },

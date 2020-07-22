@@ -27,16 +27,10 @@ package org.niis.xroad.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,24 +41,18 @@ import static org.mockito.Mockito.when;
 /**
  * test xroad instances api controller
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-public class XroadInstancesApiControllerIntegrationTest {
+public class XroadInstancesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
 
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
+    @Autowired
+    XroadInstancesApiController xroadInstancesApiController;
 
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";
     private static final List<String> INSTANCE_IDS = Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C);
 
-    @Autowired
-    private XroadInstancesApiController xroadInstancesApiController;
-
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
     }
 

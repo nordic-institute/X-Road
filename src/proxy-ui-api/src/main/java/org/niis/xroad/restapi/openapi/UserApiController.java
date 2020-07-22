@@ -34,6 +34,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -41,14 +42,18 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
+
 /**
  * User controller
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class UserApiController implements UserApi {
+
+    public static final String USER_API_V1_PATH = API_V1_PREFIX + "/user";
 
     private final UsernameHelper usernameHelper;
 
@@ -77,7 +82,7 @@ public class UserApiController implements UserApi {
      * @return
      */
     @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/roles")
+    @GetMapping(value = USER_API_V1_PATH + "/roles")
     public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
         return new ResponseEntity<>(
                 getAuthorities(authentication, name -> name.startsWith("ROLE_")),
@@ -90,7 +95,7 @@ public class UserApiController implements UserApi {
      * @return
      */
     @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/permissions")
+    @GetMapping(value = USER_API_V1_PATH + "/permissions")
     public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
         return new ResponseEntity<>(
                 getAuthorities(authentication, name -> !name.startsWith("ROLE_")),
@@ -98,7 +103,7 @@ public class UserApiController implements UserApi {
     }
 
     private Set<String> getAuthorities(Authentication authentication,
-                                       Predicate<String> authorityNamePredicate) {
+            Predicate<String> authorityNamePredicate) {
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(authority -> authority.getAuthority())
                 .filter(authorityNamePredicate)

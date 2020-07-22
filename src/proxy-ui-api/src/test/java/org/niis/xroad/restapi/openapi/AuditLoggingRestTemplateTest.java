@@ -27,26 +27,17 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Map;
 
@@ -56,36 +47,30 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1;
+import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 import static org.niis.xroad.restapi.util.TestUtils.getClientId;
 
 /**
  * Simple tests to validate that basic audit logging works
  */
-@ActiveProfiles({ "test", "audit-test" })
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-public class AuditLoggingRestTemplateTest {
+@ActiveProfiles({ "test", "audit-test" }) // profile change forces to load a new application context
+public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    TestRestTemplate restTemplate;
 
     @Autowired
-    private ClientService clientService;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @SpyBean
-    private MockableAuditEventLoggingFacade auditEventLoggingFacade;
+    ClientService clientService;
 
     @Before
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);
+        when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Test
@@ -93,7 +78,7 @@ public class AuditLoggingRestTemplateTest {
     public void testSuccessAuditLog() {
         ConnectionTypeWrapper connectionTypeWrapper = new ConnectionTypeWrapper();
         connectionTypeWrapper.setConnectionType(ConnectionType.HTTP);
-        restTemplate.patchForObject("/api/clients/" + CLIENT_ID_SS1, connectionTypeWrapper, Object.class);
+        restTemplate.patchForObject("/api/v1/clients/" + CLIENT_ID_SS1, connectionTypeWrapper, Object.class);
         ClientType clientType = clientService.getLocalClient(getClientId(CLIENT_ID_SS1));
         assertEquals("NOSSL", clientType.getIsAuthentication());
 
@@ -118,14 +103,14 @@ public class AuditLoggingRestTemplateTest {
         assertTrue(data.containsKey("isAuthentication"));
         assertEquals("HTTP", data.get("isAuthentication"));
         assertEquals("ApiKey", authCaptor.getValue());
-        assertEquals("/api/clients/" + CLIENT_ID_SS1, urlCaptor.getValue());
+        assertEquals("/api/v1/clients/" + CLIENT_ID_SS1, urlCaptor.getValue());
         verifyNoMoreInteractions(auditEventLoggingFacade);
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testUnloggedEndpoint() {
-        restTemplate.getForObject("/api/clients/" + CLIENT_ID_SS1, Object.class);
+        restTemplate.getForObject("/api/v1/clients/" + CLIENT_ID_SS1, Object.class);
         // auditLogSuccess will be called, but no actual calls to AuditLogger.log
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
         verifyNoMoreInteractions(auditEventLoggingFacade);
@@ -138,7 +123,7 @@ public class AuditLoggingRestTemplateTest {
         connectionTypeWrapper.setConnectionType(ConnectionType.HTTP);
         String missingClientId = "FI:GOV:MFOOBAR:SS555";
 
-        restTemplate.patchForObject("/api/clients/" + missingClientId, connectionTypeWrapper, Object.class);
+        restTemplate.patchForObject("/api/v1/clients/" + missingClientId, connectionTypeWrapper, Object.class);
 
         // verify mock audit log
         verify(auditEventLoggingFacade, times(1)).auditLogFail(any());
@@ -162,9 +147,8 @@ public class AuditLoggingRestTemplateTest {
         assertEquals(1, data.size());
         assertTrue(data.containsKey("clientIdentifier"));
         assertEquals("ApiKey", authCaptor.getValue());
-        assertEquals("/api/clients/" + missingClientId, urlCaptor.getValue());
+        assertEquals("/api/v1/clients/" + missingClientId, urlCaptor.getValue());
         verifyNoMoreInteractions(auditEventLoggingFacade);
     }
-
 
 }

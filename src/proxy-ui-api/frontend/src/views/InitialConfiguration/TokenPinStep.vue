@@ -68,7 +68,6 @@
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import * as api from '@/util/api';
 import { extend } from 'vee-validate';
 import i18n from '@/i18n';
 
@@ -78,6 +77,7 @@ const PASSWORD_MATCH_ERROR: string = i18n.t(
 
 extend('password', {
   params: ['target'],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate(value, { target }: Record<string, any>) {
     return value === target;
   },

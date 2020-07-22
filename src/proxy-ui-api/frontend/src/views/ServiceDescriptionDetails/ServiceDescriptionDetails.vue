@@ -151,7 +151,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceTypeEnum } from '@/domain';
-import { ServiceDescription } from '@/openapi-types';
+import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -181,7 +181,7 @@ export default Vue.extend({
       saveBusy: false,
       serviceTypeEnum: ServiceTypeEnum,
       editLoading: false as boolean,
-      serviceDescriptionUpdate: {} as any,
+      serviceDescriptionUpdate: null as ServiceDescriptionUpdate | null,
     };
   },
   computed: {
@@ -198,7 +198,6 @@ export default Vue.extend({
       this.saveBusy = true;
 
       this.serviceDescriptionUpdate = {
-        id: this.serviceDesc.id,
         url: this.serviceDesc.url,
         type: this.serviceDesc.type,
         ignore_warnings: false,
@@ -224,7 +223,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.saveBusy = false;
-          this.serviceDescriptionUpdate = {};
+          this.serviceDescriptionUpdate = null;
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -234,14 +233,14 @@ export default Vue.extend({
           } else {
             this.$store.dispatch('showError', error);
             this.saveBusy = false;
-            this.serviceDescriptionUpdate = {};
+            this.serviceDescriptionUpdate = null;
           }
         });
     },
 
     fetchData(id: string): void {
       api
-        .get(`/service-descriptions/${id}`)
+        .get<ServiceDescription>(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
           this.initialServiceCode =
@@ -277,7 +276,10 @@ export default Vue.extend({
 
     acceptEditWarning(): void {
       this.editLoading = true;
-      this.serviceDescriptionUpdate.ignore_warnings = true;
+
+      if (this.serviceDescriptionUpdate) {
+        this.serviceDescriptionUpdate.ignore_warnings = true;
+      }
 
       api
         .patch(
@@ -295,7 +297,7 @@ export default Vue.extend({
           this.saveBusy = false;
           this.editLoading = false;
           this.confirmEditWarning = false;
-          this.serviceDescriptionUpdate = {};
+          this.serviceDescriptionUpdate = null;
         });
     },
 

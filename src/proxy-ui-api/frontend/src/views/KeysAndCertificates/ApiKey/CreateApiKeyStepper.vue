@@ -161,7 +161,7 @@ export default Vue.extend({
     async generateKey() {
       this.generatingKey = true;
       api
-        .post('/api-keys', this.selectedRoles)
+        .post<ApiKey>('/api-keys', this.selectedRoles)
         .then((resp) => {
           this.apiKey = resp.data;
           this.$store.dispatch('showSuccess', 'apiKey.createApiKey.success');

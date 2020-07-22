@@ -71,9 +71,9 @@ export default Vue.extend({
   methods: {
     fetchServiceClients() {
       api
-        .get(`/clients/${this.id}/service-clients`, {})
-        .then((response: any): void => (this.serviceClients = response.data))
-        .catch((error: any) => this.$store.dispatch('showError', error));
+        .get<ServiceClient[]>(`/clients/${this.id}/service-clients`, {})
+        .then((response) => (this.serviceClients = response.data))
+        .catch((error) => this.$store.dispatch('showError', error));
     },
     addServiceClient(): void {
       this.$router.push(`/subsystem/serviceclients/${this.id}/add`);

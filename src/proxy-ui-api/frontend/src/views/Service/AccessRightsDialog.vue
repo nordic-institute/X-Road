@@ -156,7 +156,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -168,7 +168,7 @@ enum ServiceClientTypes {
   SUBSYSTEM = 'SUBSYSTEM',
 }
 
-function initialState() {
+const initialState = () => {
   return {
     name: '',
     serviceClientType: '',
@@ -178,12 +178,12 @@ function initialState() {
     subsystemCode: '',
     serviceClientTypes: ServiceClientTypes,
     expandPanel: [0],
-    serviceClientCandidates: [],
-    selectedIds: [] as string[],
+    serviceClientCandidates: [] as ServiceClient[],
+    selectedIds: [] as ServiceClient[],
     noResults: false,
     checkbox1: true,
   };
-}
+};
 
 export default Vue.extend({
   components: {
@@ -199,21 +199,18 @@ export default Vue.extend({
       required: true,
     },
     existingServiceClients: {
-      type: Array,
+      type: Array as PropType<ServiceClient[]>,
       required: true,
     },
   },
 
   data() {
-    return initialState();
+    return { ...initialState() };
   },
   computed: {
     ...mapGetters(['xroadInstances', 'memberClasses']),
     canSave(): boolean {
-      if (this.selectedIds.length > 0) {
-        return true;
-      }
-      return false;
+      return this.selectedIds.length > 0;
     },
     ServiceClientTypeItems(): object[] {
       // Returns items for subject type select with translated texts
@@ -234,8 +231,8 @@ export default Vue.extend({
     },
   },
   methods: {
-    checkboxChange(subject: any, event: any): void {
-      if (event === true) {
+    checkboxChange(subject: ServiceClient, event: boolean): void {
+      if (event) {
         this.selectedIds.push(subject);
       } else {
         const index = this.selectedIds.indexOf(subject);
@@ -263,14 +260,14 @@ export default Vue.extend({
 
       const isExistingServiceClient = (sc: ServiceClient): boolean => {
         return !this.existingServiceClients.some(
-          (existing: any) =>
+          (existing) =>
             sc.id === existing.id &&
             sc.service_client_type === existing.service_client_type,
         );
       };
 
       api
-        .get(query)
+        .get<ServiceClient[]>(query)
         .then((res) => {
           if (this.existingServiceClients?.length > 0) {
             // Filter out subjects that are already added

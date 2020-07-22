@@ -31,7 +31,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyValuePair;
 import org.niis.xroad.restapi.openapi.model.Token;
@@ -39,9 +38,6 @@ import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,15 +49,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class TokenConverterTest {
+public class TokenConverterTest extends AbstractConverterTestContext {
 
     @Autowired
-    private TokenConverter tokenConverter;
-
-    @SpyBean // only mock convert(). dont mock keyConverter.isSavedToConfiguration()
-    private KeyConverter keyConverter;
+    TokenConverter tokenConverter;
 
     @Before
     public void setup() {

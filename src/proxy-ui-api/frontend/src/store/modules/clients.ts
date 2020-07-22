@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Client } from '@/openapi-types';
-import { createClientId, Mutable } from '@/util/helpers';
+import { createClientId, deepClone, Mutable } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
 import i18n from './../../i18n';
@@ -59,7 +59,7 @@ export const mutations: MutationTree<ClientsState> = {
     // Find members. Owner member (there is only one) and possible other member
     state.clients.forEach((element: Client) => {
       if (!element.subsystem_code) {
-        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
+        const clone = deepClone(element) as ExtendedClient;
         clone.type = ClientTypes.OWNER_MEMBER;
         clone.subsystem_code = undefined;
         clone.visibleName = clone.member_name || UNKNOWN_NAME;
@@ -88,9 +88,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       if (!memberAlreadyExists) {
         // If "virtual member" is not in members array, create and add it
-        const clone = JSON.parse(JSON.stringify(element)) as Mutable<
-          ExtendedClient
-        >; // Type Mutable<T> removes readonly from fields
+        const clone = deepClone(element) as Mutable<ExtendedClient>; // Type Mutable<T> removes readonly from fields
         clone.type = ClientTypes.VIRTUAL_MEMBER;
 
         // This should not happen, but better to throw error than create an invalid client id
@@ -117,7 +115,7 @@ export const mutations: MutationTree<ClientsState> = {
 
       // Push subsystems to an array
       if (element.subsystem_code) {
-        const clone = JSON.parse(JSON.stringify(element)) as ExtendedClient;
+        const clone = deepClone(element) as ExtendedClient;
         clone.visibleName = clone.subsystem_code || UNKNOWN_NAME;
         clone.type = ClientTypes.SUBSYSTEM;
 
@@ -138,7 +136,7 @@ export const mutations: MutationTree<ClientsState> = {
 };
 
 export const actions: ActionTree<ClientsState, RootState> = {
-  fetchClients({ commit, rootGetters }) {
+  fetchClients({ commit }) {
     commit('setLoading', true);
 
     return axios

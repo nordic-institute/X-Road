@@ -54,7 +54,7 @@ import java.util.List;
 @Transactional
 public class ClientRepository {
 
-    private final PersistenceUtils persistenceUtils;
+    private PersistenceUtils persistenceUtils;
 
     @Autowired
     public ClientRepository(PersistenceUtils persistenceUtils) {

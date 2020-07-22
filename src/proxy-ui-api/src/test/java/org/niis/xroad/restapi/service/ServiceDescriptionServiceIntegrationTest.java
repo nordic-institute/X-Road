@@ -31,27 +31,17 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,13 +69,16 @@ import static org.mockito.Mockito.when;
  * Use SpyBean to override parseWsdl, so that we can use WSDL urls that
  * are independent of the files we actually read.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class ServiceDescriptionServiceIntegrationTest {
+public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    ServiceDescriptionService serviceDescriptionService;
+
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    ServiceDescriptionRepository serviceDescriptionRepository;
 
     public static final String BIG_ATTACHMENT_V1_SERVICECODE = "xroadBigAttachment.v1";
     public static final String SMALL_ATTACHMENT_V1_SERVICECODE = "xroadSmallAttachment.v1";
@@ -107,27 +100,6 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     private static final ClientId CLIENT_ID_SS1 = ClientId.create("FI", "GOV", "M1", "SS1");
     private static final ClientId CLIENT_ID_SS6 = ClientId.create("FI", "GOV", "M2", "SS6");
-
-    @Autowired
-    private ServiceDescriptionService serviceDescriptionService;
-
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @MockBean
-    private WsdlValidator wsdlValidator;
-
-    @Autowired
-    private ServiceDescriptionRepository serviceDescriptionRepository;
-
-    @MockBean
-    private UrlValidator urlValidator;
-
-    @SpyBean
-    private OpenApiParser openApiParser;
 
     @Before
     public void setup() {

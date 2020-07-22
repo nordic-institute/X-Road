@@ -23,6 +23,7 @@
 import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -45,8 +46,8 @@ export default Vue.extend({
   methods: {
     unregisterClient(): void {
       this.unregisterLoading = true;
-      this.$store
-        .dispatch('unregisterClient', this.id)
+      api
+        .put(`/clients/${this.id}/unregister`, {})
         .then(
           () => {
             this.$store.dispatch(

@@ -26,17 +26,13 @@
 package org.niis.xroad.restapi.controller;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
-import org.niis.xroad.restapi.service.NotificationService;
+import org.niis.xroad.restapi.openapi.AbstractApiControllerTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -49,12 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test NotificationsApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class NotificationsApiControllerTest {
-
-    @MockBean
-    private NotificationService notificationService;
+public class NotificationsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
     private NotificationsApiController notificationsApiController;
