@@ -85,6 +85,7 @@
     </ValidationObserver>
 
     <SelectClientDialog
+      title="wizard.addMemberTitle"
       :dialog="showSelectClient"
       :selectableClients="selectableMembers"
       @cancel="showSelectClient = false"
