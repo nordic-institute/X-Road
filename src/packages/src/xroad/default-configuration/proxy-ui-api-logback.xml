@@ -33,7 +33,8 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>correlation-id:[%X{X-B3-TraceId:-}] %msg%n</pattern>
+            <pattern>[%thread] correlation-id:[%X{X-B3-TraceId:-}] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
