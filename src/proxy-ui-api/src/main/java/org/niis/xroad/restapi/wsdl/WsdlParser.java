@@ -136,6 +136,7 @@ public final class WsdlParser {
     }
 
     private static Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws Exception {
+        log.info("running WSDL parser");
         WSDLFactory wsdlFactory = WSDLFactory.newInstance(
                 "com.ibm.wsdl.factory.WSDLFactoryImpl");
 
