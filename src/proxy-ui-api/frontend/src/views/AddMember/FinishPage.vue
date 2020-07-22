@@ -14,7 +14,7 @@
     <p>{{ $t('wizard.finish.note') }}</p>
     <p></p>
 
-    <div v-if="showRegisterOption" class="row-wrap">
+    <div v-if="showRegisterOption">
       <FormLabel labelText="wizard.member.register" />
       <v-checkbox
         v-model="registerChecked"
