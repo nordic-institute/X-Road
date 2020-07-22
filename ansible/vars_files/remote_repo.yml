@@ -8,7 +8,7 @@ ubuntu_18_apt_key:  "{{xroad_repo_key}}"
 ubuntu_18_repo_url: "{{xroad_repo_baseurl}}/xroad-release-deb"
 ubuntu_18_apt_repo: "deb {{ubuntu_18_repo_url}} bionic-current main"
 
-rhel_repo_baseurl: "{{xroad_repo_baseurl}}/rhel/{{ansible_distribution_major_version}}/current"
+rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xroad-release-rpm/rhel/{{ansible_distribution_major_version}}/current"
 rhel_repo_gpgcheck: "yes"
 rhel_repo_gpgkey: "{{xroad_repo_key}}"
 rhel_repo_repogpgcheck: "yes"
