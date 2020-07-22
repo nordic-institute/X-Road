@@ -7,7 +7,6 @@ metadata:
   labels:
     run: security-server-sidecar-consumer
 spec:
-  clusterIP: 10.100.202.54
   type: LoadBalancer
   selector:
     run: security-server-sidecar-consumer
