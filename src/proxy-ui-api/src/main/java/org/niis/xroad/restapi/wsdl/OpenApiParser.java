@@ -76,7 +76,14 @@ public class OpenApiParser {
         final ParseOptions options = new ParseOptions();
         options.setResolve(false);
 
-        final SwaggerParseResult result = new OpenAPIV3Parser().readContents(readOpenAPIDescription(openApiUrl),
+        String openApiDescription;
+        try {
+            openApiDescription = readOpenAPIDescription(openApiUrl);
+        } catch (Exception e) {
+            log.error("Reading OpenAPI description from {} failed", openApiUrl, e);
+            throw e;
+        }
+        final SwaggerParseResult result = new OpenAPIV3Parser().readContents(openApiDescription,
                 null, options);
         validate(result, openApiUrl);
 

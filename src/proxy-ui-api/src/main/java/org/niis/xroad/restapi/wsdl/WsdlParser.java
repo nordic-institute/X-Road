@@ -111,8 +111,10 @@ public final class WsdlParser {
         try {
             return internalParseWSDL(wsdlUrl);
         } catch (PrivateWsdlNotFoundException e) {
+            log.error("Reading WSDL from {} failed", wsdlUrl, e);
             throw new WsdlNotFoundException(e);
         } catch (Exception e) {
+            log.error("Reading WSDL from {} failed", wsdlUrl, e);
             throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
     }
