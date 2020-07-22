@@ -471,7 +471,8 @@
       "memberClassTooltip": "Code identifying the member class (e.g., government agency, private enterprise etc.).",
       "memberCodeTooltip": "Member code that uniquely identifies this X-Road member within its member class (e.g. business ID).",
       "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member.",
-      "memberExists": "Member already exists"
+      "memberExists": "Member already exists",
+      "register": "Register client"
     },
     "token": {
       "title": "Token",
