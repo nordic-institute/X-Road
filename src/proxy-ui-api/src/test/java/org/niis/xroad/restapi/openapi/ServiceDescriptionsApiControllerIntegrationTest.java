@@ -27,14 +27,9 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -42,17 +37,11 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,35 +57,18 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
+import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
 
 /**
  * Test ServiceDescriptionsApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class ServiceDescriptionsApiControllerIntegrationTest {
+public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private ServiceDescriptionsApiController serviceDescriptionsApiController;
+    ServiceDescriptionsApiController serviceDescriptionsApiController;
 
     @Autowired
-    private ClientsApiController clientsApiController;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private UrlValidator urlValidator;
-
-    @MockBean
-    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-
-    // prevent failures from auditEventLoggingFacade not allowing event change
-    @MockBean
-    private AuditEventLoggingFacade auditEventLoggingFacade;
+    ClientsApiController clientsApiController;
 
     @Before
     public void setup() {
@@ -108,6 +80,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         });
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Test
@@ -344,19 +318,20 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         }
     }
 
-
     private Set<String> getServiceIds(ServiceDescription serviceDescription) {
         return serviceDescription.getServices()
                 .stream()
                 .map(Service::getId)
                 .collect(Collectors.toSet());
     }
+
     private Set<String> getServiceCodes(ServiceDescription serviceDescription) {
         return serviceDescription.getServices()
                 .stream()
                 .map(Service::getServiceCode)
                 .collect(Collectors.toSet());
     }
+
     private Service getService(List<Service> services, String id) {
         return services.stream()
                 .filter(s -> id.equals(s.getId()))

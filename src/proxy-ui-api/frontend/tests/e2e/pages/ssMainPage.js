@@ -809,8 +809,8 @@ module.exports = {
           locateStrategy: 'xpath' }
       }
     },
-    removeMemberPopup: {
-      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Remove member?")]]',
+    removeAccessRightPopup: {
+      selector: '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Remove access rights?")]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
@@ -822,8 +822,8 @@ module.exports = {
           locateStrategy: 'xpath' }
       }
     },
-    removeAllMembersPopup: {
-      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Remove all members?")]]',
+    removeAllAccessRightsPopup: {
+      selector: '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Remove all access rights?")]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {

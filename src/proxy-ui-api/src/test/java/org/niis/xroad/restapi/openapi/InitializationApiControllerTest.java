@@ -25,23 +25,16 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
@@ -56,22 +49,15 @@ import static org.mockito.Mockito.when;
 /**
  * test init
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class InitializationApiControllerTest {
+public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    InitializationApiController initializationApiController;
+
     private static final String OWNER_MEMBER_CLASS = "GOV";
     private static final String OWNER_MEMBER_CODE = "M1";
     private static final String SECURITY_SERVER_CODE = "SS3";
     private static final String SOFTWARE_TOKEN_PIN = "1234";
-
-    @Autowired
-    private InitializationApiController initializationApiController;
-
-    @MockBean
-    private InitializationService initializationService;
 
     @Test
     @WithMockUser

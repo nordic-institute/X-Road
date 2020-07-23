@@ -28,13 +28,9 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
@@ -44,16 +40,14 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
-import org.niis.xroad.restapi.service.SystemService;
+import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,18 +59,23 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.OWNER_SERVER_ID;
 import static org.niis.xroad.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
 /**
  * test validation of identifier parameters with real requests
  * (can't test binders with regular integration tests, for some reason)
+ *
+ * TestRestTemplate requests will not be rolled back so the context will need to be reloaded after this test class
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-public class IdentifierValidationRestTemplateTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class IdentifierValidationRestTemplateTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    TestRestTemplate restTemplate;
 
     public static final String HAS_COLON = "aa:bb";
     public static final String HAS_SEMICOLON = "aa;bb";
@@ -87,22 +86,10 @@ public class IdentifierValidationRestTemplateTest {
     public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAdd.client.memberCode";
     public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAdd.client.subsystemCode";
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @MockBean
-    private SystemService systemService;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-
     private ObjectMapper testObjectMapper = new ObjectMapper();
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         addApiKeyAuthorizationHeader(restTemplate);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -112,10 +99,16 @@ public class IdentifierValidationRestTemplateTest {
                     : TestUtils.NAME_FOR + "test-member";
         });
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
+        when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
         when(systemService.isAnchorImported()).thenReturn(false);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
+        doThrow(new AnchorNotFoundException(""))
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
     }
 
     @Test
+    @WithMockUser(authorities = "ADD_CLIENT")
     public void testAddClient() {
         assertAddClientValidationError(HAS_COLON, null);
         assertAddClientValidationError(HAS_SEMICOLON, null);
@@ -149,6 +142,7 @@ public class IdentifierValidationRestTemplateTest {
     }
 
     @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
     public void testAddClientServiceDescription() {
         assertAddClientServiceDescriptionValidationError(HAS_COLON);
         assertAddClientServiceDescriptionValidationError(HAS_SEMICOLON);
@@ -175,6 +169,7 @@ public class IdentifierValidationRestTemplateTest {
     }
 
     @Test
+    @WithMockUser(authorities = "EDIT_OPENAPI3")
     public void testUpdateServiceDescription() {
         assertUpdateServiceDescriptionValidationFailure(HAS_COLON);
         assertUpdateServiceDescriptionValidationFailure(HAS_SEMICOLON);
@@ -204,6 +199,7 @@ public class IdentifierValidationRestTemplateTest {
     }
 
     @Test
+    @WithMockUser(authorities = "INIT_CONFIG")
     public void initialServerConf() {
         assertInitialServerConfValidationError(HAS_COLON, "aa", "aa");
         assertInitialServerConfValidationError(HAS_SEMICOLON, "aa", "aa");
@@ -244,6 +240,7 @@ public class IdentifierValidationRestTemplateTest {
     }
 
     @Test
+    @WithMockUser(authorities = "ADD_CLIENT")
     public void testAddClientFieldValidationErrors() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         // member code with colon

@@ -23,44 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.config;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * test xroad instances api controller
+ * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyFacade.
+ * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
+ * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
+ *
+ * Extending this base class also helps in keeping mock injections standard, and reduce number of different
+ * application contexts built for testing.
  */
-public class XroadInstancesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Transactional
+@WithMockUser
+public abstract class AbstractFacadeMockingTestContext {
+    @MockBean
+    protected GlobalConfFacade globalConfFacade;
+    @MockBean
+    protected ManagementRequestSenderService managementRequestSenderService;
+    @MockBean
+    protected SignerProxyFacade signerProxyFacade;
 
-    @Autowired
-    XroadInstancesApiController xroadInstancesApiController;
-
-    private static final String INSTANCE_A = "instance_a";
-    private static final String INSTANCE_B = "instance_b";
-    private static final String INSTANCE_C = "instance_c";
-    private static final List<String> INSTANCE_IDS = Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C);
-
-    @Before
-    public void setup() {
-        when(globalConfFacade.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
-    }
-
-    @Test
-    @WithMockUser(authorities = { "VIEW_XROAD_INSTANCES" })
-    public void getMemberClassesForInstance() {
-        ResponseEntity<List<String>> response = xroadInstancesApiController.getXroadInstances();
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(INSTANCE_IDS, response.getBody());
-    }
 }

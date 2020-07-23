@@ -13,6 +13,7 @@
     items:
       - "acl"
       - "nginx-light"
+      - "openssl"
 
 - name: group ca
   group:

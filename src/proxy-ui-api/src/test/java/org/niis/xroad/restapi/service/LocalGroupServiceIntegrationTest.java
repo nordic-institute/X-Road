@@ -31,16 +31,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,22 +49,16 @@ import static org.junit.Assert.fail;
 /**
  * test LocalGroupService
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class LocalGroupServiceIntegrationTest {
+public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+
+    @Autowired
+    LocalGroupService localGroupService;
+
+    @Autowired
+    ClientService clientService;
 
     private static final Long GROUP_ID = 1L;
     private static final String FOO = "foo";
-
-    @Autowired
-    private LocalGroupService localGroupService;
-
-    @Autowired
-    private ClientService clientService;
 
     @Test
     public void addLocalGroup() throws Exception {

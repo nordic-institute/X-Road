@@ -394,6 +394,7 @@
     "keyDeleted": "Key deleted",
     "certMarkedForDeletion": "Certificate marked for deletion",
     "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
+    "authNotSupported": "Auth. key not supported",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -640,7 +641,7 @@
   },
   "initialConfiguration": {
     "title": "Initial configuration",
-    "noPermission": "You do not have sufficient permissions to complete the operation.",
+    "noPermission": "This Security Server is currently not initialised, please contact an administrator to do the initial configuration",
     "success": "Server initialised",
     "anchor": {
       "title": "Configuration Anchor",

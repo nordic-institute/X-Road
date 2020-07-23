@@ -62,7 +62,6 @@ public class OcspResponderDiagnosticConverterTest {
     private static final String NEXT_UPDATE_STR_2 = "2020-03-16T10:35:42.123";
     private static final LocalTime NEXT_UPDATE_2 = LocalTime.of(10, 35, 42, 123000000);
 
-
     @Before
     public void setup() {
         ocspResponderDiagnosticConverter = new OcspResponderDiagnosticConverter();

@@ -31,23 +31,15 @@ import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
-import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.auth.x500.X500Principal;
@@ -65,25 +57,15 @@ import static org.mockito.Mockito.when;
 /**
  * test cert auth api
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
 @Transactional
-@Slf4j
-public class CertificateAuthoritiesApiControllerTest {
+public class CertificateAuthoritiesApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    CertificateAuthoritiesApiController caController;
 
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";
     public static final String GENERAL_PURPOSE_CA_NAME = "fi-not-auth-only";
-
-    @MockBean
-    private KeyService keyService;
-
-    @MockBean
-    private CertificateAuthorityService certificateAuthorityService;
-
-    @Autowired
-    private CertificateAuthoritiesApiController caController;
 
     @Before
     public void setUp() throws Exception {

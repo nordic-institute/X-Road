@@ -29,21 +29,15 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.dto.AlertStatus;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TokenTestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -59,23 +53,15 @@ import static org.mockito.Mockito.when;
 /**
  * Test NotificationService
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-@WithMockUser
+@RunWith(MockitoJUnitRunner.class)
 public class NotificationServiceTest {
-    @MockBean
+    @Mock
     private GlobalConfFacade globalConfFacade;
-
-    @MockBean
+    @Mock
     private InitializationService initializationService;
-
-    @MockBean
+    @Mock
     private TokenService tokenService;
 
-    @Autowired
     private NotificationService notificationService;
 
     private static final String SIGN_TOKEN_ID = "sign-token";
@@ -84,6 +70,7 @@ public class NotificationServiceTest {
     public void setup() {
         InitializationStatusDto initDto = getInitStatus(true);
         when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
+        notificationService = new NotificationService(globalConfFacade, tokenService, initializationService);
     }
 
     @Test

@@ -1,9 +1,4 @@
 ---
-- name: makecache for repo (assume yes) (RHEL)
-  command: yum -y makecache
-  args:
-    warn: no
-
 - name: Add the xroad user
   user:
     name: xroad_ui_user
@@ -56,17 +51,7 @@
 - name: install xroad packages and dependencies from set up repository (RHEL)
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
-    state: present
-  tags:
-    - install-xroad-ss-packages
-
-# update all xroad packages to their latest version in the set up repo
-- name: update xroad security server to latest (RHEL)
-  yum:
-    name: "*"
     state: latest
-    disablerepo: "*"
-    enablerepo: xroad-{{package_source}}-repository
   tags:
     - install-xroad-ss-packages
 

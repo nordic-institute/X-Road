@@ -27,25 +27,17 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,18 +53,10 @@ import static org.niis.xroad.restapi.util.TestUtils.assertMissingLocationHeader;
 /**
  * Test LocalGroupsApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class LocalGroupsApiControllerIntegrationTest {
+public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private LocalGroupsApiController localGroupsApiController;
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
+    LocalGroupsApiController localGroupsApiController;
 
     @Before
     public void setup() {
