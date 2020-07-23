@@ -40,19 +40,12 @@ spec:
         persistentVolumeClaim:
           claimName: "{{VOLUME_CLAIM}}"
       containers:
-      - name: security-server-sidecar-provider
+      - name: security-server-sidecar
         image: niis/xroad-security-server-sidecar:latest-provider
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
-        resources:
-          requests:
-            cpu: 500m
-            ephemeral-storage: "1Gi"
-          limits:
-            cpu: "1"
-            ephemeral-storage: "1Gi"
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"
