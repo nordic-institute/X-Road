@@ -88,6 +88,7 @@ import WarningDialog from '@/components/ui/WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
+import { InitialServerConf } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -110,7 +111,7 @@ export default Vue.extend({
       pinSaveBusy: false as boolean,
       warningInfo: [] as string[],
       confirmInitWarning: false as boolean,
-      requestPayload: undefined as any,
+      requestPayload: {} as InitialServerConf,
     };
   },
   methods: {
@@ -146,13 +147,16 @@ export default Vue.extend({
       this.initServer(this.requestPayload);
     },
 
-    initServer(payload: any): void {
+    initServer(payload: InitialServerConf): void {
       api
         .post('/initialization', payload)
         .then(() => {
           this.$store.dispatch('showSuccess', 'initialConfiguration.success');
+          // Set init state to done so that the routing goes into "normal" mode
+          this.$store.dispatch('setInitializationStatus');
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
+          this.$store.dispatch('checkAlertStatus'); // Check if we have any alerts after initialisation
           this.$router.replace({ name: RouteName.Clients });
         })
         .catch((error) => {

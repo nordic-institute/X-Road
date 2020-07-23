@@ -236,19 +236,21 @@ export default Vue.extend({
     },
     async fetchConfigurationAnchor() {
       return api
-        .get('/system/anchor')
+        .get<Anchor>('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },
     async fetchConfiguredTimestampingServiced() {
       return api
-        .get('/system/timestamping-services')
+        .get<TimestampingService[]>('/system/timestamping-services')
         .then((resp) => (this.configuredTimestampingServices = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },
     async fetchApprovedCertificateAuthorities() {
       return api
-        .get('/certificate-authorities?include_intermediate_cas=true')
+        .get<CertificateAuthority[]>(
+          '/certificate-authorities?include_intermediate_cas=true',
+        )
         .then((resp) => (this.certificateAuthorities = resp.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },

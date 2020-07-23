@@ -75,7 +75,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE
  * system api controller
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {

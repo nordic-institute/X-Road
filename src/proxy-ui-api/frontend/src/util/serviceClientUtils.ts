@@ -1,9 +1,6 @@
 import { AccessRight, Service, ServiceDescription } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
-import {
-  compareByServiceCode,
-  sortServicesAscendingByFullServiceCode,
-} from '@/util/sorting';
+import { compareByServiceCode } from '@/util/sorting';
 
 // returns whether given access right is for given service
 const isNotAccessRightToService = (

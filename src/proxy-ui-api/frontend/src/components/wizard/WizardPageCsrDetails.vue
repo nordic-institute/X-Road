@@ -7,11 +7,7 @@
           <helpIcon :text="$t('csr.helpUsage')" />
         </div>
 
-        <ValidationProvider
-          name="crs.usage"
-          rules="required"
-          v-slot="{ errors }"
-        >
+        <ValidationProvider name="crs.usage" rules="required" v-slot="{}">
           <v-select
             :items="usageList"
             class="form-input"
@@ -28,11 +24,7 @@
           <helpIcon :text="$t('csr.helpClient')" />
         </div>
 
-        <ValidationProvider
-          name="crs.client"
-          rules="required"
-          v-slot="{ errors }"
-        >
+        <ValidationProvider name="crs.client" rules="required" v-slot="{}">
           <v-select
             :items="memberIds"
             item-text="id"
@@ -50,11 +42,7 @@
           <helpIcon :text="$t('csr.helpCertificationService')" />
         </div>
 
-        <ValidationProvider
-          name="crs.certService"
-          rules="required"
-          v-slot="{ errors }"
-        >
+        <ValidationProvider name="crs.certService" rules="required" v-slot="{}">
           <v-select
             :items="filteredServiceList"
             item-text="name"
@@ -72,11 +60,7 @@
           <helpIcon :text="$t('csr.helpCsrFormat')" />
         </div>
 
-        <ValidationProvider
-          name="crs.crsFormat"
-          rules="required"
-          v-slot="{ errors }"
-        >
+        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{}">
           <v-select
             :items="csrFormatList"
             name="crs.crsFormat"

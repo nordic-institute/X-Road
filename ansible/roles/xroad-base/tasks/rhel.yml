@@ -1,10 +1,37 @@
 ---
+- name: Check for EPEL repo
+  stat:
+    path: "/etc/yum.repos.d/epel.repo"
+  register: epel
+
 - name: Install epel repository (RHEL)
   yum:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
+  when: not epel.stat.exists
 
-- name: Clean yum cache
-  command: yum clean metadata warn=no
+- name: X-Road repo key
+  rpm_key:
+    state: present
+    key: "{{ rhel_repo_gpgkey }}"
+  when: rhel_repo_gpgkey is defined and package_source == "remote"
+
+- name: Setup the correct repository for X-Road installation (RHEL)
+  yum_repository:
+    name: "x-road"
+    file: "xroad"
+    description: "X-Road repository for RHEL{{ ansible_distribution_major_version }}"
+    baseurl: "{{ rhel_repo_baseurl }}"
+    gpgcheck: "{{ rhel_repo_gpgcheck | default('no') }}"
+    gpgkey: "{{ rhel_repo_gpgkey | default('') }}"
+    repo_gpgcheck: "{{ rhel_repo_gpgcheck | default('no') }}"
+    metadata_expire: "{{ rhel_repo_metadaexpire | default('86400') }}"
+    state: present
+    enabled: yes
+
+- name: Touch repo file
+  file:
+    path: "/etc/yum.repos.d/xroad.repo"
+    modification_time: now
 
 - name: Install required packages (RHEL)
   become: yes
@@ -14,38 +41,6 @@
   vars:
     items:
       - curl
-      - createrepo
       - cronie
       - tar
-
-- name: Create / update local package repository (RHEL)
-  become: yes
-  command: createrepo /xroad/local
-  when: package_source == "local"
-  args:
-    chdir: /xroad/local
-  tags: centos-repo
-
-- name: Setup the correct repository for X-Road installation (RHEL)
-  yum_repository:
-    name: xroad-{{package_source}}-repository
-    description: Repository for installing X-Road packages
-    baseurl: "{{ rhel_repo_baseurl }}"
-    gpgcheck: "{{ rhel_repo_gpgcheck }}"
-    gpgkey: "{{ rhel_repo_gpgkey }}"
-    repo_gpgcheck: "{{ rhel_repo_gpgcheck }}"
-    state: present
-    enabled: yes
-
-- name: X-Road repo key
-  rpm_key:
-    state: present
-    key: "{{ rhel_repo_gpgkey }}"
-
-- name: xroad repo
-  template:
-    src: "xroad.repo.j2"
-    dest: "/etc/yum.repos.d/xroad.repo"
-    owner: root
-    group: root
-    mode: 0644
+      - acl

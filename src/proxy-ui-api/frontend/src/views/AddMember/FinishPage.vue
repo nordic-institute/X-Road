@@ -72,6 +72,7 @@ import FormLabel from '@/components/ui/FormLabel.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -185,8 +186,8 @@ export default Vue.extend({
         this.memberCode,
       );
 
-      this.$store
-        .dispatch('registerClient', clientId)
+      api
+        .put(`/clients/${clientId}/register`, {})
         .then(
           () => {
             this.$emit('done');

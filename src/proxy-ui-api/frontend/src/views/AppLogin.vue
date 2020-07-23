@@ -173,9 +173,16 @@ export default (Vue as VueConstructor<
               // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                 this.$store.dispatch(
-                  'showErrorMessage',
+                  'showErrorMessageCode',
                   'initialConfiguration.noPermission',
                 );
+                // Logout without page refresh
+                this.$store.dispatch('logout', false);
+                // Clear inputs
+                this.username = '';
+                this.password = '';
+                this.$refs.form.reset();
+
                 return;
               }
               this.$router.replace({ name: RouteName.InitialConfiguration });

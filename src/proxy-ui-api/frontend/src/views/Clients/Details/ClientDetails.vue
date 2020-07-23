@@ -56,6 +56,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { RouteName, UsageTypes } from '@/global';
+import { TokenCertificate } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
@@ -71,7 +72,7 @@ export default Vue.extend({
     this.fetchSignCertificates(this.id);
   },
   methods: {
-    viewCertificate(cert: any) {
+    viewCertificate(cert: TokenCertificate) {
       this.$router.push({
         name: RouteName.Certificate,
         params: {

@@ -196,7 +196,6 @@ var clientServicesCommands = {
     return this;
   },
   confirmAddDialog: function() {
-    //this.click('//button[contains(@data-test, "dialog-save-button")]/following-sibling::div');
     this.click('@confirmAddServiceButton');
     return this;
   },

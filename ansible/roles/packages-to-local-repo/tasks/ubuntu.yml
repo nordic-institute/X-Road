@@ -1,9 +1,12 @@
 ---
+- name: Clean local repo
+  file:
+    path: "/xroad/"
+    state: absent
+
 - name: Copy bionic DEB packages (Ubuntu)
   become: yes
-  copy: src={{item}} dest=/xroad/ force=no
-  with_fileglob:
-    - ../src/packages/build/ubuntu18.04/xroad-*deb
+  copy: src="../src/packages/build/ubuntu18.04/" dest="/xroad/"
   when: ubuntu_releasever == "bionic"
 
 - name: Ensure dpkg-dev
@@ -12,6 +15,7 @@
 
 - name: Scan new packages
   become: yes
-  shell: dpkg-scanpackages . /dev/null | gzip -c9 > Packages.gz
+  shell: "dpkg-scanpackages . >Packages"
   args:
     chdir: /xroad
+

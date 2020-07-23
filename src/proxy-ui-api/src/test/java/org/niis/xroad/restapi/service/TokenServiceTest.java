@@ -32,17 +32,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -56,13 +49,17 @@ import static org.niis.xroad.restapi.service.TokenService.TOKEN_NOT_FOUND_FAULT_
 /**
  * test token service.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
 @Slf4j
-@Transactional
-@WithMockUser
-public class TokenServiceTest {
+public class TokenServiceTest extends AbstractServiceTestContext {
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
+
+    @Autowired
+    AuditDataHelper auditDataHelper;
 
     // token ids for mocking
     private static final String WRONG_SOFTTOKEN_PIN_TOKEN_ID = "wrong-soft-pin";
@@ -74,16 +71,6 @@ public class TokenServiceTest {
     private static final String GOOD_TOKEN_NAME = "good-token";
 
     public static final String GOOD_TOKEN_ID = "token-which-exists";
-
-    @Autowired
-    private TokenService tokenService;
-
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
-
-    // allow all operations in this test
-    @MockBean
-    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() throws Exception {
@@ -139,6 +126,7 @@ public class TokenServiceTest {
             ReflectionTestUtils.setField(tokenInfo, "friendlyName", newTokenName);
             return null;
         }).when(signerProxyFacade).setTokenFriendlyName(any(), any());
+        mockPossibleActionsRuleEngineAllowAll();
     }
 
     @Test
@@ -224,5 +212,21 @@ public class TokenServiceTest {
     @Test(expected = TokenNotFoundException.class)
     public void updateNonExistingTokenFriendlyName() throws Exception {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
+    }
+
+    private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
+        // override instead of mocking for better performance
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper);
+    }
+
+    private void mockPossibleActionsRuleEngineAllowAll() {
+        possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
+            @Override
+            public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo tokenInfo) throws
+                    ActionNotPossibleException {
+                // noop
+            }
+        };
+        mockServices(possibleActionsRuleEngine);
     }
 }

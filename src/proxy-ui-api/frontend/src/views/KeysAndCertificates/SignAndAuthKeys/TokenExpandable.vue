@@ -44,21 +44,20 @@
             data-test="token-add-key-button"
             >{{ $t('keys.addKey') }}</large-button
           >
-          <large-button
-            outlined
-            class="button-spacing"
-            :disabled="!token.logged_in"
-            @click="$refs.certUpload.click()"
-            data-test="token-import-cert-button"
-            >{{ $t('keys.importCert') }}</large-button
+          <file-upload
+            accepts=".pem, .cer, .der"
+            @fileChanged="importCert"
+            v-slot="{ upload }"
           >
-          <input
-            v-show="false"
-            ref="certUpload"
-            type="file"
-            accept=".pem, .cer, .der"
-            @change="importCert"
-          />
+            <large-button
+              outlined
+              class="button-spacing"
+              :disabled="!token.logged_in"
+              @click="upload"
+              data-test="token-import-cert-button"
+              >{{ $t('keys.importCert') }}</large-button
+            >
+          </file-upload>
         </div>
 
         <!-- AUTH keys table -->
@@ -115,6 +114,8 @@ import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
+import FileUpload from '@/components/ui/FileUpload.vue';
+import { FileUploadResult } from '@/ui-types';
 
 export default Vue.extend({
   components: {
@@ -122,6 +123,7 @@ export default Vue.extend({
     LargeButton,
     KeysTable,
     UnknownKeysTable,
+    FileUpload,
   },
   props: {
     token: {
@@ -185,6 +187,15 @@ export default Vue.extend({
 
     getSignKeys(keys: Key[]): Key[] {
       const filtered = keys.filter((key: Key) => {
+        if (
+          this.token.type === 'HARDWARE' &&
+          key.usage !== UsageTypes.SIGNING &&
+          key.usage !== UsageTypes.AUTHENTICATION
+        ) {
+          // Hardware keys are SIGNING type by definition
+          // If a hardware token's key doesn't have a usage type make it a SIGNING key
+          return true;
+        }
         return key.usage === UsageTypes.SIGNING;
       });
 
@@ -195,6 +206,7 @@ export default Vue.extend({
       // Keys that don't have assigned usage type
       const filtered = keys.filter((key: Key) => {
         return (
+          this.token.type !== 'HARDWARE' &&
           key.usage !== UsageTypes.SIGNING &&
           key.usage !== UsageTypes.AUTHENTICATION
         );
@@ -213,37 +225,22 @@ export default Vue.extend({
       return this.$store.getters.tokenExpanded(tokenId);
     },
 
-    importCert(event: any) {
-      const fileList =
-        (event && event.target && event.target.files) ||
-        (event && event.dataTransfer && event.dataTransfer.files);
-      if (!fileList.length) {
-        return;
-      }
-
-      const reader = new FileReader();
-
-      // Upload file when it's loaded in FileReader
-      reader.onload = (e: any) => {
-        if (!e || !e.target || !e.target.result) {
-          return;
-        }
-
-        this.$store
-          .dispatch('uploadCertificate', {
-            fileData: e.target.result,
-          })
-          .then(
-            () => {
-              this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
-              this.fetchData();
-            },
-            (error) => {
-              this.$store.dispatch('showError', error);
-            },
-          );
-      };
-      reader.readAsArrayBuffer(fileList[0]);
+    importCert(event: FileUploadResult) {
+      api
+        .post(`/token-certificates`, event.buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
+        })
+        .then(
+          () => {
+            this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
+            this.fetchData();
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
     },
     importCertByHash(hash: string) {
       api.post(`/token-certificates/${hash}/import`, {}).then(
