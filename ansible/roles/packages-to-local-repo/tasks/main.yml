@@ -1,8 +1,4 @@
 ---
-- name:  Create /xroad directory
-  become: yes
-  file: path=/xroad state=directory mode=0755
-
 - import_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 

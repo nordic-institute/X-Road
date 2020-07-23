@@ -187,6 +187,15 @@ export default Vue.extend({
 
     getSignKeys(keys: Key[]): Key[] {
       const filtered = keys.filter((key: Key) => {
+        if (
+          this.token.type === 'HARDWARE' &&
+          key.usage !== UsageTypes.SIGNING &&
+          key.usage !== UsageTypes.AUTHENTICATION
+        ) {
+          // Hardware keys are SIGNING type by definition
+          // If a hardware token's key doesn't have a usage type make it a SIGNING key
+          return true;
+        }
         return key.usage === UsageTypes.SIGNING;
       });
 
@@ -197,6 +206,7 @@ export default Vue.extend({
       // Keys that don't have assigned usage type
       const filtered = keys.filter((key: Key) => {
         return (
+          this.token.type !== 'HARDWARE' &&
           key.usage !== UsageTypes.SIGNING &&
           key.usage !== UsageTypes.AUTHENTICATION
         );
