@@ -1884,6 +1884,7 @@ The most important system services of a security server are as follows.
  `xroad-jetty `     | Application server running the user interface | `/var/log/xroad/jetty/`
  `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
  `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`  | Management UI and REST API                 | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
  `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`
 
 System services are managed through the *upstart* facility.
