@@ -156,6 +156,7 @@ export default Vue.extend({
           this.$store.dispatch('setInitializationStatus');
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
+          this.$store.dispatch('checkAlertStatus'); // Check if we have any alerts after initialisation
           this.$router.replace({ name: RouteName.Clients });
         })
         .catch((error) => {
