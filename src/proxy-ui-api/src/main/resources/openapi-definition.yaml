@@ -5295,13 +5295,14 @@ components:
     KeyLabelWithCsrGenerate: # ok
       type: object
       required:
+        - key_label
         - csr_generate_request
       properties:
         key_label:
           type: string
           format: text
           description: label for the new key
-          minLength: 1
+          minLength: 0
           maxLength: 255
           example: My new key
         csr_generate_request:
