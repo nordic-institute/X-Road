@@ -120,10 +120,14 @@ import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
+import { debounce, isEmpty, containsClient } from '@/util/helpers';
 import { Client } from '@/openapi-types';
-import { containsClient } from '@/util/helpers';
-
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { AddMemberWizardModes } from '@/global';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 export default Vue.extend({
   components: {
@@ -139,6 +143,7 @@ export default Vue.extend({
       'selectableClients',
       'memberClasses',
       'selectedMemberName',
+      'currentSecurityServer',
     ]),
 
     memberClass: {
@@ -180,9 +185,9 @@ export default Vue.extend({
   data() {
     return {
       disableDone: false,
-      certificationService: undefined,
       filteredServiceList: [],
-      showSelectClient: false as boolean,
+      showSelectClient: false,
+      checkRunning: false,
     };
   },
   methods: {
@@ -203,14 +208,68 @@ export default Vue.extend({
       );
       this.showSelectClient = false;
     },
+    checkClient(): void {
+      this.checkRunning = true;
+
+      // Find if the selectable clients array has a match
+      const tempClient = this.selectableClients.find((client: Client) => {
+        return (
+          client.member_code === this.memberCode &&
+          client.member_class === this.memberClass
+        );
+      });
+
+      // Fill the name "field" if it's available or set it undefined
+      this.$store.commit('setSelectedMemberName', tempClient?.member_name);
+
+      this.checkClientDebounce();
+    },
+    checkClientDebounce: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      // Search tokens for suitable CSR:s and certificates
+      that.$store
+        .dispatch('searchTokens', {
+          instanceId: that.currentSecurityServer.instance_id,
+          memberClass: that.memberClass,
+          memberCode: that.memberCode,
+        })
+        .then(
+          () => {
+            that.checkRunning = false;
+          },
+          (error: Error) => {
+            that.$store.dispatch('showError', error);
+            that.checkRunning = true;
+          },
+        );
+    }, 600),
   },
   created() {
+    that = this;
+    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
     this.$store.dispatch('fetchSelectableClients');
     this.$store.dispatch('fetchMemberClasses');
   },
 
   watch: {
-    memberClasses(val) {
+    memberCode(val): void {
+      // Set wizard mode to default (full)
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (isEmpty(val) || isEmpty(this.memberClass)) {
+        return;
+      }
+      this.checkClient();
+    },
+    memberClass(val): void {
+      // Set wizard mode to default (full)
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (isEmpty(val) || isEmpty(this.memberCode)) {
+        return;
+      }
+      this.checkClient();
+    },
+
+    memberClasses(val): void {
       // Set first member class selected as default when the list is updated
       if (val?.length === 1) {
         this.memberClass = val[0];

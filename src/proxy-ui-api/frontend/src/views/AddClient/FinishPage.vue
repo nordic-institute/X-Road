@@ -14,6 +14,16 @@
     <p>{{ $t('wizard.finish.note') }}</p>
     <p></p>
 
+    <div v-if="showRegisterOption">
+      <FormLabel labelText="wizard.client.register" />
+      <v-checkbox
+        v-model="registerChecked"
+        color="primary"
+        class="register-checkbox"
+        data-test="register-member-checkbox"
+      ></v-checkbox>
+    </div>
+
     <div class="button-footer">
       <div class="button-group">
         <large-button
@@ -59,23 +69,43 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
+import { AddMemberWizardModes } from '@/global';
+import { createClientId } from '@/util/helpers';
+import FormLabel from '@/components/ui/FormLabel.vue';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     LargeButton,
     WarningDialog,
+    FormLabel,
   },
   computed: {
-    ...mapGetters(['csrForm']),
+    ...mapGetters([
+      'addMemberWizardMode',
+      'memberClass',
+      'memberCode',
+      'currentSecurityServer',
+    ]),
+    showRegisterOption() {
+      if (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+      ) {
+        return true;
+      }
+      return false;
+    },
   },
   data() {
     return {
       disableCancel: false,
-      submitLoading: false as boolean,
+      registerChecked: true,
+      submitLoading: false,
       warningInfo: [] as string[],
-      warningDialog: false as boolean,
+      warningDialog: false,
     };
   },
+
   methods: {
     cancel(): void {
       this.$emit('cancel');
@@ -92,7 +122,25 @@ export default Vue.extend({
 
       this.$store.dispatch('createClient', ignoreWarnings).then(
         () => {
-          this.generateCsr();
+          if (
+            this.addMemberWizardMode ===
+              AddMemberWizardModes.CERTIFICATE_EXISTS &&
+            this.registerChecked
+          ) {
+            this.registerClient();
+          } else if (
+            this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+          ) {
+            this.disableCancel = false;
+            this.submitLoading = false;
+            this.$emit('done');
+          } else if (
+            this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
+          ) {
+            this.generateCsr();
+          } else {
+            this.generateKeyAndCsr();
+          }
         },
         (error) => {
           if (error?.response?.data?.warnings) {
@@ -115,21 +163,66 @@ export default Vue.extend({
       this.createClient(true);
     },
 
+    generateKeyAndCsr(): void {
+      const tokenId = this.$store.getters.csrTokenId;
+
+      this.$store
+        .dispatch('generateKeyAndCsr', tokenId)
+        .then(
+          () => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
+          this.disableCancel = false;
+          this.submitLoading = false;
+        });
+    },
+
     generateCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
-      this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-        () => {
+      this.$store
+        .dispatch('generateCsr', tokenId)
+        .then(
+          () => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
           this.disableCancel = false;
           this.submitLoading = false;
-          this.$emit('done');
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-          this.disableCancel = false;
-          this.submitLoading = false;
-        },
+        });
+    },
+
+    registerClient(): void {
+      const clientId = createClientId(
+        this.currentSecurityServer.instanceId,
+        this.memberClass,
+        this.memberCode,
       );
+
+      api
+        .put(`/clients/${clientId}/register`, {})
+        .then(
+          () => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+            this.$emit('done');
+          },
+        )
+        .finally(() => {
+          this.disableCancel = false;
+          this.submitLoading = false;
+        });
     },
   },
 });
