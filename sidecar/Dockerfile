@@ -41,6 +41,7 @@ RUN pg_ctlcluster 10 main start \
 && userdel -r xrd \
 && rm -f /var/run/nginx.pid \
 && rm -f /etc/xroad/db.properties \
+&& rm -f /etc/xroad.properties \
 && rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
 && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
 
@@ -59,6 +60,8 @@ COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chown=xroad:xroad files/local.conf /etc/xroad/services/local.conf
 COPY --chown=xroad:xroad files/*logback* /etc/xroad/conf.d/
+COPY --chown=xroad:xroad files/local.conf /tmp/local.conf
+COPY --chown=xroad:xroad files/*logback* /tmp/
 COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
 RUN sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh

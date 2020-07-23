@@ -27,12 +27,19 @@ if [[ ! ( $2 =~ ^-?[0-9]+$ ) || ($2 -lt 1024) ]] || [[ (! -z "$7") && (! ( $7 =~
     exit 0;
 fi
 
-if [[ ! -z "$6" && -z "$XROAD_DB_PASSWORD" ]];
+if [ ! -z "$6" ];
 then
-  echo "
-  To configure an external postgresql database, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
-  "
-  exit;
+  if [ -z "$XROAD_DB_PASSWORD" ];
+  then
+    echo "
+    To configure an external postgresql database, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
+    "
+    exit 0;
+  fi
+  rm -f xroad.properties
+  echo "postgres.connection.password = ${XROAD_DB_PASSWORD}" >> xroad.properties
+  external_db_args="--mount type=bind,source="$(pwd)"/xroad.properties,target=/etc/xroad.properties,readonly"
+
 fi
 
 httpport=$(($2 + 1))
@@ -44,7 +51,7 @@ docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
 echo "=====> Run container"
-docker run --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL --name $1 xroad-sidecar-security-server-image
+docker run ${external_db_args} --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL --name $1 xroad-sidecar-security-server-image:latest
 
 printf "\n
 Sidecar security server software token PIN is set to $3

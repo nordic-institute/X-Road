@@ -132,6 +132,33 @@ The following configuration is needed on the remote database server to allow ext
 
 - The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database. 
 
+#### 1.6.1 Reconfigure external database address after initialization
+
+It is possible to change the external database after the initialization while the Sidecar container is running. This will not recreate the database, so we need to make sure that the 'serverconf' database and a user with granted permissions to access it are already created. To change the database host we need to:
+- Run a new command on the sidecar container:
+```bash
+docker exec -it <sidecar_container_name> bash
+  ```
+- Inside the container open in a text editor (we can install any of the command line text editors like nano, vi ...) the `etc/xroad/db.properties` file:
+ ```bash 
+nano etc/xroad/db.properties
+  ``` 
+- Replace the connection host, the username and password with the properties of the new database:
+```bash
+  [...]
+    # -db.properties -
+serverconf.hibernate.connection.url = jdbc:postgresql://<new_host_ip>:5432/serverconf
+serverconf.hibernate.connection.username = <new_user>
+serverconf.hibernate.connection.password = <new_password>
+  [...]
+  ```
+  If other components like 'message_log' or 'op_monitor' are also configured in the `etc/xroad/db.properties` file to use an external database, we must change their properties in the same way as in the example above.
+
+- After the properties are changed, save and close the  `etc/xroad/db.properties` file  and restart the services by running:
+```bash
+ supervisorctl restart all
+  ``` 
+
 ### 1.7 Volume support
 
 It is possible to configure security server sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
@@ -152,16 +179,6 @@ For example:
 ### 1.9 Security Server Sidecar Provider
   To install the Security Server Sidecar provider, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message logging, both for internal or remote database setup (more info about remote database support in section 1.6).
   To install the Security Server Sidecar provider with Finnish settings, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
-
-### 1.10 Logging Level
-
-It is possible to configure the Security Server Sidecar to adjust the logging level so that it is less verbose. To do this, we must set the environment variable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO.
-For setting the environment variable we can either edit the /etc/environment file or run:
-
- ```bash
-  export XROAD_LOG_LEVEL=<logging level value>
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> 
-  ```
 
 #### 1.9.1 Environmental Monitoring for Provider
 
@@ -191,6 +208,16 @@ The timing results were:
 - Download and install Docker: 30 seconds.
 - Build Consumer image: 17 minutes 30 seconds.
 - Build Provider image (Using the consumer image as base): 3 minutes 30 seconds.
+
+### 1.11 Logging Level
+
+It is possible to configure the Security Server Sidecar to adjust the logging level so that it is less verbose. To do this, we must set the environment variable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO.
+For setting the environment variable we can either edit the /etc/environment file or run:
+
+ ```bash
+  export XROAD_LOG_LEVEL=<logging level value>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> 
+  ```
 
 ## 2 Security Server Sidecar Initial Configuration
 
