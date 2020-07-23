@@ -97,7 +97,7 @@ public class WsdlValidator {
 
     private void logValidatorOutput(List<String> processOutput) {
         log.debug(" --- WSDL validator console output - START --- ");
-        if (processOutput != null) {
+        if (processOutput != null && log.isDebugEnabled()) {
             log.debug(ExternalProcessRunner.processOutputToString(processOutput));
         }
         log.debug(" --- WSDL validator console output - END --- ");

@@ -147,7 +147,7 @@ public class CertificateAuthorityService {
     public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
             boolean includeIntermediateCas) throws InconsistentCaDataException {
 
-        log.info("getCertificateAuthorities");
+        log.debug("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
         List<ApprovedCaDto> dtos = new ArrayList<>();
         // map of each subject - issuer DN pair for easy lookups
