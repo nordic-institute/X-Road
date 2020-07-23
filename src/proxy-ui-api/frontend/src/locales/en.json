@@ -899,6 +899,20 @@
     "software_token_init_failed": "Software token initialisation failed",
     "global_conf_outdated": "Global configuration is outdated",
     "cannot_register_owner": "Can not register the owner",
-    "validation_failure": "Validation failure"
+    "validation_failure": "Validation failure",
+    "core": {
+      "Signer": {
+        "UnknownMember": "X-Road core - signer: Unknown member"
+      },
+      "Server": {
+        "ServerProxy": {
+          "UnknownService": "Unknown service",
+          "ServiceFailed": {
+            "SslAuthenticationFailed": "SSL authentication failed",
+            "HttpError": "HTTP error"
+          }
+        }
+      }
+    }
   }
 }
