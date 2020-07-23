@@ -21,7 +21,7 @@ pipeline {
         stage('Rollout status') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${VERSION}'
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${LATEST_TAG}'
                 }
             }
         }
@@ -31,7 +31,7 @@ pipeline {
                     retry (8) {
                         sleep(time: 10, unit: 'SECONDS')
                         script {
-                            def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${VERSION} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
+                            def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${LATEST_TAG} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
                             if (response == '302') {
                                 echo '========> Security server sidecar ${LATEST_TAG} is successfully running'
                                 currentBuild.result = 'SUCCESS'
@@ -46,8 +46,8 @@ pipeline {
         stage ('Clean up') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh 'kubectl delete deployment.apps/security-server-sidecar-${VERSION}'
-                    sh 'kubectl delete service/security-server-sidecar-${VERSION}'
+                    sh 'kubectl delete deployment.apps/security-server-sidecar-${LATEST_TAG}'
+                    sh 'kubectl delete service/security-server-sidecar-${LATEST_TAG}'
                 }
             }
         }
