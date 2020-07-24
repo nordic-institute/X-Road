@@ -184,8 +184,6 @@ export default Vue.extend({
   },
   data() {
     return {
-      disableDone: false,
-      filteredServiceList: [],
       showSelectClient: false,
       checkRunning: false,
     };

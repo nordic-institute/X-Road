@@ -85,6 +85,7 @@ export default Vue.extend({
       'addMemberWizardMode',
       'memberClass',
       'memberCode',
+      'subsystemCode',
       'currentSecurityServer',
     ]),
     showRegisterOption() {
@@ -206,6 +207,7 @@ export default Vue.extend({
         this.currentSecurityServer.instanceId,
         this.memberClass,
         this.memberCode,
+        this.subsystemCode,
       );
 
       api
