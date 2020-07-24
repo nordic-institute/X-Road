@@ -39,7 +39,7 @@ module.exports = {
     // Verify opening nonexisting URL
     clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'WSDL download failed');
     mainPage.closeSnackbar();
 
     // Verify successfull URL open
@@ -368,7 +368,7 @@ module.exports = {
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'WSDL download failed');
     mainPage.closeSnackbar();
     
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
