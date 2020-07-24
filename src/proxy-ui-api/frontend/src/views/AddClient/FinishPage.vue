@@ -204,7 +204,7 @@ export default Vue.extend({
 
     registerClient(): void {
       const clientId = createClientId(
-        this.currentSecurityServer.instanceId,
+        this.currentSecurityServer.instance_id,
         this.memberClass,
         this.memberCode,
         this.subsystemCode,
