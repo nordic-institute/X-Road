@@ -64,14 +64,17 @@
             <div slot="certificateAction">
               <template v-if="!cert.saved_to_configuration && hasPermission">
                 <SmallButton
-                  v-if="key.usage !== 'AUTHENTICATION'"
+                  v-if="
+                    key.usage !== 'AUTHENTICATION' &&
+                      cert.possible_actions.includes('IMPORT_FROM_TOKEN')
+                  "
                   class="table-button-fix"
                   @click="importCert(cert.certificate_details.hash)"
                   >{{ $t('keys.importCert') }}</SmallButton
                 >
 
                 <!-- Special case where HW cert has auth usage -->
-                <div v-else>
+                <div v-else-if="key.usage === 'AUTHENTICATION'">
                   {{ $t('keys.authNotSupported') }}
                 </div>
               </template>
