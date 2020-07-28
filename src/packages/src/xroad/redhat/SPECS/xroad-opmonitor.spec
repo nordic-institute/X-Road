@@ -75,14 +75,15 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/op-monitor/
 /usr/share/xroad/db/op-monitor-changelog.xml
 
+%defattr(-,root,root,-)
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_opmonitor_db.sh
-%attr(754,xroad,xroad) /usr/share/xroad/bin/xroad-opmonitor
+%attr(554,root,xroad) /usr/share/xroad/bin/xroad-opmonitor
 %attr(644,root,root) %{_unitdir}/xroad-opmonitor.service
 
 /usr/share/xroad/jlib/op-monitor-daemon-*.jar
 /usr/share/xroad/jlib/op-monitor-daemon.jar
-/usr/share/xroad/scripts/generate-opmonitor-certificate.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/generate-opmonitor-certificate.sh
 /usr/bin/generate-opmonitor-certificate
 
 %doc /usr/share/doc/%{name}/LICENSE.txt
