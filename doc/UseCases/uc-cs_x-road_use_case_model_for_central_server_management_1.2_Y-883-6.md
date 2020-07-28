@@ -247,9 +247,11 @@ logged in user has been idle for 30 minutes.
 
 **Main Success Scenario**:
 
-1.  System logs the user out of the GUI.
+1.  User has been idle for 30 minutes.
 
-2.  System displays the message “Session timed out. Redirecting.”
+2.  System displays the dialog “Session expired - You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out. ”
+
+3.  CS administrator press "OK" in the dialog and the System logs the CS administrator out of the GUI and redirects the user to the Log-in view.
 
 **Extensions**: -
 
