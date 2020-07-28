@@ -1,11 +1,11 @@
 <template>
   <tr>
-    <div class="name-wrap-top">
+    <td class="name-wrap-top no-border">
       <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
       <div class="clickable-link" @click="keyClick">
         {{ tokenKey.name }}
       </div>
-    </div>
+    </td>
     <td class="no-border" colspan="4"></td>
     <td class="no-border td-align-right">
       <SmallButton
@@ -103,7 +103,6 @@ export default Vue.extend({
 .clickable-link {
   text-decoration: underline;
   cursor: pointer;
-  height: 100%;
 }
 
 .name-wrap {
@@ -118,8 +117,8 @@ export default Vue.extend({
 
 .name-wrap-top {
   @extend .name-wrap;
+  align-content: center;
   margin-top: 18px;
   margin-bottom: 5px;
-  min-width: 100%;
 }
 </style>

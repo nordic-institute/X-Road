@@ -1,41 +1,5 @@
 <template>
   <div>
-    <!-- Error: raw text  -->
-    <v-snackbar
-      data-test="error-snackbar"
-      v-model="showErrorRaw"
-      color="error"
-      :timeout="timeout"
-    >
-      {{ errorMessageRaw }}
-      <v-btn
-        icon
-        color="white"
-        data-test="close-snackbar"
-        @click="closeError()"
-      >
-        <v-icon dark>mdi-close-circle</v-icon>
-      </v-btn>
-    </v-snackbar>
-
-    <!-- Error: localization code. Doesn't close automatically  -->
-    <v-snackbar
-      data-test="error-snackbar"
-      v-model="showErrorCode"
-      color="error"
-      :timeout="forever"
-    >
-      {{ $t(errorMessageCode) }}
-      <v-btn
-        icon
-        color="white"
-        data-test="close-snackbar"
-        @click="closeError()"
-      >
-        <v-icon dark>mdi-close-circle</v-icon>
-      </v-btn>
-    </v-snackbar>
-
     <!-- Success: localization code -->
     <v-snackbar
       data-test="success-snackbar"
@@ -62,25 +26,40 @@
       }}</v-btn>
     </v-snackbar>
 
-    <!-- Error: Object. Doesn't close automatically -->
+    <!-- Error -->
     <v-snackbar
       data-test="indefinite-snackbar"
-      v-if="errorObject"
-      v-model="showError"
-      :timeout="forever"
+      v-for="notification in notifications"
+      :key="notification.timeAdded"
+      :timeout="notification.timeout"
+      v-model="notification.show"
       color="error"
       multi-line
+      @input="closeError(notification.timeAdded)"
     >
       <div class="row-wrapper scrollable">
-        <div v-if="errorCode">
-          {{ $t('error_code.' + errorCode) }}
+        <!-- Show localised text by id -->
+        <div v-if="notification.errorMessageCode">
+          {{ $t(notification.errorMessageCode) }}
         </div>
-        <div v-else="">
-          {{ errorObject }}
+
+        <!-- Show raw text -->
+        <div v-else-if="notification.errorMessageRaw">
+          {{ notification.errorMessageRaw }}
+        </div>
+
+        <!-- Show localised text by id from error object -->
+        <div v-else-if="notification.errorObject && errorCode(notification)">
+          {{ $t('error_code.' + errorCode(notification)) }}
+        </div>
+
+        <!-- If error doesn't have a text or localisation key then just print the error object -->
+        <div v-else-if="notification.errorObject">
+          {{ notification.errorObject }}
         </div>
 
         <!-- Show the error metadata if it exists -->
-        <div v-for="meta in errorMetadata" :key="meta">
+        <div v-for="meta in errorMetadata(notification)" :key="meta">
           {{ meta }}
         </div>
 
@@ -108,18 +87,18 @@
         </ul>
 
         <!-- Error ID -->
-        <div v-if="errorId">
+        <div v-if="errorId(notification)">
           {{ $t('id') }}:
-          {{ errorId }}
+          {{ errorId(notification) }}
         </div>
       </div>
 
-      <template v-if="errorId">
+      <template v-if="errorId(notification)">
         <v-btn
           outlined
           color="white"
           data-test="copy-id-button"
-          @click.prevent="copyId"
+          @click.prevent="copyId(notification)"
           >{{ $t('action.copyId') }}
         </v-btn>
       </template>
@@ -128,7 +107,7 @@
         icon
         color="white"
         data-test="close-snackbar"
-        @click="closeError()"
+        @click="closeError(notification.timeAdded)"
       >
         <v-icon dark>mdi-close-circle</v-icon>
       </v-btn>
@@ -140,6 +119,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { toClipboard } from '@/util/helpers';
+import { Notification } from '@/ui-types';
 
 type ValidationError = {
   field: string;
@@ -149,13 +129,7 @@ type ValidationError = {
 export default Vue.extend({
   // Component for snackbar notifications
   computed: {
-    ...mapGetters([
-      'successMessageCode',
-      'successMessageRaw',
-      'errorMessageRaw',
-      'errorMessageCode',
-      'errorObject',
-    ]),
+    ...mapGetters(['successMessageCode', 'successMessageRaw', 'notifications']),
 
     showSuccessCode: {
       get(): string {
@@ -173,65 +147,6 @@ export default Vue.extend({
         this.$store.commit('setSuccessRawVisible', value);
       },
     },
-    showError: {
-      get(): string {
-        return this.$store.getters.showErrorObject;
-      },
-      set(value: string) {
-        this.$store.commit('setErrorObjectVisible', value);
-      },
-    },
-    showErrorRaw: {
-      get(): string {
-        return this.$store.getters.showErrorRaw;
-      },
-      set(value: string) {
-        this.$store.commit('setErrorRawVisible', value);
-      },
-    },
-    showErrorCode: {
-      get(): string {
-        return this.$store.getters.showErrorCode;
-      },
-      set(value: string) {
-        this.$store.commit('setErrorCodeVisible', value);
-      },
-    },
-    errorCode(): string | undefined {
-      if (this.errorObject?.response?.data?.error?.code) {
-        return this.errorObject.response.data.error.code;
-      }
-
-      return undefined;
-    },
-    errorId(): string | undefined {
-      if (this.errorObject?.response?.headers['x-road-ui-correlation-id']) {
-        return this.errorObject.response.headers['x-road-ui-correlation-id'];
-      }
-
-      return undefined;
-    },
-    errorMetadata(): string[] {
-      if (this.errorObject?.response?.data?.error?.metadata) {
-        return this.errorObject.response.data.error.metadata;
-      }
-
-      return [];
-    },
-    validationErrors(): ValidationError[] | undefined {
-      const validationErrors = this.errorObject?.response?.data?.error
-        ?.validation_errors;
-      if (validationErrors === undefined) {
-        return;
-      }
-      return Object.keys(validationErrors).map(
-        (field) =>
-          ({
-            field,
-            errorCodes: validationErrors[field],
-          } as ValidationError),
-      );
-    },
   },
 
   data() {
@@ -241,18 +156,45 @@ export default Vue.extend({
     };
   },
   methods: {
+    errorCode(notification: Notification): string | undefined {
+      if (notification.errorObject?.response?.data?.error?.code) {
+        return notification.errorObject.response.data.error.code;
+      }
+
+      return undefined;
+    },
+
+    errorMetadata(notification: Notification): string[] {
+      if (notification.errorObject?.response?.data?.error?.metadata) {
+        return notification.errorObject.response.data.error.metadata;
+      }
+
+      return [];
+    },
+
+    errorId(notification: Notification): string | undefined {
+      if (
+        notification.errorObject?.response?.headers['x-road-ui-correlation-id']
+      ) {
+        return notification.errorObject.response.headers[
+          'x-road-ui-correlation-id'
+        ];
+      }
+
+      return undefined;
+    },
+
     closeSuccess(): void {
       this.$store.commit('setSuccessRawVisible', false);
       this.$store.commit('setSuccessCodeVisible', false);
     },
-    closeError(): void {
-      this.$store.commit('setErrorRawVisible', false);
-      this.$store.commit('setErrorCodeVisible', false);
-      this.$store.commit('setErrorObjectVisible', false);
+    closeError(id: number): void {
+      this.$store.commit('deleteNotification', id);
     },
-    copyId(): void {
-      if (this.errorId) {
-        toClipboard(this.errorId);
+    copyId(notification: Notification): void {
+      const id = this.errorId(notification);
+      if (id) {
+        toClipboard(id);
       }
     },
   },

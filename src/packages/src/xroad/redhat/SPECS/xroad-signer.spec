@@ -86,8 +86,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/signer-*.jar
 /usr/share/xroad/lib/libpasswordstore.so
 /usr/share/xroad/lib/libpkcs11wrapper.so
-%attr(754,xroad,xroad) /usr/share/xroad/bin/xroad-signer
-%attr(664,root,root) %{_unitdir}/xroad-signer.service
+%attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
+%attr(644,root,root) %{_unitdir}/xroad-signer.service
 
 %pre
 

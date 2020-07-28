@@ -1,18 +1,13 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
+import { Notification } from '@/ui-types';
 
 export interface NotificationsState {
   successMessageCode: string;
   successMessageRaw: string;
   showSuccessCode: boolean;
   showSuccessRaw: boolean;
-  errorMessageCode: string;
-  errorMessageRaw: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject: any;
-  showErrorObject: boolean;
-  showErrorRaw: boolean;
-  showErrorCode: boolean;
+  notifications: Notification[];
 }
 
 const getDefaultState = () => {
@@ -21,12 +16,7 @@ const getDefaultState = () => {
     successMessageRaw: '',
     showSuccessCode: false,
     showSuccessRaw: false,
-    errorMessageCode: '',
-    errorMessageRaw: '',
-    showErrorObject: false,
-    showErrorCode: false,
-    showErrorRaw: false,
-    errorObject: undefined,
+    notifications: [],
   };
 };
 
@@ -46,24 +36,8 @@ export const getters: GetterTree<NotificationsState, RootState> = {
   successMessageRaw(state: NotificationsState): string {
     return state.successMessageRaw;
   },
-  showErrorObject(state: NotificationsState): boolean {
-    return state.showErrorObject;
-  },
-  showErrorRaw(state: NotificationsState): boolean {
-    return state.showErrorRaw;
-  },
-  showErrorCode(state: NotificationsState): boolean {
-    return state.showErrorCode;
-  },
-  errorMessageRaw(state: NotificationsState): string {
-    return state.errorMessageRaw;
-  },
-  errorMessageCode(state: NotificationsState): string {
-    return state.errorMessageCode;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject(state: NotificationsState): any {
-    return state.errorObject;
+  notifications(state: NotificationsState): Notification[] {
+    return state.notifications;
   },
 };
 
@@ -80,17 +54,35 @@ export const mutations: MutationTree<NotificationsState> = {
     state.showSuccessRaw = true;
   },
   setErrorMessageCode(state: NotificationsState, val: string): void {
-    state.errorMessageCode = val;
-    state.showErrorCode = true;
+    const temp: Notification = {
+      timeout: 0,
+      errorMessageCode: val,
+      timeAdded: Date.now(),
+      show: true,
+    };
+
+    state.notifications.push(temp);
   },
   setErrorMessageRaw(state: NotificationsState, val: string): void {
-    state.errorMessageRaw = val;
-    state.showErrorRaw = true;
+    const temp: Notification = {
+      timeout: 2000,
+      errorMessageRaw: val,
+      timeAdded: Date.now(),
+      show: true,
+    };
+
+    state.notifications.push(temp);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setErrorObject(state: NotificationsState, errorObject: any): void {
-    state.errorObject = errorObject;
-    state.showErrorObject = true;
+    const temp: Notification = {
+      timeout: 0,
+      errorObject: errorObject,
+      timeAdded: Date.now(), // Simple id solution
+      show: true,
+    };
+
+    state.notifications.push(temp);
   },
   setSuccessRawVisible(state: NotificationsState, val: boolean): void {
     state.showSuccessRaw = val;
@@ -98,14 +90,10 @@ export const mutations: MutationTree<NotificationsState> = {
   setSuccessCodeVisible(state: NotificationsState, val: boolean): void {
     state.showSuccessCode = val;
   },
-  setErrorRawVisible(state: NotificationsState, val: boolean): void {
-    state.showErrorRaw = val;
-  },
-  setErrorCodeVisible(state: NotificationsState, val: boolean): void {
-    state.showErrorCode = val;
-  },
-  setErrorObjectVisible(state: NotificationsState, val: boolean): void {
-    state.showErrorObject = val;
+  deleteNotification(state: NotificationsState, id: number): void {
+    state.notifications = state.notifications.filter(
+      (item: Notification) => item.timeAdded !== id,
+    );
   },
 };
 
