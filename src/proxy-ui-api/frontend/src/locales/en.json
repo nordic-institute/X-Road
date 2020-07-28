@@ -732,6 +732,9 @@
       "subsystemCode": "Subsystem Code",
       "memberCode": "Member Code"
     },
+    "serviceDescriptionAdd": {
+      "restServiceCode": "Service code"
+    },
     "serviceDescriptionUpdate": {
       "newRestServiceCode": "Service code"
     }
