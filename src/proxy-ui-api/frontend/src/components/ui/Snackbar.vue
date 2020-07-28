@@ -64,9 +64,9 @@
         </div>
 
         <!-- Show validation errors -->
-        <ul v-if="validationErrors">
+        <ul v-if="hasValidationErrors(notification)">
           <li
-            v-for="validationError in validationErrors"
+            v-for="validationError in validationErrors(notification)"
             :key="validationError.field"
           >
             {{ $t(`fields.${validationError.field}`) }}:
@@ -182,6 +182,25 @@ export default Vue.extend({
       }
 
       return undefined;
+    },
+
+    hasValidationErrors(notification: Notification): boolean {
+      return (
+        notification.errorObject?.response?.data?.error?.validation_errors !==
+        undefined
+      );
+    },
+
+    validationErrors(notification: Notification): ValidationError[] {
+      const validationErrors =
+        notification.errorObject?.response?.data?.error?.validation_errors;
+      return Object.keys(validationErrors).map(
+        (field) =>
+          ({
+            field,
+            errorCodes: validationErrors[field],
+          } as ValidationError),
+      );
     },
 
     closeSuccess(): void {
