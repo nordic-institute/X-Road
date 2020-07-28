@@ -731,6 +731,9 @@
       "memberClass": "Member class",
       "subsystemCode": "Subsystem Code",
       "memberCode": "Member Code"
+    },
+    "serviceDescriptionUpdate": {
+      "newRestServiceCode": "Service code"
     }
   },
   "certificateProfile": {
@@ -915,5 +918,35 @@
         }
       }
     }
+  },
+  "validationError": {
+    "AssertFalse": "value should be 'false'",
+    "AssertTrue": "value should be 'true'",
+    "DecimalMax": "numeric value exceeds the maximum allowed",
+    "DecimalMin": "numeric value is under the miminum allowed",
+    "Digits": "value should contain only digits",
+    "Email": "value does not meet the email format",
+    "Future": "datetime value should be in the future",
+    "FutureOrPresent": "datetime value should be now or in the future",
+    "Max": "numeric value exceeds the maximum allowed",
+    "Min": "numeric value is under the minimum allowed",
+    "Negative": "numeric value should be less than zero",
+    "NegativeOrZero": "numeric value should be less or equal to zero",
+    "NotBlank": "value should not be blank",
+    "NotEmpty": "value should not be empty",
+    "NotNull": "value is required",
+    "Null": "value should not be set",
+    "Past": "datetime value should be in the past",
+    "PastOrPresent": "datetime value should be now or in the past",
+    "Pattern": "value did not match the required format",
+    "Positive": "numeric value should be greater that zero",
+    "PositiveOrZero": "numeric value should be greater or equal to zero",
+    "Size": "value does not meet length requirements",
+    "Normalized": "value should be normalized",
+    "NoColons": "value should not contain colon (:) symbols",
+    "NoSemicolons": "value should not contain semicolon (;) symbols",
+    "NoForwardslashes": "value should not contain forward slash (/) symbols",
+    "NoBackslashes": "value should not contain backslash (\\) symbols",
+    "NoPercents": "value should not contain percentage (%) symbols"
   }
 }

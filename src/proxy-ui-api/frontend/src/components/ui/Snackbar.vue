@@ -84,6 +84,29 @@
           {{ meta }}
         </div>
 
+        <!-- Show validation errors -->
+        <ul v-if="validationErrors">
+          <li
+            v-for="validationError in validationErrors"
+            :key="validationError.field"
+          >
+            {{ $t(`fields.${validationError.field}`) }}:
+            <template v-if="validationError.errorCodes.length === 1">
+              {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+            </template>
+            <template v-else>
+              <ul>
+                <li
+                  v-for="errorCode in validationError.errorCodes"
+                  :key="`${validationError.field}.${errorCode}`"
+                >
+                  {{ $t(`validationError.${errorCode}`) }}
+                </li>
+              </ul>
+            </template>
+          </li>
+        </ul>
+
         <!-- Error ID -->
         <div v-if="errorId">
           {{ $t('id') }}:
@@ -117,6 +140,11 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { toClipboard } from '@/util/helpers';
+
+type ValidationError = {
+  field: string;
+  errorCodes: string[];
+};
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -189,6 +217,20 @@ export default Vue.extend({
       }
 
       return [];
+    },
+    validationErrors(): ValidationError[] | undefined {
+      const validationErrors = this.errorObject?.response?.data?.error
+        ?.validation_errors;
+      if (validationErrors === undefined) {
+        return;
+      }
+      return Object.keys(validationErrors).map(
+        (field) =>
+          ({
+            field,
+            errorCodes: validationErrors[field],
+          } as ValidationError),
+      );
     },
   },
 
