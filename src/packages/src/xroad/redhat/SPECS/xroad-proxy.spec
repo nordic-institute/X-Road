@@ -17,6 +17,7 @@ Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           net-tools, tar
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, rsyslog, postgresql-server, postgresql-contrib
+Obsoletes:          xroad-nginx, xroad-jetty9
 
 %define src %{_topdir}/..
 

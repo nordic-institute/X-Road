@@ -73,6 +73,8 @@ Conflicts: xroad-center, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
 Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
+Replaces: xroad-jetty9, xroad-nginx
+Conflicts: xroad-jetty9, xroad-nginx
 Description: X-Road security server
  X-Road security server programs and utilities
 
