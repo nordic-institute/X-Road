@@ -77,6 +77,7 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-left: 0.5rem;
 
   i.v-icon.mdi-file-document-outline {
     margin-left: 42px;

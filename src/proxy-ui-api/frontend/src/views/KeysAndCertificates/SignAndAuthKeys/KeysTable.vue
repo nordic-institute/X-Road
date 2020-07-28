@@ -3,12 +3,12 @@
     <table class="xrd-table">
       <thead>
         <tr>
-          <th>{{ $t(title) }}</th>
-          <th>{{ $t('keys.id') }}</th>
-          <th>{{ $t('keys.ocsp') }}</th>
-          <th>{{ $t('keys.expires') }}</th>
-          <th>{{ $t('keys.status') }}</th>
-          <th></th>
+          <th class="title-col">{{ $t(title) }}</th>
+          <th class="id-col">{{ $t('keys.id') }}</th>
+          <th class="ocsp-col">{{ $t('keys.ocsp') }}</th>
+          <th class="expiration-col">{{ $t('keys.expires') }}</th>
+          <th class="status-col">{{ $t('keys.status') }}</th>
+          <th class="action-col"></th>
         </tr>
       </thead>
 
@@ -96,10 +96,7 @@
                 <div>{{ $t('keys.request') }}</div>
               </div>
             </td>
-            <td>{{ req.id }}</td>
-            <td></td>
-            <td></td>
-            <td class="status-cell"></td>
+            <td colspan="4">{{ req.id }}</td>
             <td class="td-align-right">
               <SmallButton
                 class="table-button-fix"
@@ -300,13 +297,19 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-left: 0.5rem;
 
   i.v-icon.mdi-file-document-outline {
     margin-left: 42px;
   }
 }
-
-.status-cell {
-  width: 110px;
+.title-col {
+  width: 30%;
+}
+.ocsp-col,
+.expiration-col,
+.status-col,
+.action-col {
+  width: 10%;
 }
 </style>
