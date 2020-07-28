@@ -3,7 +3,7 @@ Description=X-Road Proxy UI REST API
 After=network.target
 # configure longer StartLimitIntervalSec to prevent eternal restart loop with bad logback config
 StartLimitBurst=5
-StartLimitIntervalSec=60
+StartLimitIntervalSec=40
 
 [Service]
 PermissionsStartOnly=true
