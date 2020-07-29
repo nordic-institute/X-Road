@@ -220,26 +220,32 @@ public class CertificateAuthorityService {
         String subjectName = certificate.getSubjectDN().getName();
         builder.subjectDistinguishedName(subjectName);
 
-        // properties from ocsp response
+        // path
+        List<String> subjectDnPath = buildPath(certificate, subjectsToIssuers);
+        builder.subjectDnPath(subjectDnPath);
+
+        // is-top-ca info
+        final boolean isIntermediateCa = subjectDnPath.size() > 1 || !subjectName.equals(subjectDnPath.get(0));
+        if (isIntermediateCa) {
+            builder.topCa(false);
+        } else {
+            builder.topCa(true);
+        }
+
+        // ocsp response
+        // don't try to fetch ocsp response for root level CA since it results in error
         String ocspResponseStatus = null;
-        try {
-            ocspResponseStatus = OcspUtils.getOcspResponseStatus(base64EncodedOcspResponse);
-        } catch (OcspUtils.OcspStatusExtractionException e) {
-            throw new InconsistentCaDataException(e);
+        if (isIntermediateCa) {
+            try {
+                ocspResponseStatus = OcspUtils.getOcspResponseStatus(base64EncodedOcspResponse);
+            } catch (OcspUtils.OcspStatusExtractionException e) {
+                throw new InconsistentCaDataException(e);
+            }
         }
         if (ocspResponseStatus == null) {
             builder.ocspResponse(OCSP_RESPONSE_NOT_AVAILABLE);
         } else {
             builder.ocspResponse(ocspResponseStatus);
-        }
-
-        // path and is-top-ca info
-        List<String> subjectDnPath = buildPath(certificate, subjectsToIssuers);
-        builder.subjectDnPath(subjectDnPath);
-        if (subjectDnPath.size() > 1 || !subjectName.equals(subjectDnPath.get(0))) {
-            builder.topCa(false);
-        } else {
-            builder.topCa(true);
         }
 
         return builder.build();
