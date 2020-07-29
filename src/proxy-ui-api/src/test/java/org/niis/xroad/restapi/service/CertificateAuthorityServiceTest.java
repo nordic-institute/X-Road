@@ -252,7 +252,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals("CN=N/A", ca.getSubjectDistinguishedName());
         assertEquals(Arrays.asList("CN=N/A"), ca.getSubjectDnPath());
         assertEquals(true, ca.isTopCa());
-        assertEquals("good", ca.getOcspResponse());
+        assertEquals("not available", ca.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
@@ -264,7 +264,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(MOCK_AUTH_CERT_SUBJECT, ca2.getSubjectDistinguishedName());
         assertEquals(Arrays.asList(MOCK_AUTH_CERT_SUBJECT), ca2.getSubjectDnPath());
         assertEquals(true, ca2.isTopCa());
-        assertEquals("good", ca2.getOcspResponse());
+        assertEquals("not available", ca2.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
 
         cacheEvictor.evict();
@@ -286,7 +286,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(MOCK_TOP_CA_SUBJECT_DN, topCa.getSubjectDistinguishedName());
         assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN), topCa.getSubjectDnPath());
         assertEquals(true, topCa.isTopCa());
-        assertEquals("good", topCa.getOcspResponse());
+        assertEquals("not available", topCa.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2039-06-09T06:11:31Z"), topCa.getNotAfter());
 
         ApprovedCaDto intermediateCa = caDtos.get(3);
