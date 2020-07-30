@@ -26,6 +26,10 @@ abort() {
 log() { echo "xroad-center: $*" >&2; }
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 
+gen_pw() {
+  head -c 24 /dev/urandom | base64 | tr "/+" "_-"
+}
+
 handle_error() {
     ERR=$(</tmp/cert.err)
     db_subst xroad-common/cert-generation-abort ERR "$(printf %s "$ERR" | debconf-escape -e)"
@@ -48,7 +52,7 @@ setup_database() {
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
     local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
-    local db_password=$(get_prop ${db_properties} 'password' 'centerui')
+    local db_password=$(get_prop ${db_properties} 'password' "$(gen_pw)")
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
     local db_master_user=postgres
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
