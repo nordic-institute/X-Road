@@ -71,6 +71,9 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
+%pre
+service xroad-jetty stop || true
+
 %post
 %systemd_post xroad-proxy-ui-api.service
 

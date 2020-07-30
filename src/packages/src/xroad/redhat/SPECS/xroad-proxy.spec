@@ -218,4 +218,8 @@ fi
 %systemd_postun_with_restart xroad-confclient.service
 %systemd_postun_with_restart rsyslogd.service
 
+%posttrans
+# restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
+%{_bindir}/systemctl try-restart nginx.service
+
 %changelog
