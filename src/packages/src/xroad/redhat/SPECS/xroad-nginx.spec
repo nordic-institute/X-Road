@@ -63,8 +63,4 @@ rm -rf %{buildroot}
 
 %post
 
-%postun
-%systemd_postun_with_restart nginx.service
-service nginx restart
-
 %changelog

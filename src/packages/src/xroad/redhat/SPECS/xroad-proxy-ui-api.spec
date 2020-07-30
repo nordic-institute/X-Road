@@ -77,24 +77,6 @@ service xroad-jetty stop || true
 %post
 %systemd_post xroad-proxy-ui-api.service
 
-# show nginx status
-echo DEBUG xroad-proxy-ui-api.spec.post 1
-service nginx status | head -3
-date
-
-# restart here will not probably help since at this point, /etc/xroad/nginx/xroad-proxy.conf still exists as
-# it is removed in xroad-proxy.uninst, or somesuch
-echo do we still have ?
-ls -la /etc/xroad/nginx/
-
-# restart nginx only if it was running
-echo restarting nginx from xroad-proxy-ui-api.post
-service nginx status && service nginx restart
-
-echo DEBUG xroad-proxy-ui-api.spec.post 2
-service nginx status | head -3
-date
-
 /usr/share/xroad/scripts/xroad-proxy-ui-api-setup.sh
 
 %preun
