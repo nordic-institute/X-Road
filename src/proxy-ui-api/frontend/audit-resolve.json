@@ -18871,38 +18871,6 @@
     "1523|node-sass>sass-graph>lodash": {
       "decision": "ignore",
       "madeAt": 1594212617169
-    },
-    "1547|@vue/cli-plugin-babel>webpack>node-libs-browser>crypto-browserify>browserify-sign>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-plugin-eslint>webpack>node-libs-browser>crypto-browserify>browserify-sign>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-plugin-typescript>webpack>node-libs-browser>crypto-browserify>browserify-sign>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-service>webpack>node-libs-browser>crypto-browserify>browserify-sign>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-plugin-babel>webpack>node-libs-browser>crypto-browserify>create-ecdh>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-plugin-eslint>webpack>node-libs-browser>crypto-browserify>create-ecdh>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-plugin-typescript>webpack>node-libs-browser>crypto-browserify>create-ecdh>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
-    },
-    "1547|@vue/cli-service>webpack>node-libs-browser>crypto-browserify>create-ecdh>elliptic": {
-      "decision": "fix",
-      "madeAt": 1596094177771
     }
   },
   "rules": {},
