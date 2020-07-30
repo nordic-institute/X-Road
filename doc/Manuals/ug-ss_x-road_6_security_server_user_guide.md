@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.44
+Version: 2.45
 Doc. ID: UG-SS
 
 ---
@@ -77,6 +77,7 @@ Doc. ID: UG-SS
  05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
  25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details | Petteri Kivimäki
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
+ 30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
   
 ## Table of Contents <!-- omit in toc -->
 
