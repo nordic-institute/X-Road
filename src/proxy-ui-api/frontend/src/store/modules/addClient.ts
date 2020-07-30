@@ -320,6 +320,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
             (csr: TokenCertificateSigningRequest) => {
               if (ownerId === csr.owner_id) {
                 dispatch('setCsrTokenId', token.id);
+                dispatch('setKeyId', key.id);
                 commit(
                   'setAddMemberWizardMode',
                   AddMemberWizardModes.CSR_EXISTS,

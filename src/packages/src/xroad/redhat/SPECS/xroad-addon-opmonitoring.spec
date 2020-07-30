@@ -34,7 +34,7 @@ cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-addon-
 rm -rf %{buildroot}
 
 %files
-%defattr(-,xroad,xroad,-)
+%defattr(-,root,root,-)
 /usr/share/xroad/jlib/addon/proxy/op-monitoring-1.0.jar
 /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf
 %doc /usr/share/doc/%{name}/LICENSE.txt
