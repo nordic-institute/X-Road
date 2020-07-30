@@ -1,7 +1,7 @@
 
 module.exports = {
-  tags: ['ss', 'clients', 'restservices'],
-  'Security server client add rest service': browser => {
+  tags: ['ss', 'clients', 'openapiservices'],
+  'Security server client add openapi service': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -34,8 +34,8 @@ module.exports = {
     clientServices.enterServiceCode('a');
     clientServices.enterServiceCode('');
     browser.assert.containsText(clientServices.elements.serviceCodeMessage, 'The Service Code field is required');
-    clientServices.enterServiceCode('s1c1');
-    clientServices.selectRESTPath();
+    clientServices.enterServiceCode('s3c1');
+    clientServices.selectOpenApi();
     clientServices.cancelAddDialog();
 
     // Verify that fields are empty after reopening
@@ -46,9 +46,19 @@ module.exports = {
     browser.expect.element(clientServices.elements.OpenApiRadioButton).to.not.be.selected;
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
 
+    // Verify opening nonexisting OpenApi URL
+    clientServices.selectOpenApi();
+    clientServices.enterServiceUrl('https://www.niis.org/nosuchopenapi.yaml');
+    clientServices.enterServiceCode('s3c1');
+    clientServices.confirmAddDialog();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Parsing OpenApi3 description failed');
+    mainPage.closeSnackbar();
+
     // Verify invalid service code
-    clientServices.selectRESTPath();
-    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.rest_url_1);
+    clientServices.openAddREST();
+    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_1);
+    clientServices.selectOpenApi();
     clientServices.enterServiceCode('/');
     clientServices.confirmAddDialog();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Validation failure');
@@ -56,21 +66,21 @@ module.exports = {
 
     // Verify successfull URL open
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.rest_url_1);
-    clientServices.selectRESTPath();
-    clientServices.enterServiceCode('s1c1');
+    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_1);
+    clientServices.selectOpenApi();
+    clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
 
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'REST service added');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'OpenApi3 service added');
     mainPage.closeSnackbar();
-    browser.assert.containsText(clientServices.elements.serviceDescription, 'REST (' + browser.globals.testdata + '/' + browser.globals.rest_url_1 + ')');
+    browser.assert.containsText(clientServices.elements.serviceDescription, 'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_1 + ')');
    
     clientServices.expandServiceDetails();
-    browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]');
+    browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]');
 
     browser.end();
   },
-  'Security server client edit rest operation': browser => {
+  'Security server client edit openapi operation': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -95,7 +105,7 @@ module.exports = {
     browser.waitForElementVisible(clientServices);
 	
     clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
+    clientServices.openOperation('s3c1');
 
     // Verify tooltips
     browser.moveToElement(operationDetails.elements.urlHelp,0,0);
@@ -108,57 +118,35 @@ module.exports = {
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
     // Verify cancel
-    operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.rest_url_2);
+    operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
     operationDetails.enterTimeout('40');
-    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected; //check ssl clear due to new url
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected; //check ssl disable due to new url
     operationDetails.close();
 
     // Verify that options were not changed
-    browser.assert.containsText(clientServices.elements.operationUrl, browser.globals.testdata + '/' + browser.globals.rest_url_1);
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c1")]]//*[contains(@class, "mdi-lock-open-outline")]');
-    clientServices.openOperation('s1c1');
+    browser.assert.containsText(clientServices.elements.operationUrl, browser.globals.testdata.slice(0,browser.globals.testdata.indexOf('/', 8)));
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s3c1")]]//*[contains(@class, "mdi-lock-open-outline")]');
+    clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
-    browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata + '/' + browser.globals.rest_url_1);
+    browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata.slice(0,browser.globals.testdata.indexOf('/', 8)));
     browser.assert.valueContains(operationDetails.elements.timeout, '60');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
 
-    // verify SSL states
-    operationDetails.enterUrl('https://nosuchresttestservice.exists');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
-    operationDetails.saveParameters();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
-    mainPage.closeSnackbar();
-    operationDetails.close();
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_off_style+'")]');
 
-    clientServices.openOperation('s1c1');
-    browser.waitForElementVisible(operationDetails);
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.not.selected;
-    operationDetails.toggleCertVerification();
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
-    operationDetails.saveParameters();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
-    mainPage.closeSnackbar();
-    operationDetails.close();
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c1")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
-    clientServices.openOperation('s1c1');
-    browser.waitForElementVisible(operationDetails);
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
-   
     // Verify change operation
-    operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.rest_url_2);
+    operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
     operationDetails.enterTimeout('40');
     operationDetails.saveParameters();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
     mainPage.closeSnackbar();
     operationDetails.close();
 
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c1")]]//*[contains(text(), "' + browser.globals.testdata + '/' + browser.globals.rest_url_2 + '")]');
-    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c1")]]//*[contains(@class, "mdi-lock-open-outline")]');
-    browser.assert.containsText(clientServices.elements.serviceDescription, 'REST (' + browser.globals.testdata + '/' + browser.globals.rest_url_2 + ')');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s3c1")]]//*[contains(text(), "' + browser.globals.testdata + '/' + browser.globals.openapi_url_2 + '")]');
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s3c1")]]//*[contains(@class, "mdi-lock-open-outline")]');
+    browser.assert.containsText(clientServices.elements.serviceDescription, 'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_1 + ')');
 
-    clientServices.openOperation('s1c1');
-    browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata + '/' + browser.globals.rest_url_2);
+    clientServices.openOperation('s3c1');
+    browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata + '/' + browser.globals.openapi_url_2);
     browser.assert.valueContains(operationDetails.elements.timeout, '40');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
@@ -166,7 +154,7 @@ module.exports = {
     browser.end();
 
   },
-  'Security server client add rest operation access rights': browser => {
+  'Security server client add openapi operation access rights': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -191,7 +179,7 @@ module.exports = {
     browser.waitForElementVisible(clientServices);
 	
     clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
+    clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
 
     operationDetails.openAddAccessRights();
@@ -238,7 +226,7 @@ module.exports = {
 
     browser.end();
   },
-  'Security server client remove rest operation access rights': browser => {
+  'Security server client remove openapi operation access rights': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -265,7 +253,7 @@ module.exports = {
     browser.waitForElementVisible(clientServices);
 	
     clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
+    clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
 
     // Verify cancel remove
@@ -304,7 +292,7 @@ module.exports = {
 
     browser.end();
   },
-  'Security server client add rest endpoints': browser => {
+  'Security server client add openapi endpoints': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -330,7 +318,7 @@ module.exports = {
     browser.waitForElementVisible(clientServices);
 	
     clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
+    clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
     operationDetails.openEndpointsTab();
     browser.waitForElementVisible(restEndpoints);
@@ -447,7 +435,7 @@ module.exports = {
     browser.waitForElementVisible(clientServices);
 	
     clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
+    clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
     operationDetails.openEndpointsTab();
     browser.waitForElementVisible(restEndpoints);
@@ -504,13 +492,13 @@ module.exports = {
 
     browser.end();
   },
-  'Security server client edit rest service': browser => {
+  'Security server client edit openapi service': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
-    const restServiceDetails = mainPage.section.restServiceDetails
+    const openApiServiceDetails = mainPage.section.openApiServiceDetails;
 
     var startTime, startTimestamp;
 
@@ -558,11 +546,19 @@ module.exports = {
 
     // Verify editing, malformed URL and service code
     clientServices.openServiceDetails();
-    browser.assert.containsText(restServiceDetails.elements.serviceType, 'REST API Base Path');
-    restServiceDetails.enterServiceCode('/');
-    restServiceDetails.confirmDialog();
+    browser.assert.containsText(openApiServiceDetails.elements.serviceType, 'OpenAPI 3 Description');
+    openApiServiceDetails.enterServiceCode('/');
+    openApiServiceDetails.confirmDialog();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Validation failure');
     mainPage.closeSnackbar();
+
+    openApiServiceDetails.enterServiceCode('');
+    browser.assert.containsText(openApiServiceDetails.elements.codeMessage, 'The fields.code_field field is required');
+    openApiServiceDetails.enterServiceUrl("foobar")
+    browser.assert.containsText(openApiServiceDetails.elements.URLMessage, 'WSDL URL is not valid'); //!!! REST message
+    openApiServiceDetails.enterServiceUrl('');
+    browser.assert.containsText(openApiServiceDetails.elements.URLMessage, 'The URL field is required');
+    openApiServiceDetails.cancelDialog();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
@@ -576,25 +572,25 @@ module.exports = {
       }
     });
 
-    restServiceDetails.enterServiceCode('');
-    browser.assert.containsText(restServiceDetails.elements.codeMessage, 'The fields.code_field field is required');
-    restServiceDetails.enterServiceUrl("foobar")
-    browser.assert.containsText(restServiceDetails.elements.URLMessage, 'WSDL URL is not valid'); //!!! REST message
-    restServiceDetails.enterServiceUrl('');
-    browser.assert.containsText(restServiceDetails.elements.URLMessage, 'The URL field is required');
 
+    // verify missing file
+    clientServices.openServiceDetails();
+    openApiServiceDetails.enterServiceUrl('https://www.niis.org/nosuch.yaml');
+    openApiServiceDetails.confirmDialog();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Parsing OpenApi3 description failed');
+    mainPage.closeSnackbar();
 
     // Verify cancel
-    restServiceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.rest_url_1);
-    restServiceDetails.enterServiceCode('s1c2');
-    restServiceDetails.cancelDialog();
-    browser.assert.containsText(clientServices.elements.serviceDescription,  'REST (' + browser.globals.testdata + '/' + browser.globals.rest_url_2 + ')');
-    browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]');
+    openApiServiceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
+    openApiServiceDetails.enterServiceCode('s3c2');
+    openApiServiceDetails.cancelDialog();
+    browser.assert.containsText(clientServices.elements.serviceDescription,  'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_1 + ')');
+    browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]');
 
     // Verify succesfull edit
     clientServices.openServiceDetails();
-    restServiceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.rest_url_1);
-    restServiceDetails.enterServiceCode('s1c2');
+    openApiServiceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
+    openApiServiceDetails.enterServiceCode('s3c2');
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     browser.perform(function () {
@@ -607,13 +603,13 @@ module.exports = {
       }
     });
 
-    restServiceDetails.confirmDialog();
+    openApiServiceDetails.confirmDialog();
    
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
-    browser.assert.containsText(clientServices.elements.serviceDescription, 'REST (' + browser.globals.testdata + '/' + browser.globals.rest_url_1 + ')');
-    browser.waitForElementNotPresent('//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]');
-    browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s1c2")]');
+    browser.assert.containsText(clientServices.elements.serviceDescription, 'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_2 + ')');
+    browser.waitForElementNotPresent('//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]');
+    browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s3c2")]');
 
     // Verify that the refresh time has been updated
     browser.perform(function () {
@@ -623,13 +619,13 @@ module.exports = {
     browser.end();
 
   },
-  'Security server client delete rest service': browser => {
+  'Security server client delete openapi service': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
-    const restServiceDetails = mainPage.section.restServiceDetails
+    const openApiServiceDetails = mainPage.section.openApiServiceDetails
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -648,20 +644,21 @@ module.exports = {
 
     // Verify cancel delete
     clientServices.openServiceDetails();
-    browser.waitForElementVisible(restServiceDetails);
-    restServiceDetails.deleteService();
-    restServiceDetails.cancelDelete();
+    browser.waitForElementVisible(openApiServiceDetails);
+    openApiServiceDetails.deleteService();
+    openApiServiceDetails.cancelDelete();
 
-    restServiceDetails.closeServiceDetails();
-    browser.assert.containsText(clientServices.elements.serviceDescription, 'REST (' + browser.globals.testdata + '/' + browser.globals.rest_url_1 + ')');
+    openApiServiceDetails.closeServiceDetails();
+    browser.assert.containsText(clientServices.elements.serviceDescription, 'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_2 + ')');
 
     // Verify successful delete
     clientServices.openServiceDetails();
-    restServiceDetails.deleteService();
-    restServiceDetails.confirmDelete();
+    openApiServiceDetails.deleteService();
+    openApiServiceDetails.confirmDelete();
 
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description deleted');
     mainPage.closeSnackbar();
+
     browser.waitForElementNotPresent(clientServices.elements.serviceDescription);
 
     browser.end();

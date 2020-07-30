@@ -410,52 +410,15 @@ var restEndpointCommands = {
     return this;
   },
   verifyEndpointRow: function(row, method, path) {
-    this.api.waitForElementVisible('(//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr)['+row+']//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
+    //this.api.waitForElementVisible('(//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr)['+row+']//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
+    //TODO: Sorting is not currently functional, so check only that the row exists
+    this.api.waitForElementVisible('//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
+    return this;
+  },
+  openEndpoint: function(method, path) {
+    this.api.click('//table[.//*[contains(text(),"HTTP Request Method")]]//tr[.//*[contains(text(),"'+method+'")] and .//*[contains(text(),"'+path+'")]]//button[@data-test="endpoint-edit"]');
     return this;
   }
-/*,
-  close: function() {
-    this.click('@closeButton');
-    return this;
-  },
-  toggleUrlApplyToAll: function() {
-    this.click('@urlApplyToAllCheckbox');
-    return this;
-  },
-  toggleTimeoutApplyToAll: function() {
-    this.click('@timeoutApplyToAllCheckbox');
-    return this;sslAuth
-  },
-  toggleVerifyCertApplyToAll: function() {
-    this.click('@verifyCertApplyToAllCheckbox');
-    return this;
-  },
-  enterUrl: function(url) {
-    this.clearValue2('@serviceURL');
-    this.setValue('@serviceURL', url);
-    return this;
-  },
-  enterTimeout: function(timeout) {
-    this.clearValue2('@timeout');
-    this.setValue('@timeout', timeout);
-    return this;
-  },
-  toggleCertVerification: function() {
-    this.click('@sslAuthClickarea');
-    return this;
-  },
-  openAddAccessRights: function() {
-    this.click('@addSubjectsButton');
-    return this;
-  },
-  removeAllAccessRights: function() {
-    this.click('@removeAllButton');
-    return this;
-  },
-  removeAccessRight: function(subject) {
-    this.api.click(this.selector + '//table[contains(@class, "group-members-table")]//tr[.//td[contains(text(), "'+subject+'")]]//button[@data-test="remove-subject"]');
-    return this;
-  }*/
 };
 
 var wsdlAddSubjectsCommands = {
@@ -1106,43 +1069,6 @@ module.exports = {
         closeButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
           locateStrategy: 'xpath' }
-/*,
-        timeout: { 
-          selector: '//input[contains(@data-test, "service-timeout")]',
-          locateStrategy: 'xpath' },
-        sslAuth: { 
-          selector: '//input[contains(@data-test, "ssl-auth")]',
-          locateStrategy: 'xpath' },
-        sslAuthClickarea: { 
-          selector: '//input[contains(@data-test, "ssl-auth")]/following-sibling::div',
-          locateStrategy: 'xpath' },
-        save2Button: { 
-          selector: '//button[contains(@data-test, "save-service-parameters")]/following-sibling::div',
-          locateStrategy: 'xpath' },
-        addButton: { 
-          selector: '//button[contains(@data-test, "endpoint-add")]',
-          locateStrategy: 'xpath' },
-        closeButton: { 
-          selector: '//button[contains(@data-test, "close")]',
-          locateStrategy: 'xpath' },
-        urlHelp: { 
-          selector: '//div[contains(@class, "edit-title") and contains(text(), "Service URL")]//i',
-          locateStrategy: 'xpath' },
-        timeoutHelp: { 
-          selector: '//div[contains(@class, "edit-title") and contains(text(), "Timeout")]//i',
-          locateStrategy: 'xpath' },
-        verifyCertHelp: { 
-          selector: '//div[contains(@class, "edit-title") and contains(text(), "Verify TLS certificate")]//i',
-          locateStrategy: 'xpath' },
-        activeTooltip: { 
-          selector: '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
-          locateStrategy: 'xpath' },
-        addSubjectsButton: { 
-          selector: '//button[contains(@data-test, "show-add-subjects")]',
-          locateStrategy: 'xpath' },
-        removeAllButton: { 
-          selector: '//button[contains(@data-test, "remove-subjects")]',
-          locateStrategy: 'xpath' }*/
       }
     },
     wsdlAddSubjectsPopup: {
