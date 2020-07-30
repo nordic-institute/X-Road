@@ -462,9 +462,11 @@ var addEndpointCommands = {
   },
   selectRequestMethod: function(method) {
     this.click('@methodDropdown');
-    this.api.pause(1000);
+ 
+    this.api.pause(1500);
     // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click('//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"'+method+'")]'); 
+    browser.click('//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"'+method+'")]'); 
+
     return this;
   },
   clickMethodMenu: function() {
