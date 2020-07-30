@@ -218,4 +218,22 @@ fi
 %systemd_postun_with_restart xroad-confclient.service
 %systemd_postun_with_restart rsyslogd.service
 
+%posttrans
+# show nginx status
+echo DEBUG xroad-proxy.spec.posttrans 1
+service nginx status | head -3
+date
+
+# I hope /etc/xroad/nginx/xroad-proxy.conf is now alredy removed, so restart helps
+echo do we still have it in posttrans?
+ls -la /etc/xroad/nginx/
+
+# restart nginx only if it was running
+echo restarting nginx from xroad-proxy.posttrans
+service nginx status && service nginx restart
+
+echo DEBUG xroad-proxy.spec.posttrans 2
+service nginx status | head -3
+date
+
 %changelog
