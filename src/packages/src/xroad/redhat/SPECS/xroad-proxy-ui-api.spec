@@ -71,8 +71,14 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
+%pre
+service xroad-jetty stop || true
+
 %post
 %systemd_post xroad-proxy-ui-api.service
+# restart nginx if it was running
+service nginx status warn=false
+test $? -ne 0 || service nginx restart
 
 /usr/share/xroad/scripts/xroad-proxy-ui-api-setup.sh
 

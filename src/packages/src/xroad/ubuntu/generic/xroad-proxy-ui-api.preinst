@@ -21,6 +21,7 @@ if  [ "$1" = "reconfigure" ];
     db_fset xroad-common/proxy-ui-api-altsubject seen false
 fi
 
+service xroad-jetty stop || true
 
 #check certificates and request necessary subject information from user
 HOST=`hostname -f`
