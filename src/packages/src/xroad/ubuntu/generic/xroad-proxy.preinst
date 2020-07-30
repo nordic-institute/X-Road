@@ -45,6 +45,42 @@ for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LI
 ALT="${LIST}DNS:$(hostname),DNS:$HOST"
 
 while :; do
+    if [[ ! -r /etc/xroad/ssl/nginx.crt || ! -r /etc/xroad/ssl/nginx.key ]]
+    then
+       echo "Generating new nginx.[crt|key] files "
+       db_subst xroad-common/admin-subject HOST "$HOST"
+       db_subst xroad-common/admin-altsubject ALT "$ALT"
+       RET=
+       db_get xroad-common/admin-subject
+       if [ -z "$RET"  ]
+       then
+          db_set xroad-common/admin-subject "/CN=$HOST"
+       fi
+       RET=
+       db_get xroad-common/admin-altsubject
+       if [ -z "$RET"  ]
+       then
+          db_set xroad-common/admin-altsubject "$ALT"
+       fi
+       db_input critical xroad-common/admin-subject || true
+       db_input critical xroad-common/admin-altsubject || true
+       db_go
+       RET=
+       db_get xroad-common/admin-subject
+       subj="$RET"
+       RET=
+       db_get xroad-common/admin-altsubject
+       altn="$RET"
+       db_go
+       rm -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/nginx.key
+       echo "generating new webUI TLS key/certificate with $subj and $altn"
+       /usr/share/xroad/scripts/generate_certificate.sh  -n nginx  -s "${subj}" -a "${altn}" 2>/tmp/cert.err || handle_error
+    else
+      break
+    fi
+done
+
+while :; do
     if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key  || ! -r /etc/xroad/ssl/internal.p12 ]]
     then
        echo "Generating new internal.[crt|key|p12] files "

@@ -1,3 +1,0 @@
-../../../../src/xroad/default-configuration/addons/center-monitoring.ini /etc/xroad/configuration-parts/
-../../../../src/xroad/common/addon/proxy/validate-monitoring-params.sh /usr/share/xroad/scripts/
-../../../../../addons/proxymonitor/metaservice/build/libs/proxymonitor-metaservice-1.0.jar usr/share/xroad/jlib/addon/proxy/

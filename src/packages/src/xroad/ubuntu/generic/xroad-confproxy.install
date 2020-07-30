@@ -1,8 +1,0 @@
-../../../../src/xroad/common/confproxy/etc/* etc/
-../../../../../configuration-proxy/scripts/* usr/share/xroad/scripts
-../../../../../configuration-proxy/build/libs/configuration-proxy-1.0.jar usr/share/xroad/jlib/
-../../../../src/xroad/default-configuration/confproxy.ini etc/xroad/conf.d
-../../../../src/xroad/default-configuration/override-signer.ini etc/xroad/conf.d
-../../../../src/xroad/default-configuration/confproxy-logback.xml etc/xroad/conf.d
-../../../../../configuration-proxy-LICENSE.info usr/share/doc/xroad-confproxy
-../../../../../../CHANGELOG.md usr/share/doc/xroad-confproxy

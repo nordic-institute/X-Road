@@ -1,6 +1,0 @@
-../../../../src/xroad/common/addon/signer/* usr/share/xroad/jlib/addon/signer/
-../../../../../addons/hwtoken/build/libs/hwtoken-1.0.jar usr/share/xroad/jlib/addon/signer/
-../../../../../LICENSE.txt usr/share/doc/xroad-addon-hwtokens/
-../../../../../securityserver-LICENSE.info usr/share/doc/xroad-addon-hwtokens/
-../../../../../../CHANGELOG.md usr/share/doc/xroad-addon-hwtokens/
-

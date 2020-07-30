@@ -34,6 +34,7 @@ case "$1" in
   mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
   mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
   mkdir -p /etc/xroad/globalconf; chown xroad:xroad  /etc/xroad/globalconf
+  chown -h xroad:xroad /etc/xroad/conf.d/jetty-logback-context-name.xml
 
   test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
   test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
@@ -72,6 +73,7 @@ case "$1" in
   db_stop
 
   service rsyslog restart || true
+  service nginx restart || true
   service xroad-confclient restart || true
   service xroad-jetty restart || true
   service xroad-signer restart || true

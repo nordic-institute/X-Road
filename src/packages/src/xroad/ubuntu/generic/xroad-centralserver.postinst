@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# disable confclient start
-if [ "$(lsb_release -sc)" = "bionic" ]; then
-  systemctl stop xroad-confclient
-  systemctl disable xroad-confclient
-fi
-
-exit 0

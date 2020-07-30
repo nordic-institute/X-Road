@@ -1,0 +1,9 @@
+---
+# This playbook only copies packages to local repo. repo should already be there
+
+- hosts: ss_servers, cs_servers, cp_servers
+  roles:
+    - packages-to-local-repo
+  tags:
+    - packages
+
