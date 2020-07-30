@@ -65,6 +65,15 @@ rm -rf %{buildroot}
 
 %postun
 %systemd_postun_with_restart nginx.service
+
+echo xroad-nginx.spec.postun 1
+service nginx status | head -3
+sleep 5
+
 service nginx restart
+
+echo xroad-nginx.spec.postun 2
+service nginx status | head -3
+sleep 5
 
 %changelog
