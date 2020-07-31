@@ -159,7 +159,8 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
           // Clear the anchor file
           this.anchorFile = undefined;
-        });
+        })
+        .finally(() => (this.previewing = false));
     },
 
     confirmUpload(): void {

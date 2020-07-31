@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{ $t('wizard.client.addClient') }}</span>
+        <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
         <i @click="cancel()" data-test="x-close-button"></i>
       </v-card-title>
@@ -83,6 +83,10 @@ export default Vue.extend({
     dialog: {
       type: Boolean,
       required: true,
+    },
+    title: {
+      type: String,
+      default: 'wizard.client.addClient',
     },
     selectableClients: {
       type: Array as PropType<Client[]>,

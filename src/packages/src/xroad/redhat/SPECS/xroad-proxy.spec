@@ -85,6 +85,7 @@ rm -rf %{buildroot}
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
 
+%defattr(-,root,root,-)
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
 
 %config %attr(644,root,root) /etc/logrotate.d/xroad-proxy
@@ -93,13 +94,12 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/sudoers.d/xroad-proxy
 %config %attr(644,root,root) /etc/cron.d/xroad-proxy
 
-%attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-proxy
-%attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-setup.sh
-%attr(540,root,xroad) /usr/share/xroad/scripts/xroad-initdb.sh
-%attr(544,root,xroad) /usr/share/xroad/bin/xroad-add-admin-user.sh
-%attr(540,root,xroad) /usr/share/xroad/scripts/setup_serverconf_db.sh
+%attr(550,root,xroad) /usr/share/xroad/bin/xroad-proxy
+%attr(540,root,root) /usr/share/xroad/scripts/xroad-proxy-setup.sh
+%attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
+%attr(540,root,root) /usr/share/xroad/bin/xroad-add-admin-user.sh
+%attr(540,root,root) /usr/share/xroad/scripts/setup_serverconf_db.sh
 
-%defattr(-,root,root,-)
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf-legacy-changelog.xml
