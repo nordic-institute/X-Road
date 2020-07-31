@@ -151,18 +151,25 @@ public class PossibleActionsRuleEngine {
         }
         if (!certificateInfo.isSavedToConfiguration()) {
             // auth cert cannot be imported
-            X509Certificate x509 = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-            try {
-                if (!CertUtils.isAuthCert(x509)) {
-                    actions.add(PossibleActionEnum.IMPORT_FROM_TOKEN);
-                }
-            } catch (Exception e) {
-                log.error("Unable to determine certificate import possible action", e);
-                throw new RuntimeException(e);
+            if (!isAuthCert(certificateInfo)) {
+                actions.add(PossibleActionEnum.IMPORT_FROM_TOKEN);
             }
         }
 
         return actions;
+    }
+
+    /**
+     * Find out if certificateInfo is an auth cert, wrap possible exceptions in RuntimeException
+     */
+    private boolean isAuthCert(CertificateInfo certificateInfo) {
+        X509Certificate x509 = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+        try {
+            return CertUtils.isAuthCert(x509);
+        } catch (Exception e) {
+            log.error("Unable to determine certificate import possible action", e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**
