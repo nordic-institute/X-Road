@@ -412,6 +412,7 @@ module.exports = {
     restEndpoints.verifyEndpointRow(1, 'DELETE', '/testreq1');
 
     restEndpoints.openAddDialog();
+    addEndpointPopup.enterPath('/');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'New endpoint created successfully');
