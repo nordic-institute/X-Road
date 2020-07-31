@@ -50,10 +50,11 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/xroad/conf.d/addons/monitor.ini
 %config %{_sysconfdir}/xroad/conf.d/addons/monitor-logback.xml
 %attr(0440,xroad,xroad) %config %{_sysconfdir}/xroad/backup.d/??_xroad-monitor
+%defattr(-,root,root,-)
 %attr(644,root,root) %{_unitdir}/xroad-monitor.service
 %{jlib}/monitor-1.0.jar
 %{jlib}/monitor.jar
-%attr(744,xroad,xroad) /usr/share/xroad/bin/%{name}
+%attr(754,root,xroad) /usr/share/xroad/bin/%{name}
 
 %post
 %systemd_post xroad-monitor.service

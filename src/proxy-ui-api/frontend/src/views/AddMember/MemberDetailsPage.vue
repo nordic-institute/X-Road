@@ -85,6 +85,7 @@
     </ValidationObserver>
 
     <SelectClientDialog
+      title="wizard.addMemberTitle"
       :dialog="showSelectClient"
       :selectableClients="selectableMembers"
       @cancel="showSelectClient = false"
@@ -225,7 +226,7 @@ export default Vue.extend({
 
   watch: {
     memberCode(val): void {
-      // Set first certification service selected as default when the list is updated
+      // Set wizard mode to default (full)
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
       if (isEmpty(val) || isEmpty(this.memberClass)) {
         return;
@@ -233,7 +234,7 @@ export default Vue.extend({
       this.checkClient();
     },
     memberClass(val): void {
-      // Set first certification service selected as default when the list is updated
+      // Set wizard mode to default (full)
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
       if (isEmpty(val) || isEmpty(this.memberCode)) {
         return;

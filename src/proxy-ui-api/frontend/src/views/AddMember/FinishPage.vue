@@ -14,7 +14,7 @@
     <p>{{ $t('wizard.finish.note') }}</p>
     <p></p>
 
-    <div v-if="showRegisterOption" class="row-wrap">
+    <div v-if="showRegisterOption">
       <FormLabel labelText="wizard.member.register" />
       <v-checkbox
         v-model="registerChecked"
@@ -134,8 +134,12 @@ export default Vue.extend({
             this.disableCancel = false;
             this.submitLoading = false;
             this.$emit('done');
-          } else {
+          } else if (
+            this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
+          ) {
             this.generateCsr();
+          } else {
+            this.generateKeyAndCsr();
           }
         },
         (error) => {
@@ -160,11 +164,30 @@ export default Vue.extend({
       this.createMember(true);
     },
 
-    generateCsr(): void {
+    generateKeyAndCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
       this.$store
         .dispatch('generateKeyAndCsr', tokenId)
+        .then(
+          () => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
+          this.disableCancel = false;
+          this.submitLoading = false;
+        });
+    },
+
+    generateCsr(): void {
+      const tokenId = this.$store.getters.csrTokenId;
+
+      this.$store
+        .dispatch('generateCsr', tokenId)
         .then(
           () => {
             this.$emit('done');

@@ -152,8 +152,11 @@ export default Vue.extend({
         .post('/initialization', payload)
         .then(() => {
           this.$store.dispatch('showSuccess', 'initialConfiguration.success');
+          // Set init state to done so that the routing goes into "normal" mode
+          this.$store.dispatch('setInitializationStatus');
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
+          this.$store.dispatch('checkAlertStatus'); // Check if we have any alerts after initialisation
           this.$router.replace({ name: RouteName.Clients });
         })
         .catch((error) => {
