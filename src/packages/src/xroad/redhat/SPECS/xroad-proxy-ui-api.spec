@@ -77,23 +77,6 @@ service xroad-jetty stop || true
 %post
 %systemd_post xroad-proxy-ui-api.service
 
-# show nginx status
-echo xroad-proxy-ui-api.spec.post 1
-service nginx status | head -3
-date
-sleep 5
-date
-
-# restart nginx only if it was running
-echo restarting nginx from xroad-proxy-ui-api.post
-service nginx status && service nginx restart
-
-echo xroad-proxy-ui-api.spec.post 2
-service nginx status | head -3
-date
-sleep 5
-date
-
 /usr/share/xroad/scripts/xroad-proxy-ui-api-setup.sh
 
 #parameters:

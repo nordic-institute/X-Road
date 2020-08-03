@@ -35,11 +35,6 @@ case "$1" in
  ;;
 esac
 
-# restart nginx if it was running
-# service nginx status warn=false
-# test $? -ne 0 || service nginx restart
-service nginx restart
-
 #DEBHELPER#
 
 exit 0
