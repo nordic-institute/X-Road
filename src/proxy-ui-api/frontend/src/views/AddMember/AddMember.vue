@@ -81,15 +81,15 @@
         <v-stepper-content :step="tokenPageNumber">
           <TokenPage
             @cancel="cancel"
-            @previous="previousPage"
-            @done="tokenReady"
+            @previous="currentStep--"
+            @done="currentStep++"
           />
         </v-stepper-content>
         <!-- Step 3 -->
         <v-stepper-content :step="keyPageNumber">
           <SignKeyPage
             @cancel="cancel"
-            @previous="previousPage"
+            @previous="currentStep--"
             @done="currentStep++"
           />
         </v-stepper-content>
@@ -97,7 +97,7 @@
         <v-stepper-content :step="csrDetailsPageNumber">
           <CsrDetailsPageLocked
             @cancel="cancel"
-            @previous="previousPage"
+            @previous="currentStep--"
             @done="csrDetailsReady"
             saveButtonText="action.next"
           />
@@ -106,14 +106,14 @@
         <v-stepper-content :step="csrGeneratePageNumber">
           <GenerateCsrPage
             @cancel="cancel"
-            @previous="previousPage"
+            @previous="currentStep--"
             @done="currentStep++"
             saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 6 -->
         <v-stepper-content :step="finishPageNumber">
-          <FinishPage @cancel="cancel" @previous="previousPage" @done="done" />
+          <FinishPage @cancel="cancel" @previous="currentStep--" @done="done" />
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
@@ -233,10 +233,6 @@ export default Vue.extend({
       this.$router.replace({ name: RouteName.Clients });
     },
 
-    tokenReady(): void {
-      this.currentStep = 3;
-    },
-
     csrDetailsReady(): void {
       // Add the selected client id in csr store
       const idString = this.$store.getters.selectedMemberId;
@@ -251,10 +247,6 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         },
       );
-    },
-
-    previousPage(): void {
-      this.currentStep--;
     },
 
     done(): void {

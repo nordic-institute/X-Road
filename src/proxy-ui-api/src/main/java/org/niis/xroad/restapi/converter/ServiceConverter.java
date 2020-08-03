@@ -33,6 +33,7 @@ import com.google.common.collect.Streams;
 import org.apache.commons.lang.ObjectUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
+import org.niis.xroad.restapi.util.EndpointHelper;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
