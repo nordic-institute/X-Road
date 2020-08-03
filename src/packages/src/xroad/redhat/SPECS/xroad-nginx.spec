@@ -43,6 +43,7 @@ mkdir -p %{buildroot}/etc/xroad/nginx
 mkdir -p %{buildroot}/etc/nginx/conf.d
 mkdir -p %{buildroot}/usr/share/xroad/lib
 
+ln -s /etc/xroad/nginx/default-xroad.conf %{buildroot}/etc/nginx/conf.d/default-xroad.conf
 ln -s /etc/xroad/nginx/nginx-secure-addons.conf %{buildroot}/etc/nginx/conf.d/xroad-securing.conf
 
 %clean
@@ -51,11 +52,13 @@ rm -rf %{buildroot}
 %files
 %defattr(0640,xroad,xroad,0751)
 %dir /etc/xroad
+%config /etc/xroad/nginx/default-xroad.conf
 %config /etc/xroad/nginx/nginx-secure-addons.conf
 %config /etc/xroad/ssl/rfc3526group15.pem
 
 %defattr(-,root,root,-)
 /etc/nginx/conf.d/xroad-securing.conf
+/etc/nginx/conf.d/default-xroad.conf
 
 %pre
 
@@ -64,3 +67,4 @@ rm -rf %{buildroot}
 %post
 
 %changelog
+

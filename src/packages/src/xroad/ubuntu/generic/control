@@ -26,14 +26,14 @@ Description: X-Road nginx component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, systemd, , xroad-nginx (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-nginx (=${binary:Version})
 Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
