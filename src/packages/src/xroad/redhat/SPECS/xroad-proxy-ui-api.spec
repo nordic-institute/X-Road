@@ -71,10 +71,33 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
+%pre
+service xroad-jetty stop || true
+
 %post
 %systemd_post xroad-proxy-ui-api.service
 
 /usr/share/xroad/scripts/xroad-proxy-ui-api-setup.sh
+
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+    if [ "${MIGRATION_VALUE}" ];
+        then
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
+            crudini --del "$1" "$2" "$3"
+    fi
+}
+
+#migrating possible local configuration for modified configuration values (for version 6.24.0)
+migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command proxy-ui-api wsdl-validator-command
+migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui auth-cert-reg-signature-digest-algorithm-id proxy-ui-api auth-cert-reg-signature-digest-algorithm-id
 
 %preun
 %systemd_preun xroad-proxy-ui-api.service

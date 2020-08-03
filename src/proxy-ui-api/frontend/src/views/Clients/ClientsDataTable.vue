@@ -385,7 +385,7 @@ export default Vue.extend({
           (client) =>
             !this.search ||
             !client.isFiltered ||
-            subsystems.some((item) => item.id.startsWith(client.id)),
+            subsystems.some((item) => item.id.startsWith(`${client.id}:`)),
         )
         .sort((clientA, clientB) => {
           if (clientA.owner || clientB.owner) {
@@ -407,7 +407,7 @@ export default Vue.extend({
           return [
             group,
             ...subsystems
-              .filter((client) => client.id.startsWith(group.id))
+              .filter((client) => client.id.startsWith(`${group.id}:`))
               .sort((clientA, clientB) => {
                 switch (index) {
                   case 'visibleName':

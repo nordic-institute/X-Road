@@ -166,6 +166,9 @@ export const actions: ActionTree<CsrState, RootState> = {
   setCsrTokenId({ commit }, tokenId: string) {
     commit('storeCsrTokenId', tokenId);
   },
+  setKeyId({ commit }, keyId: string) {
+    commit('storeKeyId', keyId);
+  },
   fetchCertificateAuthorities({ commit }) {
     api
       .get<CertificateAuthority[]>(`/certificate-authorities`)

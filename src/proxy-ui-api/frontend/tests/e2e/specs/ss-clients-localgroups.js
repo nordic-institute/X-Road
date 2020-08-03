@@ -105,7 +105,7 @@ module.exports = {
     // Verify that trying to add a group with existing code results in an error message
     clientLocalGroups.enterCode('abb');
     clientLocalGroups.confirmAddDialog();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, "error_code.local_group_code_already_exists");
+    browser.assert.containsText(mainPage.elements.snackBarMessage, "Local group code already exists");
     mainPage.closeSnackbar();
  
     // Add a new group and verify
