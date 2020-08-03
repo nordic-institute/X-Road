@@ -1,10 +1,7 @@
 <template>
   <div data-test="finish-content">
-    <p>
-      {{ $t('wizard.finish.infoLine1') }}
-      <br />
-      {{ $t('wizard.finish.infoLine2') }}
-    </p>
+    <p>{{ $t('wizard.finish.infoLine1') }}</p>
+    <p>{{ $t('wizard.finish.infoLine2') }}</p>
     <br />
     <p>{{ $t('wizard.finish.todo1') }}</p>
     <p>{{ $t('wizard.finish.todo2') }}</p>

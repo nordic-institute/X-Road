@@ -364,7 +364,7 @@
     "logOutText": "Log out of the token?",
     "loggedOut": "Logged out of token",
     "addKey": "Add key",
-    "importCert": "Import Cert.",
+    "importCert": "Import cert.",
     "type": "Type:",
     "keyInfo": "Key information",
     "keyId": "Key ID:",
@@ -477,22 +477,22 @@
     },
     "token": {
       "title": "Token",
-      "info": "Select to which token you want to add the new Client. Note: the token must be in Log-in state.",
+      "info": "Select the token where you want to add the SIGN key for the new Client. Note: the token must be in Log-in state.",
       "tokenName": "Token name",
       "loggedIn": "Logged in"
     },
     "signKey": {
       "title": "Sign Key",
-      "info": "You can define a label for the newly created Key (not mandatory)",
+      "info": "You can define a label for the newly created SIGN key (not mandatory)",
       "keyLabel": "Key Label"
     },
     "finish": {
       "title": "Finish",
       "infoLine1": "All required information is collected. By clicking \"Submit\", the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.",
-      "infoLine2": "In order to register the new client, you still need to:",
+      "infoLine2": "In order to register the new client, please complete the following steps:",
       "todo1": "1) Send the CSR to a Certificate Authority for signing",
-      "todo2": "2) Once received back, import the signed CSR to the appropriate key",
-      "todo3": "3) At this point you can register the new added client",
+      "todo2": "2) Once received back, import the resulting certificate to the corresponding key",
+      "todo3": "3) At this point you can register the new client",
       "note": "NOTE: if you click Cancel, all data will be lost"
     },
     "member": {
