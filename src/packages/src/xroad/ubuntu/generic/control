@@ -55,6 +55,8 @@ Package: xroad-proxy-ui-api
 Architecture: all
 Pre-depends: xroad-base (=${binary:Version})
 Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
+#Replaces: xroad-nginx (< 7.2.0-1.20200803115531git1c2026c), xroad-jetty9 (< 7.2.0-1.20200803115531git1c2026c)
+#Breaks: xroad-nginx (< 7.2.0-1.20200803115531git1c2026c), xroad-jetty9 (< 7.2.0-1.20200803115531git1c2026c)
 Replaces: xroad-nginx, xroad-jetty9
 Breaks: xroad-nginx, xroad-jetty9
 Description: X-Road proxy UI REST API
