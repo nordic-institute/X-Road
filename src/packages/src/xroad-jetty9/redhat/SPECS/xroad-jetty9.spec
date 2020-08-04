@@ -42,6 +42,7 @@ ln -s /etc/xroad/jetty/xroad.mod %{buildroot}/usr/share/xroad/jetty9/modules/xro
 ln -s /etc/xroad/jetty/start.ini %{buildroot}/usr/share/xroad/jetty9/start.ini
 ln -s /etc/xroad/conf.d/jetty-logback.xml %{buildroot}/usr/share/xroad/jetty9/resources/logback.xml
 
+cp -p %{srcdir}/../../../common-util/build/libs/common-util-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -aP %{srcdir}/generic/etc %{buildroot}
 cp -aP %{srcdir}/generic/usr %{buildroot}
 
@@ -57,11 +58,10 @@ rm -rf %{buildroot}
 %dir /etc/xroad/jetty/contexts-admin
 %config /etc/xroad/jetty/*
 %config /etc/xroad/conf.d/jetty-logback.xml
-%dir /var/log/xroad/jetty
-
-%defattr(0444,root,root,0555)
 %attr(664,root,root) /usr/lib/tmpfiles.d/%{name}.conf
+/usr/share/xroad/jlib/common-util-1.0.jar
 /usr/share/xroad/jetty9
+%dir /var/log/xroad/jetty
 %dir /usr/share/xroad/webapps
 %attr(755,root,root) /usr/share/xroad/bin/%{name}
 %attr(664,root,root) %{_unitdir}/%{name}.service

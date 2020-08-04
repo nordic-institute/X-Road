@@ -91,7 +91,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
-/usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/db/liquibase-3.5.1.jar
 /usr/share/xroad/db/liquibase.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt

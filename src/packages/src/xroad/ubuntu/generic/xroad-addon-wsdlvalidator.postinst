@@ -1,6 +1,6 @@
 #!/bin/bash
 
-crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+crudini --set /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 
 chown root:xroad /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 chmod 0750 /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh

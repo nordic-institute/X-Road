@@ -8,7 +8,23 @@ groups="xroad-security-officer xroad-registration-officer xroad-service-administ
 #define groups that are allowed on ss-cluster slaves
 slave_groups="xroad-securityserver-observer"
 
-log () { echo >&2 "$@"; }
+db_name=serverconf
+db_user=serverconf
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
+
+RET=
+db_get xroad-common/database-host
+db_host="$RET"
+db_url=jdbc:postgresql://${db_host}/${db_name}
+db_addr=${db_host%%:*}
+db_port=${db_host##*:}
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
 
 #parameters:
 #1 file_path
@@ -21,6 +37,7 @@ function migrate_conf_value {
     if [ "${MIGRATION_VALUE}" ];
         then
             crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
             crudini --del "$1" "$2" "$3"
     fi
 }
@@ -36,8 +53,112 @@ case "$1" in
   mkdir -p /etc/xroad/globalconf; chown xroad:xroad  /etc/xroad/globalconf
   chown -h xroad:xroad /etc/xroad/conf.d/jetty-logback-context-name.xml
 
+  if [ -d /etc/authbind/byport ]; then
+    test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown xroad /etc/authbind/byport/80; chown xroad /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
+  fi
+
   test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
   test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
+
+  #is database connection configured?
+  if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
+  then
+      db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
+      db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
+      db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
+  else
+
+    echo "no db settings detected, creating db"
+
+    # If the database host is not local, connect with master username and password
+    if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
+    then
+
+      echo "remote database"
+
+      master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
+      export PGPASSWORD=${master_passwd}
+
+      if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
+       then echo -e "\n\npostgreSQL is not UTF8 compatible."
+          echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
+          exit 101
+      fi
+
+      if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
+       then
+          echo  "$db_user user exists, skipping role creation"
+          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+      else
+          echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+      fi
+
+      if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
+       then
+          echo "database ${db_name} exists"
+      else
+          echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
+          createdb -h $db_addr -p $db_port -U postgres ${db_name} -O ${db_user} -E UTF-8
+      fi
+
+      psql -h $db_addr -p $db_port -U postgres serverconf -tAc "CREATE EXTENSION IF NOT EXISTS hstore;"
+
+    else
+
+      echo "local database"
+
+      if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+       then echo -e "\n\npostgreSQL is not UTF8 compatible."
+        echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
+        exit 101
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
+       then
+        echo  "$db_user user exists, skipping role creation"
+        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+      else
+        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\""`  == "1" ]]
+      then
+        echo "database ${db_name} exists"
+      else
+        su - postgres -c "createdb ${db_name} -O ${db_user} -E UTF-8"
+      fi
+
+      su - postgres -c "psql serverconf -tAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
+
+    fi
+
+    touch ${db_properties}
+    crudini --set ${db_properties} '' serverconf.hibernate.jdbc.use_streams_for_binary true
+    crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.url ${db_url}
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.username  ${db_user}
+    crudini --set ${db_properties} '' serverconf.hibernate.connection.password ${db_passwd}
+
+  fi
+
+  chown xroad:xroad ${db_properties}
+  chmod 640 ${db_properties}
+
+  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
+
+  if [[ "$node_type" == "slave" ]]; then
+      echo "Skipping database migrations on cluster slave node"
+  else
+      echo "running ${db_name} database migrations"
+      cd /usr/share/xroad/db/
+      /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+
+      if dpkg --compare-versions "$2" le-nl "6.8"
+      then
+          /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
+      fi
+  fi
 
   RET=""
   db_get xroad-common/username
@@ -45,10 +166,10 @@ case "$1" in
 
   groupnames=""
   if [[ "$node_type" == "slave" ]]; then
-      log "Cluster slave node detected, configuring slave compatible groups"
+      echo "Cluster slave node detected, configuring slave compatible groups"
       groupnames=$slave_groups
   else
-      log "Configuring groups"
+      echo "Configuring groups"
       groupnames=$groups
   fi
 
@@ -66,14 +187,14 @@ case "$1" in
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-  RET=""
-  db_get xroad-common/database-host || true
-  /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
-
   db_stop
 
   service rsyslog restart || true
+
+  #workaround for buggy nginx installation
+  /usr/sbin/nginx -s stop || true
   service nginx restart || true
+
   service xroad-confclient restart || true
   service xroad-jetty restart || true
   service xroad-signer restart || true
@@ -83,7 +204,7 @@ case "$1" in
  ;;
 
  *)
-    log "postinst called with unknown argument \`$1'" >&2
+    echo "postinst called with unknown argument \`$1'" >&2
     exit 1
  ;;
 esac
