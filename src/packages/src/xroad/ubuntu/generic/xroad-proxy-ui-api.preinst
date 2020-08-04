@@ -22,6 +22,8 @@ if  [ "$1" = "reconfigure" ];
 fi
 
 service xroad-jetty stop || true
+# restart nginx (to possibly free port 4000), but only if it was running
+service nginx status > /dev/null && service nginx restart
 
 #check certificates and request necessary subject information from user
 HOST=`hostname -f`
