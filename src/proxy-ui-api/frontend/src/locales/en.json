@@ -113,7 +113,6 @@
     "memberCode": "Member Code",
     "subsystemCode": "Subsystem Code",
     "connType": "Connection type",
-    "connTypeInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
     "saved": "Saved",
     "globalError": "Global error",
     "registered": "Registered",
@@ -123,7 +122,7 @@
   },
   "internalServers": {
     "connectionType": "Connection type",
-    "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
+    "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https).",
     "tlsTitle": "Information System TLS certificate",
     "certHash": "Certificate Hash (SHA/1)",
     "ssCertTitle": "Security Server certificate",
@@ -448,7 +447,7 @@
     "csrFormat": "CSR Format",
     "generateCsr": "Generate CSR",
     "csrDetails": "CSR details",
-    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "saveInfo": "Generate a new CSR and save it into a safe place.",
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
     "helpClient": "X-Road member the certificate will be issued for.",
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
@@ -477,7 +476,7 @@
     },
     "token": {
       "title": "Token",
-      "info": "Select the token where you want to add the SIGN key for the new Client. Note: the token must be in Log-in state.",
+      "info": "Please select the token where you want to add the SIGN key for the new Client. Note: the token must be in Logged in state.",
       "tokenName": "Token name",
       "loggedIn": "Logged in"
     },
@@ -602,7 +601,7 @@
       "step": {
         "roles": {
           "name": "Roles",
-          "description": "Specify which roles the new API key should be linked to."
+          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key."
         },
         "keyDetails": {
           "name": "Key Details",
@@ -610,7 +609,7 @@
           "apiKey": "API key",
           "apiKeyID": "API key ID",
           "assignedRoles": "Roles assigned",
-          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
         }
       },
       "success": "API key successfully created"
@@ -625,7 +624,7 @@
           "button": "Edit",
           "dialog": {
             "title": "Edit API Key (ID: {id})",
-            "message": "Linked roles:"
+            "message": "Roles associated with the API key:"
           },
           "success": "API key with ID {id} saved"
         },
@@ -780,7 +779,7 @@
       "title": "Timestamping",
       "timestampingStatus": {
         "SUCCESS": "Everything ok",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection to global configuration provider.",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
         "ERROR_CODE_INTERNAL": "Internal error occurred",
@@ -802,7 +801,7 @@
   },
   "globalAlert": {
     "globalConfigurationInvalid": "Global configuration is expired",
-    "softTokenPinNotEntered": "Please enter softtoken PIN",
+    "softTokenPinNotEntered": "Please enter soft token PIN",
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}"
   },
   "error_code": {
