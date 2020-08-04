@@ -99,9 +99,9 @@ CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_plain_user}";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public to "${db_plain_user}";
 EOF
-    fi
 
-    crudini --set "${db_properties}" '' password "${db_password}"
+        crudini --set "${db_properties}" '' password "${db_password}"
+    fi
 
     if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
         /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
