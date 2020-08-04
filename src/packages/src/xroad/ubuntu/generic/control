@@ -73,8 +73,6 @@ Conflicts: xroad-center, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
 Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
-Replaces: xroad-nginx (<= 6.24.0-0.20200729085303git17909f8), xroad-jetty9 (<= 6.24.0-0.20200729085303git17909f8)
-Breaks: xroad-nginx (<= 6.24.0-0.20200729085303git17909f8), xroad-jetty9 (<= 6.24.0-0.20200729085303git17909f8)
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -174,7 +172,9 @@ Description: Automatic token pin code entry
 
 Package: xroad-proxy-ui-api
 Architecture: all
-Depends: ${misc:Depends}
-Pre-depends: xroad-base (=${binary:Version}), xroad-proxy (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
+Replaces: xroad-nginx, xroad-jetty9
+Breaks: xroad-nginx, xroad-jetty9
 Description: X-Road proxy UI REST API
  REST API for X-Road proxy UI and management operations

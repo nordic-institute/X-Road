@@ -16,6 +16,7 @@ Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           iproute, hostname
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
+Obsoletes:          xroad-nginx, xroad-jetty9
 
 %define src %{_topdir}/..
 
@@ -98,6 +99,7 @@ function migrate_conf_value {
 #migrating possible local configuration for modified configuration values (for version 6.24.0)
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command proxy-ui-api wsdl-validator-command
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui auth-cert-reg-signature-digest-algorithm-id proxy-ui-api auth-cert-reg-signature-digest-algorithm-id
+crudini --del /etc/xroad/conf.d/local.ini proxy-ui
 
 %preun
 %systemd_preun xroad-proxy-ui-api.service
