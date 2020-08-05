@@ -228,7 +228,7 @@ service nginx status >> /install-xroad.log
 echo sleeping 5s and restarting if nginx runs >> /install-xroad.log
 
 sleep 5
-%{_bindir}/systemctl try-restart nginx.service
+service nginx status > /dev/null && service nginx restart
 sleep 5
 date >> /install-xroad.log
 echo nginx status now after posttrans >> /install-xroad.log

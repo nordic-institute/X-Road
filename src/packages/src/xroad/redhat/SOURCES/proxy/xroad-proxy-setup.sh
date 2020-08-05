@@ -24,4 +24,24 @@ mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
 mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 
+#
+# SELinux policy modification
+#
+if [[ $(getenforce) != "Disabled" ]]; then
+    # allow httpd to act as reverse proxy
+    setsebool -P httpd_can_network_relay 1 || true
+    setsebool -P httpd_can_network_connect 1 || true
+
+    # allow httpd to connecto to non-standard port 4000
+    semanage port -a -t http_port_t  -p tcp 4000 || true
+
+    # allow httpd to connect to non-standard port 5000 (keep this as long as we have the dual old & new UI)
+    if ! semanage port -m -t http_port_t  -p tcp 5000
+    then
+        echo "could not modify SELinux port 5000, will add instead"
+        semanage port -a -t http_port_t  -p tcp 5000 || true
+    fi
+
+fi
+
 /usr/share/xroad/scripts/setup_serverconf_db.sh
