@@ -18,10 +18,6 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/conf.d/
 fi
 
-if [ -z "$(ls -A /var/log/supervisor/)" ]; then
-   cp -a /tmp/logs/* /var/log/
-fi
-
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     if [ -f /etc/xroad/VERSION ]; then
         CONFIG_VERSION="$(cat /etc/xroad/VERSION)"
