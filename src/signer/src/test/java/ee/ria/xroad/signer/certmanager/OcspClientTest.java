@@ -314,6 +314,8 @@ public class OcspClientTest {
     private GlobalConfProvider getTestGlobalConf() throws Exception {
         GlobalConfProvider testConf = mock(GlobalConfProvider.class);
 
+        when(testConf.getInstanceIdentifier()).thenReturn("TEST");
+
         when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
                 Arrays.asList(RESPONDER_URI));
 
