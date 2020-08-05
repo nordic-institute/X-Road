@@ -23,10 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.util;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.springframework.stereotype.Component;
@@ -47,6 +48,22 @@ public class EndpointHelper {
         List<EndpointType> allEndpoints = client.getEndpoint();
         return allEndpoints.stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(service.getServiceCode()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get endpoints from given service description
+     * @param serviceDescriptionType
+     * @return
+     */
+    public List<EndpointType> getEndpoints(ServiceDescriptionType serviceDescriptionType) {
+        ClientType client = serviceDescriptionType.getClient();
+        List<String> allServiceCodes = serviceDescriptionType.getService().stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toList());
+        List<EndpointType> allEndpoints = client.getEndpoint();
+        return allEndpoints.stream()
+                .filter(endpointType -> allServiceCodes.contains(endpointType.getServiceCode()))
                 .collect(Collectors.toList());
     }
 
