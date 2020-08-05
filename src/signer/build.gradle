@@ -31,7 +31,7 @@ dependencies {
     testCompile project(':common-verifier').sourceSets.test.output
     testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 
-    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
+    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
     testCompile 'org.powermock:powermock-module-junit4:2.0.7'
     testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
 
