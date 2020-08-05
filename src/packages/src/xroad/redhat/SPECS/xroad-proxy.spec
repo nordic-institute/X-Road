@@ -225,9 +225,11 @@ echo DEBUG posttrans >> /install-xroad.log
 date >> /install-xroad.log
 echo nginx status now >> /install-xroad.log
 service nginx status >> /install-xroad.log
-echo sleeping 5s and restarting if nginx runs >> /install-xroad.log
+ps -ef | grep nginx >> /install-xroad.log
+find / -name nginx.pid >> /install-xroad.log
+echo sleeping 10s and restarting if nginx runs >> /install-xroad.log
 
-sleep 5
+sleep 10
 service nginx status > /dev/null && service nginx restart
 sleep 5
 date >> /install-xroad.log
