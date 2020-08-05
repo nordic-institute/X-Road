@@ -117,6 +117,8 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre
+echo DEBUG pre >> /install-xroad.log
+date >> /install-xroad.log
 if [ $1 -gt 1 ] ; then
     # upgrade
     # remove the previous port forwarding rules (if any)
@@ -219,6 +221,17 @@ fi
 
 %posttrans
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
+echo DEBUG posttrans >> /install-xroad.log
+date >> /install-xroad.log
+echo nginx status now >> /install-xroad.log
+service nginx status >> /install-xroad.log
+echo sleeping 5s and restarting if nginx runs >> /install-xroad.log
+
+sleep 5
 %{_bindir}/systemctl try-restart nginx.service
+sleep 5
+date >> /install-xroad.log
+echo nginx status now after posttrans >> /install-xroad.log
+service nginx status >> /install-xroad.log
 
 %changelog
