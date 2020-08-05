@@ -53,6 +53,7 @@ import ee.ria.xroad.proxymonitor.util.MonitorClient;
 import org.apache.http.client.HttpClient;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -211,6 +212,7 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
+    @Ignore
     public void shouldNotNeedToVerifyWhenAllowedMonitoringClientCalling() throws Exception {
 
         // setup
