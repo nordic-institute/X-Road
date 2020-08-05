@@ -49,8 +49,32 @@ export default Vue.extend({
           this.$store.dispatch('clearAlerts');
           this.$router.replace({ name: RouteName.Login });
         }
+
+        // If the request is made with responseType: blob, but backend responds with json error
+        if (
+          error.request.responseType === 'blob' &&
+          error.response.data instanceof Blob &&
+          error.response.data.type &&
+          error.response.data.type.toLowerCase().indexOf('json') != -1
+        ) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = () => {
+              error.response.data = JSON.parse(reader.result as string);
+              resolve(Promise.reject(error));
+            };
+
+            reader.onerror = () => {
+              reject(error);
+            };
+
+            reader.readAsText(error.response.data);
+          });
+        }
+
         // Do something with response error
-        throw error;
+        return Promise.reject(error);
       },
     );
   },
