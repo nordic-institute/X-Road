@@ -70,7 +70,6 @@ if [ $1 -eq 0 ] ; then
     # not an upgrade, but a real removal
     crudini --del /etc/xroad/conf.d/local.ini proxy-ui-api wsdl-validator-command
 fi
-%systemd_postun_with_restart xroad-jetty.service
-%systemd_postun_with_restart xroad-proxy.service
+%systemd_postun_with_restart xroad-proxy-ui-api.service
 
 %changelog
