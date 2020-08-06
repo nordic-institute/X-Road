@@ -149,6 +149,11 @@ public class CertificateAuthorityService {
 
         log.info("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
+
+        for (X509Certificate cert : caCerts) {
+            log.info("Cert SubjectDN=%s IssuerDN=%s");
+        }
+
         List<ApprovedCaDto> dtos = new ArrayList<>();
         // map of each subject - issuer DN pair for easy lookups
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
