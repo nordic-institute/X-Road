@@ -58,7 +58,7 @@
 
         <ValidationProvider
           name="securityServerCode"
-          rules="required"
+          rules="required|xrdIdentifier"
           v-slot="{ errors }"
         >
           <v-text-field
