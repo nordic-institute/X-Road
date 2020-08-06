@@ -76,7 +76,7 @@
 
         <ValidationProvider
           name="addClient.subsystemCode"
-          rules="required"
+          rules="required|xrdIdentifier"
           v-slot="{ errors }"
         >
           <v-text-field
