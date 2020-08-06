@@ -42,12 +42,10 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
-import ee.ria.xroad.proxymonitor.RestoreMonitorClientAfterTest;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -100,9 +98,6 @@ public class ProxyMonitorServiceHandlerTest {
     public final ProvideSystemProperty configurationPathProperty
             = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
             "src/test/resources/");
-
-    @Rule
-    public final RestoreMonitorClientAfterTest monitorClientRestoreRule = new RestoreMonitorClientAfterTest();
 
     private HttpServletRequest mockRequest;
     private ProxyMessage mockProxyMessage;
@@ -187,7 +182,6 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    @Ignore
     public void shouldNotNeedToVerifyWhenAllowedMonitoringClientCalling() throws Exception {
 
         // setup
