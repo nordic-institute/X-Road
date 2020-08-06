@@ -173,14 +173,16 @@ public class CertificateAuthorityService {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
         }
         if (filteredCerts.size() != base64EncodedOcspResponses.length) {
-            throw new InconsistentCaDataException("ocsp responses do not match ca certs");
+            throw new InconsistentCaDataException(
+                    String.format("ocsp responses do not match ca certs %d vs %d",
+                            filteredCerts.size(), base64EncodedOcspResponses.length));
         }
 
         // build dtos
         for (int i = 0; i < caCerts.size(); i++) {
             int idx = filteredCerts.indexOf(caCerts.get(i));
             dtos.add(buildCertificateAuthorityDto(caCerts.get(i),
-                    (idx != -1) ? base64EncodedOcspResponses[i] : null,
+                    (idx != -1) ? base64EncodedOcspResponses[idx] : null,
                     subjectsToIssuers));
         }
 
