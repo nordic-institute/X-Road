@@ -50,3 +50,9 @@ extend('wsdlUrl', {
     return i18n.t('customValidation.invalidWsdl') as string;
   },
 });
+
+const allowedIdentifierPattern = new RegExp('^((?![:/;%\\\\]).)*$');
+extend('xrdIdentifier', {
+  validate: (value) => allowedIdentifierPattern.test(value),
+  message: () => i18n.t('customValidation.invalidXrdIdentifier') as string,
+});

@@ -54,8 +54,9 @@
 
         <ValidationProvider
           name="addClient.memberCode"
-          rules="required"
+          rules="required|xrdIdentifier"
           v-slot="{ errors }"
+          ref="memberCodeVP"
         >
           <v-text-field
             class="form-input"
@@ -115,7 +116,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { VueConstructor } from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -129,7 +130,13 @@ import { AddMemberWizardModes } from '@/global';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default (Vue as VueConstructor<
+  Vue & {
+    $refs: {
+      memberCodeVP: InstanceType<typeof ValidationProvider>;
+    };
+  }
+>).extend({
   components: {
     FormLabel,
     LargeButton,
@@ -186,6 +193,7 @@ export default Vue.extend({
     return {
       showSelectClient: false,
       checkRunning: false,
+      isMemberCodeValid: true,
     };
   },
   methods: {
@@ -207,6 +215,10 @@ export default Vue.extend({
       this.showSelectClient = false;
     },
     checkClient(): void {
+      // don't continue is the identifier is invalid
+      if (!this.isMemberCodeValid) {
+        return;
+      }
       this.checkRunning = true;
 
       // Find if the selectable clients array has a match
@@ -250,9 +262,12 @@ export default Vue.extend({
   },
 
   watch: {
-    memberCode(val): void {
+    async memberCode(val) {
       // Set wizard mode to default (full)
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+
+      // Needs to be done here, because the watcher runs before the setter
+      this.isMemberCodeValid = (await this.$refs.memberCodeVP.validate()).valid;
       if (isEmpty(val) || isEmpty(this.memberClass)) {
         return;
       }
@@ -273,6 +288,9 @@ export default Vue.extend({
         this.memberClass = val[0];
       }
     },
+  },
+  mounted() {
+    this.$refs.memberCodeVP;
   },
 });
 </script>

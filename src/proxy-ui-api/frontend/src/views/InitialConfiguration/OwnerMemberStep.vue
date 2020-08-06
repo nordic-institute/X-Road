@@ -35,8 +35,9 @@
 
         <ValidationProvider
           name="addClient.memberCode"
-          rules="required"
+          rules="required|xrdIdentifier"
           v-slot="{ errors }"
+          ref="memberCodeVP"
         >
           <v-text-field
             class="form-input"
@@ -95,13 +96,19 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { VueConstructor } from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 
-export default Vue.extend({
+export default (Vue as VueConstructor<
+  Vue & {
+    $refs: {
+      memberCodeVP: InstanceType<typeof ValidationProvider>;
+    };
+  }
+>).extend({
   components: {
     LargeButton,
     ValidationObserver,
@@ -117,6 +124,11 @@ export default Vue.extend({
       type: Boolean,
       default: true,
     },
+  },
+  data() {
+    return {
+      isMemberCodeValid: true,
+    };
   },
   computed: {
     ...mapGetters([
@@ -171,7 +183,11 @@ export default Vue.extend({
     },
 
     checkMember(): void {
-      if (this.memberClass?.length > 0 && this.memberCode?.length > 0) {
+      if (
+        this.memberClass?.length > 0 &&
+        this.memberCode?.length > 0 &&
+        this.isMemberCodeValid
+      ) {
         this.$store
           .dispatch('fetchMemberName', {
             memberClass: this.memberClass,
@@ -201,7 +217,9 @@ export default Vue.extend({
         this.checkMember();
       }
     },
-    memberCode(val) {
+    async memberCode(val) {
+      // Needs to be done here, because the watcher runs before the setter
+      this.isMemberCodeValid = (await this.$refs.memberCodeVP.validate()).valid;
       if (val) {
         // Update member name when info changes
         this.checkMember();
@@ -220,6 +238,9 @@ export default Vue.extend({
       });
 
     this.checkMember();
+  },
+  mounted() {
+    this.$refs.memberCodeVP;
   },
 });
 </script>
