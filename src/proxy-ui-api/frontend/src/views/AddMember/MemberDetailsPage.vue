@@ -208,16 +208,17 @@ export default (Vue as VueConstructor<
       // Fill the name "field" if it's available or set it undefined
       this.$store.commit('setSelectedMemberName', tempClient?.member_name);
 
-      this.checkClientDebounce();
+      // Pass the arguments so that we use the validated information instead of the state at that time
+      this.checkClientDebounce(this.memberClass, this.memberCode);
     },
-    checkClientDebounce: debounce(() => {
+    checkClientDebounce: debounce((memberClass: string, memberCode: string) => {
       // Debounce is used to reduce unnecessary api calls
       // Search tokens for suitable CSR:s and certificates
       that.$store
         .dispatch('searchTokens', {
           instanceId: that.reservedMember.instanceId,
-          memberClass: that.memberClass,
-          memberCode: that.memberCode,
+          memberClass: memberClass,
+          memberCode: memberCode,
         })
         .then(
           () => {
