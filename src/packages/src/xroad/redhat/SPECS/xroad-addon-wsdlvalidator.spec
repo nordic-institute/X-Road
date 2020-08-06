@@ -37,11 +37,39 @@ rm -rf %{buildroot}
 /usr/share/xroad/wsdlvalidator
 
 %post
-crudini --set /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+    if [ "${MIGRATION_VALUE}" ];
+        then
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
+            crudini --del "$1" "$2" "$3"
+    fi
+}
+
+if [ $1 -eq 1 ] ; then
+    # Initial installation
+    crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+fi
+
+if [ $1 -gt 1 ] ; then
+    # upgrade -> migrate
+    migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command proxy-ui-api wsdl-validator-command
+fi
+
 %systemd_post xroad-jetty.service
 
 %postun
-crudini --del /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command
+if [ $1 -eq 0 ] ; then
+    # not an upgrade, but a real removal
+    crudini --del /etc/xroad/conf.d/local.ini proxy-ui-api wsdl-validator-command
+fi
 %systemd_postun_with_restart xroad-jetty.service
 %systemd_postun_with_restart xroad-proxy.service
 
