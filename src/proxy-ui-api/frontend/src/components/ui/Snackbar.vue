@@ -63,6 +63,29 @@
           {{ meta }}
         </div>
 
+        <!-- Show validation errors -->
+        <ul v-if="hasValidationErrors(notification)">
+          <li
+            v-for="validationError in validationErrors(notification)"
+            :key="validationError.field"
+          >
+            {{ $t(`fields.${validationError.field}`) }}:
+            <template v-if="validationError.errorCodes.length === 1">
+              {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+            </template>
+            <template v-else>
+              <ul>
+                <li
+                  v-for="errorCode in validationError.errorCodes"
+                  :key="`${validationError.field}.${errorCode}`"
+                >
+                  {{ $t(`validationError.${errorCode}`) }}
+                </li>
+              </ul>
+            </template>
+          </li>
+        </ul>
+
         <!-- Error ID -->
         <div v-if="errorId(notification)">
           {{ $t('id') }}:
@@ -97,6 +120,11 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
+
+type ValidationError = {
+  field: string;
+  errorCodes: string[];
+};
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -154,6 +182,25 @@ export default Vue.extend({
       }
 
       return undefined;
+    },
+
+    hasValidationErrors(notification: Notification): boolean {
+      return (
+        notification.errorObject?.response?.data?.error?.validation_errors !==
+        undefined
+      );
+    },
+
+    validationErrors(notification: Notification): ValidationError[] {
+      const validationErrors =
+        notification.errorObject?.response?.data?.error?.validation_errors;
+      return Object.keys(validationErrors).map(
+        (field) =>
+          ({
+            field,
+            errorCodes: validationErrors[field],
+          } as ValidationError),
+      );
     },
 
     closeSuccess(): void {

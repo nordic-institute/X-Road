@@ -52,7 +52,7 @@ Vue.filter('formatDate', (value: string): string => {
     (date.getMonth() + 1).toString().padStart(2, '0') +
     '-' +
     date
-      .getDay()
+      .getDate()
       .toString()
       .padStart(2, '0')
   );
@@ -74,7 +74,7 @@ export const formatDateTime = (value: string): string => {
     (date.getMonth() + 1).toString().padStart(2, '0') +
     '-' +
     date
-      .getDay()
+      .getDate()
       .toString()
       .padStart(2, '0') +
     ' ' +
