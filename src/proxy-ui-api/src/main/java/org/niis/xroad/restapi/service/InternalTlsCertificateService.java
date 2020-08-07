@@ -178,6 +178,7 @@ public class InternalTlsCertificateService {
             CertUtils.writePemToFile(certificateBytes, internalCertPath);
             CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
         } catch (Exception e) {
+            log.error("Failed to import internal TLS cert", e);
             throw new DeviationAwareRuntimeException("cannot import internal tls cert", e,
                     new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));
         }

@@ -33,13 +33,15 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>correlation-id:[%X{X-B3-TraceId:-}] %msg%n</pattern>
+            <pattern>[%thread] correlation-id:[%X{X-B3-TraceId:-}] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
     <logger name="akka" level="WARN" />
     <logger name="ee.ria.xroad" level="INFO" />
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
+    <logger name="org.niis.xroad" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

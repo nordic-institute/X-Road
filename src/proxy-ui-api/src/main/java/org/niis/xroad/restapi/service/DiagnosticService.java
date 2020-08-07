@@ -100,6 +100,7 @@ public class DiagnosticService {
      * @return
      */
     public List<DiagnosticsStatus> queryTimestampingStatus() {
+        log.info("Query timestamper status");
         try {
             JsonObject json = sendGetRequest(diagnosticsTimestampingServicesUrl);
             return json.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
@@ -114,6 +115,7 @@ public class DiagnosticService {
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
+        log.info("Query OCSP status");
         try {
             JsonObject json = sendGetRequest(diagnosticsOcspRespondersUrl);
             JsonObject certificationServiceStatusMap = json.getAsJsonObject("certificationServiceStatusMap");

@@ -109,6 +109,7 @@ public class IpThrottlingFilter extends GenericFilterBean {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             // limit is exceeded, respond with 429 TOO_MANY_REQUESTS
+            log.warn("Request rate limit exceeded for ip {}, responding with 429 TOO_MANY_REQUESTS", ip);
             HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
             httpResponse.setContentType("application/json");
             httpResponse.setCharacterEncoding("UTF-8");

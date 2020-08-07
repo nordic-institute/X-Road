@@ -44,13 +44,12 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-//@Configuration
 public class StartStopListener implements ApplicationListener<ApplicationEvent> {
 
     private UIServices uiApiActorSystem;
 
     private synchronized void stop() throws Exception {
-        log.debug("stop");
+        log.info("stop");
 
         if (uiApiActorSystem != null) {
             uiApiActorSystem.stop();
@@ -67,7 +66,7 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
      * @throws Exception
      */
     private synchronized void start() {
-        log.debug("start");
+        log.info("start");
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
             SignerClient.init(uiApiActorSystem.getActorSystem(), signerIp);

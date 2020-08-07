@@ -72,6 +72,7 @@ public class NotificationService {
      * @return
      */
     public AlertStatus getAlerts() {
+        log.debug("checking for alerts");
         AlertStatus alertStatus = new AlertStatus();
         OffsetDateTime backupRestoreStartedAt = getBackupRestoreRunningSince();
         if (backupRestoreStartedAt != null) {

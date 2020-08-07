@@ -138,7 +138,7 @@ public class GlobalConfChecker {
             // Look for another member that is not the owner
             if (client.getIdentifier().getSubsystemCode() == null
                     && !client.getIdentifier().equals(ownerId)) {
-                log.trace("Found potential new owner: \"{}\"", client.getIdentifier());
+                log.debug("Found potential new owner: \"{}\"", client.getIdentifier());
 
                 // Build a new server id using the alternative member as owner
                 SecurityServerId altSecurityServerId = buildSecurityServerId(client.getIdentifier(),

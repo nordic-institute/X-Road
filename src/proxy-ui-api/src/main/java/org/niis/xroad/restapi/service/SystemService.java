@@ -375,12 +375,17 @@ public class SystemService {
      * @throws IOException if temp file creation fails
      */
     private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
-        String tempAnchorPrefix = "temp-internal-anchor-";
-        String tempAnchorSuffix = ".xml";
-        File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
-        File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
-        FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
-        return tempAnchor;
+        try {
+            String tempAnchorPrefix = "temp-internal-anchor-";
+            String tempAnchorSuffix = ".xml";
+            File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
+            File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
+            FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
+            return tempAnchor;
+        } catch (Exception e) {
+            log.error("Creating temporary anchor file failed", e);
+            throw e;
+        }
     }
 
     /**
