@@ -149,8 +149,6 @@ public class CertificateAuthorityService {
 
         log.info("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
-        caCerts.forEach(cert -> log.debug(String.format("Cert SubjectDN=%s IssuerDN=%s", cert.getSubjectDN(),
-                cert.getIssuerDN())));
 
         List<ApprovedCaDto> dtos = new ArrayList<>();
         // map of each subject - issuer DN pair for easy lookups
@@ -179,9 +177,9 @@ public class CertificateAuthorityService {
         }
 
         // build dtos
-        for (int i = 0; i < caCerts.size(); i++) {
-            int idx = filteredCerts.indexOf(caCerts.get(i));
-            dtos.add(buildCertificateAuthorityDto(caCerts.get(i),
+        for (X509Certificate cert : caCerts) {
+            int idx = filteredCerts.indexOf(cert);
+            dtos.add(buildCertificateAuthorityDto(cert,
                     (idx != -1) ? base64EncodedOcspResponses[idx] : null,
                     subjectsToIssuers));
         }
