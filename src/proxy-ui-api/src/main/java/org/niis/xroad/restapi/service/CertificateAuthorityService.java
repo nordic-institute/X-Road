@@ -141,7 +141,7 @@ public class CertificateAuthorityService {
      *                               false = only include top CAs
      * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
      * responses not being valid
-     * @return
+     * @return list of approved CAs
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
     public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
@@ -149,6 +149,7 @@ public class CertificateAuthorityService {
 
         log.debug("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
+
         List<ApprovedCaDto> dtos = new ArrayList<>();
         // map of each subject - issuer DN pair for easy lookups
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
@@ -156,21 +157,30 @@ public class CertificateAuthorityService {
                         x509 -> x509.getSubjectDN().getName(),
                         x509 -> x509.getIssuerDN().getName()));
 
+        // we only fetch ocsp responses for intermediate approved CAs
+        // configured as approved CA and its issuer cert is also an approved CA
+        List<X509Certificate> filteredCerts = caCerts.stream()
+                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerDN().getName()))
+                .collect(Collectors.toList());
+
         String[] base64EncodedOcspResponses;
         try {
-            String[] certHashes = CertUtils.getCertHashes(new ArrayList<>(caCerts));
+            String[] certHashes = CertUtils.getCertHashes(new ArrayList<>(filteredCerts));
             base64EncodedOcspResponses = signerProxyFacade.getOcspResponses(certHashes);
         } catch (Exception e) {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
         }
-        if (caCerts.size() != base64EncodedOcspResponses.length) {
-            throw new InconsistentCaDataException("ocsp responses do not match ca certs");
+        if (filteredCerts.size() != base64EncodedOcspResponses.length) {
+            throw new InconsistentCaDataException(
+                    String.format("ocsp responses do not match ca certs %d vs %d",
+                            filteredCerts.size(), base64EncodedOcspResponses.length));
         }
 
         // build dtos
-        for (int i = 0; i < caCerts.size(); i++) {
-            dtos.add(buildCertificateAuthorityDto(caCerts.get(i),
-                    base64EncodedOcspResponses[i],
+        for (X509Certificate cert : caCerts) {
+            int idx = filteredCerts.indexOf(cert);
+            dtos.add(buildCertificateAuthorityDto(cert,
+                    (idx != -1) ? base64EncodedOcspResponses[idx] : null,
                     subjectsToIssuers));
         }
 
@@ -196,7 +206,7 @@ public class CertificateAuthorityService {
      * @param certificate CA certificate
      * @param base64EncodedOcspResponse OCSP response
      * @param subjectsToIssuers map linking all CA subject DNs to corresponding issuer DNs
-     * @return
+     * @return approved CA DTO
      * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
      * responses not being valid
      */
@@ -264,10 +274,10 @@ public class CertificateAuthorityService {
 
     /**
      * Return correct CertificateProfileInfo for given parameters
-     * @param caName
-     * @param keyUsageInfo
+     * @param caName name of the CA
+     * @param keyUsageInfo key usage
      * @param memberId member when key usage = signing, ignored otherwise
-     * @return
+     * @return CertificateProfileInfo
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      * @throws CertificateProfileInstantiationException if instantiation of certificate profile failed
      * @throws WrongKeyUsageException if attempted to read signing profile from authenticationOnly ca
