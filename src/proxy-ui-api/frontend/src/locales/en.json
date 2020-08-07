@@ -62,7 +62,7 @@
   "clients": {
     "action": {
       "register": {
-        "success": "Client registered",
+        "success": "Client registration request sent successfully",
         "confirm": {
           "title": "Register client",
           "text": "Are you sure you want to send a client registration request?"
@@ -386,7 +386,7 @@
     "registrationRequest": "Registration request",
     "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
-    "certificateRegistered": "Certificate registered",
+    "certificateRegistered": "Certificate registration request sent successfully",
     "unregisterTitle": "Unregister certificate",
     "unregisterText": "Do you want to unregister this certificate?",
     "keySaved": "Key saved",
