@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
+import org.niis.xroad.restapi.service.InvalidHttpsUrlException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
@@ -129,7 +130,7 @@ public class ServicesApiController implements ServicesApi {
                             Boolean.TRUE.equals(serviceUpdate.getSslAuth()), serviceUpdate.getSslAuthAll(),
                             ignoreWarnings),
                     clientId);
-        } catch (InvalidUrlException e) {
+        } catch (InvalidUrlException | InvalidHttpsUrlException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);

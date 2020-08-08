@@ -59,7 +59,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.AccessRightService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIENT_NOT_FOUND;
-import static org.niis.xroad.restapi.service.InvalidUrlException.ERROR_MALFORMED_URL;
+import static org.niis.xroad.restapi.service.InvalidHttpsUrlException.ERROR_INVALID_HTTPS_URL;
 import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_ERROR;
 import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR;
@@ -202,7 +202,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
             servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
             fail("should throw BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(ERROR_MALFORMED_URL, expected.getErrorDeviation().getCode());
+            assertEquals(ERROR_INVALID_HTTPS_URL, expected.getErrorDeviation().getCode());
         }
     }
 

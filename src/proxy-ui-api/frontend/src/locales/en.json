@@ -852,6 +852,7 @@
     },
     "diagnostic_request_failed": "Diagnostic request failed",
     "malformed_url": "Malformed URL",
+    "invalid_https_url": "URL does not use HTTPS",
     "weak_pin": "Weak PIN",
     "process_not_executable": "Process is not executable",
     "invalid_filename": "Invalid filename",

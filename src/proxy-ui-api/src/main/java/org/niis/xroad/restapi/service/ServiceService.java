@@ -141,6 +141,7 @@ public class ServiceService {
      * @param sslAuthAll
      * @return ServiceType
      * @throws InvalidUrlException if given url was not valid
+     * @throws InvalidHttpsUrlException if given url does not use https and https is required
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws ClientNotFoundException if client with given id was not found
      * @throws UnhandledWarningsException if SSL auth is enabled and verification of the SSL connection between the
@@ -149,7 +150,7 @@ public class ServiceService {
     public ServiceType updateService(ClientId clientId, String fullServiceCode,
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
-            ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException {
+            ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException, InvalidHttpsUrlException {
 
         auditDataHelper.put(clientId);
 
@@ -157,7 +158,7 @@ public class ServiceService {
             throw new InvalidUrlException("URL is not valid: " + url);
         }
         if (sslAuth && !FormatUtils.isHttpsUrl(url)) {
-            throw new InvalidUrlException("HTTPS must be used when SSL authentication is enabled");
+            throw new InvalidHttpsUrlException("HTTPS must be used when SSL authentication is enabled");
         }
 
         ServiceType serviceType = getService(clientId, fullServiceCode);
