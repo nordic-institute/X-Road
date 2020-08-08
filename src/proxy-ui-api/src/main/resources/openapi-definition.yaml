@@ -5602,6 +5602,11 @@ components:
           type: boolean
           example: false
           default: false
+        ignore_warnings:
+          type: boolean
+          default: false
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
     Endpoint:
       type: object
       description: Endpoint for a service

@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -43,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -64,18 +67,24 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 @PreAuthorize("isAuthenticated()")
 public class ServiceService {
 
+    public static final String WARNING_INTERNAL_SERVER_SSL_ERROR = "internal_server_ssl_error";
+    public static final String WARNING_INTERNAL_SERVER_SSL_FAILURE = "internal_server_ssl_failure";
+
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final UrlValidator urlValidator;
     private final AuditDataHelper auditDataHelper;
+    private final InternalServerTestService internalServerTestService;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            UrlValidator urlValidator, AuditDataHelper auditDataHelper) {
+            UrlValidator urlValidator, AuditDataHelper auditDataHelper,
+            InternalServerTestService internalServerTestService) {
         this.clientRepository = clientRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.urlValidator = urlValidator;
         this.auditDataHelper = auditDataHelper;
+        this.internalServerTestService = internalServerTestService;
     }
 
     /**
@@ -134,22 +143,38 @@ public class ServiceService {
      * @throws InvalidUrlException if given url was not valid
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws ClientNotFoundException if client with given id was not found
+     * @throws UnhandledWarningsException if SSL auth is enabled and verification of the SSL connection between the
+     * Security Server and information system fails, and ignoreWarnings was false
      */
     public ServiceType updateService(ClientId clientId, String fullServiceCode,
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
-            boolean sslAuth, boolean sslAuthAll) throws InvalidUrlException, ServiceNotFoundException,
-            ClientNotFoundException {
+            boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
+            ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException {
 
         auditDataHelper.put(clientId);
 
         if (!urlValidator.isValidUrl(url)) {
             throw new InvalidUrlException("URL is not valid: " + url);
         }
+        if (sslAuth && !FormatUtils.isHttpsUrl(url)) {
+            throw new InvalidUrlException("HTTPS must be used when SSL authentication is enabled");
+        }
 
         ServiceType serviceType = getService(clientId, fullServiceCode);
 
         if (serviceType == null) {
             throw new ServiceNotFoundException("Service " + fullServiceCode + " not found");
+        }
+
+        if (sslAuth && !ignoreWarnings) {
+            ClientType client = serviceType.getServiceDescription().getClient();
+            try {
+                internalServerTestService.testHttpsConnection(client.getIsCert(), url);
+            } catch (SSLHandshakeException she) {
+                throw new UnhandledWarningsException(new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_ERROR, url));
+            } catch (Exception e) {
+                throw new UnhandledWarningsException(new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_FAILURE, url));
+            }
         }
 
         ServiceDescriptionType serviceDescriptionType = serviceType.getServiceDescription();

@@ -53,6 +53,7 @@ import org.niis.xroad.restapi.service.ServiceClientService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -119,17 +120,21 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         Service updatedService = null;
+        boolean ignoreWarnings = serviceUpdate.getIgnoreWarnings();
         try {
             updatedService = serviceConverter.convert(
                     serviceService.updateService(clientId, fullServiceCode,
                             serviceUpdate.getUrl(), serviceUpdate.getUrlAll(),
                             serviceUpdate.getTimeout(), serviceUpdate.getTimeoutAll(),
-                            Boolean.TRUE.equals(serviceUpdate.getSslAuth()), serviceUpdate.getSslAuthAll()),
+                            Boolean.TRUE.equals(serviceUpdate.getSslAuth()), serviceUpdate.getSslAuthAll(),
+                            ignoreWarnings),
                     clientId);
         } catch (InvalidUrlException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (UnhandledWarningsException e) {
+            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }

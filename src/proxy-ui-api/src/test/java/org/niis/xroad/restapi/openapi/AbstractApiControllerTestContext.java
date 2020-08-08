@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.DiagnosticService;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.InitializationService;
+import org.niis.xroad.restapi.service.InternalServerTestService;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.NotificationService;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
@@ -97,6 +98,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     InternalTlsCertificateRepository mockRepository;
     @MockBean
     VersionService versionService;
+    @MockBean
+    InternalServerTestService internalServerTestService;
     // temporarily public accessor, I have plan to merge restapi.controller and restapi.openapi packages
     @MockBean
     public NotificationService notificationService;
