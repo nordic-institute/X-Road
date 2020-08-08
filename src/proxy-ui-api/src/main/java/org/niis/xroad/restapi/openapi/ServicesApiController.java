@@ -130,12 +130,10 @@ public class ServicesApiController implements ServicesApi {
                             Boolean.TRUE.equals(serviceUpdate.getSslAuth()), serviceUpdate.getSslAuthAll(),
                             ignoreWarnings),
                     clientId);
-        } catch (InvalidUrlException | InvalidHttpsUrlException e) {
+        } catch (InvalidUrlException | InvalidHttpsUrlException | UnhandledWarningsException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (UnhandledWarningsException e) {
-            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
