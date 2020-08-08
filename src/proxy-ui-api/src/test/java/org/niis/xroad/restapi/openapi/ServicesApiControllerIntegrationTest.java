@@ -62,7 +62,7 @@ import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIEN
 import static org.niis.xroad.restapi.service.InvalidUrlException.ERROR_MALFORMED_URL;
 import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_ERROR;
-import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_FAILURE;
+import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR;
 
 /**
  * Test ServicesApiController
@@ -146,7 +146,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
             servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
             fail("should throw BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(WARNING_INTERNAL_SERVER_SSL_ERROR,
+            assertEquals(WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR,
                     expected.getWarningDeviations().iterator().next().getCode());
         }
 
@@ -155,7 +155,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
             servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
             fail("should throw BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(WARNING_INTERNAL_SERVER_SSL_FAILURE,
+            assertEquals(WARNING_INTERNAL_SERVER_SSL_ERROR,
                     expected.getWarningDeviations().iterator().next().getCode());
         }
 

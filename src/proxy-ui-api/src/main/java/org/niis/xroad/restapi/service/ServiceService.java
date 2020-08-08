@@ -67,8 +67,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 @PreAuthorize("isAuthenticated()")
 public class ServiceService {
 
+    public static final String WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR = "internal_server_ssl_handshake_error";
     public static final String WARNING_INTERNAL_SERVER_SSL_ERROR = "internal_server_ssl_error";
-    public static final String WARNING_INTERNAL_SERVER_SSL_FAILURE = "internal_server_ssl_failure";
 
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
@@ -171,9 +171,10 @@ public class ServiceService {
             try {
                 internalServerTestService.testHttpsConnection(client.getIsCert(), url);
             } catch (SSLHandshakeException she) {
-                throw new UnhandledWarningsException(new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_ERROR, url));
+                throw new UnhandledWarningsException(
+                        new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR, url));
             } catch (Exception e) {
-                throw new UnhandledWarningsException(new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_FAILURE, url));
+                throw new UnhandledWarningsException(new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_ERROR, url));
             }
         }
 
