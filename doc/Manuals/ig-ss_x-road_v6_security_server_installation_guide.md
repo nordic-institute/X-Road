@@ -160,7 +160,7 @@ It is strongly recommended to protect the security server from unwanted access u
 
 #### 2.2.1 Network Diagram
 
-The network diagram below provides an example of a basic Security Server setup.
+The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
 
 ![network diagram](img/ig-ss_network_diagram_Ubuntu.png)
 
