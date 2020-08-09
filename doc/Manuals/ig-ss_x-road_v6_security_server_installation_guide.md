@@ -49,7 +49,7 @@ Doc. ID: IG-SS
  12.06.2020 | 2.22    | Update reference data regarding JMX listening ports | Petteri Kivimäki
  24.06.2020 | 2.23    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
  24.06.2020 | 2.24    | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
- 24.06.2020 | 2.25    | Update ports information in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
+ 24.06.2020 | 2.25    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram) | Petteri Kivimäki
       
 ## Table of Contents <!-- omit in toc -->
 
@@ -63,6 +63,7 @@ Doc. ID: IG-SS
 - [2 Installation](#2-installation)
   - [2.1 Supported Platforms](#21-supported-platforms)
   - [2.2 Reference Data](#22-reference-data)
+    - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Installation](#25-installation)
@@ -156,6 +157,10 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.11 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
+
+#### 2.2.1 Network Diagram
+
+The network diagram below provides an example of a basic Security Server setup.
 
 ![network diagram](img/ig-ss_network_diagram_Ubuntu.png)
 
