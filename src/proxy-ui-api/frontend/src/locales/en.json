@@ -261,7 +261,11 @@
     "adding_services": "Adding services:",
     "wsdl_validation_warnings": "Validation warnings:",
     "memberNameGroupDesc": "Member name / Group description",
-    "idGroupCode": "ID / Group code"
+    "idGroupCode": "ID / Group code",
+    "service_parameters_ssl_test_warnings": {
+      "internal_server_ssl_handshake_error": "TLS handshake with the upstream server failed, server certificate missing from configuration:",
+      "internal_server_ssl_error": "Checking internal server certificates failed. Is the upstream server URL correct and accessible by the Security Server?"
+    }
   },
   "endpoints": {
     "addEndpoint": "Add Endpoint",
@@ -686,8 +690,6 @@
     "sessionExpired": "Session expired"
   },
   "customValidation": {
-    "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid",
     "invalidUrl": "URL is not valid",
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
