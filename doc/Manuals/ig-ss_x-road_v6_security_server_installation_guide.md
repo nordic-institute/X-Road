@@ -157,7 +157,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
 
-![network diagram](img/ig-ss_network_diagram_Ubuntu)
+![network diagram](img/ig-ss_network_diagram_Ubuntu.png)
 
 ### 2.3 Requirements for the Security Server
 
