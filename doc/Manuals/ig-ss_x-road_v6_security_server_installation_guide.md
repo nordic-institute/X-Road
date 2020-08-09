@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.24  
+Version: 2.25  
 Doc. ID: IG-SS
 
 ---
@@ -49,7 +49,8 @@ Doc. ID: IG-SS
  12.06.2020 | 2.22    | Update reference data regarding JMX listening ports | Petteri Kivimäki
  24.06.2020 | 2.23    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
  24.06.2020 | 2.24    | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
-     
+ 24.06.2020 | 2.25    | Update ports information in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
+      
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -134,22 +135,29 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
  1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
  1.3    |                                         | Account name in the user interface
- 1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
- &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
- 1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
- &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
- &nbsp; | TCP 2080                                | Ports for outbound connections (from the security server to the internal network)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
- &nbsp; | TCP 80                                  | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
- &nbsp; | TCP 80,443                              | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP and time-stamping services
- 1.6  | TCP 4000                                  | User interface (local network)
- 1.7  | TCP 80                                    | Information system access points (in the local network)<br> Connections from information systems
- &nbsp; | TCP 443                                 | Information system access points (in the local network)<br> Connections from information systems
+ 1.4    | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
+ &nbsp; | TCP 5500                                | Message exchange between security servers
+ &nbsp; | TCP 5577                                | Querying of OCSP responses between security servers
+ 1.5    | **Outbound ports to external network**  | Ports for outbound connections from the security server to the external network
+ &nbsp; | TCP 5500                                | Message exchange between security servers
+ &nbsp; | TCP 5577                                | Querying of OCSP responses between security servers
+ &nbsp; | TCP 4001                                | Communication with the central server
+ &nbsp; | TCP 80                                  | Downloading global configuration from the central server
+ &nbsp; | TCP 80,443                              | Most common OCSP and time-stamping services
+ 1.6    | **Inbound ports from internal network** | Ports for inbound connections from the internal network to the security server
+ &nbsp; | TCP 4000                                | User interface and management REST API (local network). **Must not be accessible from the internet!**
+ &nbsp; | TCP 80, 443                             | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**
+ 1.7    | **Outbound ports to internal network**  | Ports for inbound connections from the internal network to the security server 
+ &nbsp; | TCP 80, 443, *other*                    | Producer information system endpoints
+ &nbsp; | TCP 2080                                | Message exchange between security server and operational data monitoring daemon (by default on localhost)
  1.8  |                                           | Security server internal IP address(es) and hostname(s)
  1.9  |                                           | Security server public IP address, NAT address
  1.10 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate
  1.11 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate
 
+It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
+
+![network diagram](img/ig-ss_network_diagram_Ubuntu)
 
 ### 2.3 Requirements for the Security Server
 
