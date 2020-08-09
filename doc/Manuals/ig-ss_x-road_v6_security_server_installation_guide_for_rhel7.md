@@ -129,6 +129,19 @@ The network diagram below provides an example of a basic Security Server setup. 
 
 ![network diagram](img/ig-ss_network_diagram_RHEL.png)
 
+**Connection Type** | **Source** | **Target** | **Target Ports** | **Protocol** | **Note** |
+-----------|------------|-----------|-----------|-----------|-----------|
+Out | Security Server | Central Server | 80, 4001 | tcp | |
+Out | Security Server | Management Security Server | 5500, 5577 | tcp | |
+Out | Security Server | OCSP Service | 80 / 443 | tcp | |
+Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
+Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
+Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in internal network |
+In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
+In  | Monitoring Security Server | Data Exchange Partner Security Server (Service Consumer) | 5500, 5577 | tcp | |
+In | Consumer Information System | Security Server | 8080, 8443 | tcp | Source in internal network |
+In | Admin | Security Server | 4000 | tcp | Source in internal network |
+
 ### 2.3 Requirements for the Security Server
 
 Minimum recommended hardware parameters:
