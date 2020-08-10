@@ -85,13 +85,14 @@ Doc. ID: UG-SYSPAR
   - [3 Security Server System Parameters](#3-security-server-system-parameters)
     - [3.1 Common parameters : `[common]`](#31-common-parameters--common)
     - [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
-    - [3.3 Signer parameters: `[signer]`](#33-signer-parameters-signer)
-    - [3.4 Anti-DOS parameters: `[anti-dos]`](#34-anti-dos-parameters-anti-dos)
-    - [3.5 Configuration Client parameters: `[configuration-client]`](#35-configuration-client-parameters-configuration-client)
-    - [3.6 Message log add-on parameters: `[message-log]`](#36-message-log-add-on-parameters-message-log)
-      - [3.6.1 Note on logged X-Road message headers](#361-note-on-logged-x-road-message-headers)
-    - [3.7 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#37-environmental-monitoring-add-on-configuration-parameters-env-monitor)
-    - [3.8 Management REST API parameters: `[proxy-ui-api]`](#38-management-rest-api-parameters-proxy-ui-api)
+    - [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
+    - [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
+    - [3.5 Anti-DOS parameters: `[anti-dos]`](#35-anti-dos-parameters-anti-dos)
+    - [3.6 Configuration Client parameters: `[configuration-client]`](#36-configuration-client-parameters-configuration-client)
+    - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
+      - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
+    - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
+    - [3.9 Management REST API parameters: `[proxy-ui-api]`](#39-management-rest-api-parameters-proxy-ui-api)
   - [4 Central Server System Parameters](#4-central-server-system-parameters)
     - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
@@ -276,7 +277,13 @@ limits the configuration parameters usage:
 This in practice limits configurability to different kinds of PostgreSQL database configurations, and it is not possible
 to use for example MySQL as a data store for REST API module.
 
-### 3.3 Signer parameters: `[signer]`
+### 3.3 Proxy User Interface parameters: `[proxy-ui]`
+
+Proxy-ui has been removed in version 6.24 and it's parameters are not used anymore. 
+
+[proxy-ui-api](#39-management-rest-api-parameters-proxy-ui-api) parameters replace the old `[proxy-ui]` parameters.
+
+### 3.4 Signer parameters: `[signer]`
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
@@ -291,7 +298,7 @@ to use for example MySQL as a data store for REST API module.
 | ocsp-retry-delay                                 | 60                                         |   |   | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
 | module-manager-update-interval                   | 60                                         |   |   | HSM module manager update interval in seconds. |          
 
-### 3.4 Anti-DOS parameters: `[anti-dos]`
+### 3.5 Anti-DOS parameters: `[anti-dos]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
@@ -301,7 +308,7 @@ to use for example MySQL as a data store for REST API module.
 | max-parallel-connections                         | 5000                                       | Maximum number of parallel connections for AntiDOS. |
 | min-free-file-handles                            | 100                                        | Minimum amount of free file handles in the system for accepting new connections. At least one free file handle must be available to accept a new connection. |
 
-### 3.5 Configuration Client parameters: `[configuration-client]`
+### 3.6 Configuration Client parameters: `[configuration-client]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
@@ -310,7 +317,7 @@ to use for example MySQL as a data store for REST API module.
 | admin-port                                       | 5675                                       | TCP port on which the configuration client process listens for admin commands. |
 | allowed-federations                              | none                                       | A comma-separated list of case-insensitive X-Road instances that fetching configuration anchors is allowed for. This enables federation with the listed instances if the X-Road instance is already federated at the central server level . Special value *none*, if present, disables all federation (the default value), while *all* allows all federations if *none* is not present. Example: *allowed-federations=ee,sv* allows federation with example instances *EE* and *Sv* while *allowed-federations=all,none* disables federation. X-Road services `xroad-confclient` and `xroad-proxy` need to be restarted (in that order) for the setting change to take effect.|
 
-### 3.6 Message log add-on parameters: `[message-log]`
+### 3.7 Message log add-on parameters: `[message-log]`
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
@@ -337,7 +344,7 @@ to use for example MySQL as a data store for REST API module.
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 
-#### 3.6.1 Note on logged X-Road message headers
+#### 3.7.1 Note on logged X-Road message headers
 
 If the messagelog add-on has the message body logging disabled, only a preconfigured set of the SOAP headers and/or 
 REST HTTP headers will be included in the message log.
@@ -356,7 +363,7 @@ the X-Road Message Protocol for REST document \[[PR-REST](#Ref_PR-REST)\], inclu
 extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\]. All other HTTP headers are excluded from 
 the message log.
 
-### 3.7 Environmental monitoring add-on configuration parameters: `[env-monitor]`
+### 3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
@@ -367,7 +374,7 @@ the message log.
 | certificate-info-sensor-interval                 | 86400                                      | Interval of certificate information sensor in seconds. How often certificate data is collected. The first collection is always done after a delay of 10 seconds. |
 | limit-remote-data-set                            | false                                      | On/Off switch for filtering out optional monitoring data. With flag set to true, only security server owner can request and get full data set. |
 
-### 3.8 Management REST API parameters: `[proxy-ui-api]`
+### 3.9 Management REST API parameters: `[proxy-ui-api]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
