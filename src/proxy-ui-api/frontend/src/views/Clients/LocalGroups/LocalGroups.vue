@@ -61,6 +61,7 @@ import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
 import { LocalGroup } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -119,7 +120,7 @@ export default Vue.extend({
 
     fetchGroups(id: string): void {
       api
-        .get<LocalGroup[]>(`/clients/${id}/local-groups`)
+        .get<LocalGroup[]>(`/clients/${encodePathParameter(id)}/local-groups`)
         .then((res) => {
           this.groups = res.data.sort((a: LocalGroup, b: LocalGroup) => {
             if (a.code.toLowerCase() < b.code.toLowerCase()) {

@@ -10,6 +10,7 @@ import {
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
+import { encodePathParameter } from '@/util/api';
 
 export interface CsrState {
   csrKey: Key | null;
@@ -171,7 +172,7 @@ export const actions: ActionTree<CsrState, RootState> = {
   },
   fetchCertificateAuthorities({ commit }) {
     api
-      .get<CertificateAuthority[]>(`/certificate-authorities`)
+      .get<CertificateAuthority[]>('/certificate-authorities')
       .then((res) => {
         commit('storeCertificationServiceList', res.data);
       })
@@ -180,18 +181,27 @@ export const actions: ActionTree<CsrState, RootState> = {
       });
   },
   fetchCsrForm({ commit, state }) {
-    let query = '';
+    let params = {
+      key_usage_type: state.usage,
+    } as { [key: string]: unknown };
 
     if (state.usage === UsageTypes.SIGNING) {
-      query =
-        `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}` +
-        `&member_id=${state.csrClient}&is_new_member=${state.isNewMember}`;
-    } else {
-      query = `/certificate-authorities/${state.certificationService}/csr-subject-fields?key_usage_type=${state.usage}`;
+      params = {
+        ...params,
+        member_id: state.csrClient,
+        is_new_member: state.isNewMember,
+      };
     }
 
     return api
-      .get<CsrSubjectFieldDescription>(query)
+      .get<CsrSubjectFieldDescription>(
+        `/certificate-authorities/${encodePathParameter(
+          state.certificationService,
+        )}/csr-subject-fields`,
+        {
+          params,
+        },
+      )
       .then((res) => {
         commit('storeForm', res.data);
       })
@@ -202,7 +212,7 @@ export const actions: ActionTree<CsrState, RootState> = {
 
   fetchKeyData({ commit, state }) {
     return api
-      .get<Key>(`/keys/${state.keyId}`)
+      .get<Key>(`/keys/${encodePathParameter(state.keyId)}`)
       .then((res) => {
         commit('storeCsrKey', res.data);
 
@@ -222,7 +232,7 @@ export const actions: ActionTree<CsrState, RootState> = {
   generateCsr({ getters, state }) {
     const requestBody = getters.csrRequestBody;
     return api
-      .post(`/keys/${state.keyId}/csrs`, requestBody, {
+      .post(`/keys/${encodePathParameter(state.keyId)}/csrs`, requestBody, {
         responseType: 'arraybuffer',
       })
       .then((response) => {

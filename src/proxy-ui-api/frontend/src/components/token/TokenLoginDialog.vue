@@ -39,6 +39,7 @@ import { ValidationProvider } from 'vee-validate';
 import { Token } from '@/openapi-types';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: { SimpleDialog, ValidationProvider },
@@ -80,7 +81,7 @@ export default Vue.extend({
 
       this.loading = true;
       api
-        .put(`/tokens/${token.id}/login`, {
+        .put(`/tokens/${encodePathParameter(token.id)}/login`, {
           password: this.pin,
         })
         .then(() => {

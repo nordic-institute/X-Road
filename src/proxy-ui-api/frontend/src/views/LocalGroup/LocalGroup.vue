@@ -134,6 +134,7 @@ import AddMembersDialog from './AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -194,9 +195,12 @@ export default Vue.extend({
 
     saveDescription(): void {
       api
-        .patch<LocalGroup>(`/local-groups/${this.groupId}`, {
-          description: this.description,
-        })
+        .patch<LocalGroup>(
+          `/local-groups/${encodePathParameter(this.groupId)}`,
+          {
+            description: this.description,
+          },
+        )
         .then((res) => {
           this.$store.dispatch('showSuccess', 'localGroup.descSaved');
           this.group = res.data;
@@ -210,7 +214,7 @@ export default Vue.extend({
 
     fetchData(clientId: string, groupId: number | string): void {
       api
-        .get<LocalGroup>(`/local-groups/${groupId}`)
+        .get<LocalGroup>(`/local-groups/${encodePathParameter(groupId)}`)
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
@@ -229,7 +233,7 @@ export default Vue.extend({
       this.addMembersDialogVisible = false;
 
       api
-        .post(`/local-groups/${this.groupId}/members`, {
+        .post(`/local-groups/${encodePathParameter(this.groupId)}/members`, {
           items: selectedIds,
         })
         .then(() => {
@@ -282,9 +286,12 @@ export default Vue.extend({
 
     removeArrayOfMembers(members: string[]) {
       api
-        .post(`/local-groups/${this.groupId}/members/delete`, {
-          items: members,
-        })
+        .post(
+          `/local-groups/${encodePathParameter(this.groupId)}/members/delete`,
+          {
+            items: members,
+          },
+        )
         .catch((error) => {
           this.$store.dispatch('showError', error);
         })
@@ -300,7 +307,7 @@ export default Vue.extend({
       this.confirmGroup = false;
 
       api
-        .remove(`/local-groups/${this.groupId}`)
+        .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.groupDeleted');
           this.$router.go(-1);

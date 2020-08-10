@@ -54,6 +54,7 @@ import {
 import * as api from '@/util/api';
 import { ServiceCandidate } from '@/ui-types';
 import { compareByServiceCode } from '@/util/sorting';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   props: {
@@ -82,12 +83,17 @@ export default Vue.extend({
     },
     fetchData: function(): void {
       api
-        .get<ServiceClient[]>(`/clients/${this.id}/service-clients`, {})
+        .get<ServiceClient[]>(
+          `/clients/${encodePathParameter(this.id)}/service-clients`,
+          {},
+        )
         .then((response) => (this.serviceClients = response.data))
         .catch((error) => this.$store.dispatch('showError', error));
 
       api
-        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
+        .get<ServiceDescription[]>(
+          `/clients/${encodePathParameter(this.id)}/service-descriptions`,
+        )
         .then((response) => {
           const serviceDescriptions = response.data;
 

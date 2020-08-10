@@ -74,6 +74,7 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { Roles } from '@/global';
+import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   name: 'ApiKeyRow',
   components: {
@@ -111,7 +112,7 @@ export default Vue.extend({
       this.removingApiKey = true;
       this.confirmRevoke = false;
       return api
-        .remove(`/api-keys/${this.apiKey.id}`)
+        .remove(`/api-keys/${encodePathParameter(this.apiKey.id)}`)
         .then(() => {
           this.$store.dispatch(
             'showSuccessRaw',
@@ -129,7 +130,10 @@ export default Vue.extend({
     async save() {
       this.savingChanges = true;
       return api
-        .put(`/api-keys/${this.apiKey.id}`, this.selectedRoles)
+        .put(
+          `/api-keys/${encodePathParameter(this.apiKey.id)}`,
+          this.selectedRoles,
+        )
         .then(() => {
           this.$store.dispatch(
             'showSuccessRaw',

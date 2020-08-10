@@ -116,6 +116,7 @@ import { Key, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { FileUploadResult } from '@/ui-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -227,7 +228,7 @@ export default Vue.extend({
 
     importCert(event: FileUploadResult) {
       api
-        .post(`/token-certificates`, event.buffer, {
+        .post('/token-certificates', event.buffer, {
           headers: {
             'Content-Type': 'application/octet-stream',
           },
@@ -243,15 +244,17 @@ export default Vue.extend({
         );
     },
     importCertByHash(hash: string) {
-      api.post(`/token-certificates/${hash}/import`, {}).then(
-        () => {
-          this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
-          this.fetchData();
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      api
+        .post(`/token-certificates/${encodePathParameter(hash)}/import`, {})
+        .then(
+          () => {
+            this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
+            this.fetchData();
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        );
     },
     generateCsr(key: Key) {
       this.$router.push({

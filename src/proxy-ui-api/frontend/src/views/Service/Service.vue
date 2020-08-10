@@ -40,6 +40,7 @@ import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
 import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -88,7 +89,7 @@ export default Vue.extend({
   methods: {
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${serviceId}`)
+        .get(`/services/${encodePathParameter(serviceId)}`)
         .then((res) => {
           // Set ssl_auth to true if it is returned as null from backend
           this.$store.dispatch('setService', res.data);
@@ -98,7 +99,7 @@ export default Vue.extend({
         });
 
       api
-        .get(`/services/${serviceId}/service-clients`)
+        .get(`/services/${encodePathParameter(serviceId)}/service-clients`)
         .then((res) => {
           this.$store.dispatch('setServiceClients', res.data);
         })

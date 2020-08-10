@@ -47,6 +47,7 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 import { Prop } from 'vue/types/options';
 import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -75,7 +76,9 @@ export default Vue.extend({
     },
     async downloadBackup(fileName: string) {
       api
-        .get(`/backups/${fileName}/download`, { responseType: 'blob' })
+        .get(`/backups/${encodePathParameter(fileName)}/download`, {
+          responseType: 'blob',
+        })
         .then((resp) => saveResponseAsFile(resp, fileName))
         .catch((error) => this.$store.dispatch('showError', error));
     },

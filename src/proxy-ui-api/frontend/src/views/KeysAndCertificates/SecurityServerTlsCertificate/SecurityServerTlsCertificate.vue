@@ -140,7 +140,7 @@ export default Vue.extend({
     },
     fetchData(): void {
       api
-        .get<CertificateDetails>(`/system/certificate`)
+        .get<CertificateDetails>('/system/certificate')
         .then((res) => {
           this.certificate = res.data;
         })

@@ -24,6 +24,7 @@ import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -47,7 +48,7 @@ export default Vue.extend({
     unregisterClient(): void {
       this.unregisterLoading = true;
       api
-        .put(`/clients/${this.id}/unregister`, {})
+        .put(`/clients/${encodePathParameter(this.id)}/unregister`, {})
         .then(
           () => {
             this.$store.dispatch(

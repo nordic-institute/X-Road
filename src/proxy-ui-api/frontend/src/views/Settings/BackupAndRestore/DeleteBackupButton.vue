@@ -25,6 +25,7 @@ import { Backup } from '@/openapi-types';
 import * as api from '@/util/api';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   name: 'DeleteBackupButton',
   components: {
@@ -53,7 +54,7 @@ export default Vue.extend({
       this.deleting = true;
       this.showConfirmation = false;
       api
-        .remove(`/backups/${this.backup.filename}`)
+        .remove(`/backups/${encodePathParameter(this.backup.filename)}`)
         .then(() => {
           this.$emit('deleted');
           this.$store.dispatch(

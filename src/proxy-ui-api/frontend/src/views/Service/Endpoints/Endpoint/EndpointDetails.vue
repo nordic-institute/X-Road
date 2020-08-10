@@ -95,6 +95,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Endpoint } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -143,7 +144,7 @@ export default Vue.extend({
     },
     deleteEndpoint(id: string): void {
       api
-        .remove(`/endpoints/${id}`)
+        .remove(`/endpoints/${encodePathParameter(id)}`)
         .then(() => {
           this.$store.dispatch('showSuccess', 'endpoints.deleteSuccess');
           this.$router.go(-1);
@@ -154,8 +155,14 @@ export default Vue.extend({
         });
     },
     saveEndpoint(): void {
+      if (!this.endpoint.id) {
+        throw new Error('Unable to save endpoint: Endpoint id not defined!');
+      }
       api
-        .patch(`/endpoints/${this.endpoint.id}`, this.endpoint)
+        .patch(
+          `/endpoints/${encodePathParameter(this.endpoint.id)}`,
+          this.endpoint,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
           this.$router.go(-1);
@@ -166,7 +173,7 @@ export default Vue.extend({
     },
     fetchData(id: string): void {
       api
-        .get<Endpoint>(`/endpoints/${id}`)
+        .get<Endpoint>(`/endpoints/${encodePathParameter(id)}`)
         .then((endpoint) => {
           this.endpoint = endpoint.data;
         })
