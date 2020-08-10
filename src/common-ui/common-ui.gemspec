@@ -16,4 +16,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'rack-cache', '~> 1.6.0'
 
   s.add_dependency "addressable", '~> 2.4.0'
+  s.add_dependency "psych", '~> 3.0.3'
 end

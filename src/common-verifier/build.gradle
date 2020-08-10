@@ -14,8 +14,8 @@ configurations {
 dependencies {
     compile project(':common-util')
     testCompile project(':common-test').sourceSets.main.output
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }
 
 task createDirs() {

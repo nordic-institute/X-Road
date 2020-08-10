@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -52,12 +53,12 @@ class RequestWithProcessing < Request
 
   # Finds the processing for this request.
   def find_processing
-    throw "This method must be reimplemented in a subclass"
+    throw "This method must be reimplemented in a subclass" # rubocop:disable all
   end
 
   # Creates new instance of processing of the correct class for this request
   def new_processing
-    throw "This method must be reimplemented in a subclass"
+    throw "This method must be reimplemented in a subclass" # rubocop:disable all
   end
 
   def can_revoke?
@@ -66,7 +67,7 @@ class RequestWithProcessing < Request
   end
 
   def get_revoking_request_id
-    throw "This method must be reimplemented in a subclass"
+    throw "This method must be reimplemented in a subclass" # rubocop:disable all
   end
 
   private

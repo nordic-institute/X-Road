@@ -2,7 +2,7 @@
 
 set -e
 
-umask 007
+umask 027
 
 if [ "$1" = configure ]; then
     test -d /etc/xroad/ssl || mkdir -p -m 0750 /etc/xroad/ssl && chown xroad:xroad /etc/xroad/ssl

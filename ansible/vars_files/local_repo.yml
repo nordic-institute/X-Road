@@ -1,9 +1,10 @@
 ---
 package_source: "local"
-ubuntu_14_apt_repo: "deb file:///xroad /"
-ubuntu_18_apt_repo: "deb [allow-insecure=yes] file:///xroad /"
+ubuntu_18_apt_repo: "deb [trusted=yes] file:///xroad /"
 
-rhel_repo_baseurl: "file:///xroad/local"
+rhel_repo_baseurl: "file:///xroad"
 rhel_repo_gpgcheck: "no"
-rhel_repo_gpgkey: "https://artifactory.niis.org/api/gpg/key/public"
+rhel_repo_gpgkey: ""
 rhel_repo_repogpgcheck: "no"
+rhel_repo_metadataexpire: 60
+

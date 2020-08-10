@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -40,7 +41,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -64,21 +65,21 @@ final class TestUtil {
 
     static final String TSP_CERT =
             "MIICwjCCAaqgAwIBAgIIb+RPNmkfCdYwDQYJKoZIhvcNAQEFBQAwNzERMA8G"
-            + "A1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UE"
-            + "BhMCU0UwHhcNMTIxMTI5MTE1MzA2WhcNMTQxMTI5MTE1MzA2WjAVMRMwEQYD"
-            + "VQQDDAp0aW1lc3RhbXAxMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCb"
-            + "55NVDtHzs91sflX3fatZWUS69rxkxDMpcGo6doJ7YaKrCMr3BZ3ZlDTfCdEo"
-            + "sWocTcYXdm3CO8BXlZvhkvKyHN/hr0UzD0T8j8mBYoq3fGjTVTJOIG2yTsyT"
-            + "/3z3dpcMyGMWwsiqOd9TTtI8DcR2cOvQzlLiV9hz/kB9iLJeSQIDAQABo3gw"
-            + "djAdBgNVHQ4EFgQUbdmtvKHCe0+vhKP+ZcVUjmf5w/AwDAYDVR0TAQH/BAIw"
-            + "ADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8E"
-            + "BAMCBkAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwgwDQYJKoZIhvcNAQEFBQAD"
-            + "ggEBAFJ3AJ4I4RTeMBWhN8RLPQdJzcd0VRp9FUyYhnIkR679nXU+ZbIyaQNx"
-            + "3+hPIbhcOMKxlKGm0LcDnjHL4EuJ6Gb027vF7mSwFbcKPM+L23x2QLvuVcUE"
-            + "jcbP3Kcm93XCSu3RI71JINM+WinjXke/COuFzhMWJcLYj7S5dGR53ya0NnSf"
-            + "7dlua5FLBRiOFA5kRWTft6RcEW0jGZzscL6wZn+hH99IihjqgdxV1GydL+Bg"
-            + "DMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9SQze"
-            + "3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=";
+                    + "A1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UE"
+                    + "BhMCU0UwHhcNMTIxMTI5MTE1MzA2WhcNMTQxMTI5MTE1MzA2WjAVMRMwEQYD"
+                    + "VQQDDAp0aW1lc3RhbXAxMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCb"
+                    + "55NVDtHzs91sflX3fatZWUS69rxkxDMpcGo6doJ7YaKrCMr3BZ3ZlDTfCdEo"
+                    + "sWocTcYXdm3CO8BXlZvhkvKyHN/hr0UzD0T8j8mBYoq3fGjTVTJOIG2yTsyT"
+                    + "/3z3dpcMyGMWwsiqOd9TTtI8DcR2cOvQzlLiV9hz/kB9iLJeSQIDAQABo3gw"
+                    + "djAdBgNVHQ4EFgQUbdmtvKHCe0+vhKP+ZcVUjmf5w/AwDAYDVR0TAQH/BAIw"
+                    + "ADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8E"
+                    + "BAMCBkAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwgwDQYJKoZIhvcNAQEFBQAD"
+                    + "ggEBAFJ3AJ4I4RTeMBWhN8RLPQdJzcd0VRp9FUyYhnIkR679nXU+ZbIyaQNx"
+                    + "3+hPIbhcOMKxlKGm0LcDnjHL4EuJ6Gb027vF7mSwFbcKPM+L23x2QLvuVcUE"
+                    + "jcbP3Kcm93XCSu3RI71JINM+WinjXke/COuFzhMWJcLYj7S5dGR53ya0NnSf"
+                    + "7dlua5FLBRiOFA5kRWTft6RcEW0jGZzscL6wZn+hH99IihjqgdxV1GydL+Bg"
+                    + "DMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9SQze"
+                    + "3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=";
 
     static String message;
     static String signature;
@@ -133,9 +134,8 @@ final class TestUtil {
 
     static SoapMessageImpl createMessage(String queryId) throws Exception {
         if (message == null) {
-            try (InputStream in =
-                    new FileInputStream("src/test/resources/simple.query")) {
-                message = IOUtils.toString(in);
+            try (InputStream in = new FileInputStream("src/test/resources/simple.query")) {
+                message = IOUtils.toString(in, StandardCharsets.UTF_8);
             }
         }
 
@@ -143,18 +143,15 @@ final class TestUtil {
                 "<xroad:id>" + queryId + "</xroad:id>");
         return (SoapMessageImpl) new SoapParserImpl().parse(
                 MimeTypes.TEXT_XML_UTF8,
-                new ByteArrayInputStream(
-                        soap.getBytes(StandardCharsets.UTF_8)));
+                new ByteArrayInputStream(soap.getBytes(StandardCharsets.UTF_8)));
     }
 
     static SignatureData createSignature() throws Exception {
         if (signature == null) {
-            try (InputStream in =
-                    new FileInputStream("src/test/resources/signature.xml")) {
-                signature = IOUtils.toString(in);
+            try (InputStream in = new FileInputStream("src/test/resources/signature.xml")) {
+                signature = IOUtils.toString(in, StandardCharsets.UTF_8);
             }
         }
-
         return new SignatureData(signature, null, null);
     }
 

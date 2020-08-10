@@ -4,9 +4,6 @@
 
 case "$1" in
     configure)
-        dpkg-divert --package xroad-confproxy --add --rename --divert /etc/xroad/nginx/default-xroad.conf.disabled /etc/xroad/nginx/default-xroad.conf
-        rm -f /etc/nginx/sites-enabled/default-xroad
-
         mkdir -p  /var/lib/xroad/public
         chmod 755 /var/lib/xroad/public
         chown xroad:xroad /var/lib/xroad/public
@@ -50,10 +47,7 @@ service nginx restart
 service xroad-signer restart
 
 # disable confclient start
-if [ "$(lsb_release -sc)" = "trusty" ]; then
-  echo manual > /etc/init/xroad-confclient.override
-  service xroad-confclient stop
-else [ "$(lsb_release -sc)" = "bionic" ]
+if [ "$(lsb_release -sc)" = "bionic" ]; then
   systemctl stop xroad-confclient
   systemctl disable xroad-confclient
 fi

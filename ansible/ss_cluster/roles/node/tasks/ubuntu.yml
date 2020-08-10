@@ -6,10 +6,6 @@
   register: postgresql_version_output
 
 - set_fact:
-    postgresql_version: "{{ postgresql_version_output.stdout | regex_replace('^(\\d+\\.\\d+).*$','\\1') }}"
-  when: ansible_distribution_release == "trusty"
-
-- set_fact:
     postgresql_version: "{{ postgresql_version_output.stdout | regex_replace('^(\\d+).*$','\\1') }}"
   when: ansible_distribution_release == "bionic"
 
@@ -23,10 +19,6 @@
 - set_fact:
     postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/serverconf"
     postgresql_config_dir: "/etc/postgresql/{{ postgresql_version }}/serverconf"
-
-- set_fact:
-    postgresql_serverconf_service: "postgresql"
-  when: ansible_distribution_release == "trusty"
 
 - set_fact:
     postgresql_serverconf_service: "postgresql@{{ postgresql_version }}-serverconf"

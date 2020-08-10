@@ -1,17 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 # X-Road proxy post-install configuration
 
 #
 # Create default internal certificates for nginx
 #
-HOST=`hostname -f`
+HOST=$(hostname -f)
 LIST=
-for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`
+for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}')
 do
     LIST+="IP:$i,";
 done
 
-ALT=${LIST}DNS:`hostname`,DNS:`hostname -f`
+ALT="${LIST}DNS:$(hostname),DNS:$HOSTNAME"
 
 if [[ ! -r /etc/xroad/ssl/nginx.crt || ! -r /etc/xroad/ssl/nginx.key ]]
 then
@@ -27,33 +27,9 @@ then
     /usr/share/xroad/scripts/generate_certificate.sh  -n internal -s "/CN=$HOST" -a "$ALT" -p 2> /tmp/cert.err || handle_error
 fi
 
-test -d /var/spool/xroad && test -w /var/spool/xroad || mkdir /var/spool/xroad ; chown xroad:xroad /var/spool/xroad
-test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
-test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad  /etc/xroad/globalconf
-
-die () {
-    echo >&2 "$@"
-    exit 1
-}
-
-#
-# Database migrations (optional db setup in xroad-initdb)
-#
-db_name=serverconf
-db_properties=/etc/xroad/db.properties
-db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
-db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
-db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
-
-node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
-
-if [[ "$node_type" == "slave" ]]; then
-    echo "Skipping database migrations on a slave node"
-else
-    echo "running ${db_name} database migrations"
-    cd /usr/share/xroad/db/
-    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
-fi
+mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
+mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
+mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 
 #
 # SELinux policy modification
@@ -65,5 +41,14 @@ if [[ $(getenforce) != "Disabled" ]]; then
 
     # allow httpd to connecto to non-standard port 4000
     semanage port -a -t http_port_t  -p tcp 4000 || true
+
+    # allow httpd to connect to non-standard port 5000 (keep this as long as we have the dual old & new UI)
+    if ! semanage port -m -t http_port_t  -p tcp 5000
+    then
+        echo "could not modify SELinux port 5000, will add instead"
+        semanage port -a -t http_port_t  -p tcp 5000 || true
+    fi
+
 fi
 
+/usr/share/xroad/scripts/setup_serverconf_db.sh

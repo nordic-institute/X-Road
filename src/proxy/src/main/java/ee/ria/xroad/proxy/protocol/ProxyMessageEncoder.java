@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,9 +25,12 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
@@ -71,10 +75,13 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Getter
     private long attachmentsByteCount = 0;
+    @Getter
+    private byte[] restBodyDigest;
 
     /**
      * Creates the encoder instance.
-     * @param out Writer that will receive the encoded message.
+     *
+     * @param out        Writer that will receive the encoded message.
      * @param hashAlgoId hash algorithm id used when hashing parts
      * @throws IllegalArgumentException if hashAlgoId is null
      */
@@ -96,6 +103,28 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
+     * Creates the encoder instance.
+     *
+     * @param out        Writer that will receive the encoded message.
+     * @param hashAlgoId hash algorithm id used when hashing parts
+     * @throws IllegalArgumentException if hashAlgoId is null
+     */
+    public ProxyMessageEncoder(OutputStream out, String hashAlgoId, String topBoundary)
+            throws IllegalArgumentException {
+        this.hashAlgoId = hashAlgoId;
+
+        if (hashAlgoId == null) {
+            throw new IllegalArgumentException(
+                    "Hash algorithm id cannot be null");
+        }
+
+        this.topBoundary = topBoundary;
+        attachmentBoundary = "xatt" + randomBoundary();
+        mpEncoder = new MultipartEncoder(out, topBoundary);
+    }
+
+
+    /**
      * @return content type for the encoded message
      */
     public String getContentType() {
@@ -110,12 +139,10 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     @Override
-    public void ocspResponse(OCSPResp resp) throws Exception {
-        byte[] responseEncoded = resp.getEncoded();
-
-        log.trace("writeOcspResponse({} bytes)", responseEncoded.length);
-
+    public void ocspResponse(OCSPResp resp) {
         try {
+            byte[] responseEncoded = resp.getEncoded();
+            log.trace("writeOcspResponse({} bytes)", responseEncoded.length);
             mpEncoder.startPart(MimeTypes.OCSP_RESPONSE);
             mpEncoder.write(responseEncoded);
         } catch (Exception ex) {
@@ -134,6 +161,77 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         }
 
         signature(signature.getSignatureXml());
+    }
+
+    /**
+     * Encode rest request
+     */
+    public void restRequest(RestRequest request) {
+        try {
+            final byte[] message = request.getMessageBytes();
+            signer.addPart(MessageFileNames.MESSAGE,
+                    hashAlgoId,
+                    request.getHash(),
+                    message);
+
+            mpEncoder.startPart("application/x-road-rest-request");
+            mpEncoder.write(message);
+
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
+    }
+
+    /**
+     * Encode rest message body
+     *
+     * @param content
+     * @throws Exception
+     */
+    @Override
+    public void restBody(InputStream content) throws Exception {
+        restBody(new byte[0], 0, content);
+    }
+
+    /**
+     * Encode rest message body
+     * @param head first byte(s)
+     * @param rest rest of the body
+     * @throws Exception
+     */
+    public void restBody(byte[] head, int count, InputStream rest) throws Exception {
+        final DigestCalculator calc = createDigestCalculator(hashAlgoId);
+        final CountingOutputStream cos = new CountingOutputStream(calc.getOutputStream());
+
+        cos.write(head, 0, count);
+        final TeeInputStream proxyIs = new TeeInputStream(rest, cos, true);
+
+        mpEncoder.startPart("application/x-road-rest-body");
+        mpEncoder.write(head, 0, count);
+        mpEncoder.write(proxyIs);
+
+        restBodyDigest = calc.getDigest();
+        signer.addPart(MessageFileNames.attachment(++attachmentNo), hashAlgoId, restBodyDigest);
+        attachmentsByteCount += cos.getByteCount();
+    }
+
+    /**
+     * Encode rest response (without body)
+     */
+    public void restResponse(RestResponse response) {
+        try {
+            final byte[] message = response.getMessageBytes();
+            signer.addPart(MessageFileNames.MESSAGE,
+                    hashAlgoId,
+                    CryptoUtils.calculateDigest(hashAlgoId, message),
+                    message);
+
+            mpEncoder.startPart("application/x-road-rest-response");
+            mpEncoder.write(message);
+
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
     }
 
     @Override
@@ -186,6 +284,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     /**
      * Write the SOAP fault XML string to the output stream.
+     *
      * @param faultXml SOAP fault XML string
      * @throws Exception in case of any errors
      */
@@ -209,8 +308,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Signs all the parts.
-     * Call after adding SOAP message and attachments.
+     * Signs all the parts. Call after adding SOAP message and attachments.
+     *
      * @param securityCtx signing context to use when signing the parts
      * @throws Exception in case of any errors
      */
@@ -221,11 +320,11 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Writes the signature to stream.
-     * Call after sing().
-     * @throws Exception in case of any errors
+     * Writes the signature to stream. Call after sing().
+     *
+     * @throws IOException in case of any errors
      */
-    public void writeSignature() throws Exception {
+    public void writeSignature() throws IOException {
         log.trace("writeSignature()");
 
         endAttachments();
@@ -244,6 +343,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     /**
      * Closes the writer and flushes streams.
+     *
      * @throws IOException if an I/O error occurred
      */
     public void close() throws IOException {
@@ -254,13 +354,12 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         mpEncoder.close();
     }
 
-    private void signature(String signatureData) throws Exception {
+    private void signature(String signatureData) throws IOException {
         mpEncoder.startPart(MimeTypes.SIGNATURE_BDOC);
         mpEncoder.write(signatureData.getBytes(StandardCharsets.UTF_8));
     }
 
-    private void hashChain(String hashChainResult, String hashChain)
-            throws Exception {
+    private void hashChain(String hashChainResult, String hashChain) throws IOException {
         mpEncoder.startPart(MimeTypes.HASH_CHAIN_RESULT);
         mpEncoder.write(hashChainResult.getBytes(StandardCharsets.UTF_8));
 
@@ -280,4 +379,5 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public int getAttachmentCount() {
         return attachmentNo;
     }
+
 }

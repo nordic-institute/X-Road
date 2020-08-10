@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.5  
+Version: 2.7  
 Doc. ID: UG-CP
 
 ## Version History
@@ -23,39 +23,38 @@ Doc. ID: UG-CP
 | 10.04.2018 | 2.3     | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
 | 14.10.2018 | 2.4     | Update package repository address | Petteri Kivimäki |
 | 15.11.2018 | 2.5     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
+| 11.09.2019 | 2.6     | Remove Ubuntu 14.04 support | Jarkko Hyöty |
+| 24.06.2020 | 2.7    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
 
 ## Table of Contents
 
 <!-- vim-markdown-toc GFM -->
 
-- [X-Road: Configuration Proxy Manual](#x-road-configuration-proxy-manual)
-  - [Version History](#version-history)
-  - [Table of Contents](#table-of-contents)
-  - [1 Introduction](#1-introduction)
-    - [1.1 Target Audience](#11-target-audience)
-    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-    - [1.3 References](#13-references)
-    - [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
-  - [2 Installation](#2-installation)
-    - [2.1 Supported Platforms](#21-supported-platforms)
-    - [2.2 Reference Data](#22-reference-data)
-    - [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
-    - [2.4 Preparing OS](#24-preparing-os)
-    - [2.5 Installation](#25-installation)
-    - [2.6 Post-Installation Checks](#26-post-installation-checks)
-    - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  - [3 Configuration](#3-configuration)
-    - [3.1 Prerequisites](#31-prerequisites)
-      - [3.1.1 Security Token Activation](#311-security-token-activation)
-      - [3.1.2 User Access Privileges](#312-user-access-privileges)
-    - [3.2 General Configuration](#32-general-configuration)
-      - [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
-    - [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
-    - [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
-    - [3.5 Additional Configuration](#35-additional-configuration)
-      - [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
-      - [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
-      - [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
+* [1 Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+  * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
+* [2 Installation](#2-installation)
+  * [2.1 Supported Platforms](#21-supported-platforms)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Installation](#25-installation)
+  * [2.6 Post-Installation Checks](#26-post-installation-checks)
+  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+* [3 Configuration](#3-configuration)
+  * [3.1 Prerequisites](#31-prerequisites)
+    * [3.1.1 Security Token Activation](#311-security-token-activation)
+    * [3.1.2 User Access Privileges](#312-user-access-privileges)
+  * [3.2 General Configuration](#32-general-configuration)
+    * [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
+  * [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
+  * [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
+  * [3.5 Additional Configuration](#35-additional-configuration)
+    * [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
+    * [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
+    * [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
 
 <!-- vim-markdown-toc -->
 
@@ -89,7 +88,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the *Ubuntu Server 14.04 and 18.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the *Ubuntu Server 18.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -102,9 +101,9 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 | Ref  |                                          | Explanation                |
 |------|------------------------------------------|----------------------------|
-| 1.0  | Ubuntu 14.04 or 18.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
+| 1.0  | Ubuntu 18.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
 | 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository.  |
-| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository’s key.       |
+| 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B) |
 | 1.3  | TCP 80                                   | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy). |
 | 1.4  | TCP 80                                   | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network). |
 | 1.5  |                                          | Configuration proxy’s public IP address, NAT address. |
@@ -146,11 +145,6 @@ To install the X-Road configuration proxy software, follow these steps.
 
         sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 
-    *Only Ubuntu 14.04*: Add openjdk and nginx repositories
-
-        sudo apt-add-repository -y ppa:openjdk-r/ppa
-        sudo apt-add-repository -y ppa:nginx/stable
-
 3.  Issue the following commands to install the configuration proxy packages:
 
             sudo apt-get update
@@ -162,13 +156,6 @@ The installation is successful if the 'xroad-signer' service is started, the 'xr
 
 * Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
 
-  * Ubuntu 14.04
-    ```bash
-    sudo initctl list | grep "^xroad-"
-
-    xroad-confclient stop/waiting
-    xroad-signer start/running, process 19393
-    ```
   * Ubuntu 18.04
     ```bash
     systemctl list-units "xroad*" 

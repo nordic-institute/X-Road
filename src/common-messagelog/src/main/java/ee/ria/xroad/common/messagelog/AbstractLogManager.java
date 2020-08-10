@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,11 +26,9 @@
 package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +40,7 @@ import java.util.Map;
  * Base class for log manager actors.
  */
 @Slf4j
-public abstract class AbstractLogManager extends UntypedActor {
+public abstract class AbstractLogManager extends UntypedAbstractActor {
 
     @Getter
     protected static Map<String, DiagnosticsStatus> statusMap = new HashMap<>();
@@ -57,8 +56,7 @@ public abstract class AbstractLogManager extends UntypedActor {
         try {
             if (message instanceof LogMessage) {
                 LogMessage m = (LogMessage) message;
-                log(m.getMessage(), m.getSignature(), m.isClientSide());
-
+                log(m);
                 getSender().tell(new Object(), getSelf());
             } else if (message instanceof FindByQueryId) {
                 FindByQueryId f = (FindByQueryId) message;
@@ -87,7 +85,7 @@ public abstract class AbstractLogManager extends UntypedActor {
         }
     }
 
-    protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception;
+    protected abstract void log(LogMessage message) throws Exception;
 
     protected abstract LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception;
 

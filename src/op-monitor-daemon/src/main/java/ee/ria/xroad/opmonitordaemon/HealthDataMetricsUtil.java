@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -57,18 +58,23 @@ final class HealthDataMetricsUtil {
 
     // The template for the names of the sliding window histograms that are
     // registered each time a new service ID is encountered (successful
-    // requests only), for storing the SOAP sizes of requests.
-    private static final String REQUEST_SOAP_SIZE_TEMPLATE = "requestSoapSize(%s)";
+    // requests only), for storing the sizes of requests.
+    private static final String REQUEST_SIZE_TEMPLATE = "requestSize(%s)";
 
     // The template for the names of the sliding window histograms that are
     // registered each time a new service ID is encountered (successful
-    // requests only), for storing the SOAP sizes of responses.
-    private static final String RESPONSE_SOAP_SIZE_TEMPLATE = "responseSoapSize(%s)";
+    // requests only), for storing the sizes of responses.
+    private static final String RESPONSE_SIZE_TEMPLATE = "responseSize(%s)";
 
     // The template for the names of the sliding window histograms that are
     // registered each time a new service ID is encountered (successful
     // requests only), for storing the duration of requests.
     private static final String REQUEST_DURATION_TEMPLATE = "requestDuration(%s)";
+
+    // The template for the names of the sliding window histograms that are
+    // registered each time a new service ID is encountered (successful
+    // requests only), for storing the service type of the services.
+    private static final String SERVICE_TYPE_TEMPLATE = "serviceType(%s)";
 
     private HealthDataMetricsUtil() { }
 
@@ -192,12 +198,16 @@ final class HealthDataMetricsUtil {
         return formatParameterKey(serviceId, REQUEST_DURATION_TEMPLATE);
     }
 
-    static String getRequestSoapSizeName(ServiceId serviceId) {
-        return formatParameterKey(serviceId, REQUEST_SOAP_SIZE_TEMPLATE);
+    static String getRequestSizeName(ServiceId serviceId) {
+        return formatParameterKey(serviceId, REQUEST_SIZE_TEMPLATE);
     }
 
-    static String getResponseSoapSizeName(ServiceId serviceId) {
-        return formatParameterKey(serviceId, RESPONSE_SOAP_SIZE_TEMPLATE);
+    static String getResponseSizeName(ServiceId serviceId) {
+        return formatParameterKey(serviceId, RESPONSE_SIZE_TEMPLATE);
+    }
+
+    static String getServiceTypeName(ServiceId serviceId) {
+        return formatParameterKey(serviceId, SERVICE_TYPE_TEMPLATE);
     }
 
     /**

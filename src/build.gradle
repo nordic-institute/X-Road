@@ -2,26 +2,28 @@ buildscript {
     repositories {
         jcenter()
     }
-
     dependencies {
-        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-        classpath 'org.owasp:dependency-check-gradle:3.1.2'
+      classpath ('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
+        exclude group: 'org.springframework', module: 'spring-core'
+      }
     }
 }
 
 plugins {
-    id "org.sonarqube" version "2.6.2"
-}
-
-apply plugin: 'idea'
-apply plugin: 'jacoco'
-
-def getRubySourceCheckCommand(def projectPath) {
-    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
+    id 'org.sonarqube' version '2.7.1'
+    id 'org.owasp.dependencycheck' version '5.3.2'
+    id 'jacoco'
+    id 'idea'
+    id "io.spring.dependency-management" version "1.0.9.RELEASE" apply false
+    id 'org.springframework.boot' version '2.2.9.RELEASE' apply false
 }
 
 repositories {
     jcenter()
+}
+
+def getRubySourceCheckCommand(def projectPath) {
+    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
 }
 
 sonarqube {
@@ -31,66 +33,62 @@ sonarqube {
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
+        property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
+        property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
+        property "sonar.exclusions", "**/build/generated-sources/**"
     }
 }
 
+dependencyCheck {
+    outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
+    suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
+    format = "ALL"
+    analyzers {
+        experimentalEnabled = false
+        archiveEnabled = false
+        jarEnabled = true
+        centralEnabled = false
+        bundleAuditEnabled = true
+        nexusEnabled = false
+        nuspecEnabled = false
+        assemblyEnabled = false
+        pyDistributionEnabled = false
+        pyPackageEnabled = false
+        rubygemsEnabled = false
+        cmakeEnabled = false
+        autoconfEnabled = false
+        composerEnabled = false
+        nodeEnabled = false
+    }
+}
+
+
 allprojects {
-    apply plugin: 'org.owasp.dependencycheck'
-    dependencyCheck {
-        outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
-        format = "ALL"
-        suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
-        analyzers {
-            experimentalEnabled = true
-            archiveEnabled = true
-            jarEnabled = true
-            centralEnabled = true
-            nexusEnabled = false
-            nuspecEnabled = false
-            assemblyEnabled = false
-            pyDistributionEnabled = false
-            pyPackageEnabled = false
-            rubygemsEnabled = true
-            cmakeEnabled = false
-            autoconfEnabled = false
-            composerEnabled = false
-            nodeEnabled = false
-        }
-    }
-
-    sonarqube {
-        properties {
-            property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
-        }
-    }
-
     task allDependencies(type: DependencyReportTask) {}
+
+    task printDeps {
+        doLast {
+            if (configurations.hasProperty("runtime")) {
+                configurations.runtime.resolvedConfiguration.firstLevelModuleDependencies.each { dep ->
+                    println "${project.name}:${dep.module.id.group}:${dep.module.id.name}:${dep.module.id.version}"
+                }
+            }
+        }
+    }
 }
 
 subprojects {
-
-    ext {
-        akkaVersion = "2.4.20"
-        metricsVersion = "3.2.2"
-        jettyVersion = "9.4.6.v20170531"
-        jaxbVersion = "2.2.11"
-    }
-
-    dependencyCheck {
-        autoUpdate = false
-    }
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
-
     group = 'ee.ria.xroad'
     version = '1.0'
 
     jacoco {
-        toolVersion = "0.7.7.201606060606"
+        toolVersion = "0.8.4"
     }
 
     repositories {
@@ -119,10 +117,11 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'junit:junit:4.12'
-        testCompile 'org.hamcrest:hamcrest-all:1.3'
+        testCompile 'org.hamcrest:hamcrest:2.2'
+        testCompile 'org.hamcrest:hamcrest-library:2.2'
+        testCompile 'junit:junit:4.13'
 
-        provided 'org.projectlombok:lombok:1.16.6'
+        provided 'org.projectlombok:lombok:1.18.8'
 
     }
 
@@ -169,9 +168,9 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.2"
-        configDir=file("${project.rootDir}/config/checkstyle")
-        configFile=file("${configDir}/checkstyle.xml")
+        toolVersion = "8.29"
+        configDir = file("${project.rootDir}/config/checkstyle")
+        configFile = file("${configDir}/checkstyle.xml")
         ignoreFailures = false
         showViolations = false
     }
@@ -182,7 +181,7 @@ subprojects {
         }
     }
 
-    apply plugin: "license"
+    apply plugin: 'com.github.hierynomus.license'
 
     license {
         header rootProject.file('LICENSE.txt')
@@ -196,17 +195,17 @@ subprojects {
     }
 }
 
-configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common')}) {
+configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common') }) {
 
-    apply plugin: "license"
+    apply plugin: 'com.github.hierynomus.license'
 
     def sources = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
 
-    task licenseFormatUi(type:nl.javadude.gradle.plugins.license.License) {
+    task licenseFormatUi(type: nl.javadude.gradle.plugins.license.License) {
         source = sources
     }
 
-    task licenseFormatUiCheck(type:nl.javadude.gradle.plugins.license.License) {
+    task licenseFormatUiCheck(type: nl.javadude.gradle.plugins.license.License) {
         source = sources
         check = true;
     }
@@ -215,7 +214,7 @@ configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('cen
     licenseTest.dependsOn licenseFormatUiCheck
 }
 
-configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') or it.name.contains('proxy-ui')})) {
+configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') or it.name.contains('proxy-ui') })) {
     def licenseSourceAdds = fileTree('lib')
 
     task licenseFormatLib(type: nl.javadude.gradle.plugins.license.License) {
@@ -264,7 +263,7 @@ configure(subprojects.findAll({ it.name.contains('proxy-ui-api')})) {
 }
 
 task clean(type: Delete) {
-   delete "${rootDir}/packages/build"
+    delete "${rootDir}/packages/build"
 }
 
 task wrapper(type: Wrapper) {

@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -106,19 +107,32 @@ class ClientsController < ApplicationController
     validate_params({
       :add_member_class => [:required],
       :add_member_code => [:required],
-      :add_subsystem_code => [:required]
+      :add_subsystem_code => []
     })
 
-    client_id = ClientId.create(
-      xroad_instance,
-      params[:add_member_class],
-      params[:add_member_code],
-      params[:add_subsystem_code])
+    if params[:add_subsystem_code] && !params[:add_subsystem_code].empty?
+      client_id = ClientId.create(
+        xroad_instance,
+        params[:add_member_class],
+        params[:add_member_code],
+        params[:add_subsystem_code])
+    else
+      client_id = ClientId.create(
+        xroad_instance,
+        params[:add_member_class],
+        params[:add_member_code])
+    end
 
-    # check if client exists in serverconf
+    # check if client exists in serverconf and
+    # if serverconf already includes one registered
+    # member in addition to the owner member
     serverconf.client.each do |client|
       if client.identifier.equals(client_id)
         raise t('clients.client_exists')
+      elsif client_id.subsystemCode.nil? &&
+          client.identifier.subsystemCode.nil? &&
+          client.identifier != owner_identifier
+        raise t('clients.cannot_register_another_member')
       end
     end
 
@@ -140,7 +154,7 @@ class ClientsController < ApplicationController
     client.identifier = client_id
     client.clientStatus = registered ?
       ClientType::STATUS_REGISTERED : ClientType::STATUS_SAVED
-    client.isAuthentication = "NOSSL"
+    client.isAuthentication = "SSLAUTH"
     client.conf = serverconf
 
     audit_log_data[:clientIdentifier] = client.identifier
@@ -344,6 +358,37 @@ class ClientsController < ApplicationController
     })
   end
 
+  def owner_change_request
+    audit_log("Change owner", audit_log_data = {})
+
+    authorize!(:send_owner_change_req)
+
+    validate_params({
+      :member_class => [:required],
+      :member_code => [:required]
+    })
+
+    client_id = ClientId.create(
+      xroad_instance,
+      params[:member_class],
+      params[:member_code])
+
+    audit_log_data[:clientIdentifier] = client_id
+
+    if client_id == owner_identifier
+      raise t('clients.already_owner')
+    end
+
+    request_id = change_owner(client_id)
+    audit_log_data[:managementRequestId] = request_id
+
+    client = get_client(client_id.toString)
+
+    audit_log_data[:clientStatus] = client.clientStatus
+
+    render_json(client_to_json(client))
+  end
+
   def client_delete_certs
     audit_log("Delete client certificates", audit_log_data = {})
 
@@ -438,6 +483,10 @@ class ClientsController < ApplicationController
         [ClientType::STATUS_SAVED,
          ClientType::STATUS_DELINPROG,
          ClientType::STATUS_GLOBALERR].include?(client.clientStatus),
+      :owner_change_enabled =>
+          serverconf.owner.id != client.id &&
+          !is_subsystem &&
+          [ClientType::STATUS_REGISTERED].include?(client.clientStatus),
       :owner => serverconf.owner.id == client.id,
       :can_view_client_details_dialog =>
           can?(:view_client_details_dialog),

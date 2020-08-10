@@ -150,6 +150,11 @@
                     <xs:documentation>The timestamp of the last unsuccessful request (Unix timestamp in milliseconds)</xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="serviceType" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type of the service</xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="lastPeriodStatistics" type="LastPeriodStatisticsType">
                 <xs:annotation>
                     <xs:documentation>The statistics of the requests occurred during the last period</xs:documentation>
@@ -191,48 +196,48 @@
                     <xs:documentation>The standard deviation of the duration of the requests</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="requestMinSoapSize" type="xs:long" minOccurs="0">
+            <xs:element name="requestMinSize" type="xs:long" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The minimum SOAP message size of the request in bytes</xs:documentation>
+                    <xs:documentation>The minimum message size of the request in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="requestAverageSoapSize" type="xs:double"
+            <xs:element name="requestAverageSize" type="xs:double"
                         minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The average SOAP message size of the request in bytes</xs:documentation>
+                    <xs:documentation>The average message size of the request in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="requestMaxSoapSize" type="xs:long" minOccurs="0">
+            <xs:element name="requestMaxSize" type="xs:long" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The maximum SOAP message size of the request in bytes</xs:documentation>
+                    <xs:documentation>The maximum message size of the request in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="requestSoapSizeStdDev" type="xs:double"
+            <xs:element name="requestSizeStdDev" type="xs:double"
                         minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The standard deviation of the SOAP message size of the request</xs:documentation>
+                    <xs:documentation>The standard deviation of the message size of the request</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="responseMinSoapSize" type="xs:long" minOccurs="0">
+            <xs:element name="responseMinSize" type="xs:long" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The minimum SOAP message size of the response in bytes</xs:documentation>
+                    <xs:documentation>The minimum message size of the response in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="responseAverageSoapSize" type="xs:double"
+            <xs:element name="responseAverageSize" type="xs:double"
                         minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The average SOAP message size of the response in bytes</xs:documentation>
+                    <xs:documentation>The average message size of the response in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="responseMaxSoapSize" type="xs:long" minOccurs="0">
+            <xs:element name="responseMaxSize" type="xs:long" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The maximum SOAP message size of the response in bytes</xs:documentation>
+                    <xs:documentation>The maximum message size of the response in bytes</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="responseSoapSizeStdDev" type="xs:double"
+            <xs:element name="responseSizeStdDev" type="xs:double"
                         minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>The standard deviation of the SOAP message size of the response</xs:documentation>
+                    <xs:documentation>The standard deviation of the message size of the response</xs:documentation>
                 </xs:annotation>
             </xs:element>
         </xs:sequence>

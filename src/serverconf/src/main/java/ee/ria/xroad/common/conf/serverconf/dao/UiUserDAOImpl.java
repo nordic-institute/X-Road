@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,8 +28,11 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.model.UiUserType;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.Session;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 /**
  * UiUser data access object implementation.
@@ -39,13 +43,13 @@ public class UiUserDAOImpl extends AbstractDAOImpl<UiUserType> {
      * Returns the UiUser object for the given user name or null.
      * @param username the user name
      * @return the UiUser object for the given user name or null
-     * @throws Exception if an error occurs
      */
-    public static UiUserType getUiUser(String username) throws Exception {
-        Criteria criteria =
-                ServerConfDatabaseCtx.getSession().createCriteria(
-                        UiUserType.class);
-        criteria.add(Restrictions.eq("username", username));
-        return (UiUserType) criteria.uniqueResult();
+    public static UiUserType getUiUser(String username) {
+        Session session = ServerConfDatabaseCtx.getSession();
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<UiUserType> q = cb.createQuery(UiUserType.class);
+        final Root<UiUserType> root = q.from(UiUserType.class);
+        q.select(root).where(cb.equal(root.get("username"), username));
+        return session.createQuery(q).uniqueResult();
     }
 }

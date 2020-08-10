@@ -3,6 +3,7 @@ dependencies {
     compile project(':common-ui')
 
     compile 'wsdl4j:wsdl4j:1.6.3'
+    compile 'io.swagger.parser.v3:swagger-parser-v3:2.0.13'
 }
 
 clean {

@@ -29,22 +29,18 @@
             <property name="signatureHash" access="field" type="text"/>
 
             <many-to-one name="timestampRecord" access="field" cascade="none" lazy="false"
-                class="ee.ria.xroad.common.messagelog.TimestampRecord"/>
+                         class="ee.ria.xroad.common.messagelog.TimestampRecord"/>
 
             <property name="timestampHashChain" access="field" type="text"/>
             <property name="response" access="field" type="boolean"/>
+            <property name="attachment" access="field" lazy="true" type="blob" update="false"/>
+            <property name="xRequestId" access="field" type="string"/>
         </subclass>
 
         <subclass name="ee.ria.xroad.common.messagelog.TimestampRecord" discriminator-value="t">
             <property name="timestamp" access="field" type="text"/>
             <property name="hashChainResult" access="field" type="text"/>
         </subclass>
-
-<!--
-        <subclass name="EncryptedMessageRecord" discriminator-value="e">
-            ...
-        </subclass>
- -->
 
     </class>
 
@@ -56,5 +52,27 @@
         <property name="digest" access="field" type="text"/>
         <property name="fileName" access="field" type="string"/>
     </class>
+
+    <!--
+    Implementation notes:
+
+    Correctness (and performance) of this query assumes that log records are archived in primary key order
+    (if archived(id1) = true and archived(id2) = false then id1 < id2). The current log archiving implementation
+    keeps this property.
+
+    The extra "id > 0" condition makes PostgreSQL to prefer index scan using primary key,
+    which is faster than table scan if the log is large.
+    -->
+
+    <sql-query name="delete-logrecords">
+        <![CDATA[
+        DELETE FROM logrecord
+          WHERE archived = true
+          AND time <= :time
+          AND id > 0
+          AND id <= (SELECT max(l.id) FROM (
+            SELECT id FROM logrecord ORDER BY id LIMIT :limit) l)
+        ]]>
+    </sql-query>
 
 </hibernate-mapping>

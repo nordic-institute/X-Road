@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -39,7 +40,7 @@ class SecurityServer < ActiveRecord::Base
         SecurityServer.find_server(server_code, member_code, member_class_code)
 
       if potentially_existing_server
-        raise I18n.t("validation.securitserver_exists",
+        raise I18n.t("requests.server_code_exists",
                   :member_class => member_class.code,
                   :member_code => member_code,
                   :server_code => server_code)
@@ -122,6 +123,11 @@ class SecurityServer < ActiveRecord::Base
 
   def self.get_server_count(searchable = "")
     return get_search_relation(searchable).count
+  end
+
+  def self.update_owner(server_id, owner)
+    server = SecurityServer.find_server_by_id(server_id)
+    server.update_attributes!(:owner => owner)
   end
 
   # Server is hash including keys :member_class, :member_code and :server_code.

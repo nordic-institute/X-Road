@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet id="6-rest-message-xrddev-571" author="niis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="logrecord" columnName="attachment"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="logrecord">
+            <column name="attachment" type="oid"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="6-rest-message-xrddev-571-2" author="niis">
+        <sql dbms="postgresql" splitStatements="false"><![CDATA[
+DROP TRIGGER IF EXISTS t_logrecord_attachment ON logrecord;
+
+CREATE OR REPLACE FUNCTION del_logrecord_attachment()
+  RETURNS trigger
+  LANGUAGE plpgsql
+AS $function$
+BEGIN
+  PERFORM LO_UNLINK(OLD.ATTACHMENT);
+  RETURN OLD;
+END;
+$function$;
+
+CREATE TRIGGER t_logrecord_attachment
+    BEFORE DELETE ON logrecord
+    FOR EACH ROW WHEN (old.attachment IS NOT NULL)
+    EXECUTE PROCEDURE del_logrecord_attachment();
+    ]]></sql>
+        <rollback>
+            <sql dbms="postgresql">DROP TRIGGER IF EXISTS t_logrecord_attachment ON LOGRECORD;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

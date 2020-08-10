@@ -1,33 +1,10 @@
-- name: build docker image for building trusty deb packages
-  docker_image:
-    name: xroad-deb-trusty
-    path: ../src/packages/docker/deb-trusty
-    force: yes
-  when: ubuntu_releasever == "trusty"
-
-- name: build trusty deb packages in docker
-  docker_container:
-    name: xroad-deb-trusty
-    image: xroad-deb-trusty
-    state: started
-    restart: true
-    detach: false
-    cleanup: yes
-    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
-    env:
-        HOME: "/workspace/src/packages"
-    volumes:
-      - ..:/workspace
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-    command: "/workspace/src/packages/build-deb.sh trusty"
-  when: ubuntu_releasever == "trusty"
-
+---
 - name: build docker image for building bionic deb packages
   docker_image:
     name: xroad-deb-bionic
     path: ../src/packages/docker/deb-bionic
     force: yes
+  tags: deb
   when: ubuntu_releasever == "bionic"
 
 - name: build bionic deb packages in docker
@@ -46,6 +23,7 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
     command: "/workspace/src/packages/build-deb.sh bionic"
+  tags: deb
   when: ubuntu_releasever == "bionic"
 
 - name: build docker image for building RPM packages

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -41,9 +42,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
@@ -59,6 +64,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +107,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure one entry of normal size can be added successfully.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -111,18 +119,18 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordNormal());
 
         // Then
-        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
         assertFalse(
                 "Should not rotate, as entry is small enough to fit in.",
                 cache.isRotating());
-
         Date expectedCreationTime = normalRequestCreationTime();
         assertEquals(expectedCreationTime, cache.getStartTime());
         assertEquals(expectedCreationTime, cache.getEndTime());
+        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
     }
 
     /**
      * Test to ensure log archive is rotated if an entry is too large.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -134,14 +142,15 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordTooLarge());
 
         // Then
-        assertZip(expectedLargeSizeRequestEntryName(), getArchiveBytes());
         assertTrue(
                 "Entry is so large that rotation must take place",
                 cache.isRotating());
+        assertZip(expectedLargeSizeRequestEntryName(), getArchiveBytes());
     }
 
     /**
      * Test to ensure null message records are not allowed.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -155,6 +164,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure the log archive is rotated inbetween log entry additions.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -163,29 +173,28 @@ public class LogArchiveCacheTest {
 
         // First record
         cache.add(createRequestRecordNormal());
-
-        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
         assertFalse("Step 1: no need to rotate yet.", cache.isRotating());
 
         // Second record
         cache.add(createRequestRecordTooLarge());
 
-        assertZip(expectedNormalAndLargeRequestEntryNames(), getArchiveBytes());
         assertTrue("Step 2: should be rotated.", cache.isRotating());
         assertEquals(largeRequestCreationTime(), cache.getStartTime());
         assertEquals(normalRequestCreationTime(), cache.getEndTime());
+        assertZip(expectedNormalAndLargeRequestEntryNames(), getArchiveBytes());
 
         // Third record
         cache.add(createResponseRecordNormal());
 
-        assertZip(expectedNormalSizeResponseEntryName(), getArchiveBytes());
         assertFalse("Step 3: new rotation.", cache.isRotating());
         assertEquals(normalResponseCreationTime(), cache.getStartTime());
         assertEquals(normalResponseCreationTime(), cache.getEndTime());
+        assertZip(expectedNormalSizeResponseEntryName(), getArchiveBytes());
     }
 
     /**
      * Test to ensure name clash is avoided when fileName already exists in ZIP.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -194,19 +203,22 @@ public class LogArchiveCacheTest {
         setMaxArchiveSizeDefault();
 
         // Create cache with more realistic random generator
+        cache.close();
         cache = createCache(new TestRandomGenerator());
 
         // First record
         cache.add(createRequestRecordNormal());
-        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
-
         // Record with conflicting name
         cache.add(createRequestRecordNormal());
         assertZip(expectedConflictingEntryNames(), getArchiveBytes());
     }
 
     private byte[] getArchiveBytes() throws IOException {
-        return IOUtils.toByteArray(cache.getArchiveFile());
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final Path archive = cache.getArchiveFile();
+        IOUtils.copy(Files.newInputStream(archive), bos);
+        Files.delete(archive);
+        return bos.toByteArray();
     }
 
     private void setMaxArchiveSizeSmall() {
@@ -262,7 +274,11 @@ public class LogArchiveCacheTest {
         when(record.getTime()).thenReturn(params.getCreationTime());
 
         AsicContainer container = mock(AsicContainer.class);
-        when(container.getBytes()).thenReturn(params.getBytes());
+        doAnswer(invocation -> {
+            OutputStream os = (OutputStream) invocation.getArguments()[0];
+            os.write(params.getBytes());
+            return null;
+        }).when(container).write(any(OutputStream.class));
 
         when(record.toAsicContainer()).thenReturn(container);
 
@@ -384,9 +400,9 @@ public class LogArchiveCacheTest {
 
     private LogArchiveCache createCache(Supplier<String> randomGenerator) {
         return new LogArchiveCache(
-            randomGenerator,
-            mockLinkingInfoBuilder(),
-            Paths.get("build/tmp/")
+                randomGenerator,
+                mockLinkingInfoBuilder(),
+                Paths.get("build/tmp/")
         );
     }
 

@@ -20,7 +20,7 @@
                 {
                     text: _("common.close"),
                     click: function() {
-                        SERVICES.updateSubjectsCount(oSubjects.fnGetData().length);
+                        SERVICES.updateSubjectsCount();
                         $(this).dialog("close");
                     }
                 },
@@ -30,9 +30,12 @@
                     privilege: "edit_service_acl",
                     click: function() {
                         var service = $("#service_acl_dialog #service option:selected");
+                        var endpoint = $("#service_acl_dialog #endpoint").val().split(":");
                         var params = {
                             client_id: $("#details_client_id").val(),
-                            service_code: service.val()
+                            service_code: service.val(),
+                            method: endpoint[0],
+                            path: endpoint[1]
                         };
 
                         confirm("clients.service_acl_dialog.remove_all_confirm", null,
@@ -51,10 +54,13 @@
                     privilege: "edit_service_acl",
                     click: function() {
                         var service = $("#service_acl_dialog #service option:selected");
+                        var endpoint = $("#service_acl_dialog #endpoint").val().split(":");
                         var params = {
                             client_id: $("#details_client_id").val(),
                             service_code: service.val(),
-                            subject_ids: []
+                            subject_ids: [],
+                            method: endpoint[0],
+                            path: endpoint[1]
                         };
 
                         var subjects = [];
@@ -95,10 +101,13 @@
                     click: function() {
                         ACL_SUBJECTS_SEARCH.openDialog(oSubjects.fnGetData(), function(subjectIds) {
                             var service = $("#service_acl_dialog #service option:selected");
+                            var endpoint = $("#service_acl_dialog #endpoint option:selected").val().split(":");
                             var params = {
                                 client_id: $("#details_client_id").val(),
                                 service_code: service.val(),
-                                subject_ids: subjectIds
+                                subject_ids: subjectIds,
+                                method: endpoint[0],
+                                path: endpoint[1]
                             };
 
                             $.post(action("service_acl_subjects_add"), params, function(response) {
@@ -167,37 +176,100 @@
     }
 
     function initServiceAclActions() {
+        var selectedService;
+        var selectedEndpoint;
+
+        // Change service selection
         $("#service_acl_dialog #service").change(function() {
-            var selected = $("option:selected", this);
+            selectedService = $("option:selected", this);
+
             var params = {
                 client_id: $("#details_client_id").val(),
-                service_code: selected.val()
+                service_code: selectedService.val(),
             };
 
-            $.get(action("service_acl"), params, function(response) {
-                var titleText = selected.data("title")
-                    ? "clients.service_acl_dialog.title_with_service_title"
-                    : "clients.service_acl_dialog.title";
+            if($(selectedService).attr('data-type') !== 'WSDL') {
+                $("#service_acl_dialog .endpoint_selection").show();
+                $.get(action("acl_service_endpoints"), params, function(response) {
+                    populateACLServiceEndpoints(response.data);
+                }, "json");
+            } else {
+                $("#service_acl_dialog .endpoint_selection").hide();
+            }
 
-                var title = _(titleText, {
-                    code: selected.val(),
-                    title: selected.data("title")
-                });
+            fetchServiceACLs(params.client_id, params.service_code, '*', '**');
 
-                $("#service_acl_dialog").dialog("option", "title", title);
+        });
 
-                oSubjects.fnFilter("");
-                oSubjects.fnReplaceData(response.data);
+        // Change endpoint selection
+        $("#service_acl_dialog #endpoint").change(function() {
+            selectedEndpoint = $("option:selected", this);
 
-                enableActions();
+            var service_code = $("#service_acl_dialog #service option:selected").val();
+            var client_id = $("#details_client_id").val();
+            var method = selectedEndpoint.val().split(":")[0];
+            var path = selectedEndpoint.val().split(":")[1];
 
-                $("#service_acl_dialog").dialog("open");
-            }, "json");
+            fetchServiceACLs(client_id, service_code, method, path);
+
         });
 
         $("#subjects tbody tr").live("click", function() {
             oSubjects.setFocus(0, this, true);
             enableActions();
+        });
+    }
+
+    function fetchServiceACLs(client_id, service_code, method, path) {
+        var params = {
+            client_id: client_id,
+            service_code: service_code,
+            method: method,
+            path: path
+        };
+
+        $.get(action("service_acl"), params, function(response) {
+            var selectedService = $('#service_acl_dialog #service option:selected');
+            var titleText = selectedService.data("title")
+                ? "clients.service_acl_dialog.title_with_service_title"
+                : "clients.service_acl_dialog.title";
+
+            var title = _(titleText, {
+                code: selectedService.val(),
+                title: selectedService.data("title")
+            });
+
+            $("#service_acl_dialog").dialog("option", "title", title);
+
+            oSubjects.fnFilter("");
+            oSubjects.fnReplaceData(response.data);
+
+            enableActions();
+
+            $("#service_acl_dialog").dialog("open");
+        }, "json");
+
+    }
+
+    function populateACLServices(data) {
+        var serviceSelect = $("#service_acl_dialog #service").html("");
+
+        $.each(data, function(idx, val) {
+            serviceSelect.append(
+                "<option data-type='" + val.service_description_type + "' value='" + val.service_code + "'>"
+                + val.service_code + "</option>");
+        });
+    }
+
+    function populateACLServiceEndpoints(data) {
+        var endpointSelect = $("#service_acl_dialog #endpoint").html("");
+
+        data.forEach( function (endpoint) {
+            var isAllType = (endpoint.method === '*' && endpoint.path === '**');
+            var optionValue = isAllType ? "ALL" : endpoint.method + " " + endpoint.path;
+            endpointSelect.append("<option value='" + endpoint.method + ":" + endpoint.path + "'>"
+                +  optionValue + "</option>");
+
         });
     }
 
@@ -220,24 +292,43 @@
         initTestability();
     });
 
-    ACL.openDialog = function(serviceCode) {
+    ACL.openDialog = function(serviceCode, method, path) {
         var params = {
             client_id: $("#details_client_id").val()
         };
 
+        var serviceDeferred = $.Deferred();
+
+        // Populate and preselected service
         $.get(action("acl_services"), params, function(response) {
-            var serviceSelect = $("#service_acl_dialog #service").html("");
-
-            $.each(response.data, function(idx, val) {
-                serviceSelect.append(
-                    "<option value='" + val.service_code + "'>"
-                        + val.service_code + "</option>");
-
-                $("option:last", serviceSelect).data("title", val.title);
-            });
-
-            $("#service_acl_dialog #service").val(serviceCode).change();
+            serviceDeferred.resolve(response);
         }, "json");
+
+        if(method && path) {
+            var endpointsDeferred = $.Deferred();
+            params.service_code = serviceCode;
+
+            $("#service_acl_dialog .endpoint_selection").show();
+            $.get(action("acl_service_endpoints"), params, function(response) {
+                endpointsDeferred.resolve(response);
+            }, "json");
+
+            $.when(serviceDeferred, endpointsDeferred).done( function(servicesResponse, endpointsResponse) {
+                // populate select options
+                populateACLServices(servicesResponse.data);
+                populateACLServiceEndpoints(endpointsResponse.data);
+
+                // Set current option selections
+                $("#service_acl_dialog #service").val(serviceCode);
+                $("#service_acl_dialog #endpoint").val(method + ":" + path).change();
+            });
+        } else {
+            $.when(serviceDeferred).done( function(servicesResponse) {
+                populateACLServices(servicesResponse.data);
+                $("#service_acl_dialog #service").val(serviceCode).change();
+            });
+        }
+
     };
 
 }(window.ACL = window.ACL || {}, jQuery));

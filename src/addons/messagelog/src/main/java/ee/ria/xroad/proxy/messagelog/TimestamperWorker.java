@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,7 +28,7 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +40,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TimestamperWorker extends UntypedActor {
+public class TimestamperWorker extends UntypedAbstractActor {
 
     private final List<String> tspUrls;
 

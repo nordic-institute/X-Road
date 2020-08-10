@@ -2,7 +2,7 @@ dependencies {
     compile project(':asic-util')
     testCompile project(':common-test')
 
-    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
+    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
+    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
 }
 

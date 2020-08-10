@@ -5,5 +5,8 @@
    <Set name="war">/usr/share/xroad/jlib/webapps/center-service.war</Set>
    <Set name="tempDirectory">/var/tmp/xroad/jetty-center-service-temp</Set>
    <Set name="extractWAR">true</Set>
+   <Get name="errorHandler">
+     <Set name="showStacks">false</Set>
+   </Get>
 </Configure>
 

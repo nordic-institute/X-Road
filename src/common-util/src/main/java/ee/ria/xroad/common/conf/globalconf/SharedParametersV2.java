@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -76,6 +77,8 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private final Map<X500Name, X509Certificate> subjectsAndCaCerts =
             new HashMap<>();
     private final Map<X509Certificate, String> caCertsAndCertProfiles =
+            new HashMap<>();
+    private final Map<X509Certificate, ApprovedCATypeV2> caCertsAndApprovedCAData =
             new HashMap<>();
     private final Map<X509Certificate, List<OcspInfoType>> caCertsAndOcspData =
             new HashMap<>();
@@ -194,6 +197,7 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private void clearCache() {
         subjectsAndCaCerts.clear();
         caCertsAndCertProfiles.clear();
+        caCertsAndApprovedCAData.clear();
         caCertsAndOcspData.clear();
         memberAddresses.clear();
         memberAuthCerts.clear();
@@ -227,6 +231,8 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
             for (X509Certificate pkiCaCert : pkiCaCerts) {
                 caCertsAndCertProfiles.put(pkiCaCert,
                         caType.getCertificateProfileInfo());
+                caCertsAndApprovedCAData.put(pkiCaCert,
+                        caType);
             }
             allCaCerts.addAll(pkiCaCerts);
         }

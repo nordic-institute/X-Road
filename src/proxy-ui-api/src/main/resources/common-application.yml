@@ -1,0 +1,96 @@
+## properties that are not specific to a runtime (test or prod)
+
+spring:
+  thymeleaf:
+    cache: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+  jpa:
+    ## *.hbm.xml files are loaded from classpath
+    mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+  jackson:
+    default-property-inclusion: NON_NULL
+
+# default is 30m
+# server.servlet.session.timeout=1m
+server:
+  port: 4000
+  servlet:
+    session:
+      cookie:
+        secure: true
+    multipart:
+      max-file-size: 1KB
+      max-request-size: 1KB
+  tomcat:
+    # max-http-post-size applies only to multipart/form-data requests (although name is misleading)
+    # https://github.com/spring-projects/spring-boot/issues/18521
+    # we do not use multipart/form-data, so we can se the limit to a strict value
+    # if container is changed to undertow, these settings will apply to ALL requests
+    # due to https://github.com/spring-projects/spring-boot/issues/18555
+    max-http-post-size: 1KB
+#  error:
+#    include-stacktrace: always
+#    include-exception: true
+    accesslog:
+      enabled: true
+      directory: /var/log/xroad
+      prefix: proxy_ui_api_access
+      suffix: .log
+      pattern: "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{X-Forwarded-For}i\""
+      renameOnRotate: true
+      rotatable: true
+      max-days: 30
+
+request:
+  sizelimit:
+    regular: 50KB
+    binary:
+      upload: 10MB
+
+ratelimit:
+  requests:
+    per:
+      second: 20
+      minute: 600
+
+file-upload-endpoints:
+  endpointDefinitions:
+    -
+      httpMethod: POST
+      pathEnding: /backups/upload
+    -
+      httpMethod: POST
+      pathEnding: /tls-certificates
+    -
+      httpMethod: POST
+      pathEnding: /token-certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificate/import
+
+script:
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
+    args: -n internal -f -S -p 2>&1
+  generate-backup:
+    path: /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
+  internal-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_internal_configuration.sh
+  external-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_external_configuration.sh
+  restore-configuration:
+    path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
+    args: -b -s %s -f %s
+
+url:
+  download-configuration-anchor: http://localhost:%s/execute
+  diagnostics-globalconf: http://localhost:%s/status
+  diagnostics-timestamping-services: http://localhost:%s/timestampstatus
+  diagnostics-ocsp-responders: http://localhost:%s/status

@@ -8,10 +8,13 @@
 #   - xroad-system-administrator
 #   - xroad-securityserver-observer
 
+
+
 - init_config: [xroad-system-administrator]
 - view_clients: [xroad-security-officer, xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
 -   add_client: [xroad-registration-officer]
 -   send_client_reg_req: [xroad-registration-officer]
+-   send_owner_change_req: [xroad-registration-officer]
 -   view_client_details_dialog: [xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
 -     send_client_del_req: [xroad-registration-officer]
 -     delete_client: [xroad-registration-officer]
@@ -22,11 +25,17 @@
 -       delete_local_group: [xroad-service-administrator]
 -     view_client_services: [xroad-service-administrator, xroad-securityserver-observer]
 -       add_wsdl: [xroad-service-administrator]
+-       add_openapi3: [xroad-service-administrator]
+-       add_openapi3_endpoint: [xroad-service-administrator]
 -       enable_disable_wsdl: [xroad-service-administrator]
 -       edit_wsdl: [xroad-service-administrator]
+-       edit_openapi3: [xroad-service-administrator]
+-       edit_openapi3_endpoint: [xroad-service-administrator]
 -       refresh_wsdl: [xroad-service-administrator]
+-       refresh_openapi3: [xroad-service-administrator]
 -       delete_wsdl_missing_services: [xroad-service-administrator]
 -       delete_wsdl: [xroad-service-administrator]
+-       delete_endpoint: [xroad-service-administrator]
 -       edit_service_params: [xroad-service-administrator]
 -       view_service_acl: [xroad-service-administrator, xroad-securityserver-observer]
 -       edit_service_acl: [xroad-service-administrator]

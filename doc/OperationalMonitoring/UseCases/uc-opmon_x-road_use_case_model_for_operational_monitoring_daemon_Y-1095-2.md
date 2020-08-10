@@ -2,9 +2,9 @@
 | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# X-Road: Use Case Model for Operational Monitoring Daemon
+# X-Road: Use Case Model for Operational Monitoring Daemon <!-- omit in toc -->
 
-Version: 0.7  
+Version: 0.9  
 Doc. ID: UC-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -12,22 +12,24 @@ Doc. ID: UC-OPMON
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo |
+| 18.02.2019 | 0.8       | Main success scenario updated: optional id for request/response pairs | Caro Hautamäki |
+| 12.12.2019 | 0.9       | Update the document with refactored fields | Ilkka Seppälä |
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
     
 <!-- toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
-  * [1.1 Purpose](#11-purpose)
-  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
+  - [1.1 Purpose](#11-purpose)
+  - [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
 - [2 Overview](#2-overview)
 - [3 Use Case Model](#3-use-case-model)
-  * [3.1 Actors](#31-actors)
-  * [3.2 UC OPMON_01: Store the Operational Data in the Operational Monitoring Database](#32-uc-opmon_01-store-the-operational-data-in-the-operational-monitoring-database)
-  * [3.3 UC OPMON_02: Query Operational Data](#33-uc-opmon_02-query-operational-data)
-  * [3.5 UC OPMON_03: Query Security Server Health Data](#35-uc-opmon_03-query-security-server-health-data)
+  - [3.1 Actors](#31-actors)
+  - [3.2 UC OPMON_01: Store the Operational Data in the Operational Monitoring Database](#32-uc-opmon01-store-the-operational-data-in-the-operational-monitoring-database)
+  - [3.3 UC OPMON_02: Query Operational Data](#33-uc-opmon02-query-operational-data)
+  - [3.5 UC OPMON_03: Query Security Server Health Data](#35-uc-opmon03-query-security-server-health-data)
 
 <!-- tocstop -->
 
@@ -125,7 +127,9 @@ The relationships between the actors and use cases are described in Figure 1.
     * the size of the response (bytes);
     * the size of the MIME-container of the response (sum of the SOAP response message and attachments data size in bytes);
     * the number of attachments of the response;
+    * the type of the service;
     * the indication of successful/unsuccessful request mediation (boolean; mandatory);
+    * the id to distinguish X-Road request/response pairs; (client and provider)
     * SOAP fault code;
     * SOAP fault reason.
 
@@ -137,14 +141,14 @@ The relationships between the actors and use cases are described in Figure 1.
 	* the average duration of the requests occurred during the last period in milliseconds;
 	* the maximum duration of the requests occurred during the last period in milliseconds;
 	* the standard deviation of the duration of the requests occurred during the last period;
-	* the minimum SOAP message size of the requests occurred during the last period in bytes;
-	* the average SOAP message size of the requests occurred during the last period in bytes;
-	* the maximum SOAP message size of the requests occurred during the last period in bytes;
-	* the standard deviation of the SOAP message size of the requests occurred during the last period;
-	* the minimum SOAP message size of the responses occurred during the last period in bytes;
-	* the average SOAP message size of the responses occurred during the last period in bytes;
-	* the maximum SOAP message size of the responses occurred during the last period in bytes;
-	* the standard deviation of the SOAP message size of the responses occurred during the last period.
+	* the minimum message size of the requests occurred during the last period in bytes;
+	* the average message size of the requests occurred during the last period in bytes;
+	* the maximum message size of the requests occurred during the last period in bytes;
+	* the standard deviation of the message size of the requests occurred during the last period;
+	* the minimum message size of the responses occurred during the last period in bytes;
+	* the average message size of the responses occurred during the last period in bytes;
+	* the maximum message size of the responses occurred during the last period in bytes;
+	* the standard deviation of the message size of the responses occurred during the last period.
 
   In case the request was unsuccessful:
   * the time of the last unsuccessful request (the Unix timestamp in milliseconds);
@@ -280,8 +284,9 @@ The relationships between the actors and use cases are described in Figure 1.
     * per every service:
       * the time of the last successful request (the Unix timestamp in milliseconds);
       * the time of the last unsuccessful request (the Unix timestamp in milliseconds);
+      * the service type;
       * the number of successful requests occurred during the last period;
-	  * the number of unsuccessful requests occurred during the last period;
+	    * the number of unsuccessful requests occurred during the last period;
 
 	* the following data is included in the response only if the number of successful requests occurred during the last period is > 0:
 
@@ -289,14 +294,14 @@ The relationships between the actors and use cases are described in Figure 1.
 	  * the average duration of the requests (the Unix timestamp in milliseconds);
 	  * the maximum duration of the requests (the Unix timestamp in milliseconds);
 	  * the standard deviation of the duration of the requests;
-	  * the minimum SOAP message size of the requests in bytes;
-	  * the average SOAP message size of the requests in bytes;
-	  * the maximum SOAP message size of the requests in bytes;
-	  * the standard deviation of the SOAP message size of the requests;
-	  * the minimum SOAP message size of the responses in bytes;
-	  * the average SOAP message size of the responses in bytes;
-	  * the maximum SOAP message size of the responses in bytes;
-	  * the standard deviation of the SOAP message size of the responses.
+	  * the minimum message size of the requests in bytes;
+	  * the average message size of the requests in bytes;
+	  * the maximum message size of the requests in bytes;
+	  * the standard deviation of the message size of the requests;
+	  * the minimum message size of the responses in bytes;
+	  * the average message size of the responses in bytes;
+	  * the maximum message size of the responses in bytes;
+	  * the standard deviation of the message size of the responses.
 
 4. System replies with a response message.
 
@@ -311,19 +316,19 @@ The relationships between the actors and use cases are described in Figure 1.
       * the time of the last successful request (the Unix timestamp in milliseconds);
       * the time of the last unsuccessful request (the Unix timestamp in milliseconds);
       * the number of successful requests occurred during the last period;
-	  * the number of unsuccessful requests occurred during the last period;
-	  * the minimum duration of the requests during the last period in milliseconds;
-	  * the average duration of the requests during the last period in milliseconds;
-	  * the maximum duration of the requests during the last period in milliseconds;
-	  * the standard deviation of the duration of the requests during the last period;
-	  * the minimum SOAP message size of the requests during the last period in bytes;
-	  * the average SOAP message size of the requests during the last period in bytes;
-	  * the maximum SOAP message size of the requests during the last period in bytes;
-	  * the standard deviation of the SOAP message size of the requests during the last period;
-	  * the minimum SOAP message size of the responses during the last period in bytes;
-	  * the average SOAP message size of the responses during the last period in bytes;
-	  * the maximum SOAP message size of the responses during the last period in bytes;
-	  * the standard deviation of the SOAP message size of the responses during the last period.
+	    * the number of unsuccessful requests occurred during the last period;
+	    * the minimum duration of the requests during the last period in milliseconds;
+  	  * the average duration of the requests during the last period in milliseconds;
+	    * the maximum duration of the requests during the last period in milliseconds;
+	    * the standard deviation of the duration of the requests during the last period;
+  	  * the minimum message size of the requests during the last period in bytes;
+	    * the average message size of the requests during the last period in bytes;
+  	  * the maximum message size of the requests during the last period in bytes;
+	    * the standard deviation of the message size of the requests during the last period;
+  	  * the minimum message size of the responses during the last period in bytes;
+  	  * the average message size of the responses during the last period in bytes;
+  	  * the maximum message size of the responses during the last period in bytes;
+  	  * the standard deviation of the message size of the responses during the last period.
 
   * 1a.2. Use case continues from step 4.
 

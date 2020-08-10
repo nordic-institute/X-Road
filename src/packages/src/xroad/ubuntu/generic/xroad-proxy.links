@@ -1,2 +1,3 @@
 usr/share/xroad/jlib/proxy-1.0.jar usr/share/xroad/jlib/proxy.jar
 etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml etc/xroad/conf.d/jetty-logback-context-name.xml
+etc/xroad/nginx/xroad-proxy.conf etc/nginx/sites-enabled/xroad-proxy

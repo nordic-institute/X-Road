@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,12 +32,14 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
 import org.bouncycastle.asn1.cmp.PKIStatus;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -57,8 +60,8 @@ final class TimestamperUtil {
             X509Certificate signerCertificate) throws Exception {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
-        List<X509Certificate> collection = new ArrayList<>();
-        collection.add(signerCertificate);
+        List<X509CertificateHolder> collection = new ArrayList<>();
+        collection.add(new X509CertificateHolder(signerCertificate.getEncoded()));
         collection.addAll(cms.getCertificates().getMatches(null));
 
         return new TimeStampToken(CMSSignedData.replaceCertificatesAndCRLs(cms,
@@ -84,8 +87,12 @@ final class TimestamperUtil {
         out.flush();
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            con.disconnect();
             throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
                     + con.getResponseMessage());
+        } else if (con.getInputStream() == null) {
+            con.disconnect();
+            throw new IOException("Could not get response from TSP");
         }
 
         return con.getInputStream();

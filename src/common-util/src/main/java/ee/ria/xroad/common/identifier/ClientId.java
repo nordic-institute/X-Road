@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -23,6 +24,8 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.common.identifier;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -115,7 +118,7 @@ public final class ClientId extends XRoadId {
     }
 
     @Override
-    protected String[] getFieldsForStringFormat() {
+    public String[] getFieldsForStringFormat() {
         return new String[] {memberClass, memberCode, subsystemCode};
     }
 
@@ -150,4 +153,18 @@ public final class ClientId extends XRoadId {
         return create(xRoadInstance, memberClass, memberCode, null);
     }
 
+    /**
+     * Returns {@code this} if this id already is a member id, or ClientId
+     * of this subsystem's member if this id is a subsystem id
+     */
+    @JsonIgnore
+    public ClientId getMemberId() {
+        if (getSubsystemCode() == null) {
+            return this;
+        } else {
+            return ClientId.create(this.getXRoadInstance(),
+                    this.getMemberClass(),
+                    this.getMemberCode());
+        }
+    }
 }

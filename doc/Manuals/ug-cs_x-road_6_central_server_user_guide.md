@@ -1,8 +1,9 @@
-# X-Road: Central Server User Guide
+# X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.6  
+Version: 2.16  
 Doc. ID: UG-CS
 
+## Version history <!-- omit in toc --> 
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
@@ -28,98 +29,110 @@ Doc. ID: UG-CS
 | 17.12.2015 | 2.1     | Added user instructions for monitoring. ||
 | 14.4.2016  | 2.2     | Added chapter for additional configuration options. ||
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
-| 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
+| 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio |
 | 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
 | 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
+| 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
+| 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
+| 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10) | Petteri Kivimäki |
+| 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä |
+| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty |
+| 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä |
+| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty |
+| 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä |
+| 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä |
 
-## Table of Contents
+## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
   * [License](#license)
 - [1. Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
 - [2. User Management](#2-user-management)
-  * [2.1 User Roles](#21-user-roles)
-  * [2.2 Managing the Users](#22-managing-the-users)
+  - [2.1 User Roles](#21-user-roles)
+  - [2.2 Managing the Users](#22-managing-the-users)
 - [3. Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
-  * [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
-  * [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
+  - [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
+  - [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
 - [4. System Settings](#4-system-settings)
-  * [4.1 Managing the Member Classes](#41-managing-the-member-classes)
-  * [4.2 Configuring the Management Service Provider](#42-configuring-the-management-service-provider)
-    + [4.2.1 Appointing the Management Service Provider](#421-appointing-the-management-service-provider)
-    + [4.2.2 Registering the Management Service Provider as a Security Server Client](#422-registering-the-management-service-provider-as-a-security-server-client)
-    + [4.2.3 Configuring the Management Services in the Management Services’ Security Server](#423-configuring-the-management-services-in-the-management-services-security-server)
-  * [4.3 Configuring the Central Server Address](#43-configuring-the-central-server-address)
-    + [4.3.1 Notes on HA Setup](#431-notes-on-ha-setup)
-    + [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
+  - [4.1 Managing the Member Classes](#41-managing-the-member-classes)
+  - [4.2 Configuring the Management Service Provider](#42-configuring-the-management-service-provider)
+    - [4.2.1 Appointing the Management Service Provider](#421-appointing-the-management-service-provider)
+    - [4.2.2 Registering the Management Service Provider as a Security Server Client](#422-registering-the-management-service-provider-as-a-security-server-client)
+    - [4.2.3 Configuring the Management Services in the Management Services’ Security Server](#423-configuring-the-management-services-in-the-management-services-security-server)
+  - [4.3 Configuring the Central Server Address](#43-configuring-the-central-server-address)
+    - [4.3.1 Notes on HA Setup](#431-notes-on-ha-setup)
+    - [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
 - [5. Configuration Management](#5-configuration-management)
-  * [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
-  * [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
-  * [5.3 Re-Creating the Configuration Anchor](#53-re-creating-the-configuration-anchor)
-  * [5.4 Changing the Configuration Signing Keys](#54-changing-the-configuration-signing-keys)
-    + [5.4.1 Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key)
-    + [5.4.2 Activating a Configuration Signing Key](#542-activating-a-configuration-signing-key)
-    + [5.4.3 Deleting a Configuration Signing Key](#543-deleting-a-configuration-signing-key)
-  * [5.5 Viewing the Contents of a Configuration Part](#55-viewing-the-contents-of-a-configuration-part)
-  * [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
-  * [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
-  * [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
+  - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
+  - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
+  - [5.3 Re-Creating the Configuration Anchor](#53-re-creating-the-configuration-anchor)
+  - [5.4 Changing the Configuration Signing Keys](#54-changing-the-configuration-signing-keys)
+    - [5.4.1 Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key)
+    - [5.4.2 Activating a Configuration Signing Key](#542-activating-a-configuration-signing-key)
+    - [5.4.3 Deleting a Configuration Signing Key](#543-deleting-a-configuration-signing-key)
+  - [5.5 Viewing the Contents of a Configuration Part](#55-viewing-the-contents-of-a-configuration-part)
+  - [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
+  - [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
+  - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
 - [6. The Management Requests System](#6-the-management-requests-system)
-  * [6.1 Registration Requests](#61-registration-requests)
-    + [6.1.1 State Machine Model for Registration Requests](#611-state-machine-model-for-registration-requests)
-  * [6.2 Deletion Requests](#62-deletion-requests)
-  * [6.3 Viewing the Management Request Details](#63-viewing-the-management-request-details)
+  - [6.1 Registration Requests](#61-registration-requests)
+    - [6.1.1 State Machine Model for Registration Requests](#611-state-machine-model-for-registration-requests)
+  - [6.2 Deletion Requests](#62-deletion-requests)
+  - [6.3 Viewing the Management Request Details](#63-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
-  * [7.1 Adding a Member](#71-adding-a-member)
-  * [7.2 Viewing the Member Details](#72-viewing-the-member-details)
-  * [7.3 Adding a Subsystem to an X-Road Member](#73-adding-a-subsystem-to-an-x-road-member)
-  * [7.4 Registering a Member's Security Server](#74-registering-a-members-security-server)
-  * [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
-  * [7.6 Removing a Client from a Security Server](#76-removing-a-client-from-a-security-server)
-  * [7.7 Changing the Global Group Membership of an X-Road Member’s Subsystem](#77-changing-the-global-group-membership-of-an-x-road-members-subsystem)
-  * [7.8 Deleting a Subsystem](#78-deleting-a-subsystem)
-  * [7.9 Deleting an X-Road Member](#79-deleting-an-x-road-member)
+  - [7.1 Adding a Member](#71-adding-a-member)
+  - [7.2 Viewing the Member Details](#72-viewing-the-member-details)
+  - [7.3 Adding a Subsystem to an X-Road Member](#73-adding-a-subsystem-to-an-x-road-member)
+  - [7.4 Registering a Member's Security Server](#74-registering-a-members-security-server)
+  - [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
+  - [7.6 Removing a Client from a Security Server](#76-removing-a-client-from-a-security-server)
+  - [7.7 Changing the Global Group Membership of an X-Road Member’s Subsystem](#77-changing-the-global-group-membership-of-an-x-road-members-subsystem)
+  - [7.8 Deleting a Subsystem](#78-deleting-a-subsystem)
+  - [7.9 Deleting an X-Road Member](#79-deleting-an-x-road-member)
+  - [7.10 Changing a Security Server's Owner](#710-changing-a-security-servers-owner)
 - [8. Managing the Security Servers](#8-managing-the-security-servers)
-  * [8.1 Viewing the Security Server Details](#81-viewing-the-security-server-details)
-  * [8.2 Changing the Security Server Address](#82-changing-the-security-server-address)
-  * [8.3 Registering a Security Server's Authentication Certificate](#83-registering-a-security-servers-authentication-certificate)
-  * [8.4 Deleting a Security Server's Authentication Certificate](#84-deleting-a-security-servers-authentication-certificate)
-  * [8.5 Deleting a Security Server](#85-deleting-a-security-server)
+  - [8.1 Viewing the Security Server Details](#81-viewing-the-security-server-details)
+  - [8.2 Changing the Security Server Address](#82-changing-the-security-server-address)
+  - [8.3 Registering a Security Server's Authentication Certificate](#83-registering-a-security-servers-authentication-certificate)
+  - [8.4 Deleting a Security Server's Authentication Certificate](#84-deleting-a-security-servers-authentication-certificate)
+  - [8.5 Deleting a Security Server](#85-deleting-a-security-server)
 - [9. Managing the Central Services](#9-managing-the-central-services)
-  * [9.1 Adding a Central Service](#91-adding-a-central-service)
-  * [9.2 Changing the Service implementing a Central Service](#92-changing-the-service-implementing-a-central-service)
-  * [9.3 Deleting a Central Service](#93-deleting-a-central-service)
+  - [9.1 Adding a Central Service](#91-adding-a-central-service)
+  - [9.2 Changing the Service implementing a Central Service](#92-changing-the-service-implementing-a-central-service)
+  - [9.3 Deleting a Central Service](#93-deleting-a-central-service)
 - [10. Managing the Global Groups](#10-managing-the-global-groups)
-  * [10.1 Adding a Global Group](#101-adding-a-global-group)
-  * [10.2 Viewing the Global Group Details](#102-viewing-the-global-group-details)
-  * [10.3 Changing the Description of a Global Group](#103-changing-the-description-of-a-global-group)
-  * [10.4 Changing the Members of a Global Group](#104-changing-the-members-of-a-global-group)
-  * [10.5 Deleting a Global Group](#105-deleting-a-global-group)
+  - [10.1 Adding a Global Group](#101-adding-a-global-group)
+  - [10.2 Viewing the Global Group Details](#102-viewing-the-global-group-details)
+  - [10.3 Changing the Description of a Global Group](#103-changing-the-description-of-a-global-group)
+  - [10.4 Changing the Members of a Global Group](#104-changing-the-members-of-a-global-group)
+  - [10.5 Deleting a Global Group](#105-deleting-a-global-group)
 - [11. Managing the Approved Certification Services](#11-managing-the-approved-certification-services)
-  * [11.1 Adding an Approved Certification Service](#111-adding-an-approved-certification-service)
-  * [11.2 Changing an Approved Certification Service](#112-changing-an-approved-certification-service)
-  * [11.3 Deleting an Approved Certification Service](#113-deleting-an-approved-certification-service)
+  - [11.1 Adding an Approved Certification Service](#111-adding-an-approved-certification-service)
+  - [11.2 Changing an Approved Certification Service](#112-changing-an-approved-certification-service)
+  - [11.3 Deleting an Approved Certification Service](#113-deleting-an-approved-certification-service)
 - [12. Managing the Approved Timestamping Services](#12-managing-the-approved-timestamping-services)
-  * [12.1 Adding an Approved Timestamping Service](#121-adding-an-approved-timestamping-service)
-  * [12.2 Changing the URL of an Approved Timestamping Service](#122-changing-the-url-of-an-approved-timestamping-service)
-  * [12.3 Deleting an Approved Timestamping Service](#123-deleting-an-approved-timestamping-service)
+  - [12.1 Adding an Approved Timestamping Service](#121-adding-an-approved-timestamping-service)
+  - [12.2 Changing the URL of an Approved Timestamping Service](#122-changing-the-url-of-an-approved-timestamping-service)
+  - [12.3 Deleting an Approved Timestamping Service](#123-deleting-an-approved-timestamping-service)
 - [13. Configuration Backup and Restore](#13-configuration-backup-and-restore)
-  * [13.1 Backing Up the System Configuration](#131-backing-up-the-system-configuration)
-  * [13.2 Restoring the System Configuration in the User Interface](#132-restoring-the-system-configuration-in-the-user-interface)
-  * [13.3 Restoring the Configuration from the Command Line](#133-restoring-the-configuration-from-the-command-line)
-  * [13.4 Downloading, Uploading and Deleting Configuration Backup Files](#134-downloading-uploading-and-deleting-configuration-backup-files)
+  - [13.1 Backing Up the System Configuration](#131-backing-up-the-system-configuration)
+  - [13.2 Restoring the System Configuration in the User Interface](#132-restoring-the-system-configuration-in-the-user-interface)
+  - [13.3 Restoring the Configuration from the Command Line](#133-restoring-the-configuration-from-the-command-line)
+  - [13.4 Downloading, Uploading and Deleting Configuration Backup Files](#134-downloading-uploading-and-deleting-configuration-backup-files)
+  - [13.5 Automatic Backups](#135-automatic-backups)
 - [14. Audit Log](#14-audit-log)
-  * [14.1 Changing the Configuration of the Audit Log](#141-changing-the-configuration-of-the-audit-log)
-  * [14.2 Archiving the Audit Log](#142-archiving-the-audit-log)
+  - [14.1 Changing the Configuration of the Audit Log](#141-changing-the-configuration-of-the-audit-log)
+  - [14.2 Archiving the Audit Log](#142-archiving-the-audit-log)
 - [15. Monitoring](#15-monitoring)
 - [16. Additional configuration options](#16-additional-configuration-options)
-  * [16.1 Verify next update](#161-verify-next-update)
-  * [16.2 OCSP fetch interval](#162-ocsp-fetch-interval)
+  - [16.1 Verify next update](#161-verify-next-update)
+  - [16.2 OCSP fetch interval](#162-ocsp-fetch-interval)
 - [17. Logs and System Services](#17-logs-and-system-services)
+- [18. Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
 
 <!-- tocstop -->
 
@@ -194,11 +207,14 @@ To remove a user, enter:
 
 # 3. Standalone and High-Availability Systems
 
-The central server can be installed and configured in two ways:
-- A standalone server
-- A cluster of independent central servers (nodes) providing high availability (HA). In an HA setup, the system continues to function if one or more of the nodes are experiencing problems or are down for maintenance.
+The central server can be installed and configured in several ways:
+- A standalone server with local database
+- A standalone server with remote database
+- A cluster of central servers (nodes) using a remote database. The system continues to function if one or more of the central server nodes are experiencing problems or are down for maintenance. If the database is highly available (e.g using hot-standby with automatic fail-over or multi-master replication), the system can also recover from database problems with minimal downtime.
 
-In the case of an HA setup, the changes to the databases of each central server are replicated to the other nodes. While most of the system settings described in this document apply to the whole cluster, some have a meaning that is local to each node, although the database records are replicated. In addition, all the configuration signing keys are local to each node and must be generated separately. This distinction will be stated explicitly throughout this document, where necessary.
+When the system is configured with the most basic option standalone server with local database, there is no high-availability support. If either the web server or the database server break, the system goes down.
+
+In the case of an HA setup, the central servers share configuration via an optionally highly-available database. While most of the system settings described in this document apply to the whole cluster, some have a meaning that is local to each node. In addition, all the configuration signing keys are local to each node and must be generated separately. This distinction will be stated explicitly throughout this document, where necessary.
 
 In an HA setup, if the system is configured using different nodes in parallel, the effect will be similar to several people updating the configuration of a standalone server at the same time.
 
@@ -457,18 +473,35 @@ To delete an anchor file, follow these steps.
 # 6. The Management Requests System
 ## 6.1 Registration Requests
 
-As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security:
+As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security by default:
 
 - The registration request must be submitted to the X-Road governing authority over two channels, or in other words, the registration wish must be expressed through two complementary requests:
 one request is submitted to the X-Road central server through the security server,
-the other request is submitted to the X-Road governing authority through means independent of the X-Road (for example, over a digitally signed e-mail). This request must be formalized in the central server by the central server administrator.
+the other request is submitted to the X-Road governing authority through means independent of the X-Road (for example, over a digitally signed e-mail). This request must be formalized in the central server by the central server administrator. 
+  - Security server owner change request is an exception - it is enough to submit one request through security server and the complementary request is generated automatically. Manual approval is still required by default.
 - The association must be approved by the X-Road governing authority.
 
-There are two types of registration requests:
+There are three types of registration requests:
 
 - authentication certificate registration request (see Sections 7.4 and 8.3);
-- security server client registration request (see Section 7.5).
+- security server client registration request (see Section 7.5);
+- security server owner change request (see Section 7.10)
 
+It is possible to streamline the registration process of authentication certificates and security server clients by enabling automatic approval.
+ 
+- authentication certificate registration requests
+  - When automatic approval is enabled, it is enough to submit an authentication certificate registration request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+  - Automatic approval is applied to existing members only.
+  - By default, automatic approval of authentication certificate registration requests is disabled. It can be enabled by setting the `auto-approve-auth-cert-reg-requests` property value to `true` on central server.
+- security server client registration requests
+  - When automatic approval is enabled, it is enough to submit a security server client registration request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+  - Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client.
+  - By default, automatic approval of security server client registration requests is disabled. It can be enabled by setting the `auto-approve-client-reg-requests` property value to `true` on central server.
+- security server owner change requests
+    - When automatic approval is enabled, it is enough to submit a security server owner change request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+    - Automatic approval is applied to existing members only.
+    - By default, automatic approval of security server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on central server.
+    
 ### 6.1.1 State Machine Model for Registration Requests
 
 A registration request can be in one of the following states. See Figure 1 for the state machine diagram.
@@ -492,6 +525,8 @@ Approved – the complementary registration requests have been approved. The ass
 Declined – the complementary registration requests have been declined.
 
 Revoked – a registration request has been revoked.
+
+If automatic approval of authentication certificate registration requests and/or security server client registration requests is enabled, the complimentary registration request is created and approved automatically. Therefore, the request moves directly to Approved state.
 
 ## 6.2 Deletion Requests
 
@@ -582,7 +617,12 @@ To add a subsystem to an X-Road member, follow these steps.
 
 Access rights: Registration Officer
 
-To register an X-Road member's security server, the following actions must be taken.
+The actions required to register an X-Road member's security server depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+
+When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
+- An authentication certificate registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register an X-Road member's security server, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
@@ -624,7 +664,12 @@ To revoke a request, follow these steps.
 
 Access rights: Registration Officer
 
-To register a subsystem of an X-Road member as a security server client, the following actions must be taken.
+The actions required to register a subsystem of an X-Road member as a security server client depend on whether automatic approval of security server client registration requests is enabled or disabled (_default_).
+
+When automatic approval of security server client registration requests is enabled, the following action must be taken:
+- A security server client registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of security server client registration requests is disabled by default. In that case, to register a subsystem of an X-Road member as a security server client, the following actions must be taken.
 - A security server client registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary security server client registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
@@ -734,6 +779,25 @@ To delete an X-Road member, follow these steps.
 1. On the Configuration menu, select Members, select a member that you wish to delete, and click Details.
 2. In the view that opens, locate the Member Details section and click Delete. In the confirmation window that opens, click Confirm.
 
+## 7.10 Changing a Security Server's Owner
+
+Access rights: Registration Officer
+
+The actions required to change a security server's owner depend on whether automatic approval of security server owner change requests is enabled or disabled (_default_).
+
+When automatic approval of security server owner change requests is enabled, the following action must be taken:
+- A security server owner chang request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of security server owner change requests is disabled by default. In that case, to change the owner of a security server, the following actions must be taken.
+- A security server owner change request must be sent from the security server to the central server by the security server administrator;
+- The complementary security server owner change request is formalized in the central server automatically;
+- The complimentary requests must be approved by the central server administrator, on the appeal of the security server's owner.
+
+Registration requests in the state "Submitted for approval" can be approved or rejected by the central server administrator.
+
+- To approve a request open one of its complementary requests in detail view and click Approve. On the approval of the request, the complementary requests move to the "Approved" state. 
+- To decline a request, open one of the complementary requests in detail view and click Decline. Upon declining a request, its complementary requests move to the "Declined" state.
+
 # 8. Managing the Security Servers
 ## 8.1 Viewing the Security Server Details
 
@@ -771,7 +835,12 @@ To change the security server address, follow these steps.
 
 Access rights: Registration Officer
 
-To register a security server's authentication certificate, the following actions must be taken.
+The actions required to register a security server's authentication certificate depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+
+When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
+- An authentication certificate registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a security server's authentication certificate, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
@@ -1007,6 +1076,8 @@ To restore configuration, follow these steps.
 3. Click Confirm to proceed.
 4. A window opens displaying the output from the restore script; click OK to close it.
 
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
+
 ## 13.3 Restoring the Configuration from the Command Line
 
 To restore configuration from the command line, the following data must be available:
@@ -1040,6 +1111,10 @@ To delete the configuration backup file:
 - click Delete on the respective row and confirm the action by clicking Confirm.
 To upload a configuration file from the local file system to the security server:
 - click Upload Backup File, select a file to be uploaded and click OK. The uploaded configuration file appears in the list of configuration files.
+
+## 13.5 Automatic Backups
+
+By default the Central Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-center` file.
 
 # 14. Audit Log
 
@@ -1160,7 +1235,7 @@ Most significant central server services are the following:
 | xroad-signer      | The service that manages key settings.      |   `/var/log/xroad/signer.log` |
 | nginx | The Web server that distributes configuration and implements the TLS protocol in the user interface.      |    `/var/log/nginx/` |
 
-System services can be managed using the upstart (Ubuntu 14.04) or systemd facility.
+System services can be managed using the systemd facility.
 To start a service, issue the following command as a root user:
 
 `service <service> start`
@@ -1178,3 +1253,83 @@ Logback configuration files are stored in the `/etc/xroad/conf.d/` directory.
 Default settings for logging are the following:
 - logging level: INFO;
 - rolling policy: whenever file size reaches 100 MB.
+
+# 18. Migrating to Remote Database Host
+
+Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+Prerequisites
+
+* Same version (10 or later) of PostgreSQL installed on the remote database host.
+* Network connections to PostgreSQL port (tcp/5432) are allowed from the Central Server to the remote database server.
+
+1. Shutdown X-Road processes.
+
+    `systemctl stop "xroad*"`
+
+2. Dump the local database centerui_production to be migrated. The credentials of the database user can be found in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
+
+    `pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui -f centerui_production.dat centerui_production`
+
+3. Shut down and mask local postgresql so it won't start when xroad-proxy starts.
+
+    `systemctl stop postgresql`
+    `systemctl mask postgresql`
+
+4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows. Note that the line `GRANT centerui_production to postgres` is AWS RDS specific and not necessary if the postgres user is a true super-user.
+
+Central Server version 6.23.x
+```
+    psql -h <remote-db-url> -p <remote-db-port> -U postgres
+    CREATE DATABASE centerui_production ENCODING 'UTF8';
+    CREATE ROLE centerui LOGIN PASSWORD '<centerui-password>';
+    GRANT centerui to postgres;
+    \c centerui_production
+    CREATE EXTENSION hstore;
+```
+
+Additionally for Central Server version 6.24.x or greater
+```
+    CREATE SCHEMA centerui AUTHORIZATION centerui;
+```
+
+5. Restore the database dumps on the remote database host.
+
+Version 6.23.x
+
+    `pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui -O -n public -1 -d centerui_production centerui_production.dat`
+
+Version 6.24.x or greater
+
+    `pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui -O -n centerui -1 -d centerui_production centerui_production.dat`
+
+6. Create properties file `/etc/xroad.properties` containing the superuser password.
+
+```
+    sudo touch /etc/xroad.properties
+    sudo chown root:root /etc/xroad.properties
+    sudo chmod 600 /etc/xroad.properties
+```
+
+7. Edit `/etc/xroad.properties`.
+
+```
+    postgres.connection.password = '<master-password>'
+```
+
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+
+```
+    username = centerui
+    password = <centerui-password>
+    database = centerui_production
+    host = <remote-db-url>
+    port = <remote-db-port>
+```
+
+9. Start again the X-Road services.
+
+```
+    systemctl start xroad-jetty
+    systemctl start xroad-signer
+```

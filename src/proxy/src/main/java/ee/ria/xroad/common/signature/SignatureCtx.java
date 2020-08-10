@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -120,7 +121,7 @@ class SignatureCtx {
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1 && firstRequest.isSingleMessage()) {
             return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-                    firstRequest.getParts().get(0).getSoap()), signatureAlgorithmUri);
+                    firstRequest.getParts().get(0).getMessage()), signatureAlgorithmUri);
         }
 
         buildHashChain();

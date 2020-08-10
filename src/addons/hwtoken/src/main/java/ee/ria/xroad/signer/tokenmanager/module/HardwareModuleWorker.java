@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -35,6 +36,7 @@ import iaik.pkcs.pkcs11.DefaultInitializeArgs;
 import iaik.pkcs.pkcs11.InitializeArgs;
 import iaik.pkcs.pkcs11.Module;
 import iaik.pkcs.pkcs11.Slot;
+import iaik.pkcs.pkcs11.wrapper.Functions;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
@@ -118,22 +121,29 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         }
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
-
-        Map<String, TokenType> tokens = new HashMap<>();
-
-        for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
-            TokenType token = createToken(slots, slotIndex);
-            TokenType previous = tokens.putIfAbsent(token.getId(), token);
-
-            if (previous == null) {
-                log.info("Module '{}' slot #{} has token with ID '{}': {}", module.getType(), slotIndex, token.getId(),
-                        token);
-            } else {
-                log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is already registered",
-                        module.getType(), slotIndex, token.getId());
-            }
+        for (int i = 0; i < slots.length; i++) {
+            log.debug("Module '{}' Slot {} ID: {} (0x{})", module.getType(), i, slots[i].getSlotID(),
+                    Functions.toHexString(slots[i].getSlotID()));
         }
 
+        // HSM slot ids defined in module data
+        Set<Long> slotIds = module.getSlotIds();
+        log.debug("Slot configuration for module '{}' defined as {}", module.getType(), slotIds.toString());
+
+        Map<String, TokenType> tokens = new HashMap<>();
+        for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
+            if (slotIds.isEmpty() || slotIds.contains(slots[slotIndex].getSlotID())) {
+                TokenType token = createToken(slots, slotIndex);
+                TokenType previous = tokens.putIfAbsent(token.getId(), token);
+                if (previous == null) {
+                    log.info("Module '{}' slot #{} has token with ID '{}': {}", module.getType(), slotIndex,
+                            token.getId(), token);
+                } else {
+                    log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is "
+                            + " already registered", module.getType(), slotIndex, token.getId());
+                }
+            }
+        }
         return new ArrayList<>(tokens.values());
     }
 

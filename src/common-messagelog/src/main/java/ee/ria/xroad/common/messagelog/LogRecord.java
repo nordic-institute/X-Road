@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,12 +25,10 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import java.io.Serializable;
-
 /**
  * Declares methods that a log record should have.
  */
-public interface LogRecord extends Serializable {
+public interface LogRecord {
 
     /**
      * @return ID of the log record
@@ -38,12 +37,14 @@ public interface LogRecord extends Serializable {
 
     /**
      * Sets the ID of the log record.
+     *
      * @param nr the ID of the log record
      */
     void setId(Long nr);
 
     /**
      * Sets the timestamp of the log record's creation.
+     *
      * @param time the timestamp
      */
     void setTime(Long time);
@@ -60,6 +61,7 @@ public interface LogRecord extends Serializable {
 
     /**
      * Sets whether this log record is archived.
+     *
      * @param isArchived whether this log record is archived
      */
     void setArchived(boolean isArchived);

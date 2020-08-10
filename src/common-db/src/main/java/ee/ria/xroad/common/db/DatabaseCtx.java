@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -34,6 +35,7 @@ import org.hibernate.Interceptor;
 import org.hibernate.JDBCException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
@@ -65,11 +67,19 @@ public class DatabaseCtx {
             throws Exception {
         Session session = null;
         try {
-            session = beginTransaction();
+            boolean newTransaction = false;
+
+            session = getSession();
+            if (session.getTransaction().getStatus() == TransactionStatus.NOT_ACTIVE) {
+                session.beginTransaction();
+                newTransaction = true;
+            }
 
             T result = callback.apply(session);
 
-            commitTransaction();
+            if (newTransaction) {
+                commitTransaction();
+            }
             return result;
         } catch (Exception e) {
             if (e instanceof HibernateException) {
@@ -110,7 +120,7 @@ public class DatabaseCtx {
         log.trace("beginTransaction({})", sessionFactoryName);
 
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
+        if (session.getTransaction().getStatus() == TransactionStatus.NOT_ACTIVE) {
             session.beginTransaction();
         }
 
@@ -124,7 +134,7 @@ public class DatabaseCtx {
         log.trace("commitTransaction({})", sessionFactoryName);
 
         Transaction tx = getSession().getTransaction();
-        if (tx.isActive() && !tx.wasCommitted()) {
+        if (tx.getStatus() == TransactionStatus.ACTIVE) {
             tx.commit();
         }
     }
@@ -136,7 +146,7 @@ public class DatabaseCtx {
         log.trace("rollbackTransaction({})", sessionFactoryName);
 
         Transaction tx = getSession().getTransaction();
-        if (tx.isActive() && !tx.wasRolledBack()) {
+        if (tx.getStatus().canRollback()) {
             tx.rollback();
         }
     }

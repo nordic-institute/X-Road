@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -45,6 +46,7 @@ import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_DELETION;
 import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
 import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_DELETION;
 import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
+import static ee.ria.xroad.common.request.ManagementRequests.OWNER_CHANGE;
 
 @Slf4j
 final class ManagementRequestBuilder {
@@ -101,6 +103,16 @@ final class ManagementRequestBuilder {
         request.setClient(client);
 
         return buildMessage(element(CLIENT_DELETION, ClientRequestType.class, request));
+    }
+
+    SoapMessageImpl buildOwnerChangeRequest(SecurityServerId securityServer, ClientId client) throws Exception {
+        log.debug("buildOwnerChangeRequest(server: {}, client: {})", securityServer, client);
+
+        ClientRequestType request = FACTORY.createClientRequestType();
+        request.setServer(securityServer);
+        request.setClient(client);
+
+        return buildMessage(element(OWNER_CHANGE, ClientRequestType.class, request));
     }
 
     // -- Private helper methods ----------------------------------------------

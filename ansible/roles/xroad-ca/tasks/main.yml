@@ -1,17 +1,19 @@
 ---
-- name: check that OS != Redhat
+- name: check that OS is supported
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
-
-- name: ensure that acl utilities is installed
-  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
-  package:
-    name: acl
-    state: present
-
-- name: nginx-light
-  apt: name=nginx-light state=present
+  
+- name: install required packages
+  apt:
+      name: "{{ items }}"
+      state: present
+      update_cache: yes
+  vars:
+    items:
+      - "acl"
+      - "nginx-light"
+      - "openssl"
 
 - name: group ca
   group:
@@ -36,7 +38,7 @@
 
 - name: copy root user directories
   copy:
-    src: common-files/{{ item }}
+    src: "common-files/{{ item }}"
     dest: /
     group: "root"
     owner: "root"
@@ -44,19 +46,9 @@
     - "etc"
     - "usr"
 
-- name: copy root user directories for trusty
-  copy:
-    src: trusty-files/{{ item }}
-    dest: /
-    group: "root"
-    owner: "root"
-  with_items:
-    - "etc"
-  when: ansible_distribution_release == "trusty"
-
 - name: copy root user directories for bionic
   copy:
-    src: bionic-files/{{ item }}
+    src: "bionic-files/{{ item }}"
     dest: /
     group: "root"
     owner: "root"
@@ -66,7 +58,7 @@
 
 - name: copy ca group directories
   copy:
-    src: common-files/{{ item }}
+    src: "common-files/{{ item }}"
     dest: /home
     group: "ca"
     owner: "ca"
@@ -81,6 +73,7 @@
     - "sign"
     - "sign-auth"
     - "sign-sign"
+    - "ca-revoke"
 
 - name: set file permissions 2
   file:
@@ -91,6 +84,9 @@
     - "revoke.sh"
     - "sign.sh"
     - "intermediate.sh"
+    - "ocsp.py"
+    - "ca.py"
+    - "sign_req.sh"
 
 - name: set file permissions 3
   file:
@@ -135,6 +131,11 @@
   become_user: ca
   when: stat_result.stat.exists == False
 
+- name: remove obsolete files
+  file:
+    path: /etc/nginx/sites-enabled/ocsp.nginx
+    state: absent
+
 - name: restart nginx
   service:
     name: nginx
@@ -143,6 +144,12 @@
 - name: restart ocsp
   service:
     name: ocsp
+    state: restarted
+    enabled: yes
+
+- name: restart ca
+  service:
+    name: ca
     state: restarted
     enabled: yes
 

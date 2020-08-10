@@ -76,6 +76,8 @@ var XROAD_CENTERUI_COMMON = function() {
             return _("management_requests.auth_cert_deletion");
         case 'ClientDeletionRequest':
             return _("management_requests.client_deletion");
+        case 'OwnerChangeRequest':
+            return _("management_requests.owner_change");
         default:
             alert("Type '" + rawRequestType + "'is not supported");
         break;

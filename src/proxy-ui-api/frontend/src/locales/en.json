@@ -1,3 +1,956 @@
 {
-  "message": "hello world!"
+  "tab": {
+    "main": {
+      "clients": "Clients",
+      "keys": "Keys and certificates",
+      "diagnostics": "Diagnostics",
+      "settings": "Settings"
+    },
+    "client": {
+      "details": "details",
+      "serviceClients": "service clients",
+      "services": "services",
+      "internalServers": "internal servers",
+      "localGroups": "local groups"
+    },
+    "keys": {
+      "signAndAuthKeys": "SIGN and AUTH Keys",
+      "apiKey": "API Key",
+      "ssTlsCertificate": "Security Server TLS Certificate"
+    },
+    "settings": {
+      "systemParameters": "System Parameters",
+      "backupAndRestore": "Backup And Restore"
+    },
+    "services": {
+      "endpoints": "Endpoints",
+      "parameters": "Service Parameters"
+    }
+  },
+  "backup": {
+    "backupConfiguration": {
+      "button": "Back up config.",
+      "message": {
+        "success": "Backup {file} successfully created"
+      }
+    },
+    "uploadBackup": {
+      "button": "Upload backup",
+      "success": "Backup {file} uploaded successfully",
+      "confirmationDialog": {
+        "title": "File already exists",
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?"
+      }
+    },
+    "action": {
+      "delete": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to delete backup {file}?"
+        },
+        "success": "Backup {file} deleted"
+      },
+      "restore": {
+        "dialog": {
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to restore from {file}?"
+        },
+        "success": "Configuration restored from {file}"
+      }
+    }
+  },
+  "clients": {
+    "action": {
+      "register": {
+        "success": "Client registered",
+        "confirm": {
+          "title": "Register client",
+          "text": "Are you sure you want to send a client registration request?"
+        }
+      }
+    }
+  },
+  "client": {
+    "name": "Name",
+    "id": "ID",
+    "status": "Status",
+    "statusText": {
+      "registered": "REGISTERED",
+      "globalError": "GLOBAL ERROR",
+      "deletionInProgress": "DELETION IN PROGRESS",
+      "saved": "SAVED",
+      "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
+    "action": {
+      "unregister": {
+        "success": "Client unregistered",
+        "confirmTitle": "Unregister client",
+        "confirmText": "Do you want to unregister this client?"
+      },
+      "makeOwner": {
+        "button": "Make Owner",
+        "success": "Owner changed",
+        "confirmTitle": "Make Owner Member",
+        "confirmText1": "Do you want to make the Member below the new Owner Member of this Security Server?",
+        "confirmText2": "As the \"Make owner\" button below is pressed, a request for changing the owner will be submitted to the X-Road governing authority."
+      },
+      "delete": {
+        "success": "Client deleted",
+        "confirmTitle": "Delete client",
+        "confirmText": "Do you want to delete this client?"
+      },
+      "removeOrphans": {
+        "success": "Certificate deleted",
+        "confirmTitle": "Key and certificate deletion",
+        "confirmText": "Signature key and certificate associated with the deleted client have no users. Delete key and certificate?",
+        "cancelButtonText": "No"
+      }
+    },
+    "owner": "Owner",
+    "member": "Member",
+    "memberName": "Member Name",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
+    "subsystemCode": "Subsystem Code",
+    "connType": "Connection type",
+    "connTypeInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
+    "saved": "Saved",
+    "globalError": "Global error",
+    "registered": "Registered",
+    "registrationInProgress": "Registration in progress",
+    "deletionInProgress": "Deletion in progress",
+    "unknownMember": "unknown member"
+  },
+  "internalServers": {
+    "connectionType": "Connection type",
+    "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
+    "tlsTitle": "Information System TLS certificate",
+    "certHash": "Certificate Hash (SHA/1)",
+    "ssCertTitle": "Security Server certificate",
+    "connTypeUpdated": "Connection type updated"
+  },
+  "cert": {
+    "signCertificate": "Sign Certificate",
+    "serialNumber": "Serial Number",
+    "state": "State",
+    "inUse": "in use",
+    "disabled": "disabled",
+    "expires": "Expires",
+    "certificateHash": "Certificate Hash (SHA/1)",
+    "infoSystem": "Information System TLS certificate",
+    "keyUsage": {
+      "DIGITAL_SIGNATURE": "Digital Signature",
+      "NON_REPUDIATION": "Non Repudiation",
+      "KEY_ENCIPHERMENT": "Key Encipherment",
+      "DATA_ENCIPHERMENT": "Data Encipherment",
+      "KEY_AGREEMENT": "Key Agreement",
+      "KEY_CERT_SIGN": "Certificate Sign",
+      "CRL_SIGN": "CRL Sign",
+      "ENCIPHER_ONLY": "Encipher Only",
+      "DECIPHER_ONLY": "Decipher Only"
+    },
+    "certificate": "Certificate",
+    "name": "Name",
+    "ocsp": "OCSP status",
+    "hash": "Hash",
+    "hashInfo": "Hash (SHA-1)",
+    "rsaModulus": "RSA Public Key Modulus",
+    "rsaExp": "RSA Public Key Exponent",
+    "deleteCertTitle": "Delete certificate?",
+    "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
+    "certDeleted": "Certificate deleted",
+    "activateSuccess": "Certificate has been activated",
+    "disableSuccess": "Certificate has been disabled"
+  },
+  "serviceClients": {
+    "addServiceClient": "Add subject",
+    "name": "Member name / Group description",
+    "id": "ID",
+    "searchPlaceHolder": "Service clients",
+    "accessRights": "Access rights",
+    "serviceCode": "Service code",
+    "title": "Title",
+    "accessRightsGiven": "Access Rights Given",
+    "removeSuccess": "Access Rights successfully removed",
+    "removeOneTitle": "Remove access rights?",
+    "removeOneText": "Are you sure you want to remove access rights from this service client?",
+    "removeAllTitle": "Remove all access rights?",
+    "removeAllText": "Are you sure you want to remove all access rights from this service client?",
+    "removeAll": "Remove all",
+    "addService": "Add service",
+    "addServiceClientAccessRightSuccess": "Access rights successfully added",
+    "noAvailableServices": "No available services",
+    "noAccessRights": "No access rights to this client",
+    "memberGroupStep": "Member / Group",
+    "servicesStep": "Services",
+    "addServiceClientTitle": "Add a subject",
+    "addSelected": "Add Selected",
+    "serviceSelectionStep": "Servicecode"
+  },
+  "localGroups": {
+    "addGroup": "Add group",
+    "code": "Code",
+    "description": "Description",
+    "memberCount": "Member Count",
+    "updated": "Updated"
+  },
+  "localGroup": {
+    "localGroup": "Local group",
+    "editDesc": "Edit description",
+    "groupMembers": "Group Members",
+    "addMembers": "Add Members",
+    "name": "Member Name",
+    "id": "Id",
+    "accessDate": "Access Rights Given",
+    "deleteTitle": "Delete group?",
+    "deleteText": "Are you sure that you want to delete this group?",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure you want to remove this member?",
+    "removeAllTitle": "Remove all members?",
+    "removeAllText": "Are you sure you want to remove all members of this group?",
+    "descSaved": "Description saved",
+    "groupDeleted": "Group deleted",
+    "description": "Description",
+    "code": "Code",
+    "addLocalGroup": "Add Local Group",
+    "localGroupAdded": "Local group added",
+    "searchOptions": "Search options",
+    "addSelected": "Add selected",
+    "noResults": "Your search found no results."
+  },
+  "services": {
+    "addWsdl": "Add WSDL",
+    "addRest": "Add REST",
+    "disableNotice": "Disable notice",
+    "disableTitle": "Disable?",
+    "service": "Service",
+    "serviceCode": "Service Code",
+    "serviceType": "URL type",
+    "url": "URL",
+    "urlPlaceholder": "Insert URL",
+    "serviceCodePlaceholder": "Insert service code",
+    "restApiBasePath": "REST API Base Path",
+    "OpenApi3Description": "OpenAPI 3 Description",
+    "wsdlDescription": "WSDL Description",
+    "timeout": "Timeout",
+    "deleteTitle": "Delete service description?",
+    "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
+    "deleteRestText": "Are you sure that you want to delete this REST Service?",
+    "noMatches": "No matching records",
+    "disableSuccess": "Service description disabled",
+    "enableSuccess": "Service description enabled",
+    "openApi3Added": "OpenApi3 service added",
+    "restAdded": "REST service added",
+    "wsdlAdded": "WSDL added",
+    "deleted": "Service description deleted",
+    "restDetails": "REST details",
+    "openapiDetails": "OpenAPI 3 details",
+    "wsdlDetails": "WSDL details",
+    "refreshed": "Refreshed",
+    "lastRefreshed": "Last refreshed: ",
+    "editUrl": "Edit URL",
+    "serviceUrl": "Service URL",
+    "applyToAll": "Apply to all in WSDL",
+    "serviceParameters": "Service Parameters",
+    "urlTooltip": "The URL where requests targeted at the service are directed",
+    "timeoutSec": "Timeout (s)",
+    "timeoutTooltip": "The maximum duration of a request to the service, in seconds",
+    "verifyTls": "Verify TLS certificate",
+    "tlsTooltip": "Verify TLS certificate when a secure connection is established",
+    "deleting_services": "Deleting services:",
+    "adding_services": "Adding services:",
+    "wsdl_validation_warnings": "Validation warnings:",
+    "memberNameGroupDesc": "Member name / Group description",
+    "idGroupCode": "ID / Group code"
+  },
+  "endpoints": {
+    "addEndpoint": "Add Endpoint",
+    "path": "Path",
+    "httpRequestMethod": "HTTP Request Method",
+    "endpointHelp1": "Paths is relative to the API base path, e.g. '/pets'. The asterisk (*) can be used as a wildcard",
+    "endpointHelp2": "* = match one path segment.",
+    "endpointHelp3": "** = match zero or more segments, e.g. '/pets/**'.",
+    "endpointHelp4": "Path parameters must be replaced with an asterisk, e.g. '/pets/{id}/images' => '/pets/*/images'.",
+    "saveNewEndpointError": "Error saving new endpoint",
+    "saveNewEndpointSuccess": "New endpoint created successfully",
+    "all": "ALL",
+    "deleteSuccess": "Endpoint removed successfully",
+    "details": "Endpoint details",
+    "deleteTitle": "Delete endpoint",
+    "deleteEndpointText": "Are you sure that you want to delete this endpoint",
+    "editSuccess": "Changes to endpoint saved successfully"
+  },
+  "accessRights": {
+    "title": "Access Rights",
+    "addServiceClients": "Add subjects",
+    "addServiceClientsTitle": "Add Subjects",
+    "memberName": "Member Name / Group Description",
+    "id": "ID",
+    "rightsGiven": "Access Rights given",
+    "removeSuccess": "Access right removed successfully",
+    "removeTitle": "Remove access rights?",
+    "removeText": "Are you sure you want to remove access rights from this client?",
+    "removeAllTitle": "Remove all access rights?",
+    "removeAllText": "Are you sure you want to remove access rights from all clients?",
+    "addServiceClientsSuccess": "Access rights added successfully",
+    "removeServiceClientsSuccess": "Access rights removed successfully",
+    "addSubjectsSuccess": "Access rights added successfully",
+    "removeSubjectsSuccess": "Access rights removed successfully"
+  },
+  "action": {
+    "addSubsystem": "add subsystem",
+    "addClient": "add client",
+    "addMember": "Add member",
+    "search": "Search",
+    "add": "Add",
+    "copyId": "Copy ID",
+    "export": "Export",
+    "emptySearch": "Your search for {msg} found no results.",
+    "noData": "No data",
+    "ok": "Ok",
+    "close": "Close",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "download": "Download",
+    "upload": "Upload",
+    "remove": "Remove",
+    "removeAll": "Remove All",
+    "register": "Register",
+    "restore": "Restore",
+    "unregister": "Unregister",
+    "save": "Save",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
+    "previous": "Previous",
+    "done": "Done",
+    "next": "Next",
+    "submit": "Submit",
+    "finish": "Finish"
+  },
+  "keys": {
+    "token": "Token:",
+    "authKeyCert": "AUTH Key and Certificate",
+    "signKeyCert": "SIGN Key and Certificate",
+    "id": "ID",
+    "ocsp": "OCSP",
+    "expires": "Expires",
+    "status": "Status",
+    "signDetailsTitle": "SIGN Key details",
+    "authDetailsTitle": "AUTH Key details",
+    "detailsTitle": "Key details",
+    "friendlyName": "Friendly name",
+    "tokenDetails": "Token details",
+    "deleteTitle": "Delete key?",
+    "deleteKeyText": "Are you sure that you want to delete this key?",
+    "deleteCsr": "Delete CSR",
+    "deleteCsrTitle": "Delete CSR?",
+    "deleteCsrText": "Are you sure that you want to delete this CSR?",
+    "csrDeleted": "CSR deleted",
+    "tokenInfo": "Token information",
+    "gotIt": "Got it",
+    "tokenId": "Token ID:",
+    "tokenPin": "Token PIN",
+    "tokenSaved": "Token saved",
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "loggedIn": "Logged in token",
+    "logOutTitle": "Log out",
+    "logOutText": "Log out of the token?",
+    "loggedOut": "Logged out of token",
+    "addKey": "Add key",
+    "importCert": "Import Cert.",
+    "type": "Type:",
+    "keyInfo": "Key information",
+    "keyId": "Key ID:",
+    "label": "Label:",
+    "unknown": "Key type not specified",
+    "incorrectPin": "Incorrect PIN",
+    "readOnly": "Read-only:",
+    "helpTitleKeys": "AUTH and SIGN Keys",
+    "helpTitleApi": "API Keys",
+    "keyAdded": "Key added",
+    "generateCsr": "Generate CSR",
+    "request": "Request",
+    "helpTitleSS": "Security Server TLS Certificate",
+    "helpTextKeys": "Authentication key and certificate certify authenticity of a Security Server. They are used for authentication in connections between Security Servers. Signature key and certificate certify authenticity of an X-Road member. They are used for signing and verifying the integrity of mediated messages.",
+    "helpTextApi": "API keys are used to authenticate API calls to Security Server’s management REST API. API keys are associated with roles that define the permissions granted to the API key.",
+    "helpTextSS": "Security Server’s TLS certificate is used in connections between the Security Server and an information system. The internal TLS certificate is used as both client and server certificate depending on the roles of the Security Server and information system.",
+    "keyLabelInput": "Key label",
+    "keyLabelTitle": "Generate a new key",
+    "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "registrationRequest": "Registration request",
+    "certRegistrationInfo": "Security server DNS name or IP address",
+    "importCertSuccess": "Uploading certificate succeeded",
+    "certificateRegistered": "Certificate registered",
+    "unregisterTitle": "Unregister certificate",
+    "unregisterText": "Do you want to unregister this certificate?",
+    "keySaved": "Key saved",
+    "keyDeleted": "Key deleted",
+    "certMarkedForDeletion": "Certificate marked for deletion",
+    "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
+    "authNotSupported": "Auth. key not supported",
+    "ocspStatus": {
+      "disabled": "Disabled",
+      "expired": "Expired",
+      "unknown": "Unknown",
+      "good": "Good",
+      "suspended": "Suspended",
+      "revoked": "Revoked"
+    },
+    "certStatus": {
+      "saved": "Saved",
+      "registration": "Registration in progress",
+      "registered": "Registered",
+      "deletion": "Deletion in progress",
+      "globalError": "Global error"
+    }
+  },
+  "ssTlsCertificate": {
+    "generateKey": "Generate key",
+    "generateTlsAndCertificateDialog": {
+      "title": "Security Server TLS Key",
+      "explanation": "The system will generate a new Security Server TLS key and a self-signed certificate, replacing the existing key and certificate.",
+      "confirmation": "Generate a new Security Server TLS key and certificate?",
+      "success": "New Security Server TLS key and certificate generated successfully"
+    },
+    "importCertificate": "Import cert.",
+    "certificateImported": "Certificate imported",
+    "exportCertificate": "Export cert.",
+    "keyCertTitle": "TLS Key and Certificate",
+    "keyText": "Internal TLS Key",
+    "generateCsr": "Generate CSR",
+    "generateInternalCsr": {
+      "title": "Generate TLS Certificate Signing Request",
+      "step1": {
+        "description": "1) First, provide a distinguished name",
+        "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code.",
+        "label": "Distinguished name",
+        "placeholder": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
+      },
+      "step2": {
+        "description": "2) Generate a new CSR and save it into a safe place",
+        "generateCSR": "Generate CSR"
+      },
+      "cancel": "CANCEL",
+      "done": "DONE"
+    }
+  },
+  "csr": {
+    "usage": "Usage",
+    "client": "Client",
+    "certificationService": "Certification Service",
+    "csrFormat": "CSR Format",
+    "generateCsr": "Generate CSR",
+    "csrDetails": "CSR details",
+    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "helpClient": "X-Road member the certificate will be issued for.",
+    "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
+    "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
+  },
+  "wizard": {
+    "addClientTitle": "Add a Client",
+    "addMemberTitle": "Add member",
+    "clientDetails": "Client details",
+    "clientInfo1": "Specify the details of the Client you want to add.",
+    "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
+    "memberName": "Member Name",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
+    "subsystemCode": "Subsystem Code",
+    "selectClient": "Select Client",
+    "client": {
+      "addClient": "Add Client",
+      "member": "Member",
+      "memberNameTooltip": "Name of the member organization.",
+      "memberClassTooltip": "Code identifying the member class (e.g., government agency, private enterprise etc.).",
+      "memberCodeTooltip": "Member code that uniquely identifies this X-Road member within its member class (e.g. business ID).",
+      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member.",
+      "memberExists": "Member already exists",
+      "register": "Register client"
+    },
+    "token": {
+      "title": "Token",
+      "info": "Select to which token you want to add the new Client. Note: the token must be in Log-in state.",
+      "tokenName": "Token name",
+      "loggedIn": "Logged in"
+    },
+    "signKey": {
+      "title": "Sign Key",
+      "info": "You can define a label for the newly created Key (not mandatory)",
+      "keyLabel": "Key Label"
+    },
+    "finish": {
+      "title": "Finish",
+      "infoLine1": "All required information is collected. By clicking \"Submit\", the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.",
+      "infoLine2": "In order to register the new client, you still need to:",
+      "todo1": "1) Send the CSR to a Certificate Authority for signing",
+      "todo2": "2) Once received back, import the signed CSR to the appropriate key",
+      "todo3": "3) At this point you can register the new added client",
+      "note": "NOTE: if you click Cancel, all data will be lost"
+    },
+    "member": {
+      "info1": "Specify the details of the Member you want to add.",
+      "info2": "If the Member is already existing, you can select it from the Global list.",
+      "select": "Select member",
+      "title": "Member details",
+      "register": "Register member"
+    },
+    "subsystem": {
+      "title": "Add a Subsystem",
+      "selectSubsystem": "Select Subsystem",
+      "info1": "Specify the code of the subsystem to be added.",
+      "info2": "If the subsystem is already existing, you can select it from the Global list.",
+      "registerSubsystem": "Register subsystem",
+      "subsystemAdded": "Subsystem added"
+    },
+    "warning": {
+      "unregistered_member": "Unregistered member"
+    }
+  },
+  "systemParameters": {
+    "title": "System parameters",
+    "configurationAnchor": {
+      "title": "Configuration Anchor",
+      "action": {
+        "download": "DOWNLOAD",
+        "upload": {
+          "button": "UPLOAD",
+          "dialog": {
+            "title": "Confirm configuration anchor details",
+            "info": "Configuration anchor details:",
+            "confirmation": "Continue with import?",
+            "field": {
+              "hash": "Hash (SHA-224)",
+              "generated": "Generated"
+            },
+            "success": "Configuration anchor uploaded"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "distinguishedName": "Hash (SHA-224)",
+          "generated": "Generated"
+        }
+      }
+    },
+    "timestampingServices": {
+      "title": "Timestamping Services",
+      "action": {
+        "add": {
+          "button": "ADD",
+          "dialog": {
+            "title": "Add Timestamping Service",
+            "info": "Trusted Timestamping services:",
+            "success": "Timestamping service added"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "timestampingService": "Timestamping Service",
+          "serviceURL": "Service URL"
+        },
+        "action": {
+          "delete": {
+            "button": "DELETE",
+            "confirmation": {
+              "title": "Are you sure?",
+              "text": "Are you sure you want to delete the timestamping service?"
+            },
+            "success": "Timestamping service successfully deleted"
+          }
+        }
+      }
+    },
+    "approvedCertificateAuthorities": {
+      "title": "Approved Certificate Authorities",
+      "table": {
+        "header": {
+          "distinguishedName": "Distinguished Name",
+          "ocspResponse": "OCSP Response",
+          "expires": "Expires"
+        },
+        "ocspResponse": {
+          "NOT_AVAILABLE": "N/A",
+          "OCSP_RESPONSE_UNKNOWN": "Unknown",
+          "OCSP_RESPONSE_GOOD": "Good",
+          "OCSP_RESPONSE_SUSPENDED": "Suspended",
+          "OCSP_RESPONSE_REVOKED": "Revoked"
+        }
+      }
+    }
+  },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "description": "Specify which roles the new API key should be linked to."
+        },
+        "keyDetails": {
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+        }
+      },
+      "success": "API key successfully created"
+    },
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Linked roles:"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
+        }
+      }
+    }
+  },
+  "initialConfiguration": {
+    "title": "Initial configuration",
+    "noPermission": "This Security Server is currently not initialised, please contact an administrator to do the initial configuration",
+    "success": "Server initialised",
+    "anchor": {
+      "title": "Configuration Anchor",
+      "info": "Import the configuration anchor provided by the Central Server's administrator.",
+      "import": "Import",
+      "hash": "Hash (SHA-224)",
+      "generated": "Generated",
+      "dialogTitle": "Confirmation required",
+      "dialogDetails": "Configuration anchor details:",
+      "dialogQuestion": "Continue with import?"
+    },
+    "member": {
+      "title": "Owner Member",
+      "info": "Define the member that will act as the Security Server owner:",
+      "serverCodeHelp": "Info SS"
+    },
+    "pin": {
+      "title": "Token PIN",
+      "pin": "PIN",
+      "confirmPin": "Confirm PIN",
+      "pinMatchError": "Password confirmation does not match",
+      "info1": "The software token is the place where the Security Server’s AUTH keys is stored. Please define a PIN to log-in into the software token.",
+      "info2": "All required information is collected, press the Submit button to to initialise the Security Server.",
+      "info3": "Once the initialisation is done, you must complete the Security Server configuration - simply click the Configure button in the toast notification that will appear in a few moments."
+    },
+    "warning": {
+      "init_unregistered_member": "Member is unregistered",
+      "init_server_id_exists": "Server id exists",
+      "init_serverconf_exists": "Serverconf exists",
+      "init_server_owner_exists": "Server owner exists",
+      "init_software_token_initialized": "Software token is initialised"
+    }
+  },
+  "login": {
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "errorMsg401": "Wrong username or password"
+  },
+  "logout": {
+    "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
+    "sessionExpired": "Session expired"
+  },
+  "customValidation": {
+    "invalidRest": "REST URL is not valid",
+    "invalidWsdl": "WSDL URL is not valid",
+    "invalidUrl": "URL is not valid",
+    "invalidXrdIdentifier": "Identifier value contains illegal characters"
+  },
+  "serviceClientType": {
+    "globalGroup": "GLOBALGROUP",
+    "localGroup": "LOCALGROUP",
+    "subsystem": "SUBSYSTEM"
+  },
+  "name": "Name",
+  "member_class": "Member class",
+  "member_name": "Member name",
+  "member_code": "Member code",
+  "subsystem": "subsystem",
+  "subsystem_code": "Subsystem code",
+  "instance": "Instance",
+  "type": "Type",
+  "warning": "Warning",
+  "id": "ID",
+  "stores": {
+    "user": {
+      "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
+    }
+  },
+  "fields": {
+    "password": "Password",
+    "username": "Username",
+    "serviceUrl": "URL",
+    "serviceTimeout": "Timeout",
+    "serviceCode": "Service Code",
+    "serviceType": "Service Type",
+    "url": "URL",
+    "tokenPin": "Token PIN",
+    "dns": "DNS",
+    "path": "path",
+    "pin": "PIN",
+    "confirmPin": "Confirm PIN",
+    "securityServerCode": "Security Server Code",
+    "keys": {
+      "friendlyName": "Friendly name"
+    },
+    "addClient": {
+      "memberClass": "Member class",
+      "subsystemCode": "Subsystem Code",
+      "memberCode": "Member Code"
+    },
+    "serviceDescriptionAdd": {
+      "restServiceCode": "Service code"
+    },
+    "serviceDescriptionUpdate": {
+      "newRestServiceCode": "Service code"
+    }
+  },
+  "certificateProfile": {
+    "COMMON_NAME": "Common Name (CN)",
+    "COUNTRY_CODE": "Country Code (C)",
+    "INSTANCE_IDENTIFIER": "Instance Identifier (C)",
+    "MEMBER_CLASS": "Member Class (O)",
+    "MEMBER_CODE": "Member Code (CN)",
+    "ORGANIZATION_NAME": "Organization Name (O)",
+    "SERIAL_NUMBER": "Serial Number",
+    "SERIAL_NUMBER_SN": "Serial Number (SN)",
+    "SERVER_CODE": "Server Code (CN)",
+    "SERVER_DNS_NAME": "Server DNS name (CN)"
+  },
+  "footer": {
+    "software": {
+      "title": "Software",
+      "versionPrefix": "X-Road",
+      "feedback": "Feedback"
+    },
+    "copyright": {
+      "title": "Copyright",
+      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "companyUrlTitle": "https://niis.org/"
+    }
+  },
+  "diagnostics": {
+    "status": "Status",
+    "message": "Message",
+    "previousUpdate": "Previous Update",
+    "nextUpdate": "Next Update",
+    "serviceUrl": "Service URL",
+    "globalCongiguration": {
+      "title": "Global configuration",
+      "configurationStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_INTERNAL": "Internal error occurred.",
+        "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
+        "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_MISSING_PRIVATE_PARAMS": "The downloaded global configuration did not contain private parameters",
+        "ERROR_CODE_UNINITIALIZED": "The configuration client is initialising.",
+        "UNKNOWN": "Unknown"
+      }
+    },
+    "timestamping": {
+      "title": "Timestamping",
+      "timestampingStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
+        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
+        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
+        "ERROR_CODE_INTERNAL": "Internal error occurred",
+        "UNKNOWN": "Unknown"
+      }
+    },
+    "ocspResponders": {
+      "title": "OCSP Responders",
+      "certificationService": "Certification Service:",
+      "ocspStatus": {
+        "SUCCESS": "Everything ok",
+        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Unable to connect to the OCSP responder",
+        "ERROR_CODE_OCSP_FAILED": "Unable to fetch response from the OCSP responder",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
+        "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
+        "UNKNOWN": "Unknown"
+      }
+    }
+  },
+  "globalAlert": {
+    "globalConfigurationInvalid": "Global configuration is expired",
+    "softTokenPinNotEntered": "Please enter softtoken PIN",
+    "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}"
+  },
+  "error_code": {
+    "invalid_service_client_id": "Invalid service client ID",
+    "wrong_key_usage": "Wrong key usage",
+    "resource_read_failed": "Failed to read resource",
+    "invalid_cert": "Invalid certificate",
+    "generate_backup_interrupted": "Backup generation interrupted",
+    "backup_restore_interrupted": "Backup restore interrupted",
+    "wsdl_validator_interrupted": "WSDL validator interrupted",
+    "internal_key_cert_interrupted": "Internal key certificate interrupted",
+    "anchor_file_not_found": "Anchor file not found",
+    "missing_parameter": "Missing parameter",
+    "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
+    "wrong_servicedescription_type": "Wrong servicedescription type",
+    "management_request_sending_failed": "Sending of management request failed",
+    "server_already_fully_initialized": "Server is already fully initialised",
+    "process_failed": "Process failed",
+    "malformed_anchor": "Malformed anchor",
+    "wsdl_download_failed": "WSDL download failed",
+    "pin_incorrect": "Incorrect PIN",
+    "certificate_already_exists": "Certificate already exists",
+    "invalid_backup_file": "Invalid backup file",
+    "cannot_unregister_owner": "Can not unregister owner",
+    "endpoint_already_exists": "Endpoint already exists",
+    "additional_member_already_exists": "Additional member already exists",
+    "illegal_generated_endpoint_remove": "Removing the generated endpoint is not allowed",
+    "ca_cert_status_processing_failure": "CA certificate status processing failed",
+    "invalid_distinguished_name": "Distinguished name is invalid",
+    "invalid_init_params": "Invalid initialisation parameters",
+    "invalid_characters_pin": "PIN has invalid characters",
+    "restore_process_failed": "Restore process failed",
+    "conf_verification": {
+      "anchor_not_for_external_source": "Anchor points to an internal configuration source. Only external configuration source anchors are supported as trusted anchors.",
+      "missing_private_params": "Configuration anchor import failed: invalid anchor file",
+      "unreachable": "Configuration source cannot be reached, check source URL in uploaded anchor file",
+      "outdated": "Configuration from source is out of date",
+      "signature_invalid": "Signature of configuration cannot be verified",
+      "other": "Configuration from source failed verification"
+    },
+    "diagnostic_request_failed": "Diagnostic request failed",
+    "malformed_url": "Malformed URL",
+    "weak_pin": "Weak PIN",
+    "process_not_executable": "Process is not executable",
+    "invalid_filename": "Invalid filename",
+    "duplicate_accessright": "Duplicate accessright",
+    "cert_wrong_usage": "Wrong usage of certificate",
+    "local_group_code_already_exists": "Local group code already exists",
+    "token_not_active": "Token is not active",
+    "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
+    "invalid_dn_parameter": "Invalid DN parameter",
+    "wsdl_exists": "WSDL exists",
+    "client_not_deleted": "Client is not deleted",
+    "local_group_member_already_exists": "Local group member already exists",
+    "service_code_already_exists": "Service code already exists",
+    "member_already_owner": "Member is already the owner",
+    "certificate_not_found": "Certificate not found",
+    "certificate_id_not_found": "Certificate id not found",
+    "local_group_member_not_found": "Local group member not found",
+    "certificate_authority_not_found": "Certificate authority not found",
+    "identifier_not_found": "Identifier not found",
+    "key_not_found": "Key not found",
+    "api_key_not_found": "API key not found",
+    "service_description_not_found": "Service description not found",
+    "service_not_found": "service not found",
+    "timestamping_service_not_found": "Timestamping service not found",
+    "anchor_not_found": "Anchor not found",
+    "endpoint_not_found": "Endpoint not found",
+    "base_endpoint_not_found": "Base endpoint not found",
+    "csr_not_found": "CSR not found",
+    "orphans_not_found": "Orphans not found",
+    "local_group_not_found": "Local group not found",
+    "backup_file_not_found": "Backup file not found",
+    "accessright_not_found": "Accessright not found",
+    "token_not_found": "Token not found",
+    "client_not_found": "Client not found",
+    "service_client_not_found": "Service client not found",
+    "client_already_exists": "Client already exists",
+    "conf_download_failed": "Configuration download failed",
+    "openapi_parsing_error": "Parsing OpenApi3 description failed",
+    "auth_cert_not_supported": "Authentication certificate is not supported",
+    "warnings_detected": "Warnings detected",
+    "anchor_upload_failed": "Anchor upload failed",
+    "url_already_exists": "URL already exists",
+    "certificate_profile_instantiation_failure": "Instantiation of certificate profile failed",
+    "invalid_wsdl": "Invalid WSDL",
+    "invalid_wsdl_service_identifier": "Invalid WSDL service identifier",
+    "wsdl_validator_not_executable": "WSDL validator is not executable",
+    "action_not_possible": "Action is not possible",
+    "sign_cert_not_supported": "Signing certificate is not supported",
+    "timestamping_service_already_configured": "Timestamping service is already configured",
+    "anchor_already_exists": "Anchor already exists",
+    "service_already_exists": "Service already exists",
+    "cannot_delete_owner": "Can not delete the owner",
+    "software_token_init_failed": "Software token initialisation failed",
+    "global_conf_outdated": "Global configuration is outdated",
+    "cannot_register_owner": "Can not register the owner",
+    "validation_failure": "Validation failure",
+    "core": {
+      "Signer": {
+        "UnknownMember": "X-Road core - signer: Unknown member"
+      },
+      "Server": {
+        "ServerProxy": {
+          "UnknownService": "Unknown service",
+          "ServiceFailed": {
+            "SslAuthenticationFailed": "SSL authentication failed",
+            "HttpError": "HTTP error"
+          }
+        }
+      }
+    }
+  },
+  "validationError": {
+    "AssertFalse": "value should be 'false'",
+    "AssertTrue": "value should be 'true'",
+    "DecimalMax": "numeric value exceeds the maximum allowed",
+    "DecimalMin": "numeric value is under the miminum allowed",
+    "Digits": "value should contain only digits",
+    "Email": "value does not meet the email format",
+    "Future": "datetime value should be in the future",
+    "FutureOrPresent": "datetime value should be now or in the future",
+    "Max": "numeric value exceeds the maximum allowed",
+    "Min": "numeric value is under the minimum allowed",
+    "Negative": "numeric value should be less than zero",
+    "NegativeOrZero": "numeric value should be less or equal to zero",
+    "NotBlank": "value should not be blank",
+    "NotEmpty": "value should not be empty",
+    "NotNull": "value is required",
+    "Null": "value should not be set",
+    "Past": "datetime value should be in the past",
+    "PastOrPresent": "datetime value should be now or in the past",
+    "Pattern": "value did not match the required format",
+    "Positive": "numeric value should be greater that zero",
+    "PositiveOrZero": "numeric value should be greater or equal to zero",
+    "Size": "value does not meet length requirements",
+    "Normalized": "value should be normalized",
+    "NoColons": "value should not contain colon (:) symbols",
+    "NoSemicolons": "value should not contain semicolon (;) symbols",
+    "NoForwardslashes": "value should not contain forward slash (/) symbols",
+    "NoBackslashes": "value should not contain backslash (\\) symbols",
+    "NoPercents": "value should not contain percentage (%) symbols"
+  }
 }

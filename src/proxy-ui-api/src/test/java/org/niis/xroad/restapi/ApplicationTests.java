@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,16 +26,12 @@
 package org.niis.xroad.restapi;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 
 /**
  * application test
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class ApplicationTests {
+public class ApplicationTests extends AbstractFacadeMockingTestContext {
 
     /**
      * test that spring context loads

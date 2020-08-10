@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,19 +29,22 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import java.util.Date;
 
@@ -62,8 +66,7 @@ public final class TestUtil {
     static final String CLIENT_STATUS = "status";
     static final String CLIENT_CODE = "client";
 
-    static final String WSDL_LOCATION = "wsdllocation";
-    static final String WSDL_URL = "wsdlurl";
+    static final String SERVICEDESCRIPTION_URL = "servicedescriptionurl";
 
     static final String SERVICE_URL = "serviceUrl";
     static final String SERVICE_VERSION = "v1";
@@ -74,30 +77,30 @@ public final class TestUtil {
     static final String SECURITY_CATEGORY = "securityCategory";
 
     static final int NUM_CLIENTS = 5;
-    static final int NUM_WSDLS = 2;
+    static final int NUM_SERVICEDESCRIPTIONS = 2;
     static final int NUM_SERVICES = 4;
-    static final int NUM_TSPS = 2;
+    static final int NUM_TSPS = 5;
 
     static final String BASE64_CERT =
-        "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
-        + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
-        + "HhcNMTIxMTE5MDkxNDIzWhcNMTQxMTE5MDkxNDIzWjATMREwDwYDVQQDDAhwcm9k"
-        + "dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKNC381RiACCftv"
-        + "ApBzk5HD5YHw0u9SOkwcIkn4cZ4eQWrlROnqHTpS9IVSBoOz6pjCx/FwxZTdpw0j"
-        + "X+bRYpxnj11I2XKzHfhfa6BvL5VkaDtjGpOdSGMJUtrI6m9jFiYryEmYHWxPlL9V"
-        + "pDK0KknevYm2BR23/xDHweBSZ7tkMENU1kXFWLunoBys+W0waR+Z8HH5WNuBLz8X"
-        + "z2iz/6KQ5BoWSPJc9P5TXNOBB+5XyjBR2ogoAOtX53OJzu0wMgLpjuJGdfcpy1S9"
-        + "ukU27B21i2MfZ6Tjhu9oKrAIgcMWJaHJ/gRX6iX1vXlfhUTkE1ACSfvhZdntKLzN"
-        + "TZGEcxsCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0"
-        + "dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z"
-        + "dGF0dXMvb2NzcDAdBgNVHQ4EFgQUUHtGmEl0Cuh/x/wj+UU5S7Wui48wDAYDVR0T"
-        + "AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B"
-        + "Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACJqqey5Ywoegq+Rjo4v89AN78Ou"
-        + "tKtRzQZtuCZP9+ZhY6ivCPK4F8Ne6qpWZb63OLORyQosDAvj6m0iCFMsUZS3nC0U"
-        + "DR0VyP2WrOihBOFC4CA7H2X4l7pkSyMN73ZC6icXkbj9H0ix5/Bv3Ug64DK9SixG"
-        + "RxMwLxouIzk7WvePQ6ywlhGvZRTXxhr0DwvfZnPXxHDPB2q+9pKzC9h2txG1tyD9"
-        + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
-        + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
+            "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
+            + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
+            + "HhcNMTIxMTE5MDkxNDIzWhcNMTQxMTE5MDkxNDIzWjATMREwDwYDVQQDDAhwcm9k"
+            + "dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKNC381RiACCftv"
+            + "ApBzk5HD5YHw0u9SOkwcIkn4cZ4eQWrlROnqHTpS9IVSBoOz6pjCx/FwxZTdpw0j"
+            + "X+bRYpxnj11I2XKzHfhfa6BvL5VkaDtjGpOdSGMJUtrI6m9jFiYryEmYHWxPlL9V"
+            + "pDK0KknevYm2BR23/xDHweBSZ7tkMENU1kXFWLunoBys+W0waR+Z8HH5WNuBLz8X"
+            + "z2iz/6KQ5BoWSPJc9P5TXNOBB+5XyjBR2ogoAOtX53OJzu0wMgLpjuJGdfcpy1S9"
+            + "ukU27B21i2MfZ6Tjhu9oKrAIgcMWJaHJ/gRX6iX1vXlfhUTkE1ACSfvhZdntKLzN"
+            + "TZGEcxsCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0"
+            + "dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z"
+            + "dGF0dXMvb2NzcDAdBgNVHQ4EFgQUUHtGmEl0Cuh/x/wj+UU5S7Wui48wDAYDVR0T"
+            + "AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B"
+            + "Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACJqqey5Ywoegq+Rjo4v89AN78Ou"
+            + "tKtRzQZtuCZP9+ZhY6ivCPK4F8Ne6qpWZb63OLORyQosDAvj6m0iCFMsUZS3nC0U"
+            + "DR0VyP2WrOihBOFC4CA7H2X4l7pkSyMN73ZC6icXkbj9H0ix5/Bv3Ug64DK9SixG"
+            + "RxMwLxouIzk7WvePQ6ywlhGvZRTXxhr0DwvfZnPXxHDPB2q+9pKzC9h2txG1tyD9"
+            + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
+            + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
 
     private TestUtil() {
     }
@@ -125,7 +128,7 @@ public final class TestUtil {
         }
 
         doInTransaction(session -> {
-            ServerConfType conf = createTestData();
+            ServerConfType conf = createTestData(session);
             session.save(conf);
             return null;
         });
@@ -142,7 +145,7 @@ public final class TestUtil {
         });
     }
 
-    static ServerConfType createTestData() {
+    static ServerConfType createTestData(Session session) {
         ServerConfType conf = new ServerConfType();
         conf.setServerCode(SERVER_CODE);
 
@@ -182,15 +185,15 @@ public final class TestUtil {
                     break;
             }
 
-            for (int j = 0; j < NUM_WSDLS; j++) {
-                WsdlType wsdl = new WsdlType();
-                wsdl.setClient(client);
-                wsdl.setUrl(WSDL_URL + j);
-                wsdl.setWsdlLocation(WSDL_LOCATION + j);
+            for (int j = 0; j < NUM_SERVICEDESCRIPTIONS; j++) {
+                ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
+                serviceDescription.setClient(client);
+                serviceDescription.setUrl(SERVICEDESCRIPTION_URL + j);
+                serviceDescription.setType(DescriptionType.WSDL);
 
                 for (int k = 0; k < NUM_SERVICES; k++) {
                     ServiceType service = new ServiceType();
-                    service.setWsdl(wsdl);
+                    service.setServiceDescription(serviceDescription);
                     service.setTitle(SERVICE_TITLE + k);
                     service.setServiceCode(service(j, k));
 
@@ -207,31 +210,54 @@ public final class TestUtil {
 
                     service.setSslAuthentication(k % 2 == 0);
 
-                    wsdl.getService().add(service);
+                    serviceDescription.getService().add(service);
                 }
 
-                if (j == NUM_WSDLS - 1) {
-                    wsdl.setDisabled(true);
-                    wsdl.setDisabledNotice("disabledNotice");
+                if (j == NUM_SERVICEDESCRIPTIONS - 1) {
+                    serviceDescription.setDisabled(true);
+                    serviceDescription.setDisabledNotice("disabledNotice");
                 }
 
-                client.getWsdl().add(wsdl);
+                client.getServiceDescription().add(serviceDescription);
             }
 
             String serviceCode = service(1, 1);
+            final EndpointType endpoint = new EndpointType(serviceCode, "*", "**", false);
+            session.persist(endpoint);
+
+            client.getEndpoint().add(endpoint);
 
             client.getAcl().add(
-                createAccessRight(serviceCode, client.getIdentifier()));
+                    createAccessRight(endpoint, client.getIdentifier()));
 
             ClientId cl = ClientId.create("XX", "memberClass", "memberCode" + i);
-            client.getAcl().add(createAccessRight(serviceCode, cl));
+            client.getAcl().add(createAccessRight(endpoint, cl));
 
             ServiceId se = ServiceId.create("XX", "memberClass",
                     "memberCode" + i, null, "serviceCode" + i);
-            client.getAcl().add(createAccessRight(serviceCode, se));
+            client.getAcl().add(createAccessRight(endpoint, se));
 
             LocalGroupId lg = LocalGroupId.create("testGroup" + i);
-            client.getAcl().add(createAccessRight(serviceCode, lg));
+            client.getAcl().add(createAccessRight(endpoint, lg));
+
+            //rest service
+            ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
+            serviceDescription.setClient(client);
+            serviceDescription.setUrl(SERVICEDESCRIPTION_URL + "rest");
+            serviceDescription.setType(DescriptionType.REST);
+
+            ServiceType service = new ServiceType();
+            service.setServiceDescription(serviceDescription);
+            service.setTitle(SERVICE_TITLE + "REST");
+            service.setServiceCode("rest");
+
+            EndpointType restEndpoint = new EndpointType(service.getServiceCode(), "GET", "/api/**", false);
+            session.persist(restEndpoint);
+            client.getAcl().add(createAccessRight(restEndpoint, client.getIdentifier()));
+
+            EndpointType restEndpoint2 = new EndpointType(service.getServiceCode(), "POST", "/api/test/*", false);
+            session.persist(restEndpoint2);
+            client.getAcl().add(createAccessRight(restEndpoint2, client.getIdentifier()));
 
             LocalGroupType localGroup = new LocalGroupType();
             localGroup.setGroupCode("localGroup" + i);
@@ -247,9 +273,8 @@ public final class TestUtil {
 
         for (int j = 0; j < NUM_TSPS; j++) {
             TspType tsp = new TspType();
-            tsp.setName("tsp" + j);
-            tsp.setUrl("tspUtl" + j);
-
+            tsp.setName("tspName" + j);
+            tsp.setUrl("tspUrl" + j);
             conf.getTsp().add(tsp);
         }
 
@@ -269,8 +294,8 @@ public final class TestUtil {
     }
 
     static ServiceId createTestServiceId(ClientId member, String serviceCode,
-            String serviceVerison) {
-        return ServiceId.create(member, serviceCode, serviceVerison);
+            String serviceVersion) {
+        return ServiceId.create(member, serviceCode, serviceVersion);
     }
 
     static ClientId createTestClientId() {
@@ -291,14 +316,13 @@ public final class TestUtil {
         return CLIENT_CODE + "-" + idx;
     }
 
-    static String service(int wsdlIdx, int serviceIdx) {
-        return SERVICE_CODE + "-" + wsdlIdx + "-" + serviceIdx;
+    static String service(int serviceDescriptionIdx, int serviceIdx) {
+        return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
     }
 
-    static AccessRightType createAccessRight(String serviceCode,
-            XRoadId xRoadId) {
+    static AccessRightType createAccessRight(EndpointType endpoint, XRoadId xRoadId) {
         AccessRightType accessRight = new AccessRightType();
-        accessRight.setServiceCode(serviceCode);
+        accessRight.setEndpoint(endpoint);
         accessRight.setSubjectId(xRoadId);
         accessRight.setRightsGiven(new Date());
 

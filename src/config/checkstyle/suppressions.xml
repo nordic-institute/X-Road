@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN"
-    "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 <suppressions>
-   <suppress checks="MagicNumber" files="[\\/]src[\\/]test[\\/]java[\\/]"/>
-   <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]test[\\/]resources[\\/]"/>
-   <suppress checks="[a-zA-Z0-9]*" files="[\\/]build[\\/]generated-sources[\\/]"/>
-   <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]main[\\/]resources[\\/]"/>
-   <suppress checks="EmptyBlock" files=".LogArchiver.java"/>
+    <suppress checks="MagicNumber" files="[\\/]src[\\/]test[\\/]java[\\/]"/>
+    <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]test[\\/]resources[\\/]"/>
+    <suppress checks="[a-zA-Z0-9]*" files="[\\/]build[\\/]generated-sources[\\/]"/>
+    <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]main[\\/]resources[\\/]"/>
+    <suppress checks="EmptyBlock" files=".LogArchiver.java"/>
 </suppressions>

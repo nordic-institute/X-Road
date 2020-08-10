@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -33,6 +34,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
@@ -48,6 +50,7 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.GlobalConfUpdater;
+import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSelection;
@@ -107,6 +110,8 @@ public final class ProxyMain {
 
     private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
 
+    private static final int STATS_LOG_REPEAT_INTERVAL = 60;
+
     private ProxyMain() {
     }
 
@@ -133,7 +138,7 @@ public final class ProxyMain {
 
         createServices();
 
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             String name = service.getClass().getSimpleName();
             try {
                 service.start();
@@ -144,14 +149,14 @@ public final class ProxyMain {
             }
         }
 
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             service.join();
         }
 
     }
 
     private static void stopServices() throws Exception {
-        for (StartStop s: SERVICES) {
+        for (StartStop s : SERVICES) {
             log.debug("Stopping " + s.getClass().getSimpleName());
             s.stop();
             s.join();
@@ -162,7 +167,7 @@ public final class ProxyMain {
         log.trace("startup()");
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withFallback(ConfigFactory.load())
-                .withValue("akka.remote.netty.tcp.port",
+                .withValue("akka.remote.artery.canonical.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
         log.info("Starting proxy ({})...", readProxyVersion());
     }
@@ -197,16 +202,21 @@ public final class ProxyMain {
         if (SystemProperties.isHealthCheckEnabled()) {
             SERVICES.add(new HealthCheckPort());
         }
+
         jobManager.registerRepeatingJob(GlobalConfUpdater.class, GLOBAL_CONF_UPDATE_REPEAT_INTERVAL);
+        jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
     }
 
     private static void loadConfigurations() {
         log.trace("loadConfigurations()");
 
         try {
+            if (SystemProperties.getServerConfCachePeriod() > 0) {
+                ServerConf.reload(new CachingServerConfImpl());
+            }
             GlobalConf.reload();
         } catch (Exception e) {
-            log.error("Failed to load GlobalConf", e);
+            log.error("Failed to initialize configurations", e);
         }
     }
 
@@ -263,7 +273,7 @@ public final class ProxyMain {
 
                 Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>) Await.result(
+                    Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>)Await.result(
                             Patterns.ask(
                                     logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
                             timeout.duration());
@@ -340,13 +350,13 @@ public final class ProxyMain {
     private static Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl: ServerConf.getTspUrl()) {
+        for (String tspUrl : ServerConf.getTspUrl()) {
             try {
                 URL url = new URL(tspUrl);
 
                 log.info("Checking timestamp server status for url {}", url);
 
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                HttpURLConnection con = (HttpURLConnection)url.openConnection();
                 con.setConnectTimeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS);
                 con.setReadTimeout(DIAGNOSTICS_READ_TIMEOUT_MS);
                 con.setDoOutput(true);

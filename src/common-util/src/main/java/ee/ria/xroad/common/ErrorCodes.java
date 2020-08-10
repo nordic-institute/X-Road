@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -113,6 +114,8 @@ public final class ErrorCodes {
     public static final String X_INCONSISTENT_RESPONSE = "InconsistentResponse";
     public static final String X_MISSING_SOAP = "MissingSoap";
     public static final String X_INVALID_SOAP = "InvalidSoap";
+    public static final String X_MISSING_REST = "MissingRest";
+    public static final String X_INVALID_REST = "InvalidRest";
     public static final String X_ACCESS_DENIED = "AccessDenied";
     public static final String X_SERVICE_DISABLED = "ServiceDisabled";
     public static final String X_SERVICE_FAILED_X = "ServiceFailed";
@@ -123,6 +126,7 @@ public final class ErrorCodes {
             "InvalidProtocolVersion";
     public static final String X_INVALID_CLIENT_IDENTIFIER =
             "InvalidClientIdentifier";
+    public static final String X_INVALID_SERVICE_TYPE = "ServiceType";
 
     // ASiC container related errors
 
@@ -192,6 +196,7 @@ public final class ErrorCodes {
     /**
      * Translates technical exceptions to proxy exceptions with
      * the appropriate error code.
+     *
      * @param ex the exception
      * @return translated CodedException
      */
@@ -231,8 +236,9 @@ public final class ErrorCodes {
      * Translates technical exceptions to proxy exceptions with
      * the appropriate error code. It also prepends the prefix
      * in front of error code.
+     *
      * @param prefix the prefix
-     * @param ex the exception
+     * @param ex     the exception
      * @return translated exception with prefix
      */
     public static CodedException translateWithPrefix(String prefix,

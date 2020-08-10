@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -37,13 +38,14 @@ java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenStatusInfo
 java_import Java::ee.ria.xroad.signer.protocol.message.GenerateCertRequest
+java_import Java::ee.ria.xroad.signer.protocol.message.CertificateRequestFormat
 
 class KeysController < ApplicationController
 
   PARAM_KEY_USAGE_AUTH = "auth"
   PARAM_KEY_USAGE_SIGN = "sign"
 
-  CSR_FORMATS = GenerateCertRequest::RequestFormat.values.map { |e| e.toString }
+  CSR_FORMATS = CertificateRequestFormat.values.map { |e| e.toString }
 
   include Keys::TokenRenderer
 
@@ -167,6 +169,7 @@ class KeysController < ApplicationController
     })
   end
 
+  # rubocop:disable all
   def generate_csr
     audit_log("Generate CSR", audit_log_data = {})
 
@@ -240,7 +243,7 @@ class KeysController < ApplicationController
 
     csr = SignerProxy::generateCertRequest(
       params[:key_id], client_id, key_usage, subject_name,
-      GenerateCertRequest::RequestFormat.valueOf(params[:csr_format]))
+      CertificateRequestFormat.valueOf(params[:csr_format])).certRequest
 
     if params[:key_usage] == PARAM_KEY_USAGE_AUTH
       identifier = "securityserver_" \
@@ -270,6 +273,7 @@ class KeysController < ApplicationController
       :redirect => csr_file
     })
   end
+  # rubocop:enable all
 
   def download_csr
     validate_params({

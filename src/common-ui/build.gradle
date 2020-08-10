@@ -8,10 +8,10 @@ dependencies {
     compile project(':common-verifier')
     compile project(':signer-protocol')
 
-    compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
-    compile 'org.owasp.encoder:encoder:1.2.1'
-    compile 'org.kohsuke:libpam4j:1.8'
-    compile 'net.java.dev.jna:jna:4.2.2'
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+    compile 'org.owasp.encoder:encoder:1.2.2'
+    compile 'org.kohsuke:libpam4j:1.11'
+    compile 'net.java.dev.jna:jna:4.5.2'
 
     testCompile project(':common-test')
     testCompile project(':common-util').sourceSets.test.output

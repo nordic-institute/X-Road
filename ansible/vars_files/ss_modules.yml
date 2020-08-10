@@ -20,6 +20,11 @@ ss_modules:
     build: build
     lib: messagelog-1.0.jar
     target: /usr/share/xroad/jlib/addon/proxy
+  addon-metaservice:
+    dir: addons/metaservice
+    build: build
+    lib: metaservice-1.0.jar
+    target: /usr/share/xroad/jlib/addon/proxy
   configuration-client:
     dir: configuration-client
     build: build
@@ -34,4 +39,4 @@ ss_modules:
     dir: proxy-ui-api
     build: build
     lib: proxy-ui-api-1.0.jar
-    target: /usr/share/xroad/jlib/webapps
+    target: /usr/share/xroad/jlib

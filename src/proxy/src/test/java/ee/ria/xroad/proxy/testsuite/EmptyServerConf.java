@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,6 +29,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -54,7 +56,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
         return true;
     }
 
@@ -109,6 +111,16 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public DescriptionType getDescriptionType(ServiceId service) {
+        return null;
+    }
+
+    @Override
+    public String getServiceDescriptionURL(ServiceId service) {
+        return null;
+    }
+
+    @Override
     public boolean isSslAuthentication(ServiceId service) {
         return false;
     }
@@ -124,8 +136,19 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        return emptyList();
+    }
+
+    @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
+        return emptyList();
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+                                              ClientId client, DescriptionType descriptionType) {
         return emptyList();
     }
 

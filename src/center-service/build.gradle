@@ -4,6 +4,8 @@ dependencies {
     compile project(':common-verifier')
     compile project(':signer-protocol')
 
+    compile 'org.postgresql:postgresql:42.2.14'
+
     testCompile project(':common-util').sourceSets.test.output
 }
 

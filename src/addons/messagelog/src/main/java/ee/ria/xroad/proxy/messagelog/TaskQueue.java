@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,7 +32,7 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +49,12 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class TaskQueue extends UntypedActor {
+public class TaskQueue extends UntypedAbstractActor {
 
     static final String START_TIMESTAMPING = "StartTimestamping";
+    static final String START_TIMESTAMPING_RETRY_MODE = "StartTimestampingRetryMode";
     static final double TIMESTAMPED_RECORDS_RATIO_THRESHOLD = 0.7;
+    static final int TIMESTAMP_RECORDS_LIMIT_RETRY_MODE = 1;
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -59,6 +62,8 @@ public class TaskQueue extends UntypedActor {
 
         if (message.equals(START_TIMESTAMPING)) {
             handleStartTimestamping();
+        } else if (message.equals(START_TIMESTAMPING_RETRY_MODE)) {
+            handleStartTimestamping(TIMESTAMP_RECORDS_LIMIT_RETRY_MODE);
         } else if (message instanceof Timestamper.TimestampSucceeded) {
             handleTimestampSucceeded((Timestamper.TimestampSucceeded) message);
         } else if (message instanceof Timestamper.TimestampFailed) {
@@ -134,10 +139,14 @@ public class TaskQueue extends UntypedActor {
     }
 
     protected void handleStartTimestamping() {
+        handleStartTimestamping(MessageLogProperties.getTimestampRecordsLimit());
+    }
+
+    protected void handleStartTimestamping(int timestampRecordsLimit) {
         List<Task> timestampTasks;
 
         try {
-            timestampTasks = doInTransaction(this::getTimestampTasks);
+            timestampTasks = doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
         } catch (Exception e) {
             log.error("Error getting time-stamp tasks", e);
 
@@ -191,9 +200,8 @@ public class TaskQueue extends UntypedActor {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Task> getTimestampTasks(Session session) {
-        return session.createQuery(getTaskQueueQuery()).setMaxResults(
-                MessageLogProperties.getTimestampRecordsLimit()).list();
+    private List<Task> getTimestampTasks(Session session, int timestampRecordsLimit) {
+        return session.createQuery(getTaskQueueQuery()).setMaxResults(timestampRecordsLimit).list();
     }
 
     @SuppressWarnings("unchecked")

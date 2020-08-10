@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -97,6 +98,25 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
             this.schemaValidator = schemaValidator;
 
             load(fileName);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+    }
+
+    /**
+     * A special constructor for creating an AbstractXmlConf from bytes instead of a file on the filesystem.
+     * <b>Does not set <code>confFileChecker</code>.</b>
+     * @param objectFactory
+     * @param fileBytes
+     * @param schemaValidator
+     */
+    protected AbstractXmlConf(Class<?> objectFactory, byte[] fileBytes,
+            Class<? extends SchemaValidator> schemaValidator) {
+        try {
+            jaxbCtx = JAXBContext.newInstance(objectFactory);
+            this.schemaValidator = schemaValidator;
+
+            load(fileBytes);
         } catch (Exception e) {
             throw translateException(e);
         }

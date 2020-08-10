@@ -1,12 +1,13 @@
 dependencies {
     compile project(':common-ui')
+    compile 'org.postgresql:postgresql:42.2.14'
 }
 
 clean {
     doLast {
         project.delete "vendor/engines/common-ui"
         project.delete "vendor/engines/center-common"
-        project.delete "db/migrate"
+        project.delete "db"
         project.delete "log/development.log"
         project.delete "public/javascripts/translations.js"
     }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,6 +27,7 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -326,6 +328,16 @@ public class ProxyMessageDecoderTest {
         public void soap(SoapMessageImpl soap,
                 Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = soap;
+        }
+
+        @Override
+        public void rest(RestRequest message) throws Exception {
+
+        }
+
+        @Override
+        public void restBody(InputStream content) throws Exception {
+
         }
 
         @Override

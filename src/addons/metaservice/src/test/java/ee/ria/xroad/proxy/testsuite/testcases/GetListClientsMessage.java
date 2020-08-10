@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -35,7 +36,7 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -55,8 +56,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_INSTANCE_IDENTIFIER;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.DUMMY_QUERY_FILE;
+import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.PARAM_INSTANCE_IDENTIFIER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -126,7 +127,7 @@ public class GetListClientsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {

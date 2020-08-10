@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -76,7 +77,7 @@ public final class AuthTrustVerifier {
             URI selectedAddress) {
         log.debug("verify()");
 
-        ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
+        ServiceId service = (ServiceId)context.getAttribute(ID_PROVIDERNAME);
         if (service == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Could not get provider name from context");
@@ -102,7 +103,7 @@ public final class AuthTrustVerifier {
         try {
             List<X509Certificate> additionalCerts =
                     Arrays.asList(
-                            (X509Certificate[]) ArrayUtils.subarray(certs, 1,
+                            (X509Certificate[])ArrayUtils.subarray(certs, 1,
                                     certs.length));
             chain = CertChain.create(serviceProvider.getXRoadInstance(),
                     certs[0], additionalCerts);
@@ -197,11 +198,11 @@ public final class AuthTrustVerifier {
 
         try {
             // Note: assuming X509-based auth
-            return (X509Certificate[]) session.getPeerCertificates();
+            return (X509Certificate[])session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
             log.error("Error while getting peer certificates", e);
-            throw new CodedException(X_SSL_AUTH_FAILED, "Service provider "
-                    + "did not send correct authentication certificate");
+            throw new CodedException(X_SSL_AUTH_FAILED, e,
+                    "Service provider did not send correct authentication certificate");
         }
     }
 

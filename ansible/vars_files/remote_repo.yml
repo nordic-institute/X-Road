@@ -1,15 +1,15 @@
 ---
 package_source: "remote"
 
-ubuntu_14_apt_key:  "https://artifactory.niis.org/api/gpg/key/public"
-ubuntu_14_repo_url: "https://artifactory.niis.org/xroad-release-deb"
-ubuntu_14_apt_repo: "deb {{ubuntu_14_repo_url}} trusty-current main"
+xroad_repo_baseurl: "https://artifactory.niis.org"
+xroad_repo_key:  "https://artifactory.niis.org/api/gpg/key/public"
 
-ubuntu_18_apt_key:  "https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/jenkins%40niis.org.gpg"
-ubuntu_18_repo_url: "https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/debian"
-ubuntu_18_apt_repo: "deb {{ubuntu_18_repo_url}} bionic main"
+ubuntu_18_apt_key:  "{{xroad_repo_key}}"
+ubuntu_18_repo_url: "{{xroad_repo_baseurl}}/xroad-release-deb"
+ubuntu_18_apt_repo: "deb {{ubuntu_18_repo_url}} bionic-current main"
 
-rhel_repo_baseurl: "https://artifactory.niis.org/xroad-release-rpm/rhel/7/current"
+rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xroad-release-rpm/rhel/{{ansible_distribution_major_version}}/current"
 rhel_repo_gpgcheck: "yes"
-rhel_repo_gpgkey: "https://artifactory.niis.org/api/gpg/key/public"
+rhel_repo_gpgkey: "{{xroad_repo_key}}"
 rhel_repo_repogpgcheck: "yes"
+rhel_repo_metadataexpire: "21600"

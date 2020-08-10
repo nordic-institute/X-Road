@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.6  
+Version: 1.7  
 Doc. ID: IG-XLB
 
 
@@ -13,6 +13,7 @@ Doc. ID: IG-XLB
 | 02.03.2018  | 1.4         | Added uniform terms and conditions reference                                                                             | Tatu Repo                    |
 | 15.11.2018  | 1.5         | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
 | 20.12.2018  | 1.6         | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
+| 11.09.2019  | 1.7         | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
 
 ## Table of Contents
 
@@ -53,7 +54,6 @@ Doc. ID: IG-XLB
   * [5.1 Set up SSH between slaves and the master](#51-set-up-ssh-between-slaves-and-the-master)
   * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
     * [5.2.1 RHEL/Ubuntu 18.04: Use systemd for configuration synchronization](#521-rhelubuntu-1804-use-systemd-for-configuration-synchronization)
-    * [5.2.2 Ubuntu 14.04: Use upstart and cron for configuration synchronization](#522-ubuntu-1404-use-upstart-and-cron-for-configuration-synchronization)
   * [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
 * [6. Verifying the setup](#6-verifying-the-setup)
   * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
@@ -414,7 +414,7 @@ Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/9.2/static/high-availability.html).
 Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. At the time of writing, RHEL 7
-distributes PostgreSQL version 9.2, Ubuntu 14.04 distributes version 9.3, and Ubuntu 18.04 version 10; the replication configuration is the same
+distributes PostgreSQL version 9.2, and Ubuntu 18.04 version 10; the replication configuration is the same
 for all these versions.
 
 ### 4.1 Setting up TLS certificates for database authentication
@@ -546,11 +546,6 @@ The `samenet` above assumes that the slaves will be in the same subnet as the ma
 
 Start the master instance:
 
-**Ubuntu 14.04:**
-
-```bash
-/etc/init.d/postgresql start
-```
 **Ubuntu 18.04:**
 
 ```bash
@@ -654,11 +649,6 @@ Finally, start the database instance
 ```bash
 systemctl start postgresql-serverconf
 ```
-**Ubuntu 14.04:**
-```bash
-/etc/init.d/postgresql start
-```
-Note that on Ubuntu, the command starts all configured database instances.
 
 **Ubuntu 18.04:**
 ```bash
@@ -760,53 +750,6 @@ Finally, enable the services:
 ```
 systemctl enable xroad-sync.timer xroad-sync.service
 systemctl start xroad-sync.timer
-```
-
-#### 5.2.2 Ubuntu 14.04: Use upstart and cron for configuration synchronization
-
-First, create the main upstart task for syncing.
-
-Create a new file: `/etc/init/xroad-sync.conf`:
-```
-# xroad-sync
-env XROAD_USER=xroad-slave
-env MASTER=<master_host>
-task
-
-pre-start script
-  test ! -f /var/tmp/xroad/sync-disabled || { stop; exit 0; }
-end script
-
-script
-  su -s /bin/sh -c 'exec "$0" "$@"' xroad -- rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
-end script
-```
-Where `<master_host>` is the DNS name or IP address of the master node.
-
-The task will log `rsync` events to `/var/log/xroad/slave-sync.log`.
-
-Then, create a helper task that ensures that the sync task is executed before the services are started.
-
-Create a new file `/etc/init/xroad-sync-wait.conf`:
-```
-# wait for xroad-sync to complete before starting services
-start on starting xroad-proxy or starting xroad-jetty or starting xroad-signer or starting xroad-confclient
-stop on stopped xroad-sync
-instance $JOB
-normal exit 2
-task
-script
-  echo "$JOB"
-  start xroad-sync || :
-  sleep 360
-end script
-```
-
-Next, add a cron job to periodically start the sync task as upstart does not have a timer facility.
-
-Create a new file `/etc/cron.d/xroad-state-sync`:
-```
-* * * * * root /sbin/initctl --quiet start xroad-sync
 ```
 
 **A note about the `rsync` options:**

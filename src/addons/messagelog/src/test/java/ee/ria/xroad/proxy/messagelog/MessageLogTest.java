@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -45,7 +46,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.Restrictions;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -54,11 +54,16 @@ import org.junit.Test;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -169,6 +174,18 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
+     * Log message with xRequestId
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    @SuppressWarnings("squid:S2699")
+    public void logMessageWithXRequestId() throws Exception {
+        log.trace("logMessageWithXRequestId())");
+
+        log(createMessage(), createSignature(), UUID.randomUUID().toString());
+    }
+
+    /**
      * Test for system property timestamp-records-limit
      */
     @Test
@@ -234,8 +251,9 @@ public class MessageLogTest extends AbstractMessageLogTest {
      * Logs messages, time-stamps them. Then archives the messages and cleans the database.
      * @throws Exception in case of any unexpected errors
      *
-     * FUTURE As this test is quite expensive in terms of time and usable resources (in addition depends on external
-     * utilities), consider moving this test apart from unit tests.
+     *                   FUTURE As this test is quite expensive in terms of time and usable resources (in addition
+     *                   depends on external
+     *                   utilities), consider moving this test apart from unit tests.
      */
     @Test
     public void logTimestampArchiveAndClean() throws Exception {
@@ -465,6 +483,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(message, signature);
     }
 
+    protected void log(String atDate, SoapMessageImpl message, SignatureData signature, String xRequestId)
+            throws Exception {
+        logRecordTime = getDate(atDate);
+        log(message, signature, xRequestId);
+    }
+
     protected LogRecord findByQueryId(String queryId, String startTime, String endTime) throws Exception {
         return logManager.findByQueryId(queryId, getDate(startTime), getDate(endTime));
     }
@@ -564,11 +588,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private static int getNumberOfRecords(final boolean archived) throws Exception {
-        return doInTransaction(session -> session
-                .createCriteria(AbstractLogRecord.class)
-                .add(Restrictions.eq("archived", archived))
-                .list()
-                .size());
+        return doInTransaction(session -> {
+            final CriteriaBuilder cb = session.getCriteriaBuilder();
+            final CriteriaQuery<Number> query = cb.createQuery(Number.class);
+            final Root<AbstractLogRecord> r = query.from(AbstractLogRecord.class);
+            query.select(cb.count(r)).where(cb.equal(r.get("archived"), archived));
+            return session.createQuery(query).getSingleResult().intValue();
+        });
     }
 
     private static class TestLogManager extends LogManager {
@@ -587,22 +613,20 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         /**
          * Tests expect that they can control when timestamping starts, as in:
-         *
-         *     @Test
-         *     public void timestampingFailed() throws Exception {
-         *      TestTimestamperWorker.failNextTimestamping(true);
-         *      log(createMessage(), createSignature);
-         *      log(createMessage(), createSignature());
-         *      log(createMessage(), createSignature());
-         *      assertTaskQueueSize(3);
-         *      startTimestamping();
+         * @return
+         * @Test public void timestampingFailed() throws Exception {
+         * TestTimestamperWorker.failNextTimestamping(true);
+         * log(createMessage(), createSignature);
+         * log(createMessage(), createSignature());
+         * log(createMessage(), createSignature());
+         * assertTaskQueueSize(3);
+         * startTimestamping();
          *
          * Now if TimestamperJob starts somewhere before startTimestamping (which
          * is a likely outcome with the default initial delay of 1 sec) the results
          * will not be what the test expects.
          *
          * To avoid this problem, tests have "long enough" initial delay for TimestamperJob.
-         * @return
          */
         @Override
         protected FiniteDuration getTimestamperJobInitialDelay() {
@@ -613,6 +637,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         protected Props getTaskQueueImpl() {
             return Props.create(TestTaskQueue.class);
         }
+
         /**
          * This method is synchronized in the test class
          */

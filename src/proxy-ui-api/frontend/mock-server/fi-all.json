@@ -1,0 +1,2162 @@
+[
+	{
+		"id": "FI:GOV:1031715-9:HaeKansalaisenAsiakirjatClient",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "HaeKansalaisenAsiakirjatClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:OmatAjoneuvot",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "OmatAjoneuvot",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:OmatAjoneuvotClient",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "OmatAjoneuvotClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:OmatVeneet",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "OmatVeneet",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:Ajokorttitiedot",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "Ajokorttitiedot",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:AjokorttitiedotClient",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "AjokorttitiedotClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:OmatVeneetClient",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "OmatVeneetClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:AsiointiValtuudetClient",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "AsiointiValtuudetClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:AsiointiValtuudet",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "AsiointiValtuudet",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1031715-9:MonitoringClient",
+		"member_name": "Trafi",
+		"member_class": "GOV",
+		"member_code": "1031715-9",
+		"subsystem_code": "MonitoringClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:prhlp01-data",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "prhlp01-data",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:prhlp02-data",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "prhlp02-data",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:xroadvirre-client",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "xroadvirre-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:xroadvirre-services",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "xroadvirre-services",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:xroadytj-services",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "xroadytj-services",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:xroadytj-client",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "xroadytj-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:ytjsa-asrek-client",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "ytjsa-asrek-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244683-1:rekku-asrek-client",
+		"member_name": "PRH",
+		"member_class": "GOV",
+		"member_code": "0244683-1",
+		"subsystem_code": "rekku-asrek-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:ORG:0920632-0:Management",
+		"member_name": "CSC",
+		"member_class": "ORG",
+		"member_code": "0920632-0",
+		"subsystem_code": "Management",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:ORG:0920632-0:HarvesterClient",
+		"member_name": "CSC",
+		"member_class": "ORG",
+		"member_code": "0920632-0",
+		"subsystem_code": "HarvesterClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:ORG:0920632-0:ServiceList",
+		"member_name": "CSC",
+		"member_class": "ORG",
+		"member_code": "0920632-0",
+		"subsystem_code": "ServiceList",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:ORG:0920632-0:Monitoring",
+		"member_name": "CSC",
+		"member_class": "ORG",
+		"member_code": "0920632-0",
+		"subsystem_code": "Monitoring",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:ORG:0920632-0:Virta-OTP",
+		"member_name": "CSC",
+		"member_class": "ORG",
+		"member_code": "0920632-0",
+		"subsystem_code": "Virta-OTP",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:ORG:0920632-0:e2eclient",
+		"member_name": "CSC",
+		"member_class": "ORG",
+		"member_code": "0920632-0",
+		"subsystem_code": "e2eclient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:TestClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "TestClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:TestService",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "TestService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VTJkysely",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VTJkysely",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VTJyllapito",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VTJyllapito",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VRKProdTesting",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VRKProdTesting",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:ServiceViewClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "ServiceViewClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:EIdentificationClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "EIdentificationClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:RolesAuthsClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "RolesAuthsClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:RolesAuthsService",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "RolesAuthsService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:RoVaTestClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "RoVaTestClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:APICatalogClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "APICatalogClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VTJYllapitoClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VTJYllapitoClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:SAHAClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "SAHAClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:Kyllapito",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "Kyllapito",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:Kkysely",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "Kkysely",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:PerfTestClient05",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "PerfTestClient05",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:RoVaE2EClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "RoVaE2EClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:E2EClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "E2EClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VTJMonitoringClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VTJMonitoringClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:SFIMClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "SFIMClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:SFIMServer",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "SFIMServer",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VRK-SFIMClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VRK-SFIMClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VRK-SFIMService",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VRK-SFIMService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:VTJRRAYllapito",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "VTJRRAYllapito",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:rolesauthsservice",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "rolesauthsservice",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245437-2:rolesAuthsClient",
+		"member_name": "VRK",
+		"member_class": "GOV",
+		"member_code": "0245437-2",
+		"subsystem_code": "rolesAuthsClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:KirjaamisosaTietopalvelu",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "KirjaamisosaTietopalvelu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:RUVI-YTHValvontaService-PROD",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "RUVI-YTHValvontaService-PROD",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:RUVI-H2T-PROD",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "RUVI-H2T-PROD",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:RUVI-ASTI-PROD",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "RUVI-ASTI-PROD",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:RUVI-Asiointi-PROD",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "RUVI-Asiointi-PROD",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:MMLValtuudetKysely1",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "MMLValtuudetKysely1",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245954-4:Huoneistotietojarjestelma",
+		"member_name": "MML",
+		"member_class": "GOV",
+		"member_code": "0245954-4",
+		"subsystem_code": "Huoneistotietojarjestelma",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1988069-3:Visma-eBS-1",
+		"member_name": "Visma",
+		"member_class": "COM",
+		"member_code": "1988069-3",
+		"subsystem_code": "Visma-eBS-1",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1988069-3:eBS-HH",
+		"member_name": "Visma",
+		"member_class": "COM",
+		"member_code": "1988069-3",
+		"subsystem_code": "eBS-HH",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1091248-4:IPA",
+		"member_name": "Digia Finland Oy",
+		"member_class": "COM",
+		"member_code": "1091248-4",
+		"subsystem_code": "IPA",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1091248-4:ProslSupplierService",
+		"member_name": "Digia Finland Oy",
+		"member_class": "COM",
+		"member_code": "1091248-4",
+		"subsystem_code": "ProslSupplierService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1091248-4:ProslOrderService",
+		"member_name": "Digia Finland Oy",
+		"member_class": "COM",
+		"member_code": "1091248-4",
+		"subsystem_code": "ProslOrderService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1091248-4:PSOP",
+		"member_name": "Digia Finland Oy",
+		"member_class": "COM",
+		"member_code": "1091248-4",
+		"subsystem_code": "PSOP",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1091248-4:Soite",
+		"member_name": "Digia Finland Oy",
+		"member_class": "COM",
+		"member_code": "1091248-4",
+		"subsystem_code": "Soite",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003706039248",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003706039248",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003708282559",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003708282559",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003709221408",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003709221408",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003722851922",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003722851922",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003701070116",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003701070116",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003715582015",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003715582015",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003706016847",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003706016847",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003702074652",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003702074652",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003723609900",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003723609900",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003701114675",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003701114675",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003717999260",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003717999260",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0844343-9:003729476184",
+		"member_name": "Pro SL Oy",
+		"member_class": "COM",
+		"member_code": "0844343-9",
+		"subsystem_code": "003729476184",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:Vhtuo1",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "Vhtuo1",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vere_server_tuo",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vere_server_tuo",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:ifi_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "ifi_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vere_client_tuo",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vere_client_tuo",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:palkka_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "palkka_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:Ilmoitin",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "Ilmoitin",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:TulorekisteriClient",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "TulorekisteriClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:Vero-STJ-Client",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "Vero-STJ-Client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:Vero-STJ-Service",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "Vero-STJ-Service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vero_gtx_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vero_gtx_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vero_tap_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vero_tap_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vero_tr_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vero_tr_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vero_stj_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vero_stj_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:vero_stj_server_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "vero_stj_server_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245458-3:Vero_palkka_client_prod",
+		"member_name": "VERO",
+		"member_class": "GOV",
+		"member_code": "0245458-3",
+		"subsystem_code": "Vero_palkka_client_prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1516651-3:cybercom-sub01",
+		"member_name": "Cybercom",
+		"member_class": "COM",
+		"member_code": "1516651-3",
+		"subsystem_code": "cybercom-sub01",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0512696-4:TekesTiaProd",
+		"member_name": "TEKES",
+		"member_class": "GOV",
+		"member_code": "0512696-4",
+		"subsystem_code": "TekesTiaProd",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0246246-0:Omakanta",
+		"member_name": "KELA",
+		"member_class": "GOV",
+		"member_code": "0246246-0",
+		"subsystem_code": "Omakanta",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0246246-0:Asiakastietojarjestelma",
+		"member_name": "KELA",
+		"member_class": "GOV",
+		"member_code": "0246246-0",
+		"subsystem_code": "Asiakastietojarjestelma",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0246246-0:KantaKyselyJaValityspalvelu",
+		"member_name": "KELA",
+		"member_class": "GOV",
+		"member_code": "0246246-0",
+		"subsystem_code": "KantaKyselyJaValityspalvelu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0246246-0:KelaClient",
+		"member_name": "KELA",
+		"member_class": "GOV",
+		"member_code": "0246246-0",
+		"subsystem_code": "KelaClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0582075-3:PTTK-Aika",
+		"member_name": "Pohjois-Karjalan Tietotekniikkakeskus Oy",
+		"member_class": "MUN",
+		"member_code": "0582075-3",
+		"subsystem_code": "PTTK-Aika",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:tp_askare_int_ui_client",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "tp_askare_int_ui_client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:Tulli-Askare-client",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "Tulli-Askare-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:Tulli-KUTI2-client",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "Tulli-KUTI2-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:Tulli-VATU-client",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "Tulli-VATU-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:Tulli-FINTARIC",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "Tulli-FINTARIC",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:Tulli-FINTARIC-Service",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "Tulli-FINTARIC-Service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245442-8:Tulli-EXTDELEG-client",
+		"member_name": "Tulli",
+		"member_class": "GOV",
+		"member_code": "0245442-8",
+		"subsystem_code": "Tulli-EXTDELEG-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:YritystenSahkoinenAsiointi",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "YritystenSahkoinenAsiointi",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:testClient",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "testClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:AsiakasTietoVaranto",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "AsiakasTietoVaranto",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVReferenssiTietoPalvelu",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVReferenssiTietoPalvelu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVYhdistelmaRajapinnat",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVYhdistelmaRajapinnat",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVEntiteettiRajapinnat",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVEntiteettiRajapinnat",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVArvojoukotRajapinta",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVArvojoukotRajapinta",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:CloudiaUspaIntegraatio",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "CloudiaUspaIntegraatio",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:Tyomarkkinatori",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "Tyomarkkinatori",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:USPA asianhallintarajapinnat",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "USPA asianhallintarajapinnat",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:USPA-TOJ",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "USPA-TOJ",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATV rajapinnat",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATV rajapinnat",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVDokumenttirajapinta",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVDokumenttirajapinta",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:OYS",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "OYS",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:Ampari",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "Ampari",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:LuvatjaValvontaPalvelukerros",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "LuvatjaValvontaPalvelukerros",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVSATPalveluRajapinnat",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVSATPalveluRajapinnat",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2296962-1:ATVTunnistusrajapinta",
+		"member_name": "KEHA-keskus",
+		"member_class": "GOV",
+		"member_code": "2296962-1",
+		"subsystem_code": "ATVTunnistusrajapinta",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245491-1:TKYLEINEN",
+		"member_name": "Tilastokeskus",
+		"member_class": "GOV",
+		"member_code": "0245491-1",
+		"subsystem_code": "TKYLEINEN",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245491-1:TESTI",
+		"member_name": "Tilastokeskus",
+		"member_class": "GOV",
+		"member_code": "0245491-1",
+		"subsystem_code": "TESTI",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245491-1:PRH-VIRRE",
+		"member_name": "Tilastokeskus",
+		"member_class": "GOV",
+		"member_code": "0245491-1",
+		"subsystem_code": "PRH-VIRRE",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245491-1:PRH-YTJ",
+		"member_name": "Tilastokeskus",
+		"member_class": "GOV",
+		"member_code": "0245491-1",
+		"subsystem_code": "PRH-YTJ",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0709019-2:VISA",
+		"member_name": "Ficora",
+		"member_class": "GOV",
+		"member_code": "0709019-2",
+		"subsystem_code": "VISA",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1737185-2:carea_vtj",
+		"member_name": "Medi-It Oy",
+		"member_class": "COM",
+		"member_code": "1737185-2",
+		"subsystem_code": "carea_vtj",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1737185-2:phhyky_vtj",
+		"member_name": "Medi-It Oy",
+		"member_class": "COM",
+		"member_code": "1737185-2",
+		"subsystem_code": "phhyky_vtj",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1737185-2:espoo_vtj",
+		"member_name": "Medi-It Oy",
+		"member_class": "COM",
+		"member_code": "1737185-2",
+		"subsystem_code": "espoo_vtj",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2718095-3:TuudoClient",
+		"member_name": "Caleidon Oy",
+		"member_class": "COM",
+		"member_code": "2718095-3",
+		"subsystem_code": "TuudoClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0825508-3:hyvis_es",
+		"member_name": "Etelä-Savon sote",
+		"member_class": "MUN",
+		"member_code": "0825508-3",
+		"subsystem_code": "hyvis_es",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274241-9:HSYWatermSystemClient",
+		"member_name": "HSY",
+		"member_class": "MUN",
+		"member_code": "2274241-9",
+		"subsystem_code": "HSYWatermSystemClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274241-9:HSYWatermTestSystem",
+		"member_name": "HSY",
+		"member_class": "MUN",
+		"member_code": "2274241-9",
+		"subsystem_code": "HSYWatermTestSystem",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274241-9:HSYWatermSystem",
+		"member_name": "HSY",
+		"member_class": "MUN",
+		"member_code": "2274241-9",
+		"subsystem_code": "HSYWatermSystem",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274241-9:HSYYTJClient",
+		"member_name": "HSY",
+		"member_class": "MUN",
+		"member_code": "2274241-9",
+		"subsystem_code": "HSYYTJClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1100539-2:NetumClient",
+		"member_name": "Netum Oy",
+		"member_class": "COM",
+		"member_code": "1100539-2",
+		"subsystem_code": "NetumClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2292633-0:VRKClient",
+		"member_name": "Istekki",
+		"member_class": "COM",
+		"member_code": "2292633-0",
+		"subsystem_code": "VRKClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2292633-0:InfraServices",
+		"member_name": "Istekki",
+		"member_class": "COM",
+		"member_code": "2292633-0",
+		"subsystem_code": "InfraServices",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2292633-0:003701714953",
+		"member_name": "Istekki",
+		"member_class": "COM",
+		"member_code": "2292633-0",
+		"subsystem_code": "003701714953",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2292633-0:003722926330",
+		"member_name": "Istekki",
+		"member_class": "COM",
+		"member_code": "2292633-0",
+		"subsystem_code": "003722926330",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2292633-0:YTJClient",
+		"member_name": "Istekki",
+		"member_class": "COM",
+		"member_code": "2292633-0",
+		"subsystem_code": "YTJClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1738354-6:REKA",
+		"member_name": "Energiavirasto",
+		"member_class": "GOV",
+		"member_code": "1738354-6",
+		"subsystem_code": "REKA",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1738354-6:Energiavirasto-auth-prod",
+		"member_name": "Energiavirasto",
+		"member_class": "GOV",
+		"member_code": "1738354-6",
+		"subsystem_code": "Energiavirasto-auth-prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0201256-6:YTJclient",
+		"member_name": "Helsingin kaupunki",
+		"member_class": "MUN",
+		"member_code": "0201256-6",
+		"subsystem_code": "YTJclient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0201256-6:HelmetCheckoutsService",
+		"member_name": "Helsingin kaupunki",
+		"member_class": "MUN",
+		"member_code": "0201256-6",
+		"subsystem_code": "HelmetCheckoutsService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0201256-6:KuVaTV_VTJClient",
+		"member_name": "Helsingin kaupunki",
+		"member_class": "MUN",
+		"member_code": "0201256-6",
+		"subsystem_code": "KuVaTV_VTJClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245974-7:Aloitepalvelut",
+		"member_name": "Oikeusministeriö",
+		"member_class": "GOV",
+		"member_code": "0245974-7",
+		"subsystem_code": "Aloitepalvelut",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245974-7:ORK_RTJ",
+		"member_name": "Oikeusministeriö",
+		"member_class": "GOV",
+		"member_code": "0245974-7",
+		"subsystem_code": "ORK_RTJ",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245974-7:ORK-RR",
+		"member_name": "Oikeusministeriö",
+		"member_class": "GOV",
+		"member_code": "0245974-7",
+		"subsystem_code": "ORK-RR",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245974-7:ORK_Uljas_client",
+		"member_name": "Oikeusministeriö",
+		"member_class": "GOV",
+		"member_code": "0245974-7",
+		"subsystem_code": "ORK_Uljas_client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:kapamessages",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "kapamessages",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:kapamessage_account_service",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "kapamessage_account_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:kapamessage_operator_service",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "kapamessage_operator_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:VVP_Sura_Consumer",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "VVP_Sura_Consumer",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:TIA",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "TIA",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:Syke_Veeti_service",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "Syke_Veeti_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:vrk-messages-office-client",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "vrk-messages-office-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:valtori-monitor-client",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "valtori-monitor-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2574261-7:ORK_Uljas_client",
+		"member_name": "Valtori",
+		"member_class": "GOV",
+		"member_code": "2574261-7",
+		"subsystem_code": "ORK_Uljas_client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2406079-6:Voimassaolopalvelu",
+		"member_name": "Valtori TUVE-yksikko",
+		"member_class": "GOV",
+		"member_code": "2406079-6",
+		"subsystem_code": "Voimassaolopalvelu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1088146-2:SyncService",
+		"member_name": "Cloudia Oy",
+		"member_class": "COM",
+		"member_code": "1088146-2",
+		"subsystem_code": "SyncService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1021277-9:testClient",
+		"member_name": "Turvallisuus- ja kemikaalivirasto",
+		"member_class": "GOV",
+		"member_code": "1021277-9",
+		"subsystem_code": "testClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0204819-8:tkuesb01.adturku.fi",
+		"member_name": "Turun kaupunki",
+		"member_class": "MUN",
+		"member_code": "0204819-8",
+		"subsystem_code": "tkuesb01.adturku.fi",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0204819-8:TurkuVTJ",
+		"member_name": "Turun kaupunki",
+		"member_class": "MUN",
+		"member_code": "0204819-8",
+		"subsystem_code": "TurkuVTJ",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0207709-5:VAL",
+		"member_name": "Valtimon kunta",
+		"member_class": "MUN",
+		"member_code": "0207709-5",
+		"subsystem_code": "VAL",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0169048-8:KON",
+		"member_name": "Kontiolahden kunta",
+		"member_class": "MUN",
+		"member_code": "0169048-8",
+		"subsystem_code": "KON",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0168654-2:JUU",
+		"member_name": "Juuan kunta",
+		"member_class": "MUN",
+		"member_code": "0168654-2",
+		"subsystem_code": "JUU",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0169583-6:liperi",
+		"member_name": "Liperin kunta",
+		"member_class": "MUN",
+		"member_code": "0169583-6",
+		"subsystem_code": "liperi",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0927140-5:PKMKL",
+		"member_name": "Pohjois-Karjalan maakuntaliitto",
+		"member_class": "MUN",
+		"member_code": "0927140-5",
+		"subsystem_code": "PKMKL",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0193169-1:sodankyla",
+		"member_name": "Sodankylan kunta",
+		"member_class": "MUN",
+		"member_code": "0193169-1",
+		"subsystem_code": "sodankyla",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0168900-6:KIT",
+		"member_name": "Kiteen kaupunki",
+		"member_class": "MUN",
+		"member_code": "0168900-6",
+		"subsystem_code": "KIT",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2732095-2:SIUNSOTE",
+		"member_name": "Pohjois-Karjalan sosiaali- ja terveyspalvelujen kuntayhtymä",
+		"member_class": "MUN",
+		"member_code": "2732095-2",
+		"subsystem_code": "SIUNSOTE",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0243096-0:VRKClient",
+		"member_name": "Etela-Pohjanmaan sairaanhoitopiirin kuntayhtyma",
+		"member_class": "MUN",
+		"member_code": "0243096-0",
+		"subsystem_code": "VRKClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0243096-0:EpshpVTJClient",
+		"member_name": "Etela-Pohjanmaan sairaanhoitopiirin kuntayhtyma",
+		"member_class": "MUN",
+		"member_code": "0243096-0",
+		"subsystem_code": "EpshpVTJClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1484332-4:VireProdClient",
+		"member_name": "Finnvera Oyj",
+		"member_class": "COM",
+		"member_code": "1484332-4",
+		"subsystem_code": "VireProdClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2019488-5:laboratoriopalvelu",
+		"member_name": "Elintarviketurvallisuusvirasto",
+		"member_class": "GOV",
+		"member_code": "2019488-5",
+		"subsystem_code": "laboratoriopalvelu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:9129466-4:utsjoki",
+		"member_name": "Utsjoen kunta",
+		"member_class": "MUN",
+		"member_code": "9129466-4",
+		"subsystem_code": "utsjoki",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1637268-5:Rovaniemi",
+		"member_name": "LapIT Oy",
+		"member_class": "COM",
+		"member_code": "1637268-5",
+		"subsystem_code": "Rovaniemi",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1567057-6:Valvira",
+		"member_name": "Valvira",
+		"member_class": "GOV",
+		"member_code": "1567057-6",
+		"subsystem_code": "Valvira",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1567057-6:SAMPO-ESB",
+		"member_name": "Valvira",
+		"member_class": "GOV",
+		"member_code": "1567057-6",
+		"subsystem_code": "SAMPO-ESB",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1567057-6:Valvira-Soteri-client",
+		"member_name": "Valvira",
+		"member_class": "GOV",
+		"member_code": "1567057-6",
+		"subsystem_code": "Valvira-Soteri-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:1567057-6:Valvira-Sampo-client",
+		"member_name": "Valvira",
+		"member_class": "GOV",
+		"member_code": "1567057-6",
+		"subsystem_code": "Valvira-Sampo-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0190758-7:Inarin kunta prod",
+		"member_name": "Inarin kunta",
+		"member_class": "MUN",
+		"member_code": "0190758-7",
+		"subsystem_code": "Inarin kunta prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1966829-7:Axiell Aurora",
+		"member_name": "Axiell Finland Oy",
+		"member_class": "COM",
+		"member_code": "1966829-7",
+		"subsystem_code": "Axiell Aurora",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:1978283-1:Rovaniemen kaupunki prod",
+		"member_name": "Rovaniemen kaupunki",
+		"member_class": "MUN",
+		"member_code": "1978283-1",
+		"subsystem_code": "Rovaniemen kaupunki prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:1928736-3:Varhaiskasvatus",
+		"member_name": "Seinäjoen kaupunki",
+		"member_class": "MUN",
+		"member_code": "1928736-3",
+		"subsystem_code": "Varhaiskasvatus",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0313471-7:FinnaFinto",
+		"member_name": "Kansalliskirjasto",
+		"member_class": "GOV",
+		"member_code": "0313471-7",
+		"subsystem_code": "FinnaFinto",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0244629-2:LUKE_VIRTA",
+		"member_name": "Luonnonvarakeskus",
+		"member_class": "GOV",
+		"member_code": "0244629-2",
+		"subsystem_code": "LUKE_VIRTA",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0169823-6:Poltsi",
+		"member_name": "Polvijarven kunta",
+		"member_class": "MUN",
+		"member_code": "0169823-6",
+		"subsystem_code": "Poltsi",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0948320-5:ARA_rakennuksenrahoitus_service",
+		"member_name": "Asumisen rahoitus- ja kehittamiskeskus",
+		"member_class": "GOV",
+		"member_code": "0948320-5",
+		"subsystem_code": "ARA_rakennuksenrahoitus_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0996189-5:SYKE",
+		"member_name": "Suomen Ymparistokeskus",
+		"member_class": "GOV",
+		"member_code": "0996189-5",
+		"subsystem_code": "SYKE",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0996189-5:Syke_Koekalastus_service",
+		"member_name": "Suomen Ymparistokeskus",
+		"member_class": "GOV",
+		"member_code": "0996189-5",
+		"subsystem_code": "Syke_Koekalastus_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0996189-5:Syke_Veeti_service",
+		"member_name": "Suomen Ymparistokeskus",
+		"member_class": "GOV",
+		"member_code": "0996189-5",
+		"subsystem_code": "Syke_Veeti_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0996189-5:Syke_Citobs_client",
+		"member_name": "Suomen Ymparistokeskus",
+		"member_class": "GOV",
+		"member_code": "0996189-5",
+		"subsystem_code": "Syke_Citobs_client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0996189-5:Syke_Citobs_service",
+		"member_name": "Suomen Ymparistokeskus",
+		"member_class": "GOV",
+		"member_code": "0996189-5",
+		"subsystem_code": "Syke_Citobs_service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0191824-3:Muonion kunta prod",
+		"member_name": "Muonion kunta",
+		"member_class": "MUN",
+		"member_code": "0191824-3",
+		"subsystem_code": "Muonion kunta prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0191717-9:Kemijärven kaupunki prod",
+		"member_name": "Kemijärven kaupunki",
+		"member_class": "MUN",
+		"member_code": "0191717-9",
+		"subsystem_code": "Kemijärven kaupunki prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0210704-7:Savukosken kunta prod",
+		"member_name": "Savukosken kunta",
+		"member_class": "MUN",
+		"member_code": "0210704-7",
+		"subsystem_code": "Savukosken kunta prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0191866-5:Pelkosenniemen kunta prod",
+		"member_name": "Pelkosenniemen kunta",
+		"member_class": "MUN",
+		"member_code": "0191866-5",
+		"subsystem_code": "Pelkosenniemen kunta prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0193729-2:Pellon kunta prod",
+		"member_name": "Pellon kunta",
+		"member_class": "MUN",
+		"member_code": "0193729-2",
+		"subsystem_code": "Pellon kunta prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1841830-9:PropentusVTJClient",
+		"member_name": "Propentus Oy",
+		"member_class": "COM",
+		"member_code": "1841830-9",
+		"subsystem_code": "PropentusVTJClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2440921-4:SMK-TSPMessageService",
+		"member_name": "Suomen metsakeskus",
+		"member_class": "GOV",
+		"member_code": "2440921-4",
+		"subsystem_code": "SMK-TSPMessageService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2440921-4:SMK-MFI-Service",
+		"member_name": "Suomen metsakeskus",
+		"member_class": "GOV",
+		"member_code": "2440921-4",
+		"subsystem_code": "SMK-MFI-Service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2153504-7:Medbit",
+		"member_name": "Medbit Oy",
+		"member_class": "COM",
+		"member_code": "2153504-7",
+		"subsystem_code": "Medbit",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0174666-4:KirjastoKeski",
+		"member_name": "Jyväskylän kaupunki",
+		"member_class": "MUN",
+		"member_code": "0174666-4",
+		"subsystem_code": "KirjastoKeski",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:0245440-1:TIA",
+		"member_name": "Valtiokonttori",
+		"member_class": "GOV",
+		"member_code": "0245440-1",
+		"subsystem_code": "TIA",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2327327-1:stv",
+		"member_name": "Suomen Tilaajavastuu Oy",
+		"member_class": "COM",
+		"member_code": "2327327-1",
+		"subsystem_code": "stv",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0209242-0:Varhaiskasvatus Jstad",
+		"member_name": "Pietarsaaren kaupunki",
+		"member_class": "MUN",
+		"member_code": "0209242-0",
+		"subsystem_code": "Varhaiskasvatus Jstad",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2241007-8:Pivo",
+		"member_name": "Pivo Wallet Oy",
+		"member_class": "COM",
+		"member_code": "2241007-8",
+		"subsystem_code": "Pivo",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:2388924-4:PasswordReset",
+		"member_name": "Satakunnan ammattikorkeakoulu",
+		"member_class": "EDU",
+		"member_code": "2388924-4",
+		"subsystem_code": "PasswordReset",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1095533-7:AHS-BIRTH",
+		"member_name": "Consilia Solutions Ab",
+		"member_class": "COM",
+		"member_code": "1095533-7",
+		"subsystem_code": "AHS-BIRTH",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0211675-2:tre-kirjastotiedot-service",
+		"member_name": "Tampereen kaupunki",
+		"member_class": "MUN",
+		"member_code": "0211675-2",
+		"subsystem_code": "tre-kirjastotiedot-service",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1733917-4:EviraService",
+		"member_name": "Finnish Net Solutions Oy",
+		"member_class": "COM",
+		"member_code": "1733917-4",
+		"subsystem_code": "EviraService",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1733917-4:EviraClient",
+		"member_name": "Finnish Net Solutions Oy",
+		"member_class": "COM",
+		"member_code": "1733917-4",
+		"subsystem_code": "EviraClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0161075-9:propentuslp03_Kouvola",
+		"member_name": "Kouvolan kaupunki",
+		"member_class": "MUN",
+		"member_code": "0161075-9",
+		"subsystem_code": "propentuslp03_Kouvola",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0160225-7:propentuslp03_Kotka",
+		"member_name": "Kotkan kaupunki",
+		"member_class": "MUN",
+		"member_code": "0160225-7",
+		"subsystem_code": "propentuslp03_Kotka",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274586-3:HSL-VIRTA-client",
+		"member_name": "HSL",
+		"member_class": "MUN",
+		"member_code": "2274586-3",
+		"subsystem_code": "HSL-VIRTA-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274586-3:HSL-VTJ-client",
+		"member_name": "HSL",
+		"member_class": "MUN",
+		"member_code": "2274586-3",
+		"subsystem_code": "HSL-VTJ-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274586-3:HSL-KOSKI-client",
+		"member_name": "HSL",
+		"member_class": "MUN",
+		"member_code": "2274586-3",
+		"subsystem_code": "HSL-KOSKI-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274586-3:HSL-VIRRE-client",
+		"member_name": "HSL",
+		"member_class": "MUN",
+		"member_code": "2274586-3",
+		"subsystem_code": "HSL-VIRRE-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:2274586-3:HSL-YTJ-client",
+		"member_name": "HSL",
+		"member_class": "MUN",
+		"member_code": "2274586-3",
+		"subsystem_code": "HSL-YTJ-client",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0146248-5:propentuslp03_hollola",
+		"member_name": "Hollolan kunta",
+		"member_class": "MUN",
+		"member_code": "0146248-5",
+		"subsystem_code": "propentuslp03_hollola",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0242496-6:propentuslp03_hamina",
+		"member_name": "Haminan kaupunki",
+		"member_class": "MUN",
+		"member_code": "0242496-6",
+		"subsystem_code": "propentuslp03_hamina",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0149669-3:propentuslp03_lahti",
+		"member_name": "Lahden kaupunki",
+		"member_class": "MUN",
+		"member_code": "0149669-3",
+		"subsystem_code": "propentuslp03_lahti",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0137323-9:propentuslp03_Pori",
+		"member_name": "Porin kaupunki",
+		"member_class": "MUN",
+		"member_code": "0137323-9",
+		"subsystem_code": "propentuslp03_Pori",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0179377-8:propentuslp03_Kokkola",
+		"member_name": "Kokkolan kaupunki",
+		"member_class": "MUN",
+		"member_code": "0179377-8",
+		"subsystem_code": "propentuslp03_Kokkola",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0116510-6:Mobiilivarmenne",
+		"member_name": "Elisa Oyj",
+		"member_class": "COM",
+		"member_code": "0116510-6",
+		"subsystem_code": "Mobiilivarmenne",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0216462-3:VRK suorakäyttöliittymä",
+		"member_name": "Keski-Pohjanmaan sosiaali- ja terveyspalvelukuntayhtymä",
+		"member_class": "MUN",
+		"member_code": "0216462-3",
+		"subsystem_code": "VRK suorakäyttöliittymä",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0922741-2:CETUS",
+		"member_name": "Visma PPG Oy",
+		"member_class": "COM",
+		"member_code": "0922741-2",
+		"subsystem_code": "CETUS",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1962609-7:wuudis",
+		"member_name": "MHG Systems Oy",
+		"member_class": "COM",
+		"member_code": "1962609-7",
+		"subsystem_code": "wuudis",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1854051-5:testiProvider",
+		"member_name": "Arek Oy",
+		"member_class": "COM",
+		"member_code": "1854051-5",
+		"subsystem_code": "testiProvider",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1854051-5:testiConsumer",
+		"member_name": "Arek Oy",
+		"member_class": "COM",
+		"member_code": "1854051-5",
+		"subsystem_code": "testiConsumer",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1854051-5:testPensionProvider",
+		"member_name": "Arek Oy",
+		"member_class": "COM",
+		"member_code": "1854051-5",
+		"subsystem_code": "testPensionProvider",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1854051-5:prodPensionProvider",
+		"member_name": "Arek Oy",
+		"member_class": "COM",
+		"member_code": "1854051-5",
+		"subsystem_code": "prodPensionProvider",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1854051-5:MonitoringClient",
+		"member_name": "Arek Oy",
+		"member_class": "COM",
+		"member_code": "1854051-5",
+		"subsystem_code": "MonitoringClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0826597-8:TestClient",
+		"member_name": "Pirkanmaan sairaanhoitopiirin kuntayhtymä",
+		"member_class": "MUN",
+		"member_code": "0826597-8",
+		"subsystem_code": "TestClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0826597-8:VRKClient",
+		"member_name": "Pirkanmaan sairaanhoitopiirin kuntayhtymä",
+		"member_class": "MUN",
+		"member_code": "0826597-8",
+		"subsystem_code": "VRKClient",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2699989-5:Apotti-PROD",
+		"member_name": "Apotti",
+		"member_class": "COM",
+		"member_code": "2699989-5",
+		"subsystem_code": "Apotti-PROD",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0121133-6:propentuslp03_Pohjois-Haagan_yhteiskoulu",
+		"member_name": "Pohjois-Haagan yhteiskoulu",
+		"member_class": "EDU",
+		"member_code": "0121133-6",
+		"subsystem_code": "propentuslp03_Pohjois-Haagan_yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2769790-1:koski",
+		"member_name": "OPH",
+		"member_class": "GOV",
+		"member_code": "2769790-1",
+		"subsystem_code": "koski",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0486866-7:propentuslp03_Englantilaisen_koulun_säätiö",
+		"member_name": "Elias-koulu",
+		"member_class": "EDU",
+		"member_code": "0486866-7",
+		"subsystem_code": "propentuslp03_Englantilaisen_koulun_säätiö",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0486866-7:propentuslp03_Elias-koulu",
+		"member_name": "Elias-koulu",
+		"member_class": "EDU",
+		"member_code": "0486866-7",
+		"subsystem_code": "propentuslp03_Elias-koulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0116484-0:propentuslp03_Helsingin_juutalainen_yhteiskoulu",
+		"member_name": "Helsingin juutalainen yhteiskoulu",
+		"member_class": "EDU",
+		"member_code": "0116484-0",
+		"subsystem_code": "propentuslp03_Helsingin_juutalainen_yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0733447-6:propentuslp03_Helsingin_ kristillisen_koulun_kannatusyhdistys",
+		"member_name": "Helsingin kristillisen koulun kannatusyhdistys",
+		"member_class": "EDU",
+		"member_code": "0733447-6",
+		"subsystem_code": "propentuslp03_Helsingin_ kristillisen_koulun_kannatusyhdistys",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0313471-7:propentuslp03_Helsingin_normaalilyseo",
+		"member_name": "Helsingin normaalilyseo",
+		"member_class": "EDU",
+		"member_code": "0313471-7",
+		"subsystem_code": "propentuslp03_Helsingin_normaalilyseo",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0313471-7:propentuslp03_Helsingin_yliopiston_Viikin_normaalikoulu",
+		"member_name": "Helsingin normaalilyseo",
+		"member_class": "EDU",
+		"member_code": "0313471-7",
+		"subsystem_code": "propentuslp03_Helsingin_yliopiston_Viikin_normaalikoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0118027-7:propentuslp03_Helsingin_Uusi_yhteiskoulu",
+		"member_name": "Helsingin uusi yhteiskoulu",
+		"member_class": "EDU",
+		"member_code": "0118027-7",
+		"subsystem_code": "propentuslp03_Helsingin_Uusi_yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0119982-4:propentuslp03_Helsingin_yhteislyseo",
+		"member_name": "Helsingin yhteislyseo",
+		"member_class": "EDU",
+		"member_code": "0119982-4",
+		"subsystem_code": "propentuslp03_Helsingin_yhteislyseo",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0201528-1:propentuslp03_Helsingin_Saksalainen_koulu",
+		"member_name": "Helsingin saksalainen koulu",
+		"member_class": "EDU",
+		"member_code": "0201528-1",
+		"subsystem_code": "propentuslp03_Helsingin_Saksalainen_koulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0213552-3:propentuslp03_Kulosaaren_yhteiskoulu",
+		"member_name": "Kulosaaren yhteiskoulu",
+		"member_class": "EDU",
+		"member_code": "0213552-3",
+		"subsystem_code": "propentuslp03_Kulosaaren_yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0116665-1:propentuslp03_Lauttasaaren_yhteiskoulu",
+		"member_name": "Lauttasaaren yhteiskoulu",
+		"member_class": "EDU",
+		"member_code": "0116665-1",
+		"subsystem_code": "propentuslp03_Lauttasaaren_yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:2728271-4:propentuslp03_Munkkiniemen_koulutussäätiö",
+		"member_name": "Munkkiniemen koulutussäätiö sr",
+		"member_class": "EDU",
+		"member_code": "2728271-4",
+		"subsystem_code": "propentuslp03_Munkkiniemen_koulutussäätiö",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0215253-4:propentuslp03_Oulunkylan_yhteiskoulu",
+		"member_name": "Oulunkylän yhteiskoulu",
+		"member_class": "EDU",
+		"member_code": "0215253-4",
+		"subsystem_code": "propentuslp03_Oulunkylan_yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0201310-4:propentuslp03_Oy_Helsingin_yhteiskoulu_ja_reaalilukio",
+		"member_name": "Oy Helsingin yhteiskoulu ja reaalilukio",
+		"member_class": "EDU",
+		"member_code": "0201310-4",
+		"subsystem_code": "propentuslp03_Oy_Helsingin_yhteiskoulu_ja_reaalilukio",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0122164-9:propentuslp03_Helsingin_Suomalainen_Yhteiskoulu",
+		"member_name": "Suomalaisen Yhteiskoulun Osakeyhtiö",
+		"member_class": "EDU",
+		"member_code": "0122164-9",
+		"subsystem_code": "propentuslp03_Helsingin_Suomalainen_Yhteiskoulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0245913-0:propentuslp03_Suomalais-venäläinen_koulu",
+		"member_name": "Suomalais-venäläinen koulu",
+		"member_class": "EDU",
+		"member_code": "0245913-0",
+		"subsystem_code": "propentuslp03_Suomalais-venäläinen_koulu",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:EDU:0202581-8:propentuslp03_Viipurin_Reaalikoulu_oy",
+		"member_name": "Viipurin Reaalikoulu Oy",
+		"member_class": "EDU",
+		"member_code": "0202581-8",
+		"subsystem_code": "propentuslp03_Viipurin_Reaalikoulu_oy",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:0162807-8:TorKapaprod",
+		"member_name": "Tornator Oy",
+		"member_class": "COM",
+		"member_code": "0162807-8",
+		"subsystem_code": "TorKapaprod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2557308-3:spankkikapaprod",
+		"member_name": "S-Pankki Oy",
+		"member_class": "COM",
+		"member_code": "2557308-3",
+		"subsystem_code": "spankkikapaprod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1962361-1:TIETO-BIX-CLIENT",
+		"member_name": "Tieto Oyj",
+		"member_class": "COM",
+		"member_code": "1962361-1",
+		"subsystem_code": "TIETO-BIX-CLIENT",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1962361-1:TIETO-BIX-SERVICE",
+		"member_name": "Tieto Oyj",
+		"member_class": "COM",
+		"member_code": "1962361-1",
+		"subsystem_code": "TIETO-BIX-SERVICE",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1962361-1:Tieto-BIX-client-prod",
+		"member_name": "Tieto Oyj",
+		"member_class": "COM",
+		"member_code": "1962361-1",
+		"subsystem_code": "Tieto-BIX-client-prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:1962361-1:Tieto-BIX-service-prod",
+		"member_name": "Tieto Oyj",
+		"member_class": "COM",
+		"member_code": "1962361-1",
+		"subsystem_code": "Tieto-BIX-service-prod",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0101263-6:voltti",
+		"member_name": "Espoon kaupunki",
+		"member_class": "MUN",
+		"member_code": "0101263-6",
+		"subsystem_code": "voltti",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0101263-6:evaka",
+		"member_name": "Espoon kaupunki",
+		"member_class": "MUN",
+		"member_code": "0101263-6",
+		"subsystem_code": "evaka",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:MUN:0101263-6:nuora",
+		"member_name": "Espoon kaupunki",
+		"member_class": "MUN",
+		"member_code": "0101263-6",
+		"subsystem_code": "nuora",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:COM:2532163-6:FrankKapaProd",
+		"member_name": "Frank Students",
+		"member_class": "COM",
+		"member_code": "2532163-6",
+		"subsystem_code": "FrankKapaProd",
+		"status": "Registered"
+	},
+	{
+		"id": "FI:GOV:2911686-7:RUVI-laboratoriopalvelu",
+		"member_name": "Ruokavirasto",
+		"member_class": "GOV",
+		"member_code": "2911686-7",
+		"subsystem_code": "RUVI-laboratoriopalvelu",
+		"status": "Registered"
+	}
+]

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -122,6 +123,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         result = queryRecords(1474968970L, 1474968990L);
         assertEquals(1, result.size());
+        assertNotNull(result.getRecords().get(0).getMessageId());
         assertEquals(1474968980L, result.getRecords().get(0)
                 .getMonitoringDataTs().longValue());
 
@@ -193,7 +195,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
     @Test
     public void storeAndQueryDataFilteringByOutputFields() throws Exception {
         ClientId client = ClientId.create(
-               "XTEE-CI-XM", "GOV", "00000001", "System1");
+                "XTEE-CI-XM", "GOV", "00000001", "System1");
 
         storeFullOperationalDataRecords(1, 1474968960L);
 
@@ -233,7 +235,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // The output spec has a single field that is null in DB.
         result = queryRecords(1474968960L, 1474968980L, client, null,
-                Sets.newHashSet("soapFaultCode"));
+                Sets.newHashSet("faultCode"));
         assertEquals(1, result.size());
 
         final OperationalDataRecord r = result.getRecords().get(0);
@@ -329,6 +331,59 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
     }
 
     @Test
+    public void storeAndQueryDataFilteringByClientAndServiceProviderOverflow()
+            throws Exception {
+        ClientId client = ClientId.create(
+                "XTEE-CI-XM", "GOV", "00000001", "System1");
+        ClientId serviceProvider = ClientId.create(
+                "XTEE-CI-XM", "GOV", "00000000", "Center");
+
+        storeFullOperationalDataRecord(1474968960L, client, serviceProvider);
+        storeFullOperationalDataRecord(1474968961L, client, serviceProvider);
+        storeFullOperationalDataRecord(1474968962L, client, serviceProvider);
+        storeFullOperationalDataRecord(1474968963L, client, serviceProvider);
+        storeFullOperationalDataRecord(1474968964L, client, serviceProvider);
+        storeFullOperationalDataRecord(1474968960L, serviceProvider, client);
+        storeFullOperationalDataRecord(1474968961L, serviceProvider, client);
+        storeFullOperationalDataRecord(1474968962L, serviceProvider, client);
+        storeFullOperationalDataRecord(1474968963L, serviceProvider, client);
+        storeFullOperationalDataRecord(1474968964L, serviceProvider, client);
+
+
+        // Less than max records.
+        OperationalDataRecordManager.setMaxRecordsInPayload(10);
+        OperationalDataRecords result = queryRecords(1474968960L, 1474968980L);
+        assertEquals(10, result.size());
+        assertNull(result.getNextRecordsFrom());
+
+        // Known client
+        result = queryRecords(1474968960L, 1474968980L,
+                client);
+        assertEquals(10, result.size());
+
+        // Known client, known service provider
+        result = queryRecords(1474968960L, 1474968980L, client, serviceProvider,
+                new HashSet<>());
+        assertEquals(5, result.size());
+
+        // Known client, known service provider
+        result = queryRecords(1474968960L, 1474968980L, serviceProvider, client,
+                new HashSet<>());
+        assertEquals(5, result.size());
+
+        // Result has more records than max
+        // Filter by client and service provider
+        OperationalDataRecordManager.setMaxRecordsInPayload(4);
+        result = queryRecords(1474968960L, 1474968980L, client, serviceProvider,
+                new HashSet<>());
+        assertEquals(4, result.size());
+        assertNotNull(result.getNextRecordsFrom());
+        result = queryRecords(result.getNextRecordsFrom(), 1474968980L, client, serviceProvider,
+                new HashSet<>());
+        assertEquals(1, result.size());
+    }
+
+    @Test
     public void cleanupLogRecords() throws Exception {
         storeFullOperationalDataRecords(1, 1474968970L);
         storeFullOperationalDataRecords(1, 1474968980L);
@@ -346,7 +401,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 
         record.setMessageIssue(LONG_STRING);
-        record.setSoapFaultString(LONG_STRING);
+        record.setFaultString(LONG_STRING);
 
         // test truncate on save
         storeRecords(Collections.singletonList(record), 1474968965L);
@@ -359,7 +414,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         assertEquals(LONG_STRING.substring(0, 255),
                 resultRecord.getMessageIssue());
-        assertEquals(LONG_STRING, resultRecord.getSoapFaultString());
+        assertEquals(LONG_STRING, resultRecord.getFaultString());
 
         // test truncate on update
         resultRecord.setMessageIssue("2" + LONG_STRING);

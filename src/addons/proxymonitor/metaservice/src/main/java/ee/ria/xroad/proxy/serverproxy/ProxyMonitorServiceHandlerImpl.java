@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -97,7 +98,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public boolean shouldLogSignature() {
-        return false;
+        return true;
     }
 
     @Override

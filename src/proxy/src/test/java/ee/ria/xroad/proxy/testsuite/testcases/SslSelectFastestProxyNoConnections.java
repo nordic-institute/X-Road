@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,10 +54,10 @@ public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
-                return Arrays.asList("foo.invalid", "bar.invalid", "baz.invalid");
+                return Arrays.asList("foo.invalid.", "bar.invalid.", "127.0.0,1");
             }
         });
     }

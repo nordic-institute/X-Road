@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,12 +28,16 @@ package ee.ria.xroad.proxy.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.common.util.MimeUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,12 +45,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 
 /**
  * Base class for message processors.
  */
+@Slf4j
 public abstract class MessageProcessorBase {
 
     /** The servlet request. */
@@ -63,18 +70,7 @@ public abstract class MessageProcessorBase {
         this.servletResponse = servletResponse;
         this.httpClient = httpClient;
 
-        cacheConfigurationForCurrentThread();
-    }
-
-    /**
-     * Saves the current configurations in thread local storage, to protect
-     * against configuration reloads during message processing.
-     */
-    private void cacheConfigurationForCurrentThread() {
-        GlobalConf.initForCurrentThread();
         GlobalConf.verifyValidity();
-
-        KeyConf.initForCurrentThread();
     }
 
     /**
@@ -111,7 +107,7 @@ public abstract class MessageProcessorBase {
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
      * @param opMonitoringData monitoring data to update
-     * @param soapMessage SOAP message
+     * @param soapMessage      SOAP message
      */
     protected static void updateOpMonitoringDataBySoapMessage(
             OpMonitoringData opMonitoringData, SoapMessageImpl soapMessage) {
@@ -125,9 +121,32 @@ public abstract class MessageProcessorBase {
                     soapMessage.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(
                     soapMessage.getProtocolVersion());
-
-            opMonitoringData.setRequestSoapSize(soapMessage.getBytes().length);
+            opMonitoringData.setServiceType(DescriptionType.WSDL.name());
+            opMonitoringData.setRequestSize(soapMessage.getBytes().length);
         }
+    }
+
+    /**
+     * Update operational monitoring data with REST message header data
+     */
+    protected void updateOpMonitoringDataByRestRequest(OpMonitoringData opMonitoringData, RestRequest request) {
+        if (opMonitoringData != null && request != null) {
+            opMonitoringData.setClientId(request.getSender());
+            opMonitoringData.setServiceId(request.getServiceId());
+            opMonitoringData.setMessageId(request.getQueryId());
+            opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
+            opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
+            opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
+            opMonitoringData.setServiceType(Optional.ofNullable(
+                    ServerConf.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+        }
+    }
+
+    /**
+     * Check that message transfer was successful.
+     */
+    public boolean verifyMessageExchangeSucceeded() {
+        return true;
     }
 
     protected static String getSecurityServerAddress() {
@@ -138,7 +157,6 @@ public abstract class MessageProcessorBase {
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
-     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
@@ -161,4 +179,43 @@ public abstract class MessageProcessorBase {
         }
         throw new CodedException(X_INVALID_SOAPACTION, "Malformed SOAPAction header");
     }
+
+    /**
+     * Logs a warning if identifier contains invalid characters.
+     * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
+     * @see ee.ria.xroad.common.validation.EncodedIdentifierValidator
+     */
+    protected static boolean checkIdentifier(final XRoadId id) {
+        if (id != null) {
+            if (!validateIdentifierField(id.getXRoadInstance())) {
+                log.warn("Invalid character(s) in identifier {}", id.toString());
+                return false;
+            }
+
+            for (String f : id.getFieldsForStringFormat()) {
+                if (f != null && !validateIdentifierField(f)) {
+                    log.warn("Invalid character(s) in identifier {}", id.toString());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean validateIdentifierField(final CharSequence field) {
+        for (int i = 0; i < field.length(); i++) {
+            final char c = field.charAt(i);
+            //ISO control char
+            if (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f')) {
+                return false;
+            }
+            //Forbidden chars
+            if (c == '%' || c == ':' || c == ';' || c == '/' || c == '\\' || c == '\u200b' || c == '\ufeff') {
+                return false;
+            }
+            //"normalized path" check is redundant since path separators (/,\) are forbidden
+        }
+        return true;
+    }
+
 }

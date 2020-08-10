@@ -1,8 +1,168 @@
 # Change Log
 
-## 6.20.0 - XXXX-XX-XX
+## 6.24.0 - UNRELEASED
+
+## 6.23.0 - 2020-02-19
+- XRDDEV-730: Validate security server addresses on security server.
+- XRDDEV-732: Validate security server addresses on cental server.
+- XRDDEV-734: Fix operational monitoring data retrieval.
+- XRDDEV-741: Fix too strict log directory permissions cause missing audit.log.
+- XRDDEV-757: Add Central Server support for external databases.
+- XRDDEV-773: Central Server with remote database can be installed with Ansible scripts.
+- XRDDEV-760: Remove central server HA dependency on PostgreSQL BDR extension.
+- XRDDEV-780: Add instructions for setting up a PostgreSQL database cluster for central server HA.
+- XRDDEV-813: Detect PostgreSQL BDR on update and update configuration if necessary.
+- XRDDEV-821: Fix central Server remote database support should respect changes in db.properties during upgrade.
+- XRDDEV-853: Fix environmental monitoring does not list X-Road processes on Ubuntu.
+- XRDDEV-856: Update dependencies with known vulnerabilities.
+- XRDDEV-871: Fix can't setup Central Server remote database.
+- XRDDEV-820: Update metaspace memory parameters.
+- XRDDEV-916: Add security server metapackage for Iceland.
+- XRDDEV-917: Update Iceland certificate profile.
+
+## 6.22.1 - 2019-11-07
+- XRDDEV-730: Validate security server addresses.
+- XRDDEV-734: Fix missing operationaldata.
+- XRDDEV-741: Fix too strict log directory permissions.
+
+## 6.22.0 - 2019-10-22
+- XRDDEV-450: Make a docker image of central server.
+- XRDDEV-501: Fix Test TSA on Ubuntu 18.
+- XRDDEV-474: Implement Security Server TSA recovery algorithm during TSA service breaks.
+- XRDDEV-384: Update Hibernate to version 5.3.10.
+- XRDDEV-288: Update supported platforms on X-Road build instructions.
+- XRDDEV-506: Fix operational monitoring does not record request_out_ts and response_in_ts values for REST requests and responses.
+- XRDDEV-508: Update Ubuntu package dependencies and install instructions.
+- XRDDEV-516: Added documentation of ownerChange management service.
+- XRDDEV-140: Add optional HSM device specific slot configuration.
+- XRDDEV-538: Increase the default metaspace memory of proxy component.
+- XRDDEV-462: Add JSON response for listClients metaservice.
+- XRDDEV-574: Fix undefined method error when WSDL is refreshed.
+- XRDDEV-456: Add support for injecting autologin pin via environment varible to Security Server Docker container.
+- XRDDEV-507: Set operational monitoring succeeded field based on REST service's HTTP response code.
+- XRDDEV-593: Add support for registering another member on Security Server.
+- XRDDEV-428: Change service client's default connection type from HTTP to HTTPS.
+- XRDDEV-476: Create new X-Road Security Architecture (ARC-SEC) document.
+- XRDDEV-573: Update serverconf database schema to support REST authorization.
+- XRDDEV-560: Implement new ownerChange central service.
+- XRDDEV-561: Update Central Server UI to support processing of Security Server owner change requests.
+- XRDDEV-562: Add support for sending owner change requests from Security Server.
+- XRDDEV-580: Add operational monitoring package as required for the installation of Finnish Security Server meta package.
+- XRDDEV-586: Implement support for fine-grained REST service authorization in xroad-proxy.
+- XRDSD-94: Make configuration reading more tolerant.
+- XRDDEV-517: Update Java dependencies to a newer version.
+- XRDDEV-464: Add REST metaservice allowedMethods. Change SOAP metaservice allowedMethods to return only SOAP services.
+- XRDDEV-463: Add REST metaservice listMethods. Change SOAP metaservice listMethods to return only SOAP services.
+- XRDDEV-465: Add REST metaservice getOpenAPI.
+- XRDDEV-468: Parse OpenAPI description when adding a REST service.
+- XRDDEV-136: Add automatic backups for Central and Security Server.
+- XRDDEV-612: Refactor REST access rights.
+- XRDDEV-615: Store OpenAPI endpoints into serverconf.
+- XRDDEV-571: Remove the need for PostgreSQL 'lo' extension.
+- XRDDEV-592: Update security server log file permissions.
+- XRDDEV-540: Fix Ubuntu install fails if admin user groups can not be modified.
+- XRDDEV-622: Add certificate profile for Iceland.
+- XRDDEV-649: Remove Ubuntu 14.04 packaging, references in documentation and support from Ansible installation scripts.
+- XRDDEV-636: Update Java dependencies.
+- XRDDEV-652: Add Ansible configuration option for extra locales.
+- XRDDEV-547: Add remote database support to Security Server.
+- XRDDEV-683: Fix installation on top of existing op-monitor.
+- XRDDEV-588: Security Server user interface for defining fine-grained access rules for REST services.
+- XRDDEV-682: Fixes to fine-grained REST service management UI.
+- XRDDEV-692: Update jackson-databind.
+- XRDDEV-691: Fix typo in add endpoint dialog.
+- XRDDEV-694: Fix listMethods not returning all REST services.
+- XRDDEV-695: Fix allowedMethods not returning all REST services.
+- XRDDEV-697: Fix metadata services documentation concerning listCentralServices.
+- XRDDEV-648: Make it possible to bind xroad-proxy to ports 80 and 443 on RHEL.
+- XRDDEV-696: Update REST endpoint type names to better reflect the endpoint type.
+- XRDDEV-710: Update Test CA documentation.
+- XRDDEV-704: Fix fine-grained REST service management missing from Security Server user guide.
+- XRDDEV-610: Metaspace for xroad-monitoring has been expanded from 50m to 60m.
+- XRDDEV-716: Update bouncy castle and jackson-databind.
+- XRDDEV-717: Fixed restarting xroad-proxy fails during internal key generation and certificate import.
+
+## 6.21.1 - 2019-05-22
+- XRDDEV-526: Fix adding a WSDL with a newer version of an existing service fails.
+- XRDDEV-506: Fix operational monitoring does not record request_out_ts and response_in_ts for REST messages.
+
+## 6.21.0 - 2019-04-24
+- XRDDEV-263: Security Server data model extended to cover REST services.
+- XRDDEV-225: Add configuration option that allows auto-accepting auth cert registration requests on Central Server.
+- XRDDEV-258: Update JRuby to version 9.1.17.
+- XRDDEV-226: Add configuration option that allows auto-accepting Security Server client registration requests on Central Server.
+- XRDDEV-341: Update Hibernate to version 5.1.17.
+- XRDDEV-230: Add an additional message id to every request/response pair, so that it is be possible to distinguish messages in message log.
+- XRDDEV-380: Fix missing getSecurityServerMetrics request in message log.
+- XRDDEV-337: Hide the admin ui X-Road logo on smaller screens
+- XTE-432: Fix resource leak - close discarded socket.
+- XRDDEV-353: Add support for verifying ASiC containers containing REST messages.
+- XRDDEV-352: Add support for downloading RESET message records via ASiC web service.
+- XRDDEV-358: Record rest messages to operational monitoring.
+- XRDDEV-375: Add securityserver protocol extension.
+- XRDDEV-264: Support transporting REST messages of arbitrary size.
+- XRDDEV-314: Extend messagelog database for REST messages.
+- XRDDEV-328: Archive REST message records as ASiC containers.
+- XRDDEV-285: Log rest messages to message log.
+- XRDDEV-155: Update intial REST implementation.
+- XRDDEV-120: Initial implementation of the REST support.
+- XRDDEV-284: Add support for configuring REST services in the admin UI.
+- XRDDEV-418: Align REST implementation with the specification.
+- XRDDEV-426: Fix performance regression and native memory leak in messagelog archiving.
+- XRDDEV-419: Include X-Road-Request-Id into REST message signature and request headers.
+- XRDDEV-400: Return descriptive error if one tries to download WSDL for a REST service.
+- XRDDEV-398: Add markdown documentation for REST message protocol.
+- XRDDEV-412: Prevent SOAP service calls from REST interface and vice versa.
+- XRDDEV-432: Prevent adding new services with already existing service code.
+- XRDDEV-423: Fix op-monitor db migrations not run on upgrade/reinstall on RHEL.
+- XRDDEV-439: Fix message log cleaning can fail if log is large.
+- XRDDEV-383: Add security server Dockerfile and usage instructions.
+- XRDDEV-411: Fix SonarQube duplication warning.
+- XRDDEV-443: Fix updating REST service code removes all access rights.
+
+## 6.20.1 - 2019-02-05
+- XRDDEV-351: Fix XRDDEV-351
+
+## 6.20.0 - 2019-01-23
 - XTE-427 / XRDDEV-108: Operational monitoring timestamp 'responseOutTs' is taken just before payload byte array is sent out with HTTP response.
-- TBD
+- XRDDEV-8: Update wsdlvalidator to use the latest Apache CXF wsdlvalidator version.
+- XRDDEV-117: Secure XML external entity processing
+- XRDDEV-105: Fix global configuration returning outdated data
+- XRDDEV-119: Add NIIS as copyright owner in license files and source code license headers (.java, .rb)
+- XRDDEV-94: Create security server installation packages for Ubuntu 18.04 LTS
+- XRDDEV-106: Improved performance by making authentication key and signing context caching implementation more efficient
+- XRDDEV-86: Separate X-Road version number from packaging
+- XRDDEV-29: Update cryptographic strength of key exchange to 128bits on communication between security servers and op monitoring. Introduce whitelist setting to configure accepted cipher suites.
+- XRDDEV-62: Log a warning in proxy.log when the amount of timestamped records reaches 70% of timestamp-records-limit
+- XRDDEV-141: Fix queries can fail when the service provider's subsystem is registered in multiple security servers and only some of the host names do not resolve.
+- XRDDEV-162: NIIS package repository updated to documentation
+- XRDDEV-150, XRDDEV-60: Central Server: Added script for changing IP address of cluster nodes & updated document IG-CSHA respectively.
+- XRDDEV-144: Change BatchSigner to use configuration parameter for timeouts
+- XRDDEV-165: Fix ClientProxy to enforce defined cipher suites
+- XRDDEV-145: Batch time-stamping cycle is repeated until the number of time-stamped records is lower than "timestamp-records-limit".
+- XRDDEV-29: The cipher suite that's used in connections between Security Servers was changed so that cryptographic strength of key exchange is 128 bits.
+- XRDDEV-95, XRDDEV-96: Fixes to Ubuntu 18 packaging. Add Ubuntu 18 support to local development environment. Discard xroad-common package (Ubuntu) and remove dependencies to obsoleted xroad-common (RHEL).
+- XRDDEV-138: Fix namespace in metaservices document
+- XRDDEV-143: Make Signer's module manager update interval configurable
+- XRDDEV-169: Add installation instructions for Security Server on RHEL7
+- XRDDEV-184: Conver UG-SIGDOC from Word to Markdown.
+- XRDDEV-192: Add support for extracting message from ASiC container when verification of the container fails.
+- XRDDEV-220: Fix FastestSocketSelector can cause timeout if none of the target hosts' names are resolvable.
+- XRDDEV-170: Update security server cluster Ansible setup scripts to support Ubuntu 18.04.
+- XRDDEV-191: Fix environmental monitoring daemon missing from the architecture document
+- XRDDEV-146: Drop support for global configuration v1
+- XRDDEV-10: Replace outdated Logback logging module by Slf4jRequestLog
+- XRDDEV-229: Update default authentication and signing key length to 3072 bits (Finnish national settings)
+- XRDDEV-231: Add X-Road brand colors and and X-Road logo int CS and SS layouts
+- XRDDEV-232: Add feedback page
+- XRDDEV-177: Change version number format
+- XRDDEV-108: Set operational monitoring timestamp 'responseOutTs' just before payload byte array is sent.
+- XRDDEV-101: Installation instructions for Ubuntu 18
+- XRDDEV-178: Add Ubuntu 18 support to Central Server clustering
+- XRDDEV-168: Remove unnecessary Ruby helper method
+- XRDDEV-248: Avoid infinite read timeout when establishing a connection to security server.
+- XRDDEV-257: Remove dependency on ntpd.
+- XRDDEV-256: Add option that displays the X-Road software version to the AsicVerifier utility.
 
 ## 6.19.0 - 2018-09-27
 - PVAYLADEV-1107/XRJD #214: Security Server: Fix SSL handshake does not include internal certificate's certificate chain.

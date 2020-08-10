@@ -18,6 +18,7 @@ serial            = $dir/serial
 # These are used by the TSA reply generation only. 
 signer_cert     = $HOME/../CA/certs/tsa.cert.pem # The TSA signing certificate # (optional) 
 signer_key      = $HOME/../CA/private/tsa.key.pem # The TSA private key (optional)
+signer_digest   = sha256
 
 default_policy  = tsa_policy1 # Policy if request did not specify it # (optional) 
 other_policies  = tsa_policy2, tsa_policy3 # acceptable policies (optional) 

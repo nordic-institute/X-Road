@@ -1,5 +1,5 @@
 plugins {
-  id 'com.github.johnrengelman.shadow' version '2.0.1'
+  id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
@@ -29,14 +29,14 @@ dependencies {
 
     testCompile project(':common-test')
     testCompile project(':common-verifier').sourceSets.test.output
-    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
+    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 
-    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
+    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
+    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
+    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
 
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     //testsuiteCompile project(':common-test')
 }
 

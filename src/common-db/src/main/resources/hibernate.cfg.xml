@@ -33,5 +33,6 @@
 
         <!-- hikariCP config -->
         <property name="hikari.maximumPoolSize">10</property>
+        <property name="hikari.dataSource.sslmode">allow</property>
     </session-factory>
 </hibernate-configuration>

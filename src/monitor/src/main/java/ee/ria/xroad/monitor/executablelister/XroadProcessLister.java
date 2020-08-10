@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,8 +28,6 @@ package ee.ria.xroad.monitor.executablelister;
 import ee.ria.xroad.monitor.JmxStringifiedData;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * Created by sjk on 11/12/15.
@@ -36,12 +35,7 @@ import java.nio.file.Paths;
 public class XroadProcessLister extends ProcessLister {
 
     protected static final String PS_FORMAT = "--format user,pcpu,start_time,pmem,pid,command";
-    private static final String PIDS_TO_ONE_LINE_COMMAND = " | paste -sd ',' -";
-    private static final String UBUNTU_LIST_XROAD_PIDS_COMMAND =
-            "initctl list |grep xroad | grep running |grep -o '[0-9]*'";
-    private static final String RH_LIST_XROAD_PIDS_COMMAND =
-            "for i in `systemctl list-units --type service | grep xroad | grep running | cut --delimiter"
-                + " ' ' --field 1`;do systemctl show $i --property=MainPID | cut --delimiter '=' --field 2; done";
+    private static final String LIST_XROAD_PIDS_COMMAND = "pgrep -u xroad java";
 
     /**
      * Program entry point
@@ -54,17 +48,12 @@ public class XroadProcessLister extends ProcessLister {
 
     @Override
     protected String getCommand() {
-        StringBuilder command = new StringBuilder("ps --pid ");
-        command.append("$(");
-        if (Files.exists(Paths.get("/etc/redhat-release"))) {
-            command.append(RH_LIST_XROAD_PIDS_COMMAND);
-        } else {
-            command.append(UBUNTU_LIST_XROAD_PIDS_COMMAND);
-        }
-        command.append(PIDS_TO_ONE_LINE_COMMAND);
-        command.append(") ");
+        StringBuilder command = new StringBuilder("ps ");
         command.append(PS_FORMAT);
-
+        command.append(" --pid $(");
+        command.append(LIST_XROAD_PIDS_COMMAND);
+        command.append(") ");
         return command.toString();
     }
+
 }

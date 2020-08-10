@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,6 +28,7 @@ package ee.ria.xroad.common.util;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -46,7 +48,7 @@ public class IdlePercentCalculatorBehavior {
                 27233052, 16826, 64593978, 188317718, 672029, 4, 4882, 0);
         double idlePercent = IdlePercentCalculator.calculate(
                 previous, current);
-
+        assertNotNull(idlePercent);
         log.info("Idle percent: '{}'", idlePercent);
     }
 

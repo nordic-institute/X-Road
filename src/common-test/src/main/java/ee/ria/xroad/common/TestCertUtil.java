@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -60,13 +61,22 @@ public final class TestCertUtil {
     private static volatile PKCS12 ocspSigner;
     private static volatile PKCS12 internal;
 
+    private static final class ClientKeyHolder {
+        private static final PKCS12 INSTANCE = loadPKCS12("client.p12", "1", "test");
+    };
+
     private TestCertUtil() {
     }
 
     /** Tiny container to keep the certificate and private key together. */
-    public static class PKCS12 {
-        public X509Certificate[] certChain;
-        public PrivateKey key;
+    public static final class PKCS12 {
+        public final X509Certificate[] certChain;
+        public final PrivateKey key;
+
+        private PKCS12(X509Certificate[] certChain, PrivateKey key) {
+            this.certChain = certChain;
+            this.key = key;
+        }
     }
 
     // -- Certificate retrieval methods ------------------------------------- //
@@ -113,6 +123,10 @@ public final class TestCertUtil {
         }
 
         return consumer;
+    }
+
+    public static PKCS12 getClient() {
+        return ClientKeyHolder.INSTANCE;
     }
 
     /**
@@ -301,10 +315,15 @@ public final class TestCertUtil {
     public static PKCS12 loadPKCS12(String file, String orgName,
             String password) {
         KeyStore orgKeyStore = loadPKCS12KeyStore(CERT_PATH + file, password);
-        PKCS12 pkcs12 = new PKCS12();
-        pkcs12.certChain = getCertChain(orgKeyStore, orgName);
-        pkcs12.key = getKey(orgKeyStore, password, orgName);
-        return pkcs12;
+        return new PKCS12(getCertChain(orgKeyStore, orgName), getKey(orgKeyStore, password, orgName));
+    }
+
+    public static KeyStore getKeyStore(String name) {
+        return loadPKCS12KeyStore(CERT_PATH + name + ".p12", "test");
+    }
+
+    public static char[] getKeyStorePassword(String name) {
+        return "test".toCharArray();
     }
 
     private static InputStream getFile(String fileName) throws Exception {

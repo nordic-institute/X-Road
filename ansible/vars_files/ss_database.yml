@@ -1,0 +1,11 @@
+---
+database_host: "127.0.0.1:5432"
+database_admin_password: ""
+opmonitor_admin_password: ""
+serverconf_username: "serverconf"
+serverconf_password: ""
+opmonitor_username: "opmonitor"
+opmonitor_password: ""
+messagelog_username: "messagelog"
+messagelog_password: ""
+mask_local_postgresql: true

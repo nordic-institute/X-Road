@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,7 +27,7 @@ package ee.ria.xroad.signer.util;
 
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public abstract class VariableIntervalPeriodicJob extends UntypedActor {
+public abstract class VariableIntervalPeriodicJob extends UntypedAbstractActor {
 
     private final String actor;
     private final Object message;

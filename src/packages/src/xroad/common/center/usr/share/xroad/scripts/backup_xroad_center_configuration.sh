@@ -9,7 +9,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -i <instance ID> [-n <HA node name>] -f <path of tar archive>
+Usage: $0 -i <instance ID> [-n <HA node name>] -f <path of tar archive> [-S]
 
 Backup the configuration (files and database) of the X-Road central server to a tar archive.
 
@@ -19,6 +19,7 @@ OPTIONS:
     -i Instance ID of the installation of X-Road.
     -n Node name of the central server if deployed in HA setup.
     -f Absolute path of the resulting tar archive.
+    -S Skip database backup
 EOF
 }
 
@@ -31,6 +32,9 @@ execute_backup () {
     if [ -n "${CENTRAL_SERVER_HA_NODE_NAME}" ] ; then
       args="${args} -n ${CENTRAL_SERVER_HA_NODE_NAME}"
     fi
+    if [[ $SKIP_DB_BACKUP = true ]] ; then
+      args="${args} -S"
+    fi
     ${COMMON_BACKUP_SCRIPT} ${args}
     if [ $? -ne 0 ] ; then
       echo "Failed to back up the configuration of the X-Road central server"
@@ -42,11 +46,14 @@ execute_backup () {
   fi
 }
 
-while getopts ":i:n:f:bh" opt ; do
+while getopts ":i:n:f:Sbh" opt ; do
   case $opt in
     h)
       usage
       exit 0
+      ;;
+    S)
+      SKIP_DB_BACKUP=true
       ;;
     i)
       INSTANCE_ID=$OPTARG

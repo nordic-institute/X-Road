@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -34,11 +35,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 
 import java.io.FileInputStream;
@@ -61,7 +59,6 @@ public final class HibernateUtil {
     @Data
     private static class SessionFactoryCtx {
         private final SessionFactory sessionFactory;
-        private final StandardServiceRegistry serviceRegistry;
     }
 
     private HibernateUtil() {
@@ -72,6 +69,7 @@ public final class HibernateUtil {
     /**
      * Returns the session factory for the given session factory name.
      * If the session factory has not been already created, it is created and stored in the cache.
+     *
      * @param name the name of the session factory
      * @return the session factory
      */
@@ -82,7 +80,8 @@ public final class HibernateUtil {
     /**
      * Returns the session factory for the given session factory name.
      * If the session factory has not been already created, it is created and stored in the cache.
-     * @param name the name of the session factory
+     *
+     * @param name        the name of the session factory
      * @param interceptor the interceptor to use on sessions created with this factory
      * @return the session factory
      */
@@ -105,6 +104,7 @@ public final class HibernateUtil {
 
     /**
      * Closes the session factory.
+     *
      * @param name the name of the session factory to close
      */
     public static synchronized void closeSessionFactory(String name) {
@@ -144,7 +144,6 @@ public final class HibernateUtil {
             log.error("Error closing session factory", e);
         }
 
-        StandardServiceRegistryBuilder.destroy(ctx.getServiceRegistry());
     }
 
     private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws Exception {
@@ -154,17 +153,16 @@ public final class HibernateUtil {
         if (interceptor != null) {
             configuration.setInterceptor(interceptor);
         }
-        configuration.configure("hibernate.cfg.xml");
-        configuration.configure(name + ".hibernate.cfg.xml");
+
+        configuration
+                .configure()
+                .configure(name + ".hibernate.cfg.xml");
         applyDatabasePropertyFile(configuration, name);
         applySystemProperties(configuration, name);
 
-        StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(
-                        configuration.getProperties()).build();
+        SessionFactory sessionFactory = configuration.buildSessionFactory();
 
-        SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-
-        return new SessionFactoryCtx(sessionFactory, serviceRegistry);
+        return new SessionFactoryCtx(sessionFactory);
     }
 
     private static void applySystemProperties(Configuration configuration, String name) {
@@ -186,12 +184,13 @@ public final class HibernateUtil {
 
     /**
      * Returns Hibernate batch size value if configured, otherwise the given default value.
-     * @param session Hibernate session
+     *
+     * @param session          Hibernate session
      * @param defaultBatchSize default batch size
      * @return batch size
      */
     public static int getConfiguredBatchSize(Session session, int defaultBatchSize) {
-        Properties props = ((SessionFactoryImpl) session.getSessionFactory()).getProperties();
+        final Map<String, Object> props = session.getSessionFactory().getProperties();
         int configuredBatchSize = ConfigurationHelper.getInt(Environment.STATEMENT_BATCH_SIZE, props, defaultBatchSize);
 
         log.trace("Configured JDBC batch size is {}", configuredBatchSize);

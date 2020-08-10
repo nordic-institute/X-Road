@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import com.sun.management.UnixOperatingSystemMXBean;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
  * Proxy monitoring agent
  */
 @Slf4j
-public class ProxyMonitorAgent extends UntypedActor {
+public class ProxyMonitorAgent extends UntypedAbstractActor {
 
     private boolean failureState = false;
 

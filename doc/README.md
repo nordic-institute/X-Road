@@ -16,8 +16,9 @@ Index of X-Road Documentation
 - [\[ARC-ENVMON\] Environmental Monitoring Architecture](EnvironmentalMonitoring/Monitoring-architecture.md)
 
 ### Protocols
+- [\[PR-REST\] Message Protocol for REST](Protocols/pr-rest_x-road_message_protocol_for_rest.md)
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
-- [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx)
+- [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol.md)
 - [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services.md)
 - [\[PR-META\] Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol.md)
 - [\[PR-GCONF\] Protocol for Downloading Configuration](Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
@@ -56,7 +57,7 @@ Index of X-Road Documentation
 
 ### Data Models
 
-- [\[DM-SS\] Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration._data_model_1.2_Y-883-12.docx)
+- [\[DM-SS\] Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration_data_model.md)
 - [\[DM-CS\] Central Server Configuration](DataModels/dm-cs_x-road_central_server_configuration_data_model.md)
 - [\[DM-ML\] Message Log](DataModels/dm-ml_x-road_message_log_data_model.md)
 

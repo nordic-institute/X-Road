@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,39 +25,31 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
+
+import javax.persistence.criteria.CriteriaQuery;
 
 import java.util.List;
 
 class AbstractDAOImpl<T> {
 
-    @SuppressWarnings("unchecked")
-    public List<T> findMany(Query query) {
+    public List<T> findMany(Query<T> query) {
         return query.list();
     }
 
-    @SuppressWarnings("unchecked")
-    public T findOne(Query query) {
-        return (T) query.uniqueResult();
+    public T findOne(Query<T> query) {
+        return query.uniqueResult();
     }
 
-    @SuppressWarnings("unchecked")
-    public T findOne(Criteria criteria) {
-        return (T) criteria.uniqueResult();
+    public T findById(Session session, Class<T> clazz, Long id) {
+        return session.get(clazz, id);
     }
 
-    @SuppressWarnings("unchecked")
-    public T findById(Session session, Class<T> clazz, Long id)
-            throws Exception {
-        return (T) session.get(clazz, id);
-    }
-
-    @SuppressWarnings("unchecked")
     public List<T> findAll(Session session, Class<T> clazz) {
-        Query query = session.createQuery("from " + clazz.getName());
-        return query.list();
+        final CriteriaQuery<T> q = session.getCriteriaBuilder().createQuery(clazz);
+        q.select(q.from(clazz));
+        return session.createQuery(q).getResultList();
     }
 
     static String nullOrName(Object obj, String name) {
@@ -69,7 +62,7 @@ class AbstractDAOImpl<T> {
 
     static void setString(Query q, String name, String value) {
         if (value != null) {
-            q.setString(name, value);
+            q.setParameter(name, value);
         }
     }
 }

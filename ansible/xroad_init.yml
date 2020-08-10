@@ -1,13 +1,13 @@
 ---
 # This playbook installs an X-Road environment to the defined host inventory from a remote package repository
 
-- hosts: lxd-servers
+- hosts: lxd_servers
   roles:
     - init-lxd
   tags:
     - init
 
-- hosts: ss-servers
+- hosts: ss_servers
   any_errors_fatal: true
   tasks:
     - name: RHEL-support check
@@ -17,7 +17,7 @@
         - (variant is defined and variant == "ee")
         - ansible_os_family == "RedHat"
 
-- hosts: cs-servers
+- hosts: cs_servers
   become: yes
   become_user: root
   roles:
@@ -26,8 +26,10 @@
     - cs
   vars_files:
     - vars_files/remote_repo.yml
+    - vars_files/cs_database.yml
+    - vars_files/base.yml
 
-- hosts: cp-servers
+- hosts: cp_servers
   become: yes
   become_user: root
   roles:
@@ -36,8 +38,9 @@
     - cp
   vars_files:
     - vars_files/remote_repo.yml
+    - vars_files/base.yml
 
-- hosts: ss-servers
+- hosts: ss_servers
   become: yes
   become_user: root
   roles:
@@ -46,12 +49,12 @@
     - ss
   vars_files:
     - vars_files/remote_repo.yml
+    - vars_files/ss_database.yml
+    - vars_files/base.yml
 
-- hosts: ca-servers
+- hosts: ca_servers
   become: yes
   become_user: root
-  pre_tasks:
-    - raw: apt install openssl
   roles:
     - role: xroad-ca
       tags: [ 'ca' ]

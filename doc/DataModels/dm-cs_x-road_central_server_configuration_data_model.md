@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.6  
+Version: 1.7  
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                             | Author             |
@@ -19,6 +19,7 @@ Doc. ID: DM-CS
 | 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format | Ilkka Seppälä      |
 | 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId* | Kristo Heero |
 | 02.03.2018 | 1.6     | Added uniform terms and conditions reference            | Tatu Repo |
+| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                             | Jarkko Hyöty |
 
 ## Table of Contents
 
@@ -128,7 +129,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 1.4 Database Version
 
-This database assumes PostgreSQL version 9.3 or 9.4 depending on whether the central server is deployed in a simple setup or in a cluster for achieving high availability (HA) (see section 1.5 for details). Ubuntu 14.04 default settings are used in simple setup, while a custom configuration is used in HA setup.
+This database assumes PostgreSQL version 10 or 9.4 depending on whether the central server is deployed in a simple setup or in a cluster for achieving high availability (HA) (see section 1.5 for details). Default settings are used in simple setup, while a custom configuration is used in HA setup.
 
 ## 1.5 Creating, Backing Up and Restoring the Database
 

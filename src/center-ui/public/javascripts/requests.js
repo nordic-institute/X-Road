@@ -50,6 +50,9 @@ var XROAD_REQUESTS = function() {
         mapTranslationToDbValue(
                 getTranslatedRequestType('ClientDeletionRequest'),
                 'ClientDeletionRequest');
+        mapTranslationToDbValue(
+                getTranslatedRequestType('OwnerChangeRequest'),
+                'OwnerChangeRequest');
     }
 
     /**

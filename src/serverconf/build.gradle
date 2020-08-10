@@ -14,17 +14,17 @@ dependencies {
     compile project(':common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
-    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
     testCompile project(':common-db')
     testCompile project(':common-test')
-    testCompile 'org.hibernate:hibernate-hikaricp:4.3.11.Final'
+    testCompile "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
     schema project(':common-util')
-    schema 'org.hibernate:hibernate-hikaricp:4.3.11.Final'
-    schema 'org.hibernate:hibernate-tools:4.3.5.Final'
+    schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
+    schema "org.hibernate:hibernate-tools:$hibernateVersion"
     schema 'commons-collections:commons-collections:3.2.2'
     schema 'ch.qos.logback:logback-classic:1.2.3'
-    schema 'org.hsqldb:hsqldb:2.3.2'
+    schema 'org.hsqldb:hsqldb:2.5.0'
 }
 
 task schemaExport () {
@@ -32,8 +32,10 @@ task schemaExport () {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
         ant.schemaExport(destdir: 'build') {
-            annotationconfiguration(
-                configurationfile: 'src/main/resources/hibernate.cfg.xml')
+            configuration(
+                configurationfile: 'src/main/resources/serverconf.hibernate.cfg.xml',
+                propertyFile: 'src/test/resources/hibernate-schema.properties'
+                )
             hbm2ddl(
                 export: false,
                 outputfilename: 'schema-export.sql',
@@ -43,7 +45,7 @@ task schemaExport () {
                 pathelement(path: configurations.schema.asPath)
                 pathelement(path: 'src/main/resources')
                 pathelement(path: 'src/test/resources')
-                pathelement(path: 'build/classes/main')
+                pathelement(path: 'build/classes/java/main')
             }
         }
     }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -39,6 +40,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
+import java.sql.Blob;
+
 import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
 
@@ -46,9 +50,9 @@ import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
  * A message log record.
  */
 @Slf4j
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@ToString(callSuper = true, exclude = {"attachment"})
+@EqualsAndHashCode(callSuper = true, exclude = {"attachment"})
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MessageRecord extends AbstractLogRecord {
 
     @Getter
@@ -99,28 +103,45 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private String subsystemCode;
 
+    @Getter
+    @Setter
+    private Blob attachment;
+
+    @Getter
+    private transient InputStream attachmentStream;
+    @Getter
+    private transient long attachmentStreamSize;
+
+    @Getter
+    @Setter
+    private String xRequestId;
+
     /**
      * Constructs a message record.
-     * @param msg the message
-     * @param sig the signature
+     *
+     * @param msg      the message
+     * @param sig      the signature
      * @param clientId message sender client identifier
+     * @param xRequestId common id between a request and it's response
      * @throws Exception in case of any errors
      */
-    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId)
+    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId, String xRequestId)
             throws Exception {
-        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId);
+        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId, xRequestId);
     }
 
     /**
      * Constructs a message record.
-     * @param qid the query ID
-     * @param msg the message
-     * @param sig the signature
+     *
+     * @param qid      the query ID
+     * @param msg      the message
+     * @param sig      the signature
      * @param response whether this record is for a response
      * @param clientId message sender client identifier
+     * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
-            ClientId clientId) {
+            ClientId clientId, String xRequestId) {
         this.queryId = qid;
         this.message = msg;
         this.signature = sig;
@@ -128,6 +149,7 @@ public class MessageRecord extends AbstractLogRecord {
         this.memberClass = clientId.getMemberClass();
         this.memberCode = clientId.getMemberCode();
         this.subsystemCode = clientId.getSubsystemCode();
+        this.xRequestId = xRequestId;
     }
 
     @Override
@@ -141,8 +163,6 @@ public class MessageRecord extends AbstractLogRecord {
      * @throws Exception in case of any errors
      */
     public AsicContainer toAsicContainer() throws Exception {
-        log.trace("toAsicContainer({})", queryId);
-
         SignatureData signatureData =
                 new SignatureData(signature, hashChainResult, hashChain);
 
@@ -155,7 +175,13 @@ public class MessageRecord extends AbstractLogRecord {
                     timestampHashChain);
         }
 
-        return new AsicContainer(message, signatureData, timestamp);
+        return new AsicContainer(message, signatureData, timestamp,
+                (attachment != null) ? attachment.getBinaryStream() : null);
+    }
+
+    public void setAttachmentStream(InputStream stream, long size) {
+        this.attachmentStream = stream;
+        this.attachmentStreamSize = size;
     }
 
     /**
@@ -171,4 +197,5 @@ public class MessageRecord extends AbstractLogRecord {
         return (base64Encoded != null && !base64Encoded.isEmpty())
                 ? new String(CryptoUtils.decodeBase64(base64Encoded)) : null;
     }
+
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,6 +26,7 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -78,11 +80,26 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProvider the service provider identifier
+     * @return all the services offered by a service provider.
+     */
+    List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
+
+    /**
+     * @param serviceProvider the service provider identifier
      * @param client the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
     List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client);
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client the client identifier
+     * @return all the services by a service provider that the caller
+     * has permission to invoke filtered by description type
+     */
+    List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                        DescriptionType descriptionType);
 
     /**
      * @param client the client identifier
@@ -99,8 +116,10 @@ public interface ServerConfProvider {
     List<X509Certificate> getIsCerts(ClientId client) throws Exception;
 
 
-    /** List all known certificates that are allowed to be used to authenticate
-     * the client information system. */
+    /**
+     * List all known certificates that are allowed to be used to authenticate
+     * the client information system.
+     */
     List<X509Certificate> getAllIsCerts();
 
     /**
@@ -130,10 +149,12 @@ public interface ServerConfProvider {
     /**
      * @param sender the sender identifier
      * @param service the service identifier
+     * @param method the request method (can be null)
+     * @param path the request path (can be null)
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
-    boolean isQueryAllowed(ClientId sender, ServiceId service);
+    boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path);
 
     /**
      * @param service the service identifier
@@ -146,4 +167,23 @@ public interface ServerConfProvider {
      * in this security server.
      */
     List<String> getTspUrl();
+
+    /**
+     * @param service the service identifier
+     * @return the type of the service as {@link DescriptionType}
+     */
+    DescriptionType getDescriptionType(ServiceId service);
+
+    /**
+     * @param service the service identifier
+     * @return the service description url
+     */
+    String getServiceDescriptionURL(ServiceId service);
+
+    /**
+     * Log serverconf statistics
+     */
+    default void logStatistics() {
+        //NOP
+    }
 }

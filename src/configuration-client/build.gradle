@@ -1,13 +1,13 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 dependencies {
     compile project(':common-verifier')
 
-    compile 'commons-cli:commons-cli:1.2'
+    compile 'commons-cli:commons-cli:1.4'
 
-    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
+    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
     testCompile project(':common-test')
 }
 

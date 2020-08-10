@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,8 +29,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 
@@ -50,8 +51,7 @@ public final class TestProxyMain {
     static final String CLIENT_STATUS = "status";
     static final String CLIENT_CODE = "client";
 
-    static final String WSDL_LOCATION = "wsdllocation";
-    static final String WSDL_URL = "wsdlurl";
+    static final String SERVICEDESCRIPTION_URL = "servicedescriptionurl";
 
     static final String SERVICE_URL = "serviceUrl";
     static final String SERVICE_VERSION = "v1";
@@ -62,7 +62,7 @@ public final class TestProxyMain {
     static final String SECURITY_CATEGORY = "securityCategory";
 
     static final int NUM_CLIENTS = 5;
-    static final int NUM_WSDLS = 2;
+    static final int NUM_SERVICEDESCRIPTIONS = 2;
     static final int NUM_SERVICES = 4;
 
     private TestProxyMain() {
@@ -114,8 +114,8 @@ public final class TestProxyMain {
             client.setIdentifier(createTestClientId(client(i)));
             client.setClientStatus(CLIENT_STATUS + i);
 
-            for (int j = 0; j < NUM_WSDLS; j++) {
-                client.getWsdl().add(createWsdl(client, j));
+            for (int j = 0; j < NUM_SERVICEDESCRIPTIONS; j++) {
+                client.getServiceDescription().add(createServiceDescription(client, j));
             }
 
             // add acl ...
@@ -124,22 +124,21 @@ public final class TestProxyMain {
         return client;
     }
 
-    private static WsdlType createWsdl(ClientType client, int j) {
-        WsdlType wsdl = new WsdlType();
-        wsdl.setClient(client);
-        wsdl.setUrl(WSDL_URL + j);
-        wsdl.setWsdlLocation(WSDL_LOCATION + j);
+    private static ServiceDescriptionType createServiceDescription(ClientType client, int j) {
+        ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
+        serviceDescription.setClient(client);
+        serviceDescription.setUrl(SERVICEDESCRIPTION_URL + j);
 
         for (int k = 0; k < NUM_SERVICES; k++) {
-            wsdl.getService().add(createService(wsdl, j, k));
+            serviceDescription.getService().add(createService(serviceDescription, j, k));
         }
 
-        return wsdl;
+        return serviceDescription;
     }
 
-    private static ServiceType createService(WsdlType wsdl, int j, int k) {
+    private static ServiceType createService(ServiceDescriptionType serviceDescription, int j, int k) {
         ServiceType service = new ServiceType();
-        service.setWsdl(wsdl);
+        service.setServiceDescription(serviceDescription);
 
         service.setTitle(SERVICE_TITLE + k);
         service.setServiceCode(service(j, k));
@@ -165,7 +164,7 @@ public final class TestProxyMain {
         return CLIENT_CODE + "-" + idx;
     }
 
-    static String service(int wsdlIdx, int serviceIdx) {
-        return SERVICE_CODE + "-" + wsdlIdx + "-" + serviceIdx;
+    static String service(int serviceDescriptionIdx, int serviceIdx) {
+        return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
     }
 }

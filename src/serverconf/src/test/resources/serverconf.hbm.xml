@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="ee.ria.xroad.common.conf.serverconf.model">
+
+    <class name="ServerConfType" table="SERVERCONF">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <property name="serverCode" access="field"/>
+
+        <many-to-one name="owner" access="field" class="ClientType"
+                     cascade="none"/>
+
+        <bag name="client" access="field" cascade="all-delete-orphan"
+             inverse="true">
+            <key column="conf_id"/>
+            <one-to-many class="ClientType"/>
+        </bag>
+
+        <bag name="tsp" access="field" cascade="all-delete-orphan" order-by="id asc">
+            <key column="conf_id"/>
+            <one-to-many class="TspType"/>
+        </bag>
+    </class>
+
+    <class name="ClientType" table="CLIENT">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="conf" access="field" column="conf_id"
+                     class="ServerConfType" cascade="none"/>
+
+        <many-to-one name="identifier" access="field"
+                     class="ee.ria.xroad.common.identifier.ClientId"
+                     cascade="save-update"/>
+
+        <property name="clientStatus" access="field"/>
+        <property name="isAuthentication" access="field"/>
+
+        <bag name="serviceDescription" access="field" cascade="all-delete-orphan"
+             inverse="true">
+            <key column="client_id"/>
+            <one-to-many class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType"/>
+        </bag>
+
+        <bag name="localGroup" access="field" cascade="all-delete-orphan">
+            <key column="client_id"/>
+            <one-to-many class="LocalGroupType"/>
+        </bag>
+
+        <bag name="isCert" access="field" cascade="all-delete-orphan">
+            <key column="client_id"/>
+            <one-to-many class="CertificateType"/>
+        </bag>
+
+        <bag name="acl" access="field" cascade="all-delete-orphan">
+            <key column="client_id"/>
+            <one-to-many class="AccessRightType"/>
+        </bag>
+
+        <bag name="endpoint" access="field" cascade="all-delete-orphan">
+            <key column="client_id"/>
+            <one-to-many class="EndpointType"/>
+        </bag>
+    </class>
+
+    <class name="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" table="SERVICEDESCRIPTION">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="client" access="field" column="client_id"
+                     class="ClientType" cascade="all"/>
+
+        <property name="url" access="field" not-null="true"/>
+        <property name="disabled" access="field" not-null="true"/>
+        <property name="disabledNotice" access="field"/>
+        <property name="refreshedDate" access="field"/>
+
+        <property name="type" access="field" not-null="true">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">ee.ria.xroad.common.conf.serverconf.model.DescriptionType</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
+        <bag name="service" access="field" cascade="all-delete-orphan"
+             inverse="true">
+            <key column="servicedescription_id"/>
+            <one-to-many class="ServiceType"/>
+        </bag>
+    </class>
+
+    <class name="ServiceType" table="SERVICE">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="serviceDescription" access="field" column="servicedescription_id"
+                     class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" cascade="all"/>
+
+        <property name="serviceCode" access="field" not-null="true"/>
+        <property name="serviceVersion" access="field"/>
+        <property name="title" access="field"/>
+        <property name="url" access="field"/>
+        <property name="sslAuthentication" access="field"/>
+        <property name="timeout" access="field"/>
+
+        <bag name="requiredSecurityCategory" access="field"
+             cascade="all-delete-orphan" table="service_securitycategories">
+            <key column="service_id"/>
+            <many-to-many column="security_cat_id"
+                          class="ee.ria.xroad.common.identifier.SecurityCategoryId"/>
+        </bag>
+    </class>
+
+    <class name="LocalGroupType" table="LOCALGROUP">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <property name="groupCode" access="field" not-null="true"/>
+        <property name="description" access="field" not-null="true"/>
+
+        <bag name="groupMember" access="field" cascade="all-delete-orphan">
+            <key column="localgroup_id"/>
+            <one-to-many class="GroupMemberType"/>
+        </bag>
+
+        <property name="updated" access="field" not-null="true"/>
+    </class>
+
+    <class name="GroupMemberType" table="GROUPMEMBER">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="groupMemberId" access="field"
+                     class="ee.ria.xroad.common.identifier.ClientId"
+                     not-null="true" cascade="save-update"/>
+        <property name="added" access="field" not-null="true"/>
+    </class>
+
+    <class name="CertificateType" table="CERTIFICATE">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <property name="data" access="field" type="org.hibernate.type.MaterializedBlobType"/>
+    </class>
+
+    <class name="AccessRightType" table="ACCESSRIGHT">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <many-to-one name="subjectId" access="field" class="ee.ria.xroad.common.identifier.XRoadId" not-null="true"
+                     cascade="save-update" lazy="false"/>
+        <many-to-one name="endpoint" column="endpoint_id" access="field" class="EndpointType" not-null="true"
+                     cascade="save-update" lazy="false"/>
+        <property name="rightsGiven" access="field" not-null="true"/>
+    </class>
+
+    <class name="EndpointType" table="ENDPOINT">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <property name="serviceCode" access="field" not-null="true"/>
+        <property name="method" access="field" not-null="true"/>
+        <property name="path" access="field" not-null="true"/>
+        <property name="generated" type="boolean" access="field" not-null="true"/>
+    </class>
+
+
+    <class name="TspType" table="TSP">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <property name="name" access="field"/>
+        <property name="url" access="field" not-null="true"/>
+    </class>
+
+    <class name="UiUserType" table="UIUSER">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <property name="username" access="field" not-null="true"/>
+        <property name="locale" access="field"/>
+    </class>
+
+</hibernate-mapping>

@@ -1,0 +1,68 @@
+#!/bin/bash
+
+. /usr/share/debconf/confmodule
+
+
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+
+${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
+function handle_error {
+   ERR=$(</tmp/cert.err)
+   db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+   db_input critical xroad-common/cert-generation-error
+   db_go
+   rm -f /tmp/cert.err
+}
+
+if  [ "$1" = "reconfigure" ];
+  then
+    db_fset xroad-common/proxy-ui-api-subject seen false
+    db_fset xroad-common/proxy-ui-api-altsubject seen false
+fi
+
+
+#check certificates and request necessary subject information from user
+HOST=`hostname -f`
+LIST=
+for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;
+ALT=${LIST}DNS:`hostname`,DNS:`hostname -f`
+
+while :; do
+    if [[ ! -r /etc/xroad/ssl/proxy-ui-api.crt || ! -r /etc/xroad/ssl/proxy-ui-api.key ]]
+    then
+       echo "Generating new proxy-ui-api.[crt|key] files "
+       db_subst xroad-common/proxy-ui-api-subject HOST "$HOST"
+       db_subst xroad-common/proxy-ui-api-altsubject ALT "$ALT"
+       RET=
+       db_get xroad-common/proxy-ui-api-subject
+       if [ -z "$RET"  ]
+       then
+          db_set xroad-common/proxy-ui-api-subject "/CN=$HOST"
+       fi
+       RET=
+       db_get xroad-common/proxy-ui-api-altsubject
+       if [ -z "$RET"  ]
+       then
+          db_set xroad-common/proxy-ui-api-altsubject "$ALT"
+       fi
+       db_input critical xroad-common/proxy-ui-api-subject || true
+       db_input critical xroad-common/proxy-ui-api-altsubject || true
+       db_go
+       RET=
+       db_get xroad-common/proxy-ui-api-subject
+       subj="$RET"
+       RET=
+       db_get xroad-common/proxy-ui-api-altsubject
+       altn="$RET"
+       db_go
+       rm -f /etc/xroad/ssl/proxy-ui-api.crt /etc/xroad/ssl/proxy-ui-api.key
+       echo "generating new webUI TLS key/certificate with $subj and $altn"
+       /usr/share/xroad/scripts/generate_certificate.sh  -n proxy-ui-api -s "${subj}" -a "${altn}" -p 2> /tmp/cert.err || handle_error
+    else
+      break
+    fi
+done
+
+db_stop
+

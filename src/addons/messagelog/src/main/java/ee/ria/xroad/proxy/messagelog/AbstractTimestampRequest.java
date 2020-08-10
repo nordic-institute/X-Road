@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -61,16 +62,7 @@ abstract class AbstractTimestampRequest {
     Timestamper.TimestampResult execute(List<String> tspUrls) throws Exception {
         TimeStampRequest tsRequest = createTimestampRequest(getRequestData());
 
-        TsRequest req = makeTsRequest(tsRequest, tspUrls);
-        if (req.getInputStream() == null) {
-            throw new RuntimeException("Could not get response from TSP");
-        }
-
-        TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
-        log.info("tsresponse {}", tsResponse);
-        verify(tsRequest, tsResponse);
-
-        return result(tsResponse, req.getUrl());
+        return makeTsRequest(tsRequest, tspUrls);
     }
 
     @Getter
@@ -84,13 +76,22 @@ abstract class AbstractTimestampRequest {
         }
     }
 
-    protected TsRequest makeTsRequest(TimeStampRequest request,
-            List<String> tspUrls) throws Exception {
+    protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest,
+                                      List<String> tspUrls) throws Exception {
+        log.debug("tspUrls: {}", tspUrls);
         for (String url: tspUrls) {
             try {
                 log.debug("Sending time-stamp request to {}", url);
 
-                return new TsRequest(TimestamperUtil.makeTsRequest(request, url), url);
+                TsRequest req = new TsRequest(TimestamperUtil.makeTsRequest(tsRequest, url), url);
+
+                TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
+                log.info("tsresponse {}", tsResponse);
+
+                verify(tsRequest, tsResponse);
+
+                return result(tsResponse, url);
+
             } catch (Exception ex) {
                 log.error("Failed to get time stamp from " + url, ex);
             }
@@ -134,7 +135,7 @@ abstract class AbstractTimestampRequest {
     }
 
     protected void verify(TimeStampRequest request,
-            TimeStampResponse response) throws Exception {
+                          TimeStampResponse response) throws Exception {
         response.validate(request);
 
         TimeStampToken token = response.getTimeStampToken();

@@ -24,13 +24,19 @@ acquire_lock () {
     [ "${FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock -n $RESTORE_LOCK_FILENAME "$0" "$@" || true
 
     trap "rm -f ${RESTORE_IN_PROGRESS_FILENAME}" EXIT
-    touch ${RESTORE_IN_PROGRESS_FILENAME}
+    touch "${RESTORE_IN_PROGRESS_FILENAME}"
 }
 
 check_is_correct_tarball () {
-  tar tf ${BACKUP_FILENAME} > /dev/null
-  if [ $? -ne 0 ] ; then
+  if ! tar tf "${BACKUP_FILENAME}" > /dev/null; then
     die "Invalid tar archive in ${BACKUP_FILENAME}. Aborting restore!"
+  fi
+}
+
+check_restore_options () {
+  if ! tar tf "$BACKUP_FILENAME" var/lib/xroad/dbdump.dat &>/dev/null; then
+    echo "The backup archive does not contain database dump. Skipping database restore."
+    SKIP_DB_RESTORE=true
   fi
 }
 
@@ -57,8 +63,8 @@ check_tarball_label () {
 
 clear_shared_memory () {
   echo "CLEARING SHARED MEMORY"
-  ipcrm -m `ipcs -m | grep xroad | awk '{print $2}'` 2>/dev/null || true
-  ipcrm -s `ipcs -s | grep xroad | awk '{print $2}'` 2>/dev/null || true
+  ipcrm -m "$(ipcs -m | grep xroad | awk '{print $2}')" 2>/dev/null || true
+  ipcrm -s "$(ipcs -s | grep xroad | awk '{print $2}')" 2>/dev/null || true
 }
 
 select_commands () {
@@ -116,9 +122,14 @@ create_pre_restore_backup () {
 }
 
 remove_old_existing_files () {
-  echo "$CONF_FILE_LIST" | xargs -I {} rm {}
-  if [ $? -ne 0 ] ; then
-    die "Failed to remove files before restore"
+  if [[ $SKIP_REMOVAL != true ]] ; then
+    echo "Removing old existing files"
+    echo "$CONF_FILE_LIST" | xargs -I {} rm {}
+    if [ $? -ne 0 ] ; then
+      die "Failed to remove files before restore"
+    fi
+  else
+    echo "Skipping existing file removal"
   fi
 }
 
@@ -132,7 +143,9 @@ extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
   tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad etc/nginx || die "Extracting backup failed"
   # dbdump is optional
-  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat
+  if [[ $SKIP_DB_RESTORE != true ]] ; then
+    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat
+  fi
   # keep existing db.properties
   if [ -f /etc/xroad/db.properties ]
   then
@@ -151,19 +164,20 @@ restore_configuration_files () {
     Z="-Z"
   fi
 
-  cp -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
-  cp -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
-  cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
+  cp -v -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
+  cp -v -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
+  if [[ $SKIP_DB_RESTORE != true ]] ; then
+    cp -v -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
+  fi
 }
 
 restore_database () {
-  if [ -n ${SKIP_DB_RESTORE} ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
+  if [[ -n ${SKIP_DB_RESTORE} && ${SKIP_DB_RESTORE} = true ]] ; then
     echo "SKIPPING DB RESTORE AS REQUESTED"
   else
-    if [ -x ${DATABASE_RESTORE_SCRIPT} ] && [ -e ${DATABASE_DUMP_FILENAME} ] ; then
+    if [[ -x ${DATABASE_RESTORE_SCRIPT} && -e ${DATABASE_DUMP_FILENAME} ]] ; then
       echo "RESTORING DATABASE FROM ${DATABASE_DUMP_FILENAME}"
-      ${DATABASE_RESTORE_SCRIPT} ${DATABASE_DUMP_FILENAME} 1>/dev/null
-      if [ $? -ne 0 ] ; then
+      if ! ${DATABASE_RESTORE_SCRIPT} "${DATABASE_DUMP_FILENAME}" 1>/dev/null; then
         die "Failed to restore database!"
       fi
     else
@@ -188,8 +202,11 @@ restart_services () {
   done
 }
 
-while getopts ":FSt:i:s:n:f:b" opt ; do
+while getopts ":RFSt:i:s:n:f:b" opt ; do
   case ${opt} in
+    R)
+      SKIP_REMOVAL=true
+      ;;
     F)
       FORCE_RESTORE=true
       ;;
@@ -224,9 +241,10 @@ while getopts ":FSt:i:s:n:f:b" opt ; do
   esac
 done
 
-acquire_lock $@
+acquire_lock "$@"
 check_server_type
 check_is_correct_tarball
+check_restore_options
 make_tarball_label
 check_tarball_label
 clear_shared_memory

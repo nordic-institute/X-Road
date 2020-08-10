@@ -23,11 +23,11 @@ Host names in the file must be correct fully qualified host names because they a
 in X-Road certificate generation and setting the hostname of the servers when installing. Do not use IP addresses.
 
 You determine which servers are initialized by filling in the groups
-`cs-servers`, `ss-servers`, `cp-servers` and `ca-servers`. If you have no use for a specific server group,
+`cs_servers`, `ss_servers`, `cp_servers` and `ca_servers`. If you have no use for a specific server group,
 you can leave that group empty.
 
 **Note:** Study the structure of the example host files carefully and model the group hierarchies that you wish to implement in your own
-inventory files. For example, the group `[centos-ss]` for CentOS-based security server LXD-containers is a child group to the security server group `[ss-servers]` and can be omitted entirely if you have no use for CentOS containers or are using the ee-variant.
+inventory files. For example, the group `[centos_ss]` for CentOS-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for CentOS containers or are using the ee-variant.
 
 #### Variant
 
@@ -42,7 +42,7 @@ The vanilla variant provides an operational X-Road installation without any coun
 
 The recommended place for defining a different variant is the inventory file. For example, the definition for the Finnish variant:
 ```
-[ss-servers:vars]
+[ss_servers:vars]
 variant=fi
 ```
 
@@ -53,11 +53,20 @@ While it is possible to define different variants for different security servers
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
-* for Ubuntu 14 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb trusty-current main`
-* for Ubuntu 18 DEB-packages `TBD - not yet released`
+* for Ubuntu 18 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb bionic-current main`
 * for RHEL-packages `https://artifactory.niis.org/xroad-release-rpm/rhel/7/current`.
 
-The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL, Ubuntu 14 and Ubuntu 18.
+The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu 18.
+
+#### Remote database
+
+It is possible to configure Central Server or Security Server to use remote database. To do this with Ansible one needs to edit `vars_files/cs_database` and/or `vars_files/ss_database` property values.
+
+- `database_host` - URL or the database server including the port e.g. `127.0.0.1:5432`. When using remote database also set `database_admin_password`. When using local database leave it empty.
+- `database_admin_password` - Password of the `postgres` user. When using remote database, this value needs to be set. Otherwise leave it empty.
+- `mask_local_postgresql` - When using remote database, it is usually feasible to mask the local PostgreSQL database so it won't run in vein. However, in some edge cases this is not necessary and this variable can be set to false.
+
+Other properties in `vars_files/ss_database` determine the usernames and passwords that X-Road uses in connections.
 
 #### Additional variables
 
@@ -69,9 +78,9 @@ The inventory file `example_xroad_hosts.txt` defines a host group
 
 ```
 [example:children]
- cs-servers
- ss-servers
- cp-servers
+ cs_servers
+ ss_servers
+ cp_servers
  ca-server
 ```
 
@@ -106,7 +115,7 @@ First make sure that `docker` and `docker-py` are installed on the compilation m
 ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev.yml
 ```
 
-This installs or updates **all X-Road related packages to their latest versions** using **locally built X-Road packages** (as long as `compile-servers` group in ansible inventory has the value `localhost`) for hosts defined in the inventory file `example_xroad_hosts.txt`.
+This installs or updates **all X-Road related packages to their latest versions** using **locally built X-Road packages** (as long as `compile_servers` group in ansible inventory has the value `localhost`) for hosts defined in the inventory file `example_xroad_hosts.txt`.
 Package version names are formed using current git commit timestamp and hash. This means that
 
 * if you only make local changes without performing a git commit, package names and version numbers are
@@ -157,7 +166,7 @@ sudo lxd init
 An example of an LXD-specific host file can be found in `hosts/lxd_hosts.txt`. While it is possible to use and modify this file it is recommended to create your own host file to facilitate further configuration.
 
 The playbook initializes LXD-containers according to the hosts defined in the inventory. The host for the LXD-containers themselves is
-defined with the group `lxd-servers`, normally localhost. After inventory configurations, Ansible playbooks can be used to deploy X-Road to the LXD-hosts much like with other inventories.
+defined with the group `lxd_servers`, normally localhost. After inventory configurations, Ansible playbooks can be used to deploy X-Road to the LXD-hosts much like with other inventories.
 
 Install packages to local LXD-containers from the public repositories with:
 
@@ -179,7 +188,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modul
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 18 and CentOS 7 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7, Ubuntu 14 and Ubuntu 18. Other versions may need additional tweaking of the Ansible scripts.
+By default `xroad_dev.yml` creates Ubuntu 18 and CentOS 7 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and Ubuntu 18. Other versions may need additional tweaking of the Ansible scripts.
 
 ## 5. Test CA, TSA, and OCSP
 

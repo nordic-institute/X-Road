@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
-if File.exists?("../common-ui")
-  gem 'common-ui', :path => "../common-ui"
+if File.exists?("vendor/engines/common-ui")
+    gem 'common-ui', :path => "vendor/engines/common-ui"
 else
-  gem 'common-ui', :path => "vendor/engines/common-ui"
+    gem 'common-ui', :path => "../common-ui"
 end

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,16 +26,20 @@
 package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.ByteArrayInputStream;
@@ -56,6 +61,7 @@ import java.util.Map;
 @Slf4j
 public class ProxyMessage implements ProxyMessageConsumer {
 
+    public static final int REST_BODY_LIMIT = 8192; //store up to limit bytes into memory
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     private final String originalContentType;
@@ -71,9 +77,12 @@ public class ProxyMessage implements ProxyMessageConsumer {
     protected SoapMessageEncoder encoder;
 
     private boolean hasBeenConsumed;
+    private RestRequest restMessage;
+    private RestResponse restResponse;
 
     /**
      * Constructs new proxy message with the original message content type.
+     *
      * @param originalContentType the original content type.
      */
     public ProxyMessage(String originalContentType) {
@@ -86,6 +95,14 @@ public class ProxyMessage implements ProxyMessageConsumer {
      */
     public SoapMessageImpl getSoap() {
         return soapMessage;
+    }
+
+    public RestRequest getRest() {
+        return restMessage;
+    }
+
+    public RestResponse getRestResponse() {
+        return restResponse;
     }
 
     /**
@@ -185,6 +202,25 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
+    public void rest(RestRequest message) throws Exception {
+        log.trace("Rest request");
+        this.restMessage = message;
+    }
+
+    @Override
+    public void rest(RestResponse message) throws Exception {
+        log.trace("Rest response");
+        this.restResponse = message;
+    }
+
+    @Override
+    public void restBody(InputStream content) throws Exception {
+        assert (attachmentCache == null);
+        attachmentCache = new CachingStream();
+        IOUtils.copyLarge(content, attachmentCache);
+    }
+
+    @Override
     public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
             throws Exception {
         log.trace("Attachment: {}", contentType);
@@ -220,5 +256,19 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private boolean isMimeEncodedSoap() {
         return MimeTypes.MULTIPART_RELATED.equalsIgnoreCase(MimeUtils.getBaseContentType(originalContentType))
                 && !hasAttachments();
+    }
+
+
+    public boolean hasRestBody() {
+        return attachmentCache != null && (restMessage != null || restResponse != null);
+    }
+    /**
+     * Get rest body as inputstream.
+     */
+    public CacheInputStream getRestBody() {
+        if (attachmentCache != null) {
+            return attachmentCache.getCachedContents();
+        }
+        return null;
     }
 }

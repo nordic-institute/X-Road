@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,6 +27,7 @@ package ee.ria.xroad.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -42,7 +44,7 @@ import java.net.URI;
 @Slf4j
 public class HttpSender extends AbstractHttpSender {
     private final HttpClient client;
-
+    private static final String DO_POST_LOG = "doPost(address = {}, connectionTimeout = {}, socketTimeout = {})";
     /**
      * Configures a HTTP sender using the given HTTP client.
      * @param httpClient HTTP client this sender should use
@@ -64,7 +66,7 @@ public class HttpSender extends AbstractHttpSender {
      */
     @Override
     public void doPost(URI address, String content, String contentType) throws Exception {
-        log.trace("doPost(address = {}, connectionTimeout = {}, socketTimeout = {})", address, connectionTimeout,
+        log.trace(DO_POST_LOG, address, connectionTimeout,
                 socketTimeout);
 
         HttpPost post = new HttpPost(address);
@@ -88,12 +90,29 @@ public class HttpSender extends AbstractHttpSender {
      */
     @Override
     public void doPost(URI address, InputStream content, long contentLength, String contentType) throws Exception {
-        log.trace("doPost(address = {}, connectionTimeout = {}, socketTimeout = {})", address, connectionTimeout,
+        log.trace(DO_POST_LOG, address, connectionTimeout,
                 socketTimeout);
 
         HttpPost post = new HttpPost(address);
         post.setConfig(getRequestConfig());
         post.setEntity(createInputStreamEntity(content, contentLength, contentType));
+
+        doRequest(post);
+    }
+
+    /**
+     * REST support
+     * @param address
+     * @param entity
+     * @throws Exception
+     */
+    public void doPost(URI address, HttpEntity entity) throws Exception {
+        log.trace(DO_POST_LOG, address, connectionTimeout,
+                socketTimeout);
+
+        HttpPost post = new HttpPost(address);
+        post.setConfig(getRequestConfig());
+        post.setEntity(entity);
 
         doRequest(post);
     }

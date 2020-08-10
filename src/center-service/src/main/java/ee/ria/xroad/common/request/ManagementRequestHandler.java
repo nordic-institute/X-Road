@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -52,11 +53,13 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
+import static ee.ria.xroad.common.request.ManagementRequests.OWNER_CHANGE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Reads management requests from input stream.
- * Verifies authentication certificate registration requests.
+ * Verifies authentication certificate and client registration requests.
  */
 @Slf4j
 public final class ManagementRequestHandler {
@@ -68,19 +71,38 @@ public final class ManagementRequestHandler {
 
     /**
      * Reads management requests from input stream.
+     *
      * @param contentType expected content type of the stream
      * @param inputStream the input stream
      * @return management request SOAP message
      * @throws Exception in case of any errors
      */
     public static SoapMessageImpl readRequest(String contentType,
-            InputStream inputStream) throws Exception {
+                                              InputStream inputStream) throws Exception {
+        return readRequest(contentType, inputStream, new ClientRegRequestStatusWrapper());
+    }
+
+    /**
+     * Reads management requests from input stream.
+     *
+     * @param contentType            expected content type of the stream
+     * @param inputStream            the input stream
+     * @param clientRegRequestStatusWrapper helper for processing clientRegRequests
+     * @return management request SOAP message
+     * @throws Exception in case of any errors
+     */
+    public static SoapMessageImpl readRequest(String contentType,
+                                              InputStream inputStream,
+                                              ClientRegRequestStatusWrapper clientRegRequestStatusWrapper)
+            throws Exception {
         log.info("readRequest(contentType={})", contentType);
 
         DecoderCallback cb = new DecoderCallback();
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
         decoder.parse(inputStream);
+
+        clientRegRequestStatusWrapper.setClientRegRequestSignedAndVerified(cb.getClientRegRequestSignedAndVerified());
 
         return cb.getSoapMessage();
     }
@@ -116,44 +138,101 @@ public final class ManagementRequestHandler {
         // in the request (server id)
         AuthCertRegRequestType req = ManagementRequestParser.parseAuthCertRegRequest(soap);
 
-        ClientId idFromCert = GlobalConf.getSubjectName(
-            new SignCertificateProfileInfoParameters(
-                ClientId.create(
-                    GlobalConf.getInstanceIdentifier(),
-                        DUMMY_CLIENT_ID,
-                        DUMMY_CLIENT_ID
-                ),
-                    DUMMY_CLIENT_ID
-            ),
-            ownerCert
-        );
+        ClientId idFromCert = getClientIdFromCert(ownerCert);
 
         ClientId idFromReq = req.getServer().getOwner();
 
         if (!idFromReq.equals(idFromCert)) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Subject identifier (%s) in certificate does not match"
-                    + " security server owner identifier (%s) in request",
+                            + " security server owner identifier (%s) in request",
                     idFromCert, idFromReq);
         }
     }
 
-    private static void verifyCertificate(X509Certificate ownerCert, OCSPResp ownerCertOcsp) throws Exception {
-        try {
-            ownerCert.checkValidity();
-        } catch (Exception e) {
-            throw new CodedException(X_CERT_VALIDATION, "Owner certificate is invalid: %s", e.getMessage());
+    private static void verifyClientRegRequest(DecoderCallback cb) throws Exception {
+        log.info("verifyClientRegRequest");
+        verifyClientRequestTypeRequest(cb, CLIENT_REG);
+    }
+
+    private static void verifyOwnerChangeRequest(DecoderCallback cb) throws Exception {
+        log.info("verifyOwnerChangeRequest");
+        verifyClientRequestTypeRequest(cb, OWNER_CHANGE);
+    }
+
+    private static void verifyClientRequestTypeRequest(DecoderCallback cb, String managementRequestName)
+            throws Exception {
+        SoapMessageImpl soap = cb.getSoapMessage();
+        byte[] dataToVerify = soap.getBytes();
+
+        log.info("Verifying client signature");
+
+        X509Certificate clientCert = readCertificate(cb.getClientCert());
+
+        if (!verifySignature(clientCert, cb.getClientSignature(), cb.getClientSignatureAlgoId(), dataToVerify)) {
+            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Client signature verification failed");
         }
 
-        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), ownerCert);
+        log.info("Verifying client certificate");
+
+        OCSPResp clientCertOcsp = new OCSPResp(cb.getClientCertOcsp());
+        verifyCertificate(clientCert, clientCertOcsp);
+
+        // Verify that the subject id from the certificate matches the one
+        // in the request (client). The certificate must belong to the member
+        // that is used as a client.
+        ClientRequestType req = ManagementRequestParser.parseRequest(soap, managementRequestName);
+
+        ClientId idFromCert = getClientIdFromCert(clientCert);
+
+        ClientId idFromReq = req.getClient();
+
+        // Separate conditions are needed when the client is 1) subsystem and 2) member:
+        //
+        // 1. When client is a subsystem, idFromReq is the subsystem code of the client
+        // and idFromCert is the member code from the sign cert. The subsystem must
+        // be owned by the member that signed the request.
+        // 2. When client is a member, idFromReq is the member code of the client
+        // and idFromCert is the member code from the sign cert. The member codes must match.
+        if (!idFromReq.subsystemContainsMember(idFromCert) && !idFromReq.equals(idFromCert)) {
+            throw new CodedException(X_INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match"
+                            + " client's member identifier (%s) in request",
+                    idFromCert, idFromReq);
+        }
+    }
+
+    private static ClientId getClientIdFromCert(X509Certificate cert) throws Exception {
+        return GlobalConf.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                        ClientId.create(
+                                GlobalConf.getInstanceIdentifier(),
+                                DUMMY_CLIENT_ID,
+                                DUMMY_CLIENT_ID
+                        ),
+                        DUMMY_CLIENT_ID
+                ),
+                cert
+        );
+    }
+
+    private static void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp) throws Exception {
+        try {
+            memberCert.checkValidity();
+        } catch (Exception e) {
+            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid: %s",
+                    e.getMessage());
+        }
+
+        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
         new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
-                .verifyValidityAndStatus(ownerCertOcsp, ownerCert, issuer);
+                .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }
 
     private static boolean verifySignature(X509Certificate cert,
-            byte[] signatureData, String signatureAlgorithmId, byte[] dataToVerify)
-                    throws Exception {
+                                           byte[] signatureData, String signatureAlgorithmId, byte[] dataToVerify)
+            throws Exception {
         try {
             Signature signature = Signature.getInstance(signatureAlgorithmId, "BC");
             signature.initVerify(cert.getPublicKey());
@@ -171,6 +250,7 @@ public final class ManagementRequestHandler {
     static class DecoderCallback implements SoapMessageDecoder.Callback {
 
         private SoapMessageImpl soapMessage;
+        private String serviceCode;
 
         private byte[] authSignature;
         private String authSignatureAlgoId;
@@ -178,42 +258,71 @@ public final class ManagementRequestHandler {
         private byte[] ownerSignature;
         private String ownerSignatureAlgoId;
 
+        private byte[] clientSignature;
+        private String clientSignatureAlgoId;
+
         private byte[] authCert;
         private byte[] ownerCert;
         private byte[] ownerCertOcsp;
 
+        private byte[] clientCert;
+        private byte[] clientCertOcsp;
+
+        private boolean clientRegRequestSignedAndVerified = false;
+
         @Override
         public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = (SoapMessageImpl) message;
+            this.serviceCode = soapMessage.getService().getServiceCode();
         }
 
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
                 throws Exception {
-            if (authSignature == null) {
-                log.info("Reading auth signature");
+            if (ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(serviceCode)) {
+                if (authSignature == null) {
+                    log.info("Reading auth signature");
 
-                authSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
-                authSignature = IOUtils.toByteArray(content);
-            } else if (ownerSignature == null) {
-                log.info("Reading security server owner signature");
+                    authSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+                    authSignature = IOUtils.toByteArray(content);
+                } else if (ownerSignature == null) {
+                    log.info("Reading security server owner signature");
 
-                ownerSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
-                ownerSignature = IOUtils.toByteArray(content);
-            } else if (authCert == null) {
-                log.info("Reading auth cert");
+                    ownerSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+                    ownerSignature = IOUtils.toByteArray(content);
+                } else if (authCert == null) {
+                    log.info("Reading auth cert");
 
-                authCert = IOUtils.toByteArray(content);
-            } else if (ownerCert == null) {
-                log.info("Reading owner cert");
+                    authCert = IOUtils.toByteArray(content);
+                } else if (ownerCert == null) {
+                    log.info("Reading owner cert");
 
-                ownerCert = IOUtils.toByteArray(content);
-            } else if (ownerCertOcsp == null) {
-                log.info("Reading owner cert OCSP");
+                    ownerCert = IOUtils.toByteArray(content);
+                } else if (ownerCertOcsp == null) {
+                    log.info("Reading owner cert OCSP");
 
-                ownerCertOcsp = IOUtils.toByteArray(content);
-            } else {
-                throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
+                    ownerCertOcsp = IOUtils.toByteArray(content);
+                } else {
+                    throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
+                }
+            } else if (ManagementRequests.CLIENT_REG.equalsIgnoreCase(serviceCode)
+                    || ManagementRequests.OWNER_CHANGE.equalsIgnoreCase(serviceCode)) {
+                if (clientSignature == null) {
+                    log.info("Reading client signature");
+
+                    clientSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+                    clientSignature = IOUtils.toByteArray(content);
+                } else if (clientCert == null) {
+                    log.info("Reading client cert");
+
+                    clientCert = IOUtils.toByteArray(content);
+                } else if (clientCertOcsp == null) {
+                    log.info("Reading client cert OCSP");
+
+                    clientCertOcsp = IOUtils.toByteArray(content);
+                } else {
+                    throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
+                }
             }
         }
 
@@ -226,11 +335,9 @@ public final class ManagementRequestHandler {
         public void onCompleted() {
             verifyMessagePart(soapMessage, "Request contains no SOAP message");
 
-            String service = soapMessage.getService().getServiceCode();
+            log.info("Service name: {}", serviceCode);
 
-            log.info("Service name: {}", service);
-
-            if (ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(service)) {
+            if (ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(serviceCode)) {
                 verifyMessagePart(authSignatureAlgoId, "Auth signature algorithm id is missing");
 
                 verifyMessagePart(authSignature, "Auth signature is missing");
@@ -252,6 +359,36 @@ public final class ManagementRequestHandler {
 
                     throw translateException(e);
                 }
+            } else if (ManagementRequests.CLIENT_REG.equalsIgnoreCase(serviceCode) && mustVerifyClientRegRequest()) {
+                verifyMessagePart(clientSignature, "Client signature is missing");
+
+                verifyMessagePart(clientCert, "Client certificate is missing");
+
+                verifyMessagePart(clientCertOcsp, "Client certificate OCSP is missing");
+
+                try {
+                    verifyClientRegRequest(this);
+                    clientRegRequestSignedAndVerified = true;
+                } catch (Exception e) {
+                    log.error("Failed to verify client reg request", e);
+
+                    throw translateException(e);
+                }
+            } else if (ManagementRequests.OWNER_CHANGE.equalsIgnoreCase(serviceCode)) {
+
+                verifyMessagePart(clientSignature, "Client signature is missing");
+
+                verifyMessagePart(clientCert, "Client certificate is missing");
+
+                verifyMessagePart(clientCertOcsp, "Client certificate OCSP is missing");
+
+                try {
+                    verifyOwnerChangeRequest(this);
+                } catch (Exception e) {
+                    log.error("Failed to verify owner change request", e);
+
+                    throw translateException(e);
+                }
             }
         }
 
@@ -260,10 +397,26 @@ public final class ManagementRequestHandler {
             throw translateException(t);
         }
 
+        public boolean getClientRegRequestSignedAndVerified() {
+            return this.clientRegRequestSignedAndVerified;
+        }
+
         private static void verifyMessagePart(Object value, String message) {
             if (value == null || value instanceof String && ((String) value).isEmpty()) {
                 throw new CodedException(X_INVALID_REQUEST, message);
             }
+        }
+
+        /**
+         * This helper method is used for detecting clientRegRequests generated by Security Server versions >=6.21.0.
+         * If clientRegRequest is generated by Security Server version >=6.21.0, it contains client signature, cert
+         * and OCSP response, and therefore, it must be verified. Requests generated by older Security Server versions
+         * do not contain this information and for backwards compatibility verification must be skipped.
+         *
+         * @return if clientSignature, clientCert or clientCertOcsp have been set, true is returned; otherwise false
+         */
+        private boolean mustVerifyClientRegRequest() {
+            return (clientSignature != null || clientCert != null || clientCertOcsp != null);
         }
     }
 }

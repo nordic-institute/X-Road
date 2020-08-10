@@ -6,6 +6,9 @@
   <% if can?(:add_wsdl) %>
     <button id="wsdl_add"><%= t '.add_wsdl' %></button>
   <% end %>
+  <% if can?(:add_openapi3) %>
+    <button id="openapi3_add"><%= t '.add_openapi3' %></button>
+  <% end %>
   <% if can?(:enable_disable_wsdl) %>
   <button id="wsdl_enable"><%= t 'common.enable' %></button>
   <button id="wsdl_disable"><%= t 'common.disable' %></button>
@@ -21,6 +24,9 @@
   <% end %>
   <% if can?(:view_service_acl) %>
   <button id="service_acl"><%= t '.access_rights' %></button>
+  <% end %>
+  <% if can?(:add_openapi3) %>
+    <button id="openapi3_add_endpoint"><%= t '.add_endpoint' %></button>
   <% end %>
 </div>
 
@@ -50,6 +56,92 @@
   <% end %>
 <% end %>
 
+<%= dialog "openapi3_add_dialog" do %>
+  <%= form_tag do %>
+    <table class="details">
+      <tr>
+        <td><%= t '.url_type' %></td>
+        <td>
+          <%= radio_button_tag "service_type", "REST", true, :style => "width: auto; vertical-align: bottom;"%>
+          <%= label_tag "service_type_REST", t('.rest_api_base_path') %>
+        </td>
+        <td>
+          <%= radio_button_tag "service_type", "OPENAPI3", false, :style => "width: auto; vertical-align: bottom;" %>
+          <%= label_tag "service_type_OPENAPI3", t('.openapi3_description') %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t '.url' %></td>
+        <td colspan="2"><%= text_field_tag "openapi3_add_url", nil, :style => "width: 90%" %></td>
+      </tr>
+      <tr>
+        <td><%= t '.service_code' %></td>
+        <td colspan="2"><%= text_field_tag "openapi3_service_code", nil, :style => "width: 90%" %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
+<%= dialog "openapi3_params_dialog", t('.edit_openapi3_parameters')  do %>
+  <%= form_tag do %>
+    <table class="details">
+      <tr>
+        <td><%= t '.url_type' %></td>
+        <td>
+          <%= radio_button_tag "service_type", "REST", false, :style => "width: auto; vertical-align: bottom;", :disabled => true %>
+          <%= label_tag "service_type_REST", t('.rest_api_base_path') %>
+        </td>
+        <td>
+          <%= radio_button_tag "service_type", "OPENAPI3", false, :style => "width: auto; vertical-align: bottom;", :disabled => true %>
+          <%= label_tag "service_type_OPENAPI3", t('.openapi3_description') %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t '.url' %></td>
+        <td colspan="2"><%= text_field_tag "params_openapi3_url", nil %></td>
+      </tr>
+      <tr>
+        <td><%= t '.service_code' %></td>
+        <td colspan="2"><%= text_field_tag "params_openapi3_service_code", nil %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
+<%= dialog "rest_add_endpoint_dialog" do %>
+  <%= form_tag do %>
+    <table class="details rest_endpoint">
+      <tr>
+        <td><%= t '.http_request_method' %></td>
+        <td><%= select_tag "endpoint_method", raw("
+                <option value='*'>ALL</option>
+                <option value='GET'>GET</option>
+              <option value='POST'>POST</option>
+              <option value='PUT'>PUT</option>
+              <option value='DELETE'>DELETE</option>
+              <option value='HEAD'>HEAD</option>
+              <option value='OPTIONS'>OPTIONS</option>
+              <option value='PATCH'>PATCH</option>
+              <option value='TRACE'>TRACE</option>
+                                                  ")%></td>
+      </tr>
+      <tr>
+        <td><%= t '.endpoint_path' %></td>
+        <td colspan="2"><%= text_field_tag "endpoint_path", nil, :style => "width: 90%" %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_1' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_2' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_3' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_4' %></p>
+        </td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
 <%= dialog "wsdl_disable_dialog", t('.disable_wsdl') do %>
   <%= form_tag do %>
     <table class="details">
@@ -69,6 +161,40 @@
       <tr>
         <td><%= t '.url' %></td>
         <td><%= text_field_tag "params_wsdl_url", nil %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
+<%= dialog "rest_endpoint_params_dialog", t('.edit_rest_endpoint_parameters') do %>
+  <%= form_tag do %>
+    <table class="details rest_endpoint">
+      <tr>
+        <td><%= t '.http_request_method' %></td>
+        <td><%= select_tag "endpoint_method", raw("
+                <option value='*'>ALL</option>
+                <option value='GET'>GET</option>
+                  <option value='POST'>POST</option>
+                  <option value='PUT'>PUT</option>
+                  <option value='DELETE'>DELETE</option>
+                  <option value='HEAD'>HEAD</option>
+                  <option value='OPTIONS'>OPTIONS</option>
+                  <option value='PATCH'>PATCH</option>
+                  <option value='TRACE'>TRACE</option>
+                                                      ") %></td>
+      </tr>
+      <tr>
+        <td><%= t '.endpoint_path' %></td>
+        <td colspan="2"><%= text_field_tag "endpoint_path", nil, :style => "width: 90%", class: 'endpoint-path' %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_1' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_2' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_3' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_4' %></p>
+        </td>
       </tr>
     </table>
   <% end %>

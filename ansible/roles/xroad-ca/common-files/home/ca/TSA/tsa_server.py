@@ -1,18 +1,16 @@
 #!/usr/bin/python
 
 from BaseHTTPServer import BaseHTTPRequestHandler
-import urlparse
 import subprocess
-import ssl
 import tempfile
-import os
+import sys
 
 class TSHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         length = int(self.headers.getheader('content-length',0))
 
-        if length > 100000: 
+        if length > 100000:
             self.send_error(400)
             return
         if self.headers.getheader('content-type',"").lower() != "application/timestamp-query":
@@ -29,23 +27,22 @@ class TSHandler(BaseHTTPRequestHandler):
             t=tempfile.NamedTemporaryFile()
             t.write(bytes)
             t.flush()
-            devnull = open(os.devnull, 'w')
-            p=subprocess.Popen(["openssl","ts","-reply","-config","TSA.cnf","-queryfile", t.name],stdout=subprocess.PIPE,stderr=devnull)
+            p=subprocess.Popen(["openssl","ts","-reply","-config","TSA.cnf","-queryfile", t.name],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (out,err) = p.communicate()
             t.close()
-            p.wait()            
+            p.wait()
             if ( p.returncode == 0 ):
                 self.send_response(200,'OK')
                 self.send_header('Content-Type','application/timestamp-response')
                 self.send_header('Content-Length',len(out))
                 self.end_headers()
-                self.wfile.write(out);
+                self.wfile.write(out)
             else:
-                send_error(400)
+                sys.stderr.write(err)
+                self.send_error(400)
 
         finally:
             t.close()
-            devnull.close()
 
         return
 
@@ -58,4 +55,3 @@ if __name__ == '__main__':
     server = HTTPServer(('localhost', 9999), TSHandler)
     print 'Starting server...'
     server.serve_forever()
-

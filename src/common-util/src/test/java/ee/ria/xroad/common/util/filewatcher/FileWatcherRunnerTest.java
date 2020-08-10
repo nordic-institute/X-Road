@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -44,7 +45,17 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 /**
- * Tests for {@link FileWatcherRunner}
+ * Tests for {@link FileWatcherRunner}.
+ *
+ * If the tests fail, you could be experiencing inode watch exhaustion.
+ * This would show up as errors in the log such as:
+ * <pre>
+ * 11:49:24.920 [pool-1-thread-1] ERROR e.r.x.c.util.filewatcher.FileWatcher -
+ * Stopped watching containing directory: /tmp/junit1947693984851435332 due to an error!
+ * java.io.IOException: User limit of inotify watches reached
+ * </pre>
+ * To fix the problem, increase you OS limit of inode watches
+ * (e.g. <code>max_user_watches</code>)
  */
 public class FileWatcherRunnerTest {
 
@@ -95,6 +106,7 @@ public class FileWatcherRunnerTest {
         Files.move(overridingFile.toPath(), shouldChangeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         // verify
+        // if listener was not called, check if this was caused by "out of inode watchers" (see class javadoc)
         verify(shouldBeCalledListener, timeout(TIMEOUT)).fileModified();
     }
 
@@ -123,6 +135,7 @@ public class FileWatcherRunnerTest {
         assertTrue("test setup fail: could not change last modified time", changeSucceeded);
 
         // verify
+        // if listener was not called, check if this was caused by "out of inode watchers" (see class javadoc)
         verify(shouldBeCalledListener, timeout(TIMEOUT)).fileModified();
     }
 
@@ -151,6 +164,7 @@ public class FileWatcherRunnerTest {
         Files.delete(shouldChangeFile.toPath());
 
         // verify
+        // if listener was not called, check if this was caused by "out of inode watchers" (see class javadoc)
         verify(shouldBeCalledListener, timeout(TIMEOUT)).fileModified();
     }
 }

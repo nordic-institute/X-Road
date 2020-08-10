@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -88,20 +89,24 @@ public class OpMonitoringData {
     private static final String MESSAGE_PROTOCOL_VERSION =
             "messageProtocolVersion";
 
-    private static final String REQUEST_SOAP_SIZE = "requestSoapSize";
+    private static final String X_REQUEST_ID = "xRequestId";
     private static final String REQUEST_MIME_SIZE = "requestMimeSize";
+
     private static final String REQUEST_ATTACHMENT_COUNT =
             "requestAttachmentCount";
 
-    private static final String RESPONSE_SOAP_SIZE = "responseSoapSize";
     private static final String RESPONSE_MIME_SIZE = "responseMimeSize";
+    private static final String REQUEST_SIZE = "requestSize";
+    private static final String RESPONSE_SIZE = "responseSize";
     private static final String RESPONSE_ATTACHMENT_COUNT =
             "responseAttachmentCount";
 
     private static final String SUCCEEDED = "succeeded";
+    private static final String REST_RESPONSE_STATUS_CODE = "statusCode";
 
-    private static final String SOAP_FAULT_CODE = "soapFaultCode";
-    private static final String SOAP_FAULT_STRING = "soapFaultString";
+    private static final String SOAP_FAULT_CODE = "faultCode";
+    private static final String SOAP_FAULT_STRING = "faultString";
+    private static final String SERVICE_TYPE = "serviceType";
 
     /**
      * The supported types of security servers in the context of operational
@@ -149,7 +154,7 @@ public class OpMonitoringData {
     /**
      * Constructor for creating an instance in code that handles incoming
      * XRoad requests.
-     * @param type security server type
+     * @param type        security server type
      * @param requestInTs the timestamp of handling the XRoad request
      */
     public OpMonitoringData(SecurityServerType type, long requestInTs) {
@@ -213,7 +218,6 @@ public class OpMonitoringData {
     /**
      * Sets the "response out" timestamp. In case the field assignResponseOutTsToResponseInTs is
      * true, the same value is assigned to the "response in" also.
-     *
      * @param timestamp Unix timestamp in milliseconds
      * @param overwrite if true, old value is overwritten, otherwise old value remains
      */
@@ -317,11 +321,19 @@ public class OpMonitoringData {
     }
 
     /**
-     * Sets request SOAP size.
-     * @param size SOAP size
+     * Sets request size.
+     * @param size request size
      */
-    public void setRequestSoapSize(long size) {
-        data.put(REQUEST_SOAP_SIZE, size);
+    public void setRequestSize(long size) {
+        data.put(REQUEST_SIZE, size);
+    }
+
+    /**
+     * Sets response size.
+     * @param size response size
+     */
+    public void setResponseSize(long size) {
+        data.put(RESPONSE_SIZE, size);
     }
 
     /**
@@ -338,14 +350,6 @@ public class OpMonitoringData {
      */
     public void setRequestAttachmentCount(int count) {
         data.put(REQUEST_ATTACHMENT_COUNT, count);
-    }
-
-    /**
-     * Sets response SOAP size.
-     * @param size SOAP size
-     */
-    public void setResponseSoapSize(long size) {
-        data.put(RESPONSE_SOAP_SIZE, size);
     }
 
     /**
@@ -373,13 +377,38 @@ public class OpMonitoringData {
     }
 
     /**
+     * Sets rest response status code
+     * @param statusCode http status code for the response
+     */
+    public void setRestResponseStatusCode(int statusCode) {
+        data.put(REST_RESPONSE_STATUS_CODE, statusCode);
+    }
+
+    /**
      * Sets a fault code and string from given CodedException.
      * @param e CodedException
      */
-    public void setSoapFault(CodedException e) {
+    public void setFaultCodeAndString(CodedException e) {
         if (e != null) {
             data.put(SOAP_FAULT_CODE, e.getFaultCode());
             data.put(SOAP_FAULT_STRING, e.getFaultString());
         }
     }
+
+    /**
+     * Sets x-road-request-id of the message.
+     * @param xRequestId x-request-id
+     */
+    public void setXRequestId(String xRequestId) {
+        data.put(X_REQUEST_ID, xRequestId);
+    }
+
+    /**
+     * Sets service type.
+     * @param serviceType service type
+     */
+    public void setServiceType(String serviceType) {
+        data.put(SERVICE_TYPE, serviceType);
+    }
+
 }

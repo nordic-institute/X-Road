@@ -1,17 +1,4 @@
 ---
-- name: setup sync service (trusty)
-  block:
-    - template:
-        src: "xroad-sync.conf.j2"
-        dest: "/etc/init/xroad-sync.conf"
-    - copy:
-        src: "xroad-sync-wait.conf"
-        dest: "/etc/init/xroad-sync-wait.conf"
-    - copy:
-        src: "xroad_slave_sync"
-        dest: /etc/cron.d/xroad_slave_sync
-  when: ansible_distribution_release == "trusty"
-
 - name: setup sync service (bionic)
   block:
     - template:

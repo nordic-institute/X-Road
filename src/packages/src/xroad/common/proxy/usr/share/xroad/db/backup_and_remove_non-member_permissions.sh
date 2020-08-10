@@ -11,7 +11,7 @@ else
     echo -e "Creating backup before removing non-subsystem accessrights related objects.\nBackup can be found: $filename"
     su - xroad -c sh -c "/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh -s \"${instance}\" -f \"${filename}\""
 
-    if [[ $? -ne 0 ]] 
+    if [[ $? -ne 0 ]]
     then
         echo -e "Backup failed\n"
     exit 1
@@ -33,8 +33,8 @@ delete from certificate where id in (select certificate.id from certificate join
 delete from accessright where id in ( select accessright.id from accessright join client on accessright.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
 delete from accessright where id in ( select accessright.id from accessright join identifier on accessright.subjectid=identifier.id where identifier.type='MEMBER');
 
-delete from service where wsdl_id in (select wsdl.id from wsdl join client on wsdl.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
-delete from wsdl where id in (select wsdl.id from wsdl join client on wsdl.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
+delete from service where servicedescription_id in (select servicedescription.id from servicedescription join client on servicedescription.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
+delete from servicedescription where id in (select servicedescription.id from servicedescription join client on servicedescription.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
 delete from identifier where identifier.type='MEMBER' and id not in (select client.identifier from client);
 commit;
 EOF

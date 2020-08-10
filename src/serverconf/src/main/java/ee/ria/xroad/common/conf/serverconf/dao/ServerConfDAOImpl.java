@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,10 +28,11 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
-import org.hibernate.Criteria;
+import org.hibernate.Session;
+
+import javax.persistence.criteria.CriteriaQuery;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
 
 /**
@@ -39,30 +41,34 @@ import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
 public class ServerConfDAOImpl {
 
     /**
-     * Saves the server conf to the database.
-     * @param conf the server conf
-     * @throws Exception if an error occurs
-     */
-    public void save(final ServerConfType conf) throws Exception {
-        doInTransaction(session -> {
-            session.saveOrUpdate(conf);
-            return null;
-        });
-    }
-
-    /**
+     * For old UI compatibility
      * @return true, if configuration exists in the database
      * @throws Exception if an error occurs
      */
-    public boolean confExists() throws Exception {
+    @Deprecated
+    public boolean confExists() {
         return getFirst(ServerConfType.class) != null;
     }
 
     /**
+     * For old UI compatibility
      * @return the server conf
      */
+    @Deprecated
     public ServerConfType getConf() {
         ServerConfType confType = getFirst(ServerConfType.class);
+        if (confType == null) {
+            throw new CodedException(X_MALFORMED_SERVERCONF, "Server conf is not initialized!");
+        }
+        return confType;
+    }
+
+
+    /**
+     * @return the server conf
+     */
+    public ServerConfType getConf(Session session) {
+        ServerConfType confType = getFirst(session, ServerConfType.class);
         if (confType == null) {
             throw new CodedException(X_MALFORMED_SERVERCONF,
                     "Server conf is not initialized!");
@@ -71,12 +77,24 @@ public class ServerConfDAOImpl {
         return confType;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T getFirst(final Class<?> clazz) {
-        Criteria c = get().getSession().createCriteria(clazz);
-        c.setFirstResult(0);
-        c.setMaxResults(1);
-        T t = (T) c.uniqueResult();
-        return t;
+    private <T> T getFirst(Session session, final Class<T> clazz) {
+        final CriteriaQuery<T> q = session.getCriteriaBuilder().createQuery(clazz);
+        q.select(q.from(clazz));
+
+        return session.createQuery(q)
+                .setFirstResult(0)
+                .setMaxResults(1)
+                .uniqueResult();
     }
+
+    /**
+     * For old UI compatibility
+     */
+    @SuppressWarnings("unchecked")
+    @Deprecated
+    private <T> T getFirst(final Class<T> clazz) {
+        Session session = get().getSession();
+        return getFirst(session, clazz);
+    }
+
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -48,7 +49,7 @@ public class MessageRecordingLogManager extends LogManager {
     }
 
     @Getter
-    private static List messages = Collections.synchronizedList(new ArrayList<Object>());
+    private static List<Object> messages = Collections.synchronizedList(new ArrayList<>());
 
     // continue processing messages when 1) first message has been sent 2) test signals that it
     // is ready to continue (it has sent the first message)

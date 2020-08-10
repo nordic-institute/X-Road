@@ -1,69 +1,47 @@
 ---
-- name: Update all packages to the latest version
-  apt:
-    force: yes
-    upgrade: full
-    update_cache: yes
-
-- name: install packages
+- name: Install required packages
   apt:
     name: "{{ items }}"
     state: present
+    update_cache: yes
   vars:
     items:
       - acl
-      - git
       - curl
       - apt-transport-https
-      - apt-utils
-      - net-tools
+      - locales
+      - aptitude
+      - software-properties-common
 
-- name: install trusty apt repo key
-  apt_key:
-    url: "{{ubuntu_14_apt_key}}"
-    state: present
-  when: package_source == "remote" and ansible_distribution_release == "trusty"
+- name: Disable automatic upgrades
+  copy:
+    src: 99override-auto
+    dest: /etc/apt/apt.conf.d/
+    owner: root
+    group: root
+  when: (disable_automatic_upgrades is defined) and (disable_automatic_upgrades)
 
-- name: install bionic apt repo key
+- name: Install X-Road apt repo key
   apt_key:
     url: "{{ubuntu_18_apt_key}}"
     state: present
   when: package_source == "remote" and ansible_distribution_release == "bionic"
 
-- name: xroad trusty apt repository
-  apt_repository:
-    repo: "{{ubuntu_14_apt_repo}}"
-    state: present
-  when: ansible_distribution_release == "trusty"
+- name: Remove old repo config
+  file:
+    path: /etc/apt/sources.list.d/xroad.list
+    state: absent
 
 - name: xroad bionic apt repository
   apt_repository:
     repo: "{{ubuntu_18_apt_repo}}"
     state: present
+    filename: xroad
+    update_cache: yes
   when: ansible_distribution_release == "bionic"
 
-- name: openjdk and nginx repositories
-  apt_repository:
-    repo: "ppa:{{ item }}"
-  with_items:
-    - openjdk-r/ppa
-    - nginx/stable
-
 - name: enable UTF-8 locales
-  lineinfile:
-    line: "{{ item }}"
-    dest: "/var/lib/locales/supported.d/local"
+  locale_gen:
+    name: "{{ item }}"
     state: present
-    create: yes
-  register: locale_added
-  with_items:
-    - "fi_FI.UTF-8 UTF-8"
-    - "en_US.UTF-8 UTF-8"
-
-- name: generate locales
-  command: "/usr/sbin/locale-gen"
-  when: locale_added.changed
-
-- name: "update apt cache"
-  apt:
-    update_cache: yes
+  with_items: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"

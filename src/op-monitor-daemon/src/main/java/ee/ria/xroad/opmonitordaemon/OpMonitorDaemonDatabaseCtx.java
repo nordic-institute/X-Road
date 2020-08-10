@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -67,7 +68,7 @@ final class OpMonitorDaemonDatabaseCtx {
     private static class StringValueTruncator extends EmptyInterceptor {
         private static final long serialVersionUID = 1L;
 
-        private static final String SOAP_FAULT_STRING = "soapFaultString";
+        private static final String SOAP_FAULT_STRING = "faultString";
 
         private static final int FAULT_MAX_LENGTH = 2048;
         private static final int MAX_LENGTH = 255;

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,16 +28,21 @@ package ee.ria.xroad.asicverifier;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Scanner;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * ASiC container verifier utility program.
@@ -93,49 +99,47 @@ public final class AsicVerifierMain {
 
             onVerificationSucceeded(verifier);
         } catch (Exception e) {
-            onVerificationFailed(e, verifier);
+            onVerificationFailed(e);
         }
+        extractMessage(fileName);
     }
 
-    @SuppressWarnings("resource") //
-    private static void onVerificationSucceeded(
-            AsicContainerVerifier verifier) throws IOException {
+    @SuppressWarnings("resource")
+    private static void onVerificationSucceeded(AsicContainerVerifier verifier) {
         System.out.println(AsicUtils.buildSuccessOutput(verifier));
-
-        extractMessage(verifier);
     }
 
-    private static void onVerificationFailed(
-            Throwable cause, AsicContainerVerifier verifier) {
+    private static void onVerificationFailed(Throwable cause) {
+        cause.printStackTrace();
         System.err.println(AsicUtils.buildFailureOutput(cause));
+    }
 
-        // Message cannot be extracted if "verifier" is null
-        if (verifier != null) {
-            try {
-                extractMessage(verifier);
-            } catch (Exception e) {
-                System.err.println("Unable to extract message: " + e);
+    private static void extractMessage(String fileName) {
+        System.out.print("\nWould you like to extract the signed files? (y/n) ");
+
+        if ("y".equalsIgnoreCase(new Scanner(System.in).nextLine())) {
+
+            try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(Paths.get(fileName)))) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (AsicContainerEntries.ENTRY_MESSAGE.equalsIgnoreCase(entry.getName())) {
+                        writeToFile(AsicContainerEntries.ENTRY_MESSAGE, zis);
+                    }
+                    if (entry.getName().startsWith(AsicContainerEntries.ENTRY_ATTACHMENT)) {
+                        writeToFile(entry.getName(), zis);
+                    }
+                }
+                System.out.println("Files successfully extracted.");
+            } catch (IOException e) {
+                System.out.println("Unable to extract files");
             }
         }
     }
 
-    private static void extractMessage(
-            AsicContainerVerifier verifier) throws IOException {
-        System.out.print("\nWould you like to extract the signed files? (y/n) ");
-
-        if ("y".equalsIgnoreCase(new Scanner(System.in).nextLine())) {
-            AsicContainer asic = verifier.getAsic();
-            writeToFile(AsicContainerEntries.ENTRY_MESSAGE, asic.getMessage());
-
-            System.out.println("Files successfully extracted.");
-        }
-    }
-
-    private static void writeToFile(String fileName, String contents) throws IOException {
+    private static void writeToFile(String fileName, InputStream contents) throws IOException {
         try (FileOutputStream file = new FileOutputStream(fileName)) {
-            file.write(contents.getBytes(StandardCharsets.UTF_8));
+            IOUtils.copy(contents, file);
         }
-
         System.out.println("Created file " + fileName);
     }
 

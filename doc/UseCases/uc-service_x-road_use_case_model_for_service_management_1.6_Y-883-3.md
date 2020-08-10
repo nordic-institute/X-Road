@@ -446,7 +446,7 @@ service client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-#### 3.1.7 UC SERVICE\_06: View the WSDLs of a Security Server Client
+#### 3.1.7 UC SERVICE\_06: View the WSDLs and the RESTs of a Security Server Client
 
 **System**: Security server
 
@@ -457,46 +457,46 @@ service client.
 **Actors**: SS administrator
 
 **Brief** **Description**: SS administrator views the list of security
-server client's WSDLs.
+server client's WSDLs and RESTs.
 
 **Preconditions**: -
 
-**Postconditions**: The list of security server client's WSDLs has been
+**Postconditions**: The list of security server client's WSDLs and RESTs has been
 displayed to SS administrator.
 
 **Trigger**: SS administrator wants to view the list of security server
-client's WSDLs.
+client's WSDLs and RESTs.
 
 **Main** **Success** **Scenario**:
 
 1.  SS administrator selects to view the list of security server
-    client's WSDLs.
+    client's WSDLs and RESTs.
 
-2.  System displays the list of WSDLs. For each WSDL, the following
+2.  System displays the list of WSDLs and RESTs. For each WSDL and RESTs, the following
     information is displayed:
 
-    -   the URL of the WSDL;
+    -   the URL of the WSDL or REST;
 
-    -   the date of when the WSDL was last refreshed;
+    -   the date of when the WSDL or REST was last refreshed;
 
-    -   the status of the WSDL – the inactive WSDLs are marked as
+    -   the status of the WSDL or REST– the inactive items are marked as
         “disabled”.
 
     The SS administrator has a possibility to choose amongst the following actions:
 
     -   view the services of the security server client: 3.1.8;
     
-    -   add a WSDL to the security server client: 3.1.9;
+    -   add a WSDL or REST to the security server client: 3.1.9;
     
-    -   edit the address of a WSDL: 3.1.10;
+    -   edit the address of a WSDL or REST: 3.1.10;
     
-    -   enable a WSDL: 3.1.14;
+    -   enable a WSDL or a REST: 3.1.14;
     
-    -   disable a WSDL: 3.1.15;
+    -   disable a WSDL or a REST: 3.1.15;
     
-    -   refresh a WSDL: 3.1.16;
+    -   refresh a WSDL or a REST: 3.1.16;
     
-    -   delete a WSDL: 3.1.17.
+    -   delete a WSDL or a REST: 3.1.17.
 
 **Extensions**: -
 
@@ -559,13 +559,13 @@ server client's services.
     -   set the option to verify internal TLS certificate 3.1.22;
     
     -   apply the parameter value of one service to all the services in the
-        WSDL: 3.1.24.
+        WSDL or REST: 3.1.24.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-#### 3.1.9 UC SERVICE\_08: Add a WSDL to a Security Server Client
+#### 3.1.9 UC SERVICE\_08: Add a WSDL or REST to a Security Server Client
 
 **System**: Security server
 
@@ -575,44 +575,44 @@ server client's services.
 
 **Actors**: SS administrator
 
-**Brief** **Description**: SS administrator adds a WSDL to a security
-server client (a WSDL can only be added to a subsystem). System gets
-service descriptions from the WSDL.
+**Brief** **Description**: SS administrator adds a WSDL or a REST to a security
+server client (a WSDL or a REST can only be added to a subsystem). System gets
+service descriptions from the WSDL or the REST.
 
 **Preconditions**: -
 
 **Postconditions**: -
 
-**Trigger**: SS administrator wants to add WSDL for a security server
+**Trigger**: SS administrator wants to add WSDL or REST for a security server
 client.
 
 **Main** **Success** **Scenario**:
 
-1.  SS administrator selects to add a WSDL.
+1.  SS administrator selects to add a WSDL or a REST.
 
-2.  SS administrator inserts the URL of the WSDL.
+2.  SS administrator inserts the URL of the WSDL or REST.
 
 3.  System parses the user input: 3.1.13.
 
 4.  System verifies that the inserted URL does not already exist in the
-    list of WSDL URLs saved in the system configuration for this client.
+    list of WSDL or REST URLs saved in the system configuration for this client.
 
-5.  System downloads the WSDL file from the URL and reads service
+5.  System downloads the WSDL or REST file from the URL and reads service
     information from the downloaded file: 3.1.11.
 
-6.  System verifies that the location of a WSDL validation program is
-    described by the system parameter *wsdl-validator-command* and
-    validates the WSDL file using the validator: 3.1.12.
+6.  System verifies that the location of a WSDL or a REST validation program is
+    described by the system parameter *wsdl-validator-command* or *rest-validator-command* and
+    validates the WSDL or REST file using the validator: 3.1.12.
 
 7.  System verifies that none of the services saved for this security
     server client in the system configuration have the same service code
     and service version value combination as any of the services read
-    from the downloaded WSDL file.
+    from the downloaded WSDL or REST file.
 
-8.  System saves the WSDL URL and sets the state of the WSDL to
+8.  System saves the WSDL or REST URL and sets the state of the WSDL or REST to
     “disabled” with the default disable message: “Out of order”.
 
-9.  System saves the services read from the WSDL file and sets the
+9.  System saves the services read from the WSDL or REST file and sets the
     following default values for each of the services:
 
     -   service timeout value is set to 60 seconds;
@@ -620,59 +620,60 @@ client.
     -   if the protocol part of the URL of the service is “https” then
         the value for TLS certification verification is set to “true”.
 
-10. System logs the event “Add WSDL” to the audit log.
+10. System logs the event “Add service description" to the audit log.
 
 **Extensions**:
 
 - 3a. The process of parsing the user input terminated with an error message.
     - 3a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
-    - 3a.2. System logs the event “Add WSDL failed” to the audit log.
-    - 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 3a.2. System logs the event “service description failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 3a.3a. SS administrator selects to terminate the use case.
 
 - 4a. The inserted URL already exists.
-    - 4a.1. System displays the error message “Failed to add WSDL: WSDL address already exists.”.
-    - 4a.2. System logs the event “Add WSDL failed” to the audit log.
-    - 4a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 4a.1. System displays the error message “Failed to add WSDL: WSDL address already exists.” or “Failed to add REST: REST address already exists.”.
+    - 4a.2. System logs the event “Add service description failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 4a.3a. SS administrator selects to terminate the use case.
 
-- 5a. The process of downloading and parsing the WSDL file terminated with an error message.
-    - 5a.1. System displays the error message “Failed to add WSDL: X” (where “X” is the termination message from the downloading and parsing process).
-    - 5a.2. System logs the event “Add WSDL failed” to the audit log.
-    - 5a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+- 5a. The process of downloading and parsing the WSDL or REST file terminated with an error message.
+    - 5a.1. System displays the error message “Failed to add WSDL (or REST): X” (where “X” is the termination message from the downloading and parsing process).
+    - 5a.2. System logs the event “Add service description failed” to the audit log.
+    - 5a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 5a.3a. SS administrator selects to terminate the use case.
 
-- 6a. The location of the WSDL validator is not set.
+- 6a. The location of the WSDL or REST validator is not set.
     - 6a.1. System skips the process of validation.
     - 6a.2. Use case continues from step 7.
 
-- 6b. The process of validating the WSDL file was terminated with an error message.
-    - 6b.1. System displays the WSDL validator output describing the reason of the failure, and the error message from the validation process.
-    - 6b.2. System logs the event “Add WSDL failed” to the audit log.
-    - 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+- 6b. The process of validating the WSDL or REST file was terminated with an error message.
+    - 6b.1. System displays the WSDL or REST validator output describing the reason of the failure, and the error message from the validation process.
+    - 6b.2. System logs the event “Add service description failed” to the audit log.
+    - 6b.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 6b.3a. SS administrator selects to terminate the use case.
 
-- 6c. The process of validating the WSDL file was finished with a warning message.
-    - 6c.1. System prompts the warning message from the validation process. “WSDL ('X') validation gave the following warnings: 'Y'. Do you want to continue? (where “X” is the URL of the WSDL and “Y” is the message from the validation process).
-    - 6c.2. SS administrator chooses to continue with adding the WSDL. Use case continues from step 7.
+- 6c. The process of validating the WSDL or REST file was finished with a warning message.
+    - 6c.1. System prompts the warning message from the validation process. “WSDL ('X') validation gave the following warnings: 'Y'. Do you want to continue? (where “X” is the URL of the WSDL or REST and “Y” is the message from the validation process).
+    - 6b.2. System logs the event “Add service description failed” to the audit log.
+    - 6c.3. SS administrator chooses to continue with adding the WSDL or REST. Use case continues from step 7.
         - 6c.2a. SS administrator selects to terminate the use case.
 
-- 6d. The address of the WSDL validator program is incorrect and system was not able to run the validation program.
-    - 6d.1. System displays the error message “Running WSDL validator failed. Command not found.”.
-    - 6d.2. System logs the event “Add WSDL failed” to the audit log.
-    - 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+- 6d. The address of the WSDL or REST validator program is incorrect and system was not able to run the validation program.
+    - 6d.1. System displays the error message “Running WSDL (or REST) validator failed. Command not found.”.
+    - 6d.2. System logs the event “Add service description failed” to the audit log.
+    - 6b.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 6b.3a. SS administrator selects to terminate the use case.
 
-- 6e. The address of the WSDL validator refers to non-executable file and system was not able to run the validation program.
-    - 6e.1. System displays the error message “Running WSDL validator failed. Command not executable.”.
-    - 6e.2. System logs the event “Add WSDL failed” to the audit log.
-    - 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+- 6e. The address of the WSDL or REST validator refers to non-executable file and system was not able to run the validation program.
+    - 6e.1. System displays the error message “Running WSDL (or REST) validator failed. Command not executable.”.
+    - 6e.2. System logs the event “Add service description failed” to the audit log.
+    - 6b.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 6b.3a. SS administrator selects to terminate the use case.
 
-- 7a. A service with the same service code and version values as a service read from the WSDL file was found for this client in the system configuration.
-    - 7a.1. System displays the error message "Failed to add WSDL: Duplicate service. Service 'X' already exists in WSDL 'Y'" (where “X” is the code.version of the service and “Y” is the URL of the existing WSDL where the duplicate service was found).
-    - 7a.2. System logs the event “Add WSDL failed” to the audit log.
-    - 7a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+- 7a. A service with the same service code and version values as a service read from the WSDL or REST file was found for this client in the system configuration.
+    - 7a.1. System displays the error message "Failed to add WSDL (or REST): Duplicate service. Service 'X' already exists in WSDL or REST 'Y'" (where “X” is the code.version of the service and “Y” is the URL of the existing WSDL where the duplicate service was found).
+    - 7a.2. System logs the event “Add service description failed” to the audit log.
+    - 7a.3. SS administrator selects to reinsert the URL of the WSDL OE REST. Use case continues from step 3.
         - 7a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
@@ -684,7 +685,7 @@ client.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-#### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL
+#### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL or REST
 
 **System**: Security server
 
@@ -694,47 +695,47 @@ client.
 
 **Actors**: SS administrator
 
-**Brief** **Description**: SS administrator changes the URL of a WSDL.
+**Brief** **Description**: SS administrator changes the URL of a WSDL or REST.
 
 **Preconditions**: -
 
 **Postconditions**: -
 
-**Trigger**: SS administrator wants to change the URL of a WSDL.
+**Trigger**: SS administrator wants to change the URL of a WSDL or REST.
 
 **Main** **Success** **Scenario**:
 
-1.  SS administrator selects to edit the URL of a WSDL.
+1.  SS administrator selects to edit the URL of a WSDL or REST.
 
-2.  SS administrator inserts the new URL of the WSDL.
+2.  SS administrator inserts the new URL of the WSDL or REST.
 
 3.  System parses the user input: 3.1.13.
 
 4.  System verifies that the inserted URL does not already exist in the
-    list of WSDL URLs saved in the system configuration for this client.
+    list of WSDL or REST URLs saved in the system configuration for this client.
 
-5.  System refreshes the WSDL: steps 2-6 of 3.1.16.
+5.  System refreshes the WSDL or REST: steps 2-6 of 3.1.16.
 
-6.  System logs the event “Edit WSDL” to the audit log.
+6.  System logs the event “Edit service description” to the audit log.
 
 **Extensions**:
 
 - 3a. The process of parsing the user input terminated with an error message.
     - 3a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
-    - 3a.2. System logs the event “Edit WSDL failed” to the audit log.
-    - 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 3a.2. System logs the event “Edit service description failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
     - 3a.3a. SS administrator selects to terminate the use case.
 
 - 4a. The inserted URL already exists.
-    - 4a.1. System displays the error message “Failed to edit WSDL: WSDL address already exists.”.
-    - 4a.2. System logs the event “Edit WSDL failed” to the audit log.
-    - 4a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 4a.1. System displays the error message “Failed to edit WSDL (or REST): WSDL (or REST) address already exists.”.
+    - 4a.2. System logs the event “Edit service description failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 4a.3a. SS administrator selects to terminate the use case.
 
-- 5a. The process of refreshing the WSDL file terminated with an error message.
-    - 5a.1. System displays the error message “Failed to edit WSDL: 'X'” (where “X” is the termination message from the refreshing process).
-    - 5a.2. System logs the event “Edit WSDL failed” to the audit log.
-    - 5a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+- 5a. The process of refreshing the WSDL or REST file terminated with an error message.
+    - 5a.1. System displays the error message “Failed to edit WSDL (or REST): 'X'” (where “X” is the termination message from the refreshing process).
+    - 5a.2. System logs the event “Edit service description failed” to the audit log.
+    - 5a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 5a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
@@ -743,7 +744,7 @@ client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-#### 3.1.11 UC SERVICE\_10: Download and Parse WSDL
+#### 3.1.11 UC SERVICE\_10: Download and Parse WSDL or REST
 
 **System**: Security server
 
@@ -753,8 +754,8 @@ client.
 
 **Actors**: -
 
-**Brief** **Description**: The system downloads the WSDL file from the
-given URL and reads the service descriptions from the WSDL file.
+**Brief** **Description**: The system downloads the WSDL or REST file from the
+given URL and reads the service descriptions from the WSDL or REST file.
 
 **Preconditions**: -
 
@@ -770,12 +771,12 @@ given URL and reads the service descriptions from the WSDL file.
 
 1.  System verifies that the URL is well-formed.
 
-2.  System verifies that the URL points to a valid XML file and
+2.  System verifies that the URL points to a valid XML or JSON file and
     downloads the file.
 
-3.  System verifies that the downloaded file is a valid WSDL file.
+3.  System verifies that the downloaded file is a valid WSDL or REST file.
 
-4.  System parses the WSDL file for service descriptions. The following
+4.  System parses the WSDL or REST file for service descriptions. The following
     information is read for each service that has a port element with
     SOAP over HTTP binding described:
 
@@ -794,20 +795,20 @@ given URL and reads the service descriptions from the WSDL file.
 **Extensions**:
 
 - 1a. The URL is malformed.
-    - 1a.1. Use case terminates with the error message “Malformed URL. WSDL URL must point to a WSDL file.”.
+    - 1a.1. Use case terminates with the error message “Malformed URL (or REST). WSDL (or REST) URL must point to a WSDL (or REST) file.”.
 
-- 2a. Downloading of the WSDL file failed.
-    - 2a.1. Use case terminates with the error message “Downloading WSDL failed. WSDL URL must point to a WSDL file.”.
+- 2a. Downloading of the WSDL or REST file failed.
+    - 2a.1. Use case terminates with the error message “Downloading WSDL failed. WSDL or REST URL must point to a WSDL or REST file.”.
 
-- 2b. The URL points to data that is not a valid XML file.
-    - 2b.1. Use case terminates with the error message “Incorrect file structure. WSDL URL must point to a WSDL file.”.
+- 2b. The URL points to data that is not a valid XML or JSON file.
+    - 2b.1. Use case terminates with the error message “Incorrect file structure. WSDL (or REST) URL must point to a WSDL (or REST) file.”.
 
-- 3a. The validation of the WSDL failed.
+- 3a. The validation of the WSDL or REST failed.
     - 3a.1. Use case terminates with an error message describing the validation exception.
 
 **Related** **information**: -
 
-#### 3.1.12 UC SERVICE\_44: Validate a WSDL
+#### 3.1.12 UC SERVICE\_44: Validate a WSDL or REST
 
 **System**: Security server
 
@@ -817,9 +818,9 @@ given URL and reads the service descriptions from the WSDL file.
 
 **Actors**: -
 
-**Brief** **Description**: The system uses a WSDL validation program to
-validate a WSDL file. The location of the validation program is
-described by the system parameter *wsdl-validator-command*.
+**Brief** **Description**: The system uses a WSDL or REST validation program to
+validate a WSDL or REST file. The location of the validation program is
+described by the system parameter *wsdl-validator-command* *rest-validator-command*.
 
 **Preconditions**: -
 
@@ -838,14 +839,14 @@ described by the system parameter *wsdl-validator-command*.
 
 **Extensions**:
 
-- 1a. Validation errors were detected by WSDL validation program while validating the WSDL file.
-    - 1a.1. Use case terminates with an error message “WSDL ('X') validation failed” and displays the WSDL validator output „Y” (where 'X' is the URL of the WSDL and 'Y' is the reason of the failure).
+- 1a. Validation errors were detected by WSDL or REST validation program while validating the WSDL file.
+    - 1a.1. Use case terminates with an error message “WSDL (or REST)('X') validation failed” and displays the WSDL or REST  validator output „Y” (where 'X' is the URL of the WSDL and 'Y' is the reason of the failure).
 
-- 1b. Warnings were detected by WSDL validation program while validating the WSDL file.
+- 1b. Warnings were detected by WSDL or REST validation program while validating the WSDL or REST file.
     - 1b.1. Use case terminates with a warning message “'X'” (where 'X' is the warning message).
 
-- 1c. The validation program crashed while validating the WSDL file.
-    - 1c.1. Use case terminates with an error message “WSDL ('X') validation failed” and displays the WSDL validator output „Y” (where 'X' is the URL of the WSDL and 'Y' is the reason of the failure).
+- 1c. The validation program crashed while validating the WSDL or REST file.
+    - 1c.1. Use case terminates with an error message “WSDL (or REST) ('X') validation failed” and displays the WSDL or REST validator output „Y” (where 'X' is the URL of the WSDL or REST and 'Y' is the reason of the failure).
 
 **Related** **information**: -
 
@@ -908,7 +909,7 @@ that the input is well formatted.
 
 **Related** **information**: -
 
-#### 3.1.14 UC SERVICE\_12: Enable a WSDL
+#### 3.1.14 UC SERVICE\_12: Enable a WSDL or REST
 
 **System**: Security server
 
@@ -918,14 +919,14 @@ that the input is well formatted.
 
 **Actors**: SS administrator
 
-**Brief** **Description**: SS administrator enables a WSDL. The services
-included in the WSDL will be available for the service clients.
+**Brief** **Description**: SS administrator enables a WSDL or REST. The services
+included in the WSDL or REST will be available for the service clients.
 
-**Preconditions**: The WSDL is disabled.
+**Preconditions**: The WSDL or REST is disabled.
 
 **Postconditions**:
 
--   The WSDL has been enabled.
+-   The WSDL or REST has been enabled.
 
 -   An audit log record for the event is created.
 
@@ -934,11 +935,11 @@ WSDL available for the service clients.
 
 **Main** **Success** **Scenario**:
 
-1.  SS administrator selects to enable a WSDL.
+1.  SS administrator selects to enable a WSDL or REST.
 
-2.  System activates the WSDL.
+2.  System activates the WSDL or REST.
 
-3.  System logs the event “Enable WSDL” to the audit log.
+3.  System logs the event “Enable service description” to the audit log.
 
 **Extensions**: -
 
@@ -948,7 +949,7 @@ WSDL available for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-#### 3.1.15 UC SERVICE\_13: Disable a WSDL
+#### 3.1.15 UC SERVICE\_13: Disable a WSDL or REST
 
 **System**: Security server
 
@@ -958,12 +959,12 @@ WSDL available for the service clients.
 
 **Actors**: SS administrator
 
-**Brief** **Description**: SS administrator disables a WSDL. The
-services included in the WSDL will not be available for service clients.
+**Brief** **Description**: SS administrator disables a WSDL or REST. The
+services included in the WSDL or REST will not be available for service clients.
 Clients who request to use these services will get the notice message
 inserted by SS administrator as a response.
 
-**Preconditions**: The WSDL is not disabled.
+**Preconditions**: The WSDL or REST is not disabled.
 
 **Postconditions**: -
 
@@ -972,22 +973,22 @@ WSDL unavailable for the service clients.
 
 **Main** **Success** **Scenario**:
 
-1.  SS administrator selects to disable a WSDL.
+1.  SS administrator selects to disable a WSDL or REST.
 
 2.  System asks for notice message that will be sent as a response to
-    service clients trying to access services described in the WSDL.
+    service clients trying to access services described in the WSDL or REST.
 
 3.  SS administrator inserts the message.
 
 4.  System parses user input: 3.1.13.
 
-5.  System disables the services described in the WSDL. Service clients
+5.  System disables the services described in the WSDL or REST. Service clients
     trying to access the disabled services will get the following error
     message as response: “Service X is disabled: Y”, where “X” is the
     X-Road identifier of the service and “Y” is the inserted notice
     message.
 
-6.  System logs the event “Disable WSDL” to the audit log.
+6.  System logs the event “Disable service description” to the audit log.
 
 **Extensions**:
 
@@ -995,7 +996,7 @@ WSDL unavailable for the service clients.
 
 - 4a. The process of parsing the user input terminated with an error message.
     - 4a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
-    - 4a.2. System logs the event “Disable WSDL failed” to the audit log.
+    - 4a.2. System logs the event “Disable service description failed” to the audit log.
     - 4a.3. SS administrator selects to reinsert the message. Use case continues from step 4.
         - 4a.3a. SS administrator selects to terminate the use case.
 
@@ -1005,7 +1006,7 @@ WSDL unavailable for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-#### 3.1.16 UC SERVICE\_14: Refresh a WSDL
+#### 3.1.16 UC SERVICE\_14: Refresh a WSDL or REST
 
 **System**: Security server
 
@@ -1015,8 +1016,8 @@ WSDL unavailable for the service clients.
 
 **Actors**: SS administrator
 
-**Brief** **Description**: SS administrator refreshes a WSDL. System
-reloads the WSDL file from the WSDL address.
+**Brief** **Description**: SS administrator refreshes a WSDL or REST. System
+reloads the WSDL file from the WSDL or REST address.
 
 **Preconditions**: -
 
@@ -1024,79 +1025,80 @@ reloads the WSDL file from the WSDL address.
 
 **Trigger**:
 
--   SS administrator wants to refresh a WSDL.
+-   SS administrator wants to refresh a WSDL or REST.
 
 -   Step 5 of 3.1.10.
 
 **Main** **Success** **Scenario**:
 
-1.  SS administrator selects to refresh the WSDL.
+1.  SS administrator selects to refresh the WSDL or REST.
 
-2.  System downloads the WSDL file from the WSDL URL and reads service
+2.  System downloads the WSDL file from the WSDL or REST URL and reads service
     information from the downloaded file: 3.1.11.
 
-3.  System verifies that the location of a WSDL validation program is
-    described by the system parameter *wsdl-validator-command* and
-    validates the WSDL file using the validator: 3.1.12.
+3.  System verifies that the location of a WSDL or REST validation program is
+    described by the system parameter *wsdl-validator-command* or *rest-validator-command* and
+    validates the WSDL or REST file using the validator: 3.1.12.
 
 4.  System verifies that none of the services described for this
-    security server client in other WSDLs than the one being refreshed
+    security server client in other WSDLs or RESTs than the one being refreshed
     have the same service code and service version value combination as
-    any of the services read from the downloaded WSDL file.
+    any of the services read from the downloaded WSDL or REST file.
 
 5.  System verifies that the composition of the services in the
-    downloaded WSDL does not differ from the current version.
+    downloaded WSDL or REST does not differ from the current version.
 
 6.  System updates the list of services saved in the system
-    configuration for this WSDL.
+    configuration for this WSDL or REST.
 
-7.  System logs the event “Refresh WSDL” to the audit log.
+7.  System logs the event “Refresh service description” to the audit log.
 
 **Extensions**:
 
-- 2a. The process of downloading and parsing the WSDL file terminated with an error message.
+- 2a. The process of downloading and parsing the WSDL or REST file terminated with an error message.
     - 2a.1. System displays the error message “X” (where “X” is the termination message from the downloading and parsing process).
-    - 2a.2. System logs the event “Refresh WSDL failed” to the audit log.
-        - 2a.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10. Use case terminates.
+    - 2a.2. System logs the event “Refresh service description failed” to the audit log.
+        - 2a.2a. The process of refreshing the WSDL or REST was triggered from the use case 3.1.10. Use case terminates.
     - 2a.3. Use case terminates.
 
-- 3a. The location of the WSDL validator is not set.
+- 3a. The location of the WSDL or REST validator is not set.
     - 3a.1. System skips the process of validation.
     - 3a.2. Use case continues from step 4.
 
-- 3b. The process of validating the WSDL file was terminated with an error message.
-    - 3b.1. System displays WSDL validator output describing the reason of the failure, and the error message from the validation process.
-    - 3b.2. System logs the event “Refresh WSDL failed” to the audit log.
-        - 3b.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10 . Use case terminates.
+- 3b. The process of validating the WSDL or REST file was terminated with an error message.
+    - 3b.1. System displays WSDL or REST validator output describing the reason of the failure, and the error message from the validation process.
+    - 3b.2. System logs the event “Refresh service description failed” to the audit log.
+        - 3b.2a. The process of refreshing the WSDL or REST was triggered from the use case 3.1.10 . Use case terminates.
     - 3b.3. Use case terminates.
 
-- 3c. The process of validating the WSDL file was finished with a warning message.
-    - 3c.1. System prompts the warning message “WSDL ('X') validation gave the following warnings: 'Y'. Do you want to continue?” (where “X” is the URL of the WSDL and “Y” is the message from the validation process).
+- 3c. The process of validating the WSDL or REST file was finished with a warning message.
+    - 3c.1. System prompts the warning message “WSDL (or REST) ('X') validation gave the following warnings: 'Y'. Do you want to continue?” (where “X” is the URL of the WSDL or REST and “Y” is the message from the validation process).
     - 3c.2. SS administrator chooses to continue with the refreshing process. Use case continues from step 4.
         - 3c.2a. SS administrator selects to terminate the use case.
 
-- 3d. The address of the WSDL validator program is incorrect and system was not able to run the validation program.
-    - 3d.1. System displays the error message “Running WSDL validator failed. Command not found.”.
-    - 3d.2. System logs the event “Refresh WSDL failed” to the audit log.
-        - 3d.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10. Use case terminates.
+- 3d. The address of the WSDL or REST validator program is incorrect and system was not able to run the validation program.
+    - 3d.1. System displays the error message “Running WSDL (or REST) validator failed. Command not found.”.
+    - 3d.2. System logs the event “Refresh service description failed” to the audit log.
+        - 3d.2a. The process of refreshing the WSDL or REST was triggered from the use case 3.1.10. Use case terminates.
     - 3d.3. Use case terminates.
 
-- 3e. The address of the WSDL validator refers to non-executable file and system was not able to run the validation program.
-    - 3e.1. System displays the error message “Running WSDL validator failed. Command not executable.”.
-    - 3e.2. System logs the event “Refresh WSDL failed” to the audit log.
-        - 3e.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10 . Use case terminates.
+- 3e. The address of the WSDL or REST validator refers to non-executable file and system was not able to run the validation program.
+    - 3e.1. System displays the error message “Running WSDL (or REST) validator failed. Command not executable.”.
+    - 3e.2. System logs the event “Refresh service description failed” to the audit log.
+        - 3e.2a. The process of refreshing the WSDL or REST was triggered from the use case 3.1.10 . Use case terminates.
     - 3e.3. Use case terminates.
 
-- 4a. A service with the same service code and version values as a service read from the WSDL file is described in another WSDL of the service client.
-    - 4a.1. System displays the error message “Duplicate service. Service 'X' already exists in WSDL 'Y'” (where “X” is the code.version of the service and “Y” is the URL of the existing WSDL where the duplicate service was found).
-    - 4a.2. System logs the event “Refresh WSDL failed” to the audit log.
-        - 4a.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10. Use case terminates.
+- 4a. A service with the same service code and version values as a service read from the WSDL or REST file is described in another WSDL or REST of the service client.
+    - 4a.1. System displays the error message “Duplicate service. Service 'X' already exists in WSDL or REST 'Y'” (where “X” is the code.version of the service and “Y” is the URL of the existing WSDL or REST where the duplicate service was found).
+    - 4a.2. System logs the event “Refresh service description failed” to the audit log.
+        - 4a.2a. The process of refreshing the WSDL or REST was triggered from the use case 3.1.10. Use case terminates.
     - 4a.3. Use case terminates.
 
-- 5a. The composition of the services in the downloaded WSDL differ from the current version.
-    - 5a.1. System prompts the warning “Adding services: 'X' Deleting services: 'Y'” (where “X” and “Y” is the list of the service codes that have been added to or removed from the WSDL) and asks for confirmation to continue.
-    - 5a.2. SS administrator selects to continue with the refreshing process. Use case continues from step 6.
-        - 5a.2a. SS administrator selects to terminate the use case.
+- 5a. The composition of the services in the downloaded WSDL or REST differ from the current version.
+    - 5a.1. System prompts the warning “Adding services: 'X' Deleting services: 'Y'” (where “X” and “Y” is the list of the service codes that have been added to or removed from the WSDL or REST) and asks for confirmation to continue.
+    - 5a.2. System logs the event “Adding service description failed” to the audit log.
+    - 5a.3. SS administrator selects to continue with the refreshing process. Use case continues from step 6.
+        - 5a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -1107,7 +1109,7 @@ reloads the WSDL file from the WSDL address.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-#### 3.1.17 UC SERVICE\_15: Delete a WSDL
+#### 3.1.17 UC SERVICE\_15: Delete a WSDL or REST
 
 **System**: Security server
 
@@ -1118,28 +1120,28 @@ reloads the WSDL file from the WSDL address.
 **Actors**: SS administrator
 
 **Brief** **Description**: SS administrator deletes a security server
-client's WSDL.
+client's WSDL or REST.
 
 **Preconditions**: -
 
 **Postconditions**: -
 
 **Trigger**: SS administrator wants to delete a WSDL from the security
-server client's list of WSDLs.
+server client's list of WSDLs or RESTs.
 
 **Main** **Success** **Scenario**:
 
-1.  SS administrator selects to delete a WSDL.
+1.  SS administrator selects to delete a WSDL or REST.
 
 2.  System prompts for confirmation.
 
 3.  SS administrator confirms.
 
-4.  System deletes all information about the WSDL, the services
-    described in the WSDL, and the access right records for the services
-    described in the WSDL from the system configuration.
+4.  System deletes all information about the WSDL or REST, the services
+    described in the WSDL or REST, and the access right records for the services
+    described in the WSDL or REST from the system configuration.
 
-5.  System logs the event “Delete WSDL” to the audit log.
+5.  System logs the event “Delete service description” to the audit log.
 
 **Extensions**:
 
@@ -1464,7 +1466,7 @@ value.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-#### 3.1.24 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
+#### 3.1.24 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL or REST
 
 **System**: Security server
 
@@ -1476,7 +1478,7 @@ value.
 
 **Brief** **Description**: SS administrator applies the value of a
 service parameter (address, timeout, TLS certificate verification) of
-one service to all the services in the WSDL where the service is
+one service to all the services in the WSDL or REST where the service is
 described.
 
 **Preconditions**: -
@@ -1484,22 +1486,22 @@ described.
 **Postconditions**:
 
 -   The value of a service parameter is identical for all the services
-    in a WSDL. The TLS certificate verification option is changed only
+    in a WSDL or REST. The TLS certificate verification option is changed only
     for the services where the protocol part of the service address is
     “https”.
 
 -   An audit log record for the event is created.
 
 **Trigger**: SS administrator wants to apply the parameter value of one
-service to all the services in the WSDL where the service is described.
+service to all the services in the WSDL or REST where the service is described.
 
 **Main** **Success** **Scenario**:
 
 1.  SS administrator selects to apply a service parameter value to all
-    the services in the WSDL.
+    the services in the WSDL or REST.
 
 2.  System saves the parameter value for every service described in the
-    same WSDL.
+    same WSDL or REST.
 
 3.  System logs the event “Edit service parameters” to the audit log.
 

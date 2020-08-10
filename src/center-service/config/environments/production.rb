@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -30,8 +31,7 @@ CenterService::Application.configure do
 
   # In production we use database coordinates in one authoritative location.
   def config.database_configuration
-    DbConfParser.new(
-      "production", SystemProperties.getCenterDatabasePropertiesFile).parse
+    DbConfParser.new( "production", SystemProperties.getCenterDatabasePropertiesFile).parse
   end
 
   # Code is not reloaded between requests
@@ -66,7 +66,6 @@ CenterService::Application.configure do
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"
-
 
   # Disable delivery errors, bad email addresses will be ignored
   # config.action_mailer.raise_delivery_errors = false

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -38,6 +39,7 @@ import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_DELETION;
 import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
 import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_DELETION;
 import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
+import static ee.ria.xroad.common.request.ManagementRequests.OWNER_CHANGE;
 
 /**
  * Parser for management requests.
@@ -93,6 +95,29 @@ public final class ManagementRequestParser {
     public static ClientRequestType parseClientDeletionRequest(
             SoapMessageImpl message) throws Exception {
         return parse(message, CLIENT_DELETION);
+    }
+
+    /**
+     * Parses a client registration request.
+     * @param message the request SOAP message
+     * @return the client registration request
+     * @throws Exception in case of any errors
+     */
+    public static ClientRequestType parseOwnerChangeRequest(SoapMessageImpl message)
+            throws Exception {
+        return parse(message, OWNER_CHANGE);
+    }
+
+    /**
+     * Parses a management request with the given name.
+     * @param message the request SOAP message
+     * @param managementRequestName name of the management request
+     * @return the management request
+     * @throws Exception in case of any errors
+     */
+    public static ClientRequestType parseRequest(SoapMessageImpl message, String managementRequestName)
+            throws Exception {
+        return parse(message, managementRequestName);
     }
 
     // -- Private helper methods ----------------------------------------------

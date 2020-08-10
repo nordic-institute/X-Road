@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,8 +28,9 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
-import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
@@ -90,6 +92,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
 import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
@@ -142,6 +145,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
             ProxyMessage requestProxyMessage) {
+
         requestMessage = requestProxyMessage.getSoap();
 
         switch (requestServiceId.getServiceCode()) {
@@ -174,6 +178,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         // and the responseInTs must be equal with the responseOutTs.
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+        opMonitoringData.setServiceType(DescriptionType.WSDL.name());
 
 
         switch (serviceCode) {
@@ -213,8 +218,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                ServerConf.getAllServices(
-                        request.getService().getClientId()));
+                ServerConf.getServicesByDescriptionType(
+                        request.getService().getClientId(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
@@ -227,9 +232,9 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                ServerConf.getAllowedServices(
+                ServerConf.getAllowedServicesByDescriptionType(
                         request.getService().getClientId(),
-                        request.getClient()));
+                        request.getClient(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createAllowedMethodsResponse(methodList));
@@ -272,10 +277,13 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     // ------------------------------------------------------------------------
 
     private String getWsdlUrl(ServiceId service) throws Exception {
-        return ServerConfDatabaseCtx.doInTransaction(session -> {
-            WsdlType wsdl = new WsdlDAOImpl().getWsdl(session, service);
-            return wsdl != null ? wsdl.getUrl() : null;
-        });
+        ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
+                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
+        if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
+            throw new CodedException(X_INVALID_SERVICE_TYPE,
+                    "Service is a REST service and does not have a WSDL");
+        }
+        return wsdl != null ? wsdl.getUrl() : null;
     }
 
     private static SoapMessageImpl createMethodListResponse(
@@ -283,12 +291,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             final JAXBElement<MethodListType> methodList) throws Exception {
         SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
                 new SOAPCallback() {
-                @Override
-                public void call(SOAPMessage soap) throws Exception {
-                    soap.getSOAPBody().removeContents();
-                    marshal(methodList, soap.getSOAPBody());
-                }
-            });
+                    @Override
+                    public void call(SOAPMessage soap) throws Exception {
+                        soap.getSOAPBody().removeContents();
+                        marshal(methodList, soap.getSOAPBody());
+                    }
+                });
 
         return responseMessage;
     }
@@ -315,10 +323,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
      */
     private static class CommentsHandler extends DefaultHandler2 {
         private LexicalHandler serializer;
+
         protected CommentsHandler(LexicalHandler serializer) {
             super();
             this.serializer = serializer;
         }
+
         @Override
         public void comment(char[] ch, int start, int length) throws SAXException {
             serializer.comment(ch, start, length);
@@ -327,6 +337,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
+     *
      * @param wsdl
      * @return
      */

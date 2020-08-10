@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -157,9 +158,9 @@ public final class ProxyTestSuite {
     }
 
     private static void setUp() throws Exception {
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf());
-        GlobalConf.reload(new TestGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
+        ServerConf.reload(new TestSuiteServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
@@ -232,8 +233,6 @@ public final class ProxyTestSuite {
 
             log.info(s.getClass().getSimpleName() + " started");
         }
-
-        Thread.sleep(2000); // give time to start up
 
         try {
             runTestCases(tc);

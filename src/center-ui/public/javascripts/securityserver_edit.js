@@ -352,7 +352,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
 
     function editAddress(dialog) {
         var params = getEditableServerId();
-        params.address = $("#securityserver_edit_address_new").val();
+        params.address = $.trim($("#securityserver_edit_address_new").val());
 
         $.post("securityservers/address_edit", params, function(response) {
             $("#securityserver_edit_address").text(response.data.address);

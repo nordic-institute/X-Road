@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -32,8 +33,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
@@ -72,14 +76,15 @@ public class GlobalConfChecker implements Job {
         GlobalConf.reload(); // XXX: temporary fix
 
         updateAuthCertStatuses(doInTransaction(session -> {
-            ServerConfType serverConf = new ServerConfDAOImpl().getConf();
-
-            ClientId ownerId = serverConf.getOwner().getIdentifier();
-            SecurityServerId securityServerId = SecurityServerId.create(
-                    ownerId.getXRoadInstance(), ownerId.getMemberClass(),
-                    ownerId.getMemberCode(), serverConf.getServerCode());
+            ServerConfType serverConf = new ServerConfDAOImpl().getConf(session);
+            SecurityServerId securityServerId = null;
 
             try {
+                if (GlobalConf.getServerOwner(buildSecurityServerId(serverConf)) == null) {
+                    updateOwner(serverConf);
+                }
+                securityServerId = buildSecurityServerId(serverConf);
+                log.debug("Security Server ID is \"{}\"", securityServerId);
                 updateClientStatuses(serverConf, securityServerId);
             } catch (Exception e) {
                 throw translateException(e);
@@ -89,6 +94,57 @@ public class GlobalConfChecker implements Job {
 
             return securityServerId;
         }));
+    }
+
+    private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
+        return SecurityServerId.create(
+                ownerId.getXRoadInstance(), ownerId.getMemberClass(),
+                ownerId.getMemberCode(), serverCode);
+    }
+
+    private SecurityServerId buildSecurityServerId(ServerConfType serverConf) throws Exception {
+        ClientId ownerId = serverConf.getOwner().getIdentifier();
+        return buildSecurityServerId(ownerId, serverConf.getServerCode());
+    }
+
+    private void updateOwner(ServerConfType serverConf) throws Exception {
+        ClientId ownerId = serverConf.getOwner().getIdentifier();
+        for (ClientType client : serverConf.getClient()) {
+            // Look for another member that is not the owner
+            if (client.getIdentifier().getSubsystemCode() == null
+                    && !client.getIdentifier().equals(ownerId)) {
+                log.trace("Found potential new owner: \"{}\"", client.getIdentifier());
+
+                // Build a new server id using the alternative member as owner
+                SecurityServerId altSecurityServerId = buildSecurityServerId(client.getIdentifier(),
+                        serverConf.getServerCode());
+
+                // Get local auth cert
+                X509Certificate cert = getAuthCert(altSecurityServerId);
+
+                // Does the alternative server id exist in global conf?
+                // And does the local auth cert match with the auth cert of
+                // the alternative server from global conf?
+                if (GlobalConf.getServerOwner(altSecurityServerId) != null
+                        && cert != null
+                        && altSecurityServerId.equals(GlobalConf.getServerId(cert))
+                ) {
+                    log.debug("Set \"{}\" as new owner", client.getIdentifier());
+                    serverConf.setOwner(client);
+                }
+            }
+        }
+    }
+
+    private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
+        log.debug("Get auth cert for security server '{}'", serverId);
+
+        AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
+        if (keyInfo != null && keyInfo.getCert() != null) {
+            return readCertificate(keyInfo.getCert().getCertificateBytes());
+        }
+        log.warn("Failed to read authentication key");
+        return null;
     }
 
     private void updateClientStatuses(ServerConfType serverConf,

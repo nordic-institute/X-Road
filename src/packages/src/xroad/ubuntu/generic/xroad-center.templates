@@ -1,8 +1,14 @@
 
+Template: xroad-common/database-host
+Type: string
+Default: 127.0.0.1:5432
+Description: Insert database server connection string
+ This will be used by the Central Server to connect to the database host.
+
 Template: xroad-common/admin-subject
 Type: string
 Description: Insert admin interface TLS certificate subject name
- This cerificate will be used to secure admin WebUI connections.
+ This certificate will be used to secure admin WebUI connections.
  .
  Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
  .
@@ -11,7 +17,7 @@ Description: Insert admin interface TLS certificate subject name
 Template: xroad-common/admin-altsubject
 Type: string
 Description: Insert admin interface TLS certificate subject name alternatives
- This cerificate will be used to secure admin WebUI connections.
+ This certificate will be used to secure admin WebUI connections.
  .
  Include all alternative names and IP addresses which will be used for accessing admin WebUI
  .
@@ -22,7 +28,7 @@ Description: Insert admin interface TLS certificate subject name alternatives
 Template: xroad-common/service-subject
 Type: string
 Description: Insert TLS certificate subject name
- This cerificate will be used to secure internal service->secureserver connections.
+ This certificate will be used to secure internal service->secureserver connections.
  .
  Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
  .
@@ -31,7 +37,7 @@ Description: Insert TLS certificate subject name
 Template: xroad-common/service-altsubject
 Type: string
 Description: Insert TLS certificate subject name alternatives
- This cerificate will be used to secure internal service->secureserver connections.
+ This certificate will be used to secure internal service->secureserver connections.
  .
  Include all alternative names and IP addresses which will be used for accessing secure services
  .

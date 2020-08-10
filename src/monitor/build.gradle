@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 ext {
@@ -29,10 +29,10 @@ dependencies {
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:1.7.12'
     compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
-    testCompile 'junit:junit:4.12'
-    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
-    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
-    compile project(':common-test')
+    testCompile 'junit:junit:4.13'
+    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
+    testCompile project(':common-test')
 }
 
 jar {

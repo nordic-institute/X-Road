@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -113,7 +114,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
-            failure(processor, response, e, opMonitoringData);
+            failure(processor, request, response, e, opMonitoringData);
         } catch (CodedExceptionWithHttpStatus e) {
             handled = true;
 
@@ -134,7 +135,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
             updateOpMonitoringSoapFault(opMonitoringData, cex);
 
-            failure(processor, response, cex, opMonitoringData);
+            failure(processor, request, response, cex, opMonitoringData);
         } finally {
             baseRequest.setHandled(handled);
 
@@ -151,20 +152,26 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
-        updateOpMonitoringSucceeded(opMonitoringData);
+        final boolean success = processor.verifyMessageExchangeSucceeded();
+        final MessageInfo messageInfo = processor.createRequestMessageInfo();
 
-        MonitorAgent.success(processor.createRequestMessageInfo(), new Date(start), new Date());
+        updateOpMonitoringSucceeded(opMonitoringData, success);
+        if (success) {
+            MonitorAgent.success(messageInfo, new Date(start), new Date());
+        } else {
+            MonitorAgent.failure(messageInfo, null, null);
+        }
     }
 
-    protected void failure(MessageProcessorBase processor, HttpServletResponse response, CodedException e,
-            OpMonitoringData opMonitoringData) throws IOException {
+    protected void failure(MessageProcessorBase processor, HttpServletRequest request, HttpServletResponse response,
+                           CodedException e, OpMonitoringData opMonitoringData) throws IOException {
         MessageInfo info = processor != null ? processor.createRequestMessageInfo() : null;
 
         MonitorAgent.failure(info, e.getFaultCode(), e.getFaultString());
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
-        sendErrorResponse(response, e);
+        sendErrorResponse(request, response, e);
     }
 
     protected void failure(HttpServletResponse response, CodedExceptionWithHttpStatus e,
@@ -216,13 +223,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static void updateOpMonitoringSoapFault(OpMonitoringData opMonitoringData, CodedException e) {
         if (opMonitoringData != null) {
-            opMonitoringData.setSoapFault(e);
+            opMonitoringData.setFaultCodeAndString(e);
         }
     }
 
-    private static void updateOpMonitoringSucceeded(OpMonitoringData opMonitoringData) {
+    private static void updateOpMonitoringSucceeded(OpMonitoringData opMonitoringData, boolean success) {
         if (opMonitoringData != null) {
-            opMonitoringData.setSucceeded(true);
+            opMonitoringData.setSucceeded(success);
         }
     }
 }

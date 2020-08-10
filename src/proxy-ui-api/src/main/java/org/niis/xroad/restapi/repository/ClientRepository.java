@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,161 +25,147 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.restapi.DatabaseContextHelper;
-import org.niis.xroad.restapi.openapi.model.Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.EndpointNotFoundException;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Not sure if we are going to have this kind of repositories...
+ * client repository
  */
-@Component
+@Slf4j
+@Repository
+@Transactional
 public class ClientRepository {
 
-    static Logger logger = LoggerFactory.getLogger(ClientRepository.class);
+    private PersistenceUtils persistenceUtils;
 
-    public static final int MEMBER_ID_PARTS = 3;
-
-    public List<MemberInfo> getAllMembers() {
-        return GlobalConf.getMembers();
+    @Autowired
+    public ClientRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
     }
 
     /**
-     * dummy
-     * @param s
+     * Executes a Hibernate saveOrUpdate(client)
+     * @param clientType
      */
-    public void throwRuntimeException(String s) {
-        logger.error("throwing exception {}", s);
-        throw new RuntimeException(s);
+    public void saveOrUpdate(ClientType clientType) {
+        saveOrUpdate(clientType, false);
     }
 
     /**
-     * dummy
-     * @param s
+     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
+     * @param clientType
      */
-    public void throwApplicationException(String s) throws MyApplicationException {
-        logger.error("throwing exception {}", s);
-        throw new MyApplicationException(s);
+    public void saveOrUpdateAndFlush(ClientType clientType) {
+        saveOrUpdate(clientType, true);
     }
 
     /**
-     * dummy
-     * @param s
+     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
+     * @param clientType
      */
-    public void throwSpringException(String s) {
-        logger.error("throwing exception {}", s);
-        throw new RestClientException(s);
-    }
-
-    /**
-     * dummy
-     */
-    public static class MyApplicationException extends Exception {
-        public MyApplicationException(String s) {
-            super(s);
+    public void saveOrUpdate(ClientType clientType, boolean flush) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
+        if (flush) {
+            persistenceUtils.flush();
         }
     }
 
     /**
-     * transactions
-     * test rollback
-     * - correct id encoding (see rest proxy)
+     * return one local client
      * @param id
+     * @return the client, or null if matching client was not found
      */
-    public ClientType getClient(String id) {
+    public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        List<String> parts = Arrays.asList(id.split(":"));
-        String instance = parts.get(0);
-        String memberClass = parts.get(1);
-        String memberCode = parts.get(2);
-        String subsystemCode = null;
-        if (parts.size() > MEMBER_ID_PARTS) {
-            subsystemCode = parts.get(MEMBER_ID_PARTS);
-        }
-        ClientId clientId = ClientId.create(instance, memberClass, memberCode, subsystemCode);
-
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    ClientType client = clientDAO.getClient(session, clientId);
-                    ClientType clientDto = copyToClientType(client);
-                    return clientDto;
-                });
+        return clientDAO.getClient(persistenceUtils.getCurrentSession(), id);
     }
 
-    //CHECKSTYLE.OFF: TodoComment
     /**
-     * TODO: should repositories talk in openapi terms?
+     * return all local clients
+     * @return
+     */
+    public List<ClientType> getAllLocalClients() {
+        ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
+        ServerConfType serverConfType = serverConfDao.getConf(persistenceUtils.getCurrentSession());
+        List<ClientType> clientTypes = serverConfType.getClient();
+        Hibernate.initialize(clientTypes);
+        return clientTypes;
+    }
+
+    /**
+     * Returns true, if client with specified identifier exists.
+     * @param id the identifier
+     * @param includeSubsystems if true and identifier is not subsystem,
+     * also looks for clients whose identifier is a subsystem
+     * @return true, if client with specified identifier exists
+     */
+    public boolean clientExists(ClientId id, boolean includeSubsystems) {
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        return clientDAO.clientExists(persistenceUtils.getCurrentSession(), id, includeSubsystems);
+    }
+
+    /**
+     * Return ClientType containing the id matching endpoint
      *
-     * @return
+     * @param id                                         id for endpoint
+     * @return ClientType                                client containing id matching endpoint
+     * @throws EndpointNotFoundException if endpoint is not found with given id
+     * @throws ClientNotFoundException if client is not found with given endpoint id
      */
-    //CHECKSTYLE.ON: TodoComment
-    public List<Client> getAllClients() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    List<Client> clients = new ArrayList<>();
-                    for (ClientType client : serverConf.getConf().getClient()) {
-                        clients.add(copy(client));
-                    }
-                    return clients;
-                });
-    }
+    public ClientType getClientByEndpointId(Long id)
+            throws EndpointNotFoundException, ClientNotFoundException {
+        Session session = this.persistenceUtils.getCurrentSession();
+        EndpointType endpointType = session.get(EndpointType.class, id);
 
-
-    /**
-     * Placeholder transformation from xroad POJO to API DTO
-     */
-    private Client copy(ClientType client) {
-        Client copy = new Client();
-        copy.setId(UUID.randomUUID());
-        copy.setName(client.getIdentifier().toShortString());
-        copy.setStatus(client.getClientStatus());
-        return copy;
-    }
-
-    /**
-     * There may be a universal configuration which
-     * tells jackson not to serialize non-initialized items -
-     * may need to research depending on what type of dto
-     * handling we need:
-     * https://stackoverflow.com/questions/21708339/
-     * avoid-jackson-serialization-on-non-fetched-lazy-objects/21760361#21760361
-     * @param client
-     * @return
-     */
-    private ClientType copyToClientType(ClientType client) {
-        ClientType copy = new ClientType();
-        BeanUtils.copyProperties(client, copy, "conf");
-        for (WsdlType w: client.getWsdl()) {
-            WsdlType wc = new WsdlType();
-            BeanUtils.copyProperties(w, wc, "client");
-            for (ServiceType s: wc.getService()) {
-                ServiceType sc = new ServiceType();
-                BeanUtils.copyProperties(s, sc, "requiredSecurityCategory");
-                wc.getService().add(sc);
-            }
-            copy.getWsdl().add(wc);
+        if (endpointType == null) {
+            throw new EndpointNotFoundException(id.toString());
         }
-        // pass client id to UI somehow, just for demo purposes
-        copy.setIsAuthentication(client.getIdentifier().toShortString());
-        return copy;
+
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        ClientType clientType = clientDAO.getClientByEndpointId(session, endpointType);
+
+        session.refresh(clientType);
+
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for endpoint with id: " + id.toString());
+        }
+
+        return clientType;
     }
+
+    /**
+     * Return ClientType containing the id matching local group
+     *
+     * @throws LocalGroupNotFoundException if local group is not found with given id
+     * @throws ClientNotFoundException if client is not found with given endpoint id
+     */
+    public ClientType getClientByLocalGroup(LocalGroupType localGroupType)
+            throws ClientNotFoundException {
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        ClientType clientType = clientDAO.getClientByLocalGroup(persistenceUtils.getCurrentSession(), localGroupType);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client not found for localGroup with id: " + localGroupType.getId());
+        }
+        return clientType;
+    }
+
 }
 

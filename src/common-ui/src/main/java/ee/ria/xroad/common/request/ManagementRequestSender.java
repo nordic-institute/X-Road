@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -128,7 +129,10 @@ public final class ManagementRequestSender {
      */
     public Integer sendClientRegRequest(SecurityServerId securityServer,
             ClientId clientId) throws Exception {
-        return sendToProxy(builder.buildClientRegRequest(securityServer, clientId));
+        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new ClientRegRequest(clientId, builder.buildClientRegRequest(securityServer, clientId)));
+        }
     }
 
     /**
@@ -142,6 +146,21 @@ public final class ManagementRequestSender {
             ClientId clientId) throws Exception {
         return sendToProxy(builder.buildClientDeletionRequest(securityServer,
                 clientId));
+    }
+
+    /**
+     * Sends an owner change request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @param clientId the client id of the new security server owner
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendOwnerChangeRequest(SecurityServerId securityServer,
+                                        ClientId clientId) throws Exception {
+        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+        }
     }
 
     // -- Helper methods ------------------------------------------------------

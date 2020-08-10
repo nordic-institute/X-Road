@@ -4,7 +4,7 @@
 # XXX Don't change this file name without a reason -- that will break backwards compatibilty
 # with existing tarballs because the restore scripts expect to find a file with this
 # name after unpacking the tarball.
-umask 007
+umask 027
 DATABASE_DUMP_FILENAME="/var/lib/xroad/dbdump.dat"
 
 DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_db.sh"
@@ -13,7 +13,7 @@ COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
 # This version number must be increased when we introduce changes that make
 # earlier backup files incompatible with the current system.
-XROAD_VERSION_LABEL="XROAD_6.8"
+XROAD_VERSION_LABEL="XROAD_6.24"
 
 die () {
     echo >&2 "$@"
@@ -39,24 +39,18 @@ check_instance_id () {
 }
 
 check_central_ha_node_name () {
-  if [ -z ${FORCE_RESTORE} ] ; then
-    # Look for BDR-patched Postgres 9.4 in order to detect HA support.
-    dpkg -l | cut -d ' ' -f 3 | grep postgresql-bdr-9.4 2>&1 >/dev/null
-    if [ $? -eq 0 ] ; then
-      if [ -z "$CENTRAL_SERVER_HA_NODE_NAME" ] ; then
-        echo "Missing value of HA node name but postgresql-bdr-9.4 is installed"
-        usage
-        exit 2
-      fi
-    else
-      if [ -n "$CENTRAL_SERVER_HA_NODE_NAME" ] ; then
-        echo "Not expecting HA node name if postgresql-bdr-9.4 is not installed"
-        usage
-        exit 2
-      fi
-    fi
-    if [[ $USE_BASE_64 = true ]] ; then
-      CENTRAL_SERVER_HA_NODE_NAME=$(echo $CENTRAL_SERVER_HA_NODE_NAME | base64 --decode)
+  local node_name=""
+  if [ -f /etc/xroad/local.ini ]; then
+    node_name=$(crudini --get /etc/xroad/local.ini 'center' 'ha-node-name')
+  fi
+  if [[ $USE_BASE_64 = true ]] ; then
+    CENTRAL_SERVER_HA_NODE_NAME=$(echo $CENTRAL_SERVER_HA_NODE_NAME | base64 --decode)
+  fi
+  if [[ -z $FORCE_RESTORE && -n $node_name ]]; then
+    if [[ "$node_name" != "$CENTRAL_SERVER_HA_NODE_NAME" ]]; then
+      echo "Expected '$node_name', but HA node name was '$CENTRAL_SERVER_HA_NODE_NAME'"
+      usage
+      exit 2
     fi
   fi
 }

@@ -1,0 +1,4 @@
+---
+# aws_preserve_hostname: true
+# ssh_password_authentication: false
+# disable_automatic_upgrades: true

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -40,6 +41,7 @@ import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
@@ -92,6 +94,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
@@ -152,17 +155,17 @@ public class SignerCLI {
      */
     @SuppressWarnings({"squid:S1873", "squid:S2386"})
     public static final InputConverter[] CLI_INPUT_CONVERTERS = {
-        new InputConverter() {
-            @Override
-            @SuppressWarnings("rawtypes")
-            public Object convertInput(String original, Class toClass) throws Exception {
-                if (toClass.equals(ClientId.class)) {
-                    return createClientId(original);
-                } else {
-                    return null;
+            new InputConverter() {
+                @Override
+                @SuppressWarnings("rawtypes")
+                public Object convertInput(String original, Class toClass) throws Exception {
+                    if (toClass.equals(ClientId.class)) {
+                        return createClientId(original);
+                    } else {
+                        return null;
+                    }
                 }
-            }
-        },
+            },
     };
 
     /**
@@ -225,7 +228,7 @@ public class SignerCLI {
 
     /**
      * Sets token friendly name.
-     * @param tokenId token id
+     * @param tokenId      token id
      * @param friendlyName friendly name
      * @throws Exception if an error occurs
      */
@@ -250,7 +253,7 @@ public class SignerCLI {
 
     /**
      * Sets key friendly name.
-     * @param keyId key id
+     * @param keyId        key id
      * @param friendlyName friendly name
      * @throws Exception if an error occurs
      */
@@ -415,7 +418,7 @@ public class SignerCLI {
 
     /**
      * Returns suitable authentication key for security server.
-     * @param clientId client id
+     * @param clientId   client id
      * @param serverCode server code
      * @throws Exception if an error occurs
      */
@@ -449,7 +452,7 @@ public class SignerCLI {
 
     /**
      * Imports a certificate.
-     * @param file file
+     * @param file     file
      * @param clientId client id
      * @throws Exception if an error occurs
      */
@@ -483,15 +486,18 @@ public class SignerCLI {
      */
     @Command(description = "Log in token", abbrev = "li")
     public void loginToken(@Param(name = "tokenId", description = "Token ID") String tokenId) throws Exception {
-        char[] pin = System.console().readPassword("PIN: ");
-
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
 
         try {
+            char[] pin;
+            if (System.console() != null) {
+                pin = System.console().readPassword("PIN: ");
+            } else {
+                pin = new Scanner(System.in).nextLine().toCharArray();
+            }
             PasswordStore.storePassword(tokenId, pin);
             SignerClient.execute(new ActivateToken(tokenId, true));
-
             AuditLogger.log(LOG_INTO_THE_TOKEN, XROAD_USER, logData);
         } catch (Exception e) {
             AuditLogger.log(LOG_INTO_THE_TOKEN, XROAD_USER, e.getMessage(), logData);
@@ -551,7 +557,7 @@ public class SignerCLI {
     /**
      * Sign some data
      * @param keyId the key id
-     * @param data the data
+     * @param data  the data
      * @throws Exception if an error occurs
      */
     @Command(description = "Sign some data")
@@ -573,7 +579,7 @@ public class SignerCLI {
 
     /**
      * Sign a file.
-     * @param keyId the key id
+     * @param keyId    the key id
      * @param fileName the file name
      * @throws Exception if an error occurs
      */
@@ -612,7 +618,7 @@ public class SignerCLI {
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
-             SignerClient.execute(new Sign(keyId, signAlgoId, digest));
+            SignerClient.execute(new Sign(keyId, signAlgoId, digest));
         }
 
         long duration = System.currentTimeMillis() - startTime;
@@ -623,7 +629,7 @@ public class SignerCLI {
     /**
      * Generate key on token.
      * @param tokenId token id
-     * @param label label
+     * @param label   label
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate key on token")
@@ -651,11 +657,11 @@ public class SignerCLI {
 
     /**
      * Generate certificate request.
-     * @param keyId key id
-     * @param memberId member id
-     * @param usage usage
+     * @param keyId       key id
+     * @param memberId    member id
+     * @param usage       usage
      * @param subjectName subject name
-     * @param format request format
+     * @param format      request format
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate certificate request")
@@ -666,8 +672,8 @@ public class SignerCLI {
             @Param(name = "format", description = "Format of request (der/pem)") String format) throws Exception {
         KeyUsageInfo keyUsage = "a".equals(usage) ? KeyUsageInfo.AUTHENTICATION : KeyUsageInfo.SIGNING;
 
-        GenerateCertRequest.RequestFormat requestFormat = format.equalsIgnoreCase("der")
-                ? GenerateCertRequest.RequestFormat.DER : GenerateCertRequest.RequestFormat.PEM;
+        CertificateRequestFormat requestFormat = format.equalsIgnoreCase("der")
+                ? CertificateRequestFormat.DER : CertificateRequestFormat.PEM;
 
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
@@ -696,7 +702,7 @@ public class SignerCLI {
     /**
      * Create dummy public key certificate.
      * @param keyId key id
-     * @param cn common name
+     * @param cn    common name
      * @throws Exception if an error occurs
      */
     @Command(description = "Create dummy public key certificate")

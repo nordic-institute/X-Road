@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 dependencies {
@@ -11,11 +11,12 @@ dependencies {
     compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
 
     testCompile project(':common-test')
-    testCompile 'org.hsqldb:hsqldb:2.3.2'
-    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
+    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 
-    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
+    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
+    testCompile 'io.rest-assured:rest-assured:3.3.0'
 
     testCompile 'wsdl4j:wsdl4j:1.6.3'
 
@@ -25,12 +26,12 @@ dependencies {
     testCompile project(':common-verifier').sourceSets.test.output
 }
 
-
 jar {
   manifest {
     attributes('Main-Class':'ee.ria.xroad.proxy.ProxyMain')
   }
 }
+
 shadowJar {
     classifier = ''
     append('reference.conf')
@@ -77,7 +78,26 @@ task runProxyMain(type: JavaExec) {
 
 apply plugin: "jacoco"
 
+test {
+    useJUnit {
+        excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+    shouldRunAfter test
+
+    useJUnit {
+        includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
 task runProxyTest(type: JavaExec) {
+    group = "verification"
+    shouldRunAfter integrationTest
+
     jvmArgs '-Xmx2g',
         '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
@@ -88,7 +108,8 @@ task runProxyTest(type: JavaExec) {
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
-        '-Dproxy.akka.remote.netty.tcp.port=0'
+        '-Dproxy.akka.loglevel=DEBUG'
+        '-Dproxy.akka.remote.artery.canonical.port=0'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
@@ -99,20 +120,16 @@ jacoco {
     applyTo runProxyTest
 }
 
-task deleteForeverGrowingJacocoFile(type: Delete) {
-    delete file("$buildDir/jacoco/runProxyTest.exec")
-    // for some reason this jacoco file keeps appending, so we delete it to cleanup
-}
+runProxyTest.jacoco.append=false
 
 task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
     // merge jacoco results from normal tests and runProxyTest
     destinationFile = file("$buildDir/jacoco/test.exec")
-    executionData test, runProxyTest
+    executionData test, integrationTest, runProxyTest
 }
 
 runProxyTest.doLast {
     tasks.mergedJacoco.execute()
-    tasks.deleteForeverGrowingJacocoFile.execute()
 }
 
 task mergedCoverageReport(type:JacocoReport){
@@ -127,3 +144,4 @@ task runBatchSigner(type: JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
 }
 
+check.dependsOn integrationTest

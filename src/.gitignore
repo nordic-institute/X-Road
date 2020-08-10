@@ -41,5 +41,8 @@ tmp/
 ubuntu-xenial-16.04-cloudimg-console.log
 packages/jetty
 classes/
-
+**/bin/
+.project 
+.classpath
+.settings
 signer/src/test/resources/.softtoken.p12

@@ -1,13 +1,13 @@
 ---
 # This playbook compiles X-Road and installs the compiled packages to the defined host inventory
 
-- hosts: lxd-servers
+- hosts: lxd_servers
   roles:
     - init-lxd
   tags: 
     - init
 
-- hosts: ss-servers
+- hosts: ss_servers
   any_errors_fatal: true
   tasks:
     - name: RHEL-support check
@@ -17,20 +17,25 @@
         - (variant is defined and variant == "ee")
         - ansible_os_family == "RedHat"
 
-- hosts: compile-servers
+- hosts: compile_servers
   roles:
     - compile
-    - build-packages
   tags: 
     - compile
 
-- hosts: ss-servers, cs-servers, cp-servers
+- hosts: compile_servers
+  roles:
+    - build-packages
+  tags: 
+    - build-packages
+  
+- hosts: ss_servers, cs_servers, cp_servers
   roles:
     - packages-to-local-repo
   tags:
     - packages
 
-- hosts: cs-servers
+- hosts: cs_servers
   become: yes
   become_user: root
   roles:
@@ -40,8 +45,9 @@
     - install
   vars_files:
     - vars_files/local_repo.yml
+    - vars_files/cs_database.yml
 
-- hosts: cp-servers
+- hosts: cp_servers
   become: yes
   become_user: root
   roles:
@@ -52,18 +58,16 @@
   vars_files:
     - vars_files/local_repo.yml
 
-- hosts: ca-servers
+- hosts: ca_servers
   become: yes
   become_user: root
-  pre_tasks:
-    - raw: apt install openssl
   roles:
     - xroad-ca
   tags:
     - ca
     - install
 
-- hosts: ss-servers
+- hosts: ss_servers
   become: yes
   become_user: root
   roles:
@@ -73,3 +77,4 @@
     - install
   vars_files:
     - vars_files/local_repo.yml
+    - vars_files/ss_database.yml

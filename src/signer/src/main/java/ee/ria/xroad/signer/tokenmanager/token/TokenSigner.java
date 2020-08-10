@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -33,7 +34,7 @@ import ee.ria.xroad.signer.util.CalculatedSignature;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -43,7 +44,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  * Token signer actor. Handles signing requests and calculated signatures.
  */
 @Slf4j
-public class TokenSigner extends UntypedActor {
+public class TokenSigner extends UntypedAbstractActor {
 
     private final ActorSelection tokenWorker = getContext().actorSelection("../" + ComponentNames.TOKEN_WORKER);
 

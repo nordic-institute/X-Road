@@ -2,7 +2,7 @@
 
 set -e
 
-umask 007
+umask 027
 
 if [ "$1" = configure ]; then
     # Make sure the administrative user exists
@@ -29,10 +29,12 @@ Please fix this and reinstall this package." >&2
     mkdir -p /var/lib/xroad/backup
     su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
     chown xroad:xroad /var/lib/xroad/backup
-    chmod 0775 /var/lib/xroad
+    chmod 0755 /var/lib/xroad
+    chmod -R go-w /var/lib/xroad
 
     # nicer log directory permissions
-    mkdir -p -m 1770 /var/log/xroad
+    mkdir -p /var/log/xroad
+    chmod -R go-w /var/log/xroad
     chmod 1770 /var/log/xroad
     chown xroad:adm /var/log/xroad
 

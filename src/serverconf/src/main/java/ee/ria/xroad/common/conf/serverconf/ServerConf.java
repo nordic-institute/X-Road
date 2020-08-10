@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,6 +26,7 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -42,7 +44,7 @@ import java.util.List;
 @Slf4j
 public class ServerConf {
 
-    private static volatile ServerConfProvider instance = null;
+    private static volatile ServerConfProvider instance = new ServerConfImpl();
 
     protected ServerConf() {
     }
@@ -51,10 +53,6 @@ public class ServerConf {
      * Returns the singleton instance of the configuration.
      */
     protected static ServerConfProvider getInstance() {
-        if (instance == null) {
-            instance = new CachingServerConfImpl();
-        }
-
         return instance;
     }
 
@@ -63,9 +61,10 @@ public class ServerConf {
      * @param conf the new configuration implementation
      */
     public static void reload(ServerConfProvider conf) {
-        log.trace("reload({})", conf.getClass());
-
-        instance = conf;
+        if (conf != null) {
+            log.trace("reload({})", conf.getClass());
+            instance = conf;
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -91,15 +90,25 @@ public class ServerConf {
     }
 
     /**
-     * @param sender the sender identifier
+     * @param sender  the sender identifier
      * @param service the service identifier
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
     public static boolean isQueryAllowed(ClientId sender, ServiceId service) {
         log.trace("isQueryAllowed({}, {})", sender, service);
+        return isQueryAllowed(sender, service, null, null);
+    }
 
-        return getInstance().isQueryAllowed(sender, service);
+    /**
+     * @param sender  the sender identifier
+     * @param service the service identifier
+     * @return true, if member <code>sender</code> is allowed
+     * to invoke service <code>serviceName</code>
+     */
+    public static boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
+        log.trace("isQueryAllowed({}, {})", sender, service);
+        return getInstance().isQueryAllowed(sender, service, method, path);
     }
 
     /**
@@ -146,7 +155,18 @@ public class ServerConf {
 
     /**
      * @param serviceProvider the service provider identifier
-     * @param client the client identifier
+     * @return all the services offered by a service provider filtered by description type
+     */
+    public static List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+            DescriptionType descriptionType) {
+        log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
+
+        return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
@@ -155,6 +175,19 @@ public class ServerConf {
         log.trace("getAllowedServices({}, {})", serviceProvider, client);
 
         return getInstance().getAllowedServices(serviceProvider, client);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client          the client identifier
+     * @return all the services by a service provider that the caller
+     * has permission to invoke filtered by description type
+     */
+    public static List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+            ClientId client, DescriptionType descriptionType) {
+        log.trace("getAllowedServicesByDescriptionType({}, {}, {})", serviceProvider, client, descriptionType);
+
+        return getInstance().getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
     }
 
     /**
@@ -249,5 +282,29 @@ public class ServerConf {
         log.trace("getIsAuthentication({})", client);
 
         return getInstance().getIsAuthentication(client);
+    }
+
+    /**
+     * @param service the service identifier
+     * @return the type of the service as {@link DescriptionType}
+     */
+    public static DescriptionType getDescriptionType(ServiceId service) {
+        log.trace("getServiceAddress({})", service);
+
+        return getInstance().getDescriptionType(service);
+    }
+
+    /**
+     * @param service the service identifier
+     * @return the service description url
+     */
+    public static String getServiceDescriptionURL(ServiceId service) {
+        log.trace("getServiceDescriptionURL({})", service);
+
+        return getInstance().getServiceDescriptionURL(service);
+    }
+
+    public static void logStatistics() {
+        getInstance().logStatistics();
     }
 }

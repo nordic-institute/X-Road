@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -37,10 +38,11 @@ import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -57,7 +59,7 @@ import java.nio.file.Paths;
 @Slf4j
 public class ServerProxy implements StartStop {
 
-    private static final int ACCEPTOR_COUNT = 2 * Runtime.getRuntime().availableProcessors();
+    private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
 
     private static final int IDLE_MONITOR_TIMEOUT = 50;
 
@@ -66,8 +68,7 @@ public class ServerProxy implements StartStop {
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger() * 1000;
-
+    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
     private Server server = new Server();
@@ -81,6 +82,7 @@ public class ServerProxy implements StartStop {
 
     /**
      * Constructs and configures a new server proxy.
+     *
      * @throws Exception in case of any errors
      */
     public ServerProxy() throws Exception {
@@ -89,6 +91,7 @@ public class ServerProxy implements StartStop {
 
     /**
      * Constructs and configures a new client proxy with the specified listen address.
+     *
      * @param listenAddress the address this server proxy should listen at
      * @throws Exception in case of any errors
      */
@@ -145,7 +148,6 @@ public class ServerProxy implements StartStop {
         connector.setPort(port);
         connector.setHost(listenAddress);
 
-        connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
         connector.setIdleTimeout(SystemProperties.getServerProxyConnectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
@@ -160,9 +162,9 @@ public class ServerProxy implements StartStop {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        final Slf4jRequestLog reqLog = new Slf4jRequestLog();
-        reqLog.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
-        reqLog.setExtended(true);
+        final Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
+        writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
+        final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
 
         RequestLogHandler logHandler = new RequestLogHandler();
         logHandler.setRequestLog(reqLog);
@@ -218,7 +220,7 @@ public class ServerProxy implements StartStop {
     }
 
     private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
-        SslContextFactory cf = new SslContextFactory(false);
+        SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());

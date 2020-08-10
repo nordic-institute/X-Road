@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -108,6 +109,7 @@ module BaseHelper
   end
 
   def server_status_class
+    #NOP
   end
 
   def available_locales
@@ -124,14 +126,18 @@ module BaseHelper
   end
 
   def instance_identifier
+    # NOP
   end
 
   def server_code
+    # NOP
   end
+
   def skin_installed?
     File.exists?(SystemProperties.getConfPath + BaseController::UI_SKIN_FILE)
   end
 
   def node_name
+    # NOP
   end
 end

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
@@ -48,6 +48,7 @@ public class CachingStream extends FilterOutputStream {
 
     /**
      * Constructs a new caching stream that caches data in a temporary file.
+     *
      * @throws IOException if I/O errors occurred
      */
     public CachingStream() throws IOException {
@@ -71,23 +72,19 @@ public class CachingStream extends FilterOutputStream {
     }
 
     @Override
-    public void write(byte[] b, int off, int len)
-            throws IOException {
+    public void write(byte[] b, int off, int len) throws IOException {
         // prevent FilterOutputStream from writing inefficiently
         out.write(b, off, len);
     }
 
     /**
      * @return input stream that contains the encoded attachment contents.
-     * The caller is responsible for freeing the stream.
+     * The returned stream does not support mark, and closing the stream has no effect.
+     * @see #consume() to free resources used by the cache.
      */
-    public InputStream getCachedContents() {
+    public CacheInputStream getCachedContents() {
         try {
-            // Flush any unwritten data, just in case.
-            flush();
-
-            // the channel will be closed when the stream is closed
-            return Channels.newInputStream(channel.position(0));
+            return new CacheInputStream(channel);
         } catch (IOException ex) { // the position shouldn't really throw
             throw ErrorCodes.translateException(ex);
         }
@@ -100,8 +97,8 @@ public class CachingStream extends FilterOutputStream {
         try {
             channel.close();
         } catch (IOException e) {
-            log.warn("Error closing channel of the temporary file '{}'",
-                    tempFile.toString(), e);
+            log.warn("Error closing channel of the temporary file '{}'", tempFile.toString(), e);
         }
     }
+
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -54,6 +55,16 @@ public class ConfigurationAnchorV2
     public ConfigurationAnchorV2(String fileName) {
         super(ObjectFactory.class, fileName,
                 PrivateParametersSchemaValidatorV2.class); // also applies to stand-alone configuration source
+    }
+
+    /**
+     * A special constructor for creating a ConfigurationAnchorV2 from bytes instead of a file on the filesystem.
+     * <b>Does not set <code>confFileChecker</code>. This constructor is used e.g. for creating a preview of an
+     * anchor.</b> {@link ConfigurationAnchorV2#ConfigurationAnchorV2(String)} should usually be preferred!
+     * @param fileBytes the configuration anchor file bytes
+     */
+    public ConfigurationAnchorV2(byte[] fileBytes) {
+        super(ObjectFactory.class, fileBytes, PrivateParametersSchemaValidatorV2.class);
     }
 
     /**

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,6 +29,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
@@ -36,7 +38,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.DeadLetter;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
@@ -81,7 +83,7 @@ abstract class AbstractMessageLogTest {
         deadLetters.add(d);
     }
 
-    public static class DeadLetterActor extends UntypedActor {
+    public static class DeadLetterActor extends UntypedAbstractActor {
 
         private AbstractMessageLogTest test;
 
@@ -153,7 +155,12 @@ abstract class AbstractMessageLogTest {
     }
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
-        logManager.log(message, signature, true);
+        logManager.log(new SoapLogMessage(message, signature, true));
+    }
+
+    protected void log(SoapMessageImpl message, SignatureData signature, String xRequestId)
+            throws Exception {
+        logManager.log(new SoapLogMessage(message, signature, true, xRequestId));
     }
 
     TimestampRecord timestamp(MessageRecord record) throws Exception {

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=6.20.0
+VERSION=6.24.0
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
@@ -23,7 +23,6 @@ mkdir -p build/xroad/redhat
 cp -a src/xroad/redhat build/xroad
 mkdir -p build/xroad-jetty9
 cp -a src/xroad-jetty9/redhat build/xroad-jetty9/
-find build/ -name "*.rpm" | xargs rm -f
 
 ROOT=${DIR}/build/xroad/redhat
 rpmbuild \
@@ -32,6 +31,7 @@ rpmbuild \
     --define "snapshot $SNAPSHOT" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad" \
+    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     -${CMD} "${ROOT}/SPECS/"${FILES}
 
 # build jetty rpms
@@ -44,4 +44,5 @@ rpmbuild \
     --define "snapshot $SNAPSHOT" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad-jetty9" \
+    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     -bb "$ROOT/SPECS/"${FILES}

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,12 +25,14 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 /**
  * Software module type.
  */
 public class SoftwareModuleType implements ModuleType {
 
-    public static final String TYPE = "softToken";
+    public static final String TYPE = TokenInfo.SOFTWARE_MODULE_TYPE;
 
     @Override
     public String getType() {

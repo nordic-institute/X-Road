@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.5  
+Version: 1.8  
 Doc. ID: DM-ML
 
 | Date       | Version     | Description                                     | Author             |
@@ -18,27 +18,32 @@ Doc. ID: DM-ML
 | 16.02.2017 | 1.3         | Converted to markdown                           | Ilkka Seppälä      |
 | 16.02.2017 | 1.4         | Added index to logrecord, fixed earlier logrecord index name  | Olli Lindgren      |
 | 02.03.2018 | 1.5         | Added uniform terms and conditions reference    | Tatu Repo |
+| 31.01.2019 | 1.6         | REST support                                    | Jarkko Hyöty |
+| 11.02.2019 | 1.7         | Added xRequestId                                | Caro Hautamäki |
+| 11.09.2019 | 1.8         | Remove Ubuntu 14.04 support                     | Jarkko Hyöty |
 
-##Table of Contents
+<!-- vim-markdown-toc GFM -->
 
-- [1 General](#1-general)
-  - [1.1 Preamble](#11-preamble)
-  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  - [1.3 References](#13-references)
-  - [1.4 Database Version](#14-database-version)
-  - [1.5 Creating, Backing Up and Restoring the Database](#15-creating-backing-up-and-restoring-the-database)
-  - [1.6 Message Logging and Timestamping](#16-message-logging-and-timestamping)
-  - [1.7 Entity-Relationship Diagram](#17-entity-relationship-diagram)
-- [Description of Entities](#2-description-of-entities)
-  - [LOGRECORD](#21-logrecord)
-    - [Indexes](#211-indexes)
-    - [Attributes](#212-attributes)
-  - [LAST_ARCHIVE_DIGEST](#22-last-archive-digest)
-    - [Attributes](#221-attributes)
-  - [DATABASECHANGELOG](#23-databasechangelog)
-    - [Attributes](#231-attributes)
-  - [DATABASECHANGELOGLOCK](#24-databasechangeloglock)
-    - [Attributes](#241-attributes)
+* [1. General](#1-general)
+  * [1.1 Preamble](#11-preamble)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    * [1.3 References](#13-references)
+  * [1.4 Database Version](#14-database-version)
+  * [1.5 Creating, Backing Up and Restoring the Database](#15-creating-backing-up-and-restoring-the-database)
+  * [1.6 Message Logging and Timestamping](#16-message-logging-and-timestamping)
+  * [1.7 Entity-Relationship Diagram](#17-entity-relationship-diagram)
+* [2. Description of Entities](#2-description-of-entities)
+  * [2.1 LOGRECORD](#21-logrecord)
+    * [2.1.1 Indexes](#211-indexes)
+    * [2.1.2 Attributes](#212-attributes)
+  * [2.2 LAST_ARCHIVE_DIGEST](#22-last_archive_digest)
+    * [2.2.1 Attributes](#221-attributes)
+  * [2.3 DATABASECHANGELOG](#23-databasechangelog)
+    * [2.3.1 Attributes](#231-attributes)
+  * [2.4 DATABASECHANGELOGLOCK](#24-databasechangeloglock)
+    * [2.4.1 Attributes](#241-attributes)
+
+<!-- vim-markdown-toc -->
 
 # 1. General
 
@@ -56,7 +61,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 1.4 Database Version
 
-This database assumes PostgreSQL version 9.3. Ubuntu 14.04 default settings are used.
+This database assumes PostgreSQL version 9.2 or later.
 
 ## 1.5 Creating, Backing Up and Restoring the Database
 
@@ -83,7 +88,7 @@ When timestamping synchronously, the logging call will block until the timestamp
 
 ## 1.7 Entity-Relationship Diagram
 
-![Entity-Relationship Diagram](img/messagelog-er-diagram.png)
+![Entity-Relationship Diagram](img/messagelog-er.png)
 
 # 2. Description of Entities
 
@@ -110,7 +115,7 @@ Log record can either be a message record or a timestamp record. A message recor
 | memberclass | character varying(255) | | Member class of the client who sent this message. Only present for message records. |
 | membercode | character varying(255) | | Member code of the client who sent this message. Only present for message records. |
 | subsystemcode | character varying(255) | | Subsystem code of the client who sent this message. Only present for message records. |
-| message | text | | The SOAP message body. Only present for message records. |
+| message | text | | The SOAP message body or REST request data. Only present for message records. |
 | signature | text | | The signature of the message. Only present for message records. |
 | signaturehash | text | | Hash of the signature of the message. Only present for message records. |
 | timestamp | text | | Base64-encoded contents of the time stamp.  Only present for timestamp records. |
@@ -120,6 +125,8 @@ Log record can either be a message record or a timestamp record. A message recor
 | hashchainresult | text | | If the signature is a batch signature, the base-64 encoded hash chain result. Only present for message records. |
 | time | bigint | | The creation time of the log record (number of milliseconds since January 1, 1970, 00:00:00 GMT). |
 | archived | boolean | | A flag indicating whether this log record has been archived. |
+| attachment | oid | | The REST message body (a large binary object) |
+| xrequestid | character varying(255) | | An optional id which is shared between a request and a response. |
 
 ## 2.2 LAST_ARCHIVE_DIGEST
 

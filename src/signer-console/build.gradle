@@ -1,14 +1,13 @@
 
 plugins {
-  id 'com.github.johnrengelman.shadow' version '2.0.1'
+  id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 dependencies {
-    compile 'commons-cli:commons-cli:1.2'
+    compile 'commons-cli:commons-cli:1.4'
+    compile 'com.googlecode.clichemaven:cliche:110413'
 
     compile project(':signer-protocol')
-
-    compile files('libs/asg.cliche-110413.jar')
 }
 
 ext {
@@ -23,6 +22,7 @@ jar {
 
 shadowJar {
     classifier = ''
+    exclude 'asg/cliche/example/**'
     append('reference.conf')
     from rootProject.file("LICENSE.txt")
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,51 +25,54 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import org.niis.xroad.restapi.domain.ApiKey;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
 /**
- * Dummy in-memory repository for api keys
+ * API key repository which stores encoded keys in DB.
+ * Uses simple caching, using ConcurrentHashMaps in memory.
  */
-@Component
+@Slf4j
+@Repository
+@Transactional
 public class ApiKeyRepository {
+    public static final String LIST_ALL_KEYS_CACHE = "all-apikeys";
+    public static final String GET_KEY_CACHE = "apikey-by-keys";
+    private final PersistenceUtils persistenceUtils;
 
-    AtomicInteger apiKeyIndex = new AtomicInteger(1);
-    Map<String, ApiKey> keys = new ConcurrentHashMap<>();
-
-    /**
-     * Naive key implementation
-     * @return
-     */
-    private String createApiKey() {
-        return "naive-api-key-" + apiKeyIndex.getAndAdd(1);
+    @Autowired
+    public ApiKeyRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
     }
 
-    /**
-     * create api key with one role
-     */
-    public ApiKey create(String role) {
-        return create(Collections.singletonList(role));
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
+    public void saveOrUpdate(PersistentApiKeyType persistentApiKeyType) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(persistentApiKeyType);
     }
 
-    /**
-     * create api key with collection of roles
-     */
-    public ApiKey create(Collection<String> roles) {
-        ApiKey key = new ApiKey(createApiKey(),
-                Collections.unmodifiableCollection(roles));
-        keys.put(key.getKey(), key);
-        return key;
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
+    public void delete(PersistentApiKeyType persistentApiKeyType) {
+        persistenceUtils.getCurrentSession().delete(persistentApiKeyType);
     }
 
-    public ApiKey get(String key) {
-        return keys.get(key);
+    @Cacheable(GET_KEY_CACHE)
+    public PersistentApiKeyType getApiKey(long id) {
+        log.debug("get one api key from db");
+        return new PersistentApiKeyDAOImpl().findById(persistenceUtils.getCurrentSession(), id);
     }
 
+    @Cacheable(LIST_ALL_KEYS_CACHE)
+    public List<PersistentApiKeyType> getAllApiKeys() {
+        log.debug("get all api keys from db");
+        return new PersistentApiKeyDAOImpl().findAll(persistenceUtils.getCurrentSession());
+    }
 }

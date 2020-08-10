@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -30,9 +31,10 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -43,9 +45,9 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestKeyConf;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -98,6 +100,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
@@ -161,7 +164,6 @@ public class MetadataServiceHandlerTest {
     private WireMockServer mockServer;
 
 
-
     /**
      * Init class-wide test instances
      */
@@ -180,9 +182,9 @@ public class MetadataServiceHandlerTest {
     @Before
     public void init() throws IOException {
 
-        GlobalConf.reload(new TestGlobalConf());
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
+        ServerConf.reload(new TestSuiteServerConf());
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(HttpServletRequest.class);
@@ -288,9 +290,10 @@ public class MetadataServiceHandlerTest {
         final ClientId expectedClient = DEFAULT_CLIENT;
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId> getAllServices(ClientId serviceProvider) {
+            public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+                                                                DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -346,10 +349,11 @@ public class MetadataServiceHandlerTest {
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
+            public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                                       DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
 
@@ -498,10 +502,12 @@ public class MetadataServiceHandlerTest {
 
     private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
+
         @Override
         protected OverwriteAttributeFilter getModifyWsdlFilter() {
             return filter;
         }
+
         public void setTestFilter(OverwriteAttributeFilter testFilter) {
             this.filter = testFilter;
         }
@@ -580,10 +586,25 @@ public class MetadataServiceHandlerTest {
                 containsInAnyOrder(expectedEndpointUrls.toArray()));
     }
 
+    @Test
+    public void shouldThrowInvalidServiceTypeExWhenGetWsdl() throws Exception {
+
+        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId, true);
+
+        thrown.expect(CodedException.class);
+        thrown.expect(faultCodeEquals(X_INVALID_SERVICE_TYPE));
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+                httpClientMock, mock(OpMonitoringData.class));
+
+    }
+
     /**
      * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests
      */
-    private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId) throws Exception {
+    private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
+            Exception {
         final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl();
@@ -600,7 +621,7 @@ public class MetadataServiceHandlerTest {
 
         when(mockProxyMessage.getSoapContent()).thenReturn(soapContentInputStream);
 
-        setUpDatabase(requestingWsdlForService);
+        setUpDatabase(requestingWsdlForService, isRest);
 
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
@@ -616,13 +637,17 @@ public class MetadataServiceHandlerTest {
         return handlerToTest;
     }
 
+    private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId) throws Exception {
+        return prepareTestConstructsForWsdl(serviceId, false);
+    }
+
     private String readFile(String filename) throws IOException, URISyntaxException {
         return new String(Files.readAllBytes(Paths.get(
                 ClassLoader.getSystemResource(filename).toURI()
         )), "UTF-8");
     }
 
-    private void setUpDatabase(ServiceId serviceId) throws Exception {
+    private void setUpDatabase(ServiceId serviceId, boolean isRest) throws Exception {
         ServerConfType conf = new ServerConfType();
         conf.setServerCode("TestServer");
 
@@ -633,25 +658,33 @@ public class MetadataServiceHandlerTest {
 
         client.setIdentifier(serviceId.getClientId());
 
-        WsdlType wsdl = new WsdlType();
+        ServiceDescriptionType wsdl = new ServiceDescriptionType();
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
-        wsdl.setWsdlLocation("wsdlLocation");
+        if (isRest) {
+            wsdl.setType(DescriptionType.REST);
+        } else {
+            wsdl.setType(DescriptionType.WSDL);
+        }
 
         ServiceType service = new ServiceType();
-        service.setWsdl(wsdl);
+        service.setServiceDescription(wsdl);
         service.setTitle("someTitle");
         service.setServiceCode(serviceId.getServiceCode());
 
         wsdl.getService().add(service);
 
-        client.getWsdl().add(wsdl);
+        client.getServiceDescription().add(wsdl);
 
         doInTransaction(session -> {
             session.save(conf);
             return null;
         });
 
+    }
+
+    private void setUpDatabase(ServiceId serviceId) throws Exception {
+        setUpDatabase(serviceId, false);
     }
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)

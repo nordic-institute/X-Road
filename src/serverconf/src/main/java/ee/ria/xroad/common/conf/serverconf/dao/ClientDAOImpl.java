@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,11 +27,18 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Example;
+import org.hibernate.query.Query;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import java.util.List;
 
@@ -41,56 +49,106 @@ import static java.util.Collections.emptyList;
  */
 public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
 
-    private static final String IDENTIFIER_CRITERIA = "identifier";
-
     /**
      * Returns true, if client with specified identifier exists.
-     * @param session the session
-     * @param id the identifier
+     * @param session           the session
+     * @param id                the identifier
      * @param includeSubsystems if true and identifier is not subsystem,
-     * also looks for clients whose identifier is a subsystem
+     *                          also looks for clients whose identifier is a subsystem
      * @return true, if client with specified identifier exists
      */
-    public boolean clientExists(Session session, ClientId id,
-            boolean includeSubsystems) {
-        Example ex = Example.create(id);
+    public boolean clientExists(Session session, ClientId id, boolean includeSubsystems) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<Boolean> query = cb.createQuery(Boolean.class);
+        final Root<ClientType> client = query.from(ClientType.class);
+        final Join<ClientType, ClientId> iden = client.join("identifier");
+        Predicate pred = cb.conjunction();
 
-        if (includeSubsystems) {
-            ex.excludeProperty("type").excludeZeroes();
+        if (!includeSubsystems) {
+            pred = cb.and(pred, cb.equal(iden.get("type"), id.getObjectType()));
         }
 
-        Criteria criteria = session.createCriteria(ClientType.class);
-        criteria.createCriteria(IDENTIFIER_CRITERIA).add(ex);
-        return criteria.list().size() > 0;
+        pred = cb.and(pred,
+                cb.equal(iden.get("xRoadInstance"), id.getXRoadInstance()),
+                cb.equal(iden.get("memberClass"), id.getMemberClass()),
+                cb.equal(iden.get("memberCode"), id.getMemberCode()));
+
+        if (id.getSubsystemCode() != null) {
+            pred = cb.and(pred, cb.equal(iden.get("subsystemCode"), id.getSubsystemCode()));
+        }
+
+        query.select(cb.literal(Boolean.TRUE)).where(pred);
+        return session.createQuery(query).list().size() > 0;
+
     }
 
     /**
      * Returns the client for the given client identifier.
      * @param session the session
      * @param id the client identifier
-     * @return the client
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(Session session, ClientId id) {
-        Criteria criteria = session.createCriteria(ClientType.class);
-        criteria.createCriteria(IDENTIFIER_CRITERIA).add(Example.create(id));
-        return findOne(criteria);
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<ClientType> query = cb.createQuery(ClientType.class);
+        final Root<ClientType> client = query.from(ClientType.class);
+        final Join<ClientType, ClientId> iden = client.join("identifier");
+
+        Predicate pred =
+                cb.and(cb.equal(iden.get("type"), id.getObjectType()),
+                        cb.equal(iden.get("xRoadInstance"), id.getXRoadInstance()),
+                        cb.equal(iden.get("memberClass"), id.getMemberClass()),
+                        cb.equal(iden.get("memberCode"), id.getMemberCode()));
+        if (id.getSubsystemCode() != null) {
+            pred = cb.and(pred, cb.equal(iden.get("subsystemCode"), id.getSubsystemCode()));
+        }
+
+        return session
+                .createQuery(query.select(client).where(pred))
+                .uniqueResult();
     }
 
     /**
      * Returns the information system certificates of the specified client.
      * @param session the session
-     * @param id the client identifier
+     * @param id      the client identifier
      * @return the information system certificates of the specified client
      */
     public List<CertificateType> getIsCerts(Session session, ClientId id) {
-        Criteria criteria = session.createCriteria(ClientType.class);
-        criteria.createCriteria(IDENTIFIER_CRITERIA).add(Example.create(id));
-
-        ClientType client = findOne(criteria);
+        ClientType client = getClient(session, id);
         if (client != null) {
             return client.getIsCert();
         }
-
         return emptyList();
+    }
+
+    /**
+     * Returns ClientType containing endpoint with id given as parameter
+     *
+     * @param session       the session
+     * @param endpointType  endpointType entity
+     * @return the client, or null if matching client was not found for the endpoint id
+     */
+    public ClientType getClientByEndpointId(Session session, EndpointType endpointType) {
+        StringBuilder qb = new StringBuilder();
+        qb.append("select c from ClientType as c where :endpoint member of c.endpoint");
+        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        query.setParameter("endpoint", endpointType);
+        return findOne(query);
+    }
+
+    /**
+     * Returns ClientType containing localGroupType given as parameter
+     *
+     * @param session       the session
+     * @param localGroupType  localGroupType entity
+     * @return the client, or null if matching client was not found for the localGroupType
+     */
+    public ClientType getClientByLocalGroup(Session session, LocalGroupType localGroupType) {
+        StringBuilder qb = new StringBuilder();
+        qb.append("select c from ClientType as c where :localGroup member of c.localGroup");
+        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        query.setParameter("localGroup", localGroupType);
+        return findOne(query);
     }
 }

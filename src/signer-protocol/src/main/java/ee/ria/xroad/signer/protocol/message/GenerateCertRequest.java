@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -37,14 +38,6 @@ import java.io.Serializable;
 @Value
 public class GenerateCertRequest implements Serializable {
 
-    /**
-     * Specifies the cert request format to return.
-     */
-    public enum RequestFormat {
-        PEM,
-        DER
-    }
-
     private final String keyId;
 
     private final ClientId memberId;
@@ -53,6 +46,5 @@ public class GenerateCertRequest implements Serializable {
 
     private final String subjectName;
 
-    private final RequestFormat format;
-
+    private final CertificateRequestFormat format;
 }

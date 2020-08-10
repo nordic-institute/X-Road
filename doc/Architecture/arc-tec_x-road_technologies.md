@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.1  
-02.03.2018
+Version: 1.4  
+12.05.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -15,6 +15,9 @@ Doc. ID: ARC-TEC
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  02.02.2018 | 1.0     | Initial version                                             | Antti Luoma
  02.03.2018 | 1.1     | Added uniform terms and conditions reference                | Tatu Repo
+ 17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10          | Petteri Kivimäki
+ 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
+ 12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -39,6 +42,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 ## 1 Introduction
 
 This document describes the general technology composition of X-Road components. To better illustrate the role of main technologies in X-Road, the information is collected in to several technology matrices highlighting the technology relationships between components.   
+
+Besides, the [X-Road Core Tech Radar](https://nordic-institute.github.io/X-Road-tech-radar/) is a list of technologies used in the implementation of the core components of X-Road. 
 
 ## 1.1 Terms and abbreviations
 
@@ -69,14 +74,15 @@ Table 1. Technology matrix of the X-Road
  Logback            | X                   | X                  | X                       | X
  Akka 2.X           | X                   | X                  | X                       | X
  Jetty 9            | X                   | X                  |                         |
- JRuby 1.7          | X                   | X                  |                         |
- Ubuntu 14.04       | X                   | X                  | X                       | X
- PostgreSQL 9.3     | X                   | X                  |                         | X
+ JRuby 9.X          | X                   | X                  |                         |
+ Ubuntu 18.04       | X                   | X                  | X                       | X
+ Red Hat Enterprise Linux 7 (RHEL7)       | X                   |                    |                         | X
  PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |
+ PostgreSQL 10      | X                   | X                  |                         | X
  nginx              | X                   | X                  | X                       |
  PAM                | X                   | X                  |                         |
  Liquibase          | X                   | X                  |                         | X
- upstart            | X                   | X                  | X                       | X
+ systemd            | X                   | X                  | X                       | X
  PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
  Dropwizard Metrics | X                   |                    |                         | X
 
@@ -103,14 +109,14 @@ Table 2. Technology matrix of the central server
  Logback        | X          |                |                    | X                       |              | X                  |
  Akka 2.X       | X          |                |                    | X                       |              | X                  |
  Jetty 9        |            |                |                    |                         |              |                    | X
- JRuby 1.7      |            |                |                    |                         |              | X                  |
+ JRuby 9.X      |            |                |                    |                         |              | X                  |
  Javascript     |            |                |                    |                         |              | X                  |
- PostgreSQL 9.3 |            |                |                    |                         | X            |                    |
  PostgreSQL 9.4 |            |                |                    |                         | X\[[1](#Ref_1)\]         |                    |                  
+ PostgreSQL 10  |            |                |                    |                         | X            |                    |
  nginx          |            | X              |                    |                         |              |                    |
  PAM            |            |                |                    |                         |              |                    | X
  Liquibase      |            |                |                    |                         | X            |                    |
- upstart        | X          | X              |                    |                         |              |                    | X
+ systemd        | X          | X              |                    |                         |              |                    | X
  PKCS \#11\[[2](#Ref_2)\]   | X          |                |                    |                         |              |                    |                  
 
 See [[ARC-CS]](#ARC-CS) for the central server details.
@@ -128,7 +134,7 @@ Table 3. Technology matrix of the configuration proxy
  Logback          |                  | X                             | X            | X
  Akka 2.X         |                  | X                             | X            |
  nginx            | X                |                               |              |
- upstart          | X                | X                             | X            | X
+ systemd          | X                | X                             | X            | X
  PKCS \#11\[[2](#Ref_2)\]   |                |                             | X          |
 
 <a id="Ref_2" class="anchor"></a>
@@ -150,12 +156,12 @@ Table 4. Technology matrix of the security server
  Logback            | X   | X   |     | X   | X   |     | X   | X   |     |     | X   | X   | X
  Akka 2.X           | X   | X   |     | X   |     |     |     | X   |     | X   | X   | X   |
  Jetty 9            |     |     |     |     |     |     |     |     | X   |     |     |     |
- JRuby 1.7          |     |     |     |     |     |     |     | X   |     |     |     |     |
+ JRuby 9.X          |     |     |     |     |     |     |     | X   |     |     |     |     |
  Javascript         |     |     |     |     |     |     |     | X   |     |     |     |     |
- PostgreSQL 9.3     |     |     |     |     |     | X   |     |     |     |     |     |     |
+ PostgreSQL 10      |     |     |     |     |     | X   |     |     |     |     |     |     |
  PAM                |     |     |     |     |     |     |     |     | X   |     |     |     |
  Liquibase          |     |     |     |     |     | X   |     |     |     |     |     |     |
- upstart            | X   | X   |     |     |     |     | X   |     | X   |     |     |     |
+ systemd            | X   | X   |     |     |     |     | X   |     | X   |     |     |     |
  PKCS \#11\[[2](#Ref_2)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |
  Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |
 
@@ -175,9 +181,9 @@ Technology         | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.
 Java 8             | X                        | X                     | X                    | X
 Logback            | X                        | X                     | X                    | X
 Akka 2.X           | X                        | X                     |                      |
-PostgreSQL 9.3     | X                        | X                     |                      |
+PostgreSQL 10      | X                        | X                     |                      |
 Liquibase          | X                        | X                     |                      |
 Dropwizard Metrics | X                        | X                     |                      |
-upstart            | X                        |                       |                      | X
+systemd            | X                        |                       |                      | X
 
 See [[ARC-OPMOND]](#ARC-OPMOND) for the operational monitoring daemon details.

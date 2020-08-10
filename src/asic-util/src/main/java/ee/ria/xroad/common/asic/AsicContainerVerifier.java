@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -30,6 +31,7 @@ import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -64,11 +66,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
@@ -103,6 +107,8 @@ public class AsicContainerVerifier {
 
     private Date ocspDate;
     private X509Certificate ocspCert;
+
+    private byte[] attachmentDigest;
 
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
@@ -182,8 +188,9 @@ public class AsicContainerVerifier {
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
+        boolean verified = uri.equals("/attachment1") && Arrays.equals(digestValue, asic.getAttachmentDigest());
         attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
-                encodeHex(digestValue)));
+                encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
     }
 
     private Date verifyTimestamp() throws Exception {
@@ -233,16 +240,30 @@ public class AsicContainerVerifier {
     }
 
     private static ClientId getSigner(String messageXml) {
-        Soap soap = new SaxSoapParserImpl().parse(
-                MimeTypes.TEXT_XML_UTF8,
-                new ByteArrayInputStream(messageXml.getBytes(UTF_8)));
-        if (!(soap instanceof SoapMessageImpl)) {
-            throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
+        final byte[] messageBytes = messageXml.getBytes(UTF_8);
+
+        try {
+            Soap soap = new SaxSoapParserImpl().parse(
+                    MimeTypes.TEXT_XML_UTF8,
+                    new ByteArrayInputStream(messageBytes));
+            if (!(soap instanceof SoapMessageImpl)) {
+                throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
+            }
+            SoapMessageImpl msg = (SoapMessageImpl) soap;
+            return msg.isRequest()
+                    ? msg.getClient() : msg.getService().getClientId();
+        } catch (CodedException ce) {
+            if (X_INVALID_SOAP.equals(ce.getFaultCode())) {
+                try {
+                    final RestMessage restMessage = RestMessage.of(messageBytes);
+                    return restMessage.getSender();
+                } catch (Exception e) {
+                    throw new RuntimeException("Invalid message", e);
+                }
+            }
         }
 
-        SoapMessageImpl msg = (SoapMessageImpl) soap;
-        return msg.isRequest()
-                ? msg.getClient() : msg.getService().getClientId();
+        return null;
     }
 
     private class HashChainReferenceResolverImpl

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -64,9 +65,6 @@ public final class GlobalConf {
         }
     }
 
-    private static final ThreadLocal<GlobalConfProvider> THREAD_LOCAL =
-            new InheritableThreadLocal<>();
-
     private static volatile GlobalConfProvider instance;
 
     private GlobalConf() {
@@ -76,32 +74,14 @@ public final class GlobalConf {
      * Returns the singleton instance of the configuration.
      */
     static GlobalConfProvider getInstance() {
-        if (THREAD_LOCAL.get() != null) {
-            return THREAD_LOCAL.get();
-        }
-
         if (instance == null) {
-            instance = instanceFactory.createInstance(true);
+            synchronized (GlobalConfProvider.class) {
+                if (instance == null) {
+                    instance = instanceFactory.createInstance(true);
+                }
+            }
         }
-
         return instance;
-    }
-
-    /**
-     * Initializes current instance of conf for the calling thread.
-     * Example usage: calling this method in RequestProcessor to have
-     * a copy of current config for the current message.
-     */
-    public static void initForCurrentThread() {
-        log.trace("initForCurrentThread()");
-
-        if (instance == null) {
-            instance = instanceFactory.createInstance(false);
-        }
-
-        reloadIfChanged();
-
-        THREAD_LOCAL.set(instance);
     }
 
     /**
@@ -236,7 +216,7 @@ public final class GlobalConf {
 
     /**
      * @param instanceIdentifiers the instance identifiers
-     * @return members and subsystems of a given instance or all members if
+     * @return members and subsystems of a given instance, or all members and subsystems if
      * no instance identifiers are specified
      */
     public static List<MemberInfo> getMembers(String... instanceIdentifiers) {
@@ -247,7 +227,8 @@ public final class GlobalConf {
 
     /**
      * @param clientId the client identifier
-     * @return member name for the given client identifier
+     * @return member name for the given client identifier, or null if member does
+     * not exist in global conf
      */
     public static String getMemberName(ClientId clientId) {
         log.trace("getMemberName({})", clientId);
@@ -469,10 +450,7 @@ public final class GlobalConf {
      * or null if the given id does not match an existing server
      * @throws Exception if an error occurs
      */
-    public static ClientId getServerOwner(SecurityServerId serverId)
-            throws Exception {
-        log.trace("getOwner({})", serverId);
-
+    public static ClientId getServerOwner(SecurityServerId serverId) {
         return getInstance().getServerOwner(serverId);
     }
 
@@ -702,5 +680,20 @@ public final class GlobalConf {
         log.trace("getSecurityServers()");
 
         return getInstance().getSecurityServers(instanceIdentifiers);
+    }
+
+    /**
+     * Get ApprovedCAInfo matching given CA certificate
+     * @param instanceIdentifier instance id
+     * @param cert intermediate or top CA cert
+     * @return ApprovedCAInfo (for the top CA)
+     * @throws CodedException if something went wrong, for example
+     * {@code cert} was not an approved CA cert
+     */
+    public static ApprovedCAInfo getApprovedCA(
+            String instanceIdentifier, X509Certificate cert) throws CodedException {
+        log.trace("getApprovedCA()");
+
+        return getInstance().getApprovedCA(instanceIdentifier, cert);
     }
 }

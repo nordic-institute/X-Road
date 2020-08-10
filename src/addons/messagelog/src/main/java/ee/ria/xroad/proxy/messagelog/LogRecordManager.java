@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,18 +32,23 @@ import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
@@ -69,9 +75,9 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given message Query Id, start and end time.
-     * @param queryId the message query id.
+     * @param queryId   the message query id.
      * @param startTime the start time.
-     * @param endTime the end time.
+     * @param endTime   the end time.
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
@@ -83,32 +89,34 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given message Query Id and sender Client Id.
-     * @param queryId the message query id.
-     * @param clientId the sender client id.
+     * @param queryId    the message query id.
+     * @param clientId   the sender client id.
      * @param isResponse whether the response record should be retrieved.
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static MessageRecord getByQueryIdUnique(String queryId, ClientId clientId, boolean isResponse)
+    public static <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
+            Function<MessageRecord, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> getMessageRecord(session, queryId, clientId, isResponse));
+        return doInTransaction(session -> processor.apply(getMessageRecord(session, queryId, clientId, isResponse)));
     }
 
     /**
      * Returns a list of log records for a given message Query Id and sender Client Id.
-     * @param queryId the message query id.
-     * @param clientId the sender client id.
+     * @param queryId    the message query id.
+     * @param clientId   the sender client id.
      * @param isResponse whether the response record should be retrieved.
      * @return the log record list or empty list, if no log records were not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static List<MessageRecord> getByQueryId(String queryId, ClientId clientId, boolean isResponse)
+    public static <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
+            Function<List<MessageRecord>, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> getMessageRecords(session, queryId, clientId, isResponse));
+        return doInTransaction(session -> processor.apply(getMessageRecords(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -130,8 +138,13 @@ public final class LogRecordManager {
      */
     static void saveMessageRecord(MessageRecord messageRecord) throws Exception {
         doInTransaction(session -> {
+            //the blob must be created within hibernate session
+            final InputStream is = messageRecord.getAttachmentStream();
+            if (is != null) {
+                messageRecord.setAttachment(session.getLobHelper().createBlob(is,
+                        messageRecord.getAttachmentStreamSize()));
+            }
             save(session, messageRecord);
-
             return null;
         });
     }
@@ -141,22 +154,28 @@ public final class LogRecordManager {
      * @param messageRecord the message record to be updated.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static void updateMessageRecord(MessageRecord messageRecord) throws Exception {
+    static void updateMessageRecordSignature(MessageRecord messageRecord) throws Exception {
         doInTransaction(session -> {
-            session.update(messageRecord);
-
+            final Query query = session.createQuery("update MessageRecord m set m.signature = :signature, "
+                    + "m.signatureHash = :hash where id = :id");
+            query.setParameter("id", messageRecord.getId());
+            query.setParameter("hash", messageRecord.getSignatureHash());
+            query.setParameter("signature", messageRecord.getSignature());
+            query.executeUpdate();
             return null;
         });
     }
 
     /**
-     * Saves the time-stamp record to database. Associates the message records with this time-stamp record.
-     * @param timestampRecord the time-stamp record to be saved.
+     * Saves the time-stamp record to database. Associates the message records with this time-stamp
+     * record.
+     * @param timestampRecord       the time-stamp record to be saved.
      * @param timestampedLogRecords the message records that were time-stamped.
-     * @param hashChains the time-stamp hash chains for each message record.
+     * @param hashChains            the time-stamp hash chains for each message record.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static void saveTimestampRecord(TimestampRecord timestampRecord, Long[] timestampedLogRecords, String[] hashChains)
+    static void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
+            timestampedLogRecords, String[] hashChains)
             throws Exception {
         doInTransaction(session -> {
             save(session, timestampRecord);
@@ -168,28 +187,28 @@ public final class LogRecordManager {
 
     /**
      * Saves the log record to database. Sets the number of the log record.
-     * @param session the Hibernate session.
+     * @param session   the Hibernate session.
      * @param logRecord the log record to save.
      * @throws Exception if an error occurs while communicating with database.
      */
     static void save(Session session, LogRecord logRecord) {
         log.trace("save({})", logRecord.getClass());
-
         session.save(logRecord);
     }
 
     /**
      * Associates each log record with the time-stamp record.
-     * @param session the Hibernate session.
-     * @param messageRecords the message records.
+     * @param session         the Hibernate session.
+     * @param messageRecords  the message records.
      * @param timestampRecord the time-stamp record.
-     * @param hashChains the time-stamp hash chains.
+     * @param hashChains      the time-stamp hash chains.
      * @throws Exception if an error occurs while communicating with database.
      */
     private static void setMessageRecordsTimestamped(Session session, Long[] messageRecords,
             TimestampRecord timestampRecord, String[] hashChains) {
         if (log.isTraceEnabled()) {
-            log.trace("setMessageRecordsTimestamped({}, {})", Arrays.toString(messageRecords), timestampRecord.getId());
+            log.trace("setMessageRecordsTimestamped({}, {})", Arrays.toString(messageRecords),
+                    timestampRecord.getId());
         }
 
         if (hashChains != null && messageRecords.length != hashChains.length) {
@@ -199,11 +218,13 @@ public final class LogRecordManager {
         // Let's perform directly JDBC related work for bulk update.
         // Needs to flush the session to get access to previously saved timestamp record.
         session.flush();
-        session.doWork(connection -> setMessageRecordsTimestamped(messageRecords, timestampRecord, hashChains,
+        session.doWork(connection -> setMessageRecordsTimestamped(messageRecords, timestampRecord,
+                hashChains,
                 connection, getConfiguredBatchSize(session)));
     }
 
-    private static void setMessageRecordsTimestamped(Long[] messageRecords, TimestampRecord timestampRecord,
+    private static void setMessageRecordsTimestamped(Long[] messageRecords, TimestampRecord
+            timestampRecord,
             String[] hashChains, Connection connection, int batchSize) throws SQLException {
         log.trace("setMessageRecordsTimestamped({})", messageRecords.length);
 
@@ -235,55 +256,67 @@ public final class LogRecordManager {
     }
 
     private static LogRecord getLogRecord(Session session, Long number) {
-        return (AbstractLogRecord) session.get(AbstractLogRecord.class, number);
+        return session.get(AbstractLogRecord.class, number);
     }
 
-    @SneakyThrows
     private static MessageRecord getMessageRecord(Session session, String queryId, Date startTime, Date endTime) {
-        Criteria criteria = session.createCriteria(MessageRecord.class);
-        criteria.add(Restrictions.eq("queryId", queryId));
-        criteria.add(Restrictions.between("time", startTime.getTime(), endTime.getTime()));
-        criteria.setMaxResults(1);
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
+        final Root<MessageRecord> m = query.from(MessageRecord.class);
 
-        return (MessageRecord) criteria.uniqueResult();
+        query.select(m)
+                .where(cb.and(
+                        cb.equal(m.get("queryId"), queryId),
+                        cb.between(m.get("time"), startTime.getTime(), endTime.getTime())
+                ));
+        return session.createQuery(query).setMaxResults(1).uniqueResult();
     }
 
-    @SneakyThrows
     private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,
-            boolean isResponse) {
-        Criteria criteria = createRecordCriteria(session, queryId, clientId, isResponse);
-
-        return (MessageRecord) criteria.uniqueResult();
+            Boolean isResponse) {
+        final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
+        return session.createQuery(query).setReadOnly(true).setMaxResults(1).uniqueResult();
     }
 
-    @SneakyThrows
-    @SuppressWarnings("unchecked")
-    private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId clientId,
-            boolean isResponse) {
-        Criteria criteria = createRecordCriteria(session, queryId, clientId, isResponse);
-
-        return criteria.list();
+    private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId
+            clientId,
+            Boolean isResponse) {
+        final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
+        return session.createQuery(query).setReadOnly(true).getResultList();
     }
 
-    private static Criteria createRecordCriteria(Session session, String queryId, ClientId clientId,
-            boolean isResponse) {
-        Criteria criteria = session.createCriteria(MessageRecord.class);
-        criteria.add(Restrictions.eq("queryId", queryId));
-        criteria.add(Restrictions.eq("memberClass", clientId.getMemberClass()));
-        criteria.add(Restrictions.eq("memberCode", clientId.getMemberCode()));
-        String subsystemCode = clientId.getSubsystemCode();
-        criteria.add(subsystemCode == null
-                ? Restrictions.isNull("subsystemCode") : Restrictions.eq("subsystemCode", subsystemCode));
-        criteria.add(Restrictions.eq("response", isResponse));
+    private static CriteriaQuery<MessageRecord> createRecordCriteria(Session session, String queryId, ClientId clientId,
+            Boolean isResponse) {
 
-        return criteria;
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
+        final Root<MessageRecord> m = query.from(MessageRecord.class);
+
+        Predicate pred = cb.and(
+                cb.equal(m.get("queryId"), queryId),
+                cb.equal(m.get("memberClass"), clientId.getMemberClass()),
+                cb.equal(m.get("memberCode"), clientId.getMemberCode()),
+                cb.equal(m.get("memberCode"), clientId.getMemberCode()));
+
+        final String subsystemCode = clientId.getSubsystemCode();
+        if (subsystemCode == null) {
+            pred = cb.and(pred, cb.isNull(m.get("subsystemCode")));
+        } else {
+            pred = cb.and(pred, cb.equal(m.get("subsystemCode"), subsystemCode));
+        }
+
+        if (isResponse != null) {
+            pred = cb.and(pred, cb.equal(m.get("response"), isResponse));
+        }
+
+        return query.select(m).where(pred);
     }
 
     private static int getConfiguredBatchSize(Session session) {
         if (configuredBatchSize == 0) {
             configuredBatchSize = HibernateUtil.getConfiguredBatchSize(session, DEFAULT_BATCH_SIZE);
         }
-
         return configuredBatchSize;
     }
+
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -58,6 +59,16 @@ public class Verifier {
      */
     public void addPart(String name, String hashMethod, byte[] data) {
         parts.add(new MessagePart(name, hashMethod, data, null));
+
+    }
+
+    /** Adds new hash to be verified.
+     * @param name name of the file in the BDOC container.
+     * @param hashMethod identifier of the algorithm used to calculate the hash.
+     * @param data hash value.
+     */
+    public void addPart(String name, String hashMethod, byte[] data, byte[] message) {
+        parts.add(new MessagePart(name, hashMethod, data, message));
 
     }
 

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -29,8 +30,8 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import java.security.cert.X509Certificate;
 
@@ -52,8 +53,8 @@ public class SslAuthCertNotMatchesOrg extends SslMessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        ServerConf.reload(new TestServerConf());
-        GlobalConf.reload(new TestGlobalConf() {
+        ServerConf.reload(new TestSuiteServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public boolean authCertMatchesMember(X509Certificate cert,
                     ClientId member) {

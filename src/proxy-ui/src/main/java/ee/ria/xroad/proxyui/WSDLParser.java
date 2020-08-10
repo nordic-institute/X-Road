@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -34,11 +35,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
@@ -56,10 +52,9 @@ import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +120,7 @@ public final class WSDLParser {
     private static boolean identicalOperationsUnderSamePort(Exception e) {
         return (e instanceof IllegalArgumentException)
                 && StringUtils.startsWith(
-                    e.getMessage(), "Duplicate operation with name=");
+                e.getMessage(), "Duplicate operation with name=");
 
     }
 
@@ -146,7 +141,7 @@ public final class WSDLParser {
         Map<String, ServiceInfo> result = new HashMap<>();
 
         for (Service service : services) {
-            for (Port port : (Collection<Port>) service.getPorts().values()) {
+            for (Port port : (Collection<Port>)service.getPorts().values()) {
                 if (!hasSoapOverHttpBinding(port)) {
                     continue;
                 }
@@ -154,7 +149,7 @@ public final class WSDLParser {
                 String url = getUrl(port);
                 for (BindingOperation operation
                         : (List<BindingOperation>)
-                            port.getBinding().getBindingOperations()) {
+                        port.getBinding().getBindingOperations()) {
                     String title = getChildValue("title",
                             operation.getOperation().getDocumentationElement());
 
@@ -171,14 +166,14 @@ public final class WSDLParser {
 
     private static boolean hasSoapOverHttpBinding(Port port) throws Exception {
         for (ExtensibilityElement ext : (List<ExtensibilityElement>)
-                 port.getBinding().getExtensibilityElements()) {
+                port.getBinding().getExtensibilityElements()) {
 
             if (ext.getElementType().equals(SOAP_BINDING)) {
-                return TRANSPORT.equals(((SOAPBinding) ext).getTransportURI());
+                return TRANSPORT.equals(((SOAPBinding)ext).getTransportURI());
             }
 
             if (ext.getElementType().equals(SOAP12_BINDING)) {
-                return TRANSPORT.equals(((SOAP12Binding) ext).getTransportURI());
+                return TRANSPORT.equals(((SOAP12Binding)ext).getTransportURI());
             }
         }
 
@@ -187,13 +182,13 @@ public final class WSDLParser {
 
     private static String getUrl(Port port) {
         for (ExtensibilityElement ext
-                : (List<ExtensibilityElement>) port.getExtensibilityElements()) {
+                : (List<ExtensibilityElement>)port.getExtensibilityElements()) {
             if (ext.getElementType().equals(SOAP_ADDRESS)) {
-                return ((SOAPAddress) ext).getLocationURI();
+                return ((SOAPAddress)ext).getLocationURI();
             }
 
             if (ext.getElementType().equals(SOAP12_ADDRESS)) {
-                return ((SOAP12Address) ext).getLocationURI();
+                return ((SOAP12Address)ext).getLocationURI();
             }
         }
 
@@ -203,10 +198,10 @@ public final class WSDLParser {
     private static String getVersion(BindingOperation operation) {
         for (ExtensibilityElement ext
                 : (List<ExtensibilityElement>)
-                    operation.getExtensibilityElements()) {
+                operation.getExtensibilityElements()) {
             if (ext.getElementType().getLocalPart().equals(VERSION)) {
                 return getValue(
-                        ((UnknownExtensibilityElement) ext).getElement());
+                        ((UnknownExtensibilityElement)ext).getElement());
             }
         }
 
@@ -257,9 +252,9 @@ public final class WSDLParser {
 
         /**
          * Constructs a new service info object.
-         * @param name the name of the service
-         * @param title the title of the service
-         * @param url the URL of the service
+         * @param name    the name of the service
+         * @param title   the title of the service
+         * @param url     the URL of the service
          * @param version the version of the service
          */
         public ServiceInfo(String name, String title, String url,
@@ -271,10 +266,7 @@ public final class WSDLParser {
         }
     }
 
-    private static final class TrustAllSslCertsWsdlLocator
-            implements WSDLLocator {
-
-        private static final int ERROR_RESPONSE_CODE = 500;
+    private static final class TrustAllSslCertsWsdlLocator implements WSDLLocator {
 
         private final String wsdlUrl;
 
@@ -282,12 +274,14 @@ public final class WSDLParser {
             this.wsdlUrl = wsdlUrl;
         }
 
+        @SuppressWarnings("squid:S2093")
         @Override
         public InputSource getBaseInputSource() {
+            URLConnection conn = null;
             try {
-                URLConnection conn = new URL(wsdlUrl).openConnection();
-                if (conn instanceof HttpsURLConnection) {
-                    configureHttps((HttpsURLConnection) conn);
+                conn = new URL(wsdlUrl).openConnection();
+                if (conn instanceof HttpURLConnection) {
+                    HttpUrlConnectionConfig.apply((HttpURLConnection)conn);
                 }
 
                 // cache the response
@@ -295,13 +289,20 @@ public final class WSDLParser {
                 try (InputStream in = conn.getInputStream()) {
                     response = IOUtils.toByteArray(in);
                 }
-                log.trace("Received WSDL response: {}", new String(response));
+
+                if (log.isTraceEnabled()) {
+                    log.trace("Received WSDL response: {}", new String(response));
+                }
 
                 return new InputSource(new ByteArrayInputStream(response));
             } catch (CodedException e) {
                 throw e;
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
+            } finally {
+                if (conn instanceof HttpURLConnection) {
+                    ((HttpURLConnection)conn).disconnect();
+                }
             }
         }
 
@@ -324,34 +325,6 @@ public final class WSDLParser {
         @Override
         public void close() {
             // no-op
-        }
-
-        private void configureHttps(HttpsURLConnection conn)
-                throws Exception {
-            TrustManager[] trustAllCerts = new TrustManager[] {
-                new X509TrustManager() {
-                    @Override
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-                    @Override
-                    public void checkClientTrusted(
-                            X509Certificate[] certs, String authType) {
-                        // never called as used by client
-                    }
-                    @Override
-                    public void checkServerTrusted(
-                            X509Certificate[] certs, String authType) {
-                        // trust all
-                    }
-                }
-            };
-
-            SSLContext ctx = SSLContext.getInstance("SSL");
-            ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
-
-            conn.setSSLSocketFactory(ctx.getSocketFactory());
-            conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
         }
     }
 }

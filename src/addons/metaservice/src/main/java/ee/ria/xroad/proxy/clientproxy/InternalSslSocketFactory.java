@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -54,11 +55,10 @@ final class InternalSslSocketFactory {
         if (sslSocketFactory == null) {
             synchronized (lock) {
                 if (sslSocketFactory == null) {
-                    final InternalSSLKey sslKey = ServerConf.getSSLKey();
                     SSLContext sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
                     sslContext.init(
-                            new KeyManager[]{new InternalKeyManager(sslKey)},
-                            new TrustManager[]{new InternalTrustManager(sslKey.getCertChain())},
+                            new KeyManager[]{new InternalKeyManager()},
+                            new TrustManager[]{new InternalTrustManager()},
                             new SecureRandom());
                     sslSocketFactory = sslContext.getSocketFactory();
                 }
@@ -69,12 +69,6 @@ final class InternalSslSocketFactory {
 
     static final class InternalTrustManager implements X509TrustManager {
 
-        private final X509Certificate internalCert;
-
-        private InternalTrustManager(X509Certificate[] internalCert) {
-            this.internalCert = internalCert[0];
-        }
-
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             //nop
@@ -82,9 +76,18 @@ final class InternalSslSocketFactory {
 
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-            if (chain == null || chain.length == 0 || !internalCert.equals(chain[0])) {
-                throw new CertificateException("Not trusted");
+            try {
+                InternalSSLKey sslKey = ServerConf.getSSLKey();
+                X509Certificate internalCert = sslKey.getCertChain()[0];
+                if (chain == null || chain.length == 0 || !internalCert.equals(chain[0])) {
+                    throw new CertificateException("Not trusted");
+                }
+            } catch (CertificateException ce) {
+                throw ce;
+            } catch (Exception e) {
+                throw new CertificateException(e);
             }
+
         }
 
         @Override

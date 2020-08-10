@@ -84,7 +84,7 @@
         <property name="serviceSecurityServerAddress"
                   column="service_security_server_address" type="string" />
 
-        <property name="requestSoapSize" column="request_soap_size"
+        <property name="requestSize" column="request_size"
                   type="long" />
 
         <property name="requestMimeSize" column="request_mime_size"
@@ -93,7 +93,7 @@
         <property name="requestAttachmentCount"
                   column="request_attachment_count" type="int" />
 
-        <property name="responseSoapSize" column="response_soap_size"
+        <property name="responseSize" column="response_size"
                   type="long" />
 
         <property name="responseMimeSize" column="response_mime_size"
@@ -105,10 +105,16 @@
         <property name="succeeded"
                   column="succeeded" type="boolean" not-null="true" />
 
-        <property name="soapFaultCode" column="soap_fault_code" type="string" />
+        <property name="faultCode" column="fault_code" type="string" />
 
-        <property name="soapFaultString" column="soap_fault_string"
+        <property name="faultString" column="fault_string"
                   type="string" length="2048" />
+
+        <property name="xRequestId" column="x_request_id" type="string" />
+
+        <property name="statusCode" column="status_code" type="int"/>
+
+        <property name="serviceType" column="service_type" type="string" />
 
     </class>
 

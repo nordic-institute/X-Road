@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -54,7 +55,7 @@ public class SystemMetricsSensor extends AbstractSensor {
     private final String agentPath;
 
     private static final String DEFAULT_AGENT_PATH =
-            "akka.tcp://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
+            "akka://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
 
     private ActorRef agent;
     private long correlationId = 1;
@@ -141,7 +142,7 @@ public class SystemMetricsSensor extends AbstractSensor {
             if (agent != null) {
                 context().unwatch(agent);
             }
-            agent = message.getRef();
+            agent = message.getActorRef().orElse(null);
             if (agent != null) {
                 context().watch(agent);
                 log.info("ProxyMonitorAgent attached");

@@ -1,0 +1,77 @@
+
+@import './colors';
+
+.exp-title {
+  text-align: right;
+  padding-right: 20px;
+}
+
+.input-row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding-right: 10px;
+}
+
+.flex-wrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.flex-input {
+  margin: 4px;
+  max-width: 310px;
+}
+
+.search-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button-margin {
+  margin-right: 14px;
+}
+
+.empty-row {
+  padding: 10px;
+  width: 100%;
+  border-bottom: $XRoad-Grey10 solid 1px;
+  height: 48px;
+  text-align: center;
+}
+
+.fixed_header {
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table-checkbox {
+  height: 38px;
+  padding: 0;
+  margin-top: 12px;
+}
+
+#close-x {
+  font-family: Roboto;
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  line-height: 21px;
+
+  cursor: pointer;
+  font-style: normal;
+  font-size: 50px;
+  color: $XRoad-Grey40;
+}
+
+#close-x:before {
+  content: '\00d7';
+}
+
+// Override vuetify default box-shadow
+.v-expansion-panel::before {
+  box-shadow: none;
+}

@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -s <security server ID> -f <path of tar archive>
+Usage: $0 -s <security server ID> -f <path of tar archive> [-S]
 
 Backup the configuration (files and database) of the X-Road security server to a tar archive.
 
@@ -19,6 +19,7 @@ OPTIONS:
     -b Treat all input values as encoded in base64.
     -s ID of the security server.
     -f Absolute path of the resulting tar archive.
+    -S Skip database backup
 EOF
 }
 
@@ -27,6 +28,9 @@ execute_backup () {
     local args="-t security -s $SECURITY_SERVER_ID -f $BACKUP_FILENAME"
     if [[ $USE_BASE_64 = true ]] ; then
       args="${args} -b"
+    fi
+    if [[ $SKIP_DB_BACKUP = true ]] ; then
+      args="${args} -S"
     fi
     ${COMMON_BACKUP_SCRIPT} ${args}
     if [ $? -ne 0 ] ; then
@@ -39,11 +43,14 @@ execute_backup () {
   fi
 }
 
-while getopts ":s:f:bh" opt ; do
+while getopts ":s:f:Sbh" opt ; do
   case $opt in
     h)
       usage
       exit 0
+      ;;
+    S)
+      SKIP_DB_BACKUP=true
       ;;
     s)
       SECURITY_SERVER_ID=$OPTARG
