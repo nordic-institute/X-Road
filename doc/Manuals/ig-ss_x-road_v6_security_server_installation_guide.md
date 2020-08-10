@@ -173,11 +173,11 @@ Out | Security Server | Management Security Server | 5500, 5577 | tcp | |
 Out | Security Server | OCSP Service | 80 / 443 | tcp | |
 Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
 Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
-Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in internal network |
+Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
 In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
-In | Consumer Information System | Security Server | 80, 443 | tcp | Source in internal network |
-In | Admin | Security Server | 4000 | tcp | Source in internal network |
+In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
+In | Admin | Security Server | 4000 | tcp | Source in the internal network |
 
 ### 2.3 Requirements for the Security Server
 
