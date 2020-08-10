@@ -7,6 +7,7 @@ import {
   CertificateAuthority,
   CsrSubjectFieldDescription,
   KeyWithCertificateSigningRequestId,
+  KeyLabelWithCsrGenerate,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
@@ -239,8 +240,8 @@ export const actions: ActionTree<CsrState, RootState> = {
   generateKeyAndCsr({ getters }, tokenId: string) {
     const crtObject = getters.csrRequestBody;
 
-    const body = {
-      key_label: undefined,
+    const body: KeyLabelWithCsrGenerate = {
+      key_label: '',
       csr_generate_request: crtObject,
     };
 
