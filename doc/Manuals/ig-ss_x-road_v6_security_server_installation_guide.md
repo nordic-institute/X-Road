@@ -164,6 +164,8 @@ The network diagram below provides an example of a basic Security Server setup. 
 
 ![network diagram](img/ig-ss_network_diagram_Ubuntu.png)
 
+The table below lists the required connections between different components.
+
 **Connection Type** | **Source** | **Target** | **Target Ports** | **Protocol** | **Note** |
 -----------|------------|-----------|-----------|-----------|-----------|
 Out | Security Server | Central Server | 80, 4001 | tcp | |
