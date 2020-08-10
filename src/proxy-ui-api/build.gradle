@@ -187,20 +187,6 @@ jar {
     classifier = 'plainDependency'
 }
 
-// extract dependency jars from spring boot jar, to be able to package postgresql.jar
-task unpackLibsFromBootJar(type: Copy) {
-    from(zipTree("${buildDir}/libs/proxy-ui-api-1.0.jar")) {
-        include "BOOT-INF/lib/*"
-        eachFile { fcd ->
-            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(2))
-        }
-        includeEmptyDirs = false
-    }
-    into "$buildDir/unpacked-libs"
-}
-
-jar.finalizedBy(unpackLibsFromBootJar)
-
 configurations {
     compile {
         exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
@@ -222,7 +208,6 @@ dependencies {
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}")
-    implementation("org.postgresql:postgresql:42.2.14")
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -243,6 +228,13 @@ dependencyManagement {
         }
     }
 }
+
+task copyDeps(type: Copy) {
+    into "$buildDir/unpacked-libs"
+    from configurations.compileClasspath.find {it.name.startsWith("postgresql") }
+}
+
+build.dependsOn copyDeps
 
 test {
     // Needed for the tests in DiagnosticsApiControllerTest class
