@@ -35,7 +35,7 @@ extend('restUrl', {
   },
   message() {
     // You might want to generate a more complex message with this function.
-    return i18n.t('customValidation.invalidRest') as string;
+    return i18n.t('customValidation.invalidUrl') as string;
   },
 });
 
@@ -47,7 +47,7 @@ extend('wsdlUrl', {
     return false;
   },
   message() {
-    return i18n.t('customValidation.invalidWsdl') as string;
+    return i18n.t('customValidation.invalidUrl') as string;
   },
 });
 
