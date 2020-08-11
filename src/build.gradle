@@ -260,7 +260,7 @@ configure(subprojects.findAll({ it.name.contains('proxy-ui-api')})) {
     }
 
     licenseFormat.dependsOn licenseFormatFrontend
-    licenseTest.dependsOn licenseFormatFrontendCheck
+    licenseTest.dependsOn licenseTestFrontend
 
 }
 
