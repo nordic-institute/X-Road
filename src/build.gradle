@@ -238,11 +238,13 @@ configure(subprojects.findAll({ it.name.contains('proxy-ui-api')})) {
         header rootProject.file('LICENSE-NIIS.txt')
         include '**/*.java'
         include '**/*.ts'
+        include '**/*.js'
         include '**/*.vue'
         skipExistingHeaders = true
 
-        mapping('vue', 'SLASHSTAR_STYLE')
         mapping('ts', 'SLASHSTAR_STYLE')
+        mapping('js', 'SLASHSTAR_STYLE')
+        mapping('vue', 'XML_STYLE')
         jar {
             from rootProject.file('LICENSE-NIIS.txt')
         }
