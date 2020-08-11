@@ -30,24 +30,19 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
@@ -64,52 +59,46 @@ import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutM
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_HASH;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
+@RunWith(MockitoJUnitRunner.class)
 public class SystemServiceTest {
     private static final String TSA_1_URL = "https://tsa.com";
     private static final String TSA_1_NAME = "TSA 1";
     private static final String TSA_2_URL = "https://example.com";
     private static final String TSA_2_NAME = "TSA 2";
 
-    @Autowired
-    private SystemService systemService;
-    @MockBean
+    @Mock
     private ServerConfService serverConfService;
-    @MockBean
+    @Mock
     private GlobalConfService globalConfService;
-    @MockBean
+    @Mock
     private AnchorRepository anchorRepository;
-    @MockBean
+    @Mock
     private ConfigurationVerifier configurationVerifier;
-    @MockBean
+    @Mock
     private CurrentSecurityServerId currentSecurityServerId;
+    @Mock
+    private AuditDataHelper auditDataHelper;
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
+    private SystemService systemService;
+
     @Before
     public void setup() throws Exception {
-        systemService.setInternalKeyPath("src/test/resources/internal.key");
-        systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
-
         TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
         TspType tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
 
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
                 Arrays.asList(tsa1, tsa2));
-        when(globalConfService.getApprovedTspName(TSA_1_URL))
-                .thenReturn(tsa1.getName());
-        when(globalConfService.getApprovedTspName(TSA_2_URL))
-                .thenReturn(tsa2.getName());
-        when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
         ClientId ownerId = ClientId.create("CS", "GOV", "1111");
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ownerId);
+        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
+
+        systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
+                configurationVerifier, currentSecurityServerId, auditDataHelper);
+        systemService.setInternalKeyPath("src/test/resources/internal.key");
+        systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
 
     @Test
@@ -203,7 +192,6 @@ public class SystemServiceTest {
 
     @Test
     public void getAnchorFileFromBytesSkipVerify() throws Exception {
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ClientId.create("INVALID", "GOV", "1111"));
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, false);
         assertEquals(ANCHOR_HASH, anchorFile.getHash());

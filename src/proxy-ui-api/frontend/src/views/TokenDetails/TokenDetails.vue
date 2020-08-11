@@ -68,6 +68,7 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { Token } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -94,7 +95,7 @@ export default Vue.extend({
       touched: false,
       saveBusy: false,
       loading: false,
-      token: {},
+      token: {} as Token,
     };
   },
   methods: {
@@ -122,7 +123,7 @@ export default Vue.extend({
     fetchData(): void {
       this.loading = true;
       api
-        .get(`/tokens/${this.id}`)
+        .get<Token>(`/tokens/${this.id}`)
         .then((res) => {
           this.token = res.data;
         })

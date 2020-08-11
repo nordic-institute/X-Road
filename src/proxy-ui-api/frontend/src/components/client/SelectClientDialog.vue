@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{ $t('wizard.client.addClient') }}</span>
+        <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
         <i @click="cancel()" data-test="x-close-button"></i>
       </v-card-title>
@@ -71,7 +71,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/openapi-types';
 
@@ -84,8 +84,12 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    title: {
+      type: String,
+      default: 'wizard.client.addClient',
+    },
     selectableClients: {
-      type: Array,
+      type: Array as PropType<Client[]>,
       default() {
         return [];
       },
@@ -112,10 +116,10 @@ export default Vue.extend({
         return this.selectableClients;
       }
 
-      return this.selectableClients.filter((member: any) => {
-        if (member?.member_name.toLowerCase().includes(tempSearch)) {
+      return this.selectableClients.filter((member) => {
+        if (member.member_name?.toLowerCase().includes(tempSearch)) {
           return true;
-        } else if (member?.id.toLowerCase().includes(tempSearch)) {
+        } else if (member.id?.toLowerCase().includes(tempSearch)) {
           return true;
         }
 

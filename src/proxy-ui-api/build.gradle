@@ -3,7 +3,7 @@ buildscript {
         openapiGeneratorVersion = '4.2.0'
         nodePluginVersion = '1.3.1'
         nodeVersion = '12.16.3'
-        swaggerParserVersion = '2.0.19'
+        swaggerParserVersion = '2.0.20'
     }
     repositories {
         mavenCentral()
@@ -53,8 +53,7 @@ processResources {
     }
 }
 
-ext['hibernate.version'] = '5.3.10.Final'
-ext['hikaricp.version'] = '3.2.0'
+ext['tomcat.version'] = '9.0.37'
 
 node {
     download = true
@@ -140,7 +139,8 @@ openApiGenerate {
         models   : ""
     ]
     configOptions = [
-        interfaceOnly: "true"
+        interfaceOnly: "true",
+        useTags: "true"
     ]
 }
 

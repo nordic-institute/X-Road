@@ -2,9 +2,10 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { SecurityServer, Version } from '@/openapi-types';
+import { SecurityServer, User, Version } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
+import { InitializationStatus } from '@/openapi-types';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -13,15 +14,22 @@ export interface UserState {
   username: string;
   currentSecurityServer: SecurityServer | {};
   securityServerVersion: Version | {};
+  initializationStatus: InitializationStatus | undefined;
 }
 
-export const userState: UserState = {
-  authenticated: false,
-  permissions: [],
-  username: '',
-  currentSecurityServer: {},
-  securityServerVersion: {},
+export const getDefaultState = (): UserState => {
+  return {
+    authenticated: false,
+    permissions: [],
+    username: '',
+    currentSecurityServer: {},
+    securityServerVersion: {},
+    initializationStatus: undefined,
+  };
 };
+
+// Initial state. The state can be reseted with this.
+const moduleState = getDefaultState();
 
 export const userGetters: GetterTree<UserState, RootState> = {
   isAuthenticated(state) {
@@ -63,6 +71,34 @@ export const userGetters: GetterTree<UserState, RootState> = {
   securityServerVersion(state) {
     return state.securityServerVersion;
   },
+  isAnchorImported(state): boolean {
+    return state.initializationStatus?.is_anchor_imported ?? false;
+  },
+
+  isServerOwnerInitialized(state): boolean {
+    return state.initializationStatus?.is_server_owner_initialized ?? false;
+  },
+
+  isServerCodeInitialized(state): boolean {
+    return state.initializationStatus?.is_server_code_initialized ?? false;
+  },
+
+  isSoftwareTokenInitialized(state): boolean {
+    return state.initializationStatus?.is_software_token_initialized ?? false;
+  },
+
+  hasInitState: (state) => {
+    return typeof state.initializationStatus !== 'undefined';
+  },
+
+  needsInitialization: (state) => {
+    return !(
+      state.initializationStatus?.is_anchor_imported &&
+      state.initializationStatus.is_server_code_initialized &&
+      state.initializationStatus.is_server_owner_initialized &&
+      state.initializationStatus.is_software_token_initialized
+    );
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
@@ -70,12 +106,7 @@ export const mutations: MutationTree<UserState> = {
     state.authenticated = true;
   },
   clearAuthData(state) {
-    // Use this to log out user
-    state.authenticated = false;
-    // Clear the permissions
-    state.permissions = [];
-    state.username = '';
-    state.currentSecurityServer = {};
+    Object.assign(state, getDefaultState());
   },
   setPermissions: (state, permissions: string[]) => {
     state.permissions = permissions;
@@ -89,10 +120,13 @@ export const mutations: MutationTree<UserState> = {
   setSecurityServerVersion: (state, version: Version) => {
     state.securityServerVersion = version;
   },
+  storeInitStatus(state, status: InitializationStatus) {
+    state.initializationStatus = status;
+  },
 };
 
 export const actions: ActionTree<UserState, RootState> = {
-  login({ commit, dispatch }, authData): Promise<any> {
+  login({ commit }, authData) {
     const data = `username=${authData.username}&password=${authData.password}`;
 
     return axiosAuth({
@@ -103,7 +137,7 @@ export const actions: ActionTree<UserState, RootState> = {
       },
       data,
     })
-      .then((res) => {
+      .then(() => {
         commit('authUser');
       })
       .catch((error) => {
@@ -111,9 +145,9 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  async fetchUserData({ commit, dispatch }) {
+  async fetchUserData({ commit }) {
     return axios
-      .get('/user')
+      .get<User>('/user')
       .then((res) => {
         commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
@@ -148,21 +182,47 @@ export const actions: ActionTree<UserState, RootState> = {
       });
   },
 
-  logout({ commit, dispatch }) {
+  logout({ commit }, reload = true) {
     // Clear auth data
     commit('clearAuthData');
 
     // Call backend for logout
     axiosAuth
       .post('/logout')
-      .catch((error) => {
+      .catch(() => {
         // Nothing to do
       })
       .finally(() => {
-        // Reload the browser page to clean up the memory
-        location.reload(true);
+        if (reload) {
+          // Reload the browser page to clean up the memory
+          location.reload(true);
+        }
       });
   },
+
+  fetchInitializationStatus({ commit }) {
+    return axios
+      .get('/initialization/status')
+      .then((resp) => {
+        commit('storeInitStatus', resp.data);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
+  setInitializationStatus({ commit }) {
+    // Sets the initialization state to done
+    const initStatus: InitializationStatus = {
+      is_anchor_imported: true,
+      is_server_code_initialized: true,
+      is_server_owner_initialized: true,
+      is_software_token_initialized: true,
+    };
+
+    commit('storeInitStatus', initStatus);
+  },
+
   clearAuth({ commit }) {
     commit('clearAuthData');
   },
@@ -170,7 +230,7 @@ export const actions: ActionTree<UserState, RootState> = {
 
 export const user: Module<UserState, RootState> = {
   namespaced: false,
-  state: userState,
+  state: moduleState,
   getters: userGetters,
   actions,
   mutations,

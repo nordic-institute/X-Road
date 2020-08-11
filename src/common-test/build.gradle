@@ -2,9 +2,9 @@ dependencies {
     compile project(':common-verifier')
     compile 'org.antlr:ST4:4.0.7'
     // JUnit is needed for ExpectedCodedException
-    compile 'junit:junit:4.12'
+    compile 'junit:junit:4.13'
     compile 'com.google.code.gson:gson:2.8.5'
-    compile 'org.mockito:mockito-core:1.10.19'
+    compile 'org.mockito:mockito-core:3.4.6'
 }
 
 sourceSets {

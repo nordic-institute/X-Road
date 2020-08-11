@@ -4,6 +4,8 @@ import i18n from '../i18n';
 import * as Helpers from '@/util/helpers';
 
 configure({
+  // This should be ok, as it is the vee-validate contract
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultMessage: (field, values: any): string => {
     // override the field name.
     values._field_ = i18n.t(`fields.${field}`);
@@ -33,7 +35,7 @@ extend('restUrl', {
   },
   message() {
     // You might want to generate a more complex message with this function.
-    return i18n.t('customValidation.invalidRest') as string;
+    return i18n.t('customValidation.invalidUrl') as string;
   },
 });
 
@@ -45,6 +47,12 @@ extend('wsdlUrl', {
     return false;
   },
   message() {
-    return i18n.t('customValidation.invalidWsdl') as string;
+    return i18n.t('customValidation.invalidUrl') as string;
   },
+});
+
+const allowedIdentifierPattern = new RegExp('^((?![:/;%\\\\]).)*$');
+extend('xrdIdentifier', {
+  validate: (value) => allowedIdentifierPattern.test(value),
+  message: () => i18n.t('customValidation.invalidXrdIdentifier') as string,
 });

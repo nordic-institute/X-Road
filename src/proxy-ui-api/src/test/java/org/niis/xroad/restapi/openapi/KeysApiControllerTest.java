@@ -28,27 +28,18 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
-import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
-import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -65,27 +56,16 @@ import static org.mockito.Mockito.doReturn;
 /**
  * test keys api
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class KeysApiControllerTest {
+public class KeysApiControllerTest extends AbstractApiControllerTestContext {
+
+    @Autowired
+    KeysApiController keysApiController;
 
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";
     private static final String GOOD_CSR_ID = "csr-which-exists";
     private static final String KEY_NOT_FOUND_CSR_ID = "csr-with-key-404";
-
-    @MockBean
-    private KeyService keyService;
-
-    @MockBean
-    private TokenCertificateService tokenCertificateService;
-
-    @Autowired
-    private KeysApiController keysApiController;
 
     private KeyInfo signKeyInfo;
     private KeyInfo authKeyInfo;
@@ -128,7 +108,6 @@ public class KeysApiControllerTest {
             throw new KeyNotFoundException("foo");
         }
     }
-
 
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })

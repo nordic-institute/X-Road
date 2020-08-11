@@ -97,7 +97,7 @@ export default Vue.extend({
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
 
-    fetchKeyData(id: string): void {
+    fetchKeyData(): void {
       this.$store.dispatch('fetchKeyData').catch((error) => {
         this.$store.dispatch('showError', error);
       });

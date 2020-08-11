@@ -20,22 +20,21 @@
           @click="createBackup"
           >{{ $t('backup.backupConfiguration.button') }}
         </large-button>
-        <input
-          v-show="false"
-          ref="backupUpload"
-          type="file"
-          accept=".tar"
-          @change="onUploadFileChanged"
-        />
-        <large-button
-          v-if="canBackup"
-          color="primary"
-          :loading="uploadingBackup"
-          class="button-spacing"
-          @click="$refs.backupUpload.click()"
-          data-test="backup-upload"
-          >{{ $t('backup.uploadBackup.button') }}
-        </large-button>
+        <file-upload
+          accepts=".tar"
+          @fileChanged="onFileUploaded"
+          v-slot="{ upload }"
+        >
+          <large-button
+            v-if="canBackup"
+            color="primary"
+            :loading="uploadingBackup"
+            class="button-spacing"
+            @click="upload"
+            data-test="backup-upload"
+            >{{ $t('backup.uploadBackup.button') }}
+          </large-button>
+        </file-upload>
         <confirm-dialog
           :dialog="needsConfirmation"
           title="backup.uploadBackup.confirmationDialog.title"
@@ -67,8 +66,9 @@ import { Permissions } from '@/global';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
-import { AxiosResponse } from 'axios';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import FileUpload from '@/components/ui/FileUpload.vue';
+import { FileUploadResult } from '@/ui-types';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
@@ -89,6 +89,7 @@ export default Vue.extend({
     BackupsDataTable,
     LargeButton,
     ConfirmDialog,
+    FileUpload,
   },
   data() {
     return {
@@ -110,10 +111,10 @@ export default Vue.extend({
   methods: {
     async fetchData() {
       return api
-        .get('/backups')
+        .get<Backup[]>('/backups')
         .then((res) => {
-          this.backups = res.data.sort((a: Backup, b: Backup) => {
-            return b.created_at > a.created_at;
+          this.backups = res.data.sort((a, b) => {
+            return b.created_at.localeCompare(a.created_at);
           });
         })
         .catch((error) => this.$store.dispatch('showError', error));
@@ -121,8 +122,8 @@ export default Vue.extend({
     async createBackup() {
       this.creatingBackup = true;
       return api
-        .post('/backups', null)
-        .then((resp: AxiosResponse<Backup>) => {
+        .post<Backup>('/backups', null)
+        .then((resp) => {
           this.$store.dispatch(
             'showSuccessRaw',
             this.$t('backup.backupConfiguration.message.success', {
@@ -134,16 +135,10 @@ export default Vue.extend({
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.creatingBackup = false));
     },
-    onUploadFileChanged(event: any): void {
-      const fileList = (event.target.files ||
-        event.dataTransfer.files) as FileList;
-      if (!fileList.length) {
-        return;
-      }
-
+    onFileUploaded(result: FileUploadResult): void {
       this.uploadingBackup = true;
-      this.uploadedFile = fileList[0];
-      uploadBackup(fileList[0])
+      this.uploadedFile = result.file;
+      uploadBackup(result.file)
         .then(() => {
           this.fetchData();
           this.$store.dispatch(
@@ -172,6 +167,8 @@ export default Vue.extend({
     },
     async overwriteBackup() {
       this.uploadingBackup = true;
+      // this will only be called if the file has already been uploaded once and got warnings
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return uploadBackup(this.uploadedFile!, true)
         .then(() => {
           this.fetchData();

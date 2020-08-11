@@ -39,7 +39,7 @@ module.exports = {
     // Verify opening nonexisting URL
     clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'WSDL download failed');
     mainPage.closeSnackbar();
 
     // Verify successfull URL open
@@ -85,10 +85,12 @@ module.exports = {
     // Verify tooltips
     browser.moveToElement(operationDetails.elements.urlHelp,0,0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("The URL where requests targeted at the service are directed");
-
+    browser.moveToElement(operationDetails,0,0)
+    browser.expect.element(operationDetails.elements.activeTooltip).to.not.be.present;
     browser.moveToElement(operationDetails.elements.timeoutHelp,0,0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("The maximum duration of a request to the service, in seconds");
-
+    browser.moveToElement(operationDetails,0,0)
+    browser.expect.element(operationDetails.elements.activeTooltip).to.not.be.present;
     browser.moveToElement(operationDetails.elements.verifyCertHelp,0,0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
@@ -237,8 +239,8 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.wsdlOperationDetails;
-    const removeMemberPopup = mainPage.section.removeMemberPopup;
-    const removeAllMembersPopup = mainPage.section.removeAllMembersPopup;
+    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
+    const removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -261,14 +263,14 @@ module.exports = {
 
     // Verify cancel remove
     operationDetails.removeAccessRight('TestOrg');
-    browser.waitForElementVisible(removeMemberPopup);
-    removeMemberPopup.cancel();
+    browser.waitForElementVisible(removeAccessRightPopup);
+    removeAccessRightPopup.cancel();
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
 
     // Verify remove	
     operationDetails.removeAccessRight('TestOrg');
-    browser.waitForElementVisible(removeMemberPopup);
-    removeMemberPopup.confirm();
+    browser.waitForElementVisible(removeAccessRightPopup);
+    removeAccessRightPopup.confirm();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
@@ -278,15 +280,15 @@ module.exports = {
 
     // Verify cancel remove all
     operationDetails.removeAllAccessRights();
-    browser.waitForElementVisible(removeAllMembersPopup);
-    removeAllMembersPopup.cancel();
+    browser.waitForElementVisible(removeAllAccessRightsPopup);
+    removeAllAccessRightsPopup.cancel();
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     // Verify remove all
     operationDetails.removeAllAccessRights();
-    browser.waitForElementVisible(removeAllMembersPopup);
-    removeAllMembersPopup.confirm();
+    browser.waitForElementVisible(removeAllAccessRightsPopup);
+    removeAllAccessRightsPopup.confirm();
 
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
     mainPage.closeSnackbar();
@@ -322,7 +324,6 @@ module.exports = {
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
-
     clientServices.refreshServiceData();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Refreshed');
     mainPage.closeSnackbar();
@@ -352,6 +353,7 @@ module.exports = {
     mainPage.closeSnackbar();
 
     clientServices.toggleEnabled();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description enabled');
     mainPage.closeSnackbar();
 
     // Verify editing, malformed URL
@@ -366,8 +368,20 @@ module.exports = {
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'error_code.wsdl_download_failed');
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'WSDL download failed');
     mainPage.closeSnackbar();
+    
+    // Part 1 wait until at least 1 min has passed since refresh at the start of the test
+    // Split this wait into two parts to not cause timeouts
+    browser.perform(function () {
+
+      endTime = new Date().getTime();
+      passedTime = endTime-startTime;
+      if (passedTime < 30000) {
+        console.log('Waiting', 30000 - passedTime, 'ms');
+        browser.pause(30000 - passedTime);
+      }
+    });
 
     // Verify cancel
     serviceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_2);
@@ -380,7 +394,7 @@ module.exports = {
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(servicesPopup);
  
-    // Wait until at least 1 min has passed since refresh at the start of the test
+    // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     browser.perform(function () {
 
       endTime = new Date().getTime();
@@ -391,7 +405,8 @@ module.exports = {
       }
     });
 
-    servicesPopup.accept();     
+    servicesPopup.accept(); 
+
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'WSDL ('+ browser.globals.testdata + '/' + browser.globals.wsdl_url_2+')');

@@ -70,7 +70,7 @@ file-upload-endpoints:
       pathEnding: /tls-certificates
     -
       httpMethod: POST
-      pathEnding: /certificates
+      pathEnding: /token-certificates
     -
       httpMethod: POST
       pathEnding: /certificate/import

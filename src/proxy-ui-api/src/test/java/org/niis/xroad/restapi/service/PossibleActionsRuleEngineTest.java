@@ -30,18 +30,11 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumSet;
 
@@ -51,30 +44,24 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-@WithMockUser
-public class PossibleActionsRuleEngineTest {
+public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
     @Autowired
-    private PossibleActionsRuleEngine helper;
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Test
     public void getPossibleCertificateActionUnregister() {
         TokenInfo tokenInfo = new TokenInfoBuilder().build();
 
-        assertTrue(helper.getPossibleCertificateActions(tokenInfo,
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG).build())
                 .contains(PossibleActionEnum.UNREGISTER));
-        assertFalse(helper.getPossibleCertificateActions(tokenInfo,
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED).build())
                 .contains(PossibleActionEnum.UNREGISTER));
-        assertFalse(helper.getPossibleCertificateActions(tokenInfo,
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.SIGNING).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG).build())
                 .contains(PossibleActionEnum.UNREGISTER));
@@ -84,15 +71,15 @@ public class PossibleActionsRuleEngineTest {
     public void getPossibleCertificateActionRegister() {
         TokenInfo tokenInfo = new TokenInfoBuilder().build();
 
-        assertTrue(helper.getPossibleCertificateActions(tokenInfo,
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED).build())
                 .contains(PossibleActionEnum.REGISTER));
-        assertFalse(helper.getPossibleCertificateActions(tokenInfo,
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG).build())
                 .contains(PossibleActionEnum.REGISTER));
-        assertFalse(helper.getPossibleCertificateActions(tokenInfo,
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.SIGNING).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED).build())
                 .contains(PossibleActionEnum.REGISTER));
@@ -100,14 +87,14 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleCertificateActionDelete() {
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(true).build(),
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG)
                         .savedToConfiguration(false).build())
                 .contains(PossibleActionEnum.DELETE));
 
-        assertTrue(helper.getPossibleCertificateActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(null).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG)
@@ -115,21 +102,21 @@ public class PossibleActionsRuleEngineTest {
                 .contains(PossibleActionEnum.DELETE));
 
         // unreg enabled -> delete not possible
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG)
                         .savedToConfiguration(false).build())
                 .contains(PossibleActionEnum.DELETE));
 
-        assertTrue(helper.getPossibleCertificateActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED)
                         .savedToConfiguration(false).build())
                 .contains(PossibleActionEnum.DELETE));
 
-        assertTrue(helper.getPossibleCertificateActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).active(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED)
@@ -139,7 +126,7 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleCertificateActionDisable() {
-        assertTrue(helper.getPossibleCertificateActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -147,7 +134,7 @@ public class PossibleActionsRuleEngineTest {
                         .savedToConfiguration(true).build())
                 .contains(PossibleActionEnum.DISABLE));
 
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -155,7 +142,7 @@ public class PossibleActionsRuleEngineTest {
                         .savedToConfiguration(true).build())
                 .contains(PossibleActionEnum.DISABLE));
 
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -166,7 +153,7 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleCertificateActionActivate() {
-        assertTrue(helper.getPossibleCertificateActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -174,7 +161,7 @@ public class PossibleActionsRuleEngineTest {
                         .savedToConfiguration(true).build())
                 .contains(PossibleActionEnum.ACTIVATE));
 
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -182,7 +169,7 @@ public class PossibleActionsRuleEngineTest {
                         .savedToConfiguration(true).build())
                 .contains(PossibleActionEnum.ACTIVATE));
 
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -193,14 +180,14 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleCertificateActionImportFromToken() {
-        assertTrue(helper.getPossibleCertificateActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
                         .savedToConfiguration(false).build())
                 .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
 
-        assertFalse(helper.getPossibleCertificateActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
@@ -210,21 +197,22 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleCsrActionDelete() {
-        EnumSet<PossibleActionEnum> actions = helper.getPossibleCsrActions(
+        EnumSet<PossibleActionEnum> actions = possibleActionsRuleEngine.getPossibleCsrActions(
                 new TokenInfoBuilder().build());
         assertTrue(actions.contains(PossibleActionEnum.DELETE));
         assertEquals(1, actions.size()); // no other actions
 
-        assertTrue(helper.getPossibleCsrActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleCsrActions(
                 new TokenInfoBuilder().build())
                 .contains(PossibleActionEnum.DELETE));
     }
+
     @Test
     public void requirePossibleAction() throws Exception {
         EnumSet<PossibleActionEnum> actions = EnumSet.of(PossibleActionEnum.ACTIVATE);
-        helper.requirePossibleAction(PossibleActionEnum.ACTIVATE, actions);
+        possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.ACTIVATE, actions);
         try {
-            helper.requirePossibleAction(PossibleActionEnum.DELETE, actions);
+            possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.DELETE, actions);
             fail("should throw exception");
         } catch (ActionNotPossibleException expected) {
         }
@@ -232,13 +220,13 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleTokenActionGenerateKey() {
-        assertTrue(helper.getPossibleTokenActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(true)
                         .build())
                 .contains(PossibleActionEnum.GENERATE_KEY));
 
-        assertFalse(helper.getPossibleTokenActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(false)
                         .build())
@@ -247,36 +235,36 @@ public class PossibleActionsRuleEngineTest {
 
     @Test
     public void getPossibleTokenActionActivateOrDeactivate() {
-        assertTrue(helper.getPossibleTokenActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(true)
                         .active(false)
                         .build())
                 .contains(PossibleActionEnum.TOKEN_ACTIVATE));
-        assertFalse(helper.getPossibleTokenActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(true)
                         .active(true)
                         .build())
                 .contains(PossibleActionEnum.TOKEN_ACTIVATE));
-        assertFalse(helper.getPossibleTokenActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(false)
                         .active(false)
                         .build())
                 .contains(PossibleActionEnum.TOKEN_ACTIVATE));
 
-        assertTrue(helper.getPossibleTokenActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(true)
                         .build())
                 .contains(PossibleActionEnum.TOKEN_DEACTIVATE));
-        assertFalse(helper.getPossibleTokenActions(
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(false)
                         .build())
                 .contains(PossibleActionEnum.TOKEN_DEACTIVATE));
-        assertTrue(helper.getPossibleTokenActions(
+        assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(false)
                         .active(true)
@@ -290,7 +278,7 @@ public class PossibleActionsRuleEngineTest {
                 new KeyInfoBuilder().cert(
                         new CertificateInfoBuilder()
                                 .savedToConfiguration(false).build())
-                .build()).build();
+                        .build()).build();
         TokenInfo saved = new TokenInfoBuilder().key(
                 new KeyInfoBuilder().cert(
                         new CertificateInfoBuilder()
@@ -301,9 +289,9 @@ public class PossibleActionsRuleEngineTest {
         assertEquals(false, unsaved.isSavedToConfiguration());
 
         // actual test
-        assertTrue(helper.getPossibleTokenActions(saved)
+        assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(saved)
                 .contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
-        assertFalse(helper.getPossibleTokenActions(unsaved)
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(unsaved)
                 .contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
     }
 
@@ -311,7 +299,7 @@ public class PossibleActionsRuleEngineTest {
      * Helps when there is only one key. Uses the given token and the single key to request actions.
      */
     private EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo) {
-        return helper.getPossibleKeyActions(tokenInfo,
+        return possibleActionsRuleEngine.getPossibleKeyActions(tokenInfo,
                 tokenInfo.getKeyInfo().iterator().next());
     }
 
@@ -345,7 +333,6 @@ public class PossibleActionsRuleEngineTest {
                 createTestToken(true, false,
                         false, false));
         assertFalse(actions.contains(PossibleActionEnum.DELETE));
-
 
     }
 
@@ -460,6 +447,7 @@ public class PossibleActionsRuleEngineTest {
         actions = getPossibleKeyActions(tokenInfo);
         assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
     }
+
     @Test
     public void getPossibleKeyActionGenerateSignCsr() {
         TokenInfo tokenInfo;

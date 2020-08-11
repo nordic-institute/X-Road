@@ -5,6 +5,8 @@ import en from 'vee-validate/dist/locale/en.json';
 Vue.use(VueI18n);
 
 import locals from './locales/en.json';
+// Any is ok here, there is no definition for the locale format
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (locals as any).validation = en.messages;
 
 export default new VueI18n({

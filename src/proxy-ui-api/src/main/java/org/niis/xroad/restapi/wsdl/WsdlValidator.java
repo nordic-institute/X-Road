@@ -71,6 +71,7 @@ public class WsdlValidator {
         List<String> warnings = new ArrayList<>();
         // validator not set - this is ok since validator is optional
         if (StringUtils.isEmpty(getWsdlValidatorCommand())) {
+            log.warn("Skipping WSDL validator, command not set");
             return warnings;
         }
 
@@ -81,12 +82,25 @@ public class WsdlValidator {
         try {
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
                     .executeAndThrowOnFailure(getWsdlValidatorCommand(), wsdlUrl);
+
+            logValidatorOutput(processResult.getProcessOutput());
             return processResult.getProcessOutput();
         } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
         } catch (ProcessFailedException e) {
+            if (e.getErrorDeviation() != null) {
+                logValidatorOutput(e.getErrorDeviation().getMetadata());
+            }
             throw new WsdlValidationFailedException(e.getErrorDeviation().getMetadata());
         }
+    }
+
+    private void logValidatorOutput(List<String> processOutput) {
+        log.debug(" --- WSDL validator console output - START --- ");
+        if (processOutput != null && log.isDebugEnabled()) {
+            log.debug(ExternalProcessRunner.processOutputToString(processOutput));
+        }
+        log.debug(" --- WSDL validator console output - END --- ");
     }
 
     /**

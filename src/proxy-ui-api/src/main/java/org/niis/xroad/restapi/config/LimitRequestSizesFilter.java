@@ -164,7 +164,8 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
                     readSoFar = localNextReadSoFar;
                 }
                 if (readSoFar > maxBytes) {
-                    throw new LimitRequestSizesException("request limit " + maxBytes + " exceeded");
+                    log.warn("Request size limit {} exceeded, responding with 413 PAYLOAD_TOO_LARGE", maxBytes);
+                    throw new LimitRequestSizesException("request size limit " + maxBytes + " exceeded");
                 }
             }
         }

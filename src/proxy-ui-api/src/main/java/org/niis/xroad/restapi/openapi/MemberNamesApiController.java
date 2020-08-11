@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Member names controller for finding member names
  */
 @Controller
-@RequestMapping("/api")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 public class MemberNamesApiController implements MemberNamesApi {

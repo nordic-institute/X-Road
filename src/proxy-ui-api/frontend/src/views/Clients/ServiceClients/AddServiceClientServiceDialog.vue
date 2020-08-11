@@ -100,7 +100,7 @@ export default Vue.extend({
       this.selections = [];
     },
     searchResults(): ServiceCandidate[] {
-      return this.serviceCandidates.filter((candidate: any) =>
+      return this.serviceCandidates.filter((candidate) =>
         candidate.service_code.includes(this.search),
       );
     },

@@ -23,31 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.converter.comparator;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import org.niis.xroad.restapi.openapi.model.Client;
 
-import org.springframework.stereotype.Component;
+import java.util.Comparator;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Component
-public class EndpointHelper {
+/**
+ * Comparator for comparing Clients for sorting purposes.
+ */
+public class ClientSortingComparator implements Comparator<Client> {
 
     /**
-     * Get endpoints from client, for given service
-     * @param service
-     * @param client
+     * Compare Client objects using member name as the primary sort key, and client id
+     * as the secondary sort key.
+     * @param c1
+     * @param c2
      * @return
      */
-    public List<EndpointType> getEndpoints(ServiceType service, ClientType client) {
-        List<EndpointType> allEndpoints = client.getEndpoint();
-        return allEndpoints.stream()
-                .filter(endpointType -> endpointType.getServiceCode().equals(service.getServiceCode()))
-                .collect(Collectors.toList());
+    @Override
+    public int compare(Client c1, Client c2) {
+        if (c1.getMemberName() == null && c2.getMemberName() == null) {
+            return c1.getId().compareToIgnoreCase(c2.getId());
+        } else if (c1.getMemberName() == null) {
+            return 1;
+        } else if (c2.getMemberName() == null) {
+            return -1;
+        }
+        int compareTo = c1.getMemberName().compareToIgnoreCase(c2.getMemberName());
+        if (compareTo == 0) {
+            return c1.getId().compareToIgnoreCase(c2.getId());
+        }
+        return compareTo;
     }
-
 }

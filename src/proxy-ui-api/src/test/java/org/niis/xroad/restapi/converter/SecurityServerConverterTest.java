@@ -29,14 +29,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,17 +40,12 @@ import static org.mockito.Mockito.when;
 /**
  * test SecurityServerConverter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class SecurityServerConverterTest {
-
-    private static final String SERVER_ADDRESS = "foo.bar.baz";
+public class SecurityServerConverterTest extends AbstractConverterTestContext {
 
     @Autowired
-    private SecurityServerConverter securityServerConverter;
+    SecurityServerConverter securityServerConverter;
 
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
+    private static final String SERVER_ADDRESS = "foo.bar.baz";
 
     @Before
     public void setup() {
@@ -86,27 +76,33 @@ public class SecurityServerConverterTest {
     public void convertEncodedIdWithSubsystem() {
         securityServerConverter.convertId("XRD2:GOV:M4:SS1:serverCode");
     }
+
     @Test(expected = BadRequestException.class)
     public void convertEncodedIdWithMissingMember() {
         securityServerConverter.convertId("XRD2:GOV:serverCode");
     }
+
     @Test(expected = BadRequestException.class)
-    public void convertEncodedIdWithTooManyElements()  {
+    public void convertEncodedIdWithTooManyElements() {
         securityServerConverter.convertId("XRD2:GOV:M4:SS1:serverCode::::");
     }
+
     @Test(expected = BadRequestException.class)
-    public void convertEmptyEncodedId()  {
+    public void convertEmptyEncodedId() {
         securityServerConverter.convertId("");
     }
+
     @Test(expected = BadRequestException.class)
-    public void convertNullEncodedId()  {
+    public void convertNullEncodedId() {
         String id = null;
         securityServerConverter.convertId(id);
     }
+
     @Test(expected = BadRequestException.class)
-    public void convertEncodedIdWithoutDelimiter()  {
+    public void convertEncodedIdWithoutDelimiter() {
         securityServerConverter.convertId(";;;;asdsdas");
     }
+
     @Test
     public void convertSecurityServerObject() {
         SecurityServerId securityServerId = SecurityServerId.create(
@@ -119,6 +115,7 @@ public class SecurityServerConverterTest {
         assertEquals("server1", converted.getServerCode());
         assertEquals(SERVER_ADDRESS, converted.getServerAddress());
     }
+
     @Test
     public void convertSecurityServerId() {
         SecurityServerId securityServerId = SecurityServerId.create(
@@ -126,6 +123,5 @@ public class SecurityServerConverterTest {
         String id = securityServerConverter.convertId(securityServerId);
         assertEquals("XRD2:GOV:M4:server1", id);
     }
-
 
 }

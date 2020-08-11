@@ -25,22 +25,13 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,18 +51,10 @@ import static org.mockito.Mockito.when;
 /**
  * test member classes api controller
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class MemberClassesApiControllerIntegrationTest {
+public class MemberClassesApiControllerIntegrationTest extends AbstractApiControllerTestContext {
 
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private GlobalConfService globalConfService;
+    @Autowired
+    MemberClassesApiController memberClassesApiController;
 
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
@@ -82,12 +65,10 @@ public class MemberClassesApiControllerIntegrationTest {
     private static final List<String> A_MEMBER_CLASSES = Arrays.asList("CODE1", "CODE2");
     private static final List<String> B_MEMBER_CLASSES = Arrays.asList("CODE3", "CODE2");
     private static final Set<String> UNION_MEMBER_CLASSES = new HashSet<>(A_MEMBER_CLASSES);
+
     static {
         UNION_MEMBER_CLASSES.addAll(B_MEMBER_CLASSES);
     }
-
-    @Autowired
-    private MemberClassesApiController memberClassesApiController;
 
     @Before
     public void setup() throws Exception {

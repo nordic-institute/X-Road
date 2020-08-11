@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.44
+Version: 2.46
 Doc. ID: UG-SS
 
 ---
@@ -77,7 +77,9 @@ Doc. ID: UG-SS
  05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
  25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details | Petteri Kivimäki
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
-  
+ 30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
+ 10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -1884,9 +1886,10 @@ The most important system services of a security server are as follows.
  `xroad-jetty `     | Application server running the user interface | `/var/log/xroad/jetty/`
  `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
  `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`  | Management UI and REST API                 | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
  `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`
 
-System services are managed through the *upstart* facility.
+System services are managed through the *systemd* facility.
 
 **To start a service**, issue the following command as a `root` user:
 
@@ -1896,6 +1899,9 @@ System services are managed through the *upstart* facility.
 
     service <service> stop
 
+Services use the [default unit start rate limits](https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultStartLimitIntervalSec=).
+An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](../../src/packages/src/xroad/ubuntu/bionic/debian/xroad-proxy-ui-api.service))
+to prevent infinite restart-loop in some specific error situations.
 
 ### 17.2 Logging configuration
 

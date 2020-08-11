@@ -27,19 +27,16 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.openapi.model.AccessRight;
 import org.niis.xroad.restapi.openapi.model.AccessRights;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
@@ -58,27 +55,17 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
-import org.niis.xroad.restapi.service.ManagementRequestSenderService;
-import org.niis.xroad.restapi.service.TokenService;
-import org.niis.xroad.restapi.service.UrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
-import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.niis.xroad.restapi.wsdl.WsdlValidatorTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -117,13 +104,9 @@ import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSD
 /**
  * Test ClientsApiController
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class ClientsApiControllerIntegrationTest {
-
+public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+    private static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(TestUtils.getM1Ss1ClientId(),
+            "owner");
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP),
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP1),
@@ -131,25 +114,6 @@ public class ClientsApiControllerIntegrationTest {
     private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
             TestUtils.INSTANCE_FI,
             TestUtils.INSTANCE_EE));
-
-    @MockBean
-    private GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    private SignerProxyFacade signerProxyFacade;
-
-    @MockBean
-    private TokenService tokenService;
-
-    @SpyBean
-    // partial mocking, just override getValidatorCommand()
-    private WsdlValidator wsdlValidator;
-
-    @MockBean
-    private UrlValidator urlValidator;
-
-    @MockBean
-    private ManagementRequestSenderService managementRequestSenderService;
 
     @Before
     public void setup() throws Exception {
@@ -186,6 +150,8 @@ public class ClientsApiControllerIntegrationTest {
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
         when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenReturn(0);
+        when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
+        when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Autowired
@@ -221,7 +187,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(5, response.getBody().size());
         Client client = response.getBody().get(0);
-        assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
     }
 
@@ -282,7 +248,7 @@ public class ClientsApiControllerIntegrationTest {
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
                 "id", CertificateTestUtils.getMockCertificateBytes(), null);
-        when(tokenService.getSignCertificates(any())).thenReturn(Collections.singletonList(mockCertificate));
+        doReturn(Collections.singletonList(mockCertificate)).when(tokenService).getSignCertificates(any());
 
         certificates = clientsApiController.getClientSignCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
@@ -996,7 +962,7 @@ public class ClientsApiControllerIntegrationTest {
         TokenInfo tokenInfo = new TokenInfoBuilder()
                 .key(keyInfo)
                 .build();
-        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        doReturn(Collections.singletonList(tokenInfo)).when(tokenService).getAllTokens();
         ResponseEntity<OrphanInformation> orphanResponse = clientsApiController
                 .getClientOrphans("FI:GOV:ORPHAN:SS1");
         assertEquals(HttpStatus.OK, orphanResponse.getStatusCode());
@@ -1024,8 +990,8 @@ public class ClientsApiControllerIntegrationTest {
         TokenInfo tokenInfo = new TokenInfoBuilder()
                 .key(keyInfo)
                 .build();
-        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
-        when(tokenService.getTokenForKeyId(any())).thenReturn(tokenInfo);
+        doReturn(Collections.singletonList(tokenInfo)).when(tokenService).getAllTokens();
+        doReturn(tokenInfo).when(tokenService).getTokenForKeyId(any());
         ResponseEntity<Void> orphanResponse = clientsApiController
                 .deleteOrphans("FI:GOV:ORPHAN:SS1");
         assertEquals(HttpStatus.NO_CONTENT, orphanResponse.getStatusCode());

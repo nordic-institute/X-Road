@@ -192,6 +192,7 @@ import { Service, ServiceDescription } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';
+import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -229,9 +230,9 @@ export default Vue.extend({
       refreshId: '' as string,
       addWsdlBusy: false as boolean,
       addRestBusy: false as boolean,
-      refreshBusy: {} as any,
+      refreshBusy: {} as { [key: string]: boolean },
       refreshButtonComponentKey: 0 as number,
-      serviceTypeEnum: ServiceTypeEnum as any,
+      serviceTypeEnum: ServiceTypeEnum,
       saveWsdlLoading: false as boolean,
       saveRestLoading: false as boolean,
       refreshLoading: false as boolean,
@@ -247,25 +248,23 @@ export default Vue.extend({
     canDisable(): boolean {
       return this.$store.getters.hasPermission(Permissions.ENABLE_DISABLE_WSDL);
     },
-    filtered(): any {
+    filtered(): ServiceDescription[] {
       if (!this.serviceDescriptions || this.serviceDescriptions.length === 0) {
         return [];
       }
 
       // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-      const arr = JSON.parse(JSON.stringify(this.serviceDescriptions)).sort(
-        (a: ServiceDescription, b: ServiceDescription) => {
-          if (a.id < b.id) {
-            return -1;
-          }
-          if (a.id > b.id) {
-            return 1;
-          }
+      const arr = deepClone(this.serviceDescriptions).sort((a, b) => {
+        if (a.id < b.id) {
+          return -1;
+        }
+        if (a.id > b.id) {
+          return 1;
+        }
 
-          // equal id:s. (should not happen)
-          return 0;
-        },
-      );
+        // equal id:s. (should not happen)
+        return 0;
+      });
 
       if (!this.search) {
         return arr;
@@ -278,8 +277,8 @@ export default Vue.extend({
       }
 
       // Filter out service deascriptions that don't include search term
-      const filtered = arr.filter((element: any) => {
-        return element.services.find((service: any) => {
+      const filtered = arr.filter((element) => {
+        return element.services.find((service) => {
           return service.service_code
             .toString()
             .toLowerCase()
@@ -288,15 +287,13 @@ export default Vue.extend({
       });
 
       // Filter out services that don't include search term
-      filtered.forEach((element: any) => {
-        const filteredServices = element.services.filter((service: any) => {
+      filtered.forEach((element) => {
+        element.services = element.services.filter((service) => {
           return service.service_code
             .toString()
             .toLowerCase()
             .includes(mysearch);
         });
-
-        element.services = filteredServices;
       });
 
       return filtered;
@@ -311,7 +308,7 @@ export default Vue.extend({
       }
       return false;
     },
-    descriptionClick(desc: any): void {
+    descriptionClick(desc: ServiceDescription): void {
       this.$router.push({
         name: RouteName.ServiceDescriptionDetails,
         params: { id: desc.id },
@@ -327,8 +324,12 @@ export default Vue.extend({
         query: { descriptionType: serviceDescription.type },
       });
     },
-    switchChanged(event: any, serviceDesc: any, index: number): void {
-      if (serviceDesc.disabled === false) {
+    switchChanged(
+      event: unknown,
+      serviceDesc: ServiceDescription,
+      index: number,
+    ): void {
+      if (!serviceDesc.disabled) {
         // If user wants to disable service description:
         // - cancel the switch change
         // - show confirmation dialog instead
@@ -353,29 +354,37 @@ export default Vue.extend({
         });
     },
 
-    disableDescCancel(subject: any, index: number): void {
+    disableDescCancel(
+      subject: ServiceDescription | undefined,
+      index: number,
+    ): void {
       // User cancels the change from dialog. Switch must be returned to original position.
       this.disableDescDialog = false;
       this.forceUpdateSwitch(index, false);
     },
 
-    disableDescSave(subject: any, index: number, notice: string): void {
+    disableDescSave(
+      subject: ServiceDescription | undefined,
+      index: number,
+      notice: string,
+    ): void {
       this.disableDescDialog = false;
       this.forceUpdateSwitch(index, true);
-
-      api
-        .put(`/service-descriptions/${subject.id}/disable`, {
-          disabled_notice: notice,
-        })
-        .then((res) => {
-          this.$store.dispatch('showSuccess', 'services.disableSuccess');
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        })
-        .finally(() => {
-          this.fetchData();
-        });
+      if (subject) {
+        api
+          .put(`/service-descriptions/${subject.id}/disable`, {
+            disabled_notice: notice,
+          })
+          .then(() => {
+            this.$store.dispatch('showSuccess', 'services.disableSuccess');
+          })
+          .catch((error) => {
+            this.$store.dispatch('showError', error);
+          })
+          .finally(() => {
+            this.fetchData();
+          });
+      }
     },
 
     forceUpdateSwitch(index: number, value: boolean): void {
@@ -586,7 +595,7 @@ export default Vue.extend({
 
     fetchData(): void {
       api
-        .get(`/clients/${this.id}/service-descriptions`)
+        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
         .then((res) => {
           const serviceDescriptions: ServiceDescription[] = res.data;
           this.serviceDescriptions = serviceDescriptions.map(

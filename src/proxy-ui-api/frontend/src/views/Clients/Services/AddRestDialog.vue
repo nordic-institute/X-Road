@@ -1,14 +1,14 @@
 <template>
-  <simpleDialog
-    :dialog="dialog"
-    :width="560"
-    title="services.addRest"
-    @save="save"
-    @cancel="cancel"
-    :disableSave="!isValid"
-  >
-    <div slot="content">
-      <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+  <ValidationObserver ref="form" v-slot="{ valid }">
+    <simpleDialog
+      :dialog="dialog"
+      :width="560"
+      title="services.addRest"
+      @save="save"
+      @cancel="cancel"
+      :disableSave="!valid"
+    >
+      <div slot="content">
         <div class="dlg-edit-row">
           <div class="dlg-row-title">{{ $t('services.serviceType') }}</div>
 
@@ -61,7 +61,7 @@
           <div class="dlg-row-title">{{ $t('services.serviceCode') }}</div>
 
           <ValidationProvider
-            rules="required"
+            rules="required|xrdIdentifier"
             name="serviceCode"
             v-slot="{ errors }"
             class="validation-provider"
@@ -78,17 +78,15 @@
             ></v-text-field>
           </ValidationProvider>
         </div>
-      </ValidationObserver>
-    </div>
-  </simpleDialog>
+      </div>
+    </simpleDialog>
+  </ValidationObserver>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
-import { isValidRestURL } from '@/util/helpers';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: { SimpleDialog, ValidationProvider, ValidationObserver },
@@ -104,19 +102,6 @@ export default Vue.extend({
       url: '',
       serviceCode: '',
     };
-  },
-  computed: {
-    isValid(): boolean {
-      if (
-        isValidRestURL(this.url) &&
-        this.serviceCode.length > 0 &&
-        this.serviceType !== ''
-      ) {
-        return true;
-      }
-
-      return false;
-    },
   },
   methods: {
     cancel(): void {

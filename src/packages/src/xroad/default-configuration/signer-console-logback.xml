@@ -24,7 +24,7 @@
             <onMismatch>DENY</onMismatch>
             <onMatch>NEUTRAL</onMatch>
         </filter>
-        <syslogHost>localhost</syslogHost>
+        <syslogHost>127.0.0.1</syslogHost>
         <port>514</port>
         <facility>LOCAL0</facility>
         <suffixPattern>%-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} - %msg</suffixPattern>

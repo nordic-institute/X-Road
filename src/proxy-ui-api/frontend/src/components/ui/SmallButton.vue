@@ -57,7 +57,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    click(event: any): void {
+    click(event: MouseEvent): void {
       this.$emit('click', event);
     },
   },

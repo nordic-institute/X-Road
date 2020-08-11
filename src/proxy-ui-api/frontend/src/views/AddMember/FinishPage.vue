@@ -14,7 +14,7 @@
     <p>{{ $t('wizard.finish.note') }}</p>
     <p></p>
 
-    <div v-if="showRegisterOption" class="row-wrap">
+    <div v-if="showRegisterOption">
       <FormLabel labelText="wizard.member.register" />
       <v-checkbox
         v-model="registerChecked"
@@ -72,6 +72,7 @@ import FormLabel from '@/components/ui/FormLabel.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -133,8 +134,12 @@ export default Vue.extend({
             this.disableCancel = false;
             this.submitLoading = false;
             this.$emit('done');
-          } else {
+          } else if (
+            this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
+          ) {
             this.generateCsr();
+          } else {
+            this.generateKeyAndCsr();
           }
         },
         (error) => {
@@ -159,11 +164,30 @@ export default Vue.extend({
       this.createMember(true);
     },
 
-    generateCsr(): void {
+    generateKeyAndCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
       this.$store
         .dispatch('generateKeyAndCsr', tokenId)
+        .then(
+          () => {
+            this.$emit('done');
+          },
+          (error) => {
+            this.$store.dispatch('showError', error);
+          },
+        )
+        .finally(() => {
+          this.disableCancel = false;
+          this.submitLoading = false;
+        });
+    },
+
+    generateCsr(): void {
+      const tokenId = this.$store.getters.csrTokenId;
+
+      this.$store
+        .dispatch('generateCsr', tokenId)
         .then(
           () => {
             this.$emit('done');
@@ -185,8 +209,8 @@ export default Vue.extend({
         this.memberCode,
       );
 
-      this.$store
-        .dispatch('registerClient', clientId)
+      api
+        .put(`/clients/${clientId}/register`, {})
         .then(
           () => {
             this.$emit('done');

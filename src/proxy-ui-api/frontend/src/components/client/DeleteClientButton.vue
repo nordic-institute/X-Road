@@ -35,6 +35,7 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -59,7 +60,7 @@ export default Vue.extend({
   methods: {
     deleteClient(): void {
       this.deleteLoading = true;
-      this.$store.dispatch('deleteClient', this.id).then(
+      api.remove(`/clients/${this.id}`).then(
         () => {
           this.$store.dispatch('showSuccess', 'client.action.delete.success');
           this.checkOrphans();
@@ -73,7 +74,7 @@ export default Vue.extend({
     },
 
     checkOrphans(): void {
-      this.$store.dispatch('getOrphans', this.id).then(
+      api.get(`/clients/${this.id}/orphans`).then(
         () => {
           this.confirmDelete = false;
           this.deleteLoading = false;
@@ -96,8 +97,8 @@ export default Vue.extend({
 
     deleteOrphans(): void {
       this.orphansLoading = true;
-      this.$store
-        .dispatch('deleteOrphans', this.id)
+      api
+        .remove(`/clients/${this.id}/orphans`)
         .then(
           () => {
             this.$store.dispatch(

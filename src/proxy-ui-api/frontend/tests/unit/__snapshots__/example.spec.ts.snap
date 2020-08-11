@@ -1,9 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`ServiceIcon snapshot test 1`] = `
-<i
-  aria-hidden="true"
-  class="v-icon notranslate mdi mdi-lock theme--light"
-  style="font-size: 16px; color: rgb(0, 229, 0); caret-color: #00e500;"
-/>
-`;

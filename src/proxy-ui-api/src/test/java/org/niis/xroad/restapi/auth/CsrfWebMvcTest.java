@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
+import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,6 +41,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -50,6 +52,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import javax.servlet.http.Cookie;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -71,9 +78,13 @@ public class CsrfWebMvcTest {
     private String username = "xroad-user";
     private String tokenValue = "token";
     private CsrfToken csrfToken = new DefaultCsrfToken(XSRF_HEADER, CSRF_PARAM, tokenValue);
+    private List<String> userPermissions;
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private GrantedAuthorityMapper grantedAuthorityMapper;
 
     @SpyBean
     @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
@@ -83,9 +94,16 @@ public class CsrfWebMvcTest {
     private ApiKeyAuthenticationManager apiKeyAuthenticationManager;
 
     @Before
+    // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)
     public void setup() {
-        // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)
-        Authentication mockAuth = new UsernamePasswordAuthenticationToken(username, "pass");
+        Set<GrantedAuthority> authorities = grantedAuthorityMapper
+                .getAuthorities(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER));
+        userPermissions = authorities.stream()
+                .filter(grantedAuthority -> !grantedAuthority.getAuthority()
+                        .equals(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        Authentication mockAuth = new UsernamePasswordAuthenticationToken(username, "pass", authorities);
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(mockAuth);
         doReturn(mockAuth).when(pamAuthenticationProvider).authenticate(any());
@@ -94,6 +112,7 @@ public class CsrfWebMvcTest {
 
     /**
      * Test login with mocked authentication. Should return 200 with a valid CSRF token in a cookie
+     *
      * @throws Exception
      */
     @Test
@@ -109,13 +128,17 @@ public class CsrfWebMvcTest {
 
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
+     *
      * @throws Exception
      */
     @Test
     public void getUser() throws Exception {
-        User expectedUser = new User().username(username);
+        User expectedUser = new User()
+                .username(username)
+                .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .permissions(userPermissions);
         String expectedUserJsonString = new Gson().toJson(expectedUser);
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
@@ -128,11 +151,12 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
      * XSRF header value should not match
+     *
      * @throws Exception
      */
     @Test
     public void getUserCsrfHeaderFail() throws Exception {
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, "wrong-value")
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
@@ -144,11 +168,12 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
      * XSRF cookie value should not match
+     *
      * @throws Exception
      */
     @Test
     public void getUserCsrfCookieFail() throws Exception {
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, "wrong-value"));
@@ -160,13 +185,17 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. This mimics an api user request so no cookies
      * should be returned
+     *
      * @throws Exception
      */
     @Test
     public void getUserNoSession() throws Exception {
-        User expectedUser = new User().username(username);
+        User expectedUser = new User()
+                .username(username)
+                .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .permissions(userPermissions);
         String expectedUserJsonString = new Gson().toJson(expectedUser);
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/user");
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user");
         mockMvc.perform(mockRequest)
                 .andDo(print())
                 .andExpect(status().isOk())
