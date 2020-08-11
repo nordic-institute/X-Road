@@ -29,7 +29,7 @@ module.exports = {
     clientServices.enterServiceUrl('');
     browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'The URL field is required');
     clientServices.enterServiceUrl('foobar');
-    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'WSDL URL is not valid');
+    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'URL is not valid');
     clientServices.cancelAddDialog();
 
     // Verify that URL field is empty after reopening
@@ -359,7 +359,7 @@ module.exports = {
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
     serviceDetails.enterServiceUrl("foobar")
-    browser.assert.containsText(serviceDetails.elements.URLMessage, 'WSDL URL is not valid');
+    browser.assert.containsText(serviceDetails.elements.URLMessage, 'URL is not valid');
     serviceDetails.enterServiceUrl('');
     browser.assert.containsText(serviceDetails.elements.URLMessage, 'The URL field is required');
 
