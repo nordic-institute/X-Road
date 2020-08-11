@@ -37,11 +37,8 @@ import java.security.cert.X509Certificate;
  */
 public class FoSignCertificateProfileInfo extends AbstractCertificateProfileInfo implements SignCertificateProfileInfo {
 
-    protected final Parameters params;
-
     /**
      * Constructor.
-     *
      * @param params the parameters
      */
     public FoSignCertificateProfileInfo(Parameters params) {
@@ -83,7 +80,6 @@ public class FoSignCertificateProfileInfo extends AbstractCertificateProfileInfo
                 ).setReadOnly(false)
 
         });
-        this.params = params;
     }
 
     @Override

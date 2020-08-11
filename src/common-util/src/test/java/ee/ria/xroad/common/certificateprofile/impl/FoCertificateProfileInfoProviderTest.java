@@ -52,7 +52,7 @@ public class FoCertificateProfileInfoProviderTest {
      */
     @Test
     public void providerReturnsCorrectImplementations() {
-        CertificateProfileInfoProvider provider = provider();
+        CertificateProfileInfoProvider provider = newProvider();
         assertTrue(
                 "Must return instance of FoAuthCertificateProfileInfo",
                 provider.getAuthCertProfile(
@@ -77,7 +77,7 @@ public class FoCertificateProfileInfoProviderTest {
      * Tests whether getting expected subject fields succeeds as expected.
      */
     @Test
-    public void signProfileSubjectFields() {
+    public void signProfileGetSubjectFields() {
         DnFieldDescription[] expectedFields = {
                 new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FO")
                         .setReadOnly(true),
@@ -121,7 +121,7 @@ public class FoCertificateProfileInfoProviderTest {
     }
 
     /**
-     * Tests whether validating black subject field of sign profile fails
+     * Tests whether validating blank subject field of sign profile fails
      * as expected.
      * @throws Exception in case of any unexpected errors
      */
@@ -170,7 +170,7 @@ public class FoCertificateProfileInfoProviderTest {
      * as expected.
      */
     @Test
-    public void authProfileSubjectFields() {
+    public void authProfileGetSubjectFields() {
         DnFieldDescription[] expectedFields = {
                 new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FO")
                         .setReadOnly(true),
@@ -241,7 +241,7 @@ public class FoCertificateProfileInfoProviderTest {
 
     // ------------------------------------------------------------------------
 
-    private CertificateProfileInfoProvider provider() {
+    private CertificateProfileInfoProvider newProvider() {
         return new FoCertificateProfileInfoProvider();
     }
 
