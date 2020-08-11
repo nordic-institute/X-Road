@@ -9,6 +9,7 @@ dependencies {
     compile project(':common-op-monitoring')
 
     compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
+    compile 'xerces:xercesImpl:2.12.0'
 
     testCompile project(':common-test')
     testCompile 'org.hsqldb:hsqldb:2.5.0'
