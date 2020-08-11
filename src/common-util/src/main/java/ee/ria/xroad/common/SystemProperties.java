@@ -490,14 +490,14 @@ public final class SystemProperties {
 
     /** Property name of the WSDL validator command. */
     public static final String WSDL_VALIDATOR_COMMAND =
-            PREFIX + "proxy-ui.wsdl-validator-command";
+            PREFIX + "proxy-ui-api.wsdl-validator-command";
 
     /**
      * Property name of the signature digest algorithm ID used for generating authentication certificate
      * registration request.
      */
     private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
-            PREFIX + "proxy-ui.auth-cert-reg-signature-digest-algorithm-id";
+            PREFIX + "proxy-ui-api.auth-cert-reg-signature-digest-algorithm-id";
 
     // Proxy & Central monitor agent ------------------------------------------
 
@@ -623,9 +623,6 @@ public final class SystemProperties {
 
     public static final String CONF_FILE_NODE =
             getConfPath() + "conf.d/node.ini";
-
-    public static final String CONF_FILE_PROXY_UI =
-            getConfPath() + "conf.d/proxy-ui.ini";
 
     public static final String CONF_FILE_PROXY_UI_API =
             getConfPath() + "conf.d/proxy-ui-api.ini";

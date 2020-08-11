@@ -229,6 +229,13 @@ dependencyManagement {
     }
 }
 
+task copyDeps(type: Copy) {
+    into "$buildDir/unpacked-libs"
+    from configurations.compileClasspath.find {it.name.startsWith("postgresql") }
+}
+
+build.dependsOn copyDeps
+
 test {
     // Needed for the tests in DiagnosticsApiControllerTest class
     systemProperty "user.timezone", "UTC"

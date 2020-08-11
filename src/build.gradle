@@ -142,7 +142,7 @@ subprojects {
         }
     }
 
-    task buildall(dependsOn: [build, ':proxy-ui:warble', ':center-ui:warble', ':center-service:warble']) {
+    task buildall(dependsOn: [build, ':center-ui:warble', ':center-service:warble']) {
         description = "Builds all that can be built (even the slow tasks)"
     }
 
@@ -214,7 +214,7 @@ configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('cen
     licenseTest.dependsOn licenseFormatUiCheck
 }
 
-configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') or it.name.contains('proxy-ui') })) {
+configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') })) {
     def licenseSourceAdds = fileTree('lib')
 
     task licenseFormatLib(type: nl.javadude.gradle.plugins.license.License) {

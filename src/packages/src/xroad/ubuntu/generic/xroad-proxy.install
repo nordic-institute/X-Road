@@ -1,11 +1,8 @@
 ../../../../src/xroad/common/proxy/etc/* etc/
 ../../../../src/xroad/common/proxy/usr/* usr/
-../../../../../proxy-ui/build/libs/proxy-ui.war usr/share/xroad/jlib/webapps/
 ../../../../../proxy/build/libs/proxy-1.0.jar usr/share/xroad/jlib/
 ../../../../src/xroad/default-configuration/proxy.ini etc/xroad/conf.d
-../../../../src/xroad/default-configuration/proxy-ui.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/proxy-logback.xml etc/xroad/conf.d
-../../../../src/xroad/default-configuration/proxy-ui-jetty-logback-context-name.xml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
 ../../../../../LICENSE.txt usr/share/doc/xroad-proxy/
 ../../../../../securityserver-LICENSE.info usr/share/doc/xroad-proxy
