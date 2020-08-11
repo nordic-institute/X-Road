@@ -254,7 +254,7 @@ configure(subprojects.findAll({ it.name.contains('proxy-ui-api')})) {
         source = sources
     }
 
-    task licenseFormatFrontendCheck(type: nl.javadude.gradle.plugins.license.License) {
+    task licenseTestFrontend(type: nl.javadude.gradle.plugins.license.License) {
         source = sources
         check = true
     }
