@@ -687,7 +687,8 @@
   "customValidation": {
     "invalidRest": "REST URL is not valid",
     "invalidWsdl": "WSDL URL is not valid",
-    "invalidUrl": "URL is not valid"
+    "invalidUrl": "URL is not valid",
+    "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",

@@ -111,8 +111,10 @@ public final class WsdlParser {
         try {
             return internalParseWSDL(wsdlUrl);
         } catch (PrivateWsdlNotFoundException e) {
+            log.error("Reading WSDL from {} failed", wsdlUrl, e);
             throw new WsdlNotFoundException(e);
         } catch (Exception e) {
+            log.error("Reading WSDL from {} failed", wsdlUrl, e);
             throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
     }
@@ -134,6 +136,7 @@ public final class WsdlParser {
     }
 
     private static Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws Exception {
+        log.info("running WSDL parser");
         WSDLFactory wsdlFactory = WSDLFactory.newInstance(
                 "com.ibm.wsdl.factory.WSDLFactoryImpl");
 

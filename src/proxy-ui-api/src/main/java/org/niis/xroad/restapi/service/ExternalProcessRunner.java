@@ -102,6 +102,7 @@ public class ExternalProcessRunner {
                 throw new ProcessFailedException("Process timed out");
             }
             exitCode = process.exitValue();
+            log.info("External command finished with exit status {}", exitCode);
         } catch (InterruptedException e) {
             // retain the interrupted status
             Thread.currentThread().interrupt();

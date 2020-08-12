@@ -74,7 +74,7 @@
           <div>{{ $t('services.serviceCode') }}</div>
 
           <ValidationProvider
-            rules="required"
+            rules="required|xrdIdentifier"
             name="code_field"
             v-slot="{ errors }"
             class="validation-provider"

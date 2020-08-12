@@ -22,8 +22,8 @@ dependencies {
 
     testCompile project (path: ":proxy", configuration: 'testArtifacts')
     testCompile project(':common-test')
-    testCompile 'org.hamcrest:hamcrest-all:1.3'
-    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
+    testCompile 'org.hamcrest:hamcrest:2.2'
+    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
     testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 }
 

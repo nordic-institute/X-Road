@@ -1,12 +1,10 @@
-import { Module } from 'vuex';
 import { RootState } from './../../src/store/types';
 import mockJson from './mockClients.json';
 import compareJson from './mockClientsResult.json';
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import { clientsState, mutations as clientsMutations, getters as clientsGetters, ClientsState } from '@/store/modules/clients';
-import { getDefaultState as initState, mutations as initMutations, getters as initGetters, State as InitState } from '@/store/modules/initializeServer';
-
+import { clientsModule } from '@/store/modules/clients';
+import { user as userModule } from '@/store/modules/user';
 
 Vue.use(Vuex);
 
@@ -15,13 +13,6 @@ describe('clients actions', () => {
   let setDataMock;
   beforeEach(() => {
     setDataMock = jest.fn();
-
-    const clientsModule: Module<ClientsState, RootState> = {
-      namespaced: false,
-      state: clientsState,
-      getters: clientsGetters,
-      mutations: clientsMutations,
-    };
 
     const storeOptions: StoreOptions<RootState> = {
       modules: {
@@ -51,16 +42,9 @@ describe('initialize store', () => {
 
   beforeEach(() => {
 
-    const testModule: Module<InitState, RootState> = {
-      namespaced: false,
-      state: initState,
-      getters: initGetters,
-      mutations: initMutations,
-    };
-
     const storeOptions: StoreOptions<RootState> = {
       modules: {
-        testModule,
+        userModule,
       },
     };
 

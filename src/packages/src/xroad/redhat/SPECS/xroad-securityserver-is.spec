@@ -24,8 +24,11 @@ This is meta package of X-Road security server with Icelandic settings
 %build
 
 %install
+mkdir -p %{buildroot}/etc/xroad/conf.d
+cp -p %{srcdir}/default-configuration/override-securityserver-is.ini %{buildroot}/etc/xroad/conf.d/
 
 %files
+%defattr(-,xroad,xroad,-)
+%config /etc/xroad/conf.d/override-securityserver-is.ini
 
 %post
-

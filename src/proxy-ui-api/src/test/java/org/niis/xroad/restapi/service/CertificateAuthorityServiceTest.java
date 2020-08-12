@@ -112,7 +112,17 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
             throw new RuntimeException("approved ca info not found");
         });
 
-        String[] ocspResponses = caCerts.stream()
+        // ocsp responses are not fetched for all CAs
+        // see CertificateAuthorityService#getCertificateAuthorities implementation
+        Map<String, String> subjectsToIssuers = caCerts.stream().collect(
+                Collectors.toMap(
+                        x509 -> x509.getSubjectDN().getName(),
+                        x509 -> x509.getIssuerDN().getName()));
+        List<X509Certificate> filteredCerts = caCerts.stream()
+                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerDN().getName()))
+                .collect(Collectors.toList());
+
+        String[] ocspResponses = filteredCerts.stream()
                 .map(cert -> {
                     try {
                         byte[] bytes = CertificateTestUtils.generateOcspBytes(cert, CertificateStatus.GOOD);
@@ -188,7 +198,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     }
 
     @Test
-    public void buildPath() throws Exception {
+    public void buildPath() {
         X509Certificate certificate = CertificateTestUtils.getMockAuthCertificate();
         String subject = MOCK_AUTH_CERT_SUBJECT;
         String issuer = MOCK_AUTH_CERT_ISSUER;
@@ -221,7 +231,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         subjectsToIssuers = new HashMap<>();
         subjectsToIssuers.put(subject, issuer);
         path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
-        assertEquals(Arrays.asList(subject), path);
+        assertEquals(Collections.singletonList(subject), path);
 
         certificate = CertificateTestUtils.getMockCertificate();
         subject = "CN=N/A";
@@ -235,7 +245,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         subjectsToIssuers.put("a", "b");
         subjectsToIssuers.put("b", "c");
         path = certificateAuthorityService.buildPath(certificate, subjectsToIssuers);
-        assertEquals(Arrays.asList(subject), path);
+        assertEquals(Collections.singletonList(subject), path);
     }
 
     @Test
@@ -247,11 +257,11 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(2, caDtos.size());
         ApprovedCaDto ca = caDtos.get(0);
         assertEquals("fi-not-auth-only", ca.getName());
-        assertEquals(false, ca.isAuthenticationOnly());
+        assertFalse(ca.isAuthenticationOnly());
         assertEquals("CN=N/A", ca.getIssuerDistinguishedName());
         assertEquals("CN=N/A", ca.getSubjectDistinguishedName());
-        assertEquals(Arrays.asList("CN=N/A"), ca.getSubjectDnPath());
-        assertEquals(true, ca.isTopCa());
+        assertEquals(Collections.singletonList("CN=N/A"), ca.getSubjectDnPath());
+        assertTrue(ca.isTopCa());
         assertEquals("good", ca.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
 
@@ -259,12 +269,12 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(3, caDtos.size());
         ApprovedCaDto ca2 = caDtos.get(1);
         assertEquals("est-auth-only", ca2.getName());
-        assertEquals(true, ca2.isAuthenticationOnly());
+        assertTrue(ca2.isAuthenticationOnly());
         assertEquals(MOCK_AUTH_CERT_ISSUER, ca2.getIssuerDistinguishedName());
         assertEquals(MOCK_AUTH_CERT_SUBJECT, ca2.getSubjectDistinguishedName());
-        assertEquals(Arrays.asList(MOCK_AUTH_CERT_SUBJECT), ca2.getSubjectDnPath());
-        assertEquals(true, ca2.isTopCa());
-        assertEquals("good", ca2.getOcspResponse());
+        assertEquals(Collections.singletonList(MOCK_AUTH_CERT_SUBJECT), ca2.getSubjectDnPath());
+        assertTrue(ca2.isTopCa());
+        assertEquals("not available", ca2.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
 
         cacheEvictor.evict();
@@ -281,22 +291,22 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         ApprovedCaDto topCa = caDtos.get(2);
         assertEquals("mock-top-ca", topCa.getName());
-        assertEquals(false, topCa.isAuthenticationOnly());
+        assertFalse(topCa.isAuthenticationOnly());
         assertEquals(MOCK_TOP_CA_SUBJECT_DN, topCa.getIssuerDistinguishedName());
         assertEquals(MOCK_TOP_CA_SUBJECT_DN, topCa.getSubjectDistinguishedName());
-        assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN), topCa.getSubjectDnPath());
-        assertEquals(true, topCa.isTopCa());
+        assertEquals(Collections.singletonList(MOCK_TOP_CA_SUBJECT_DN), topCa.getSubjectDnPath());
+        assertTrue(topCa.isTopCa());
         assertEquals("good", topCa.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2039-06-09T06:11:31Z"), topCa.getNotAfter());
 
         ApprovedCaDto intermediateCa = caDtos.get(3);
         assertEquals("mock-intermediate-ca", intermediateCa.getName());
-        assertEquals(false, intermediateCa.isAuthenticationOnly());
+        assertFalse(intermediateCa.isAuthenticationOnly());
         assertEquals(MOCK_TOP_CA_SUBJECT_DN, intermediateCa.getIssuerDistinguishedName());
         assertEquals(MOCK_INTERMEDIATE_CA_SUBJECT_DN, intermediateCa.getSubjectDistinguishedName());
         assertEquals(Arrays.asList(MOCK_TOP_CA_SUBJECT_DN, MOCK_INTERMEDIATE_CA_SUBJECT_DN),
                 intermediateCa.getSubjectDnPath());
-        assertEquals(false, intermediateCa.isTopCa());
+        assertFalse(intermediateCa.isTopCa());
         assertEquals("good", intermediateCa.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2040-02-28T07:53:49Z"), intermediateCa.getNotAfter());
     }
