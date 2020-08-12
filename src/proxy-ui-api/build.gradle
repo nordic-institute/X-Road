@@ -87,6 +87,19 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask) {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.dir("frontend")
+    outputs.dir("frontend/dist")
+    args = ['run', 'license-check']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
 // run e2e tests vs remote url
 if (!project.hasProperty("testTargetUrl")) {
     ext.testTargetUrl = ""
@@ -119,9 +132,10 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
-// checkFrontAudit -> buildFront -> processResources
+// checkFrontLicense -> checkFrontAudit -> buildFront -> processResources
 processResources.dependsOn 'buildFront'
 buildFront.dependsOn 'checkFrontAudit'
+checkFrontAudit.dependsOn 'checkFrontLicense'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
