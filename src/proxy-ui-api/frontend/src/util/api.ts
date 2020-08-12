@@ -3,6 +3,13 @@
 
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
+/*
+ * Wrapper that is used to encode path variables in URL-s
+ */
+export function encodePathParameter(value: string | number | boolean): string {
+  return encodeURIComponent(value);
+}
+
 export type PostPutPatch = <T>(
   uri: string,
   data: any,

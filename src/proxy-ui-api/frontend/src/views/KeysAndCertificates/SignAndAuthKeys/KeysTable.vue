@@ -143,6 +143,7 @@ import {
 } from '@/openapi-types';
 import { Permissions, UsageTypes, PossibleActions } from '@/global';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -259,7 +260,11 @@ export default Vue.extend({
       }
 
       api
-        .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
+        .remove(
+          `/keys/${encodePathParameter(
+            this.selectedKey.id,
+          )}/csrs/${encodePathParameter(this.selectedCsr.id)}`,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.csrDeleted');
           this.$emit('refreshList');

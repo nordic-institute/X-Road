@@ -176,6 +176,7 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -321,7 +322,7 @@ export default Vue.extend({
       );
 
       api
-        .put(`/clients/${clientId}/register`, {})
+        .put(`/clients/${encodePathParameter(clientId)}/register`, {})
         .then(
           () => {
             this.$store.dispatch(

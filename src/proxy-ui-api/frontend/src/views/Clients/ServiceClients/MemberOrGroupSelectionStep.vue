@@ -76,6 +76,7 @@ import { ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -101,7 +102,9 @@ export default Vue.extend({
   methods: {
     fetchData(): void {
       api
-        .get<ServiceClient[]>(`/clients/${this.id}/service-client-candidates`)
+        .get<ServiceClient[]>(
+          `/clients/${encodePathParameter(this.id)}/service-client-candidates`,
+        )
         .then((response) => (this.serviceClientCandidates = response.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },

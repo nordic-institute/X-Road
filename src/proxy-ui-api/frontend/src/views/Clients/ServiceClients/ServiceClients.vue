@@ -51,6 +51,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import { ServiceClient } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   props: {
@@ -71,7 +72,10 @@ export default Vue.extend({
   methods: {
     fetchServiceClients() {
       api
-        .get<ServiceClient[]>(`/clients/${this.id}/service-clients`, {})
+        .get<ServiceClient[]>(
+          `/clients/${encodePathParameter(this.id)}/service-clients`,
+          {},
+        )
         .then((response) => (this.serviceClients = response.data))
         .catch((error) => this.$store.dispatch('showError', error));
     },

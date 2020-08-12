@@ -101,6 +101,7 @@ import { FileUploadResult } from '@/ui-types';
 import { CertificateDetails } from '@/openapi-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -189,11 +190,15 @@ export default Vue.extend({
   methods: {
     onFileChange(event: FileUploadResult): void {
       api
-        .post(`/clients/${this.id}/tls-certificates/`, event.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
+        .post(
+          `/clients/${encodePathParameter(this.id)}/tls-certificates/`,
+          event.buffer,
+          {
+            headers: {
+              'Content-Type': 'application/octet-stream',
+            },
           },
-        })
+        )
         .then(
           () => {
             // Refresh the tls cert list
@@ -213,7 +218,7 @@ export default Vue.extend({
 
     exportSSCertificate(): void {
       api
-        .get(`/system/certificate/export`, { responseType: 'arraybuffer' })
+        .get('/system/certificate/export', { responseType: 'arraybuffer' })
         .then((response) => {
           saveResponseAsFile(response);
         })

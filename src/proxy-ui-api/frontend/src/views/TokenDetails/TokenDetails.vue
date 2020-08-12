@@ -69,6 +69,7 @@ import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { Token } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -107,7 +108,7 @@ export default Vue.extend({
       this.saveBusy = true;
 
       api
-        .patch(`/tokens/${this.id}`, this.token)
+        .patch(`/tokens/${encodePathParameter(this.id)}`, this.token)
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.tokenSaved');
           this.$router.go(-1);
@@ -123,7 +124,7 @@ export default Vue.extend({
     fetchData(): void {
       this.loading = true;
       api
-        .get<Token>(`/tokens/${this.id}`)
+        .get<Token>(`/tokens/${encodePathParameter(this.id)}`)
         .then((res) => {
           this.token = res.data;
         })

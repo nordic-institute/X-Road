@@ -3,6 +3,7 @@ import { RootState } from '../types';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { deepClone } from '@/util/helpers';
+import { encodePathParameter } from '@/util/api';
 
 export interface TokensState {
   expandedTokens: string[];
@@ -153,7 +154,7 @@ export const actions: ActionTree<TokensState, RootState> = {
   fetchTokens({ commit }) {
     // Fetch tokens from backend
     return api
-      .get<Token[]>(`/tokens`)
+      .get<Token[]>('/tokens')
       .then((res) => {
         commit('setTokens', res.data);
       })
@@ -164,7 +165,7 @@ export const actions: ActionTree<TokensState, RootState> = {
 
   tokenLogout({ dispatch }, id: string) {
     return api
-      .put(`/tokens/${id}/logout`, {})
+      .put(`/tokens/${encodePathParameter(id)}/logout`, {})
       .then(() => {
         // Update tokens
         dispatch('fetchTokens');

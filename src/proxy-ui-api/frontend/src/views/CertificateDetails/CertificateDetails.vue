@@ -88,6 +88,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -195,7 +196,9 @@ export default Vue.extend({
     fetchData(hash: string): void {
       // Fetch certificate data
       api
-        .get<TokenCertificate>(`/token-certificates/${hash}`)
+        .get<TokenCertificate>(
+          `/token-certificates/${encodePathParameter(hash)}`,
+        )
         .then((res) => {
           this.certificate = res.data;
         })
@@ -222,7 +225,7 @@ export default Vue.extend({
       this.confirm = false;
 
       api
-        .remove(`/token-certificates/${this.hash}`)
+        .remove(`/token-certificates/${encodePathParameter(this.hash)}`)
         .then(() => {
           this.close();
           this.$store.dispatch('showSuccess', 'cert.certDeleted');
@@ -233,7 +236,7 @@ export default Vue.extend({
     },
     activateCertificate(hash: string): void {
       api
-        .put(`/token-certificates/${hash}/activate`, hash)
+        .put(`/token-certificates/${encodePathParameter(hash)}/activate`, hash)
         .then(() => {
           this.$store.dispatch('showSuccess', 'cert.activateSuccess');
           this.fetchData(this.hash);
@@ -242,7 +245,7 @@ export default Vue.extend({
     },
     deactivateCertificate(hash: string): void {
       api
-        .put(`token-certificates/${hash}/disable`, hash)
+        .put(`token-certificates/${encodePathParameter(hash)}/disable`, hash)
         .then(() => {
           this.$store.dispatch('showSuccess', 'cert.disableSuccess');
           this.fetchData(this.hash);

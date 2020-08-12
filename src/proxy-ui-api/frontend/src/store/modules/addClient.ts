@@ -205,9 +205,14 @@ export const actions: ActionTree<AddClientState, RootState> = {
   fetchReservedClients({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
     return api
-      .get(
-        `/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`,
-      )
+      .get('/clients', {
+        params: {
+          instance: client.instance_id,
+          member_class: client.member_class,
+          member_code: client.member_code,
+          internal_search: true,
+        },
+      })
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
@@ -219,9 +224,14 @@ export const actions: ActionTree<AddClientState, RootState> = {
   fetchReservedMembers({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
     return api
-      .get(
-        `/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`,
-      )
+      .get('/clients', {
+        params: {
+          instance: client.instance_id,
+          member_class: client.member_class,
+          member_code: client.member_code,
+          internal_search: true,
+        },
+      })
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
@@ -267,10 +277,14 @@ export const actions: ActionTree<AddClientState, RootState> = {
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
   ) {
-    const clientsResponse = await api.get<
-      Client[]
-    >(`/clients?instance=${instanceId}
-    &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
+    const clientsResponse = await api.get<Client[]>('/clients', {
+      params: {
+        instance: instanceId,
+        member_class: memberClass,
+        member_code: memberCode,
+        local_valid_sign_cert: true,
+      },
+    });
 
     const matchingClient: boolean = clientsResponse.data.some(
       (client: Client) => {
@@ -290,7 +304,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     }
 
     // Fetch tokens from backend
-    const tokenResponse = await api.get<Token[]>(`/tokens`);
+    const tokenResponse = await api.get<Token[]>('/tokens');
     // Create a client id
     const ownerId = createClientId(instanceId, memberClass, memberCode);
 

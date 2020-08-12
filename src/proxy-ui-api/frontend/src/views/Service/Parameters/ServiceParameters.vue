@@ -224,6 +224,7 @@ import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
+import { encodePathParameter } from '@/util/api';
 
 type NullableServiceClient = undefined | ServiceClient;
 
@@ -304,7 +305,10 @@ export default Vue.extend({
       };
 
       api
-        .patch(`/services/${this.serviceId}`, serviceUpdate)
+        .patch(
+          `/services/${encodePathParameter(this.serviceId)}`,
+          serviceUpdate,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'Service saved');
         })
@@ -324,7 +328,7 @@ export default Vue.extend({
 
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${serviceId}/service-clients`)
+        .get(`/services/${encodePathParameter(serviceId)}/service-clients`)
         .then((res) => {
           this.$store.dispatch('setServiceClients', res.data);
         })
@@ -341,9 +345,12 @@ export default Vue.extend({
       this.addServiceClientDialogVisible = false;
 
       api
-        .post(`/services/${this.serviceId}/service-clients`, {
-          items: selected,
-        } as ServiceClients)
+        .post(
+          `/services/${encodePathParameter(this.serviceId)}/service-clients`,
+          {
+            items: selected,
+          } as ServiceClients,
+        )
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
@@ -390,9 +397,14 @@ export default Vue.extend({
 
     removeServiceClients(serviceClients: ServiceClient[]) {
       api
-        .post(`/services/${this.serviceId}/service-clients/delete`, {
-          items: serviceClients,
-        })
+        .post(
+          `/services/${encodePathParameter(
+            this.serviceId,
+          )}/service-clients/delete`,
+          {
+            items: serviceClients,
+          },
+        )
         .then(() => {
           this.$store.dispatch(
             'showSuccess',

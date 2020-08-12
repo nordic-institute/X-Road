@@ -38,6 +38,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -96,7 +97,11 @@ export default Vue.extend({
       this.confirm = false;
 
       api
-        .remove(`/clients/${this.id}/tls-certificates/${this.hash}`)
+        .remove(
+          `/clients/${encodePathParameter(
+            this.id,
+          )}/tls-certificates/${encodePathParameter(this.hash)}`,
+        )
         .then(
           () => {
             this.$store.dispatch('showSuccess', 'cert.certDeleted');
