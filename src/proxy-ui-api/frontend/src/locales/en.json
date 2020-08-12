@@ -819,7 +819,6 @@
     "generate_backup_interrupted": "Backup generation interrupted",
     "backup_restore_interrupted": "Backup restore interrupted",
     "backup_generation_failed": "Backup generation failed",
-    "warning_file_already_exists": "Backup file with the same name already exists",
     "wsdl_validator_interrupted": "WSDL validator interrupted",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
     "anchor_file_not_found": "Anchor file not found",
