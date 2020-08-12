@@ -6,8 +6,19 @@
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
-BACKED_UP_PATHS="/etc/xroad/ /etc/nginx/conf.d/*xroad*.conf"
-if [ -d "/etc/nginx/sites-enabled" ]
+doesFirstFileExist(){
+    test -e "$1"
+}
+
+BACKED_UP_PATHS="/etc/xroad/"
+# only backup /etc/nginx/conf.d/*xroad*.conf and /etc/nginx/sites-enabled/*xroad* if such files exist
+# this is to adapt to both SS and CS backups, when SS does not have nginx configuration
+if doesFirstFileExist /etc/nginx/conf.d/*xroad*.conf
+then
+    BACKED_UP_PATHS="$BACKED_UP_PATHS /etc/nginx/conf.d/*xroad*.conf"
+fi
+
+if doesFirstFileExist /etc/nginx/sites-enabled/*xroad*
 then
     BACKED_UP_PATHS="$BACKED_UP_PATHS /etc/nginx/sites-enabled/*xroad*"
 fi
