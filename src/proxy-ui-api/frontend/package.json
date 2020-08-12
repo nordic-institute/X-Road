@@ -12,7 +12,6 @@
     "test:coverage": "vue-cli-service test:unit --coverage",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit",
-    "generate-types": "./node_modules/typescript/bin/tsc --esModuleInterop scripts/dtsgen-wrapper.ts && node scripts/dtsgen-wrapper.js"
     "generate-types": "./node_modules/typescript/bin/tsc --esModuleInterop scripts/dtsgen-wrapper.ts && node scripts/dtsgen-wrapper.js",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
