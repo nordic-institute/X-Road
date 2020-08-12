@@ -555,9 +555,8 @@ module.exports = {
     clientServices.openServiceDetails();
     browser.assert.containsText(openApiServiceDetails.elements.serviceType, 'OpenAPI 3 Description');
     openApiServiceDetails.enterServiceCode('/');
-    openApiServiceDetails.confirmDialog();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Validation failure');
-    mainPage.closeSnackbar();
+    browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
+    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'Identifier value contains illegal characters');
 
     openApiServiceDetails.enterServiceCode('');
     browser.assert.containsText(openApiServiceDetails.elements.codeMessage, 'The fields.code_field field is required');
