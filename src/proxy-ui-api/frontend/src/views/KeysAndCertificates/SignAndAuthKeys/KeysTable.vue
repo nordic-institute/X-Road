@@ -62,16 +62,16 @@
             @certificateClick="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
-              <template v-if="!cert.saved_to_configuration && hasPermission">
+              <template v-if="hasPermission">
                 <SmallButton
-                  v-if="key.usage !== 'AUTHENTICATION'"
+                  v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                   class="table-button-fix"
                   @click="importCert(cert.certificate_details.hash)"
                   >{{ $t('keys.importCert') }}</SmallButton
                 >
 
                 <!-- Special case where HW cert has auth usage -->
-                <div v-else>
+                <div v-else-if="key.usage === 'AUTHENTICATION'">
                   {{ $t('keys.authNotSupported') }}
                 </div>
               </template>
@@ -143,6 +143,7 @@ import {
 } from '@/openapi-types';
 import { Permissions, UsageTypes, PossibleActions } from '@/global';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -259,7 +260,11 @@ export default Vue.extend({
       }
 
       api
-        .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
+        .remove(
+          `/keys/${encodePathParameter(
+            this.selectedKey.id,
+          )}/csrs/${encodePathParameter(this.selectedCsr.id)}`,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.csrDeleted');
           this.$emit('refreshList');

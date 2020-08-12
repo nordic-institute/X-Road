@@ -193,6 +193,7 @@ import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';
 import { deepClone } from '@/util/helpers';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -341,7 +342,10 @@ export default Vue.extend({
       }
 
       api
-        .put(`/service-descriptions/${serviceDesc.id}/enable`, {})
+        .put(
+          `/service-descriptions/${encodePathParameter(serviceDesc.id)}/enable`,
+          {},
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'services.enableSuccess');
         })
@@ -372,9 +376,12 @@ export default Vue.extend({
       this.forceUpdateSwitch(index, true);
       if (subject) {
         api
-          .put(`/service-descriptions/${subject.id}/disable`, {
-            disabled_notice: notice,
-          })
+          .put(
+            `/service-descriptions/${encodePathParameter(subject.id)}/disable`,
+            {
+              disabled_notice: notice,
+            },
+          )
           .then(() => {
             this.$store.dispatch('showSuccess', 'services.disableSuccess');
           })
@@ -405,7 +412,7 @@ export default Vue.extend({
       this.url = url;
       this.addWsdlBusy = true;
       api
-        .post(`/clients/${this.id}/service-descriptions`, {
+        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
           url,
           type: this.serviceTypeEnum.WSDL,
         })
@@ -430,7 +437,7 @@ export default Vue.extend({
     acceptSaveWsdlWarning(): void {
       this.saveWsdlLoading = true;
       api
-        .post(`/clients/${this.id}/service-descriptions`, {
+        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
           url: this.url,
           type: this.serviceTypeEnum.WSDL,
           ignore_warnings: true,
@@ -465,7 +472,7 @@ export default Vue.extend({
       this.serviceCode = serviceCode;
       this.addRestBusy = true;
       api
-        .post(`/clients/${this.id}/service-descriptions`, {
+        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
           url: this.url,
           rest_service_code: this.serviceCode,
           type: this.serviceType,
@@ -496,7 +503,7 @@ export default Vue.extend({
     acceptSaveRestWarning(): void {
       this.saveRestLoading = true;
       api
-        .post(`/clients/${this.id}/service-descriptions`, {
+        .post(`/clients/${encodePathParameter(this.id)}/service-descriptions`, {
           url: this.url,
           rest_service_code: this.serviceCode,
           type: this.serviceType,
@@ -536,9 +543,14 @@ export default Vue.extend({
       this.refreshButtonComponentKey += 1; // update component key to make spinner work
 
       api
-        .put(`/service-descriptions/${serviceDescription.id}/refresh`, {
-          ignore_warnings: false,
-        })
+        .put(
+          `/service-descriptions/${encodePathParameter(
+            serviceDescription.id,
+          )}/refresh`,
+          {
+            ignore_warnings: false,
+          },
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'services.refreshed');
           this.fetchData();
@@ -561,9 +573,14 @@ export default Vue.extend({
     acceptRefreshWarning(): void {
       this.refreshLoading = true;
       api
-        .put(`/service-descriptions/${this.refreshId}/refresh`, {
-          ignore_warnings: true,
-        })
+        .put(
+          `/service-descriptions/${encodePathParameter(
+            this.refreshId,
+          )}/refresh`,
+          {
+            ignore_warnings: true,
+          },
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'services.refreshed');
         })
@@ -595,7 +612,9 @@ export default Vue.extend({
 
     fetchData(): void {
       api
-        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
+        .get<ServiceDescription[]>(
+          `/clients/${encodePathParameter(this.id)}/service-descriptions`,
+        )
         .then((res) => {
           const serviceDescriptions: ServiceDescription[] = res.data;
           this.serviceDescriptions = serviceDescriptions.map(

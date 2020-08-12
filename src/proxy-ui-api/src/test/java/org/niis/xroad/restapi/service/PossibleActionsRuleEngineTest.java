@@ -43,6 +43,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockIntermediateCaCertificate;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
@@ -180,6 +181,7 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
     @Test
     public void getPossibleCertificateActionImportFromToken() {
+        // non-auth cert, not saved to configuration -> can import
         assertTrue(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
@@ -187,11 +189,22 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
                         .savedToConfiguration(false).build())
                 .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
 
+        // cert that has been saved to configuration -> can't import
         assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
                         .savedToConfiguration(true).build())
+                .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
+
+        // auth cert -> can't be imported
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
+                new TokenInfoBuilder().build(),
+                new KeyInfoBuilder().build(),
+                new CertificateInfoBuilder()
+                        .savedToConfiguration(false)
+                        .certificate(getMockIntermediateCaCertificate())
+                        .build())
                 .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
     }
 

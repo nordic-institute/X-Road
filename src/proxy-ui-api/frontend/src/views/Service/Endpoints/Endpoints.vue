@@ -75,6 +75,7 @@ import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
 import { RouteName } from '@/global';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -97,7 +98,7 @@ export default Vue.extend({
   methods: {
     addEndpoint(method: string, path: string): void {
       api
-        .post(`/services/${this.service.id}/endpoints`, {
+        .post(`/services/${encodePathParameter(this.service.id)}/endpoints`, {
           method,
           path,
           service_code: this.service.service_code,

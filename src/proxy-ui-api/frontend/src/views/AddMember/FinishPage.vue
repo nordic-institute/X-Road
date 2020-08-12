@@ -73,6 +73,7 @@ import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -210,7 +211,7 @@ export default Vue.extend({
       );
 
       api
-        .put(`/clients/${clientId}/register`, {})
+        .put(`/clients/${encodePathParameter(clientId)}/register`, {})
         .then(
           () => {
             this.$emit('done');

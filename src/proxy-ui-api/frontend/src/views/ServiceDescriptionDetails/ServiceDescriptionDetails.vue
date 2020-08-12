@@ -152,6 +152,7 @@ import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceTypeEnum } from '@/domain';
 import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -240,7 +241,9 @@ export default Vue.extend({
 
     fetchData(id: string): void {
       api
-        .get<ServiceDescription>(`/service-descriptions/${id}`)
+        .get<ServiceDescription>(
+          `/service-descriptions/${encodePathParameter(id)}`,
+        )
         .then((res) => {
           this.serviceDesc = res.data;
           this.initialServiceCode =
@@ -262,7 +265,7 @@ export default Vue.extend({
     },
     doDeleteServiceDesc(): void {
       api
-        .remove(`/service-descriptions/${this.id}`)
+        .remove(`/service-descriptions/${encodePathParameter(this.id)}`)
         .then(() => {
           this.$store.dispatch('showSuccess', 'services.deleted');
           this.confirmWSDLDelete = false;

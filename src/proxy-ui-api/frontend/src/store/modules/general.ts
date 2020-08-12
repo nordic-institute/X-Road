@@ -51,7 +51,7 @@ export const mutations: MutationTree<State> = {
 export const actions: ActionTree<State, RootState> = {
   fetchXroadInstances({ commit }) {
     return api
-      .get(`/xroad-instances`)
+      .get('/xroad-instances')
       .then((res) => {
         commit('storeInstances', res.data);
       })
@@ -62,7 +62,7 @@ export const actions: ActionTree<State, RootState> = {
 
   fetchMemberClasses({ commit }) {
     return api
-      .get<string[]>(`/member-classes`)
+      .get<string[]>('/member-classes')
       .then((res) => {
         commit('storeMemberClasses', res.data);
       })
@@ -73,7 +73,7 @@ export const actions: ActionTree<State, RootState> = {
 
   fetchMemberClassesForCurrentInstance({ commit }) {
     return api
-      .get<string[]>(`/member-classes?current_instance=true`)
+      .get<string[]>('/member-classes?current_instance=true')
       .then((res) => {
         commit('storeCurrentInstanceMemberClasses', res.data);
       })

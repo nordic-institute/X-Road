@@ -73,6 +73,7 @@ import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -211,7 +212,7 @@ export default Vue.extend({
       );
 
       api
-        .put(`/clients/${clientId}/register`, {})
+        .put(`/clients/${encodePathParameter(clientId)}/register`, {})
         .then(
           () => {
             this.$emit('done');

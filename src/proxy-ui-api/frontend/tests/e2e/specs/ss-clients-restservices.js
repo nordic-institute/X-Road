@@ -30,7 +30,7 @@ module.exports = {
     clientServices.enterServiceUrl('');
     browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'The URL field is required');
     clientServices.enterServiceUrl('foobar');
-    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'REST URL is not valid');
+    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'URL is not valid');
     clientServices.enterServiceCode('a');
     clientServices.enterServiceCode('');
     browser.assert.containsText(clientServices.elements.serviceCodeMessage, 'The Service Code field is required');
@@ -580,7 +580,7 @@ module.exports = {
     restServiceDetails.enterServiceCode('');
     browser.assert.containsText(restServiceDetails.elements.codeMessage, 'The fields.code_field field is required');
     restServiceDetails.enterServiceUrl("foobar")
-    browser.assert.containsText(restServiceDetails.elements.URLMessage, 'WSDL URL is not valid'); //!!! REST message
+    browser.assert.containsText(restServiceDetails.elements.URLMessage, 'URL is not valid'); //!!! REST message
     restServiceDetails.enterServiceUrl('');
     browser.assert.containsText(restServiceDetails.elements.URLMessage, 'The URL field is required');
 

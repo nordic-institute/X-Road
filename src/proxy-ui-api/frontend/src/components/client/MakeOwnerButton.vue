@@ -34,6 +34,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -58,7 +59,7 @@ export default Vue.extend({
       this.makeOwnerLoading = true;
 
       api
-        .put(`/clients/${this.id}/make-owner`, {})
+        .put(`/clients/${encodePathParameter(this.id)}/make-owner`, {})
         .then(
           () => {
             this.$store.dispatch(

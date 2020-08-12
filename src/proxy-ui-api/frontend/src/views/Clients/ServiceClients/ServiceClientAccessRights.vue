@@ -126,6 +126,7 @@ import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ServiceCandidate } from '@/ui-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
+import { encodePathParameter } from '@/util/api';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
@@ -172,7 +173,9 @@ export default Vue.extend({
     },
     fetchServiceDescriptions(): void {
       api
-        .get<ServiceDescription[]>(`/clients/${this.id}/service-descriptions`)
+        .get<ServiceDescription[]>(
+          `/clients/${encodePathParameter(this.id)}/service-descriptions`,
+        )
         .then((response) => {
           this.clientServiceDescriptions = response.data;
         })

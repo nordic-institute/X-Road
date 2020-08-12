@@ -200,7 +200,7 @@ export default Vue.extend({
         });
 
       api
-        .get<GlobalConfDiagnostics>(`/diagnostics/globalconf`)
+        .get<GlobalConfDiagnostics>('/diagnostics/globalconf')
         .then((res) => {
           this.globalConf = res.data;
         })
@@ -212,7 +212,7 @@ export default Vue.extend({
         });
 
       api
-        .get<OcspResponderDiagnostics[]>(`/diagnostics/ocsp-responders`)
+        .get<OcspResponderDiagnostics[]>('/diagnostics/ocsp-responders')
         .then((res) => {
           this.ocspResponderDiagnostics = res.data;
         })

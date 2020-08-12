@@ -97,6 +97,7 @@ import { Key, PossibleActions as PossibleActionsList } from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -156,7 +157,7 @@ export default Vue.extend({
       this.saveBusy = true;
 
       api
-        .patch(`/keys/${this.id}`, this.key)
+        .patch(`/keys/${encodePathParameter(this.id)}`, this.key)
         .then(() => {
           this.saveBusy = false;
           this.$store.dispatch('showSuccess', 'keys.keySaved');
@@ -170,7 +171,7 @@ export default Vue.extend({
 
     fetchData(id: string): void {
       api
-        .get<Key>(`/keys/${id}`)
+        .get<Key>(`/keys/${encodePathParameter(id)}`)
         .then((res) => {
           this.key = res.data;
           this.fetchPossibleActions(id);
@@ -182,7 +183,9 @@ export default Vue.extend({
 
     fetchPossibleActions(id: string): void {
       api
-        .get<PossibleActionsList>(`/keys/${id}/possible-actions`)
+        .get<PossibleActionsList>(
+          `/keys/${encodePathParameter(id)}/possible-actions`,
+        )
         .then((res) => {
           this.possibleActions = res.data;
         })
@@ -195,7 +198,7 @@ export default Vue.extend({
       this.confirmDelete = false;
 
       api
-        .remove(`/keys/${this.id}`)
+        .remove(`/keys/${encodePathParameter(this.id)}`)
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyDeleted');
           this.close();

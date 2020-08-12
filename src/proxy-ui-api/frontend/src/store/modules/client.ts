@@ -2,6 +2,7 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
 
 export interface ClientState {
   client: Client | null;
@@ -68,7 +69,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get(`/clients/${id}`)
+      .get(`/clients/${encodePathParameter(id)}`)
       .then((res) => {
         commit('storeClient', res.data);
       })
@@ -82,7 +83,9 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get<TokenCertificate[]>(`/clients/${id}/sign-certificates`)
+      .get<TokenCertificate[]>(
+        `/clients/${encodePathParameter(id)}/sign-certificates`,
+      )
       .then((res) => {
         commit('storeSignCertificates', res.data);
       })
@@ -97,7 +100,9 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get<CertificateDetails[]>(`/clients/${id}/tls-certificates`)
+      .get<CertificateDetails[]>(
+        `/clients/${encodePathParameter(id)}/tls-certificates`,
+      )
       .then((res) => {
         commit('storeTlsCertificates', res.data);
       })
@@ -112,7 +117,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     }
 
     return axios
-      .get<CertificateDetails>(`/system/certificate`)
+      .get<CertificateDetails>('/system/certificate')
       .then((res) => {
         commit('storeSsCertificate', res.data);
       })
@@ -123,7 +128,7 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   saveConnectionType({ commit }, { clientId, connType }) {
     return axios
-      .patch(`/clients/${clientId}`, {
+      .patch(`/clients/${encodePathParameter(clientId)}`, {
         connection_type: connType,
       })
       .then((res) => {

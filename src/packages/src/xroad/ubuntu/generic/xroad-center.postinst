@@ -52,7 +52,7 @@ setup_database() {
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
     local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
-    local db_password=$(get_prop ${db_properties} 'password' "$(gen_pw)")
+    local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
     local db_master_user=postgres
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
@@ -82,6 +82,7 @@ setup_database() {
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
     else
+        db_password=$(gen_pw)
         psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;

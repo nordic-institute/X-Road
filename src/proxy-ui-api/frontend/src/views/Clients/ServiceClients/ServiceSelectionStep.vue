@@ -74,6 +74,7 @@ import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -113,7 +114,11 @@ export default Vue.extend({
 
       api
         .post(
-          `/clients/${this.id}/service-clients/${this.serviceClientCandidateSelection?.id}/access-rights`,
+          `/clients/${encodePathParameter(
+            this.id,
+          )}/service-clients/${encodePathParameter(
+            this.serviceClientCandidateSelection.id,
+          )}/access-rights`,
           accessRightsObject,
         )
         .then(() => {

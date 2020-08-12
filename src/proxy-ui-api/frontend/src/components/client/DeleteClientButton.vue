@@ -36,6 +36,7 @@ import { RouteName } from '@/global';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -60,7 +61,7 @@ export default Vue.extend({
   methods: {
     deleteClient(): void {
       this.deleteLoading = true;
-      api.remove(`/clients/${this.id}`).then(
+      api.remove(`/clients/${encodePathParameter(this.id)}`).then(
         () => {
           this.$store.dispatch('showSuccess', 'client.action.delete.success');
           this.checkOrphans();
@@ -74,7 +75,7 @@ export default Vue.extend({
     },
 
     checkOrphans(): void {
-      api.get(`/clients/${this.id}/orphans`).then(
+      api.get(`/clients/${encodePathParameter(this.id)}/orphans`).then(
         () => {
           this.confirmDelete = false;
           this.deleteLoading = false;
@@ -98,7 +99,7 @@ export default Vue.extend({
     deleteOrphans(): void {
       this.orphansLoading = true;
       api
-        .remove(`/clients/${this.id}/orphans`)
+        .remove(`/clients/${encodePathParameter(this.id)}/orphans`)
         .then(
           () => {
             this.$store.dispatch(

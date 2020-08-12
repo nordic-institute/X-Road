@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,35 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config;
+package ee.ria.xroad.common.certificateprofile.impl;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI_API;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 
 /**
- * Helper wrapper which makes sure system properties are initialized
+ * The Faroe Islands's implementation of AuthCertificateProfileInfo.
  */
-public final class SystemPropertiesInitializer {
-    private SystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
+public class FoAuthCertificateProfileInfo extends AbstractCertificateProfileInfo implements AuthCertificateProfileInfo {
 
     /**
-     * initialize, if not yet initialized
+     * Constructor.
+     *
+     * @param params the parameters
      */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_PROXY_UI_API)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
+    public FoAuthCertificateProfileInfo(Parameters params) {
+        super(new DnFieldDescription[] {
+                // Country Code
+                new EnumLocalizedFieldDescriptionImpl(
+                        "C",
+                        DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "FO"
+                ).setReadOnly(true),
+
+                // Instance Identifier
+                new EnumLocalizedFieldDescriptionImpl(
+                        "O",
+                        DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O,
+                        params.getServerId().getXRoadInstance()
+                ).setReadOnly(true),
+
+                // Common name
+                new EnumLocalizedFieldDescriptionImpl(
+                        "CN",
+                        DnFieldLabelLocalizationKey.COMMON_NAME,
+                        params.getServerId().toShortString()
+                ).setReadOnly(true),
+        });
     }
 }

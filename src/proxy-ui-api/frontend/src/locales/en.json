@@ -261,7 +261,11 @@
     "adding_services": "Adding services:",
     "wsdl_validation_warnings": "Validation warnings:",
     "memberNameGroupDesc": "Member name / Group description",
-    "idGroupCode": "ID / Group code"
+    "idGroupCode": "ID / Group code",
+    "service_parameters_ssl_test_warnings": {
+      "internal_server_ssl_handshake_error": "TLS handshake with the upstream server failed, server certificate missing from configuration:",
+      "internal_server_ssl_error": "Checking internal server certificates failed. Is the upstream server URL correct and accessible by the Security Server?"
+    }
   },
   "endpoints": {
     "addEndpoint": "Add Endpoint",
@@ -686,8 +690,6 @@
     "sessionExpired": "Session expired"
   },
   "customValidation": {
-    "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid",
     "invalidUrl": "URL is not valid",
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
@@ -744,7 +746,9 @@
     "COMMON_NAME": "Common Name (CN)",
     "COUNTRY_CODE": "Country Code (C)",
     "INSTANCE_IDENTIFIER": "Instance Identifier (C)",
+    "INSTANCE_IDENTIFIER_O": "Instance Identifier (O)",
     "MEMBER_CLASS": "Member Class (O)",
+    "MEMBER_CLASS_OU": "Member Class (OU)",
     "MEMBER_CODE": "Member Code (CN)",
     "ORGANIZATION_NAME": "Organization Name (O)",
     "SERIAL_NUMBER": "Serial Number",
@@ -852,6 +856,7 @@
     },
     "diagnostic_request_failed": "Diagnostic request failed",
     "malformed_url": "Malformed URL",
+    "invalid_https_url": "URL does not use HTTPS",
     "weak_pin": "Weak PIN",
     "process_not_executable": "Process is not executable",
     "invalid_filename": "Invalid filename",

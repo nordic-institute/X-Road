@@ -95,6 +95,7 @@ import { Endpoint, ServiceClient } from '@/openapi-types';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   name: 'EndpointAccessRights',
@@ -150,7 +151,7 @@ export default Vue.extend({
     },
     fetchData(): void {
       api
-        .get<Endpoint>(`/endpoints/${this.id}`)
+        .get<Endpoint>(`/endpoints/${encodePathParameter(this.id)}`)
         .then((endpoint) => {
           this.endpoint = endpoint.data;
         })
@@ -158,7 +159,9 @@ export default Vue.extend({
           this.$store.dispatch('showError', error.message);
         });
       api
-        .get<ServiceClient[]>(`/endpoints/${this.id}/service-clients`)
+        .get<ServiceClient[]>(
+          `/endpoints/${encodePathParameter(this.id)}/service-clients`,
+        )
         .then((accessRights) => {
           this.serviceClients = accessRights.data;
         })
@@ -168,9 +171,12 @@ export default Vue.extend({
     },
     doRemoveSelectedServiceClients(isDeleteAll: boolean): void {
       api
-        .post(`/endpoints/${this.id}/service-clients/delete`, {
-          items: this.serviceClientsToDelete,
-        })
+        .post(
+          `/endpoints/${encodePathParameter(this.id)}/service-clients/delete`,
+          {
+            items: this.serviceClientsToDelete,
+          },
+        )
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
@@ -187,9 +193,12 @@ export default Vue.extend({
     },
     doAddServiceClients(serviceClients: ServiceClient[]): void {
       api
-        .post<ServiceClient[]>(`/endpoints/${this.id}/service-clients`, {
-          items: serviceClients,
-        })
+        .post<ServiceClient[]>(
+          `/endpoints/${encodePathParameter(this.id)}/service-clients`,
+          {
+            items: serviceClients,
+          },
+        )
         .then((accessRights) => {
           this.$store.dispatch(
             'showSuccess',

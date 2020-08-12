@@ -33,6 +33,7 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
+import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: { SimpleDialog },
@@ -69,7 +70,7 @@ export default Vue.extend({
     },
     save(): void {
       api
-        .post(`/clients/${this.id}/local-groups`, {
+        .post(`/clients/${encodePathParameter(this.id)}/local-groups`, {
           code: this.code,
           description: this.description,
         })
