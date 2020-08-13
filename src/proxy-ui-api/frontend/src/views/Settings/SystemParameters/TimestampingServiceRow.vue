@@ -19,16 +19,8 @@
         @cancel="confirmDeleteDialog = false"
         @accept="deleteTimestampingService"
         :loading="deleting"
-        :title="
-          $t(
-            'systemParameters.timestampingServices.table.action.delete.confirmation.title',
-          )
-        "
-        :text="
-          $t(
-            'systemParameters.timestampingServices.table.action.delete.confirmation.text',
-          )
-        "
+        title="systemParameters.timestampingServices.table.action.delete.confirmation.title"
+        text="systemParameters.timestampingServices.table.action.delete.confirmation.text"
       />
     </td>
   </tr>
