@@ -137,7 +137,7 @@ module.exports = {
     operationDetails.toggleCertVerification();
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.saveParameters();
-    browser.expect.element(sslCheckFailDialog.elements.continueButton).to.be.visible.and.text.to.equal("Continue");
+    browser.expect.element(sslCheckFail.elements.continueButton).to.be.visible.and.text.to.equal("Continue");
     sslCheckFail.continue();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
     mainPage.closeSnackbar();
