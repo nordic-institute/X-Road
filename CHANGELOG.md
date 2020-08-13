@@ -1,6 +1,62 @@
 # Change Log
 
 ## 6.24.0 - UNRELEASED
+- New Security Server API based UI, see details in https://jira.niis.org/ (issues with label: api-based-ui, fix version: 6.24.0)
+- XRDDEV-437 - Add SonarQube analysis for Github pull requests
+- XRDDEV-125 - Add process view to Security Server architecture diagram
+- XRDDEV-595 - Replace '-' characters with '_' in ansible scripts to fix deprecation warnings
+- XRDDEV-739 - Clarified documentation related to downloading service descriptions
+- XRDDEV-712 - Update Ansible scripts to support Ubuntu 18 minimal OS
+- XRDDEV-711 - Update Akka dependency to 2.5.x
+- XRDDEV-113 - Optimize message log archiving
+- XRDDEV-261 - Update fastest wins connection selection to take successful TLS handshake into account
+- XRDDEV-700 - Optimize serverconf caching and access rights evaluation
+- XRDDEV-747 - Split nginx default-xroad.conf so that it can be updated independently per X-Road server type
+- XRDDEV-773 - Install Central Server with remote database using Ansible
+- XRDDEV-377 - Implement failover on TSA requests when TSA returns invalid response
+- XRDDEV-546 - Update operational monitoring implementation and protocols.
+- XRDDEV-591 - Security Server respects Accept-header value when providing error responses.
+- XRDDEV-752 - Update Akka to version 2.6
+- XRDDEV-745 - Fix rsyslog and nginx config changes not applied on fresh install (RHEL)
+- XRDDEV-807 - Move central server DB tables to a separate schema, so that maintenance does not require super-user rights.
+- XRDDEV-913 - Fix xroad-opmonitor standalone installation for Ubuntu 18
+- XRDDEV-951 - Update dependencies containing known vulnerabilities. Fix dependency check false positives.
+- XRDDEV-911 - Add RHEL8 packaging
+- XRDDEV-925 - Define ordering for TSPs
+- XRDDEV-805 - Move Security Server DB tables to a separate schema
+- XRDDEV-972 - Move serverconf tables to separate schema, so that maintenance does not require super-user rights.
+- XRDSD-124 - getSecurityServerOperationalData return contains other client's data
+- XRDDEV-1010 - Fix operational monitoring filtering when results overflow
+- XRDDEV-825 - Remove the deprecated HTTP GET metaservice interface for fetching WSDL descriptions
+- XRDDEV-822 - Make the Security Server listen to connections from client information systems only on localhost when EE meta package is installed.
+- XRDDEV-999 - Update Rake version
+- XRDDEV-1021 - Update jackson-databind version
+- XRDDEV-608 - Fix WSDLValidator returns warnings as errors
+- XRDDEV-1011 - Add summary output to check_ha_cluster_status
+- XRDDEV-17 - Validate client certificate's expiry date
+- XRDDEV-828 - Make it possible configure database super-user name.
+- XRDDEV-440 - Add separate database user for migrations, so that normal DB user used by the application cannot update the DB schema.
+- XRDDEV-59 - Date and time format in the text form MUST be based on the international standard ISO 8601 so that it's consistent
+- XRDDEV-814 - Update license and file headers.
+- XRDDEV-728 - Remove old port forwarding scripts for RHEL7 Security Server
+- XRDDEV-827 - Adds checking of X-Road identifying entities to Central Server.
+- XRDDEV-727 - Refactor Ansible roles to remove duplication between private and public repositories
+- XRDDEV-68 - Fix thread local variables
+- XRDDEV-1159 - Disable Security Server JMX interfaces by default
+- XRDDEV-1173 - Enable enforcing token PIN policy in the Estonian meta package
+- XRDDEV-1156 - Bind rsyslog udp interface to localhost
+- XRDDEV-1017 - Make SignerClient to recover faster from signer connection failures.
+- XRDDEV-1201 - Unify file permissions on RHEL
+- XRDDEV-1200 - Fix xroad-base ansible role
+- XRDDEV-1181 - Upgrade dependencies
+- XRDDEV-1160 - Automatically generated default password for Central Server database user centerui
+- XRDDEV-1207 - Fix Iceland's certificate profile
+- XRDDEV-1161 - Update Iceland's security server meta-package
+- XRDDEV-1123 - Remove unnecessary ocsp fetching in Security Server UI
+- XRDDEV-1180 - Add more detailed instructions on required network configuration in the Security Server installation guides.
+- XRDDEV-1242 - Fix Central Server database disappearing on upgrade
+- XRDDEV-1209 - Implementaion of the Faroe Islands's certificate profiles
+- XRDDEV-1247 - Fix static analysis findings
 
 ## 6.23.0 - 2020-02-19
 - XRDDEV-730: Validate security server addresses on security server.
