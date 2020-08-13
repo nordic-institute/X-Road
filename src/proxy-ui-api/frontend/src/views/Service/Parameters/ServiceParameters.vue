@@ -105,6 +105,7 @@
       <div class="button-wrap">
         <large-button
           :disabled="invalid || disableSave"
+          :loading="saving"
           @click="save(false)"
           data-test="save-service-parameters"
           >{{ $t('action.save') }}</large-button
@@ -263,6 +264,7 @@ export default Vue.extend({
       ssl_auth_all: false as boolean,
       warningInfo: [] as string[],
       warningDialog: false as boolean,
+      saving: false as boolean,
     };
   },
   computed: {
@@ -304,6 +306,7 @@ export default Vue.extend({
         ignore_warnings: ignoreWarnings,
       };
 
+      this.saving = true;
       api
         .patch(
           `/services/${encodePathParameter(this.serviceId)}`,
@@ -319,7 +322,8 @@ export default Vue.extend({
           } else {
             this.$store.dispatch('showError', error);
           }
-        });
+        })
+        .finally(() => (this.saving = false));
     },
 
     setTouched(): void {

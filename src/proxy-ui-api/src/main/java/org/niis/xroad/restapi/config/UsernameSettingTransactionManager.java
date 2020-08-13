@@ -25,17 +25,19 @@
  */
 package org.niis.xroad.restapi.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.datasource.JdbcTransactionObjectSupport;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.TransactionDefinition;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 /**
  * Sets xroad_user_name configuration setting for each transaction.
@@ -48,9 +50,6 @@ import javax.persistence.Query;
 @Profile({"nontest & !devtools-test-auth"})
 public class UsernameSettingTransactionManager extends JpaTransactionManager {
 
-    @Autowired
-    private EntityManager entityManager;
-
     public UsernameSettingTransactionManager(EntityManagerFactory emf) {
         super(emf);
     }
@@ -58,10 +57,13 @@ public class UsernameSettingTransactionManager extends JpaTransactionManager {
     @Override
     protected void doBegin(Object transaction, TransactionDefinition definition) {
         super.doBegin(transaction, definition);
-        Query query = entityManager.createNativeQuery(
-                "SELECT set_config('xroad.user_name', ?, true);");
-        query.setParameter(1, getCurrentUsername());
-        query.getResultList();
+        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport)transaction).getConnectionHolder().getConnection()
+                .prepareStatement("SELECT set_config('xroad.user_name', ?, true)")) {
+            stmt.setString(1, getCurrentUsername());
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new CannotCreateTransactionException("Unable to create transaction", e);
+        }
     }
 
     public String getCurrentUsername() {
