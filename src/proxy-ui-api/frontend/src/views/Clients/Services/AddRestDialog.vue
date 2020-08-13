@@ -116,7 +116,9 @@ export default Vue.extend({
       this.url = '';
       this.serviceCode = '';
       this.serviceType = '';
-      (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+      requestAnimationFrame(() => {
+        (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+      });
     },
   },
 });
