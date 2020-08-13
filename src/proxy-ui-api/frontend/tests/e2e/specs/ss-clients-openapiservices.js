@@ -57,6 +57,7 @@ module.exports = {
 
     // Verify invalid service code
     clientServices.openAddREST();
+    browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
     clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_1);
     clientServices.selectOpenApi();
     clientServices.enterServiceCode('/');
