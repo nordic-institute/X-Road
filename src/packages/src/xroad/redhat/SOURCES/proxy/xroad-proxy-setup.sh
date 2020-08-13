@@ -17,7 +17,7 @@ if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key  || !
 then
     echo "Generating new internal.[crt|key|p12] files "
     rm -f /etc/xroad/ssl/internal.crt /etc/xroad/ssl/internal.key /etc/xroad/ssl/internal.p12
-    /usr/share/xroad/scripts/generate_certificate.sh  -n internal -s "/CN=$HOST" -a "$ALT" -p 2> /tmp/cert.err || handle_error
+    /usr/share/xroad/scripts/generate_certificate.sh  -n internal -s "/CN=$HOST" -a "$ALT" -p 2> /tmp/cert.err || echo "generate_certificate failed, see /tmp/cert.err!"
 fi
 
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad

@@ -34,5 +34,5 @@ if [[ ! -r /etc/xroad/ssl/proxy-ui-api.crt || ! -r /etc/xroad/ssl/proxy-ui-api.k
 then
     echo "Generating new proxy-ui-api.[crt|key|p12] files "
     rm -f /etc/xroad/ssl/proxy-ui-api.crt /etc/xroad/ssl/proxy-ui-api.key /etc/xroad/ssl/proxy-ui-api.p12
-    /usr/share/xroad/scripts/generate_certificate.sh  -n proxy-ui-api -s "/CN=$HOST" -a "$ALT" -p 2> /tmp/cert.err || handle_error
+    /usr/share/xroad/scripts/generate_certificate.sh  -n proxy-ui-api -s "/CN=$HOST" -a "$ALT" -p 2> /tmp/cert.err || echo "generate_certificate failed, see /tmp/cert.err!"
 fi
