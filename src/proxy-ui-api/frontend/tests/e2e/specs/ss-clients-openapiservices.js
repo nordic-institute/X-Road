@@ -57,12 +57,11 @@ module.exports = {
 
     // Verify invalid service code
     clientServices.openAddREST();
-    browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
     clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_1);
     clientServices.selectOpenApi();
     clientServices.enterServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
-    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'Identifier value contains illegal characters');
+    browser.assert.containsText(clientServices.elements.serviceCodeMessage, 'Identifier value contains illegal characters');
     clientServices.cancelAddDialog();
 
     // Verify successfull URL open
@@ -557,7 +556,7 @@ module.exports = {
     browser.assert.containsText(openApiServiceDetails.elements.serviceType, 'OpenAPI 3 Description');
     openApiServiceDetails.enterServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
-    browser.assert.containsText(clientServices.elements.serviceUrlMessage, 'Identifier value contains illegal characters');
+    browser.assert.containsText(clientServices.elements.serviceCodeMessage, 'Identifier value contains illegal characters');
 
     openApiServiceDetails.enterServiceCode('');
     browser.assert.containsText(openApiServiceDetails.elements.codeMessage, 'The fields.code_field field is required');

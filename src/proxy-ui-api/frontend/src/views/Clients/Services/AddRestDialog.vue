@@ -1,5 +1,6 @@
 <template>
   <ValidationObserver ref="form" v-slot="{ valid }">
+
     <simpleDialog
       :dialog="dialog"
       :width="560"
@@ -116,7 +117,9 @@ export default Vue.extend({
       this.url = '';
       this.serviceCode = '';
       this.serviceType = '';
-      (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+      requestAnimationFrame(() => {
+        (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+      });
     },
   },
 });
