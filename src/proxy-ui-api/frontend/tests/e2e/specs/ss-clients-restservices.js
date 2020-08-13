@@ -77,7 +77,7 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.restOperationDetails;
-
+    const sslCheckFail = mainPage.section.sslCheckFailDialog;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -137,6 +137,8 @@ module.exports = {
     operationDetails.toggleCertVerification();
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.saveParameters();
+    browser.expect.element(sslCheckFailDialog.elements.continueButton).to.be.visible.and.text.to.equal("Continue");
+    sslCheckFail.continue();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
     mainPage.closeSnackbar();
     operationDetails.close();
@@ -561,8 +563,8 @@ module.exports = {
     clientServices.openServiceDetails();
     browser.assert.containsText(restServiceDetails.elements.serviceType, 'REST API Base Path');
     restServiceDetails.enterServiceCode('/');
-    browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
-    browser.assert.containsText(clientServices.elements.serviceCodeMessage, 'Identifier value contains illegal characters');
+    browser.expect.element(restServiceDetails.elements.confirmDialogButton).to.not.be.enabled;
+    browser.assert.containsText(restServiceDetails.elements.codeMessage, 'Identifier value contains illegal characters');
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
