@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.exceptions;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,7 +37,7 @@ import java.util.List;
  * and possible metadata describing the deviation details.
  */
 @Getter
-public class Deviation {
+public class Deviation implements Serializable {
     private final String code;
     private final List<String> metadata;
 
