@@ -1066,7 +1066,7 @@ module.exports = {
       }
     },
     sslCheckFailDialog: {
-      selector: '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-simple" and contains(text(), "Warning")]]',
+      selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Warning")]]',
       locateStrategy: 'xpath',
       commands: [sslCheckFailDialogCommands],
       elements: {
