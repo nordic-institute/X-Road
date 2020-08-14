@@ -19,7 +19,7 @@ Requires:  systemd
 Requires:  rlwrap
 %endif
 Requires:  jre-1.8.0-headless >= 1.8.0.51
-Requires:  crudini, hostname, sudo
+Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
 
