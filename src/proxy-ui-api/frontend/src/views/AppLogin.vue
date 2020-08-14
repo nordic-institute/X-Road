@@ -143,7 +143,7 @@ export default (Vue as VueConstructor<
               });
             });
           }
-          this.$store.dispatch('showErrorMessageRaw', error.message);
+          this.$store.dispatch('showErrorMessageCode', 'login.generalError');
           // Clear loading state
           this.loading = false;
         },
