@@ -683,6 +683,7 @@
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
+    "generalError": "Login failed. Please try again.",
     "errorMsg401": "Wrong username or password"
   },
   "logout": {

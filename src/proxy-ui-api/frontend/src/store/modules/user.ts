@@ -127,7 +127,9 @@ export const mutations: MutationTree<UserState> = {
 
 export const actions: ActionTree<UserState, RootState> = {
   login({ commit }, authData) {
-    const data = `username=${authData.username}&password=${authData.password}`;
+    const data = `username=${encodeURIComponent(
+      authData.username,
+    )}&password=${encodeURIComponent(authData.password)}`;
 
     return axiosAuth({
       url: '/login',
