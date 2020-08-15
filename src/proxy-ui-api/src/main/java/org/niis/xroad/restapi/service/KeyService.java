@@ -48,6 +48,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -247,15 +248,16 @@ public class KeyService {
 
         // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-            for (CertificateInfo certificateInfo : keyInfo.getCerts()) {
-                if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
-                        || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
-                    if (!ignoreWarnings) {
-                        throw new UnhandledWarningsException(
-                                new WarningDeviation(WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED, keyId));
-                    }
-                    unregisterAuthCert(certificateInfo);
-                }
+            List<CertificateInfo> unregister = keyInfo.getCerts().stream().filter(this::shouldUnregister)
+                    .collect(Collectors.toList());
+
+            if (!unregister.isEmpty() && !ignoreWarnings) {
+                throw new UnhandledWarningsException(
+                        new WarningDeviation(WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED, keyId));
+            }
+
+            for (CertificateInfo certificateInfo : unregister) {
+                unregisterAuthCert(certificateInfo);
             }
         }
 
@@ -272,6 +274,16 @@ public class KeyService {
         } catch (Exception other) {
             throw new RuntimeException("delete key failed", other);
         }
+    }
+
+    /**
+     * Check if the certificateInfo should be unregistered before it is deleted.
+     * @param certificateInfo
+     * @return if certificateInfo's status is "REGINPROG" or "REGISTERED" return true, otherwise false
+     */
+    private boolean shouldUnregister(CertificateInfo certificateInfo) {
+        return certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
+                || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED);
     }
 
     /**
