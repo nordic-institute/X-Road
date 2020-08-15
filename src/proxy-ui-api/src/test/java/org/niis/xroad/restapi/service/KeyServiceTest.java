@@ -63,6 +63,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.niis.xroad.restapi.service.KeyService.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
  * test key service.
@@ -213,6 +214,8 @@ public class KeyServiceTest extends AbstractServiceTestContext {
             keyService.deleteKey(AUTH_KEY_ID, false);
             fail("should throw exception");
         } catch (UnhandledWarningsException expected) {
+            assertEquals(WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED,
+                    expected.getWarningDeviations().iterator().next().getCode());
         }
 
     }
