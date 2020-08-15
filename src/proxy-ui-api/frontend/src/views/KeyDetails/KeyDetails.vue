@@ -13,7 +13,7 @@
       />
       <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
-        <large-button v-if="canDelete" @click="confirmDelete = true" outlined>{{
+        <large-button v-if="canDelete" @click="confirmDelete = true" :loading="deleting" outlined>{{
           $t('action.delete')
         }}</large-button>
       </div>
@@ -120,6 +120,7 @@ export default Vue.extend({
       saveBusy: false,
       key: {} as Key,
       possibleActions: [] as string[],
+      deleting: false as boolean,
     };
   },
   computed: {
@@ -195,6 +196,7 @@ export default Vue.extend({
     },
 
     deleteKey(): void {
+      this.deleting = true;
       this.confirmDelete = false;
 
       api
@@ -205,7 +207,8 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
-        });
+        })
+        .finally(() => (this.deleting = false));
     },
   },
   created() {
