@@ -66,7 +66,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL
 @PreAuthorize("isAuthenticated()")
 public class KeyService {
 
-    public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_registered_cert_detected_warning";
+    public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
 
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;

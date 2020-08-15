@@ -355,7 +355,7 @@
     "deleteCsr": "Delete CSR",
     "deleteCsrTitle": "Delete CSR?",
     "deleteCsrText": "Are you sure that you want to delete this CSR?",
-    "auth_key_registered_cert_detected_warning": "Key has certificates that need to be unregistered before deletion. Continue with unregistration and deletion of associated certificates and the key from server configuration?",
+    "auth_key_with_registered_cert_warning": "Key has certificates that need to be unregistered before deletion. Do you want to continue with unregistration and deletion of associated certificates and the key from server configuration? Key ID:",
     "csrDeleted": "CSR deleted",
     "tokenInfo": "Token information",
     "gotIt": "Got it",
