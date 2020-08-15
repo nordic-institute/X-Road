@@ -248,6 +248,7 @@ public class KeyService {
 
         // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
+            // get list of auth certs to be unregistered
             List<CertificateInfo> unregister = keyInfo.getCerts().stream().filter(this::shouldUnregister)
                     .collect(Collectors.toList());
 
