@@ -2154,6 +2154,14 @@ paths:
             type: string
             format: text
             minLength: 1
+        - in: query
+          name: ignore_warnings
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+                    any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '204':
           description: key deletion was successful

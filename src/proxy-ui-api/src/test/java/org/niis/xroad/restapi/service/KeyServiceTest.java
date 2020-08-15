@@ -206,6 +206,17 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
     }
 
+    @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ" })
+    public void deleteKeyIgnoreWarningsFalse() throws Exception {
+        try {
+            keyService.deleteKey(AUTH_KEY_ID, false);
+            fail("should throw exception");
+        } catch (UnhandledWarningsException expected) {
+        }
+
+    }
+
     @Test(expected = AccessDeniedException.class)
     // missing SEND_AUTH_CERT_DEL_REQ
     @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })

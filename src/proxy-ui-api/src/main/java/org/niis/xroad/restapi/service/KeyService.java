@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class KeyService {
+
+    public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_registered_cert_detected_error";
 
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
@@ -202,15 +205,27 @@ public class KeyService {
 
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
 
+    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
+            GlobalConfOutdatedException {
+        try {
+            deleteKey(keyId, true);
+        } catch (UnhandledWarningsException e) {
+            // Since "ignoreWarnings = true", the exception is never thrown
+        }
+    }
+
     /**
      * Deletes one key
      * @param keyId
+     * @param ignoreWarnings
      * @throws ActionNotPossibleException if delete was not possible for the key
      * @throws KeyNotFoundException if key with given id was not found
      * @throws org.niis.xroad.restapi.service.GlobalConfOutdatedException if global conf was outdated
+     * @throws UnhandledWarningsException if the key is an authentication key, it has a registered certificate,
+     * and ignoreWarnings was false
      */
-    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
-            GlobalConfOutdatedException {
+    public void deleteKey(String keyId, Boolean ignoreWarnings) throws KeyNotFoundException, ActionNotPossibleException,
+            GlobalConfOutdatedException, UnhandledWarningsException {
 
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         auditDataHelper.put(tokenInfo);
@@ -235,6 +250,10 @@ public class KeyService {
             for (CertificateInfo certificateInfo : keyInfo.getCerts()) {
                 if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
                         || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
+                    if (!ignoreWarnings) {
+                        throw new UnhandledWarningsException(
+                                new WarningDeviation(WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED, keyId));
+                    }
                     unregisterAuthCert(certificateInfo);
                 }
             }
