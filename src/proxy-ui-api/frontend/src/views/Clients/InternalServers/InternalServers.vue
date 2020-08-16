@@ -19,12 +19,12 @@
       <div class="tls-title-wrap">
         <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
         <file-upload
+          v-if="canAddTlsCert"
           accepts=".pem, .cer, .der"
           @fileChanged="onFileChange"
           v-slot="{ upload }"
         >
           <v-btn
-            v-if="canAddTlsCert"
             outlined
             rounded
             color="primary"
