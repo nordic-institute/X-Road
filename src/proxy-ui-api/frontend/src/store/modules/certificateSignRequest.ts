@@ -48,7 +48,7 @@ const getDefaultState = () => {
 // Initial state. The state can be reseted with this.
 const csrState = getDefaultState();
 
-export const crsGetters: GetterTree<CsrState, RootState> = {
+export const csrGetters: GetterTree<CsrState, RootState> = {
   csrClient(state): string | null {
     return state.csrClient;
   },
@@ -320,7 +320,7 @@ export const actions: ActionTree<CsrState, RootState> = {
 export const csrModule: Module<CsrState, RootState> = {
   namespaced: false,
   state: csrState,
-  getters: crsGetters,
+  getters: csrGetters,
   actions,
   mutations,
 };
