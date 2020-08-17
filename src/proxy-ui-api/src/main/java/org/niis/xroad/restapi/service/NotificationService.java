@@ -91,10 +91,14 @@ public class NotificationService {
 
     private boolean isSecurityServerFullyInitialized() {
         InitializationStatusDto initStatusDto = initializationService.getSecurityServerInitializationStatus();
-        return initStatusDto.isAnchorImported()
+        try {
+            return initStatusDto.isAnchorImported()
                 && initStatusDto.isServerCodeInitialized()
                 && initStatusDto.isServerOwnerInitialized()
                 && initStatusDto.isSoftwareTokenInitialized();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -115,12 +119,16 @@ public class NotificationService {
      * @return
      */
     private boolean isSoftTokenPinEntered() {
-        Optional<TokenInfo> token = tokenService.getAllTokens().stream()
-                .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
-        if (!token.isPresent()) {
-            throw new RuntimeException("soft token not found");
+        try {
+            Optional<TokenInfo> token = tokenService.getAllTokens().stream()
+                    .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
+            if (!token.isPresent()) {
+                throw new RuntimeException("soft token not found");
+            }
+            return token.get().isActive();
+        } catch (Exception e) {
+            return false;
         }
-        return token.get().isActive();
     }
 
     /**
