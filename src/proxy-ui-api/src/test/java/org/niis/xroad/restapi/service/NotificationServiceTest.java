@@ -42,7 +42,6 @@ import org.niis.xroad.restapi.util.TokenTestUtils;
 import java.util.Collections;
 import java.util.List;
 
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
