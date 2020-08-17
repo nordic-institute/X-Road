@@ -121,7 +121,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    public void getAlertsSoftTokenNotFoundException() {
+    public void getAlertsSoftTokenNotFound() {
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
@@ -135,12 +135,9 @@ public class NotificationServiceTest {
 
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
-        try {
-            AlertStatus alertStatus = notificationService.getAlerts();
-            fail("should throw RuntimeException");
-        } catch (RuntimeException expected) {
-            // success
-        }
+        AlertStatus alertStatus = notificationService.getAlerts();
+        assertEquals(true, alertStatus.getGlobalConfValid());
+        assertEquals(false, alertStatus.getSoftTokenPinEntered());
     }
 
     @Test
