@@ -18871,6 +18871,11 @@
     "1523|node-sass>sass-graph>lodash": {
       "decision": "ignore",
       "madeAt": 1594212617169
+    },
+    "1548|@vue/cli-service>copy-webpack-plugin>serialize-javascript": {
+      "decision": "ignore",
+      "madeAt": 1597659334330,
+      "expiresAt": 1600251312569
     }
   },
   "rules": {},
