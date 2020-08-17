@@ -123,6 +123,7 @@ public class NotificationService {
             Optional<TokenInfo> token = tokenService.getAllTokens().stream()
                     .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
             if (!token.isPresent()) {
+                log.warn("soft token not found");
                 return false;
             }
             return token.get().isActive();
