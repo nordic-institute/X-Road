@@ -88,7 +88,7 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
 }
 
 // check that npm run license-check passes
-task checkFrontLicense(type: NpmTask) {
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
