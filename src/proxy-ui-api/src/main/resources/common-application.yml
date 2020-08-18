@@ -1,6 +1,9 @@
 ## properties that are not specific to a runtime (test or prod)
 
 spring:
+  datasource:
+    hikari:
+      allow-pool-suspension: true
   thymeleaf:
     cache: false
   mvc:
