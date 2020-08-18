@@ -727,6 +727,12 @@
     "pin": "PIN",
     "confirmPin": "Confirm PIN",
     "securityServerCode": "Security Server Code",
+    "csr": {
+      "usage": "Usage",
+      "client": "Client",
+      "certService": "Certification Service",
+      "csrFormat": "CSR Format"
+    },
     "keys": {
       "friendlyName": "Friendly name"
     },
