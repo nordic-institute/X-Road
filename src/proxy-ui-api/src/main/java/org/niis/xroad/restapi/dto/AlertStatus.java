@@ -37,5 +37,7 @@ public class AlertStatus {
     private OffsetDateTime currentTime;
     private OffsetDateTime backupRestoreRunningSince;
     private Boolean globalConfValid;
+    private Boolean globalConfValidCheckSuccess;
     private Boolean softTokenPinEntered;
+    private Boolean softTokenPinEnteredCheckSuccess;
 }

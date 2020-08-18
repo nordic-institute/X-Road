@@ -73,8 +73,24 @@ public class NotificationService {
             alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
             alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
         }
-        alertStatus.setGlobalConfValid(isGlobalConfValid());
-        alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
+
+        try {
+            alertStatus.setGlobalConfValid(isGlobalConfValid());
+            alertStatus.setGlobalConfValidCheckSuccess(true);
+        } catch (CodedException e) {
+            log.error("getting global conf status failed");
+            alertStatus.setGlobalConfValid(false);
+            alertStatus.setGlobalConfValidCheckSuccess(false);
+        }
+
+        try {
+            alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
+            alertStatus.setSoftTokenPinEnteredCheckSuccess(true);
+        } catch (Exception e) {
+            log.error("getting soft token pin status failed");
+            alertStatus.setSoftTokenPinEntered(false);
+            alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
+        }
 
         return alertStatus;
     }
@@ -84,13 +100,8 @@ public class NotificationService {
      * @return
      */
     private boolean isGlobalConfValid() {
-        try {
-            globalConfFacade.verifyValidity();
-            return true;
-        } catch (CodedException e) {
-            log.error("getting global conf status failed");
-            return false;
-        }
+        globalConfFacade.verifyValidity();
+        return true;
     }
 
     /**
@@ -98,18 +109,13 @@ public class NotificationService {
      * @return
      */
     private boolean isSoftTokenPinEntered() {
-        try {
-            Optional<TokenInfo> token = tokenService.getAllTokens().stream()
-                    .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
-            if (!token.isPresent()) {
-                log.warn("soft token not found");
-                return false;
-            }
-            return token.get().isActive();
-        } catch (Exception e) {
-            log.error("getting soft token pin status failed");
-            return false;
+        Optional<TokenInfo> token = tokenService.getAllTokens().stream()
+                .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
+        if (!token.isPresent()) {
+            log.warn("soft token not found");
+            throw new RuntimeException("soft token not found");
         }
+        return token.get().isActive();
     }
 
     /**

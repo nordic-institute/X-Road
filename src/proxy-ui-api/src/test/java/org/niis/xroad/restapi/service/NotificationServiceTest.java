@@ -85,7 +85,9 @@ public class NotificationServiceTest {
         assertEquals(null, alertStatus.getBackupRestoreRunningSince());
         assertEquals(null, alertStatus.getCurrentTime());
         assertEquals(true, alertStatus.getGlobalConfValid());
+        assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(true, alertStatus.getSoftTokenPinEntered());
+        assertEquals(true, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 
     @Test
@@ -107,7 +109,9 @@ public class NotificationServiceTest {
         assertNotNull(alertStatus.getBackupRestoreRunningSince());
         assertNotNull(alertStatus.getCurrentTime());
         assertEquals(false, alertStatus.getGlobalConfValid());
+        assertEquals(false, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
+        assertEquals(true, alertStatus.getSoftTokenPinEnteredCheckSuccess());
 
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
@@ -130,6 +134,8 @@ public class NotificationServiceTest {
 
         AlertStatus alertStatus = notificationService.getAlerts();
         assertEquals(true, alertStatus.getGlobalConfValid());
+        assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
+        assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 }
