@@ -10,18 +10,20 @@
     "**/*.config.js",
     "**/*.cer",
     "**/*.log",
-    "**/.*"
+    "**/.*",
+    "**/openapi-types.ts",
+    "scripts/dtsgen-wrapper.js"
   ],
   "license": "../LICENSE.txt",
   "licenseFormats": {
-    "ts|js": {
+    "ts|js|css|scss": {
       "prepend": "/*",
       "append": " */",
       "eachLine": {
         "prepend": " * "
       }
     },
-    "vue|css|scss": {
+    "vue": {
       "prepend": "<!--",
       "append": " -->",
       "eachLine": {
