@@ -56,43 +56,16 @@ public final class PersistenceUtils {
         return entityManager.unwrap(Session.class);
     }
 
-    private static final int MAX_EVICTION_ATTEMPTS = 10;
-    private static final int WAIT_FOR_SOFT_EVICT_MILLIS = 3000;
-
     /**
      * Evict connection pool connections (used when restoring from backups, to prevent broken connections)
      * @throws InterruptedException if interrupted
      */
     public void evictPoolConnections() throws InterruptedException {
-        log.info("resetting hikari datasource");
+        log.info("evicting hikari datasource connection pool connections");
         HikariDataSource hikariDs = (HikariDataSource) dataSource;
         HikariPoolMXBean poolBean = hikariDs.getHikariPoolMXBean();
-        int evictionAttempts = 0;
-        int activeConnections;
-        try {
-            poolBean.suspendPool();
-            do {
-                poolBean.softEvictConnections();
-                evictionAttempts++;
-                // sleep a little
-                Thread.currentThread().sleep(WAIT_FOR_SOFT_EVICT_MILLIS);
-                activeConnections = poolBean.getActiveConnections();
-                log.info("poolBean.softEvictConnections, activeConnections = {}, attempts = {}",
-                        activeConnections,
-                        evictionAttempts);
-                log.debug("idleConnections = {}, threadsAwaitingConnection = {}, totalConnections = {} ",
-                        poolBean.getIdleConnections(),
-                        poolBean.getThreadsAwaitingConnection(),
-                        poolBean.getTotalConnections());
-                // since we're inside transaction, 1 connection is active
-            } while (activeConnections > 1 && evictionAttempts < MAX_EVICTION_ATTEMPTS);
-        } finally {
-            poolBean.resumePool();
-        }
-        log.info("resetted hikari datasource");
-        if (evictionAttempts >= MAX_EVICTION_ATTEMPTS && activeConnections > 1) {
-            log.error("Could not soft evict all connections from HikariCP in {} attempts", evictionAttempts);
-        }
+        poolBean.softEvictConnections();
+        log.info("evicted hikari datasource connection pool connections");
     }
 
     public void flush() {
