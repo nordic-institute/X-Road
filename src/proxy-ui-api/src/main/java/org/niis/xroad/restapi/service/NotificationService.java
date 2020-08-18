@@ -31,12 +31,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AlertStatus;
-import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -47,23 +45,19 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@Transactional
 @PreAuthorize("isAuthenticated()")
 public class NotificationService {
     private OffsetDateTime backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
-    private final InitializationService initializationService;
 
     /**
      * constructor
      */
     @Autowired
-    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService,
-            InitializationService initializationService) {
+    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService) {
         this.globalConfFacade = globalConfFacade;
         this.tokenService = tokenService;
-        this.initializationService = initializationService;
     }
 
     /**
@@ -79,26 +73,10 @@ public class NotificationService {
             alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
             alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
         }
-        if (isSecurityServerFullyInitialized()) {
-            alertStatus.setGlobalConfValid(isGlobalConfValid());
-            alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
-        } else {
-            alertStatus.setGlobalConfValid(false);
-            alertStatus.setSoftTokenPinEntered(false);
-        }
-        return alertStatus;
-    }
+        alertStatus.setGlobalConfValid(isGlobalConfValid());
+        alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
 
-    private boolean isSecurityServerFullyInitialized() {
-        InitializationStatusDto initStatusDto = initializationService.getSecurityServerInitializationStatus();
-        try {
-            return initStatusDto.isAnchorImported()
-                && initStatusDto.isServerCodeInitialized()
-                && initStatusDto.isServerOwnerInitialized()
-                && initStatusDto.isSoftwareTokenInitialized();
-        } catch (Exception e) {
-            return false;
-        }
+        return alertStatus;
     }
 
     /**
@@ -110,6 +88,7 @@ public class NotificationService {
             globalConfFacade.verifyValidity();
             return true;
         } catch (CodedException e) {
+            log.error("getting global conf status failed");
             return false;
         }
     }
@@ -128,6 +107,7 @@ public class NotificationService {
             }
             return token.get().isActive();
         } catch (Exception e) {
+            log.error("getting soft token pin status failed");
             return false;
         }
     }

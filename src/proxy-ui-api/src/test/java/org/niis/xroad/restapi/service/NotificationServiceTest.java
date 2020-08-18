@@ -35,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.dto.AlertStatus;
-import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 
@@ -43,7 +42,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -57,8 +55,6 @@ public class NotificationServiceTest {
     @Mock
     private GlobalConfFacade globalConfFacade;
     @Mock
-    private InitializationService initializationService;
-    @Mock
     private TokenService tokenService;
 
     private NotificationService notificationService;
@@ -67,9 +63,7 @@ public class NotificationServiceTest {
 
     @Before
     public void setup() {
-        InitializationStatusDto initDto = getInitStatus(true);
-        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
-        notificationService = new NotificationService(globalConfFacade, tokenService, initializationService);
+        notificationService = new NotificationService(globalConfFacade, tokenService);
     }
 
     @Test
@@ -137,23 +131,5 @@ public class NotificationServiceTest {
         AlertStatus alertStatus = notificationService.getAlerts();
         assertEquals(true, alertStatus.getGlobalConfValid());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
-    }
-
-    @Test
-    public void getAlertsNotInitialized() {
-        InitializationStatusDto initDto = getInitStatus(false);
-        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
-        AlertStatus alertStatus = notificationService.getAlerts();
-        assertFalse(alertStatus.getGlobalConfValid());
-        assertFalse(alertStatus.getSoftTokenPinEntered());
-    }
-
-    private InitializationStatusDto getInitStatus(boolean isFullyInitialized) {
-        InitializationStatusDto initDto = new InitializationStatusDto();
-        initDto.setSoftwareTokenInitialized(true);
-        initDto.setServerOwnerInitialized(true);
-        initDto.setServerCodeInitialized(true);
-        initDto.setAnchorImported(isFullyInitialized);
-        return initDto;
     }
 }
