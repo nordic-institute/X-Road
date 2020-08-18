@@ -54,6 +54,7 @@ export enum Permissions {
   ADD_LOCAL_GROUP = 'ADD_LOCAL_GROUP', // client > local groups
   ADD_TSP = 'ADD_TSP',
   ADD_WSDL = 'ADD_WSDL', // client > services > add WSDL / REST
+  ADD_SUBJECT = 'VIEW_ACL_ADD_SUBJECT', // client -> service clients -> add subject
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION',
   DELETE_AUTH_CERT = 'DELETE_AUTH_CERT', // certificate details
   DELETE_AUTH_KEY = 'DELETE_AUTH_KEY', // key details
