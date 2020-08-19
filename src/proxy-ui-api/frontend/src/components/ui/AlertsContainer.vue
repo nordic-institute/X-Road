@@ -18,9 +18,12 @@
       :value="showSoftTokenPinEnteredAlert"
       color="red"
     >
-      <span class="alert-text">{{
-        $t('globalAlert.softTokenPinNotEntered')
-      }}</span>
+      <span
+        class="alert-text clickable-link"
+        @click="tokenLogin()"
+      >
+        {{ $t('globalAlert.softTokenPinNotEntered') }}
+      </span>
     </v-alert>
     <v-alert
       data-test="global-alert-soft-token-pin"
@@ -40,6 +43,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { formatDateTime } from '@/filters';
+import { RouteName } from '@/global';
 export default Vue.extend({
   name: 'AlertsContainer',
   computed: {
@@ -61,6 +65,9 @@ export default Vue.extend({
   },
   methods: {
     formatDateTime,
+    tokenLogin(): void {
+      this.$router.replace({ name: RouteName.SignAndAuthKeys });
+    },
   },
 });
 </script>
@@ -82,5 +89,10 @@ export default Vue.extend({
   color: white;
   text-align: center;
   display: block;
+}
+
+.clickable-link {
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>
