@@ -62,7 +62,8 @@ public class NotificationService {
 
     /**
      * Checks the status of system alerts that may affect whether the system
-     * is operational or not. If alerts are disabled, the status of all alerts true.
+     * is operational or not. If backup/restore is running, the status of soft token
+     * related alerts is true.
      * @return
      */
     public AlertStatus getAlerts() {
@@ -72,24 +73,26 @@ public class NotificationService {
         if (backupRestoreStartedAt != null) {
             alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
             alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
+            alertStatus.setSoftTokenPinEntered(false);
+            alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
+        } else {
+            try {
+                alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
+                alertStatus.setSoftTokenPinEnteredCheckSuccess(true);
+            } catch (Exception e) {
+                log.error("getting soft token pin status failed");
+                alertStatus.setSoftTokenPinEntered(false);
+                alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
+            }
         }
 
         try {
             alertStatus.setGlobalConfValid(isGlobalConfValid());
             alertStatus.setGlobalConfValidCheckSuccess(true);
-        } catch (CodedException e) {
+        } catch (Exception e) {
             log.error("getting global conf status failed");
             alertStatus.setGlobalConfValid(false);
             alertStatus.setGlobalConfValidCheckSuccess(false);
-        }
-
-        try {
-            alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
-            alertStatus.setSoftTokenPinEnteredCheckSuccess(true);
-        } catch (Exception e) {
-            log.error("getting soft token pin status failed");
-            alertStatus.setSoftTokenPinEntered(false);
-            alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
         }
 
         return alertStatus;
@@ -100,8 +103,12 @@ public class NotificationService {
      * @return
      */
     private boolean isGlobalConfValid() {
-        globalConfFacade.verifyValidity();
-        return true;
+        try {
+            globalConfFacade.verifyValidity();
+            return true;
+        } catch (CodedException e) {
+            return false;
+        }
     }
 
     /**

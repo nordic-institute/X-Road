@@ -109,9 +109,9 @@ public class NotificationServiceTest {
         assertNotNull(alertStatus.getBackupRestoreRunningSince());
         assertNotNull(alertStatus.getCurrentTime());
         assertEquals(false, alertStatus.getGlobalConfValid());
-        assertEquals(false, alertStatus.getGlobalConfValidCheckSuccess());
+        assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
-        assertEquals(true, alertStatus.getSoftTokenPinEnteredCheckSuccess());
+        assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
 
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
@@ -137,5 +137,28 @@ public class NotificationServiceTest {
         assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
         assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
+    }
+
+    public void getAlertsGlobalConfCheckFails() {
+        notificationService.resetBackupRestoreRunningSince();
+        assertEquals(null, notificationService.getBackupRestoreRunningSince());
+
+        doThrow(new RuntimeException("")).when(globalConfFacade).verifyValidity();
+
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .id(SignerProxy.SSL_TOKEN_ID)
+                .active(true)
+                .build();
+        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
+
+        when(tokenService.getAllTokens()).thenReturn(allTokens);
+
+        AlertStatus alertStatus = notificationService.getAlerts();
+        assertEquals(null, alertStatus.getBackupRestoreRunningSince());
+        assertEquals(null, alertStatus.getCurrentTime());
+        assertEquals(false, alertStatus.getGlobalConfValid());
+        assertEquals(false, alertStatus.getGlobalConfValidCheckSuccess());
+        assertEquals(true, alertStatus.getSoftTokenPinEntered());
+        assertEquals(true, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 }
