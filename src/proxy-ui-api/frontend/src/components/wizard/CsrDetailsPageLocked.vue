@@ -23,7 +23,7 @@
           <helpIcon :text="$t('csr.helpCertificationService')" />
         </div>
 
-        <ValidationProvider name="crs.certService" rules="required" v-slot="{}">
+        <ValidationProvider name="csr.certService" rules="required" v-slot="{}">
           <v-select
             :items="filteredServiceList"
             item-text="name"
@@ -41,10 +41,9 @@
           <helpIcon :text="$t('csr.helpCsrFormat')" />
         </div>
 
-        <ValidationProvider name="crs.crsFormat" rules="required" v-slot="{}">
+        <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
           <v-select
             :items="csrFormatList"
-            name="crs.crsFormat"
             class="form-input"
             v-model="csrFormat"
             data-test="csr-format-select"
