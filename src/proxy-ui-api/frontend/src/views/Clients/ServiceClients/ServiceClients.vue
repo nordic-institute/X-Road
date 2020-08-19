@@ -71,7 +71,7 @@ export default Vue.extend({
   computed: {
     ...mapGetters(['client']),
     showAddSubjects(): boolean {
-      return  this.$store.getters.hasPermission(Permissions.ADD_SUBJECT);
+      return  this.$store.getters.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
     },
   },
   methods: {
