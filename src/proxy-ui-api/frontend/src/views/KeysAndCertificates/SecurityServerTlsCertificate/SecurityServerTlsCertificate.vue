@@ -35,12 +35,12 @@
         >{{ $t('ssTlsCertificate.generateKey') }}</large-button
       >
       <file-upload
+        v-if="importCertificateVisible"
         accepts=".pem, .cer, .der"
         @fileChanged="onImportFileChanged"
         v-slot="{ upload }"
       >
         <large-button
-          v-if="importCertificateVisible"
           class="button-spacing"
           outlined
           @click="upload"

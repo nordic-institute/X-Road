@@ -61,11 +61,12 @@
           </large-button>
         </file-upload>
         <confirm-dialog
+          v-if="uploadedFile !== null"
           :dialog="needsConfirmation"
           title="backup.uploadBackup.confirmationDialog.title"
           data-test="backup-upload-confirm-overwrite-dialog"
           text="backup.uploadBackup.confirmationDialog.confirmation"
-          :data="{ ...uploadedFile }"
+          :data="{ name: uploadedFile.name }"
           :loading="uploadingBackup"
           @cancel="needsConfirmation = false"
           @accept="overwriteBackup"
