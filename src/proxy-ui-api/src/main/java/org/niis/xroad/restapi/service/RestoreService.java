@@ -58,6 +58,7 @@ public class RestoreService {
     private final NotificationService notificationService;
     private final ApiKeyService apiKeyService;
     private final AuditDataHelper auditDataHelper;
+    private final EvictConnectionsService evictConnectionsService;
 
     @Autowired
     public RestoreService(ExternalProcessRunner externalProcessRunner,
@@ -65,7 +66,7 @@ public class RestoreService {
             @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
             CurrentSecurityServerId currentSecurityServerId, BackupRepository backupRepository,
             NotificationService notificationService, ApiKeyService apiKeyService,
-            AuditDataHelper auditDataHelper) {
+            AuditDataHelper auditDataHelper, EvictConnectionsService evictConnectionsService) {
         this.externalProcessRunner = externalProcessRunner;
         this.configurationRestoreScriptPath = configurationRestoreScriptPath;
         this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
@@ -74,6 +75,7 @@ public class RestoreService {
         this.notificationService = notificationService;
         this.apiKeyService = apiKeyService;
         this.auditDataHelper = auditDataHelper;
+        this.evictConnectionsService = evictConnectionsService;
     }
 
     /**
@@ -112,6 +114,9 @@ public class RestoreService {
             log.info(" --- Restore script console output - START --- ");
             log.info(ExternalProcessRunner.processOutputToString(processResult.getProcessOutput()));
             log.info(" --- Restore script console output - END --- ");
+
+            evictConnectionsService.evict();
+
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
             throw new RestoreProcessFailedException(e, "restoring from a backup failed");
         } finally {
