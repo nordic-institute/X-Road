@@ -97,14 +97,6 @@ public class NotificationServiceTest {
 
         doThrow(new CodedException("")).when(globalConfFacade).verifyValidity();
 
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .id(SignerProxy.SSL_TOKEN_ID)
-                .active(false)
-                .build();
-        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
-
-        when(tokenService.getAllTokens()).thenReturn(allTokens);
-
         AlertStatus alertStatus = notificationService.getAlerts();
         assertNotNull(alertStatus.getBackupRestoreRunningSince());
         assertNotNull(alertStatus.getCurrentTime());
