@@ -62,10 +62,14 @@ public final class PersistenceUtils {
      */
     public void evictPoolConnections() throws InterruptedException {
         log.info("evicting hikari datasource connection pool connections");
-        HikariDataSource hikariDs = (HikariDataSource) dataSource;
-        HikariPoolMXBean poolBean = hikariDs.getHikariPoolMXBean();
-        poolBean.softEvictConnections();
-        log.info("evicted hikari datasource connection pool connections");
+        if (!(dataSource instanceof HikariDataSource)) {
+            log.error("Cannot evict pool connections, not a HikariDataSource: {}", dataSource);
+        } else {
+            HikariDataSource hikariDs = (HikariDataSource) dataSource;
+            HikariPoolMXBean poolBean = hikariDs.getHikariPoolMXBean();
+            poolBean.softEvictConnections();
+            log.info("evicted hikari datasource connection pool connections");
+        }
     }
 
     public void flush() {
