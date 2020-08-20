@@ -93,6 +93,7 @@ public class GlobalConfChecker {
         }
 
         if (restoreInProgress) {
+            log.debug("Backup restore in progress - skipping globalconf update");
             return;
         }
 
