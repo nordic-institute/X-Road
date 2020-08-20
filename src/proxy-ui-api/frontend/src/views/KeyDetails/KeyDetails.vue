@@ -38,7 +38,7 @@
       />
       <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
-        <large-button v-if="canDelete" @click="confirmDelete = true" outlined>{{
+        <large-button v-if="canDelete" @click="confirmDelete = true" :loading="deleting" outlined>{{
           $t('action.delete')
         }}</large-button>
       </div>
@@ -105,7 +105,16 @@
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
       @cancel="confirmDelete = false"
-      @accept="deleteKey()"
+      @accept="deleteKey(false)"
+    />
+
+    <!-- Warning dialog when key is deleted -->
+    <warningDialog
+      :dialog="warningDialog"
+      :warnings="warningInfo"
+      localizationParent="keys"
+      @cancel="cancelSubmit()"
+      @accept="acceptWarnings()"
     />
   </div>
 </template>
@@ -123,6 +132,7 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
+import WarningDialog from '@/components/ui/WarningDialog.vue';
 
 export default Vue.extend({
   components: {
@@ -131,6 +141,7 @@ export default Vue.extend({
     LargeButton,
     ValidationProvider,
     ValidationObserver,
+    WarningDialog,
   },
   props: {
     id: {
@@ -145,6 +156,9 @@ export default Vue.extend({
       saveBusy: false,
       key: {} as Key,
       possibleActions: [] as string[],
+      deleting: false as boolean,
+      warningInfo: [] as string[],
+      warningDialog: false as boolean,
     };
   },
   computed: {
@@ -218,19 +232,32 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         });
     },
-
-    deleteKey(): void {
+    cancelSubmit(): void {
+      this.warningDialog = false;
+    },
+    acceptWarnings(): void {
+      this.warningDialog = false;
+      this.deleteKey(true);
+    },
+    deleteKey(ignoreWarnings: boolean): void {
+      this.deleting = true;
       this.confirmDelete = false;
 
       api
-        .remove(`/keys/${encodePathParameter(this.id)}`)
+        .remove(`/keys/${encodePathParameter(this.id)}?ignore_warnings=${ignoreWarnings}`)
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyDeleted');
           this.close();
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
+          if (error?.response?.data?.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.warningDialog = true;
+          } else {
+            this.$store.dispatch('showError', error);
+          }
+        })
+        .finally(() => (this.deleting = false));
     },
   },
   created() {
