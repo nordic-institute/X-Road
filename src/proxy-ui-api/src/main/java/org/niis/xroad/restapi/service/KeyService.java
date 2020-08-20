@@ -220,6 +220,7 @@ public class KeyService {
         try {
             deleteKey(keyId, true);
         } catch (UnhandledWarningsException e) {
+            // Since "ignoreWarnings = true", the exception should never be thrown
             throw new RuntimeException(e);
         }
     }
