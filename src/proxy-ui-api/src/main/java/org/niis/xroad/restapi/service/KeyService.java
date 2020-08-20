@@ -206,17 +206,29 @@ public class KeyService {
 
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
 
-    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
+    /**
+     * Deletes one key, and related CSRs and certificates. If the key is an authentication key with a registered
+     * certificate, warnings are ignored and certificate is first unregistered, and the key and certificate are
+     * deleted after that.
+     * @param keyId
+     * @throws ActionNotPossibleException if delete was not possible for the key
+     * @throws KeyNotFoundException if key with given id was not found
+     * @throws org.niis.xroad.restapi.service.GlobalConfOutdatedException if global conf was outdated
+     */
+    public void deleteKeyAndIgnoreWarnings(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfOutdatedException {
         try {
             deleteKey(keyId, true);
         } catch (UnhandledWarningsException e) {
-            // Since "ignoreWarnings = true", the exception is never thrown
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * Deletes one key
+     * Deletes one key, and related CSRs and certificates. If the key is an authentication key with a registered
+     * certificate and ignoreWarnings = false, an UnhandledWarningsException is thrown and the key is not deleted. If
+     * ignoreWarnings = true, the authentication certificate is first unregistered, and the key and certificate are
+     * deleted after that.
      * @param keyId
      * @param ignoreWarnings
      * @throws ActionNotPossibleException if delete was not possible for the key

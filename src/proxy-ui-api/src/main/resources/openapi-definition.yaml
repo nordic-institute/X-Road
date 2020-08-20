@@ -2144,7 +2144,11 @@ paths:
         - keys
       summary: delete key
       operationId: deleteKey
-      description: Administrator deletes the key.
+      description: >
+        Administrator deletes the key.
+        Note that with this endpoint it's possible to delete an authentication key with a registered authentication certificate.
+        Attempt to delete an authentication key with a registered authentication certificate and with ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
+        Attempt to delete an authentication key with a registered authentication certificate and with ignore_warnings = true succeeds. The authentication certificate is first unregistered, and the key and certificate are deleted after that.
       parameters:
         - in: path
           name: id

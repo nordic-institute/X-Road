@@ -188,7 +188,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     @Test
     @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ" })
     public void deleteKey() throws Exception {
-        keyService.deleteKey(AUTH_KEY_ID);
+        keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
         verify(signerProxyFacade, times(1))
                 .deleteKey(AUTH_KEY_ID, true);
         verify(signerProxyFacade, times(1))
@@ -200,7 +200,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
         verifyNoMoreInteractions(signerProxyFacade);
 
         try {
-            keyService.deleteKey(KEY_NOT_FOUND_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(KEY_NOT_FOUND_KEY_ID);
             fail("should throw exception");
         } catch (KeyNotFoundException expected) {
         }
@@ -224,55 +224,55 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     // missing SEND_AUTH_CERT_DEL_REQ
     @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void deleteKeyUnregisterRequiresSpecificPermission() throws Exception {
-        keyService.deleteKey(AUTH_KEY_ID);
+        keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
     }
 
     @Test
     @WithMockUser(authorities = { "DELETE_AUTH_KEY", "SEND_AUTH_CERT_DEL_REQ" })
     public void deleteAuthKeyPermissionCheck() throws Exception {
         try {
-            keyService.deleteKey(SIGN_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(SIGN_KEY_ID);
             fail("should not be allowed");
         } catch (AccessDeniedException expected) {
         }
         try {
-            keyService.deleteKey(TYPELESS_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(TYPELESS_KEY_ID);
             fail("should not be allowed");
         } catch (AccessDeniedException expected) {
         }
-        keyService.deleteKey(AUTH_KEY_ID);
+        keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
     }
 
     @Test
     @WithMockUser(authorities = { "DELETE_SIGN_KEY" })
     public void deleteSignKeyPermissionCheck() throws Exception {
         try {
-            keyService.deleteKey(AUTH_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
             fail("should not be allowed");
         } catch (AccessDeniedException expected) {
         }
         try {
-            keyService.deleteKey(TYPELESS_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(TYPELESS_KEY_ID);
             fail("should not be allowed");
         } catch (AccessDeniedException expected) {
         }
-        keyService.deleteKey(SIGN_KEY_ID);
+        keyService.deleteKeyAndIgnoreWarnings(SIGN_KEY_ID);
     }
 
     @Test
     @WithMockUser(authorities = { "DELETE_KEY" })
     public void deleteTypelessKeyPermissionCheck() throws Exception {
         try {
-            keyService.deleteKey(AUTH_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
             fail("should not be allowed");
         } catch (AccessDeniedException expected) {
         }
         try {
-            keyService.deleteKey(SIGN_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(SIGN_KEY_ID);
             fail("should not be allowed");
         } catch (AccessDeniedException expected) {
         }
-        keyService.deleteKey(TYPELESS_KEY_ID);
+        keyService.deleteKeyAndIgnoreWarnings(TYPELESS_KEY_ID);
     }
 
     @Test
@@ -280,7 +280,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     public void deleteChecksPossibleActions() throws Exception {
         mockPossibleActionsRuleEngineDenyAll();
         try {
-            keyService.deleteKey(AUTH_KEY_ID);
+            keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
             fail("should not be possible");
         } catch (ActionNotPossibleException expected) {
         }
