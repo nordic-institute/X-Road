@@ -155,7 +155,7 @@ public class KeyService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new RuntimeException("Update key friendly name failed", e);
+            throw new SignerNotReachableException("Update key friendly name failed", e);
         }
 
         return keyInfo;
@@ -184,7 +184,7 @@ public class KeyService {
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
-            throw new RuntimeException("adding a new key failed", other);
+            throw new SignerNotReachableException("adding a new key failed", other);
         }
         auditDataHelper.put(KEY_ID, keyInfo.getId());
         auditDataHelper.put(KEY_LABEL, keyInfo.getLabel());
@@ -251,7 +251,7 @@ public class KeyService {
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
-            throw new RuntimeException("delete key failed", other);
+            throw new SignerNotReachableException("delete key failed", other);
         }
     }
 
@@ -276,7 +276,7 @@ public class KeyService {
         } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Could not unregister auth cert", e);
+            throw new SignerNotReachableException("Could not unregister auth cert", e);
         }
     }
 

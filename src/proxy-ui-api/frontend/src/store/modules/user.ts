@@ -5,11 +5,12 @@ import { RootState } from '../types';
 import {
   InitializationStatus,
   SecurityServer,
+  TokenInitStatus,
   User,
   Version,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
+import { mainTabs, TokenInitStatusEnum } from '@/global';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -87,8 +88,8 @@ export const userGetters: GetterTree<UserState, RootState> = {
     return state.initializationStatus?.is_server_code_initialized ?? false;
   },
 
-  isSoftwareTokenInitialized(state): boolean {
-    return state.initializationStatus?.is_software_token_initialized ?? false;
+  softwareTokenInitializationStatus(state): TokenInitStatus | undefined {
+    return state.initializationStatus?.software_token_init_status;
   },
 
   hasInitState: (state) => {
@@ -100,8 +101,10 @@ export const userGetters: GetterTree<UserState, RootState> = {
       state.initializationStatus?.is_anchor_imported &&
       state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized &&
-      (state.initializationStatus.is_software_token_initialized ||
-        state.initializationStatus.is_software_token_initialized === undefined)
+      (state.initializationStatus.software_token_init_status ===
+        TokenInitStatusEnum.INITIALIZED ||
+        state.initializationStatus.software_token_init_status ===
+          TokenInitStatusEnum.UNKNOWN)
     );
   },
 };
@@ -224,7 +227,7 @@ export const actions: ActionTree<UserState, RootState> = {
       is_anchor_imported: true,
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
-      is_software_token_initialized: true,
+      software_token_init_status: TokenInitStatusEnum.INITIALIZED,
     };
 
     commit('storeInitStatus', initStatus);

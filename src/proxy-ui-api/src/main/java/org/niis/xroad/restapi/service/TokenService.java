@@ -35,6 +35,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,18 +86,20 @@ public class TokenService {
 
     /**
      * get all tokens
+     *
      * @return
      */
     public List<TokenInfo> getAllTokens() {
         try {
             return signerProxyFacade.getTokens();
         } catch (Exception e) {
-            throw new RuntimeException("could not list all tokens", e);
+            throw new SignerNotReachableException("could not list all tokens", e);
         }
     }
 
     /**
      * get all sign certificates for a given client.
+     *
      * @param clientType client who's member certificates need to be
      * linked to
      * @return
@@ -107,6 +110,7 @@ public class TokenService {
 
     /**
      * get all certificates for a given client.
+     *
      * @param clientType client who's member certificates need to be
      * linked to
      * @return
@@ -117,6 +121,7 @@ public class TokenService {
 
     /**
      * Get all certificates for a given client
+     *
      * @param clientType
      * @param onlySignCertificates if true, return only signing certificates
      * @return
@@ -137,6 +142,7 @@ public class TokenService {
 
     /**
      * Activate a token
+     *
      * @param id id of token
      * @param password password for token
      * @throws TokenNotFoundException if token was not found
@@ -164,12 +170,13 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("token activation failed", other);
+            throw new SignerNotReachableException("token activation failed", other);
         }
     }
 
     /**
      * Deactivate a token
+     *
      * @param id id of token
      * @throws TokenNotFoundException if token was not found
      * @throws ActionNotPossibleException if deactivation was not possible
@@ -193,12 +200,13 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("token deactivation failed", other);
+            throw new SignerNotReachableException("token deactivation failed", other);
         }
     }
 
     /**
      * return one token
+     *
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
@@ -212,12 +220,13 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("get token failed", other);
+            throw new SignerNotReachableException("get token failed", other);
         }
     }
 
     /**
      * update token friendly name
+     *
      * @param tokenId
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
@@ -242,7 +251,7 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("update token friendly name failed", other);
+            throw new SignerNotReachableException("update token friendly name failed", other);
         }
         return tokenInfo;
     }
@@ -303,7 +312,7 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("getTokenForKeyId failed", other);
+            throw new SignerNotReachableException("getTokenForKeyId failed", other);
         }
     }
 
@@ -323,24 +332,18 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
+            throw new SignerNotReachableException("getTokenAndKeyIdForCertHash failed", other);
         }
     }
 
     /**
-     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED.
-     * If an exception is thrown when querying signer for the tokens, a null status will be returned
-     * @return true/false/null
+     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
+     *
+     * @return true/false
      */
-    public Boolean isSoftwareTokenInitialized() {
+    public boolean isSoftwareTokenInitialized() {
         boolean isSoftwareTokenInitialized = false;
-        List<TokenInfo> tokens = null;
-        try {
-            tokens = getAllTokens();
-        } catch (Exception e) {
-            log.error("Could not get software token status from signer", e);
-            return null;
-        }
+        List<TokenInfo> tokens = getAllTokens();
         Optional<TokenInfo> firstSoftwareToken = tokens.stream()
                 .filter(tokenInfo -> tokenInfo.getId().equals(SOFTWARE_TOKEN_ID))
                 .findFirst();
@@ -350,6 +353,25 @@ public class TokenService {
             isSoftwareTokenInitialized = token.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
         }
         return isSoftwareTokenInitialized;
+    }
+
+    /**
+     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
+     *
+     * @return {@link TokenInitStatusInfo}
+     */
+    public TokenInitStatusInfo getSoftwareTokenInitStatus() {
+        try {
+            boolean isSoftwareTokenInitialized = isSoftwareTokenInitialized();
+            if (isSoftwareTokenInitialized) {
+                return TokenInitStatusInfo.INITIALIZED;
+            } else {
+                return TokenInitStatusInfo.NOT_INITIALIZED;
+            }
+        } catch (SignerNotReachableException e) {
+            log.error("Could not get software token status from signer", e);
+            return TokenInitStatusInfo.UNKNOWN;
+        }
     }
 
     /**
@@ -368,12 +390,13 @@ public class TokenService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
+            throw new SignerNotReachableException("getTokenAndKeyIdForCertHash failed", other);
         }
     }
 
     /**
      * Check if there are any tokens that are not software tokens
+     *
      * @return true if there are any other than software tokens present
      */
     public boolean hasHardwareTokens() {

@@ -37,12 +37,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -119,7 +119,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.getIsSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
@@ -129,7 +129,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertFalse(initStatus.getIsSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.NOT_INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
@@ -139,7 +139,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertFalse(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.getIsSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertFalse(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.getIsSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
@@ -159,17 +159,18 @@ public class InitializationServiceTest {
         assertFalse(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.getIsSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
     public void isSecurityServerInitializedSoftwareTokenUnresolved() {
-        when(tokenService.isSoftwareTokenInitialized()).thenReturn(null);
+        when(tokenService.isSoftwareTokenInitialized())
+                .thenThrow(new SignerNotReachableException("Signer not responding", new Exception()));
         InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertNull(initStatus.getIsSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.UNKNOWN, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test

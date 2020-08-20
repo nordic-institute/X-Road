@@ -5184,6 +5184,11 @@ components:
     InitializationStatus: # ok
       type: object
       description: Initialization status of the Security Server
+      required:
+        - is_anchor_imported
+        - is_server_code_initialized
+        - is_server_owner_initialized
+        - software_token_init_status
       properties:
         is_anchor_imported:
           type: boolean
@@ -5194,10 +5199,8 @@ components:
         is_server_owner_initialized:
           type: boolean
           description: whether the server owner of the security server has been initialized or not
-        is_software_token_initialized:
-          type: boolean
-          description: whether a software token has been initialized or not – if the software token init status
-            cannot be resolved (e.g. signer module is offline), this property will be missing from the response
+        software_token_init_status:
+          $ref: '#/components/schemas/TokenInitStatus'
     KeyWithCertificateSigningRequestId: # ok
       type: object
       description: Key and TokenCertificateSigningRequest id
@@ -5983,6 +5986,16 @@ components:
           description: possible actions that can be done to this object, e.g DELETE.
             Has value only for operationIds getToken and getTokens.
             Does not consider user authorization.
+    TokenInitStatus: # ok
+      type: string
+      format: enum
+      description: whether a token has been initialized or not – if the software token init status
+        cannot be resolved (e.g. signer module is offline), the value is UNKNOWN
+      example: INITIALIZED
+      enum:
+        - INITIALIZED
+        - NOT_INITIALIZED
+        - UNKNOWN
     TokenName: # ok
       type: object
       required:
