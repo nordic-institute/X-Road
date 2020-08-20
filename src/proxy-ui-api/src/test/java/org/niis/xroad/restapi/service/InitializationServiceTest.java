@@ -118,7 +118,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertTrue(initStatus.getIsSoftwareTokenInitialized());
     }
 
     @Test
@@ -128,7 +128,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertFalse(initStatus.isSoftwareTokenInitialized());
+        assertFalse(initStatus.getIsSoftwareTokenInitialized());
     }
 
     @Test
@@ -138,7 +138,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertFalse(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertTrue(initStatus.getIsSoftwareTokenInitialized());
     }
 
     @Test
@@ -148,7 +148,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertFalse(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertTrue(initStatus.getIsSoftwareTokenInitialized());
     }
 
     @Test
@@ -158,7 +158,7 @@ public class InitializationServiceTest {
         assertFalse(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertTrue(initStatus.getIsSoftwareTokenInitialized());
     }
 
     @Test

@@ -69,7 +69,7 @@ public class InitializationApiController implements InitializationApi {
         initializationStatus.setIsAnchorImported(initializationStatusDto.isAnchorImported());
         initializationStatus.setIsServerCodeInitialized(initializationStatusDto.isServerCodeInitialized());
         initializationStatus.setIsServerOwnerInitialized(initializationStatusDto.isServerOwnerInitialized());
-        initializationStatus.setIsSoftwareTokenInitialized(initializationStatusDto.isSoftwareTokenInitialized());
+        initializationStatus.setIsSoftwareTokenInitialized(initializationStatusDto.getIsSoftwareTokenInitialized());
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 

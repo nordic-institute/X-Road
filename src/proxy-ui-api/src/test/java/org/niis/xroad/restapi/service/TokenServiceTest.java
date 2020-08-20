@@ -38,9 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenService.CKR_PIN_INCORRECT_MESSAGE;
 import static org.niis.xroad.restapi.service.TokenService.LOGIN_FAILED_FAULT_CODE;
 import static org.niis.xroad.restapi.service.TokenService.PIN_INCORRECT_FAULT_CODE;
@@ -228,5 +230,12 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             }
         };
         mockServices(possibleActionsRuleEngine);
+    }
+
+    @Test
+    public void isSoftwareTokenInitializedSignerException() throws Exception {
+        when(signerProxyFacade.getTokens()).thenThrow(new RuntimeException("Signer unreachable"));
+        Boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
+        assertNull(isSoftwareTokenInitialized);
     }
 }

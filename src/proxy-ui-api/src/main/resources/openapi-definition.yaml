@@ -5196,7 +5196,8 @@ components:
           description: whether the server owner of the security server has been initialized or not
         is_software_token_initialized:
           type: boolean
-          description: whether a software token has been initialized or not
+          description: whether a software token has been initialized or not – if the software token init status
+            cannot be resolved (e.g. signer module is offline), this property will be missing from the response
     KeyWithCertificateSigningRequestId: # ok
       type: object
       description: Key and TokenCertificateSigningRequest id

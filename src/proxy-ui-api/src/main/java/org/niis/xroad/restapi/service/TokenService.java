@@ -328,12 +328,19 @@ public class TokenService {
     }
 
     /**
-     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
-     * @return
+     * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED.
+     * If an exception is thrown when querying signer for the tokens, a null status will be returned
+     * @return true/false/null
      */
-    public boolean isSoftwareTokenInitialized() {
+    public Boolean isSoftwareTokenInitialized() {
         boolean isSoftwareTokenInitialized = false;
-        List<TokenInfo> tokens = getAllTokens();
+        List<TokenInfo> tokens = null;
+        try {
+            tokens = getAllTokens();
+        } catch (Exception e) {
+            log.error("Could not get software token status from signer", e);
+            return null;
+        }
         Optional<TokenInfo> firstSoftwareToken = tokens.stream()
                 .filter(tokenInfo -> tokenInfo.getId().equals(SOFTWARE_TOKEN_ID))
                 .findFirst();

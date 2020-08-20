@@ -2,10 +2,14 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { SecurityServer, User, Version } from '@/openapi-types';
+import {
+  InitializationStatus,
+  SecurityServer,
+  User,
+  Version,
+} from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
-import { InitializationStatus } from '@/openapi-types';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -96,7 +100,8 @@ export const userGetters: GetterTree<UserState, RootState> = {
       state.initializationStatus?.is_anchor_imported &&
       state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized &&
-      state.initializationStatus.is_software_token_initialized
+      (state.initializationStatus.is_software_token_initialized ||
+        state.initializationStatus.is_software_token_initialized === undefined)
     );
   },
 };

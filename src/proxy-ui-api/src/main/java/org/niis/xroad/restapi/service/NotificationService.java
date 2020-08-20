@@ -94,7 +94,7 @@ public class NotificationService {
         return initStatusDto.isAnchorImported()
                 && initStatusDto.isServerCodeInitialized()
                 && initStatusDto.isServerOwnerInitialized()
-                && initStatusDto.isSoftwareTokenInitialized();
+                && initStatusDto.getIsSoftwareTokenInitialized();
     }
 
     /**

@@ -109,19 +109,20 @@ public class InitializationService {
      * 2. is server code initialized - whether or not a server code has been initialized
      * 3. is server owner initialized - whether or not a server owner has been initialized
      * 4. is software token initialized - whether or not a software token exists AND
-     * it's status != TokenStatusInfo.NOT_INITIALIZED
+     * it's status != TokenStatusInfo.NOT_INITIALIZED. If an exception is thrown when querying signer, software token
+     * init status will be set to null
      * @return
      */
     public InitializationStatusDto getSecurityServerInitializationStatus() {
         boolean isAnchorImported = systemService.isAnchorImported();
         boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
         boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
-        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
+        Boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
         InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
         initializationStatusDto.setAnchorImported(isAnchorImported);
         initializationStatusDto.setServerCodeInitialized(isServerCodeInitialized);
         initializationStatusDto.setServerOwnerInitialized(isServerOwnerInitialized);
-        initializationStatusDto.setSoftwareTokenInitialized(isSoftwareTokenInitialized);
+        initializationStatusDto.setIsSoftwareTokenInitialized(isSoftwareTokenInitialized);
         return initializationStatusDto;
     }
 

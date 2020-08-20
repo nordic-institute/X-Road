@@ -35,5 +35,5 @@ public class InitializationStatusDto {
     private boolean isAnchorImported;
     private boolean isServerCodeInitialized;
     private boolean isServerOwnerInitialized;
-    private boolean isSoftwareTokenInitialized;
+    private Boolean isSoftwareTokenInitialized;
 }

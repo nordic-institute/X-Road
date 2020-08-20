@@ -154,7 +154,7 @@ public class NotificationServiceTest {
 
     private InitializationStatusDto getInitStatus(boolean isFullyInitialized) {
         InitializationStatusDto initDto = new InitializationStatusDto();
-        initDto.setSoftwareTokenInitialized(true);
+        initDto.setIsSoftwareTokenInitialized(true);
         initDto.setServerOwnerInitialized(true);
         initDto.setServerCodeInitialized(true);
         initDto.setAnchorImported(isFullyInitialized);
