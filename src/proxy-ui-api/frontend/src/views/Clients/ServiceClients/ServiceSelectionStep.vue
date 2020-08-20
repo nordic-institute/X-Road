@@ -67,6 +67,20 @@
         </tr>
       </tbody>
     </table>
+    <div class="empty" v-if="serviceCandidates.length === 0">
+      {{ $t('serviceClients.noAvailableServices') }}
+    </div>
+
+    <div
+      class="empty"
+      v-if="
+        serviceCandidates.length > 0 &&
+          searchResults &&
+          searchResults.length === 0
+      "
+    >
+      {{ $t('action.emptySearch', { msg: search }) }}
+    </div>
 
     <div class="button-footer full-width">
       <div class="button-group">
@@ -187,5 +201,9 @@ export default Vue.extend({
 .search-field {
   max-width: 300px;
   margin-bottom: 40px;
+}
+
+.empty {
+  margin-top: 20px;
 }
 </style>
