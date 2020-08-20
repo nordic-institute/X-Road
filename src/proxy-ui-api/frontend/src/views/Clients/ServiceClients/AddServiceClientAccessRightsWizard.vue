@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
+  <div class="view-wrap">
     <subViewTitle
       :title="$t('serviceClients.addServiceClientTitle')"
       :showClose="false"
@@ -152,6 +152,12 @@ export default Vue.extend({
 @import '../../../assets/global-style';
 @import '../../../assets/shared';
 @import '../../../assets/wizards';
+
+.view-wrap {
+  width: 100%;
+  max-width: 850px;
+  margin: 10px;
+}
 
 .stepper-content {
   width: 100%;
