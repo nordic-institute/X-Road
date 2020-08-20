@@ -210,7 +210,7 @@ The timing results were:
 - Wait until the UI becomes accessible: 50 seconds
 - Import anchor and initial configuration: 1 minute
 - Pick timestamp service: 30 seconds
-- Create CSRs and send them for signing, import certificates and register the auth certificate: about 3 minutes for an advanced user
+- Create CSRs and send them for signing, import certificates and register the auth certificate: about 3 minutes for an advanced user (This measurement does not take into account the time it takes to sign the certificates because it is out of our hands)
 - Configure member in central server and register the subsystem: about 2 minutes for an advanced user
 - Add client and wait until it's green: 1 minute and 30 seconds
 
