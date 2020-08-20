@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
+  <div>
     <div class="search-field">
       <v-text-field
         v-model="search"
