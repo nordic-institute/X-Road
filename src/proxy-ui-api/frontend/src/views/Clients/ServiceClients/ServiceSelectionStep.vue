@@ -84,7 +84,11 @@
           >{{ $t('action.previous') }}</large-button
         >
 
-        <large-button data-test="finish-button" @click="saveServices">
+        <large-button
+          data-test="finish-button"
+          @click="saveServices"
+          :disabled="!selections || selections.length === 0"
+        >
           {{ $t('serviceClients.addSelected') }}
         </large-button>
       </div>
