@@ -2,12 +2,12 @@ pipeline {
     agent { label 'dev-test' }
     parameters {
         string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
+        string(description: "Log level of Security Server Sidecar", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
     }
     environment {
         XROAD_DB_HOST = '127.0.0.1'
         XROAD_DB_PORT = '5432'
         XROAD_DB_PWD = 'secret1234'
-        XROAD_LOG_LEVEL = 'OFF'
         VOLUME_CLAIM = 'sidecar-config-fi-provider-claim'
     }
     stages {
