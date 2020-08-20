@@ -49,6 +49,10 @@ cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.
 cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
 
+%ifarch x86_64
+unzip -qjd %{buildroot}/usr/share/xroad/lib/ %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/jna-*.jar com/sun/jna/linux-x86-64/libjnidispatch.so
+%endif
+
 ln -s /usr/share/xroad/jlib/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy-ui-api.jar
 
 %clean
@@ -60,13 +64,15 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/proxy-ui-api.ini
 %config /etc/xroad/conf.d/proxy-ui-api-logback.xml
 
-%attr(644,root,root) %{_unitdir}/xroad-proxy-ui-api.service
-
 %attr(755,root,root) /usr/share/xroad/bin/xroad-proxy-ui-api
 
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-ui-api-setup.sh
 
 %defattr(-,root,root,-)
+%ifarch x86_64
+/usr/share/xroad/lib/libjnidispatch.so
+%endif
+%{_unitdir}/xroad-proxy-ui-api.service
 /usr/share/xroad/jlib/proxy-ui-api*.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info

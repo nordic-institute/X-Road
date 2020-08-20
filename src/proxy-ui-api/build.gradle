@@ -245,7 +245,9 @@ dependencyManagement {
 
 task copyDeps(type: Copy) {
     into "$buildDir/unpacked-libs"
-    from configurations.compileClasspath.find {it.name.startsWith("postgresql") }
+    from configurations.compileClasspath.find {
+      it.name.startsWith("postgresql") or it.name.startsWith("jna-")
+    }
 }
 
 build.dependsOn copyDeps

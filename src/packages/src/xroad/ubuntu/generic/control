@@ -178,7 +178,7 @@ Description: Automatic token pin code entry
  Optional utility that automatically enters the software token pin code on xroad-signer start
 
 Package: xroad-proxy-ui-api
-Architecture: all
+Architecture: amd64
 Pre-depends: xroad-base (=${binary:Version})
 Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Replaces: xroad-nginx, xroad-jetty9
