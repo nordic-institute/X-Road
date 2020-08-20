@@ -42,6 +42,7 @@ import org.niis.xroad.restapi.facade.SignerProxyFacade;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -159,6 +160,16 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
         assertTrue(initStatus.getIsSoftwareTokenInitialized());
+    }
+
+    @Test
+    public void isSecurityServerInitializedSoftwareTokenUnresolved() {
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(null);
+        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        assertTrue(initStatus.isAnchorImported());
+        assertTrue(initStatus.isServerCodeInitialized());
+        assertTrue(initStatus.isServerOwnerInitialized());
+        assertNull(initStatus.getIsSoftwareTokenInitialized());
     }
 
     @Test
