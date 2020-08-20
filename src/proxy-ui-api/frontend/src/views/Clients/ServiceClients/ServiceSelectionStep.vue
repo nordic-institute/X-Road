@@ -48,7 +48,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="accessRight in searchResults()"
+          v-for="accessRight in searchResults"
           v-bind:key="accessRight.id"
           class="service-row"
           data-test="access-right-toggle"
@@ -119,6 +119,13 @@ export default Vue.extend({
       required: true,
     },
   },
+  computed: {
+    searchResults(): ServiceCandidate[] {
+      return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
+        candidate.service_code.includes(this.search),
+      );
+    },
+  },
   data() {
     return {
       selections: [] as ServiceCandidate[],
@@ -156,11 +163,6 @@ export default Vue.extend({
         .catch((error) => this.$store.dispatch('showError', error));
 
       this.clear();
-    },
-    searchResults(): ServiceCandidate[] {
-      return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code.includes(this.search),
-      );
     },
     clear(): void {
       this.selections = [];
