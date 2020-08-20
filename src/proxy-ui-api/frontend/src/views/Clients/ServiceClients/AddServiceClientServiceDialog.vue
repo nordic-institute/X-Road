@@ -32,7 +32,7 @@
     @cancel="cancel"
     :disableSave="filterSelections().length === 0"
   >
-    <div slot="content" v-if="this.serviceCandidates.length > 0">
+    <div slot="content" v-if="serviceCandidates.length > 0">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
