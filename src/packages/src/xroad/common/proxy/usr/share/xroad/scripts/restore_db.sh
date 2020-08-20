@@ -33,8 +33,12 @@ remote_psql() {
   psql -h "$db_addr" -p "$db_port" -qtA "$@"
 }
 
-psql_dbuser() {
+psql_adminuser() {
   PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+}
+
+psql_dbuser() {
+  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
 }
 
 { cat <<EOF
@@ -43,7 +47,16 @@ DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
 EOF
   cat "$dump_file"
   echo "COMMIT;"
-} | psql_dbuser || abort "Restoring database failed."
+} | psql_adminuser || abort "Restoring database failed."
+
+# PostgreSQL does not in all cases detect that prepared statements in open sessions
+# need to be re-parsed. Therefore, try to forcibly close any serverconf connections.
+{ cat <<EOF
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE usename='$db_user' and datname='$db_database' and pid <> pg_backend_pid();
+EOF
+} | psql_dbuser || true
 
 cd /usr/share/xroad/db/
 
@@ -61,4 +74,4 @@ JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquib
   --defaultSchemaName="${db_schema}" \
   $context \
   update \
-  || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+  || die "Database schema migration failed."

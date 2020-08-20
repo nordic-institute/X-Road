@@ -23,56 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.util;
+package org.niis.xroad.restapi.service;
 
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.EntityManager;
-import javax.sql.DataSource;
-
-import java.sql.SQLException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Util class for persistence context helper methods
+ * evict connections from CP (transactional wrapper for PersistenceUtils method)
  */
-@Component
 @Slf4j
-public final class PersistenceUtils {
-
-    private final EntityManager entityManager;
-    private final DataSource dataSource;
+@Service
+@Transactional
+@PreAuthorize("isAuthenticated()")
+public class EvictConnectionsService {
 
     @Autowired
-    public PersistenceUtils(EntityManager entityManager, DataSource dataSource) {
-        this.entityManager = entityManager;
-        this.dataSource = dataSource;
-    }
-
-    public Session getCurrentSession() {
-        return entityManager.unwrap(Session.class);
-    }
+    private PersistenceUtils persistenceUtils;
 
     /**
-     * Evict connection pool connections (used when restoring from backups, to prevent broken connections)
+     * To prevent "relation serverconf does not exist" problems that come from broken connections/statements
+     * that did not like the DB restart
+     * @throws InterruptedException if interrupted
      */
-    public void evictPoolConnections() {
-        try {
-            if (dataSource.isWrapperFor(HikariDataSource.class)) {
-                log.info("Evicting hikari datasource connection pool connections");
-                dataSource.unwrap(HikariDataSource.class)
-                        .getHikariPoolMXBean()
-                        .softEvictConnections();
-            }
-        } catch (SQLException e) {
-            log.error("Unable to evict connections", e);
-        }
+    public void evict() throws InterruptedException {
+        persistenceUtils.evictPoolConnections();
     }
 
-    public void flush() {
-        entityManager.flush();
-    }
 }
