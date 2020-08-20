@@ -23,28 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
-import java.time.OffsetDateTime;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Model for alert data
+ * evict connections from CP (transactional wrapper for PersistenceUtils method)
  */
-@Data
-public class AlertData {
-    @JsonProperty("current_time")
-    private OffsetDateTime currentTime;
-    @JsonProperty("backup_restore_running_since")
-    private OffsetDateTime backupRestoreRunningSince;
-    @JsonProperty("global_conf_valid")
-    private Boolean globalConfValid;
-    @JsonProperty("global_conf_valid_check_success")
-    private Boolean globalConfValidCheckSuccess;
-    @JsonProperty("soft_token_pin_entered")
-    private Boolean softTokenPinEntered;
-    @JsonProperty("soft_token_pin_entered_check_success")
-    private Boolean softTokenPinEnteredCheckSuccess;
+@Slf4j
+@Service
+@Transactional
+@PreAuthorize("isAuthenticated()")
+public class EvictConnectionsService {
+
+    @Autowired
+    private PersistenceUtils persistenceUtils;
+
+    /**
+     * To prevent "relation serverconf does not exist" problems that come from broken connections/statements
+     * that did not like the DB restart
+     * @throws InterruptedException if interrupted
+     */
+    public void evict() throws InterruptedException {
+        persistenceUtils.evictPoolConnections();
+    }
+
 }

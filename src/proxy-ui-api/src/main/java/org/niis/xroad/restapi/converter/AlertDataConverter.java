@@ -42,7 +42,9 @@ public class AlertDataConverter {
             alertData.setCurrentTime(alertStatus.getCurrentTime());
         }
         alertData.setGlobalConfValid(alertStatus.getGlobalConfValid());
+        alertData.setGlobalConfValidCheckSuccess(alertStatus.getGlobalConfValidCheckSuccess());
         alertData.setSoftTokenPinEntered(alertStatus.getSoftTokenPinEntered());
+        alertData.setSoftTokenPinEnteredCheckSuccess(alertStatus.getSoftTokenPinEnteredCheckSuccess());
         return alertData;
     }
 }

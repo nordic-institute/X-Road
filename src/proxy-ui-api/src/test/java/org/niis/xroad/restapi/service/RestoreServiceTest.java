@@ -47,9 +47,6 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
     @Autowired
     TokenService tokenService;
 
-    @Autowired
-    InitializationService initializationService;
-
     private NotificationService notificationService;
 
     @Rule
@@ -63,7 +60,7 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
         restoreService.setConfigurationRestoreScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
         when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
-        notificationService = new NotificationService(globalConfFacade, tokenService, initializationService) {
+        notificationService = new NotificationService(globalConfFacade, tokenService) {
             @Override
             public synchronized OffsetDateTime getBackupRestoreRunningSince() {
                 return null;

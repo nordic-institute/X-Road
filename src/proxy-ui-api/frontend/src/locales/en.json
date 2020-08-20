@@ -374,7 +374,7 @@
     "keyId": "Key ID:",
     "label": "Label:",
     "unknown": "Key type not specified",
-    "incorrectPin": "Incorrect PIN",
+    "incorrectPin": "Incorrect PIN. Please try again.",
     "readOnly": "Read-only:",
     "helpTitleKeys": "AUTH and SIGN Keys",
     "helpTitleApi": "API Keys",
@@ -728,6 +728,12 @@
     "pin": "PIN",
     "confirmPin": "Confirm PIN",
     "securityServerCode": "Security Server Code",
+    "csr": {
+      "usage": "Usage",
+      "client": "Client",
+      "certService": "Certification Service",
+      "csrFormat": "CSR Format"
+    },
     "keys": {
       "friendlyName": "Friendly name"
     },
@@ -835,7 +841,7 @@
     "process_failed": "Process failed",
     "malformed_anchor": "Malformed anchor",
     "wsdl_download_failed": "WSDL download failed",
-    "pin_incorrect": "Incorrect PIN",
+    "pin_incorrect": "Incorrect PIN. Please try again.",
     "certificate_already_exists": "Certificate already exists",
     "invalid_backup_file": "Invalid backup file",
     "cannot_unregister_owner": "Can not unregister owner",
