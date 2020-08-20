@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AlertStatus;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -146,5 +147,14 @@ public class NotificationService {
      */
     public synchronized void setBackupRestoreRunningSince() {
         backupRestoreRunningSince = OffsetDateTime.now(ZoneOffset.UTC);
+    }
+
+    @EventListener
+    protected void onEvent(BackupRestoreEvent e) {
+        if (BackupRestoreEvent.START.equals(e)) {
+            setBackupRestoreRunningSince();
+        } else {
+            resetBackupRestoreRunningSince();
+        }
     }
 }
