@@ -108,6 +108,7 @@ public class InitializationServiceTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper);
         initializationService.setTokenPinEnforced(false);
@@ -124,7 +125,7 @@ public class InitializationServiceTest {
 
     @Test
     public void isSecurityServerInitializedTokenNot() {
-        when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.NOT_INITIALIZED);
         InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
@@ -155,6 +156,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedAnchorNot() {
         when(systemService.isAnchorImported()).thenReturn(false);
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
         assertFalse(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
@@ -164,8 +166,7 @@ public class InitializationServiceTest {
 
     @Test
     public void isSecurityServerInitializedSoftwareTokenUnresolved() {
-        when(tokenService.isSoftwareTokenInitialized())
-                .thenThrow(new SignerNotReachableException("Signer not responding", new Exception()));
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.UNKNOWN);
         InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
