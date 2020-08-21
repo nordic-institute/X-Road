@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,32 +24,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-/**
- * evict connections from CP (transactional wrapper for PersistenceUtils method)
- */
-@Slf4j
-@Service
-@Transactional
-@PreAuthorize("isAuthenticated()")
-public class EvictConnectionsService {
-
-    @Autowired
-    private PersistenceUtils persistenceUtils;
-
-    /**
-     * To prevent "relation serverconf does not exist" problems that come from broken connections/statements
-     * that did not like the DB restart
-     * @throws InterruptedException if interrupted
-     */
-    public void evict() throws InterruptedException {
-        persistenceUtils.evictPoolConnections();
-    }
-
+public enum BackupRestoreEvent {
+    START, END;
 }

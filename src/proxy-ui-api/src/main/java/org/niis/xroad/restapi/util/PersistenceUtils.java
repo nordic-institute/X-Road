@@ -62,7 +62,7 @@ public final class PersistenceUtils {
     public void evictPoolConnections() {
         try {
             if (dataSource.isWrapperFor(HikariDataSource.class)) {
-                log.info("Evicting hikari datasource connection pool connections");
+                log.debug("Evicting connection pool connections");
                 dataSource.unwrap(HikariDataSource.class)
                         .getHikariPoolMXBean()
                         .softEvictConnections();

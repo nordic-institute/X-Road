@@ -226,7 +226,7 @@ public class OrphanRemovalService {
         try {
             // delete the orphans
             for (KeyInfo keyInfo : orphans.getKeys()) {
-                keyService.deleteKey(keyInfo.getId());
+                keyService.deleteKeyAndIgnoreWarnings(keyInfo.getId());
             }
             tokenCertificateService.deleteCertificates(orphans.getCerts());
             for (CertRequestInfo certRequestInfo : orphans.getCsrs()) {

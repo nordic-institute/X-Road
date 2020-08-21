@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -64,6 +66,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class KeyService {
+
+    public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
 
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
@@ -203,14 +207,39 @@ public class KeyService {
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
 
     /**
-     * Deletes one key
+     * Deletes one key, and related CSRs and certificates. If the key is an authentication key with a registered
+     * certificate, warnings are ignored and certificate is first unregistered, and the key and certificate are
+     * deleted after that.
      * @param keyId
      * @throws ActionNotPossibleException if delete was not possible for the key
      * @throws KeyNotFoundException if key with given id was not found
      * @throws org.niis.xroad.restapi.service.GlobalConfOutdatedException if global conf was outdated
      */
-    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
+    public void deleteKeyAndIgnoreWarnings(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfOutdatedException {
+        try {
+            deleteKey(keyId, true);
+        } catch (UnhandledWarningsException e) {
+            // Since "ignoreWarnings = true", the exception should never be thrown
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Deletes one key, and related CSRs and certificates. If the key is an authentication key with a registered
+     * certificate and ignoreWarnings = false, an UnhandledWarningsException is thrown and the key is not deleted. If
+     * ignoreWarnings = true, the authentication certificate is first unregistered, and the key and certificate are
+     * deleted after that.
+     * @param keyId
+     * @param ignoreWarnings
+     * @throws ActionNotPossibleException if delete was not possible for the key
+     * @throws KeyNotFoundException if key with given id was not found
+     * @throws org.niis.xroad.restapi.service.GlobalConfOutdatedException if global conf was outdated
+     * @throws UnhandledWarningsException if the key is an authentication key, it has a registered certificate,
+     * and ignoreWarnings was false
+     */
+    public void deleteKey(String keyId, Boolean ignoreWarnings) throws KeyNotFoundException, ActionNotPossibleException,
+            GlobalConfOutdatedException, UnhandledWarningsException {
 
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         auditDataHelper.put(tokenInfo);
@@ -232,11 +261,17 @@ public class KeyService {
 
         // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-            for (CertificateInfo certificateInfo : keyInfo.getCerts()) {
-                if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
-                        || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
-                    unregisterAuthCert(certificateInfo);
-                }
+            // get list of auth certs to be unregistered
+            List<CertificateInfo> unregister = keyInfo.getCerts().stream().filter(this::shouldUnregister)
+                    .collect(Collectors.toList());
+
+            if (!unregister.isEmpty() && !ignoreWarnings) {
+                throw new UnhandledWarningsException(
+                        new WarningDeviation(WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED, keyId));
+            }
+
+            for (CertificateInfo certificateInfo : unregister) {
+                unregisterAuthCert(certificateInfo);
             }
         }
 
@@ -253,6 +288,16 @@ public class KeyService {
         } catch (Exception other) {
             throw new SignerNotReachableException("delete key failed", other);
         }
+    }
+
+    /**
+     * Check if the certificateInfo should be unregistered before it is deleted.
+     * @param certificateInfo
+     * @return if certificateInfo's status is "REGINPROG" or "REGISTERED" return true, otherwise false
+     */
+    private boolean shouldUnregister(CertificateInfo certificateInfo) {
+        return certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
+                || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED);
     }
 
     /**
