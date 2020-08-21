@@ -26,8 +26,11 @@
 package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.service.SignerNotReachableException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +59,7 @@ public class ApplicationExceptionHandler {
 
     /**
      * handle exceptions
+     *
      * @param e
      * @return
      */
@@ -68,6 +72,7 @@ public class ApplicationExceptionHandler {
 
     /**
      * handle auth exceptions
+     *
      * @param e
      * @return
      */
@@ -84,6 +89,7 @@ public class ApplicationExceptionHandler {
 
     /**
      * handle access denied exceptions
+     *
      * @param e
      * @return
      */
@@ -92,5 +98,25 @@ public class ApplicationExceptionHandler {
         auditEventLoggingFacade.auditLogFail(UNSPECIFIED_ACCESS_CHECK, e);
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * check for nested SignerNotReachable exception when BeanCreationException is caught
+     *
+     * @param beanCreationException
+     * @return
+     */
+    @ExceptionHandler(BeanCreationException.class)
+    public ResponseEntity<ErrorInfo> exception(BeanCreationException beanCreationException) {
+        auditEventLoggingFacade.auditLogFail(beanCreationException);
+        log.error("exception caught", beanCreationException);
+        Exception exception = beanCreationException;
+        int indexOfSignerException = ExceptionUtils
+                .indexOfThrowable(beanCreationException, SignerNotReachableException.class);
+        if (indexOfSignerException != -1) {
+            exception = (SignerNotReachableException) ExceptionUtils
+                    .getThrowables(beanCreationException)[indexOfSignerException];
+        }
+        return exceptionTranslator.toResponseEntity(exception, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
