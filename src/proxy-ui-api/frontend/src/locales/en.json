@@ -447,6 +447,7 @@
     }
   },
   "csr": {
+    "addKey": "Add key",
     "usage": "Usage",
     "client": "Client",
     "certificationService": "Certification Service",

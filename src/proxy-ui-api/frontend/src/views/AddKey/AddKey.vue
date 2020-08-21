@@ -27,7 +27,7 @@
   <div class="view-wrap">
     <subViewTitle
       class="view-title"
-      :title="$t('csr.generateCsr')"
+      :title="$t('csr.addKey')"
       :showClose="false"
     />
     <v-stepper
