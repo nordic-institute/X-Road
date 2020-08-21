@@ -103,8 +103,8 @@ setup_database() {
 
     if [[ ! -f "$root_properties" ]]; then
       touch ${root_properties}
-      chown root:root ${db_properties}
-      chmod 640 ${db_properties}
+      chown root:root ${root_properties}
+      chmod 600 ${root_properties}
     fi
 
     crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
