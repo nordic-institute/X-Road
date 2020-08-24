@@ -37,12 +37,9 @@
         color="secondary"
         class="xrd-main-tabs-slider"
       ></v-tabs-slider>
-      <v-tab
-        v-for="tab in allowedTabs"
-        v-bind:key="tab.key"
-        :to="tab.to"
-        >{{ $t(tab.name) }}</v-tab
-      >
+      <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
     </v-tabs>
   </v-layout>
 </template>
