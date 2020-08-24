@@ -57,6 +57,7 @@
 - XRDDEV-1242 - Fix Central Server database disappearing on upgrade
 - XRDDEV-1209 - Implementaion of the Faroe Islands's certificate profiles
 - XRDDEV-1247 - Fix static analysis findings
+- XRDDEV-1277 - Fix database backup failure
 
 ## 6.23.0 - 2020-02-19
 - XRDDEV-730: Validate security server addresses on security server.
