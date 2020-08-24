@@ -138,7 +138,7 @@
         <v-row
           no-gutters
           class="mt-10"
-          v-if="hasPermission(permissions.GENERATE_AUTH_CERT_REQ)"
+          v-if="hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)"
         >
           <v-col
             ><h3>
@@ -148,7 +148,7 @@
         </v-row>
         <v-row
           no-gutters
-          v-if="hasPermission(permissions.GENERATE_AUTH_CERT_REQ)"
+          v-if="hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)"
         >
           <v-col>
             <table class="xrd-table">
