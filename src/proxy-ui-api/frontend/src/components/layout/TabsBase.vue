@@ -41,7 +41,6 @@
         v-for="tab in allowedTabs"
         v-bind:key="tab.key"
         :to="tab.to"
-        exact
         >{{ $t(tab.name) }}</v-tab
       >
     </v-tabs>
