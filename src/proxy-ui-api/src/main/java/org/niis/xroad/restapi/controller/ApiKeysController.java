@@ -61,7 +61,7 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 @RestController
 @RequestMapping(ApiKeysController.API_KEYS_V1_PATH)
 @Slf4j
-@PreAuthorize("denyAll()")
+@PreAuthorize("denyAll")
 public class ApiKeysController {
 
     public static final String API_KEYS_V1_PATH = API_V1_PREFIX + "/api-keys";
@@ -112,7 +112,7 @@ public class ApiKeysController {
      * list api keys from db
      */
     @RequestMapping(method = RequestMethod.GET)
-    @PreAuthorize("hasAuthority('LIST_API_KEYS')")
+    @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<Collection<PublicApiKeyData>> list() {
         Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
         return new ResponseEntity<>(publicApiKeyDataConverter.convert(keys), HttpStatus.OK);

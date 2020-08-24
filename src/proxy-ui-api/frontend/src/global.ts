@@ -115,7 +115,7 @@ export enum Permissions {
   IMPORT_INTERNAL_SSL_CERT = 'IMPORT_INTERNAL_SSL_CERT', // Security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
   INIT_CONFIG = 'INIT_CONFIG',
-  LIST_API_KEYS = 'LIST_API_KEYS', // api key
+  VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
   REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
   REFRESH_REST = 'REFRESH_REST', // client > services > refresh rest
   REFRESH_OPENAPI3 = 'REFRESH_OPENAPI3', // client > services > refresh openapi3

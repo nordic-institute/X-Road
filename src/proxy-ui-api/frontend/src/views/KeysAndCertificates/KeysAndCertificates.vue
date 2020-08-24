@@ -103,7 +103,7 @@ export default Vue.extend({
           },
           permissions: [
             Permissions.CREATE_API_KEY,
-            Permissions.LIST_API_KEYS,
+            Permissions.VIEW_API_KEYS,
             Permissions.UPDATE_API_KEY,
             Permissions.REVOKE_API_KEY,
           ],

@@ -49,7 +49,7 @@ public class ApiKeysControllerTest extends AbstractApiControllerTestContext {
     private static final List<String> ROLES = Collections.singletonList("XROAD_SYSTEM_ADMINISTRATION");
 
     @Test
-    @WithMockUser(authorities = "LIST_API_KEYS")
+    @WithMockUser(authorities = "VIEW_API_KEYS")
     public void listApiKeys() {
         apiKeysController.list();
         verify(apiKeyService).listAll();
