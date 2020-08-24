@@ -48,7 +48,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="accessRight in searchResults()"
+          v-for="accessRight in searchResults"
           v-bind:key="accessRight.id"
           class="service-row"
           data-test="access-right-toggle"
@@ -67,6 +67,20 @@
         </tr>
       </tbody>
     </table>
+    <div class="empty" v-if="serviceCandidates.length === 0">
+      {{ $t('serviceClients.noAvailableServices') }}
+    </div>
+
+    <div
+      class="empty"
+      v-if="
+        serviceCandidates.length > 0 &&
+          searchResults &&
+          searchResults.length === 0
+      "
+    >
+      {{ $t('action.emptySearch', { msg: search }) }}
+    </div>
 
     <div class="button-footer full-width">
       <div class="button-group">
@@ -84,7 +98,11 @@
           >{{ $t('action.previous') }}</large-button
         >
 
-        <large-button data-test="finish-button" @click="saveServices">
+        <large-button
+          data-test="finish-button"
+          @click="saveServices"
+          :disabled="!selections || selections.length === 0"
+        >
           {{ $t('serviceClients.addSelected') }}
         </large-button>
       </div>
@@ -117,6 +135,13 @@ export default Vue.extend({
     serviceClientCandidateSelection: {
       type: Object as Prop<ServiceClient>,
       required: true,
+    },
+  },
+  computed: {
+    searchResults(): ServiceCandidate[] {
+      return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
+        candidate.service_code.includes(this.search),
+      );
     },
   },
   data() {
@@ -157,11 +182,6 @@ export default Vue.extend({
 
       this.clear();
     },
-    searchResults(): ServiceCandidate[] {
-      return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code.includes(this.search),
-      );
-    },
     clear(): void {
       this.selections = [];
     },
@@ -181,5 +201,9 @@ export default Vue.extend({
 .search-field {
   max-width: 300px;
   margin-bottom: 40px;
+}
+
+.empty {
+  margin-top: 20px;
 }
 </style>
