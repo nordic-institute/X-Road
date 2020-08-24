@@ -80,6 +80,7 @@ export enum Permissions {
   ADD_TSP = 'ADD_TSP',
   ADD_WSDL = 'ADD_WSDL', // client > services > add WSDL / REST
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION',
+  CREATE_API_KEY = 'CREATE_API_KEY', // api key
   DELETE_AUTH_CERT = 'DELETE_AUTH_CERT', // certificate details
   DELETE_AUTH_KEY = 'DELETE_AUTH_KEY', // key details
   DELETE_CLIENT = 'DELETE_CLIENT',
@@ -114,15 +115,18 @@ export enum Permissions {
   IMPORT_INTERNAL_SSL_CERT = 'IMPORT_INTERNAL_SSL_CERT', // Security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
   INIT_CONFIG = 'INIT_CONFIG',
+  LIST_API_KEYS = 'LIST_API_KEYS', // api key
   REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
   REFRESH_REST = 'REFRESH_REST', // client > services > refresh rest
   REFRESH_OPENAPI3 = 'REFRESH_OPENAPI3', // client > services > refresh openapi3
   RESTORE_CONFIGURATION = 'RESTORE_CONFIGURATION',
+  REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
   SEND_AUTH_CERT_DEL_REQ = 'SEND_AUTH_CERT_DEL_REQ', // auth cert details > unregister
   SEND_AUTH_CERT_REG_REQ = 'SEND_AUTH_CERT_REG_REQ', // sign and keys > register
   SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ',
   SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ',
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
+  UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR',
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES',
   VIEW_ANCHOR = 'VIEW_ANCHOR',
