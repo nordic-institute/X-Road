@@ -30,6 +30,7 @@
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
     <td class="text-right">
       <small-button
+        v-if="canEdit"
         @click="openEditDialog"
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
@@ -71,6 +72,7 @@
         </div>
       </simpleDialog>
       <small-button
+        v-if="canRevoke"
         class="ml-5"
         :data-test="`api-key-row-${apiKey.id}-revoke-button`"
         :loading="removingApiKey"
@@ -98,7 +100,7 @@ import { ApiKey } from '@/global-types';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
-import { Roles } from '@/global';
+import { Roles, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   name: 'ApiKeyRow',
@@ -111,6 +113,14 @@ export default Vue.extend({
     apiKey: {
       type: Object as Prop<ApiKey>,
       required: true,
+    },
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+    },
+    canRevoke(): boolean {
+      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
     },
   },
   data() {
