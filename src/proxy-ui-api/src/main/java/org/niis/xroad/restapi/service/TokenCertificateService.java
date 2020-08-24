@@ -215,7 +215,7 @@ public class TokenCertificateService {
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e);
+            throw new SignerNotReachableException("Generate cert request failed", e);
         }
     }
 
@@ -272,7 +272,7 @@ public class TokenCertificateService {
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e);
+            throw new SignerNotReachableException("Regenerate cert request failed", e);
         }
     }
 
@@ -297,7 +297,7 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new RuntimeException("error getting certificate", e);
+            throw new SignerNotReachableException("error getting certificate", e);
         }
         return certificateInfo;
     }
@@ -476,7 +476,7 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new RuntimeException("certificate "
+            throw new SignerNotReachableException("certificate "
                     + (activate ? "activation" : "deactivation")
                     + " failed", e);
         }
@@ -624,7 +624,7 @@ public class TokenCertificateService {
         } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Could not register auth cert", e);
+            throw new SignerNotReachableException("Could not register auth cert", e);
         }
     }
 
@@ -639,7 +639,7 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
-     * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
+     * @throws ManagementRequestSendingFailedException
      */
     private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
             throws CertificateNotFoundException, GlobalConfOutdatedException,
@@ -659,7 +659,7 @@ public class TokenCertificateService {
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (Exception e) {
             // this means that cert was not found (which has been handled already) or some Akka error
-            throw new RuntimeException("Could not change auth cert status", e);
+            throw new SignerNotReachableException("Could not change auth cert status", e);
         }
     }
 
@@ -673,7 +673,7 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
-     * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
+     * @throws ManagementRequestSendingFailedException
      */
     public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
             ActionNotPossibleException, GlobalConfOutdatedException, InvalidCertificateException,
@@ -936,7 +936,7 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("deleting a csr failed", other);
+            throw new SignerNotReachableException("deleting a csr failed", other);
         }
     }
 
@@ -954,7 +954,7 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception e) {
-            throw new RuntimeException("error getting certificate", e);
+            throw new SignerNotReachableException("error getting certificate", e);
         }
     }
 
@@ -1004,7 +1004,7 @@ public class TokenCertificateService {
                 throw e;
             }
         } catch (Exception other) {
-            throw new RuntimeException("deleting a csr failed", other);
+            throw new SignerNotReachableException("deleting a csr failed", other);
         }
     }
 

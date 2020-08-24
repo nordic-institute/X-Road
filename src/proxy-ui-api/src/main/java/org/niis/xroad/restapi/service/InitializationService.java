@@ -37,6 +37,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -108,20 +109,22 @@ public class InitializationService {
      * 1. is anchor imported - whether or not a configuration anchor has been imported
      * 2. is server code initialized - whether or not a server code has been initialized
      * 3. is server owner initialized - whether or not a server owner has been initialized
-     * 4. is software token initialized - whether or not a software token exists AND
-     * it's status != TokenStatusInfo.NOT_INITIALIZED
+     * 4. software token initialization status - whether or not a software token exists AND
+     * it's status != TokenStatusInfo.NOT_INITIALIZED. If an exception is thrown when querying signer, software token
+     * init status will be UNKNOWN
+     *
      * @return
      */
     public InitializationStatusDto getSecurityServerInitializationStatus() {
         boolean isAnchorImported = systemService.isAnchorImported();
         boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
         boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
-        boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
+        TokenInitStatusInfo tokenInitStatus = tokenService.getSoftwareTokenInitStatus();
         InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
         initializationStatusDto.setAnchorImported(isAnchorImported);
         initializationStatusDto.setServerCodeInitialized(isServerCodeInitialized);
         initializationStatusDto.setServerOwnerInitialized(isServerOwnerInitialized);
-        initializationStatusDto.setSoftwareTokenInitialized(isSoftwareTokenInitialized);
+        initializationStatusDto.setSoftwareTokenInitStatusInfo(tokenInitStatus);
         return initializationStatusDto;
     }
 
@@ -129,6 +132,7 @@ public class InitializationService {
      * Initialize a new Security Server with the provided parameters. Supports partial initialization which means
      * that if e.g. software token has already been initialized, it will not get initialized again, therefore the
      * parameter <code>String softwareTokenPin</code> can be <code>null</code>.
+     *
      * @param securityServerCode server code for the new Security Server
      * @param ownerMemberClass member class of the new owner member
      * @param ownerMemberCode member code of the new owner member
@@ -187,6 +191,7 @@ public class InitializationService {
      * Verify that when initializing a new security server, all required parameters are provided.
      * If old values DO NOT exist -> new values must be provided.
      * If old values DO exists -> new values are not allowed
+     *
      * @param securityServerCode
      * @param ownerMemberClass
      * @param ownerMemberCode
@@ -260,6 +265,7 @@ public class InitializationService {
 
     /**
      * Helper to create a software token
+     *
      * @param softwareTokenPin the pin of the token
      * @throws InvalidCharactersException if the pin includes characters outside of ascii (range 32 - 126)
      * @throws WeakPinException if the pin does not meet the requirements set in {@link TokenPinPolicy}
@@ -293,6 +299,7 @@ public class InitializationService {
     /**
      * Helper to create the initial server conf with a new server code and owner. If an existing server conf is found
      * and it already has a server code or an owner -> the existing values will not be overridden
+     *
      * @param ownerClientId
      * @param securityServerCode
      * @return ServerConfType
@@ -322,6 +329,7 @@ public class InitializationService {
      * - if software token has already been initialized
      * - if trying to add unregistered member as an owner
      * - if the provided server id already exists in global conf
+     *
      * @param ownerClientId
      * @param securityServerCode
      * @throws UnhandledWarningsException
@@ -362,6 +370,7 @@ public class InitializationService {
 
     /**
      * Helper to create an initial client
+     *
      * @param clientId
      * @return
      */

@@ -131,6 +131,7 @@ public class NotificationServiceTest {
         assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 
+    @Test
     public void getAlertsGlobalConfCheckThrowsRuntimeException() {
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
