@@ -33,3 +33,16 @@ export type FileUploadResult = {
   buffer: ArrayBuffer;
   file: File;
 };
+
+// Data for snackbar notification
+export interface Notification {
+  timeAdded: number;
+  timeout: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errorObject?: any;
+  errorMessageCode?: string;
+  errorMessageRaw?: string;
+  successMessageCode?: string;
+  successMessageRaw?: string;
+  show: boolean;
+}

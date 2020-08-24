@@ -319,10 +319,11 @@ software.
 
 **Main Success Scenario**:
 
-1.  CS administrator selects to view the version of the installed
+1.  CS administrator wants to view the version of the installed
     software.
 
-2.  System displays the version information.
+2.  CS administrator views the version of the installed
+    software in the footer, at the bottom of the page.
 
 **Extensions**: -
 
