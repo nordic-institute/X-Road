@@ -25,15 +25,6 @@
  */
 package org.niis.xroad.restapi.dto;
 
-import lombok.Data;
-
-/**
- * DTO for security server initialization status
- */
-@Data
-public class InitializationStatusDto {
-    private boolean isAnchorImported;
-    private boolean isServerCodeInitialized;
-    private boolean isServerOwnerInitialized;
-    private TokenInitStatusInfo softwareTokenInitStatusInfo = TokenInitStatusInfo.UNKNOWN;
+public enum TokenInitStatusInfo {
+    INITIALIZED, NOT_INITIALIZED, UNKNOWN
 }

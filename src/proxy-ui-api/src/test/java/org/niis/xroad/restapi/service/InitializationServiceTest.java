@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 
@@ -107,6 +108,7 @@ public class InitializationServiceTest {
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper);
         initializationService.setTokenPinEnforced(false);
@@ -118,17 +120,17 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
     public void isSecurityServerInitializedTokenNot() {
-        when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.NOT_INITIALIZED);
         InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertFalse(initStatus.isSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.NOT_INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
@@ -138,7 +140,7 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertFalse(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
@@ -148,17 +150,28 @@ public class InitializationServiceTest {
         assertTrue(initStatus.isAnchorImported());
         assertFalse(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test
     public void isSecurityServerInitializedAnchorNot() {
         when(systemService.isAnchorImported()).thenReturn(false);
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
         assertFalse(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
-        assertTrue(initStatus.isSoftwareTokenInitialized());
+        assertEquals(TokenInitStatusInfo.INITIALIZED, initStatus.getSoftwareTokenInitStatusInfo());
+    }
+
+    @Test
+    public void isSecurityServerInitializedSoftwareTokenUnresolved() {
+        when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.UNKNOWN);
+        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        assertTrue(initStatus.isAnchorImported());
+        assertTrue(initStatus.isServerCodeInitialized());
+        assertTrue(initStatus.isServerOwnerInitialized());
+        assertEquals(TokenInitStatusInfo.UNKNOWN, initStatus.getSoftwareTokenInitStatusInfo());
     }
 
     @Test

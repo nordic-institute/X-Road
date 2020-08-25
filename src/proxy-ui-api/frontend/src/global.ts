@@ -178,6 +178,12 @@ export enum CertificateStatus {
   GLOBAL_ERROR = 'GLOBAL_ERROR',
 }
 
+export enum TokenInitStatusEnum {
+  INITIALIZED = 'INITIALIZED',
+  NOT_INITIALIZED = 'NOT_INITIALIZED',
+  UNKNOWN = 'UNKNOWN',
+}
+
 export const mainTabs: Tab[] = [
   {
     to: { name: RouteName.Clients },
