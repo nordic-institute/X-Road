@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Translate exceptions to ResponseEntities
+ * Translate exceptions to ResponseEntities that contain the standard error object {@link ErrorInfo}
  */
 @Component
 public class ExceptionTranslator {
