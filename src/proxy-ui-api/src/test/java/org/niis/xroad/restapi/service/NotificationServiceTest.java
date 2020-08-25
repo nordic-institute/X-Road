@@ -35,16 +35,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.dto.AlertStatus;
-import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 
 import java.util.Collections;
 import java.util.List;
 
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -58,8 +55,6 @@ public class NotificationServiceTest {
     @Mock
     private GlobalConfFacade globalConfFacade;
     @Mock
-    private InitializationService initializationService;
-    @Mock
     private TokenService tokenService;
 
     private NotificationService notificationService;
@@ -68,9 +63,7 @@ public class NotificationServiceTest {
 
     @Before
     public void setup() {
-        InitializationStatusDto initDto = getInitStatus(true);
-        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
-        notificationService = new NotificationService(globalConfFacade, tokenService, initializationService);
+        notificationService = new NotificationService(globalConfFacade, tokenService);
     }
 
     @Test
@@ -92,7 +85,9 @@ public class NotificationServiceTest {
         assertEquals(null, alertStatus.getBackupRestoreRunningSince());
         assertEquals(null, alertStatus.getCurrentTime());
         assertEquals(true, alertStatus.getGlobalConfValid());
+        assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(true, alertStatus.getSoftTokenPinEntered());
+        assertEquals(true, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 
     @Test
@@ -102,26 +97,20 @@ public class NotificationServiceTest {
 
         doThrow(new CodedException("")).when(globalConfFacade).verifyValidity();
 
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .id(SignerProxy.SSL_TOKEN_ID)
-                .active(false)
-                .build();
-        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
-
-        when(tokenService.getAllTokens()).thenReturn(allTokens);
-
         AlertStatus alertStatus = notificationService.getAlerts();
         assertNotNull(alertStatus.getBackupRestoreRunningSince());
         assertNotNull(alertStatus.getCurrentTime());
         assertEquals(false, alertStatus.getGlobalConfValid());
+        assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(false, alertStatus.getSoftTokenPinEntered());
+        assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
 
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
     }
 
     @Test
-    public void getAlertsSoftTokenNotFoundException() {
+    public void getAlertsSoftTokenNotFound() {
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
@@ -135,29 +124,34 @@ public class NotificationServiceTest {
 
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
-        try {
-            AlertStatus alertStatus = notificationService.getAlerts();
-            fail("should throw RuntimeException");
-        } catch (RuntimeException expected) {
-            // success
-        }
+        AlertStatus alertStatus = notificationService.getAlerts();
+        assertEquals(true, alertStatus.getGlobalConfValid());
+        assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
+        assertEquals(false, alertStatus.getSoftTokenPinEntered());
+        assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 
     @Test
-    public void getAlertsNotInitialized() {
-        InitializationStatusDto initDto = getInitStatus(false);
-        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(initDto);
-        AlertStatus alertStatus = notificationService.getAlerts();
-        assertFalse(alertStatus.getGlobalConfValid());
-        assertFalse(alertStatus.getSoftTokenPinEntered());
-    }
+    public void getAlertsGlobalConfCheckThrowsRuntimeException() {
+        notificationService.resetBackupRestoreRunningSince();
+        assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
-    private InitializationStatusDto getInitStatus(boolean isFullyInitialized) {
-        InitializationStatusDto initDto = new InitializationStatusDto();
-        initDto.setSoftwareTokenInitialized(true);
-        initDto.setServerOwnerInitialized(true);
-        initDto.setServerCodeInitialized(true);
-        initDto.setAnchorImported(isFullyInitialized);
-        return initDto;
+        doThrow(new RuntimeException("")).when(globalConfFacade).verifyValidity();
+
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .id(SignerProxy.SSL_TOKEN_ID)
+                .active(true)
+                .build();
+        List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
+
+        when(tokenService.getAllTokens()).thenReturn(allTokens);
+
+        AlertStatus alertStatus = notificationService.getAlerts();
+        assertEquals(null, alertStatus.getBackupRestoreRunningSince());
+        assertEquals(null, alertStatus.getCurrentTime());
+        assertEquals(false, alertStatus.getGlobalConfValid());
+        assertEquals(false, alertStatus.getGlobalConfValidCheckSuccess());
+        assertEquals(true, alertStatus.getSoftTokenPinEntered());
+        assertEquals(true, alertStatus.getSoftTokenPinEnteredCheckSuccess());
     }
 }

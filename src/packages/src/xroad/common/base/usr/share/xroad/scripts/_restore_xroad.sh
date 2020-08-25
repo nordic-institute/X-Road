@@ -141,7 +141,14 @@ setup_tmp_restore_dir() {
 
 extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
-  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad etc/nginx || die "Extracting backup failed"
+  # etc/xroad is always included in the backup, etc/nginx only when backup is for CS
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
+  if tar -tf ${BACKUP_FILENAME} etc/nginx >/dev/null 2>&1; then
+    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/nginx || die "Extracting etc/nginx failed"
+  else
+    echo "No etc/nginx in backup"
+  fi
+
   # dbdump is optional
   if [[ $SKIP_DB_RESTORE != true ]] ; then
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat

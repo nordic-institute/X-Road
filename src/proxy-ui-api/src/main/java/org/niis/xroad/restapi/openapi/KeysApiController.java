@@ -54,6 +54,7 @@ import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.service.WrongKeyUsageException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -225,14 +226,14 @@ public class KeysApiController implements KeysApi {
     @Override
     @PreAuthorize("hasAnyAuthority('DELETE_KEY', 'DELETE_AUTH_KEY', 'DELETE_SIGN_KEY')")
     @AuditEventMethod(event = DELETE_KEY)
-    public ResponseEntity<Void> deleteKey(String keyId) {
+    public ResponseEntity<Void> deleteKey(String keyId, Boolean ignoreWarnings) {
         try {
-            keyService.deleteKey(keyId);
+            keyService.deleteKey(keyId, ignoreWarnings);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
-        } catch (GlobalConfOutdatedException e) {
+        } catch (GlobalConfOutdatedException | UnhandledWarningsException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

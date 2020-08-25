@@ -5,6 +5,7 @@ The X-Road project is distributed under the following copyright and license:
 
 The MIT License (MIT)
 
+Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 Copyright (c) 2018 Estonian Information System Authority (RIA),
 Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -120,11 +121,11 @@ The above license information has been collected by the project from the license
 
 Any questions regarding licensing should be addressed to:
 
-Population Register Centre
-P.O. Box 123
-00531 Helsinki
-Finland
-kapa-asiakaspalvelu( at )vrk.fi replacing ( at ) with @
+MTÜ Nordic Institute for Interoperability Solutions
+Hobujaama 4
+10151 Tallinn
+Estonia
+info( at )niis.org replacing ( at ) with @
 
 Copyright notices and license texts for the above dependencies follow:
 

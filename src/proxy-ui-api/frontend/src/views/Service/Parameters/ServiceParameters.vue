@@ -1,3 +1,28 @@
+<!--
+   The MIT License
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <div class="apply-to-all" v-if="showApplyToAll">
@@ -105,7 +130,8 @@
       <div class="button-wrap">
         <large-button
           :disabled="invalid || disableSave"
-          @click="save()"
+          :loading="saving"
+          @click="save(false)"
           data-test="save-service-parameters"
           >{{ $t('action.save') }}</large-button
         >
@@ -199,6 +225,15 @@
       @cancel="closeAccessRightsDialog"
       @serviceClientsAdded="doAddServiceClient"
     />
+
+    <!-- Warning dialog when service parameters are saved -->
+    <warningDialog
+      :dialog="warningDialog"
+      :warnings="warningInfo"
+      localizationParent="services.service_parameters_ssl_test_warnings"
+      @cancel="cancelSubmit()"
+      @accept="acceptWarnings()"
+    />
   </div>
 </template>
 
@@ -209,11 +244,13 @@ import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
+import { encodePathParameter } from '@/util/api';
 
 type NullableServiceClient = undefined | ServiceClient;
 
@@ -223,6 +260,7 @@ export default Vue.extend({
     ConfirmDialog,
     HelpIcon,
     LargeButton,
+    WarningDialog,
     ValidationProvider,
     ValidationObserver,
   },
@@ -249,6 +287,9 @@ export default Vue.extend({
       url_all: false as boolean,
       timeout_all: false as boolean,
       ssl_auth_all: false as boolean,
+      warningInfo: [] as string[],
+      warningDialog: false as boolean,
+      saving: false as boolean,
     };
   },
   computed: {
@@ -267,7 +308,14 @@ export default Vue.extend({
   },
 
   methods: {
-    save(): void {
+    cancelSubmit(): void {
+      this.warningDialog = false;
+    },
+    acceptWarnings(): void {
+      this.warningDialog = false;
+      this.save(true);
+    },
+    save(ignoreWarnings: boolean): void {
       /**
        * For the current service backend returns ssl_auth as undefined if current service is using http.
        * If service is https then it can be either false or true. When saving service parameters however the ssl_auth
@@ -280,16 +328,27 @@ export default Vue.extend({
         timeout_all: this.timeout_all,
         url_all: this.url_all,
         ssl_auth_all: this.ssl_auth_all,
+        ignore_warnings: ignoreWarnings,
       };
 
+      this.saving = true;
       api
-        .patch(`/services/${this.serviceId}`, serviceUpdate)
+        .patch(
+          `/services/${encodePathParameter(this.serviceId)}`,
+          serviceUpdate,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'Service saved');
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
+          if (error?.response?.data?.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.warningDialog = true;
+          } else {
+            this.$store.dispatch('showError', error);
+          }
+        })
+        .finally(() => (this.saving = false));
     },
 
     setTouched(): void {
@@ -298,7 +357,7 @@ export default Vue.extend({
 
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${serviceId}/service-clients`)
+        .get(`/services/${encodePathParameter(serviceId)}/service-clients`)
         .then((res) => {
           this.$store.dispatch('setServiceClients', res.data);
         })
@@ -315,9 +374,12 @@ export default Vue.extend({
       this.addServiceClientDialogVisible = false;
 
       api
-        .post(`/services/${this.serviceId}/service-clients`, {
-          items: selected,
-        } as ServiceClients)
+        .post(
+          `/services/${encodePathParameter(this.serviceId)}/service-clients`,
+          {
+            items: selected,
+          } as ServiceClients,
+        )
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
@@ -364,9 +426,14 @@ export default Vue.extend({
 
     removeServiceClients(serviceClients: ServiceClient[]) {
       api
-        .post(`/services/${this.serviceId}/service-clients/delete`, {
-          items: serviceClients,
-        })
+        .post(
+          `/services/${encodePathParameter(
+            this.serviceId,
+          )}/service-clients/delete`,
+          {
+            items: serviceClients,
+          },
+        )
         .then(() => {
           this.$store.dispatch(
             'showSuccess',

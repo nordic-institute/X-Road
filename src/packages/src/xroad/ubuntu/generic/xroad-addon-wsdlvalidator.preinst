@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+. /usr/share/debconf/confmodule
+
+log () { echo >&2 "$@"; }
+
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+    if [ "${MIGRATION_VALUE}" ];
+        then
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            crudini --del "$1" "$2" "$3"
+    fi
+}
+
+if [ "$1" = "upgrade" ];
+ then
+  # migrate wsdl-validator-command proxy-ui -> proxy-ui-api
+  migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command proxy-ui-api wsdl-validator-command
+fi
+
+exit 0

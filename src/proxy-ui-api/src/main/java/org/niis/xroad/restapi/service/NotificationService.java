@@ -31,12 +31,11 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AlertStatus;
-import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -47,28 +46,25 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@Transactional
 @PreAuthorize("isAuthenticated()")
 public class NotificationService {
     private OffsetDateTime backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
-    private final InitializationService initializationService;
 
     /**
      * constructor
      */
     @Autowired
-    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService,
-            InitializationService initializationService) {
+    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService) {
         this.globalConfFacade = globalConfFacade;
         this.tokenService = tokenService;
-        this.initializationService = initializationService;
     }
 
     /**
      * Checks the status of system alerts that may affect whether the system
-     * is operational or not. If alerts are disabled, the status of all alerts true.
+     * is operational or not. If backup/restore is running, the status of soft token
+     * related alerts is true.
      * @return
      */
     public AlertStatus getAlerts() {
@@ -78,23 +74,29 @@ public class NotificationService {
         if (backupRestoreStartedAt != null) {
             alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
             alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
-        }
-        if (isSecurityServerFullyInitialized()) {
-            alertStatus.setGlobalConfValid(isGlobalConfValid());
-            alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
-        } else {
-            alertStatus.setGlobalConfValid(false);
             alertStatus.setSoftTokenPinEntered(false);
+            alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
+        } else {
+            try {
+                alertStatus.setSoftTokenPinEntered(isSoftTokenPinEntered());
+                alertStatus.setSoftTokenPinEnteredCheckSuccess(true);
+            } catch (Exception e) {
+                log.error("getting soft token pin status failed");
+                alertStatus.setSoftTokenPinEntered(false);
+                alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
+            }
         }
-        return alertStatus;
-    }
 
-    private boolean isSecurityServerFullyInitialized() {
-        InitializationStatusDto initStatusDto = initializationService.getSecurityServerInitializationStatus();
-        return initStatusDto.isAnchorImported()
-                && initStatusDto.isServerCodeInitialized()
-                && initStatusDto.isServerOwnerInitialized()
-                && initStatusDto.isSoftwareTokenInitialized();
+        try {
+            alertStatus.setGlobalConfValid(isGlobalConfValid());
+            alertStatus.setGlobalConfValidCheckSuccess(true);
+        } catch (Exception e) {
+            log.error("getting global conf status failed");
+            alertStatus.setGlobalConfValid(false);
+            alertStatus.setGlobalConfValidCheckSuccess(false);
+        }
+
+        return alertStatus;
     }
 
     /**
@@ -118,6 +120,7 @@ public class NotificationService {
         Optional<TokenInfo> token = tokenService.getAllTokens().stream()
                 .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
         if (!token.isPresent()) {
+            log.warn("soft token not found");
             throw new RuntimeException("soft token not found");
         }
         return token.get().isActive();
@@ -144,5 +147,14 @@ public class NotificationService {
      */
     public synchronized void setBackupRestoreRunningSince() {
         backupRestoreRunningSince = OffsetDateTime.now(ZoneOffset.UTC);
+    }
+
+    @EventListener
+    protected void onEvent(BackupRestoreEvent e) {
+        if (BackupRestoreEvent.START.equals(e)) {
+            setBackupRestoreRunningSince();
+        } else {
+            resetBackupRestoreRunningSince();
+        }
     }
 }

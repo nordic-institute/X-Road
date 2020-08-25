@@ -25,27 +25,51 @@
  */
 package org.niis.xroad.restapi.util;
 
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.sql.DataSource;
+
+import java.sql.SQLException;
 
 /**
  * Util class for persistence context helper methods
  */
 @Component
+@Slf4j
 public final class PersistenceUtils {
 
     private final EntityManager entityManager;
+    private final DataSource dataSource;
 
     @Autowired
-    public PersistenceUtils(EntityManager entityManager) {
+    public PersistenceUtils(EntityManager entityManager, DataSource dataSource) {
         this.entityManager = entityManager;
+        this.dataSource = dataSource;
     }
 
     public Session getCurrentSession() {
         return entityManager.unwrap(Session.class);
+    }
+
+    /**
+     * Evict connection pool connections (used when restoring from backups, to prevent broken connections)
+     */
+    public void evictPoolConnections() {
+        try {
+            if (dataSource.isWrapperFor(HikariDataSource.class)) {
+                log.debug("Evicting connection pool connections");
+                dataSource.unwrap(HikariDataSource.class)
+                        .getHikariPoolMXBean()
+                        .softEvictConnections();
+            }
+        } catch (SQLException e) {
+            log.error("Unable to evict connections", e);
+        }
     }
 
     public void flush() {

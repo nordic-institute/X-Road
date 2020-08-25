@@ -1,3 +1,28 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 /**
  * Vuex store for add client/subsystem/member wizards
  */
@@ -205,9 +230,14 @@ export const actions: ActionTree<AddClientState, RootState> = {
   fetchReservedClients({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
     return api
-      .get(
-        `/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`,
-      )
+      .get('/clients', {
+        params: {
+          instance: client.instance_id,
+          member_class: client.member_class,
+          member_code: client.member_code,
+          internal_search: true,
+        },
+      })
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
@@ -219,9 +249,14 @@ export const actions: ActionTree<AddClientState, RootState> = {
   fetchReservedMembers({ commit }, client: Client) {
     // Fetch clients from backend that match the selected client without subsystem code
     return api
-      .get(
-        `/clients?instance=${client.instance_id}&member_class=${client.member_class}&member_code=${client.member_code}&internal_search=true`,
-      )
+      .get('/clients', {
+        params: {
+          instance: client.instance_id,
+          member_class: client.member_class,
+          member_code: client.member_code,
+          internal_search: true,
+        },
+      })
       .then((res) => {
         commit('storeReservedClients', res.data);
       })
@@ -267,10 +302,14 @@ export const actions: ActionTree<AddClientState, RootState> = {
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
   ) {
-    const clientsResponse = await api.get<
-      Client[]
-    >(`/clients?instance=${instanceId}
-    &member_class=${memberClass}&member_code=${memberCode}&local_valid_sign_cert=true`);
+    const clientsResponse = await api.get<Client[]>('/clients', {
+      params: {
+        instance: instanceId,
+        member_class: memberClass,
+        member_code: memberCode,
+        local_valid_sign_cert: true,
+      },
+    });
 
     const matchingClient: boolean = clientsResponse.data.some(
       (client: Client) => {
@@ -290,7 +329,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     }
 
     // Fetch tokens from backend
-    const tokenResponse = await api.get<Token[]>(`/tokens`);
+    const tokenResponse = await api.get<Token[]>('/tokens');
     // Create a client id
     const ownerId = createClientId(instanceId, memberClass, memberCode);
 

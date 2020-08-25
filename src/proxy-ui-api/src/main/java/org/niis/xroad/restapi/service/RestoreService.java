@@ -33,8 +33,10 @@ import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -55,25 +57,27 @@ public class RestoreService {
     private final ExternalProcessRunner externalProcessRunner;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final BackupRepository backupRepository;
-    private final NotificationService notificationService;
     private final ApiKeyService apiKeyService;
     private final AuditDataHelper auditDataHelper;
+    private final PersistenceUtils persistenceUtils;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public RestoreService(ExternalProcessRunner externalProcessRunner,
             @Value("${script.restore-configuration.path}") String configurationRestoreScriptPath,
             @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
             CurrentSecurityServerId currentSecurityServerId, BackupRepository backupRepository,
-            NotificationService notificationService, ApiKeyService apiKeyService,
-            AuditDataHelper auditDataHelper) {
+            ApiKeyService apiKeyService, AuditDataHelper auditDataHelper, PersistenceUtils persistenceUtils,
+            ApplicationEventPublisher publisher) {
         this.externalProcessRunner = externalProcessRunner;
         this.configurationRestoreScriptPath = configurationRestoreScriptPath;
         this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
         this.currentSecurityServerId = currentSecurityServerId;
         this.backupRepository = backupRepository;
-        this.notificationService = notificationService;
         this.apiKeyService = apiKeyService;
         this.auditDataHelper = auditDataHelper;
+        this.persistenceUtils = persistenceUtils;
+        this.eventPublisher = publisher;
     }
 
     /**
@@ -81,17 +85,12 @@ public class RestoreService {
      * out by the current restore script.
      * @param fileName name of the backup file
      * @throws BackupFileNotFoundException
-     * @throws InterruptedException execution of the restore script was interrupted
+     * @throws InterruptedException          execution of the restore script was interrupted
      * @throws RestoreProcessFailedException if the restore script fails or does not execute
      */
     public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
             InterruptedException, RestoreProcessFailedException {
         auditDataHelper.putBackupFilename(backupRepository.getFilePath(fileName));
-        if (notificationService.getBackupRestoreRunningSince() != null) {
-            // should not happen because the method is synchronized
-            throw new RuntimeException("There is a restore (started at "
-                    + notificationService.getBackupRestoreRunningSince() + ") already in progress");
-        }
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);
@@ -100,24 +99,29 @@ public class RestoreService {
         }
         String[] arguments = buildArguments(backupFilePath);
         try {
-            notificationService.setBackupRestoreRunningSince();
+            eventPublisher.publishEvent(BackupRestoreEvent.START);
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
                     .executeAndThrowOnFailure(configurationRestoreScriptPath, arguments);
 
             int exitCode = processResult.getExitCode();
 
-            String restoreFinishedLogMsg = String.format("Restoring configuration finished with exit status %s",
-                    exitCode);
-            log.info(restoreFinishedLogMsg);
-            log.info(" --- Restore script console output - START --- ");
-            log.info(ExternalProcessRunner.processOutputToString(processResult.getProcessOutput()));
-            log.info(" --- Restore script console output - END --- ");
+            if (log.isInfoEnabled()) {
+                String restoreFinishedLogMsg =
+                        String.format("Restoring configuration finished with exit status %s", exitCode);
+                log.info(restoreFinishedLogMsg);
+                log.info(" --- Restore script console output - START --- ");
+                log.info(ExternalProcessRunner.processOutputToString(processResult.getProcessOutput()));
+                log.info(" --- Restore script console output - END --- ");
+            }
+
+            persistenceUtils.evictPoolConnections();
+
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
             throw new RestoreProcessFailedException(e, "restoring from a backup failed");
         } finally {
-            notificationService.resetBackupRestoreRunningSince();
+            eventPublisher.publishEvent(BackupRestoreEvent.END);
             apiKeyService.clearApiKeyCaches();
-            log.info("Cleared api key caches");
+            log.debug("Cleared api key caches");
         }
     }
 

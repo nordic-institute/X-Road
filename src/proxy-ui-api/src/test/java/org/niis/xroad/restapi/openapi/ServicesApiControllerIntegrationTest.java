@@ -42,6 +42,8 @@ import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,10 +55,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.AccessRightService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIENT_NOT_FOUND;
+import static org.niis.xroad.restapi.service.InvalidHttpsUrlException.ERROR_INVALID_HTTPS_URL;
 import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERVICE_NOT_FOUND;
+import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_ERROR;
+import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR;
 
 /**
  * Test ServicesApiController
@@ -125,13 +131,52 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
+    public void updateServiceHttpsVerifySslAuth() throws Exception {
+        doThrow(new SSLHandshakeException("")).when(internalServerTestService).testHttpsConnection(any(), any());
+
+        Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(60, service.getTimeout().intValue());
+
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
+
+        try {
+            servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR,
+                    expected.getWarningDeviations().iterator().next().getCode());
+        }
+
+        doThrow(new Exception("")).when(internalServerTestService).testHttpsConnection(any(), any());
+        try {
+            servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(WARNING_INTERNAL_SERVER_SSL_ERROR,
+                    expected.getWarningDeviations().iterator().next().getCode());
+        }
+
+        serviceUpdate.setIgnoreWarnings(true);
+
+        Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
+                serviceUpdate).getBody();
+        assertEquals(10, updatedService.getTimeout().intValue());
+        assertEquals(true, updatedService.getSslAuth());
+        assertEquals(TestUtils.URL_HTTPS, updatedService.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
     public void updateServiceHttp() {
         Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
         ServiceUpdate serviceUpdate = new ServiceUpdate();
         serviceUpdate.setTimeout(10);
-        serviceUpdate.setSslAuth(true); // value does not matter if http - will aways be set to null
+        serviceUpdate.setSslAuth(false); // value will be set to null if http
         serviceUpdate.setUrl(TestUtils.URL_HTTP);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
@@ -139,6 +184,26 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertEquals(10, updatedService.getTimeout().intValue());
         assertTrue(updatedService.getSslAuth());
         assertEquals(TestUtils.URL_HTTP, updatedService.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
+    public void updateServiceHttpVerifySslAuth() {
+        when(backupService.getBackupFiles()).thenThrow(new RuntimeException());
+        Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(60, service.getTimeout().intValue());
+
+        ServiceUpdate serviceUpdate = new ServiceUpdate();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(true); // value will be set to null if http
+        serviceUpdate.setUrl(TestUtils.URL_HTTP);
+
+        try {
+            servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_INVALID_HTTPS_URL, expected.getErrorDeviation().getCode());
+        }
     }
 
     @Test
@@ -177,6 +242,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         serviceUpdate.setTimeout(10);
         serviceUpdate.setSslAuth(true);
         serviceUpdate.setUrl(TestUtils.URL_HTTPS);
+        serviceUpdate.setIgnoreWarnings(true);
 
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();

@@ -25,20 +25,25 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 
 /**
  * Validation logic for possible actions done on tokens, keys, certs and csrs
  */
 @Component
+@Slf4j
 public class PossibleActionsRuleEngine {
 
     // duplicate definition, since we dont want add direct dependency on signer
@@ -145,10 +150,26 @@ public class PossibleActionsRuleEngine {
             }
         }
         if (!certificateInfo.isSavedToConfiguration()) {
-            actions.add(PossibleActionEnum.IMPORT_FROM_TOKEN);
+            // auth cert cannot be imported
+            if (!isAuthCert(certificateInfo)) {
+                actions.add(PossibleActionEnum.IMPORT_FROM_TOKEN);
+            }
         }
 
         return actions;
+    }
+
+    /**
+     * Find out if certificateInfo is an auth cert, wrap possible exceptions in RuntimeException
+     */
+    private boolean isAuthCert(CertificateInfo certificateInfo) {
+        X509Certificate x509 = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+        try {
+            return CertUtils.isAuthCert(x509);
+        } catch (Exception e) {
+            log.error("Unable to determine certificate import possible action", e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**

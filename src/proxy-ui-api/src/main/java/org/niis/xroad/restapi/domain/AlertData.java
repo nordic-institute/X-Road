@@ -41,6 +41,10 @@ public class AlertData {
     private OffsetDateTime backupRestoreRunningSince;
     @JsonProperty("global_conf_valid")
     private Boolean globalConfValid;
+    @JsonProperty("global_conf_valid_check_success")
+    private Boolean globalConfValidCheckSuccess;
     @JsonProperty("soft_token_pin_entered")
     private Boolean softTokenPinEntered;
+    @JsonProperty("soft_token_pin_entered_check_success")
+    private Boolean softTokenPinEnteredCheckSuccess;
 }

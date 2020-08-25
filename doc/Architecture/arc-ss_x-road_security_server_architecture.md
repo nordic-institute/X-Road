@@ -6,14 +6,13 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.8  
+Version: 1.9  
 25.10.2019
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
 
 ---
-
 
 ## Version history <!-- omit in toc -->
 
@@ -34,6 +33,7 @@ Doc. ID: ARC-SS
  02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links | Tatu Repo
  17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                      | Petteri Kivimäki
  31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)             | Ilkka Seppälä
+ 21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -200,7 +200,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
     
 21. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Security Server Installation Guide for Ubuntu. Document ID: [IG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md).
 
-22. <a id="Ref_IG-SS-RHEL7" class="anchor"></a>\[IG-SS-RHEL7\] Security Server Installation Guide for Red Hat Enterprise Linux 7 (RHEL7). Document ID: [IG-SS-RHEL7](../Manuals/ig-ss_x-road_v6_security_server_installation_guide_for_rhel7.md).
+22. <a id="Ref_IG-SS-RHEL" class="anchor"></a>\[IG-SS-RHEL\] Security Server Installation Guide for Red Hat Enterprise Linux (RHEL). Document ID: [IG-SS-RHEL](../Manuals/ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md).
 
 23. <a id="Ref_IG-XLB" class="anchor"></a>\[IG-XLB\] X-Road: External Load Balancer Installation Guide. Document ID: [IG-XLB](../Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md).
 
@@ -345,7 +345,7 @@ Nginx accepts https traffic to interface A in \[[Figure 2](#Ref_Security_Server_
 
 #### 3.1.4 Input/ouput ports
 
-Nginx has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL7](#Ref_IG-SS-RHEL7)\].
+Nginx has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
 #### 3.1.5 Persistent data
 
@@ -468,7 +468,7 @@ Additionally xroad-proxy offers interface P for admin commands and queries. It i
 
 #### 3.5.4 Input/ouput ports
 
-Xroad-proxy has input ports for message exchange from internal and external network (C and S) and one input port meant for uploading OCSP responses (O). The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL7](#Ref_IG-SS-RHEL7)\].
+Xroad-proxy has input ports for message exchange from internal and external network (C and S) and one input port meant for uploading OCSP responses (O). The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
 Additionally there is an input port for admin queries and commands (P). The port number is specified in \[[IG-XLB](#Ref_IG-XLB)\].
 

@@ -1,3 +1,28 @@
+<!--
+   The MIT License
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <div>
@@ -13,7 +38,7 @@
       />
       <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
-        <large-button v-if="canDelete" @click="confirmDelete = true" outlined>{{
+        <large-button v-if="canDelete" @click="confirmDelete = true" :loading="deleting" outlined>{{
           $t('action.delete')
         }}</large-button>
       </div>
@@ -80,7 +105,16 @@
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
       @cancel="confirmDelete = false"
-      @accept="deleteKey()"
+      @accept="deleteKey(false)"
+    />
+
+    <!-- Warning dialog when key is deleted -->
+    <warningDialog
+      :dialog="warningDialog"
+      :warnings="warningInfo"
+      localizationParent="keys"
+      @cancel="cancelSubmit()"
+      @accept="acceptWarnings()"
     />
   </div>
 </template>
@@ -97,6 +131,8 @@ import { Key, PossibleActions as PossibleActionsList } from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import { encodePathParameter } from '@/util/api';
+import WarningDialog from '@/components/ui/WarningDialog.vue';
 
 export default Vue.extend({
   components: {
@@ -105,6 +141,7 @@ export default Vue.extend({
     LargeButton,
     ValidationProvider,
     ValidationObserver,
+    WarningDialog,
   },
   props: {
     id: {
@@ -119,6 +156,9 @@ export default Vue.extend({
       saveBusy: false,
       key: {} as Key,
       possibleActions: [] as string[],
+      deleting: false as boolean,
+      warningInfo: [] as string[],
+      warningDialog: false as boolean,
     };
   },
   computed: {
@@ -156,7 +196,7 @@ export default Vue.extend({
       this.saveBusy = true;
 
       api
-        .patch(`/keys/${this.id}`, this.key)
+        .patch(`/keys/${encodePathParameter(this.id)}`, this.key)
         .then(() => {
           this.saveBusy = false;
           this.$store.dispatch('showSuccess', 'keys.keySaved');
@@ -170,7 +210,7 @@ export default Vue.extend({
 
     fetchData(id: string): void {
       api
-        .get<Key>(`/keys/${id}`)
+        .get<Key>(`/keys/${encodePathParameter(id)}`)
         .then((res) => {
           this.key = res.data;
           this.fetchPossibleActions(id);
@@ -182,7 +222,9 @@ export default Vue.extend({
 
     fetchPossibleActions(id: string): void {
       api
-        .get<PossibleActionsList>(`/keys/${id}/possible-actions`)
+        .get<PossibleActionsList>(
+          `/keys/${encodePathParameter(id)}/possible-actions`,
+        )
         .then((res) => {
           this.possibleActions = res.data;
         })
@@ -190,19 +232,32 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         });
     },
-
-    deleteKey(): void {
+    cancelSubmit(): void {
+      this.warningDialog = false;
+    },
+    acceptWarnings(): void {
+      this.warningDialog = false;
+      this.deleteKey(true);
+    },
+    deleteKey(ignoreWarnings: boolean): void {
+      this.deleting = true;
       this.confirmDelete = false;
 
       api
-        .remove(`/keys/${this.id}`)
+        .remove(`/keys/${encodePathParameter(this.id)}?ignore_warnings=${ignoreWarnings}`)
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyDeleted');
           this.close();
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
+          if (error?.response?.data?.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.warningDialog = true;
+          } else {
+            this.$store.dispatch('showError', error);
+          }
+        })
+        .finally(() => (this.deleting = false));
     },
   },
   created() {

@@ -260,7 +260,11 @@
     "adding_services": "Adding services:",
     "wsdl_validation_warnings": "Validation warnings:",
     "memberNameGroupDesc": "Member name / Group description",
-    "idGroupCode": "ID / Group code"
+    "idGroupCode": "ID / Group code",
+    "service_parameters_ssl_test_warnings": {
+      "internal_server_ssl_handshake_error": "TLS handshake with the upstream server failed, server certificate missing from configuration:",
+      "internal_server_ssl_error": "Checking internal server certificates failed. Is the upstream server URL correct and accessible by the Security Server?"
+    }
   },
   "endpoints": {
     "addEndpoint": "Add Endpoint",
@@ -346,10 +350,11 @@
     "friendlyName": "Friendly name",
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
-    "deleteKeyText": "Are you sure that you want to delete this key?",
+    "deleteKeyText": "Are you sure that you want to delete this key and all associated certificates from server configuration?",
     "deleteCsr": "Delete CSR",
     "deleteCsrTitle": "Delete CSR?",
     "deleteCsrText": "Are you sure that you want to delete this CSR?",
+    "auth_key_with_registered_cert_warning": "Key has certificates that need to be unregistered before deletion. Do you want to continue with unregistration and deletion of associated certificates and the key from server configuration? Key ID:",
     "csrDeleted": "CSR deleted",
     "tokenInfo": "Token information",
     "gotIt": "Got it",
@@ -369,7 +374,7 @@
     "keyId": "Key ID:",
     "label": "Label:",
     "unknown": "Key type not specified",
-    "incorrectPin": "Incorrect PIN",
+    "incorrectPin": "Incorrect PIN. Please try again.",
     "readOnly": "Read-only:",
     "helpTitleKeys": "AUTH and SIGN Keys",
     "helpTitleApi": "API Keys",
@@ -441,6 +446,7 @@
     }
   },
   "csr": {
+    "addKey": "Add key",
     "usage": "Usage",
     "client": "Client",
     "certificationService": "Certification Service",
@@ -678,6 +684,7 @@
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
+    "generalError": "Login failed. Please try again.",
     "errorMsg401": "Wrong username or password"
   },
   "logout": {
@@ -685,8 +692,6 @@
     "sessionExpired": "Session expired"
   },
   "customValidation": {
-    "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid",
     "invalidUrl": "URL is not valid",
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
@@ -724,6 +729,12 @@
     "pin": "PIN",
     "confirmPin": "Confirm PIN",
     "securityServerCode": "Security Server Code",
+    "csr": {
+      "usage": "Usage",
+      "client": "Client",
+      "certService": "Certification Service",
+      "csrFormat": "CSR Format"
+    },
     "keys": {
       "friendlyName": "Friendly name"
     },
@@ -743,7 +754,9 @@
     "COMMON_NAME": "Common Name (CN)",
     "COUNTRY_CODE": "Country Code (C)",
     "INSTANCE_IDENTIFIER": "Instance Identifier (C)",
+    "INSTANCE_IDENTIFIER_O": "Instance Identifier (O)",
     "MEMBER_CLASS": "Member Class (O)",
+    "MEMBER_CLASS_OU": "Member Class (OU)",
     "MEMBER_CODE": "Member Code (CN)",
     "ORGANIZATION_NAME": "Organization Name (O)",
     "SERIAL_NUMBER": "Serial Number",
@@ -830,7 +843,7 @@
     "process_failed": "Process failed",
     "malformed_anchor": "Malformed anchor",
     "wsdl_download_failed": "WSDL download failed",
-    "pin_incorrect": "Incorrect PIN",
+    "pin_incorrect": "Incorrect PIN. Please try again.",
     "certificate_already_exists": "Certificate already exists",
     "invalid_backup_file": "Invalid backup file",
     "cannot_unregister_owner": "Cannot unregister owner",
@@ -852,6 +865,7 @@
     },
     "diagnostic_request_failed": "Diagnostic request failed",
     "malformed_url": "Malformed URL",
+    "invalid_https_url": "URL does not use HTTPS",
     "weak_pin": "Weak PIN",
     "process_not_executable": "Process is not executable",
     "invalid_filename": "Invalid filename",

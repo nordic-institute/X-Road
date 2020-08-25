@@ -53,12 +53,16 @@ public class AlertDataConverterTest {
         alertStatus.setBackupRestoreRunningSince(date);
         alertStatus.setCurrentTime(date);
         alertStatus.setGlobalConfValid(true);
+        alertStatus.setGlobalConfValidCheckSuccess(true);
         alertStatus.setSoftTokenPinEntered(true);
+        alertStatus.setSoftTokenPinEnteredCheckSuccess(true);
 
         AlertData alertData = alertDataConverter.convert(alertStatus);
         assertEquals(date, alertData.getBackupRestoreRunningSince());
         assertEquals(date, alertData.getCurrentTime());
         assertEquals(true, alertData.getGlobalConfValid());
+        assertEquals(true, alertData.getGlobalConfValidCheckSuccess());
         assertEquals(true, alertData.getSoftTokenPinEntered());
+        assertEquals(true, alertData.getSoftTokenPinEnteredCheckSuccess());
     }
 }

@@ -39,7 +39,9 @@ import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.service.BackupRestoreEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,14 +56,14 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
  * Job that checks whether globalconf has changed.
  */
 @Component
-@Transactional
 @Slf4j
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
-    private GlobalConfCheckerHelper globalConfCheckerHelper;
-    private GlobalConfFacade globalConfFacade;
-    private SignerProxyFacade signerProxyFacade;
+    private final GlobalConfCheckerHelper globalConfCheckerHelper;
+    private final GlobalConfFacade globalConfFacade;
+    private final SignerProxyFacade signerProxyFacade;
+    private volatile boolean restoreInProgress = false;
 
     @Autowired
     public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade,
@@ -82,10 +84,16 @@ public class GlobalConfChecker {
      * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
-    public void updateServerConf() throws Exception {
+    @Transactional
+    public void updateServerConf() {
         // In clustered setup slave nodes may skip globalconf updates
         if (SLAVE.equals(SystemProperties.getServerNodeType())) {
             log.debug("This is a slave node - skip globalconf updates");
+            return;
+        }
+
+        if (restoreInProgress) {
+            log.debug("Backup restore in progress - skipping globalconf update");
             return;
         }
 
@@ -96,6 +104,11 @@ public class GlobalConfChecker {
             log.error("Checking globalconf for updates failed", e);
             throw e;
         }
+    }
+
+    @EventListener
+    protected void onEvent(BackupRestoreEvent e) {
+        restoreInProgress = BackupRestoreEvent.START.equals(e);
     }
 
     private void checkGlobalConf() {
@@ -173,7 +186,7 @@ public class GlobalConfChecker {
     }
 
     private void updateClientStatuses(ServerConfType serverConf,
-                                      SecurityServerId securityServerId) throws Exception {
+            SecurityServerId securityServerId) throws Exception {
         log.debug("Updating client statuses");
 
         for (ClientType client : serverConf.getClient()) {
@@ -229,7 +242,7 @@ public class GlobalConfChecker {
     }
 
     private void updateCertStatus(SecurityServerId securityServerId,
-                                  CertificateInfo certInfo) throws Exception {
+            CertificateInfo certInfo) throws Exception {
         X509Certificate cert =
                 readCertificate(certInfo.getCertificateBytes());
 
