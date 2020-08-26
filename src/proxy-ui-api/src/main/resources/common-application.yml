@@ -16,6 +16,10 @@ spring:
       show-sql: true
   jackson:
     default-property-inclusion: NON_NULL
+  servlet:
+    multipart:
+      max-file-size: ${request.sizelimit.binary.upload}
+      max-request-size: ${request.sizelimit.binary.upload}
 
 # default is 30m
 # server.servlet.session.timeout=1m
@@ -25,19 +29,6 @@ server:
     session:
       cookie:
         secure: true
-    multipart:
-      max-file-size: 1KB
-      max-request-size: 1KB
-  tomcat:
-    # max-http-post-size applies only to multipart/form-data requests (although name is misleading)
-    # https://github.com/spring-projects/spring-boot/issues/18521
-    # we do not use multipart/form-data, so we can se the limit to a strict value
-    # if container is changed to undertow, these settings will apply to ALL requests
-    # due to https://github.com/spring-projects/spring-boot/issues/18555
-    max-http-post-size: 1KB
-#  error:
-#    include-stacktrace: always
-#    include-exception: true
     accesslog:
       enabled: true
       directory: /var/log/xroad
