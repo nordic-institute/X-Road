@@ -62,7 +62,7 @@
   "clients": {
     "action": {
       "register": {
-        "success": "Client registered",
+        "success": "Client registration request sent successfully",
         "confirm": {
           "title": "Register client",
           "text": "Are you sure you want to send a client registration request?"
@@ -113,7 +113,6 @@
     "memberCode": "Member Code",
     "subsystemCode": "Subsystem Code",
     "connType": "Connection type",
-    "connTypeInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
     "saved": "Saved",
     "globalError": "Global error",
     "registered": "Registered",
@@ -123,7 +122,7 @@
   },
   "internalServers": {
     "connectionType": "Connection type",
-    "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
+    "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https).",
     "tlsTitle": "Information System TLS certificate",
     "certHash": "Certificate Hash (SHA/1)",
     "ssCertTitle": "Security Server certificate",
@@ -369,7 +368,7 @@
     "logOutText": "Log out of the token?",
     "loggedOut": "Logged out of token",
     "addKey": "Add key",
-    "importCert": "Import Cert.",
+    "importCert": "Import cert.",
     "type": "Type:",
     "keyInfo": "Key information",
     "keyId": "Key ID:",
@@ -379,7 +378,6 @@
     "readOnly": "Read-only:",
     "helpTitleKeys": "AUTH and SIGN Keys",
     "helpTitleApi": "API Keys",
-    "keyAdded": "Key added",
     "generateCsr": "Generate CSR",
     "request": "Request",
     "helpTitleSS": "Security Server TLS Certificate",
@@ -392,7 +390,8 @@
     "registrationRequest": "Registration request",
     "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
-    "certificateRegistered": "Certificate registered",
+    "certificateRegistered": "Certificate registration request sent successfully",
+    "certificateUnregistered": "Certificate unregistration request sent successfully",
     "unregisterTitle": "Unregister certificate",
     "unregisterText": "Do you want to unregister this certificate?",
     "keySaved": "Key saved",
@@ -454,7 +453,7 @@
     "csrFormat": "CSR Format",
     "generateCsr": "Generate CSR",
     "csrDetails": "CSR details",
-    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "saveInfo": "Generate a new CSR and save it into a safe place.",
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
     "helpClient": "X-Road member the certificate will be issued for.",
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
@@ -483,22 +482,22 @@
     },
     "token": {
       "title": "Token",
-      "info": "Select to which token you want to add the new Client. Note: the token must be in Log-in state.",
+      "info": "Please select the token where you want to add the SIGN key for the new Client. Note: the token must be in Logged in state.",
       "tokenName": "Token name",
       "loggedIn": "Logged in"
     },
     "signKey": {
       "title": "Sign Key",
-      "info": "You can define a label for the newly created Key (not mandatory)",
+      "info": "You can define a label for the newly created SIGN key (not mandatory)",
       "keyLabel": "Key Label"
     },
     "finish": {
       "title": "Finish",
       "infoLine1": "All required information is collected. By clicking \"Submit\", the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.",
-      "infoLine2": "In order to register the new client, you still need to:",
+      "infoLine2": "In order to register the new client, please complete the following steps:",
       "todo1": "1) Send the CSR to a Certificate Authority for signing",
-      "todo2": "2) Once received back, import the signed CSR to the appropriate key",
-      "todo3": "3) At this point you can register the new added client",
+      "todo2": "2) Once received back, import the resulting certificate to the corresponding key",
+      "todo3": "3) At this point you can register the new client",
       "note": "NOTE: if you click Cancel, all data will be lost"
     },
     "member": {
@@ -608,7 +607,7 @@
       "step": {
         "roles": {
           "name": "Roles",
-          "description": "Specify which roles the new API key should be linked to."
+          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key."
         },
         "keyDetails": {
           "name": "Key Details",
@@ -616,7 +615,7 @@
           "apiKey": "API key",
           "apiKeyID": "API key ID",
           "assignedRoles": "Roles assigned",
-          "note": "NOTE: the key is shown only in this response and cannot be retrieved later. The API key should be kept safe, as it provides access to all REST API users, who know the key."
+          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
         }
       },
       "success": "API key successfully created"
@@ -631,7 +630,7 @@
           "button": "Edit",
           "dialog": {
             "title": "Edit API Key (ID: {id})",
-            "message": "Linked roles:"
+            "message": "Roles associated with the API key:"
           },
           "success": "API key with ID {id} saved"
         },
@@ -800,7 +799,7 @@
       "title": "Timestamping",
       "timestampingStatus": {
         "SUCCESS": "Everything ok",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection to global configuration provider.",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
         "ERROR_CODE_INTERNAL": "Internal error occurred",
@@ -822,7 +821,7 @@
   },
   "globalAlert": {
     "globalConfigurationInvalid": "Global configuration is expired",
-    "softTokenPinNotEntered": "Please enter softtoken PIN",
+    "softTokenPinNotEntered": "Please enter soft token PIN",
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}"
   },
   "error_code": {
@@ -832,12 +831,13 @@
     "invalid_cert": "Invalid certificate",
     "generate_backup_interrupted": "Backup generation interrupted",
     "backup_restore_interrupted": "Backup restore interrupted",
+    "backup_generation_failed": "Backup generation failed",
     "wsdl_validator_interrupted": "WSDL validator interrupted",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
     "anchor_file_not_found": "Anchor file not found",
     "missing_parameter": "Missing parameter",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
-    "wrong_servicedescription_type": "Wrong servicedescription type",
+    "wrong_servicedescription_type": "Wrong service description type",
     "management_request_sending_failed": "Sending of management request failed",
     "server_already_fully_initialized": "Server is already fully initialised",
     "process_failed": "Process failed",
@@ -846,7 +846,7 @@
     "pin_incorrect": "Incorrect PIN. Please try again.",
     "certificate_already_exists": "Certificate already exists",
     "invalid_backup_file": "Invalid backup file",
-    "cannot_unregister_owner": "Can not unregister owner",
+    "cannot_unregister_owner": "Cannot unregister owner",
     "endpoint_already_exists": "Endpoint already exists",
     "additional_member_already_exists": "Additional member already exists",
     "illegal_generated_endpoint_remove": "Removing the generated endpoint is not allowed",
@@ -869,14 +869,14 @@
     "weak_pin": "Weak PIN",
     "process_not_executable": "Process is not executable",
     "invalid_filename": "Invalid filename",
-    "duplicate_accessright": "Duplicate accessright",
+    "duplicate_accessright": "Duplicate access right",
     "cert_wrong_usage": "Wrong usage of certificate",
     "local_group_code_already_exists": "Local group code already exists",
     "token_not_active": "Token is not active",
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "invalid_dn_parameter": "Invalid DN parameter",
     "wsdl_exists": "WSDL exists",
-    "client_not_deleted": "Client is not deleted",
+    "client_not_deleted": "Unable to delete keys, certificates and CSRs, because they belong to an existing client",
     "local_group_member_already_exists": "Local group member already exists",
     "service_code_already_exists": "Service code already exists",
     "member_already_owner": "Member is already the owner",
@@ -894,10 +894,10 @@
     "endpoint_not_found": "Endpoint not found",
     "base_endpoint_not_found": "Base endpoint not found",
     "csr_not_found": "CSR not found",
-    "orphans_not_found": "Orphans not found",
+    "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "local_group_not_found": "Local group not found",
     "backup_file_not_found": "Backup file not found",
-    "accessright_not_found": "Accessright not found",
+    "accessright_not_found": "Access right not found",
     "token_not_found": "Token not found",
     "client_not_found": "Client not found",
     "service_client_not_found": "Service client not found",
@@ -917,10 +917,10 @@
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "anchor_already_exists": "Anchor already exists",
     "service_already_exists": "Service already exists",
-    "cannot_delete_owner": "Can not delete the owner",
+    "cannot_delete_owner": "Cannot delete the owner",
     "software_token_init_failed": "Software token initialisation failed",
     "global_conf_outdated": "Global configuration is outdated",
-    "cannot_register_owner": "Can not register the owner",
+    "cannot_register_owner": "Cannot register the owner",
     "validation_failure": "Validation failure",
     "core": {
       "Signer": {

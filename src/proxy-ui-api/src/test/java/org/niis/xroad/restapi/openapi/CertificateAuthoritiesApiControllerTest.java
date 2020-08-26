@@ -108,6 +108,14 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
+    @WithMockUser(authorities = { "VIEW_APPROVED_CERTIFICATE_AUTHORITIES" })
+    public void getApprovedCertificatesWithViewPermission() throws Exception {
+        caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
+        caController.getApprovedCertificateAuthorities(null, false);
+        caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
+    }
+
+    @Test
     @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
     public void getApprovedCertificateAuthoritiesAuthWithAuthPermission() throws Exception {
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);

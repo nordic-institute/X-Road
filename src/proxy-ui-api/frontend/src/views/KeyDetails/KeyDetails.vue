@@ -38,9 +38,13 @@
       />
       <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
       <div class="details-view-tools">
-        <large-button v-if="canDelete" @click="confirmDelete = true" :loading="deleting" outlined>{{
-          $t('action.delete')
-        }}</large-button>
+        <large-button
+          v-if="canDelete"
+          @click="confirmDelete = true"
+          :loading="deleting"
+          outlined
+          >{{ $t('action.delete') }}</large-button
+        >
       </div>
     </div>
 
@@ -244,7 +248,11 @@ export default Vue.extend({
       this.confirmDelete = false;
 
       api
-        .remove(`/keys/${encodePathParameter(this.id)}?ignore_warnings=${ignoreWarnings}`)
+        .remove(
+          `/keys/${encodePathParameter(
+            this.id,
+          )}?ignore_warnings=${ignoreWarnings}`,
+        )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.keyDeleted');
           this.close();
