@@ -94,7 +94,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
      * @return
      */
     @Override
-    @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CERTIFICATE_AUTHORITIES')"
+            + " or (hasAuthority('GENERATE_AUTH_CERT_REQ') and "
             + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
             + " or #keyUsageType == null))"
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
