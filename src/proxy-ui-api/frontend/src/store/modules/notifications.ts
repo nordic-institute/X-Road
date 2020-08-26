@@ -45,6 +45,40 @@ const getDefaultState = () => {
   };
 };
 
+
+// Finds if an array of clients has a client with given member class, member code and subsystem code.
+export function containsClient(
+  notifications: Notification[],
+  notification: Notification,
+): number {
+
+  console.log("jeuu");
+  if (!notification || !notifications || notifications.length === 0) {
+    return -1;
+  }
+  const result = notifications.findIndex((e: Notification) => {
+    if (notification?.errorObject?.response?.config?.data !== e?.errorObject?.response?.config?.data) {
+      return false;
+    }
+
+    if (notification?.errorObject?.response?.config?.url !== e?.errorObject?.response?.config?.url) {
+      return false;
+    }
+
+    if (notification?.errorObject?.response?.data?.status !== e?.errorObject?.response?.data?.status) {
+      return false;
+    }
+
+    if (notification?.errorObject?.response?.data?.error?.code !== e?.errorObject?.response?.data?.error?.code) {
+      return false;
+    }
+    return true;
+  });
+
+
+  return result;
+}
+
 // Initial state. The state can be reseted with this.
 const notificationsState: NotificationsState = getDefaultState();
 
@@ -80,10 +114,11 @@ export const mutations: MutationTree<NotificationsState> = {
   },
   setErrorMessageCode(state: NotificationsState, val: string): void {
     const temp: Notification = {
-      timeout: 0,
+      timeout: -1,
       errorMessageCode: val,
       timeAdded: Date.now(),
       show: true,
+      count: 1
     };
 
     state.notifications.push(temp);
@@ -94,18 +129,29 @@ export const mutations: MutationTree<NotificationsState> = {
       errorMessageRaw: val,
       timeAdded: Date.now(),
       show: true,
+      count: 1
     };
 
     state.notifications.push(temp);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setErrorObject(state: NotificationsState, errorObject: any): void {
+
     const temp: Notification = {
-      timeout: 0,
+      timeout: -1,
       errorObject: errorObject,
       timeAdded: Date.now(), // Simple id solution
       show: true,
+      count: 1
     };
+
+    const index = containsClient(state.notifications, temp);
+
+    if (index > -1) {
+      const currentCount = state.notifications[index].count;
+      temp.count = currentCount + 1;
+      state.notifications.splice(index, 1);
+    }
 
     state.notifications.push(temp);
   },

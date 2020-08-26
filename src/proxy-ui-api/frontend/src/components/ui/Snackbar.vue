@@ -116,6 +116,12 @@
           {{ $t('id') }}:
           {{ errorId(notification) }}
         </div>
+
+        <!-- count -->
+        <div v-if="notification.count > 1">
+          count:
+          {{ notification.count }}
+        </div>
       </div>
 
       <template v-if="errorId(notification)">
