@@ -78,7 +78,7 @@ import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import { ServiceClient } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
-import {Permissions} from "@/global";
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   props: {
@@ -96,7 +96,9 @@ export default Vue.extend({
   computed: {
     ...mapGetters(['client']),
     showAddSubjects(): boolean {
-      return  this.$store.getters.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
+      );
     },
   },
   methods: {

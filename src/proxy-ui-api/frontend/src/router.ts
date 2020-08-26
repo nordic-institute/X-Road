@@ -80,6 +80,7 @@ const router = new Router({
     {
       path: '/',
       component: AppBase,
+      redirect: { name: RouteName.Clients },
       children: [
         {
           path: '/keys',
@@ -144,7 +145,7 @@ const router = new Router({
           children: [
             {
               name: RouteName.SystemParameters,
-              path: 'system-parameters',
+              path: '',
               component: SystemParameters,
               props: true,
             },
@@ -263,7 +264,7 @@ const router = new Router({
         },
         {
           name: RouteName.Clients,
-          path: '',
+          path: '/clients',
           components: {
             default: Clients,
             top: TabsBase,

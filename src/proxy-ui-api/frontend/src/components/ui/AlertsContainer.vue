@@ -43,10 +43,7 @@
       :value="showSoftTokenPinEnteredAlert"
       color="red"
     >
-      <span
-        class="alert-text clickable-link"
-        @click="tokenLogin()"
-      >
+      <span class="alert-text clickable-link" @click="tokenLogin()">
         {{ $t('globalAlert.softTokenPinNotEntered') }}
       </span>
     </v-alert>
