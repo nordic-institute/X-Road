@@ -60,6 +60,7 @@
 - XRDDEV-1277 - Fix database backup failure
 - XRDDEV-1228 - Update documentation for RHEL8
 - XRDDEV-1281 - Remove unused secret token
+- XRDDEV-1296 - Fix RHEL8 release packaging
 
 ## 6.23.0 - 2020-02-19
 - XRDDEV-730: Validate security server addresses on security server.
