@@ -1894,7 +1894,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: group object
@@ -1929,7 +1928,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -1969,7 +1967,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: local group deletion was successful
@@ -1999,7 +1996,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 1023
       requestBody:
         content:
           application/json:
@@ -2042,7 +2038,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -2677,7 +2672,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       responses:
         '200':
           description: ok
@@ -2713,7 +2708,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2755,7 +2750,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2799,7 +2794,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       responses:
         '200':
           description: list of service clients
@@ -2838,7 +2833,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2885,7 +2880,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2920,7 +2915,6 @@ paths:
             example: 102
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: endpoint
@@ -2955,7 +2949,6 @@ paths:
             example: 102
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -2998,7 +2991,6 @@ paths:
             example: 102
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: endpoint deleted
@@ -3030,7 +3022,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: list of access rights
@@ -3069,7 +3060,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -3116,7 +3106,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         description: Service client to be removed
         content:
@@ -3154,7 +3143,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: wanted service description
@@ -3189,7 +3177,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -3236,7 +3223,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: service description deletion was successful
@@ -3266,7 +3252,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         required: false
         content:
@@ -3304,7 +3289,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: service description enabled
@@ -3336,7 +3320,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -3384,7 +3367,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: list of services
@@ -4025,7 +4007,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: token object
@@ -4060,7 +4041,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -4101,7 +4081,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -4144,7 +4123,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -5528,7 +5506,7 @@ components:
           description: encoded service id, including client id
           example: CS:ORG:Client:myService.v1
           minLength: 1
-          maxLength: 1535
+          maxLength: 1279
         full_service_code:
           type: string
           format: text
@@ -5539,10 +5517,10 @@ components:
         service_code:
           type: string
           format: text
-          description: encoded service code and version
+          description: encoded service code
           example: myService
           minLength: 1
-          maxLength: 511
+          maxLength: 255
         timeout:
           type: integer
           format: uint
