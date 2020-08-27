@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.niis.xroad.restapi.controller.ApiKeysController;
-import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +56,7 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
             .antMatcher(ApiKeysController.API_KEYS_V1_PATH + "/**")
             .authorizeRequests()
                 .anyRequest()
-                .hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
+                .authenticated()
                 .and()
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER)
