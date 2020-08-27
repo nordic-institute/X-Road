@@ -216,7 +216,7 @@ export default Vue.extend({
     onFileChange(event: FileUploadResult): void {
       api
         .post(
-          `/clients/${encodePathParameter(this.id)}/tls-certificates/`,
+          `/clients/${encodePathParameter(this.id)}/tls-certificates`,
           event.buffer,
           {
             headers: {
