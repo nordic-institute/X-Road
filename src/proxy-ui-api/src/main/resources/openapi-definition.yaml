@@ -4356,7 +4356,8 @@ components:
           format: binary
     TokenCertificateSigningRequest: # ok
       type: object
-      description: CSR for certificate that is stored in a Token
+      description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be
+        done to this object, e.g DELETE (only for csr related operations and does not consider user authorization).
       required:
         - id
         - owner_id
@@ -4378,12 +4379,11 @@ components:
           readOnly: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     TokenCertificate: # ok
       type: object
-      description: certificate that is stored in a Token (auth or sign cert)
+      description: Certificate that is stored in a Token (auth or sign cert). Also includes the possible actions
+        that can be done to this object, e.g DELETE (only for cert related operations and does not consider
+        user authorization).
       required:
         - ocsp_status
         - owner_id
@@ -4416,9 +4416,6 @@ components:
           $ref: '#/components/schemas/CertificateStatus'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     OcspResponderDiagnostics: # ok
       type: object
       description: Ocsp responder diagnostics
@@ -4750,7 +4747,6 @@ components:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
-          readOnly: true
     ClientAdd: # ok
       type: object
       description: request to add client. Carries a Client and ignore warnings parameter
@@ -4769,6 +4765,7 @@ components:
       format: enum
       description: client status
       example: REGISTERED
+      readOnly: true
       enum:
         - REGISTERED
         - SAVED
@@ -4842,7 +4839,7 @@ components:
     CsrFormat: # ok
       type: string
       format: enum
-      description: csr format
+      description: format of the certificate signing request (PEM or DER)
       example: PEM
       default: PEM
       enum:
@@ -4858,7 +4855,6 @@ components:
         - subject_field_values
       properties:
         key_usage_type:
-          description: which usage type this CSR is for (signing or authentication)
           $ref: '#/components/schemas/KeyUsageType'
         ca_name:
           type: string
@@ -4868,7 +4864,6 @@ components:
           minLength: 1
           maxLength: 255
         csr_format:
-          description: format of the certificate signing request (PEM or DER)
           $ref: '#/components/schemas/CsrFormat'
         member_id:
           type: string
@@ -5210,7 +5205,8 @@ components:
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     Key: # ok
       type: object
-      description: key for the certificate
+      description: Key for the certificate. Also includes the possible actions that can be done to this object,
+        e.g DELETE (only for key related operations and does not consider user authorization).
       required:
         - id
         - name
@@ -5262,9 +5258,6 @@ components:
           example: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     KeyName: # ok
       type: object
       required:
@@ -5322,7 +5315,7 @@ components:
     KeyUsageType: # ok
       type: string
       format: enum
-      description: intended usage for the key
+      description: intended usage for the key (signing or authentication)
       example: AUTHENTICATION
       enum:
         - AUTHENTICATION
@@ -5678,7 +5671,6 @@ components:
           readOnly: true
         service_client_type:
           $ref: '#/components/schemas/ServiceClientType'
-          readOnly: true
         rights_given_at:
           type: string
           format: date-time
@@ -5840,6 +5832,7 @@ components:
       format: text
       description: subject type
       example: GLOBALGROUP
+      readOnly: true
       enum:
         - GLOBALGROUP
         - LOCALGROUP
@@ -5912,7 +5905,8 @@ components:
         - UNKNOWN
     Token: # ok
       type: object
-      description: token
+      description: Token. Also includes the possible actions that can be done to this object,
+        e.g DELETE (only for token related operations and does not consider user authorization).
       required:
         - id
         - name
