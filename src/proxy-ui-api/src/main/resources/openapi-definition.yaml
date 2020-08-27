@@ -5970,9 +5970,6 @@ components:
             $ref: '#/components/schemas/KeyValuePair'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     TokenInitStatus: # ok
       type: string
       format: enum
