@@ -24,11 +24,17 @@ cp -a src/xroad/redhat build/xroad
 mkdir -p build/xroad-jetty9
 cp -a src/xroad-jetty9/redhat build/xroad-jetty9/
 
+if [[ -z "$SNAPSHOT" ]]; then
+  macro_snapshot=()
+else
+  macro_snapshot=(--define "snapshot $SNAPSHOT")
+fi
+
 ROOT=${DIR}/build/xroad/redhat
 rpmbuild \
     --define "xroad_version $VERSION" \
     --define "rel $RELEASE" \
-    --define "snapshot $SNAPSHOT" \
+    "${macro_snapshot[@]}" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad" \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
@@ -41,7 +47,7 @@ rpmbuild \
     --define "xroad_version $VERSION" \
     --define "jetty $DIR/build/jetty9" \
     --define "rel $RELEASE" \
-    --define "snapshot $SNAPSHOT" \
+    "${macro_snapshot[@]}" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad-jetty9" \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
