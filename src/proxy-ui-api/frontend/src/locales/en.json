@@ -922,6 +922,7 @@
     "global_conf_outdated": "Global configuration is outdated",
     "cannot_register_owner": "Cannot register the owner",
     "validation_failure": "Validation failure",
+    "signer_not_reachable": "Signer is not currently reachable. Please check the signer log for details.",
     "core": {
       "Signer": {
         "UnknownMember": "X-Road core - signer: Unknown member"
