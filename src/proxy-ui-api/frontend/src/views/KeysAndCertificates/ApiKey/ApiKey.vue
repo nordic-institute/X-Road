@@ -84,10 +84,12 @@ export default Vue.extend({
   },
   methods: {
     loadKeys(): void {
-      api
-        .get<ApiKey[]>('/api-keys')
-        .then((resp) => (this.apiKeys = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+      if (this.$store.getters.hasPermission(Permissions.VIEW_API_KEYS)) {
+        api
+          .get<ApiKey[]>('/api-keys')
+          .then((resp) => (this.apiKeys = resp.data))
+          .catch((error) => this.$store.dispatch('showError', error));
+      }
     },
     createApiKey(): void {
       this.$router.push({
