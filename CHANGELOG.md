@@ -1,7 +1,7 @@
 # Change Log
 
 ## 6.24.0 - 2020-08-28
-- New Security Server API based UI, see details in [Jira](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20fixVersion%20%3D%206.24.0%20AND%20labels%20%3D%20api-based-ui%20ORDER%20BY%20key%20ASC)
+- New Security Server API based UI, see details in [JIRA](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20fixVersion%20%3D%206.24.0%20AND%20labels%20%3D%20api-based-ui%20ORDER%20BY%20key%20ASC)
 - XRDDEV-437 - Add SonarQube analysis for Github pull requests
 - XRDDEV-125 - Add process view to Security Server architecture diagram
 - XRDDEV-595 - Replace '-' characters with '_' in ansible scripts to fix deprecation warnings
