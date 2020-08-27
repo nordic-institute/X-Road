@@ -1894,7 +1894,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: group object
@@ -1929,7 +1928,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -1969,7 +1967,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: local group deletion was successful
@@ -1999,7 +1996,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 1023
       requestBody:
         content:
           application/json:
@@ -2042,7 +2038,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -2639,6 +2634,8 @@ paths:
             format: text
             description: <instance_id>:<member_class>:<member_code>:<security_server_code>
             example: FI:GOV:123:sserver1
+            minLength: 1
+            maxLength: 1023
       responses:
         '200':
           description: ok
@@ -2675,7 +2672,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       responses:
         '200':
           description: ok
@@ -2711,7 +2708,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 1535
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2753,7 +2750,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2797,7 +2794,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
       responses:
         '200':
           description: list of service clients
@@ -2836,7 +2833,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2883,7 +2880,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
       requestBody:
         content:
           application/json:
@@ -2918,7 +2915,6 @@ paths:
             example: 102
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: endpoint
@@ -2953,7 +2949,6 @@ paths:
             example: 102
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -2996,7 +2991,6 @@ paths:
             example: 102
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: endpoint deleted
@@ -3066,7 +3060,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -3113,7 +3106,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         description: Service client to be removed
         content:
@@ -3151,7 +3143,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: wanted service description
@@ -3186,7 +3177,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -3233,7 +3223,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: service description deletion was successful
@@ -3263,7 +3252,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         required: false
         content:
@@ -3301,7 +3289,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: service description enabled
@@ -3333,7 +3320,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -3381,7 +3367,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: list of services
@@ -4022,7 +4007,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: token object
@@ -4057,7 +4041,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -4098,7 +4081,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -4141,7 +4123,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -5196,6 +5177,11 @@ components:
     InitializationStatus: # ok
       type: object
       description: Initialization status of the Security Server
+      required:
+        - is_anchor_imported
+        - is_server_code_initialized
+        - is_server_owner_initialized
+        - software_token_init_status
       properties:
         is_anchor_imported:
           type: boolean
@@ -5206,9 +5192,8 @@ components:
         is_server_owner_initialized:
           type: boolean
           description: whether the server owner of the security server has been initialized or not
-        is_software_token_initialized:
-          type: boolean
-          description: whether a software token has been initialized or not
+        software_token_init_status:
+          $ref: '#/components/schemas/TokenInitStatus'
     KeyWithCertificateSigningRequestId: # ok
       type: object
       description: Key and TokenCertificateSigningRequest id
@@ -5521,7 +5506,7 @@ components:
           description: encoded service id, including client id
           example: CS:ORG:Client:myService.v1
           minLength: 1
-          maxLength: 1535
+          maxLength: 1279
         full_service_code:
           type: string
           format: text
@@ -5532,10 +5517,10 @@ components:
         service_code:
           type: string
           format: text
-          description: encoded service code and version
+          description: encoded service code
           example: myService
           minLength: 1
-          maxLength: 511
+          maxLength: 255
         timeout:
           type: integer
           format: uint
@@ -5994,6 +5979,16 @@ components:
           description: possible actions that can be done to this object, e.g DELETE.
             Has value only for operationIds getToken and getTokens.
             Does not consider user authorization.
+    TokenInitStatus: # ok
+      type: string
+      format: enum
+      description: whether a token has been initialized or not – if the software token init status
+        cannot be resolved (e.g. signer module is offline), the value is UNKNOWN
+      example: INITIALIZED
+      enum:
+        - INITIALIZED
+        - NOT_INITIALIZED
+        - UNKNOWN
     TokenName: # ok
       type: object
       required:

@@ -27,6 +27,7 @@
   <div class="wrapper">
     <div class="details-view-tools">
       <large-button
+        v-if="canCreateApiKey"
         class="button-spacing"
         outlined
         data-test="api-key-create-key-button"
@@ -62,7 +63,7 @@
 import Vue from 'vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
-import { RouteName } from '@/global';
+import { RouteName, Permissions } from '@/global';
 import { ApiKey } from '@/global-types';
 import ApiKeyRow from '@/views/KeysAndCertificates/ApiKey/ApiKeyRow.vue';
 
@@ -71,6 +72,11 @@ export default Vue.extend({
     LargeButton,
     ApiKeyRow,
   },
+  computed: {
+    canCreateApiKey(): boolean {
+      return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
+    },
+  },
   data() {
     return {
       apiKeys: new Array<ApiKey>(),
@@ -78,10 +84,12 @@ export default Vue.extend({
   },
   methods: {
     loadKeys(): void {
-      api
-        .get<ApiKey[]>('/api-keys')
-        .then((resp) => (this.apiKeys = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+      if (this.$store.getters.hasPermission(Permissions.VIEW_API_KEYS)) {
+        api
+          .get<ApiKey[]>('/api-keys')
+          .then((resp) => (this.apiKeys = resp.data))
+          .catch((error) => this.$store.dispatch('showError', error));
+      }
     },
     createApiKey(): void {
       this.$router.push({

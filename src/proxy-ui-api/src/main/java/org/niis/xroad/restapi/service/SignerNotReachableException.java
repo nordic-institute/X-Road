@@ -23,17 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dto;
+package org.niis.xroad.restapi.service;
 
-import lombok.Data;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * DTO for security server initialization status
+ * When signer operation fails
  */
-@Data
-public class InitializationStatusDto {
-    private boolean isAnchorImported;
-    private boolean isServerCodeInitialized;
-    private boolean isServerOwnerInitialized;
-    private TokenInitStatusInfo softwareTokenInitStatusInfo = TokenInitStatusInfo.UNKNOWN;
+public class SignerNotReachableException extends DeviationAwareRuntimeException {
+    public static final String ERROR_SIGNER_NOT_REACHABLE = "signer_not_reachable";
+
+    public SignerNotReachableException(String msg, Throwable t) {
+        super(msg, t, new ErrorDeviation(ERROR_SIGNER_NOT_REACHABLE));
+    }
 }

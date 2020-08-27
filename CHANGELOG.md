@@ -1,7 +1,7 @@
 # Change Log
 
-## 6.24.0 - UNRELEASED
-- New Security Server API based UI, see details in https://jira.niis.org/ (issues with label: api-based-ui, fix version: 6.24.0)
+## 6.24.0 - 2020-08-28
+- New Security Server API based UI, see details in [JIRA](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20fixVersion%20%3D%206.24.0%20AND%20labels%20%3D%20api-based-ui%20ORDER%20BY%20key%20ASC)
 - XRDDEV-437 - Add SonarQube analysis for Github pull requests
 - XRDDEV-125 - Add process view to Security Server architecture diagram
 - XRDDEV-595 - Replace '-' characters with '_' in ansible scripts to fix deprecation warnings
@@ -58,6 +58,8 @@
 - XRDDEV-1209 - Implementaion of the Faroe Islands's certificate profiles
 - XRDDEV-1247 - Fix static analysis findings
 - XRDDEV-1277 - Fix database backup failure
+- XRDDEV-1228 - Update documentation for RHEL8
+- XRDDEV-1281 - Remove unused secret token
 
 ## 6.23.0 - 2020-02-19
 - XRDDEV-730: Validate security server addresses on security server.

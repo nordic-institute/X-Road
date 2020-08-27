@@ -32,7 +32,9 @@ import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.service.BackupService;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.DiagnosticService;
@@ -103,6 +105,10 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     // temporarily public accessor, I have plan to merge restapi.controller and restapi.openapi packages
     @MockBean
     public NotificationService notificationService;
+    @MockBean
+    public ApiKeyService apiKeyService;
+    @MockBean
+    public PublicApiKeyDataConverter publicApiKeyDataConverter;
 
     @SpyBean
     GlobalConfService globalConfService;

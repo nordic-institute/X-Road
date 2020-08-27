@@ -291,7 +291,7 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.keyAdded');
+          this.$store.dispatch('showSuccess', 'keys.certificateUnregistered');
         })
         .catch((error) => {
           if (
