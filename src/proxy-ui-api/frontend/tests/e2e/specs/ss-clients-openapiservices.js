@@ -85,9 +85,9 @@ module.exports = {
     clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_1);
     clientServices.selectOpenApi();
     clientServices.enterServiceCode('/');
-    clientServices.confirmAddDialog();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Validation failure');
-    mainPage.closeSnackbar();
+    browser.expect.element(clientServices.elements.confirmAddServiceButton).to.not.be.enabled;
+    browser.assert.containsText(clientServices.elements.serviceCodeMessage, 'Identifier value contains illegal characters');
+    clientServices.cancelAddDialog();
 
     // Verify successfull URL open
     clientServices.openAddREST();
@@ -99,7 +99,7 @@ module.exports = {
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'OpenApi3 service added');
     mainPage.closeSnackbar();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_1 + ')');
-   
+
     clientServices.expandServiceDetails();
     browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]');
 
@@ -128,7 +128,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s3c1');
 
@@ -202,7 +202,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
@@ -245,7 +245,7 @@ module.exports = {
     mainPage.closeSnackbar();
 
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
-    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestCom")]');
 
@@ -276,7 +276,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
@@ -287,7 +287,7 @@ module.exports = {
     removeAccessRightPopup.cancel();
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
 
-    // Verify remove	
+    // Verify remove
     operationDetails.removeAccessRight('TestOrg');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
@@ -295,14 +295,14 @@ module.exports = {
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
-    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     // Verify cancel remove all
     operationDetails.removeAllAccessRights();
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.cancel();
-    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     // Verify remove all
@@ -312,7 +312,7 @@ module.exports = {
 
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
     mainPage.closeSnackbar();
-    browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     browser.end();
@@ -341,7 +341,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
@@ -349,7 +349,7 @@ module.exports = {
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.openAddDialog();
     browser.waitForElementVisible(addEndpointPopup);
-    
+
     // Verify validation rules
     addEndpointPopup.selectRequestMethod('GET');
     addEndpointPopup.enterPath('');
@@ -404,8 +404,8 @@ module.exports = {
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'New endpoint created successfully');
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
-    restEndpoints.verifyEndpointRow(1, 'POST', '/testreq1'); 
-   
+    restEndpoints.verifyEndpointRow(1, 'POST', '/testreq1');
+
     restEndpoints.openAddDialog();
     addEndpointPopup.enterPath('/testreq3');
     addEndpointPopup.selectRequestMethod('POST');
@@ -431,7 +431,7 @@ module.exports = {
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'New endpoint created successfully');
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
-    restEndpoints.verifyEndpointRow(2, 'POST', '/'); 
+    restEndpoints.verifyEndpointRow(2, 'POST', '/');
 
     // verify no edit button on autogenerated endpoint
     browser.waitForElementVisible('//table[.//*[contains(text(),"HTTP Request Method")]]//tr[.//*[contains(text(),"POST")] and .//*[contains(text(),"/testreq3")]]//button[@data-test="endpoint-edit"]');
@@ -465,7 +465,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s3c1');
     browser.waitForElementVisible(operationDetails);
@@ -487,7 +487,7 @@ module.exports = {
     endpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
     browser.waitForElementNotPresent('//table[.//thead[.//*[contains(text(),"HTTP Request Method")]]]//*[contains(text(),"/newreq1")]');
-    restEndpoints.verifyEndpointRow(3, 'POST', '/testreq2'); 
+    restEndpoints.verifyEndpointRow(3, 'POST', '/testreq2');
 
     // Verify uniqueness
     restEndpoints.openEndpoint('POST', '/testreq2');
@@ -516,7 +516,7 @@ module.exports = {
     // Verify confirm delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete endpoint")]'); 
+    browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete endpoint")]');
     endpointPopup.confirmDelete();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Endpoint removed successfully');
     mainPage.closeSnackbar();
@@ -580,9 +580,8 @@ module.exports = {
     clientServices.openServiceDetails();
     browser.assert.containsText(openApiServiceDetails.elements.serviceType, 'OpenAPI 3 Description');
     openApiServiceDetails.enterServiceCode('/');
-    openApiServiceDetails.confirmDialog();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Validation failure');
-    mainPage.closeSnackbar();
+    browser.expect.element(openApiServiceDetails.elements.confirmDialogButton).to.not.be.enabled;
+    browser.assert.containsText(openApiServiceDetails.elements.codeMessage, 'Identifier value contains illegal characters');
 
     openApiServiceDetails.enterServiceCode('');
     browser.assert.containsText(openApiServiceDetails.elements.codeMessage, 'The fields.code_field field is required');
@@ -636,7 +635,7 @@ module.exports = {
     });
 
     openApiServiceDetails.confirmDialog();
-   
+
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
     browser.assert.containsText(clientServices.elements.serviceDescription, 'OPENAPI3 (' + browser.globals.testdata + '/' + browser.globals.openapi_url_2 + ')');

@@ -72,7 +72,7 @@ module.exports = {
     clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_1);
     clientServices.confirmAddDialog();
     browser.assert.containsText(clientServices.elements.serviceDescription, browser.globals.testdata + '/' + browser.globals.wsdl_url_1);
-   
+
     clientServices.expandServiceDetails();
     browser.waitForElementVisible('//td[contains(@data-test, "service-link") and contains(text(),"testOp1")]');
 
@@ -85,6 +85,7 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.wsdlOperationDetails;
+    const sslCheckFail = mainPage.section.sslCheckFailDialog;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -100,7 +101,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('testOp1');
     operationDetails.close();
@@ -168,7 +169,7 @@ module.exports = {
 
     // Verify change all operations
     clientServices.openOperation('testOpA');
-    browser.waitForElementVisible(operationDetails); 
+    browser.waitForElementVisible(operationDetails);
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
     operationDetails.toggleVerifyCertApplyToAll();
@@ -176,6 +177,9 @@ module.exports = {
     operationDetails.enterTimeout('30');
     operationDetails.toggleCertVerification();
     operationDetails.saveParameters();
+    browser.waitForElementVisible(sslCheckFail);
+    browser.expect.element(sslCheckFail.elements.continueButton).to.be.visible.and.text.to.equal("CONTINUE");
+    sslCheckFail.continue();
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
     mainPage.closeSnackbar();
     operationDetails.close();
@@ -225,7 +229,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
@@ -251,7 +255,7 @@ module.exports = {
     mainPage.closeSnackbar();
 
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
-    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestCom")]');
 
@@ -281,7 +285,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-	
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
@@ -292,7 +296,7 @@ module.exports = {
     removeAccessRightPopup.cancel();
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
 
-    // Verify remove	
+    // Verify remove
     operationDetails.removeAccessRight('TestOrg');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
@@ -300,14 +304,14 @@ module.exports = {
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]');
-    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     // Verify cancel remove all
     operationDetails.removeAllAccessRights();
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.cancel();
-    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementVisible('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     // Verify remove all
@@ -317,7 +321,7 @@ module.exports = {
 
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
     mainPage.closeSnackbar();
-    browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');    
+    browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]');
     browser.waitForElementNotPresent('//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]');
 
     browser.end();
@@ -395,7 +399,7 @@ module.exports = {
     browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'WSDL download failed');
     mainPage.closeSnackbar();
-    
+
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
     browser.perform(function () {
@@ -418,7 +422,7 @@ module.exports = {
     serviceDetails.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_2);
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(servicesPopup);
- 
+
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     browser.perform(function () {
 
@@ -430,7 +434,7 @@ module.exports = {
       }
     });
 
-    servicesPopup.accept(); 
+    servicesPopup.accept();
 
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();

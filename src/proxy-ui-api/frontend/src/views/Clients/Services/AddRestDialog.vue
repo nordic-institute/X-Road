@@ -25,6 +25,7 @@
  -->
 <template>
   <ValidationObserver ref="form" v-slot="{ valid }">
+
     <simpleDialog
       :dialog="dialog"
       :width="560"
