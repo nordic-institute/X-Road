@@ -1,6 +1,6 @@
 # Change Log
 
-## 6.24.0 - UNRELEASED
+## 6.24.0 - 2020-08-28
 - New Security Server API based UI, see details in https://jira.niis.org/ (issues with label: api-based-ui, fix version: 6.24.0)
 - XRDDEV-437 - Add SonarQube analysis for Github pull requests
 - XRDDEV-125 - Add process view to Security Server architecture diagram
@@ -58,6 +58,8 @@
 - XRDDEV-1209 - Implementaion of the Faroe Islands's certificate profiles
 - XRDDEV-1247 - Fix static analysis findings
 - XRDDEV-1277 - Fix database backup failure
+- XRDDEV-1228 - Update documentation for RHEL8
+- XRDDEV-1281 - Remove unused secret token
 
 ## 6.23.0 - 2020-02-19
 - XRDDEV-730: Validate security server addresses on security server.
