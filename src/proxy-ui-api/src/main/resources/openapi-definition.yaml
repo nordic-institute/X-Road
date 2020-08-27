@@ -2639,6 +2639,8 @@ paths:
             format: text
             description: <instance_id>:<member_class>:<member_code>:<security_server_code>
             example: FI:GOV:123:sserver1
+            minLength: 1
+            maxLength: 1023
       responses:
         '200':
           description: ok
@@ -2753,7 +2755,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       requestBody:
         content:
           application/json:
@@ -2797,7 +2799,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       responses:
         '200':
           description: list of service clients
@@ -2836,7 +2838,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       requestBody:
         content:
           application/json:
@@ -2883,7 +2885,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       requestBody:
         content:
           application/json:
@@ -3028,6 +3030,7 @@ paths:
             type: string
             format: text
             minLength: 1
+            maxLength: 255
       responses:
         '200':
           description: list of access rights
