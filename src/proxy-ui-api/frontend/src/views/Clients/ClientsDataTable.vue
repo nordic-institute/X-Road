@@ -73,6 +73,7 @@
       hide-default-footer
       class="elevation-0 data-table"
       item-key="id"
+      :loader-height="2"
     >
       <template v-slot:item.visibleName="{ item }">
         <!-- Name - Owner member -->
