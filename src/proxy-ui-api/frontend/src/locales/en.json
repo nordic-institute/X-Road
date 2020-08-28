@@ -710,6 +710,7 @@
   "type": "Type",
   "warning": "Warning",
   "id": "ID",
+  "count": "Count:",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."

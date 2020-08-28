@@ -30,12 +30,24 @@
       data-test="success-snackbar"
       v-model="showSuccessCode"
       color="success"
-      :timeout="timeout"
+      :timeout="-1"
     >
-      {{ $t(successMessageCode) }}
-      <v-btn data-test="close-snackbar" text @click="closeSuccess()">{{
-        $t('action.close')
-      }}</v-btn>
+      <div class="row-wrapper-top scrollable">
+        <div class="row-wrapper">
+          <div>
+            {{ $t(successMessageCode) }}
+          </div>
+        </div>
+
+        <v-btn
+          icon
+          color="white"
+          data-test="close-snackbar"
+          @click="closeSuccess()"
+        >
+          <v-icon dark>mdi-close-circle</v-icon>
+        </v-btn>
+      </div>
     </v-snackbar>
 
     <!-- Success: raw text -->
@@ -43,12 +55,17 @@
       data-test="success-snackbar"
       v-model="showSuccessRaw"
       color="success"
-      :timeout="timeout"
-    >
+      :timeout="-1"
+    >kk
       {{ successMessageRaw }}
-      <v-btn data-test="close-snackbar" text @click="closeSuccess()">{{
-        $t('action.close')
-      }}</v-btn>
+      <v-btn
+        icon
+        color="white"
+        data-test="close-snackbar"
+        @click="closeSuccess()"
+      >
+        <v-icon dark>mdi-close-circle</v-icon>
+      </v-btn>
     </v-snackbar>
 
     <!-- Error -->
@@ -62,86 +79,89 @@
       multi-line
       @input="closeError(notification.timeAdded)"
     >
-      <div class="row-wrapper scrollable">
-        <!-- Show localised text by id -->
-        <div v-if="notification.errorMessageCode">
-          {{ $t(notification.errorMessageCode) }}
+      <div class="row-wrapper-top scrollable">
+        <div class="row-wrapper">
+          <!-- Show localised text by id -->
+          <div v-if="notification.errorMessageCode">
+            {{ $t(notification.errorMessageCode) }}
+          </div>
+
+          <!-- Show raw text -->
+          <div v-else-if="notification.errorMessageRaw">
+            {{ notification.errorMessageRaw }}
+          </div>
+
+          <!-- Show localised text by id from error object -->
+          <div v-else-if="notification.errorObject && errorCode(notification)">
+            {{ $t('error_code.' + errorCode(notification)) }}
+          </div>
+
+          <!-- If error doesn't have a text or localisation key then just print the error object -->
+          <div v-else-if="notification.errorObject">
+            {{ notification.errorObject }}
+          </div>
+
+          <!-- Show the error metadata if it exists -->
+          <div v-for="meta in errorMetadata(notification)" :key="meta">
+            {{ meta }}
+          </div>
+
+          <!-- Show validation errors -->
+          <ul v-if="hasValidationErrors(notification)">
+            <li
+              v-for="validationError in validationErrors(notification)"
+              :key="validationError.field"
+            >
+              {{ $t(`fields.${validationError.field}`) }}:
+              <template v-if="validationError.errorCodes.length === 1">
+                {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+              </template>
+              <template v-else>
+                <ul>
+                  <li
+                    v-for="errorCode in validationError.errorCodes"
+                    :key="`${validationError.field}.${errorCode}`"
+                  >
+                    {{ $t(`validationError.${errorCode}`) }}
+                  </li>
+                </ul>
+              </template>
+            </li>
+          </ul>
+
+          <!-- Error ID -->
+          <div v-if="errorId(notification)">
+            {{ $t('id') }}:
+            {{ errorId(notification) }}
+          </div>
         </div>
 
-        <!-- Show raw text -->
-        <div v-else-if="notification.errorMessageRaw">
-          {{ notification.errorMessageRaw }}
-        </div>
-
-        <!-- Show localised text by id from error object -->
-        <div v-else-if="notification.errorObject && errorCode(notification)">
-          {{ $t('error_code.' + errorCode(notification)) }}
-        </div>
-
-        <!-- If error doesn't have a text or localisation key then just print the error object -->
-        <div v-else-if="notification.errorObject">
-          {{ notification.errorObject }}
-        </div>
-
-        <!-- Show the error metadata if it exists -->
-        <div v-for="meta in errorMetadata(notification)" :key="meta">
-          {{ meta }}
-        </div>
-
-        <!-- Show validation errors -->
-        <ul v-if="hasValidationErrors(notification)">
-          <li
-            v-for="validationError in validationErrors(notification)"
-            :key="validationError.field"
-          >
-            {{ $t(`fields.${validationError.field}`) }}:
-            <template v-if="validationError.errorCodes.length === 1">
-              {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-            </template>
-            <template v-else>
-              <ul>
-                <li
-                  v-for="errorCode in validationError.errorCodes"
-                  :key="`${validationError.field}.${errorCode}`"
-                >
-                  {{ $t(`validationError.${errorCode}`) }}
-                </li>
-              </ul>
-            </template>
-          </li>
-        </ul>
-
-        <!-- Error ID -->
-        <div v-if="errorId(notification)">
-          {{ $t('id') }}:
-          {{ errorId(notification) }}
-        </div>
+        <template v-if="errorId(notification)">
+          <v-btn
+            outlined
+            class="id-button"
+            color="white"
+            data-test="copy-id-button"
+            @click.prevent="copyId(notification)"
+            >{{ $t('action.copyId') }}
+          </v-btn>
+        </template>
 
         <!-- count -->
         <div v-if="notification.count > 1">
-          count:
+          {{ $t('count') }}
           {{ notification.count }}
         </div>
-      </div>
 
-      <template v-if="errorId(notification)">
         <v-btn
-          outlined
+          icon
           color="white"
-          data-test="copy-id-button"
-          @click.prevent="copyId(notification)"
-          >{{ $t('action.copyId') }}
+          data-test="close-snackbar"
+          @click="closeError(notification.timeAdded)"
+        >
+          <v-icon dark>mdi-close-circle</v-icon>
         </v-btn>
-      </template>
-
-      <v-btn
-        icon
-        color="white"
-        data-test="close-snackbar"
-        @click="closeError(notification.timeAdded)"
-      >
-        <v-icon dark>mdi-close-circle</v-icon>
-      </v-btn>
+      </div>
     </v-snackbar>
   </div>
 </template>
@@ -183,7 +203,6 @@ export default Vue.extend({
   data() {
     return {
       timeout: 2000,
-      forever: 0,
     };
   },
   methods: {
@@ -252,11 +271,22 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+.row-wrapper-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 .row-wrapper {
   display: flex;
   flex-direction: column;
   overflow: auto;
   overflow-wrap: break-word;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.id-button {
+  margin-right: 10px;
 }
 
 .scrollable {
