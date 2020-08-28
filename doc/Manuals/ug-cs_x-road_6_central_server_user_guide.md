@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.14  
+Version: 2.16  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -39,7 +39,9 @@ Doc. ID: UG-CS
 | 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä |
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty |
 | 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä |
-| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty | 
+| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty |
+| 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä |
+| 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -130,6 +132,7 @@ Doc. ID: UG-CS
   - [16.1 Verify next update](#161-verify-next-update)
   - [16.2 OCSP fetch interval](#162-ocsp-fetch-interval)
 - [17. Logs and System Services](#17-logs-and-system-services)
+- [18. Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
 
 <!-- tocstop -->
 
@@ -1073,6 +1076,8 @@ To restore configuration, follow these steps.
 3. Click Confirm to proceed.
 4. A window opens displaying the output from the restore script; click OK to close it.
 
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
+
 ## 13.3 Restoring the Configuration from the Command Line
 
 To restore configuration from the command line, the following data must be available:
@@ -1248,3 +1253,83 @@ Logback configuration files are stored in the `/etc/xroad/conf.d/` directory.
 Default settings for logging are the following:
 - logging level: INFO;
 - rolling policy: whenever file size reaches 100 MB.
+
+# 18. Migrating to Remote Database Host
+
+Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+Prerequisites
+
+* Same version (10 or later) of PostgreSQL installed on the remote database host.
+* Network connections to PostgreSQL port (tcp/5432) are allowed from the Central Server to the remote database server.
+
+1. Shutdown X-Road processes.
+
+    `systemctl stop "xroad*"`
+
+2. Dump the local database centerui_production to be migrated. The credentials of the database user can be found in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
+
+    `pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui -f centerui_production.dat centerui_production`
+
+3. Shut down and mask local postgresql so it won't start when xroad-proxy starts.
+
+    `systemctl stop postgresql`
+    `systemctl mask postgresql`
+
+4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows. Note that the line `GRANT centerui_production to postgres` is AWS RDS specific and not necessary if the postgres user is a true super-user.
+
+Central Server version 6.23.x
+```
+    psql -h <remote-db-url> -p <remote-db-port> -U postgres
+    CREATE DATABASE centerui_production ENCODING 'UTF8';
+    CREATE ROLE centerui LOGIN PASSWORD '<centerui-password>';
+    GRANT centerui to postgres;
+    \c centerui_production
+    CREATE EXTENSION hstore;
+```
+
+Additionally for Central Server version 6.24.x or greater
+```
+    CREATE SCHEMA centerui AUTHORIZATION centerui;
+```
+
+5. Restore the database dumps on the remote database host.
+
+Version 6.23.x
+
+    `pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui -O -n public -1 -d centerui_production centerui_production.dat`
+
+Version 6.24.x or greater
+
+    `pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui -O -n centerui -1 -d centerui_production centerui_production.dat`
+
+6. Create properties file `/etc/xroad.properties` containing the superuser password.
+
+```
+    sudo touch /etc/xroad.properties
+    sudo chown root:root /etc/xroad.properties
+    sudo chmod 600 /etc/xroad.properties
+```
+
+7. Edit `/etc/xroad.properties`.
+
+```
+    postgres.connection.password = '<master-password>'
+```
+
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+
+```
+    username = centerui
+    password = <centerui-password>
+    database = centerui_production
+    host = <remote-db-url>
+    port = <remote-db-port>
+```
+
+9. Start again the X-Road services.
+
+```
+    systemctl start xroad-jetty
+    systemctl start xroad-signer
+```

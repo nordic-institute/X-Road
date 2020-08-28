@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -47,7 +48,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Cancellable;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
@@ -418,7 +419,7 @@ public class LogManager extends AbstractLogManager {
     /**
      * Timestamper job is responsible for firing up the timestamping periodically.
      */
-    public static class TimestamperJob extends UntypedActor {
+    public static class TimestamperJob extends UntypedAbstractActor {
         private static final int MIN_INTERVAL_SECONDS = 60;
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
         private static final int TIMESTAMP_RETRY_DELAY_SECONDS = getTimestampRetryDelay();

@@ -1,0 +1,77 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ee.ria.xroad</groupId>
+    <artifactId>soapui-tests</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <description>SoapUI tests</description>
+
+    <properties>
+        <projectFile>${basedir}/mock-client-soapui-project.xml</projectFile>
+        <testSuite>TestSuite</testSuite>
+        <settingsFile>soapui-settings.xml</settingsFile>
+        <ServerUrlHttp>http://xtee6.ci.kit/</ServerUrlHttp>
+        <ServerUrlHttps>https://xtee6.ci.kit/</ServerUrlHttps>
+        <ClientXRoadInstance>XTEE-CI</ClientXRoadInstance>
+        <ClientMemberClass>COM</ClientMemberClass>
+        <ClientMemberCode>00000002</ClientMemberCode>
+        <ClientSubsystemCode>MockSystem</ClientSubsystemCode>
+        <ClientSubsystemCodeTLS>MockSystemTLS</ClientSubsystemCodeTLS>
+        <ServiceXRoadInstance>XTEE-CI</ServiceXRoadInstance>
+        <ServiceMemberClass>COM</ServiceMemberClass>
+        <ServiceMemberCode>00000002</ServiceMemberCode>
+        <ServiceSubsystemCode>MockSystem</ServiceSubsystemCode>
+        <ServiceSubsystemCodeTLS>MockSystemTLS</ServiceSubsystemCodeTLS>
+    </properties>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>smartbear-sweden-plugin-repository</id>
+            <url>http://www.soapui.org/repository/maven2/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.smartbear.soapui</groupId>
+                <artifactId>soapui-maven-plugin</artifactId>
+                <version>5.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <projectFile>${projectFile}</projectFile>
+                    <testSuite>${testSuite}</testSuite>
+                    <settingsFile>${settingsFile}</settingsFile>
+                    <projectProperties>
+                        <value>ServerUrlHttp=${ServerUrlHttp}</value>
+                        <value>ServerUrlHttps=${ServerUrlHttps}</value>
+                        <value>ClientXRoadInstance=${ClientXRoadInstance}</value>
+                        <value>ClientMemberClass=${ClientMemberClass}</value>
+                        <value>ClientMemberCode=${ClientMemberCode}</value>
+                        <value>ClientSubsystemCode=${ClientSubsystemCode}</value>
+                        <value>ClientSubsystemCodeTLS=${ClientSubsystemCodeTLS}</value>
+                        <value>ServiceXRoadInstance=${ServiceXRoadInstance}</value>
+                        <value>ServiceMemberClass=${ServiceMemberClass}</value>
+                        <value>ServiceMemberCode=${ServiceMemberCode}</value>
+                        <value>ServiceSubsystemCode=${ServiceSubsystemCode}</value>
+                        <value>ServiceSubsystemCodeTLS=${ServiceSubsystemCodeTLS}</value>
+                    </projectProperties>
+                    <printReport>true</printReport>
+                    <outputFolder>${project.build.directory}/surefire-reports</outputFolder>
+                    <junitReport>true</junitReport>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>  

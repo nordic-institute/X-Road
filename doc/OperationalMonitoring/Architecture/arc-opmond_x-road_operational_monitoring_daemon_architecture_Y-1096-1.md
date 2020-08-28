@@ -2,9 +2,9 @@
 | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# X-Road: Operational Monitoring Daemon Architecture
+# X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 0.8  
+Version: 1.1  
 Document ID: ARC-OPMOND
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -14,32 +14,34 @@ Document ID: ARC-OPMOND
 | 02.02.2018 | 0.7       | Technology matrix moved to the ARC-TEC-file               | Antti Luoma |
 | 05.03.2018 | 0.8       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo   |
 | 18.02.2019 | 0.9       | New optional field: xRequestId (string) | Caro Hautamäki   |
+| 12.12.2019 | 1.0       | Update appendix A.2 with the updated fields | Ilkka Seppälä   |
+| 25.06.2020 | 1.1       | Update section 3.3 with the instructions how to enable JMX | Petteri Kivimäki   |
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
-  * [1.1 Overview](#11-overview)
-  * [1.2 Terms and Abbrevations](#12-terms-and-abbrevations)
-  * [1.3 References](#13-references)
+  - [1.1 Overview](#11-overview)
+  - [1.2 Terms and Abbrevations](#12-terms-and-abbrevations)
+  - [1.3 References](#13-references)
 - [2 Component View](#2-component-view)
-  * [2.1 Operational Monitoring Daemon Main](#21-operational-monitoring-daemon-main)
-    + [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
-    + [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
-  * [2.2 Configuration Client](#22-configuration-client)
+  - [2.1 Operational Monitoring Daemon Main](#21-operational-monitoring-daemon-main)
+    - [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
+    - [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
+  - [2.2 Configuration Client](#22-configuration-client)
 - [3 Protocols and Interfaces](#3-protocols-and-interfaces)
-  * [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
-  * [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
-  * [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
-  * [3.4 Download Configuration](#34-download-configuration)
+  - [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
+  - [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
+  - [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
+  - [3.4 Download Configuration](#34-download-configuration)
 - [4 Deployment View](#4-deployment-view)
 - [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
-  * [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
-  * [A.2 Example Store Operational Monitoring Data Request](#a2-example-store-operational-monitoring-data-request)
-  * [A.3 JSON-Schema for Store Operational Monitoring Data Response](#a3-json-schema-for-store-operational-monitoring-data-response)
-  * [A.4 Example Store Operational Monitoring Data Responses](#a4-example-store-operational-monitoring-data-responses)
+  - [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
+  - [A.2 Example Store Operational Monitoring Data Request](#a2-example-store-operational-monitoring-data-request)
+  - [A.3 JSON-Schema for Store Operational Monitoring Data Response](#a3-json-schema-for-store-operational-monitoring-data-response)
+  - [A.4 Example Store Operational Monitoring Data Responses](#a4-example-store-operational-monitoring-data-responses)
 
 <!-- tocstop -->
 
@@ -133,6 +135,18 @@ The monitoring of the security servers is not the main functionality of the X-Ro
 
 This interface is used by a local monitoring system (e.g. Zabbix) to gather local operational health data of the security server via JMXMP. The interface is described in more detail in [[PR-OPMONJMX]](#PR-OPMONJMX).
 
+With the default configuration, JMX is disabled. JMX is enabled by adding the required configuration in `/etc/xroad/services/local.conf` file. The file is opened for editing and changes are made on the `OPMON_PARAMS` variable value. After the `OPMON_PARAMS` variable value has been updated, the `xroad-opmonitor` service must be restarted.
+                                                 
+The example configuration below enables JMX, binds it to port `9011` on any available interface with SSL and password authentication enabled:
+ 
+ ```
+OPMON_PARAMS="$OPMON_PARAMS \
+ -Djava.rmi.server.hostname=0.0.0.0 \
+ -Dcom.sun.management.jmxremote.port=9011 \
+ -Dcom.sun.management.jmxremote.authenticate=true \
+ -Dcom.sun.management.jmxremote.ssl=true "
+ ```
+
 The monitoring of the security servers is not the main functionality of the X-Road system, therefore the availability and responsiveness of this service is not paramount.
 
 ### 3.4 Download Configuration
@@ -167,67 +181,65 @@ The first record of the store request reflects successfully mediated request, th
 {
   "records": [
     {
-      "clientMemberClass": "GOV",
-      "clientMemberCode": "00000001",
-      "clientSecurityServerAddress": "ss1.ci.kit",
-      "clientSubsystemCode": "subsystem1",
-      "clientXRoadInstance": "EE",
-      "messageId": "1TzYPstxXyYPtNsos4TNEAPykJh50aJz",
-      "messageIssue": "453465",
-      "messageProtocolVersion": "4.0",
-      "messageUserId": "EE37701010101",
-      "representedPartyClass": "COM",
-      "representedPartyCode": "UNKNOWN_MEMBER",
-      "requestAttachmentCount": 0,
-      "requestInTs": 1477633844973,
-      "requestOutTs": 1477633844986,
-      "requestSoapSize": 1629,
-      "responseAttachmentCount": 0,
-      "responseInTs": 1477633845222,
-      "responseOutTs": 1477633845243,
-      "responseSoapSize": 1518,
-      "securityServerInternalIp": "192.168.1.251",
+      "monitoringDataTs": 1576133363,
+      "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
       "securityServerType": "Client",
-      "serviceCode": "xroadGetRandom",
-      "serviceMemberClass": "GOV",
-      "serviceMemberCode": "00000000",
-      "serviceSecurityServerAddress": "ss0.ci.kit",
-      "serviceSubsystemCode": "subsystem1",
+      "requestInTs": 1576133360081,
+      "requestOutTs": 1576133361160,
+      "responseInTs": 1576133361818,
+      "responseOutTs": 1576133361876,
+      "clientXRoadInstance": "FI",
+      "clientMemberClass": "COM",
+      "clientMemberCode": "111",
+      "clientSubsystemCode": "CLIENT",
+      "serviceXRoadInstance": "FI",
+      "serviceMemberClass": "COM",
+      "serviceMemberCode": "111",
+      "serviceSubsystemCode": "SERVICE",
+      "serviceCode": "getRandom",
       "serviceVersion": "v1",
-      "serviceXRoadInstance": "EE",
+      "messageId": "1234",
+      "messageUserId": "1234",
+      "messageIssue": "1234",
+      "messageProtocolVersion": "4.x",
+      "clientSecurityServerAddress": "ss1",
+      "serviceSecurityServerAddress": "ss1",
+      "requestSize": 1226,
+      "responseSize": 1539,
+      "requestAttachmentCount": 0,
+      "responseAttachmentCount": 0,
       "succeeded": true,
-      "xRequestId": "8df57952-792f-497d-8c3b-c0e930750644"
+      "xRequestId": "d4490e7f-305e-44c3-b869-beaaeda694e7",
+      "serviceType": "WSDL"
     },
     {
-      "clientMemberClass": "GOV",
-      "clientMemberCode": "00000001",
-      "clientSecurityServerAddress": "ss1.ci.kit",
-      "clientSubsystemCode": "subsystem1",
-      "clientXRoadInstance": "EE",
-      "messageId": "vQW48q1ftjwXlYBGekxbPuGdQjpu9ScU",
-      "messageProtocolVersion": "4.0",
-      "messageUserId": "EE37701010101",
-      "requestAttachmentCount": 0,
-      "requestInTs": 1477633846174,
-      "requestOutTs": 1477633846203,
-      "requestSoapSize": 1202,
-      "responseInTs": 1477633846299,
-      "responseOutTs": 1477633846301,
-      "securityServerInternalIp": "192.168.1.251",
+      "monitoringDataTs": 1576134508,
+      "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
       "securityServerType": "Client",
-      "serviceCode": "xroadGetDate",
-      "serviceMemberClass": "GOV",
-      "serviceMemberCode": "00000000",
-      "serviceSecurityServerAddress": "ss0.ci.kit",
-      "serviceSubsystemCode": "subsystem2",
+      "requestInTs": 1576134507705,
+      "requestOutTs": 1576134507840,
+      "responseInTs": 1576134508040,
+      "responseOutTs": 1576134508045,
+      "clientXRoadInstance": "FI",
+      "clientMemberClass": "COM",
+      "clientMemberCode": "111",
+      "serviceXRoadInstance": "FI",
+      "serviceMemberClass": "COM",
+      "serviceMemberCode": "111",
+      "serviceCode": "getSecurityServerHealthData",
       "serviceVersion": "v1",
-      "serviceXRoadInstance": "EE",
-      "soapFaultCode": "Server.ServerProxy.UnknownService",
-      "soapFaultString": "Unknown service:
-          SERVICE:EE/GOV/00000000/subsystem2/xroadGetDate/v1",
+      "messageId": "1234",
+      "messageProtocolVersion": "4.x",
+      "clientSecurityServerAddress": "ss1",
+      "serviceSecurityServerAddress": "ss1",
+      "requestSize": 1767,
+      "requestAttachmentCount": 0,
       "succeeded": false,
-      "xRequestId": "233f4d78-358a-4776-90ae-42c42a9f06ff"
-    }
+      "faultCode": "Server.ServerProxy.OpMonitor.InvalidClientIdentifier",
+      "faultString": "Missing required subsystem code",
+      "xRequestId": "2c51b181-47cd-4ff2-b5df-6463f968fd0c",
+      "serviceType": "WSDL"
+    }   
   ]
 }
 ```

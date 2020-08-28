@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -321,6 +322,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
         if (requestMessage.getSignature() == null) {
             throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
+        checkIdentifier(requestMessage.getSoap().getClient());
+        checkIdentifier(requestMessage.getSoap().getService());
+        checkIdentifier(requestMessage.getSoap().getSecurityServer());
+        checkIdentifier(requestMessage.getSoap().getCentralService());
     }
 
     private void verifyClientStatus() {
@@ -535,7 +540,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
             monitorAgentNotifyFailure(exception);
 
-            opMonitoringData.setSoapFault(exception);
+            opMonitoringData.setFaultCodeAndString(exception);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             encoder.fault(SoapFault.createFaultXml(exception));
@@ -657,7 +662,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
 
-            opMonitoringData.setResponseSoapSize(responseSoap.getBytes().length);
+            opMonitoringData.setResponseSize(responseSoap.getBytes().length);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
 
             encoder.soap(responseSoap, headers);

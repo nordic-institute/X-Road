@@ -69,11 +69,10 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/confclient-logback-service.xml
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-confclient
 
-
 %defattr(-,root,root,-)
 /usr/share/xroad/jlib/configuration-client.jar
 /usr/share/xroad/jlib/configuration-client-*.jar
-%attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-confclient
+%attr(550,root,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(644,root,root) %{_unitdir}/xroad-confclient.service
 
 %pre

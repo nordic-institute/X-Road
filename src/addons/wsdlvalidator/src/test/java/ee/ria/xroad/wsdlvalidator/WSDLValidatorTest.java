@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,7 +27,11 @@ package ee.ria.xroad.wsdlvalidator;
 
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test WSDLValidator
@@ -35,11 +40,40 @@ public class WSDLValidatorTest {
 
     @Test
     public void shouldFailValidation() {
-        assertEquals(1, WSDLValidator.executeValidator("src/test/resources/error.wsdl"));
+        final MockStream bout = new MockStream();
+        assertEquals(1, WSDLValidator.executeValidator("src/test/resources/error.wsdl", bout));
+        assertTrue(!bout.isEmpty());
+    }
+
+    @Test
+    public void shouldProduceWarning() {
+        final MockStream bout = new MockStream();
+        assertEquals(0, WSDLValidator.executeValidator("src/test/resources/warn.wsdl", bout));
+        assertTrue(!bout.isEmpty());
+    }
+
+    @Test
+    public void shouldProduceError() {
+        final MockStream bout = new MockStream();
+        assertEquals(1, WSDLValidator.executeValidator("src/test/resources/warnanderror.wsdl", bout));
+        assertTrue(!bout.isEmpty());
     }
 
     @Test
     public void shouldPassValidation() {
-        assertEquals(0, WSDLValidator.executeValidator("src/test/resources/testservice.wsdl"));
+        final MockStream bout = new MockStream();
+        assertEquals(0, WSDLValidator.executeValidator("src/test/resources/testservice.wsdl", bout));
+        assertTrue(bout.isEmpty());
+    }
+
+    static class MockStream extends PrintStream {
+
+        MockStream() {
+            super(new ByteArrayOutputStream());
+        }
+
+        boolean isEmpty() {
+            return ((ByteArrayOutputStream)out).size() == 0;
+        }
     }
 }

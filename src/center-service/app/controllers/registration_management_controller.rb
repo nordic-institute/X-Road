@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -60,6 +61,7 @@ class RegistrationManagementController < ManagementRequestController
         req_type = ManagementRequestParser.parseAuthCertDeletionRequest(
             @request_soap)
         security_server = security_server_id(req_type.getServer())
+        check_security_server_identifiers(security_server)
 
         verify_xroad_instance(security_server)
         verify_owner(security_server)
@@ -75,7 +77,9 @@ class RegistrationManagementController < ManagementRequestController
     def handle_client_registration
         req_type = ManagementRequestParser.parseClientRegRequest(@request_soap)
         security_server = security_server_id(req_type.getServer())
+        check_security_server_identifiers(security_server)
         server_user = client_id(req_type.getClient())
+        check_client_identifiers(server_user)
 
         verify_xroad_instance(security_server)
         verify_xroad_instance(server_user)
@@ -130,7 +134,9 @@ class RegistrationManagementController < ManagementRequestController
     def handle_client_deletion
         req_type = ManagementRequestParser.parseClientDeletionRequest(@request_soap)
         security_server = security_server_id(req_type.getServer())
+        check_security_server_identifiers(security_server)
         server_user = client_id(req_type.getClient())
+        check_client_identifiers(server_user)
 
         verify_xroad_instance(security_server)
         verify_xroad_instance(server_user)
@@ -148,7 +154,9 @@ class RegistrationManagementController < ManagementRequestController
     def handle_owner_change
         req_type = ManagementRequestParser.parseOwnerChangeRequest(@request_soap)
         security_server = security_server_id(req_type.getServer())
+        check_security_server_identifiers(security_server)
         server_user = client_id(req_type.getClient())
+        check_client_identifiers(server_user)
 
         verify_xroad_instance(security_server)
         verify_xroad_instance(server_user)

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -108,10 +109,10 @@ class ServerProxyHandler extends HandlerBase {
 
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
-            opMonitoringData.setSoapFault(cex);
+            opMonitoringData.setFaultCodeAndString(cex);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
-            failure(response, cex);
+            failure(request, response, cex);
         } finally {
             baseRequest.setHandled(true);
 
@@ -135,10 +136,10 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    protected void failure(HttpServletResponse response, CodedException e) throws IOException {
+    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException e)
+            throws IOException {
         MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
-
-        sendErrorResponse(response, e);
+        sendErrorResponse(request, response, e);
     }
 
     private static void logProxyVersion(HttpServletRequest request) {

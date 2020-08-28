@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,11 +32,11 @@ import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 
+import akka.actor.AbstractActorWithStash;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorWithStash;
+import akka.actor.UntypedAbstractActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import lombok.Data;
@@ -72,7 +73,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
  * per signing certificate.
  */
 @Slf4j
-public class BatchSigner extends UntypedActor {
+public class BatchSigner extends UntypedAbstractActor {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
     private static final Timeout DEFAULT_TIMEOUT = new Timeout(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
@@ -143,7 +144,7 @@ public class BatchSigner extends UntypedActor {
         // Signing worker based on cert hash.
         String name = calculateCertHexHash(signRequest.getSigningCert());
 
-        ActorRef worker = getContext().getChild(name);
+        ActorRef worker = getContext().findChild(name).orElse(null);
 
         if (worker == null) {
             log.trace("Creating new worker for cert '{}'", name);
@@ -157,7 +158,7 @@ public class BatchSigner extends UntypedActor {
     /**
      * This is the worker that does the heavy lifting.
      */
-    private static class WorkerImpl extends UntypedActorWithStash {
+    private static class WorkerImpl extends AbstractActorWithStash {
 
         // The currently active signing ctx.
         private BatchSignatureCtx workingSigningCtx;
@@ -171,18 +172,13 @@ public class BatchSigner extends UntypedActor {
         private Boolean batchSigningEnabled;
 
         @Override
-        public void onReceive(Object message) throws Exception {
-            log.trace("onReceive({})", message);
-
-            if (message instanceof SigningRequestWrapper) {
-                handleSignRequest((SigningRequestWrapper) message);
-            } else if (message instanceof SignResponse) {
-                handleSignResponse((SignResponse) message);
-            } else if (message instanceof Exception) {
-                handleException((Exception) message);
-            } else {
-                unhandled(message);
-            }
+        public Receive createReceive() {
+            return receiveBuilder()
+                    .match(SigningRequestWrapper.class, this::handleSignRequest)
+                    .match(SignResponse.class, this::handleSignResponse)
+                    .match(Exception.class, this::handleException)
+                    .matchAny(this::unhandled)
+                    .build();
         }
 
         private void handleSignRequest(SigningRequestWrapper signRequest) throws Exception {
@@ -358,6 +354,7 @@ public class BatchSigner extends UntypedActor {
                 }
             }
         }
+
     }
 
     /**

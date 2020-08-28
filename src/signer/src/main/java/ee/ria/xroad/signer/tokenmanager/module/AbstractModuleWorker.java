@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -38,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Module worker base class.
@@ -123,11 +125,11 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
     }
 
     private boolean hasToken(TokenType tokenType) {
-        return getToken(tokenType) != null;
+        return getToken(tokenType).isPresent();
     }
 
-    private ActorRef getToken(TokenType tokenType) {
-        return getContext().getChild(tokenType.getId());
+    private Optional<ActorRef> getToken(TokenType tokenType) {
+        return getContext().findChild(tokenType.getId());
     }
 
     private ActorRef createToken(TokenInfo tokenInfo, TokenType tokenType) {

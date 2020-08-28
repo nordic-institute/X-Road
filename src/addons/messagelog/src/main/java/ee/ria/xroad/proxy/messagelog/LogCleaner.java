@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,7 +27,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.joda.time.DateTime;
@@ -38,7 +39,7 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
  * Deletes all archived log records from the database.
  */
 @Slf4j
-public class LogCleaner extends UntypedActor {
+public class LogCleaner extends UntypedAbstractActor {
 
     public static final String START_CLEANING = "doClean";
     public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();

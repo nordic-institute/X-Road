@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -38,6 +39,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -85,8 +87,12 @@ final class TimestamperUtil {
         out.flush();
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            con.disconnect();
             throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
                     + con.getResponseMessage());
+        } else if (con.getInputStream() == null) {
+            con.disconnect();
+            throw new IOException("Could not get response from TSP");
         }
 
         return con.getInputStream();

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -30,6 +31,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CentralServiceType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
@@ -482,14 +484,16 @@ public class GlobalConfImpl implements GlobalConfProvider {
             String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getApprovedCAs()
             .stream()
-            .map(ca ->
-                new ApprovedCAInfo(
-                    ca.getName(),
-                    ca.isAuthenticationOnly(),
-                    ca.getCertificateProfileInfo()
-                )
-            )
+            .map(ca -> createApprovedCAInfo(ca))
             .collect(Collectors.toList());
+    }
+
+    private ApprovedCAInfo createApprovedCAInfo(ApprovedCATypeV2 ca) {
+        return new ApprovedCAInfo(
+            ca.getName(),
+            ca.isAuthenticationOnly(),
+            ca.getCertificateProfileInfo()
+        );
     }
 
     @Override
@@ -724,4 +728,20 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
         return new GetCertificateProfile(certProfileProviderClass).instance();
     }
+
+    @Override
+    public ApprovedCAInfo getApprovedCA(
+            String instanceIdentifier, X509Certificate cert) throws CodedException {
+        SharedParametersV2 p = getSharedParameters(instanceIdentifier);
+
+        ApprovedCATypeV2 approvedCAType = p.getCaCertsAndApprovedCAData().get(cert);
+        if (approvedCAType == null) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Could not find approved CA info for certificate "
+                            + cert.getSubjectX500Principal().getName());
+        }
+
+        return createApprovedCAInfo(approvedCAType);
+    }
+
 }

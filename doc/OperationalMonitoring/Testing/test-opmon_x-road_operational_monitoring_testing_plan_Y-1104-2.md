@@ -4,7 +4,7 @@
 
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.7  
+Version: 0.9  
 Doc ID: TEST-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -12,36 +12,34 @@ Doc ID: TEST-OPMON
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc. | Tatu Repo |
+| 05.02.2020 | 0.8       | Update information about the test suites. | Ilkka Seppälä |
+| 25.06.2020 | 0.9       | Update information about the JMX interface. | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Purpose](#11-purpose)
-  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-- [2 Components of the Operational Monitoring System in the Context of Testing](#2-components-of-the-operational-monitoring-system-in-the-context-of-testing)
-  * [2.1 Testing the Operational Monitoring Database](#21-testing-the-operational-monitoring-database)
-  * [2.2 Testing the Operational Monitoring Service](#22-testing-the-operational-monitoring-service)
-- [3 The Protocols and Interfaces used in the Operational Monitoring System in the Context of Testing](#3-the-protocols-and-interfaces-used-in-the-operational-monitoring-system-in-the-context-of-testing)
-- [4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing](#4-the-use-cases-of-the-operational-monitoring-daemon-in-the-context-of-testing)
-- [5 Automated Integration Testing in Detail](#5-automated-integration-testing-in-detail)
-- [6 Load Testing](#6-load-testing)
-  * [6.1 Limitations of the System](#61-limitations-of-the-system)
-  * [6.2 Setup of the Simulations](#62-setup-of-the-simulations)
-  * [6.2.1 A Sample Load Simulation for Observing the Dropping of Records](#621-a-sample-load-simulation-for-observing-the-dropping-of-records)
-- [6.3 The Effect of the Operational Monitoring System on Request Throughput](#63-the-effect-of-the-operational-monitoring-system-on-request-throughput)
-  * [6.3.1 A Sample Set of Simulations and Results](#631-a-sample-set-of-simulations-and-results)
-- [7 Testing the JMXMP Interface](#7-testing-the-jmxmp-interface)
-  * [7.1 Testing the JMXMP Interface Using jconsole](#71-testing-the-jmxmp-interface-using-jconsole)
-- [8 Manual Integration Testing in Detail](#8-manual-integration-testing-in-detail)
-  * [8.1 Test Helpers](#81-test-helpers)
-  * [8.2 Send a Request to a Non-operational Service Cluster](#82-send-a-request-to-a-non-operational-service-cluster)
-  * [8.3 Run Operational Monitoring Data Cleanup](#83-run-operational-monitoring-data-cleanup)
-  * [8.4 Receive Operational Data in Multiple Batches](#84-receive-operational-data-in-multiple-batches)
-  * [8.5 Configure an External Monitoring Daemon](#85-configure-an-external-monitoring-daemon)
-  * [8.6 Use Invalid Certificates for TLS Connection](#86-use-invalid-certificates-for-tls-connection)
+- [X-Road: Operational Monitoring Testing Plan](#x-road-operational-monitoring-testing-plan)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Purpose](#11-purpose)
+    - [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+  - [2 Components of the Operational Monitoring System in the Context of Testing](#2-components-of-the-operational-monitoring-system-in-the-context-of-testing)
+    - [2.1 Testing the Operational Monitoring Database](#21-testing-the-operational-monitoring-database)
+    - [2.2 Testing the Operational Monitoring Service](#22-testing-the-operational-monitoring-service)
+  - [3 The Protocols and Interfaces used in the Operational Monitoring System in the Context of Testing](#3-the-protocols-and-interfaces-used-in-the-operational-monitoring-system-in-the-context-of-testing)
+  - [4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing](#4-the-use-cases-of-the-operational-monitoring-daemon-in-the-context-of-testing)
+  - [5 Automated Integration Testing in Detail](#5-automated-integration-testing-in-detail)
+  - [6 Testing the JMXMP Interface](#6-testing-the-jmxmp-interface)
+    - [6.1 Testing the JMXMP Interface Using jconsole](#61-testing-the-jmxmp-interface-using-jconsole)
+  - [7 Manual Integration Testing in Detail](#7-manual-integration-testing-in-detail)
+    - [7.1 Test Helpers](#71-test-helpers)
+    - [7.2 Send a Request to a Non-operational Service Cluster](#72-send-a-request-to-a-non-operational-service-cluster)
+    - [7.3 Run Operational Monitoring Data Cleanup](#73-run-operational-monitoring-data-cleanup)
+    - [7.4 Receive Operational Data in Multiple Batches](#74-receive-operational-data-in-multiple-batches)
+    - [7.5 Configure an External Monitoring Daemon](#75-configure-an-external-monitoring-daemon)
+    - [7.6 Use Invalid Certificates for TLS Connection](#76-use-invalid-certificates-for-tls-connection)
 
 <!-- tocstop -->
 
@@ -80,7 +78,7 @@ According to the architecture of the operational monitoring daemon (\[[ARC-OPMON
 
 In the security server, the operational monitoring buffer is involved in forwarding operational data to the monitoring daemon.
 
-In this project, testing will mainly focus on the behaviour of the operational monitoring daemon. The behavior of the operational monitoring buffer of the security server will be verified indirectly with integration and load testing, which involves X-Road message exchange, and will not be covered separately in this testing plan.
+In this project, testing will mainly focus on the behaviour of the operational monitoring daemon. The behavior of the operational monitoring buffer of the security server will be verified indirectly with integration testing, which involves X-Road message exchange, and will not be covered separately in this testing plan.
 
 ### 2.1 Testing the Operational Monitoring Database
 
@@ -127,7 +125,7 @@ The testcases are listed in alphabetical order. They can be run in an arbitrary 
 
 **NOTE** The test cases require specific values for some configuration parameters of the security servers or the operational monitoring daemon. If such values are not present, the services are reconfigured and restarted automatically. After each test case, the initial configuration is restored, and the services are restarted.
 
-The test scripts and their input files can be found in the source repository of the project at `src/systemtest/op-monitoring/integration`. Please refer to `src/systemtest/op-monitoring/integration/README` for instructions on running the tests.
+The test scripts and their input files can be found in the source repository of the project at `src/systemtest/op-monitoring/xrd-opmon-tests`. Please refer to `src/systemtest/op-monitoring/xrd-opmon-tests/README.md` for instructions on running the tests.
 
 The following test cases have been automated at integration testing level:
 1. `test_attachments`, verifying that information about attachments in X-Road requests and responses is stored and returned as required.
@@ -143,103 +141,8 @@ The following test cases have been automated at integration testing level:
 11. `test_zero_buffer_size`, verifying that in case the operational monitoring buffer size has been set to zero, the operational monitoring data of X-Road requests is not stored by the operational monitoring daemon and can't be queried.
 12. `test_time_interval`, verifying that operational data can be queried about specific time intervals as required, and that errors are handled as required.
 
-## 6 Load Testing
 
-Due to the asynchronous nature of the operational monitoring system, the overhead of request exchange is minimal as operational data about each request is written to an in-memory operational data buffer at the security server. However, under a heavy load, and if the operational monitoring database component is unavailable, the operational monitoring buffer of the security server may use a considerable amount of memory or drop the eldest operational data records before having forwarded these to the operational monitoring database component.
-
-### 6.1 Limitations of the System
-
-Depending on the hardware of the system, several variables exist that limit the actual ability of the security servers to exchange requests, particularly:
-* the amount of memory in the system
-* the amount of memory available to the internal Jetty server instances of the security servers
-
-If sufficient memory is available, several limitations define the number of possible parallel requests made to the security servers:
-* the thread pool size of the internal Jetty server instances of the security servers
-* the Anti-DOS settings of the security servers
-* the overhead of encrypted communication if the operational monitoring daemon has been installed to a server other than the security server
-
-During general load testing of the operational monitoring system, it was observed that the recommended minimum amount of memory must be raised for the security servers. 3GB of physical memory must be available to the security servers under test.
-
-### 6.2 Setup of the Simulations
-
-Load simulations can be run automatically, provided the testing environment has been set up as described in \[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\]. The reports of the simulation should be analyzed for information about the behaviour of the system under the simulated load.
-
-The load test runner and the related source code can be found in the source repository of the project at `src/systemtest/op-monitoring/load`.
-
-The setup of the simulations is configurable using the Gatling DSL. A sample simulation has been provided in `src/systemtest/op-monitoring/load/SimulationSetup.scala_sample` . This file can be used as documented in `src/systemtest/op-monitoring/load/README`.
-
-The following predefined request types can be used in load simulations in the desired combination:
-* A request with an empty body
-* A request with a 1MB body
-* An empty request with a 1MB attachment.
-
-For information on interpreting the reports of the simulations, please refer to [the documentation on Gatling reports](http://gatling.io/docs/2.2.3/general/reports.html).
-
-### 6.2.1 A Sample Load Simulation for Observing the Dropping of Records
-The setup of a sample load simulation is as follows.
-
-* The amount of memory allocated to the Jetty instance under test is documented, and the theoretically possible number of parallel requests is calculated.
-* The size of the connection pool of the internal Jetty web server of the client's and producer's security servers is set to a value that will not be reached during the load simulation, according to the relevant calculations.
-* The maximum size of the operational monitoring buffer is set to a value that will be reached during the specific load simulation (based on observations or calculations), without Jetty running out of memory or the available threads in the connection pool while the load is being achieved.
-* The simulation setup is described in Gatling DSL, so that parallel requests of various types will be made, within the limits described above.
-* The simulation is started and the system logs are observed to see that the operational monitoring buffer does not fill up under normal circumstances.
-* The operational monitoring daemon database component (the daemon process) is stopped. The system logs are observed to see that the buffer fills up and starts dropping the eldest records.
-* The database component is started again. System logs are observed to see that the size of the operational monitoring buffer decreases as the accumulated records which were not dropped, are forwarded to the operational monitoring daemon.
-
-## 6.3 The Effect of the Operational Monitoring System on Request Throughput
-
-In order to measure the effect on the round-trip times of X-Road requests by the operational monitoring system, one has to gather statistics of request exchange in two setups:
-1. The operational monitoring buffer has been disabled by specifying *op-monitor-buffer.size=0* in the configuration of the security server under test (and the xroad-proxy service restarted).
-2. The operational monitoring buffer has been enabled by removing the parameter *op-monitor-buffer.size* from the configuration of the security server under test (and the xroad-proxy service restarted).
-
-Please refer to \[[UG-SS](#UG-SS)\] for instructions on configuring and restarting the components of the security server.
-
-Under both setups, the desired load simulation must be be run at least 3 times, assuming there are no other sources of load on the system under test during the simulations. In the output of the simulations, the request statistics will be observed, comparing the results for both setups. Because the initial handshake of the TLS session between security servers affects the round-trip time of the first request in the simulation by the order of a second, the mean response time is not a reliable value. Rather the "response time 50th percentile" value will give a good average estimate of response times.
-
-### 6.3.1 A Sample Set of Simulations and Results
-
-In a sample set of simulations, the following set of requests were used:
-
-```
-SimulationScenarios.SimpleRequestScenario.inject(
-      constantUsersPerSec(1) during(10 seconds),
-      constantUsersPerSec(5) during(10 seconds)
-    ),
-
-    SimulationScenarios.RequestWith1MbBodyScenario.inject(
-      constantUsersPerSec(1) during(10 seconds),
-      constantUsersPerSec(2) during(10 seconds)
-    ),
-
-    SimulationScenarios.RequestWithAttachmentScenario.inject(
-      constantUsersPerSec(1) during(10 seconds),
-      constantUsersPerSec(1) during(10 seconds)
-    )
-```
-
-The target servers were virtual machines using 2.4GHz Intel processors (2 cores each). Default memory settings were used for the services under test (as defined in `/etc/xroad/services/proxy.conf` and `/etc/xroad/services/opmonitor.conf` in the servers).
-
-The following results are an illustration of how to interpret the output of the available load testing suite, and do not represent an exhaustive load test.
-
-The simulation attempts with the operational monitoring buffer disabled, yielded the following results:
-
-| parameter                          | #1  | #2  | #3  |
-|------------------------------------|-----|-----|-----|
-| request count                      | 110 | 110 | 110 |
-| response time 50th percentile (ms) | 257 | 244 | 243 |
-| response time 75th percentile (ms) | 432 | 355 | 367 |
-
-The attempts with the operational monitoring buffer enabled, yielded the following results:
-
-| parameter                          | #1  | #2  | #3  |
-|------------------------------------|-----|-----|-----|
-| request count                      | 110 | 110 | 110 |
-| response time 50th percentile (ms) | 299 | 256 | 240 |
-| response time 75th percentile (ms) | 442 | 370 | 380 |
-
-In the environment under test, enabling the operational monitoring buffer added around 10-20 ms to the response time in the 50th and 75th percentiles.
-
-## 7 Testing the JMXMP Interface
+## 6 Testing the JMXMP Interface
 
 The JMXMP interface gets the data it exposes from the same component that is used to serve health data over the Operational Monitoring Query interface. Thus, the internal implementation of the health metrics registry is tested in the automated test case [test_health_data](#test_health_data). The main difference when directly using the JMXMP interface is in the format that the items are presented. The data exposed over JMXMP and their format are described in detail in \[[PR-OPMONJMX](#PR-OPMONJMX)\].
 
@@ -262,13 +165,12 @@ The configuration and usage of Zabbix is out of the scope of this document. The 
 
 Direct observation of JMX metrics in `jconsole` is described in the following section.
 
-### 7.1 Testing the JMXMP Interface Using jconsole
+### 6.1 Testing the JMXMP Interface Using jconsole
 
-By default, the JMX interface of the operational monitoring daemon has been configured to listen on localhost, with authentication disabled and TLS enabled. In order to conveniently access this interface from a remote host, either directly or through an SSH tunnel, the following configuration must be used in `/etc/xroad/services/local.conf`, effectively overriding the value of the variable OPMON_PARAMS:
+By default, the JMX interface of the operational monitoring daemon is disabled. In order to conveniently access this interface from a remote host, either directly or through an SSH tunnel, the following configuration must be used in `/etc/xroad/services/local.conf`, effectively making changes on the `OPMON_PARAMS` parameter value:
 
 ```bash
-OPMON_PARAMS=" -javaagent:$METRICS_BUGFIX_AGENT -Xms50m -Xmx256m -XX:MaxMetaspaceSize=70m \
--Dlogback.configurationFile=/etc/xroad/conf.d/op-monitor-logback.xml \
+OPMON_PARAMS="$OPMON_PARAMS \
 -Djava.rmi.server.hostname=<address> \
 -Dcom.sun.management.jmxremote \
 -Dcom.sun.management.jmxremote.port=<port> \
@@ -284,11 +186,11 @@ The items appearing under this subtree can be observed as the automated integrat
 
 **NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `src/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration.
 
-## 8 Manual Integration Testing in Detail
+## 7 Manual Integration Testing in Detail
 
 This chapter contains the descriptions of manual test cases of the operational monitoring system. Manual test cases cover only the functionality that is not covered by automated integration tests. Manual integration tests are carried out on a pre-configured testing system with the required X-Road components installed and configured, as described in \[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\].
 
-### 8.1 Test Helpers
+### 7.1 Test Helpers
 The test steps described here are to be executed when refered to in test cases.
 * <a name="log_in_db"></a>**Logging in to operational monitoring database as user opmonitor**: In the server running the operational monitoring daemon, enter the command
    ```bash
@@ -297,7 +199,7 @@ The test steps described here are to be executed when refered to in test cases.
 
    The password for user opmonitor can be found in `/etc/xroad/db.properties`.
 
-### 8.2 Send a Request to a Non-operational Service Cluster
+### 7.2 Send a Request to a Non-operational Service Cluster
 
 Test case for verifying that the value of the operational monitoring data field 'service_security_server_address' in the operational monitoring database is null and that the request is marked as unsuccessful, in case an X-Road request is made to a non-operational service cluster. This test case is a supplement to the automated integration test [test_service_cluster](#test_service_cluster).
 
@@ -315,7 +217,7 @@ Test case for verifying that the value of the operational monitoring data field 
 * The value of the field 'succeeded' is false.
 * The value of the field 'service_security_server_address' is null.
 
-### 8.3 Run Operational Monitoring Data Cleanup
+### 7.3 Run Operational Monitoring Data Cleanup
 
 Test case for verifying that operational monitoring data is cleaned up periodically. The test can be executed in any of the operational monitoring daemon servers.
 
@@ -350,7 +252,7 @@ Test case for verifying that operational monitoring data is cleaned up periodica
 * The operational data record with a timestamp from 2 weeks ago has been deleted from the operational monitoring database.
 * The number of records in the table `operational_data` is equal to the number of records before adding the record with a timestamp from 2 weeks ago.
 
-### 8.4 Receive Operational Data in Multiple Batches
+### 7.4 Receive Operational Data in Multiple Batches
 
 Test case for verifying that in case the amount of relevant operational data records exceeds the value of the *op-monitor.max-records-in-payload* system parameter, the operational data is returned in correct batches and the value of 'nextRecordsFrom' element in the operational data response is correct. This test case is a supplement to the automated integration test [ test_limited_operational_data_response](#test_limited_operational_data_response).
 
@@ -399,7 +301,7 @@ All test steps are executed in security server *xtee9.ci.kit*.
 
    **Expected output**: There are 2 operational data records in the operational data response: the client and producer side records of the operational data request. The element 'nextRecordsFrom' is present in the response. The value of the element 'nextRecordsFrom' is (the value of 'monitoring_data_ts' of the operational data request records + 1).
 
-### 8.5 Configure an External Monitoring Daemon
+### 7.5 Configure an External Monitoring Daemon
 Test case for verifying that it is possible to configure a secure connection between the security server and the external operational monitoring daemon.
 
 **Preconditions:**
@@ -420,7 +322,7 @@ Test case for verifying that it is possible to configure a secure connection bet
 
   **Expected output:** A health data response is received. The health data response contains the health data about the service that was queried in the first X-Road request as well as the health data about the service 'getSecurityServerOperationalData'.
 
-### 8.6 Use Invalid Certificates for TLS Connection
+### 7.6 Use Invalid Certificates for TLS Connection
 Test case for verifying that the secure connection between the security server and the external operational monitoring daemon fails in case invalid certificates are configured for the TLS connection.
 
 **Preconditions:**

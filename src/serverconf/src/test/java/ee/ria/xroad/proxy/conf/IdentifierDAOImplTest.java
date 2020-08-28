@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -92,10 +93,10 @@ public class IdentifierDAOImplTest {
     @Test
     public void serviceId() throws Exception {
         assertCreateRead(() ->
-            ServiceId.create("EE", "cls", "code", null, "service1"));
+                ServiceId.create("EE", "cls", "code", null, "service1"));
 
         assertCreateRead(() ->
-            ServiceId.create("EE", "cls", "code", null, "service2"));
+                ServiceId.create("EE", "cls", "code", null, "service2"));
     }
 
     /**
@@ -145,10 +146,10 @@ public class IdentifierDAOImplTest {
     @Test
     public void securityServerId() throws Exception {
         assertCreateRead(() ->
-            SecurityServerId.create("XX", "class", "code", "srv1"));
+                SecurityServerId.create("XX", "class", "code", "srv1"));
 
         assertCreateRead(() ->
-            SecurityServerId.create("XX", "class", "code", "srv2"));
+                SecurityServerId.create("XX", "class", "code", "srv2"));
     }
 
     private <T extends XRoadId> T get(T example) throws Exception {

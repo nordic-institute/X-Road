@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -49,7 +50,9 @@ public abstract class HandlerBase extends AbstractHandler {
      * @param ex exception that should be converted to a SOAP fault
      * @throws IOException if an I/O error occurred
      */
-    public void sendErrorResponse(HttpServletResponse response, CodedException ex) throws IOException {
+    public void sendErrorResponse(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  CodedException ex) throws IOException {
         String faultXml = ex instanceof CodedException.Fault
                 ? ((CodedException.Fault) ex).getFaultXml() : SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
@@ -92,6 +95,7 @@ public abstract class HandlerBase extends AbstractHandler {
         }
     }
 
-    protected void failure(HttpServletResponse response, CodedException ex) throws IOException {
+    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException ex)
+            throws IOException {
     }
 }

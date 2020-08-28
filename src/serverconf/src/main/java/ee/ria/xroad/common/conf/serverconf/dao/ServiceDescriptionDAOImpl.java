@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -28,7 +29,10 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import org.hibernate.MultiIdentifierLoadAccess;
 import org.hibernate.Session;
+
+import java.util.List;
 
 /**
  * Service description data access object implementation.
@@ -50,4 +54,28 @@ public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptio
 
         return null;
     }
+
+    /**
+     * Returns the service description of the given ServiceDescription PK.
+     * @param session the session
+     * @param id the ServiceDescriptionType PK
+     * @return the service description of the given service identifier
+     */
+    public ServiceDescriptionType getServiceDescription(Session session, Long id) {
+        return session.get(ServiceDescriptionType.class, id);
+    }
+
+
+    /**
+     * Returns multiple service descriptions matching given ids
+     * @param session the session
+     * @param ids
+     * @return
+     */
+    public List<ServiceDescriptionType> getServiceDescriptions(Session session, Long... ids) {
+        MultiIdentifierLoadAccess<ServiceDescriptionType> multiLoadAccess =
+                session.byMultipleIds(ServiceDescriptionType.class);
+        return multiLoadAccess.multiLoad(ids);
+    }
+
 }

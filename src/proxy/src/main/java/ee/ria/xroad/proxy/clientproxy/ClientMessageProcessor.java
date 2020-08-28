@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -178,6 +179,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             // If the handler thread excepted, do not continue.
             checkError();
 
+            // Check that incoming identifiers do not contain illegal characters
+            checkRequestIdentifiers();
+
             // Verify that the client is registered.
             ClientId client = requestSoap.getClient();
             verifyClientStatus(client);
@@ -204,6 +208,13 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
                 response.consume();
             }
         }
+    }
+
+    private void checkRequestIdentifiers() {
+        checkIdentifier(requestSoap.getClient());
+        checkIdentifier(requestSoap.getService());
+        checkIdentifier(requestSoap.getCentralService());
+        checkIdentifier(requestSoap.getSecurityServer());
     }
 
     @Override
@@ -290,13 +301,13 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getSoap() != null) {
-            long responseSoapSize = response.getSoap().getBytes().length;
+            long responseSize = response.getSoap().getBytes().length;
 
-            opMonitoringData.setResponseSoapSize(responseSoapSize);
+            opMonitoringData.setResponseSize(responseSize);
             opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
 
             if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setResponseMimeSize(responseSoapSize + decoder.getAttachmentsByteCount());
+                opMonitoringData.setResponseMimeSize(responseSize + decoder.getAttachmentsByteCount());
             }
         }
     }

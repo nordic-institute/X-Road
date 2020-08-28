@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,20 +28,17 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 
-import akka.actor.UntypedActor;
-import lombok.Getter;
+import akka.actor.UntypedAbstractActor;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.hibernate.Session;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -52,9 +50,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransactionBatchSize;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -66,7 +66,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LogArchiver extends UntypedActor {
+public class LogArchiver extends UntypedAbstractActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
     private static final int MAX_RECORDS_IN_BATCH = 360;
@@ -76,7 +76,6 @@ public class LogArchiver extends UntypedActor {
 
     private final Path archivePath;
     private final Path workingPath;
-    private boolean safeTransactionBatch;
 
     @Override
     public void onReceive(Object message) {
@@ -99,37 +98,46 @@ public class LogArchiver extends UntypedActor {
 
     private boolean handleArchive(long maxTimestampId) throws Exception {
         return doInTransaction(session -> {
-            List<LogRecord> records = getRecordsToBeArchived(session, maxTimestampId);
-            if (records == null || records.isEmpty()) {
+            final List<TimestampRecord> batch =
+                    getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_BATCH, maxTimestampId);
+
+            if (batch.isEmpty()) {
                 log.info("No records to be archived at this time");
                 return false;
             }
 
-            log.info("Archiving log records...");
-
             long start = System.currentTimeMillis();
             int recordsArchived = 0;
+            final int limit = getArchiveTransactionBatchSize();
+            log.info("Archiving log records...");
 
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
-                while (!records.isEmpty()) {
-                    if (archive(archiveWriter, records)) {
-                        runTransferCommand(getArchiveTransferCommand());
+                for (TimestampRecord ts : batch) {
+
+                    try (Stream<MessageRecord> records = getNonArchivedMessageRecords(session, ts.getId())) {
+                        recordsArchived += records.peek(record -> {
+                            try {
+                                if (archiveWriter.write(record)) {
+                                    runTransferCommand(getArchiveTransferCommand());
+                                }
+                                //evict record from persistence context to avoid running out of memory
+                                session.detach(record);
+                            } catch (Exception e) {
+                                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+                            }
+                        }).count();
+
+                        archiveWriter.write(ts);
+                        recordsArchived++;
+                        session.flush();
+                        session.detach(ts);
                     }
-                    recordsArchived += records.size();
 
-                    //flush changes (records marked as archived) and free memory
-                    //used up by cached records retrieved previously in the session
-                    session.flush();
-                    session.clear();
-
-                    if (safeTransactionBatch
-                            && recordsArchived >= MessageLogProperties.getArchiveTransactionBatchSize()) {
+                    if (recordsArchived >= limit) {
                         log.info("Archived {} log records in {} ms", recordsArchived,
                                 System.currentTimeMillis() - start);
                         return true;
                     }
-
-                    records = getRecordsToBeArchived(session, maxTimestampId);
                 }
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
@@ -137,27 +145,16 @@ public class LogArchiver extends UntypedActor {
                 runTransferCommand(getArchiveTransferCommand());
             }
 
-            log.info("Archived {} log records in {} ms", recordsArchived,
-                    System.currentTimeMillis() - start);
+            log.info("Archived {} log records in {} ms", recordsArchived, System.currentTimeMillis() - start);
 
-            return false;
+            //try to continue if the batch was full (there might be more)
+            return batch.size() == MAX_RECORDS_IN_BATCH;
         });
-    }
-
-    private boolean archive(LogArchiveWriter archiveWriter, List<LogRecord> records) throws Exception {
-
-        boolean producedArchiveFile = false;
-        for (LogRecord record : records) {
-            producedArchiveFile |= archiveWriter.write(record);
-        }
-
-        return producedArchiveFile;
     }
 
     private LogArchiveWriter createLogArchiveWriter(Session session) {
         return new LogArchiveWriter(
                 getArchivePath(),
-                getWorkingPath(),
                 this.new HibernateLogArchiveBase(session)
         );
     }
@@ -172,44 +169,6 @@ public class LogArchiver extends UntypedActor {
         }
 
         return archivePath;
-    }
-
-    private Path getWorkingPath() {
-        if (!Files.isDirectory(workingPath)) {
-            throw new RuntimeException("Log working path (" + workingPath + ") must be directory");
-        }
-
-        if (!Files.isWritable(workingPath)) {
-            throw new RuntimeException("Log working path (" + workingPath + ") must be writable");
-        }
-
-        return workingPath;
-    }
-
-    protected List<LogRecord> getRecordsToBeArchived(Session session, long maxTimestampId) {
-        /* Implementation note. Log cleaning assumes that the records are archived starting from the oldest
-          (smallest id). If this is changed, log cleaning must be changed accordingly. */
-
-        List<LogRecord> recordsToArchive = new ArrayList<>();
-        safeTransactionBatch = false;
-        int allowedInArchiveCount = MAX_RECORDS_IN_ARCHIVE;
-        for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_BATCH, maxTimestampId)) {
-            List<MessageRecord> messages = getNonArchivedMessageRecords(session, ts.getId(), allowedInArchiveCount);
-            if (allTimestampMessagesArchived(session, ts.getId())) {
-                log.trace("Timestamp record #{} will be archived", ts.getId());
-                recordsToArchive.add(ts);
-                safeTransactionBatch = true;
-            } else {
-                log.trace("Timestamp record #{} still related to non-archived message records", ts.getId());
-            }
-
-            recordsToArchive.addAll(messages);
-            allowedInArchiveCount -= messages.size();
-            if (safeTransactionBatch || allowedInArchiveCount <= 0) {
-                break;
-            }
-        }
-        return recordsToArchive;
     }
 
     protected List<TimestampRecord> getNonArchivedTimestampRecords(Session session, int maxRecordsToGet,
@@ -235,8 +194,7 @@ public class LogArchiver extends UntypedActor {
         return session.createQuery(query).uniqueResult();
     }
 
-    protected List<MessageRecord> getNonArchivedMessageRecords(Session session, Long timestampRecordNumber,
-            int maxRecordsToGet) {
+    protected Stream<MessageRecord> getNonArchivedMessageRecords(Session session, Long timestampRecordNumber) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
         final Root<MessageRecord> m = query.from(MessageRecord.class);
@@ -246,20 +204,11 @@ public class LogArchiver extends UntypedActor {
                 cb.equal(m.get("timestampRecord").get("id"), timestampRecordNumber)
         ));
 
-        return session.createQuery(query).setMaxResults(maxRecordsToGet).getResultList();
-    }
-
-    protected boolean allTimestampMessagesArchived(Session session, Long timestampRecordNumber) {
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<Long> query = cb.createQuery(Long.class);
-        final Root<MessageRecord> m = query.from(MessageRecord.class);
-
-        query.select(cb.count(m))
-                .where(cb.and(
-                        cb.equal(m.get(PROPERTY_NAME_ARCHIVED), false),
-                        cb.equal(m.get("timestampRecord").get("id"), timestampRecordNumber)));
-
-        return session.createQuery(query).getSingleResult() == 0;
+        return session
+                .createQuery(query)
+                .setFetchSize(MAX_RECORDS_IN_ARCHIVE)
+                .setReadOnly(true)
+                .getResultStream();
     }
 
     protected void markArchiveCreated(final DigestEntry lastArchive,
@@ -277,38 +226,36 @@ public class LogArchiver extends UntypedActor {
         }
 
         log.info("Transferring archives with shell command: \t{}", transferCommand);
-
+        Process process = null;
         try {
             String[] command = new String[] {"/bin/bash", "-c", transferCommand};
+            String standardError = null;
 
-            Process process = new ProcessBuilder(command).start();
+            process = new ProcessBuilder(command).redirectOutput(Paths.get("/dev/null").toFile()).start();
 
-            StandardErrorCollector standardErrorCollector =
-                    new StandardErrorCollector(process);
+            try (InputStream error = process.getErrorStream()) {
+                standardError = IOUtils.toString(error, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                // We can ignore it.
+                log.error("Could not read standard error", e);
+            }
 
-            new StandardOutputReader(process).start();
-
-            standardErrorCollector.start();
-            standardErrorCollector.join();
-
-            process.waitFor();
-
-            int exitCode = process.exitValue();
+            int exitCode = process.waitFor();
             if (exitCode != 0) {
-                String errorMsg = String.format(
-                        "Running archive transfer command '%s' "
-                                + "exited with status '%d'",
-                        transferCommand,
-                        exitCode);
-
+                String errorMsg = String.format("Running archive transfer command '%s' exited with status '%d'",
+                        transferCommand, exitCode);
                 log.error(
                         "{}\n -- STANDARD ERROR START\n{}\n"
                                 + " -- STANDARD ERROR END",
                         errorMsg,
-                        standardErrorCollector.getStandardError());
+                        standardError);
             }
         } catch (Exception e) {
             log.error("Failed to execute archive transfer command '{}'", transferCommand, e);
+        } finally {
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
+            }
         }
     }
 
@@ -318,18 +265,19 @@ public class LogArchiver extends UntypedActor {
         private Session session;
 
         @Override
-        public void markArchiveCreated(DigestEntry lastArchive)
-                throws Exception {
+        public void markArchiveCreated(DigestEntry lastArchive) throws Exception {
             LogArchiver.this.markArchiveCreated(lastArchive, session);
         }
 
         @Override
         public void markRecordArchived(LogRecord logRecord) {
-            log.trace("Setting {} #{} archived",
-                    logRecord.getClass().getName(), logRecord.getId());
-
-            logRecord.setArchived(true);
-            session.saveOrUpdate(logRecord);
+            if (logRecord instanceof TimestampRecord) {
+                logRecord.setArchived(true);
+                session.createQuery(
+                        "UPDATE MessageRecord m set m.archived = true where m.timestampRecord = ?1")
+                        .setParameter(1, logRecord)
+                        .executeUpdate();
+            }
         }
 
         @Override
@@ -345,39 +293,6 @@ public class LogArchiver extends UntypedActor {
 
             return lastArchiveEntries.isEmpty()
                     ? DigestEntry.empty() : lastArchiveEntries.get(0);
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static class StandardOutputReader extends Thread {
-        private final Process process;
-
-        @Override
-        public void run() {
-            try (InputStream input = process.getInputStream()) {
-                IOUtils.copy(input, new NullOutputStream());
-            } catch (IOException e) {
-                // We can ignore it.
-                log.error("Could not read standard output", e);
-            }
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static class StandardErrorCollector extends Thread {
-        private final Process process;
-
-        @Getter
-        private String standardError;
-
-        @Override
-        public void run() {
-            try (InputStream error = process.getErrorStream()) {
-                standardError = IOUtils.toString(error, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // We can ignore it.
-                log.error("Could not read standard error", e);
-            }
         }
     }
 }

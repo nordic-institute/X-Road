@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -37,6 +38,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertTrue;
@@ -58,13 +61,13 @@ public class LogArchiveTest {
 
     /**
      * Preparations for testing log archive.
-     *
      * @throws Exception - when cannot prepare for testing log archive.
      */
     @Before
     public void beforeTest() throws Exception {
         recordNo = 0;
         rotated = false;
+        Files.createDirectory(Paths.get("build/slog"));
     }
 
     @After
@@ -76,7 +79,6 @@ public class LogArchiveTest {
 
     /**
      * Writes many records and rotates to new file.
-     *
      * @throws Exception - when cannot either write or rotate
      */
     @Test
@@ -102,7 +104,8 @@ public class LogArchiveTest {
 
     private void writeRecordsToLog(boolean finishAfterRotate) throws Exception {
         try (LogArchiveWriter writer = getWriter()) {
-            outer: for (int i = 0; i < NUM_TIMESTAMPS; i++) {
+            outer:
+            for (int i = 0; i < NUM_TIMESTAMPS; i++) {
                 TimestampRecord ts = nextTimestampRecord();
                 for (int j = 0; j < NUM_RECORDS_PER_TIMESTAMP; j++) {
                     MessageRecord messageRecord = nextMessageRecord();
@@ -120,11 +123,10 @@ public class LogArchiveTest {
     private LogArchiveWriter getWriter() {
         return new LogArchiveWriter(
                 Paths.get("build/slog"),
-                Paths.get("build/tmp"),
                 dummyLogArchiveBase()) {
 
             @Override
-            protected void rotate() throws Exception {
+            protected void rotate() throws IOException {
                 super.rotate();
                 rotated = true;
             }
@@ -160,7 +162,7 @@ public class LogArchiveTest {
                 ClientId.create("memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b");
         record.setId(recordNo);
-        record.setTime((long) (Math.random() * 100000L));
+        record.setTime((long)(Math.random() * 100000L));
 
         return record;
     }
@@ -172,7 +174,7 @@ public class LogArchiveTest {
         record.setId(recordNo);
         record.setTimestamp("ts");
         record.setHashChainResult("foo");
-        record.setTime((long) (Math.random() * 100000L));
+        record.setTime((long)(Math.random() * 100000L));
 
         return record;
     }

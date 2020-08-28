@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -153,6 +154,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         // and the responseInTs must be equal with the responseOutTs.
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+        opMonitoringData.setServiceType(DescriptionType.REST.name());
     }
 
     private void handleListMethods(ProxyMessage requestProxyMessage) throws IOException {

@@ -1,19 +1,20 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
@@ -77,7 +79,7 @@ public interface GlobalConfProvider extends ConfProvider {
 
     /**
      * @param instanceIdentifiers the instance identifiers
-     * @return members and subsystems of a given instance or all members if
+     * @return members and subsystems of a given instance, or all members and subsystems if
      * no instance identifiers are specified
      */
     List<MemberInfo> getMembers(String... instanceIdentifiers);
@@ -159,7 +161,7 @@ public interface GlobalConfProvider extends ConfProvider {
      * @throws Exception if an error occurs
      */
     X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate memberCert) throws Exception;
+                              X509Certificate memberCert) throws Exception;
 
     /**
      * @return all CA certificates.
@@ -219,15 +221,15 @@ public interface GlobalConfProvider extends ConfProvider {
      * member member
      * @throws Exception if an error occurs
      */
-     boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
+    boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
             throws Exception;
 
-     /**
-      * @param authCert the authentication certificate
-      * @return set of codes corresponding to security categories assigned
-      * to security server associated with this authentication certificate
-      * @throws Exception if an error occurs
-      */
+    /**
+     * @param authCert the authentication certificate
+     * @return set of codes corresponding to security categories assigned
+     * to security server associated with this authentication certificate
+     * @throws Exception if an error occurs
+     */
     Set<SecurityCategoryId> getProvidedCategories(X509Certificate authCert)
             throws Exception;
 
@@ -298,7 +300,7 @@ public interface GlobalConfProvider extends ConfProvider {
      * @return true, if client belongs to the security server
      */
     boolean isSecurityServerClient(ClientId client,
-            SecurityServerId securityServer);
+                                   SecurityServerId securityServer);
 
     /**
      * @param securityServerId the security server id
@@ -350,4 +352,14 @@ public interface GlobalConfProvider extends ConfProvider {
      * specified
      */
     List<SecurityServerId> getSecurityServers(String... instanceIdentifiers);
+
+    /**
+     * Get ApprovedCAInfo matching given CA certificate
+     * @param instanceIdentifier instance id
+     * @param cert intermediate or top CA cert
+     * @return ApprovedCAInfo (for the top CA)
+     * @throws CodedException if something went wrong, for example
+     * {@code cert} was not an approved CA cert
+     */
+    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
 }

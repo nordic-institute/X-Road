@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -34,30 +35,30 @@ import static org.junit.Assert.assertTrue;
  */
 public class TimeBasedObjectCacheTest {
 
-  @Test
-  public void testCache() throws InterruptedException {
-    final int expireSeconds = 3;
-    TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-    assertFalse(cache.isValid("foo"));
-    cache.setValue("foo", 13);
-    assertTrue(cache.isValid("foo"));
-    idle(expireSeconds * 1000 / 2);
-    assertTrue(cache.isValid("foo"));
-    idle(expireSeconds * 1000);
-    assertFalse(cache.isValid("foo"));
-    cache.setValue("foo", 21);
-    assertTrue(cache.isValid("foo"));
-    cache.setValue("foo", null);
-    assertTrue(cache.isValid("foo"));
-  }
+    @Test
+    public void testCache() throws InterruptedException {
+        final int expireSeconds = 3;
+        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
+        assertFalse(cache.isValid("foo"));
+        cache.setValue("foo", 13);
+        assertTrue(cache.isValid("foo"));
+        idle(expireSeconds * 1000 / 2);
+        assertTrue(cache.isValid("foo"));
+        idle(expireSeconds * 1000);
+        assertFalse(cache.isValid("foo"));
+        cache.setValue("foo", 21);
+        assertTrue(cache.isValid("foo"));
+        cache.setValue("foo", null);
+        assertTrue(cache.isValid("foo"));
+    }
 
-  /**
-   * Idles for given time period
-   */
-  private static void idle(long periodMs) {
-    final long target = System.currentTimeMillis() + periodMs;
-    do {
-      Thread.yield();
-    } while (System.currentTimeMillis() < target);
-  }
+    /**
+     * Idles for given time period
+     */
+    private static void idle(long periodMs) {
+        final long target = System.currentTimeMillis() + periodMs;
+        do {
+            Thread.yield();
+        } while (System.currentTimeMillis() < target);
+    }
 }

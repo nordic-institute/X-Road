@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -70,6 +71,26 @@ public final class SystemProperties {
     /** Minimum supported global conf version on configuration proxy **/
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
+
+    // REST API ---------------------------------------------------------------
+
+    /** Property name of the Proxy UI API's ssl configuration file. */
+    public static final String PROXY_UI_API_SSL_PROPERTIES =
+            PREFIX + "proxy-ui-api.ssl-properties";
+
+    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
+    public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
+
+    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
+    public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0, ::/0";
+
+    /** Property name of the whitelist for Proxy UI API's key management API */
+    public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
+            PREFIX + "proxy-ui-api.key-management-api-whitelist";
+
+    /** Property name of the whitelist for Proxy UI API's regular APIs */
+    public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
+            PREFIX + "proxy-ui-api.regular-api-whitelist";
 
 
     // Proxy ------------------------------------------------------------------
@@ -167,6 +188,13 @@ public final class SystemProperties {
     public static final String SERVER_CONF_CACHE_PERIOD =
             PREFIX + "proxy.server-conf-cache-period";
 
+    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PREFIX + "proxy.server-conf-client-cache-size";
+
+    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PREFIX + "proxy.server-conf-service-cache-size";
+
+    public static final String SERVER_CONF_ACL_CACHE_SIZE = PREFIX + "proxy.server-conf-acl-cache-size";
+
+
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.server-connector-max-idle-time";
@@ -244,6 +272,9 @@ public final class SystemProperties {
 
     private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
 
+    private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
+            PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
+
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
@@ -290,6 +321,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
+    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = "false";
+
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused
@@ -302,14 +335,10 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
 
-    public static final String DEFAULT_ALLOW_GET_WSDL_REQUEST = "false";
-
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
-
-    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------
@@ -461,14 +490,14 @@ public final class SystemProperties {
 
     /** Property name of the WSDL validator command. */
     public static final String WSDL_VALIDATOR_COMMAND =
-            PREFIX + "proxy-ui.wsdl-validator-command";
+            PREFIX + "proxy-ui-api.wsdl-validator-command";
 
     /**
      * Property name of the signature digest algorithm ID used for generating authentication certificate
      * registration request.
      */
     private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
-            PREFIX + "proxy-ui.auth-cert-reg-signature-digest-algorithm-id";
+            PREFIX + "proxy-ui-api.auth-cert-reg-signature-digest-algorithm-id";
 
     // Proxy & Central monitor agent ------------------------------------------
 
@@ -595,8 +624,8 @@ public final class SystemProperties {
     public static final String CONF_FILE_NODE =
             getConfPath() + "conf.d/node.ini";
 
-    public static final String CONF_FILE_PROXY_UI =
-            getConfPath() + "conf.d/proxy-ui.ini";
+    public static final String CONF_FILE_PROXY_UI_API =
+            getConfPath() + "conf.d/proxy-ui-api.ini";
 
     public static final String CONF_FILE_SIGNER =
             getConfPath() + "conf.d/signer.ini";
@@ -658,6 +687,31 @@ public final class SystemProperties {
      */
     public static String getDatabasePropertiesFile() {
         return System.getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
+    }
+
+    /**
+     * @return path to the proxy ssl configuration file, '/etc/xroad/ssl.properties' by default.
+     */
+    public static String getSslPropertiesFile() {
+        return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
+                getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
+    }
+
+    /**
+     * TO DO: not correct, fix
+     * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
+     */
+    public static String getKeyManagementApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
+                DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
+    }
+
+    /**
+     * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
+     */
+    public static String getRegularApiWhitelist() {
+        return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
+                DEFAULT_REGULAR_API_WHITELIST);
     }
 
     /**
@@ -1472,15 +1526,38 @@ public final class SystemProperties {
     }
 
     /**
-     * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
+     * @return Serverconf client cache size
      */
-    public static boolean isAllowGetWsdlRequest() {
-        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, DEFAULT_ALLOW_GET_WSDL_REQUEST));
+    public static long getServerConfClientCacheSize() {
+        return Long.getLong(SERVER_CONF_CLIENT_CACHE_SIZE, 100);
+    }
+
+    /**
+     * @return Serverconf service cache size
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfServiceCacheSize() {
+        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, 1000);
+    }
+
+    /**
+     * @return Serverconf access right cache size
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfAclCacheSize() {
+        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {
         if (version > current || version < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
+    }
+    /**
+     * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
+     */
+    public static boolean isClientIsCertValidityPeriodCheckEnforced() {
+        return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
+                DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -43,7 +44,7 @@ import java.util.List;
 @Slf4j
 public class ServerConf {
 
-    private static volatile ServerConfProvider instance = null;
+    private static volatile ServerConfProvider instance = new ServerConfImpl();
 
     protected ServerConf() {
     }
@@ -52,10 +53,6 @@ public class ServerConf {
      * Returns the singleton instance of the configuration.
      */
     protected static ServerConfProvider getInstance() {
-        if (instance == null) {
-            instance = new CachingServerConfImpl();
-        }
-
         return instance;
     }
 
@@ -64,9 +61,10 @@ public class ServerConf {
      * @param conf the new configuration implementation
      */
     public static void reload(ServerConfProvider conf) {
-        log.trace("reload({})", conf.getClass());
-
-        instance = conf;
+        if (conf != null) {
+            log.trace("reload({})", conf.getClass());
+            instance = conf;
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -160,7 +158,7 @@ public class ServerConf {
      * @return all the services offered by a service provider filtered by description type
      */
     public static List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
-                                                               DescriptionType descriptionType) {
+            DescriptionType descriptionType) {
         log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
 
         return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
@@ -186,7 +184,7 @@ public class ServerConf {
      * has permission to invoke filtered by description type
      */
     public static List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                                     ClientId client, DescriptionType descriptionType) {
+            ClientId client, DescriptionType descriptionType) {
         log.trace("getAllowedServicesByDescriptionType({}, {}, {})", serviceProvider, client, descriptionType);
 
         return getInstance().getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
@@ -304,5 +302,9 @@ public class ServerConf {
         log.trace("getServiceDescriptionURL({})", service);
 
         return getInstance().getServiceDescriptionURL(service);
+    }
+
+    public static void logStatistics() {
+        getInstance().logStatistics();
     }
 }

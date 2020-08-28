@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -30,31 +31,20 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import com.google.common.io.CountingOutputStream;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Supplier;
-import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -71,7 +61,7 @@ class LogArchiveCache implements Closeable {
     private enum State {
         NEW,
         ADDING,
-        ROTATING
+        ROTATING;
     }
 
     private final Supplier<String> randomGenerator;
@@ -81,11 +71,11 @@ class LogArchiveCache implements Closeable {
     private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
 
-    private File archiveContentDir;
-    private File tempArchive;
+    private Path archiveTmpFile;
+    private ZipOutputStream archiveTmp;
 
-    private List<String> archiveFileNames;
-    private Set<Date> creationTimes;
+    private Date minCreationTime;
+    private Date maxCreationTime;
     private long archivesTotalSize;
 
     LogArchiveCache(Supplier<String> randomGenerator,
@@ -108,41 +98,24 @@ class LogArchiveCache implements Closeable {
         }
     }
 
-    InputStream getArchiveFile() throws IOException {
-        tempArchive = File.createTempFile(
-                "xroad-log-archive-zip", ".tmp", workingDir.toFile());
-        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempArchive))) {
-            out.setLevel(Deflater.NO_COMPRESSION); //Asic containers are already compressed
-            addAsicContainersToArchive(out);
-            addLinkingInfoToArchive(out);
-        } catch (Exception e) {
+    Path getArchiveFile() throws IOException {
+        try {
+            addLinkingInfoToArchive(archiveTmp);
+            archiveTmp.close();
+            archiveTmp = null;
+            Path archive = archiveTmpFile;
+            archiveTmpFile = null;
+            reset();
+            return archive;
+        } catch (IOException e) {
             handleCacheError(e);
+            return null;
         }
-
-        return new FileInputStream(tempArchive);
     }
 
-    @SneakyThrows
-    private void handleCacheError(Exception e) {
+    private <T extends Exception> void handleCacheError(T e) throws T {
         deleteArchiveArtifacts();
-
         throw e;
-    }
-
-    private void addAsicContainersToArchive(ZipOutputStream zipOut)
-            throws IOException {
-        for (String eachName : archiveFileNames) {
-            ZipEntry entry = new ZipEntry(eachName);
-
-            zipOut.putNextEntry(entry);
-
-            try (InputStream archiveInput =
-                         Files.newInputStream(createTempAsicPath(eachName))) {
-                IOUtils.copy(archiveInput, zipOut);
-            }
-
-            zipOut.closeEntry();
-        }
     }
 
     private void addLinkingInfoToArchive(ZipOutputStream zipOut)
@@ -160,28 +133,32 @@ class LogArchiveCache implements Closeable {
         return state == State.ROTATING;
     }
 
+    boolean isEmpty() {
+        return state == State.NEW;
+    }
+
+
     Date getStartTime() {
-        return (Date) creationTimes.toArray()[0];
+        return minCreationTime;
     }
 
     Date getEndTime() {
-        return (Date) creationTimes.toArray()[creationTimes.size() - 1];
+        return maxCreationTime;
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         deleteArchiveArtifacts();
     }
 
-    private void validateMessageRecord(MessageRecord record)
-            throws IOException {
+    private void validateMessageRecord(MessageRecord record) {
         if (record == null) {
             throw new IllegalArgumentException(
                     "Message record to be archived must not be null");
         }
     }
 
-    private void handleRotation() throws IOException {
+    private void handleRotation() {
         if (state != State.ROTATING) {
             return;
         }
@@ -189,9 +166,17 @@ class LogArchiveCache implements Closeable {
         reset();
     }
 
+    @SuppressWarnings("checkstyle:InnerAssignment")
     private void cacheRecord(MessageRecord messageRecord) throws Exception {
-        creationTimes.add(new Date(messageRecord.getTime()));
+        final Date creationTime = new Date(messageRecord.getTime());
 
+        if (minCreationTime == null && maxCreationTime == null) {
+            minCreationTime = maxCreationTime = creationTime;
+        } else if (creationTime.before(minCreationTime)) {
+            minCreationTime = creationTime;
+        } else if (creationTime.after(maxCreationTime)) {
+            maxCreationTime = creationTime;
+        }
         addContainerToArchive(messageRecord);
     }
 
@@ -209,23 +194,19 @@ class LogArchiveCache implements Closeable {
                         record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
                                 : AsicContainerNameGenerator.TYPE_REQUEST);
 
-        archiveFileNames.add(archiveFilename);
-
         final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
+        archiveTmp.putNextEntry(new ZipEntry(archiveFilename));
         try (CountingOutputStream cos = new CountingOutputStream(
-                new DigestOutputStream(Files.newOutputStream(createTempAsicPath(archiveFilename)), digest));
-             OutputStream bos = new BufferedOutputStream(cos)) {
+                new DigestOutputStream(new EntryStream(archiveTmp), digest));
+                OutputStream bos = new BufferedOutputStream(cos)) {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)
             record.toAsicContainer().write(bos);
             archivesTotalSize += cos.getCount();
         }
+        archiveTmp.closeEntry();
         linkingInfoBuilder.addNextFile(archiveFilename, digest.digest());
-    }
-
-    private Path createTempAsicPath(String archiveFilename) {
-        return Paths.get(archiveContentDir.getAbsolutePath(), archiveFilename);
     }
 
     private void reset() {
@@ -241,24 +222,46 @@ class LogArchiveCache implements Closeable {
 
     private void resetArchive() throws IOException {
         deleteArchiveArtifacts();
-
-        archiveContentDir = Files.createTempDirectory(
-                workingDir,
-                "xroad-log-archive"
-        ).toFile();
+        archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
+        archiveTmp = new ZipOutputStream(Files.newOutputStream(archiveTmpFile));
+        archiveTmp.setLevel(0);
     }
 
     private void deleteArchiveArtifacts() {
-        FileUtils.deleteQuietly(archiveContentDir);
-        FileUtils.deleteQuietly(tempArchive);
+        if (archiveTmp != null) {
+            try {
+                archiveTmp.close();
+            } catch (IOException e) {
+                //IGNORE
+            }
+        }
+        if (archiveTmpFile != null) {
+            FileUtils.deleteQuietly(archiveTmpFile.toFile());
+        }
     }
 
     private void resetCacheState() {
-        archiveFileNames = new ArrayList<>();
-        creationTimes = new TreeSet<>();
+        minCreationTime = null;
+        maxCreationTime = null;
+        state = State.NEW;
         archivesTotalSize = 0;
+        nameGenerator = new AsicContainerNameGenerator(randomGenerator, MAX_RANDOM_GEN_ATTEMPTS);
+    }
 
-        nameGenerator = new AsicContainerNameGenerator(randomGenerator,
-                MAX_RANDOM_GEN_ATTEMPTS);
+    static class EntryStream extends FilterOutputStream {
+
+        EntryStream(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
+        }
+
+        @Override
+        public void close() {
+            //NOP
+        }
     }
 }

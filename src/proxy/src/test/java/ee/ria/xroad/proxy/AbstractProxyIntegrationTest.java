@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -127,7 +128,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         jobManager = new JobManager();
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(0)));
 
         MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);

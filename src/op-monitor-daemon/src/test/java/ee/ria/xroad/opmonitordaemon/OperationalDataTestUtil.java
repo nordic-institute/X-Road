@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -88,6 +89,7 @@ final class OperationalDataTestUtil {
                 .append("\"serviceMemberClass\":\"GOV\",")
                 .append("\"requestInTs\":14749689780000,")
                 .append("\"responseOutTs\":14749689790000,")
+                .append("\"serviceType\":\"WSDL\",")
                 .append("\"succeeded\":false,")
                 .append("\"statusCode\":400}")
                 .toString();
@@ -114,6 +116,7 @@ final class OperationalDataTestUtil {
                 .append("\"requestInTs\":14749689780000,")
                 .append("\"serviceSubsystemCode\":\"Center\",")
                 .append("\"responseOutTs\":14749689790000,")
+                .append("\"serviceType\":\"WSDL\",")
                 .append("\"succeeded\":true,")
                 .append("\"statusCode\":200}")
                 .toString();

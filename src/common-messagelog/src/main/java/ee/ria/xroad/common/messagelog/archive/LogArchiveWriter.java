@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -29,27 +30,15 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 
-import static ee.ria.xroad.common.DefaultFilepaths.createTempFile;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchivePath;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
@@ -72,17 +61,14 @@ public class LogArchiveWriter implements Closeable {
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final LogArchiveCache logArchiveCache;
 
-    private WritableByteChannel archiveOut;
     private Path archiveTmp;
+
     /**
      * Creates new LogArchiveWriter
-     *
      * @param outputPath  directory where the log archive is created.
-     * @param workingPath directory where the temporary files are stored
      * @param archiveBase interface to archive database.
      */
-    public LogArchiveWriter(Path outputPath, Path workingPath,
-                            LogArchiveBase archiveBase) {
+    public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
 
@@ -92,15 +78,14 @@ public class LogArchiveWriter implements Closeable {
         );
 
         this.logArchiveCache = new LogArchiveCache(
-                LogArchiveWriter::generateRandom,
+                () -> randomAlphanumeric(RANDOM_LENGTH),
                 linkingInfoBuilder,
-                workingPath
+                outputPath
         );
     }
 
     /**
      * Write a message log record.
-     *
      * @param logRecord the log record
      * @return true if the a archive file was rotated
      * @throws Exception in case of any errors
@@ -110,14 +95,10 @@ public class LogArchiveWriter implements Closeable {
             throw new IllegalArgumentException("log record must not be null");
         }
 
-        if (archiveOut == null) {
-            initOutput();
-        }
-
-        log.trace("write({})", logRecord.getId());
+        if (log.isTraceEnabled()) log.trace("write({})", logRecord.getId());
 
         if (logRecord instanceof MessageRecord) {
-            logArchiveCache.add((MessageRecord) logRecord);
+            logArchiveCache.add((MessageRecord)logRecord);
         }
 
         archiveBase.markRecordArchived(logRecord);
@@ -134,10 +115,7 @@ public class LogArchiveWriter implements Closeable {
         log.trace("Closing log archive writer ...");
 
         try {
-            if (archiveAsicContainers()) {
-                closeOutputs();
-                saveArchive();
-            }
+            saveArchive();
         } finally {
             logArchiveCache.close();
             clearTempArchive();
@@ -151,11 +129,6 @@ public class LogArchiveWriter implements Closeable {
         archiveTmp = null;
     }
 
-    protected WritableByteChannel createArchiveOutput() throws Exception {
-        archiveTmp = createTempFile(outputPath, "mlogtmp", null);
-        return createOutputToTempFile(archiveTmp);
-    }
-
     protected String getArchiveFilename(String random) {
         return String.format("mlog-%s-%s-%s.zip",
                 simpleDateFormat.format(logArchiveCache.getStartTime()),
@@ -163,67 +136,22 @@ public class LogArchiveWriter implements Closeable {
                 random);
     }
 
-    protected void rotate() throws Exception {
+    protected void rotate() throws IOException {
         log.trace("rotate()");
-        archiveAsicContainers();
-
-        closeOutputs();
-        archiveOut = null;
-
         saveArchive();
         archiveTmp = null;
-
-    }
-
-    private boolean archiveAsicContainers() {
-        if (archiveOut == null) {
-            return false;
-        }
-
-        try (InputStream input = logArchiveCache.getArchiveFile();
-                OutputStream output = Channels.newOutputStream(archiveOut)) {
-            IOUtils.copy(input, output);
-        } catch (IOException e) {
-            log.error("Failed to archive ASiC containers due to IO error", e);
-            return false;
-        }
-
-        return true;
-    }
-
-    private void closeOutputs() throws IOException {
-        if (archiveOut != null) {
-            archiveOut.close();
-        }
-    }
-
-    private void initOutput() throws Exception {
-        log.trace("initOutput()");
-
-        try {
-            closeOutputs();
-        } catch (Exception e) {
-            log.trace("Failed to close output files", e);
-        }
-
-        archiveOut = createArchiveOutput();
     }
 
     private void saveArchive() throws IOException {
-        if (archiveTmp == null) {
+        if (logArchiveCache.isEmpty()) {
             return;
         }
-
-        String archiveFilename = getArchiveFilename(generateRandom());
-
-        Path archiveFile = outputPath.resolve(archiveFilename);
-
+        Path archiveFile = getUniqueArchiveFilename();
+        archiveTmp = logArchiveCache.getArchiveFile();
         atomicMove(archiveTmp, archiveFile);
-
-        setArchivedInDatabase(archiveFilename);
-
+        setArchivedInDatabase(archiveFile.getFileName().toString());
         linkingInfoBuilder.afterArchiveSaved();
-
+        archiveTmp = null;
         log.info("Created archive file {}", archiveFile);
     }
 
@@ -241,37 +169,17 @@ public class LogArchiveWriter implements Closeable {
         }
     }
 
-    private static String generateRandom() {
-        String random = randomAlphanumeric(RANDOM_LENGTH);
-
+    private Path getUniqueArchiveFilename() {
+        Path archive = outputPath.resolve(getArchiveFilename(randomAlphanumeric(RANDOM_LENGTH)));
         int attempts = 0;
-        while (!filenameRandomUnique(random)) {
+        while (archive.toFile().exists()) {
             if (++attempts > MAX_RANDOM_GEN_ATTEMPTS) {
-                throw new RuntimeException(
-                        "Could not generate unique random in "
-                                + MAX_RANDOM_GEN_ATTEMPTS + " attempts");
+                throw new IllegalStateException("Could not generate unique file in "
+                        + MAX_RANDOM_GEN_ATTEMPTS + " attempts");
             }
-
-            random = randomAlphanumeric(RANDOM_LENGTH);
+            archive = outputPath.resolve(getArchiveFilename(randomAlphanumeric(RANDOM_LENGTH)));
         }
-
-        return random;
-    }
-
-    private static boolean filenameRandomUnique(String random) {
-
-        String filenameEnd = String.format("-%s.zip", random);
-
-        String[] fileNamesWithSameRandom = new File(getArchivePath())
-                .list((file, name) ->
-                        name.startsWith("mlog-") && name.endsWith(filenameEnd));
-
-        return ArrayUtils.isEmpty(fileNamesWithSameRandom);
-    }
-
-    private static WritableByteChannel createOutputToTempFile(Path tmp)
-            throws Exception {
-        return Files.newByteChannel(tmp, CREATE, WRITE, TRUNCATE_EXISTING);
+        return archive;
     }
 
     private static void atomicMove(Path source, Path destination)

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -26,9 +27,12 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -81,8 +85,8 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
     /**
      * Returns the client for the given client identifier.
      * @param session the session
-     * @param id      the client identifier
-     * @return the client
+     * @param id the client identifier
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(Session session, ClientId id) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
@@ -116,5 +120,35 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
             return client.getIsCert();
         }
         return emptyList();
+    }
+
+    /**
+     * Returns ClientType containing endpoint with id given as parameter
+     *
+     * @param session       the session
+     * @param endpointType  endpointType entity
+     * @return the client, or null if matching client was not found for the endpoint id
+     */
+    public ClientType getClientByEndpointId(Session session, EndpointType endpointType) {
+        StringBuilder qb = new StringBuilder();
+        qb.append("select c from ClientType as c where :endpoint member of c.endpoint");
+        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        query.setParameter("endpoint", endpointType);
+        return findOne(query);
+    }
+
+    /**
+     * Returns ClientType containing localGroupType given as parameter
+     *
+     * @param session       the session
+     * @param localGroupType  localGroupType entity
+     * @return the client, or null if matching client was not found for the localGroupType
+     */
+    public ClientType getClientByLocalGroup(Session session, LocalGroupType localGroupType) {
+        StringBuilder qb = new StringBuilder();
+        qb.append("select c from ClientType as c where :localGroup member of c.localGroup");
+        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        query.setParameter("localGroup", localGroupType);
+        return findOne(query);
     }
 }

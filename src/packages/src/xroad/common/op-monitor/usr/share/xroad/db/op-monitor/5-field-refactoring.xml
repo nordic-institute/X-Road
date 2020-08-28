@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="is" id="5-add-columns">
+        <addColumn tableName="operational_data">
+            <column name="service_type" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="operational_data">
+            <column name="request_size" type="bigint"/>
+        </addColumn>
+        <addColumn tableName="operational_data">
+            <column name="response_size" type="bigint"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="is" id="5-populate-columns">
+        <sql splitStatements="false">
+            update operational_data set request_size=request_soap_size where request_soap_size is not null;
+            update operational_data set response_size=response_soap_size where response_soap_size is not null;
+            update operational_data set request_size=request_rest_size where request_rest_size is not null;
+            update operational_data set response_size=response_rest_size where response_rest_size is not null;
+            update operational_data set service_type='WSDL' where request_soap_size is not null;
+            update operational_data set service_type='REST' where request_rest_size is not null;
+        </sql>
+    </changeSet>
+
+    <changeSet author="is" id="5-rename-columns">
+        <renameColumn newColumnName="fault_code" oldColumnName="soap_fault_code" tableName="operational_data"/>
+        <renameColumn newColumnName="fault_string" oldColumnName="soap_fault_string" tableName="operational_data"/>
+    </changeSet>
+
+    <changeSet author="is" id="5-drop-columns">
+        <dropColumn tableName="operational_data">
+            <column name="request_soap_size" type="bigint"/>
+        </dropColumn>
+        <dropColumn tableName="operational_data">
+            <column name="response_soap_size" type="bigint"/>
+        </dropColumn>
+        <dropColumn tableName="operational_data">
+            <column name="request_rest_size" type="bigint"/>
+        </dropColumn>
+        <dropColumn tableName="operational_data">
+            <column name="response_rest_size" type="bigint"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

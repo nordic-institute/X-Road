@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.metadata.CentralServiceListType;
 import ee.ria.xroad.common.metadata.ClientListType;
@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.WSDL;
 
 /**
  * Soap metadata client request processor
@@ -94,8 +93,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
             case LIST_CLIENTS: // $FALL-THROUGH$
             case LIST_CENTRAL_SERVICES:
                 return true;
-            case WSDL:
-                return SystemProperties.isAllowGetWsdlRequest();
             default:
                 return false;
         }
@@ -109,9 +106,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
                 return;
             case LIST_CENTRAL_SERVICES:
                 handleListCentralServices();
-                return;
-            case WSDL:
-                handleWsdl();
                 return;
             default: // to nothing
                 break;
@@ -157,12 +151,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     private boolean acceptsJson() {
         return acceptsJson(servletRequest.getHeaders("Accept"));
-    }
-
-    private void handleWsdl() throws Exception {
-        log.trace("handleWsdl()");
-
-        new WsdlRequestProcessor(servletRequest, servletResponse).process();
     }
 
     private void writeResponseXml(Object object) throws Exception {

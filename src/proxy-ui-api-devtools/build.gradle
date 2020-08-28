@@ -1,0 +1,41 @@
+plugins {
+  id "io.spring.dependency-management"
+  id 'org.springframework.boot'
+}
+
+ext {
+	set('springCloudVersion', "Greenwich.SR5")
+}
+
+ext['tomcat.version'] = '9.0.37'
+
+bootJar {
+    excludeDevtools = false
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+dependencies {
+    implementation files('$buildDir/../../proxy-ui-api/build/libs/proxy-ui-api-1.0-plainDependency.jar')
+    implementation project(path: ':proxy-ui-api')
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}

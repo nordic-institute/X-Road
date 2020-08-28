@@ -1,114 +1,13 @@
 #!/bin/bash
-
-set -e
-
 . /usr/share/debconf/confmodule
 
-db_name=messagelog
-db_user=messagelog
-db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad.properties
+if [[ "$1" == configure ]]; then
+  RET=
+  db_get xroad-common/database-host
+  /usr/share/xroad/scripts/setup_messagelog_db.sh "$RET"
+  db_stop
 
-RET=
-db_get xroad-common/database-host
-db_host="$RET"
-db_url=jdbc:postgresql://${db_host}/${db_name}
-db_addr=${db_host%%:*}
-db_port=${db_host##*:}
-
-die () {
-    echo >&2 "$@"
-    exit 1
-}
-
-if  [[ -f ${db_properties}  && $(crudini --get ${db_properties} '' messagelog.hibernate.connection.url) != "" ]]
-then
-
-    db_url=`crudini --get ${db_properties} '' messagelog.hibernate.connection.url`
-    db_user=`crudini --get ${db_properties} '' messagelog.hibernate.connection.username`
-    db_passwd=`crudini --get ${db_properties} '' messagelog.hibernate.connection.password`
-
-else
-    echo "no db settings detected, creating db"
-
-    # If the database host is not local, connect with master username and password
-    if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
-    then
-
-      echo "remote database"
-
-      master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
-      export PGPASSWORD=${master_passwd}
-
-      if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
-       then echo -e "\n\npostgreSQL is not UTF8 compatible."
-          echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
-          exit 101
-      fi
-
-      if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
-       then
-          echo  "$db_user user exists, skipping role creation"
-          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
-      else
-          echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
-      fi
-
-      if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
-       then
-          echo "database ${db_name} exists"
-      else
-          echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
-          createdb -h $db_addr -p $db_port -U postgres ${db_name} -O ${db_user} -E UTF-8
-      fi
-
-    else
-
-      echo "local database"
-
-      if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-       then
-          echo "postgreSQL is not UTF8 compatible."
-          echo "Aborting installation! please fix issues and rerun with apt-get -f install"
-          exit 101
-      fi
-
-      if [[ $(su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" ") == "1" ]]
-       then
-          echo  "$db_user exists, skipping schema creation"
-          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
-      else
-          echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
-      fi
-
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
-      then
-          echo "database $db_name exists"
-      else
-          su - postgres -c "createdb $db_name -O $db_user -E UTF-8"
-      fi
-
-    fi
-
-    touch ${db_properties}
-    crudini --set ${db_properties} '' messagelog.hibernate.jdbc.use_streams_for_binary true
-    crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' messagelog.hibernate.jdbc.batch_size 50
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
-
+  invoke-rc.d xroad-proxy try-restart || true
 fi
-
-chown xroad:xroad ${db_properties}
-chmod 640 ${db_properties}
-
-echo "running ${db_name} database migrations"
-cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/"${db_name}-changelog.xml" --password="${db_passwd}" --username="${db_user}"  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
-
-service xroad-proxy restart || true
 
 exit 0

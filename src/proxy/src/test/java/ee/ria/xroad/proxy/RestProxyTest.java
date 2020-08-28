@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -288,6 +289,151 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));
+    }
+
+    @Test
+    public void shouldRespectAcceptHeaderInErrorResponse() throws IOException {
+
+        ServerConf.reload(new TestServerConf(servicePort) {
+            @Override
+            public DescriptionType getDescriptionType(ServiceId service) {
+                if ("wsdl".equals(service.getServiceCode())) {
+                    return DescriptionType.WSDL;
+                }
+                return DescriptionType.REST;
+            }
+        });
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/json;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "foobarbaz")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/json;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/json;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/xml")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/xml")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "text/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/xml, text/xml")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/xml, application/xml")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "text/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/xml-patch+xml")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/json;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/xml; q=0.2")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/xml, application/xml, application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "text/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/*")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "text/xml;charset=utf-8");
     }
 
     private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {

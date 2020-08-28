@@ -2,14 +2,20 @@ buildscript {
     repositories {
         jcenter()
     }
+    dependencies {
+      classpath ('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
+        exclude group: 'org.springframework', module: 'spring-core'
+      }
+    }
 }
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'com.github.hierynomus.license' version '0.15.0'
-    id 'org.owasp.dependencycheck' version '5.3.0'
+    id 'org.owasp.dependencycheck' version '5.3.2'
     id 'jacoco'
     id 'idea'
+    id "io.spring.dependency-management" version "1.0.9.RELEASE" apply false
+    id 'org.springframework.boot' version '2.2.9.RELEASE' apply false
 }
 
 repositories {
@@ -41,7 +47,7 @@ dependencyCheck {
         experimentalEnabled = false
         archiveEnabled = false
         jarEnabled = true
-        centralEnabled = true
+        centralEnabled = false
         bundleAuditEnabled = true
         nexusEnabled = false
         nuspecEnabled = false
@@ -111,8 +117,9 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'junit:junit:4.12'
-        testCompile 'org.hamcrest:hamcrest-all:1.3'
+        testCompile 'org.hamcrest:hamcrest:2.2'
+        testCompile 'org.hamcrest:hamcrest-library:2.2'
+        testCompile 'junit:junit:4.13'
 
         provided 'org.projectlombok:lombok:1.18.8'
 
@@ -135,7 +142,7 @@ subprojects {
         }
     }
 
-    task buildall(dependsOn: [build, ':proxy-ui:warble', ':center-ui:warble', ':center-service:warble']) {
+    task buildall(dependsOn: [build, ':center-ui:warble', ':center-service:warble']) {
         description = "Builds all that can be built (even the slow tasks)"
     }
 
@@ -161,7 +168,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.24"
+        toolVersion = "8.29"
         configDir = file("${project.rootDir}/config/checkstyle")
         configFile = file("${configDir}/checkstyle.xml")
         ignoreFailures = false
@@ -174,7 +181,7 @@ subprojects {
         }
     }
 
-    apply plugin: "license"
+    apply plugin: 'com.github.hierynomus.license'
 
     license {
         header rootProject.file('LICENSE.txt')
@@ -190,7 +197,7 @@ subprojects {
 
 configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common') }) {
 
-    apply plugin: "license"
+    apply plugin: 'com.github.hierynomus.license'
 
     def sources = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
 
@@ -207,7 +214,7 @@ configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('cen
     licenseTest.dependsOn licenseFormatUiCheck
 }
 
-configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') or it.name.contains('proxy-ui') })) {
+configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') })) {
     def licenseSourceAdds = fileTree('lib')
 
     task licenseFormatLib(type: nl.javadude.gradle.plugins.license.License) {

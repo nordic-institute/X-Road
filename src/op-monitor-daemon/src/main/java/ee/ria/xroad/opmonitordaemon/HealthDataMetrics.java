@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -44,8 +45,9 @@ import java.util.function.Supplier;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getServiceTypeName;
 
 /**
  * Health data metrics forwarded over JMX. Also, these metrics are used when
@@ -68,6 +70,9 @@ final class HealthDataMetrics {
     // for each service that is handled for, and are provided when the
     // respective gauge is queried.
     private static Map<String, Long> requestTimestamps = new HashMap<>();
+
+    // Stores the service types of the services
+    private static Map<String, String> serviceTypes = new HashMap<>();
 
     private HealthDataMetrics() {
     }
@@ -122,23 +127,27 @@ final class HealthDataMetrics {
 
     private static void registerOrUpdateGauges(MetricRegistry registry,
             ServiceId serviceId, OperationalDataRecord rec) {
-
+        // last request timestamp
         String expectedGaugeName = getLastRequestTimestampGaugeName(serviceId,
                 rec.getSucceeded());
         requestTimestamps.put(expectedGaugeName, rec.getResponseOutTs());
-
-        // Try and find a gauge corresponding strictly to the given gauge name.
         Gauge gauge = HealthDataMetricsUtil.findGauge(registry,
                 expectedGaugeName);
-
         if (gauge == null) {
-            // Add a new gauge corresponding to the expected gauge name.
             registry.register(expectedGaugeName,
                     (Gauge<Long>) () -> requestTimestamps.get(
                             expectedGaugeName));
         }
 
-        // No need to update the gauge -- it will be queried on demand.
+        // service type
+        String serviceTypeGaugeName = getServiceTypeName(serviceId);
+        serviceTypes.put(serviceTypeGaugeName, rec.getServiceType());
+        Gauge serviceTypeGauge = HealthDataMetricsUtil.findGauge(registry,
+                serviceTypeGaugeName);
+        if (serviceTypeGauge == null) {
+            registry.register(serviceTypeGaugeName,
+                    (Gauge<String>) () -> serviceTypes.get(serviceTypeGaugeName));
+        }
     }
 
     private static void registerOrUpdateCounters(MetricRegistry registry,
@@ -162,8 +171,8 @@ final class HealthDataMetrics {
             ServiceId serviceId, OperationalDataRecord rec) {
         registerOrUpdateHistogram(registry, getRequestDurationName(serviceId), getRequestDuration(rec));
 
-        registerOrUpdateHistogram(registry, getRequestSoapSizeName(serviceId), rec.getRequestSoapSize());
-        registerOrUpdateHistogram(registry, getResponseSoapSizeName(serviceId), rec.getResponseSoapSize());
+        registerOrUpdateHistogram(registry, getRequestSizeName(serviceId), rec.getRequestSize());
+        registerOrUpdateHistogram(registry, getResponseSizeName(serviceId), rec.getResponseSize());
     }
 
     private static void registerOrUpdateHistogram(MetricRegistry registry, String histogramName, Long newValue) {

@@ -30,8 +30,7 @@ RUN pg_ctlcluster 10 main start \
   && pg_ctlcluster 10 main stop \
   && nginx -s stop \
   && rm -f /var/run/nginx.pid \
-  && rm -rf /tmp/xroad \
-  && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
+  && rm -rf /tmp/xroad
 
 # back up read-only config (for volume support)
 RUN mkdir -p /root/etc/xroad \

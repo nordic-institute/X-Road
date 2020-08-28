@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -183,11 +184,11 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
-    private Long requestSoapSize;
+    private Long requestSize;
 
     @Getter
     @Setter
-    private Long requestRestSize;
+    private Long responseSize;
 
     @Getter
     @Setter
@@ -196,14 +197,6 @@ public class OperationalDataRecord {
     @Getter
     @Setter
     private Integer requestAttachmentCount;
-
-    @Getter
-    @Setter
-    private Long responseSoapSize;
-
-    @Getter
-    @Setter
-    private Long responseRestSize;
 
     @Getter
     @Setter
@@ -219,11 +212,11 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
-    private String soapFaultCode;
+    private String faultCode;
 
     @Getter
     @Setter
-    private String soapFaultString;
+    private String faultString;
 
     @Getter
     @Setter
@@ -233,4 +226,7 @@ public class OperationalDataRecord {
     @Setter
     private Integer statusCode;
 
+    @Getter
+    @Setter
+    private String serviceType;
 }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -40,29 +41,47 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
 
     /**
      * Constructor.
+     *
      * @param params the parameters
      */
     public IsSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
 
                 // Country Identifier
-                new DnFieldDescriptionImpl("C", "Country Code (C)", "IS").setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "C",
+                        DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "IS"
+                ).setReadOnly(true),
 
                 // Instance Identifier
-                new DnFieldDescriptionImpl("O", "Instance identifier (O)",
-                        params.getServerId().getXRoadInstance()).setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "O",
+                        DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER_O,
+                        params.getClientId().getXRoadInstance()
+                ).setReadOnly(true),
 
                 // Member Class Identifier
-                new DnFieldDescriptionImpl("OU", "Member class (OU)",
-                        params.getServerId().getMemberClass()).setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "OU",
+                        DnFieldLabelLocalizationKey.MEMBER_CLASS_OU,
+                        params.getClientId().getMemberClass()
+                ).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member code (CN)",
-                        params.getServerId().getMemberCode()).setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "CN",
+                        DnFieldLabelLocalizationKey.MEMBER_CODE,
+                        params.getClientId().getMemberCode()
+                ).setReadOnly(true),
 
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Server identifier",
-                        params.getServerId().toShortString()).setReadOnly(true)
+                new EnumLocalizedFieldDescriptionImpl(
+                        "serialNumber",
+                        DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        params.getServerId().toShortString()
+                ).setReadOnly(true)
+
         });
         this.params = params;
     }

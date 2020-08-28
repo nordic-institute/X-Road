@@ -122,9 +122,14 @@ create_pre_restore_backup () {
 }
 
 remove_old_existing_files () {
-  echo "$CONF_FILE_LIST" | xargs -I {} rm {}
-  if [ $? -ne 0 ] ; then
-    die "Failed to remove files before restore"
+  if [[ $SKIP_REMOVAL != true ]] ; then
+    echo "Removing old existing files"
+    echo "$CONF_FILE_LIST" | xargs -I {} rm {}
+    if [ $? -ne 0 ] ; then
+      die "Failed to remove files before restore"
+    fi
+  else
+    echo "Skipping existing file removal"
   fi
 }
 
@@ -136,7 +141,14 @@ setup_tmp_restore_dir() {
 
 extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
-  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad etc/nginx || die "Extracting backup failed"
+  # etc/xroad is always included in the backup, etc/nginx only when backup is for CS
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
+  if tar -tf ${BACKUP_FILENAME} etc/nginx >/dev/null 2>&1; then
+    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/nginx || die "Extracting etc/nginx failed"
+  else
+    echo "No etc/nginx in backup"
+  fi
+
   # dbdump is optional
   if [[ $SKIP_DB_RESTORE != true ]] ; then
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat
@@ -159,10 +171,10 @@ restore_configuration_files () {
     Z="-Z"
   fi
 
-  cp -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
-  cp -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
+  cp -v -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
+  cp -v -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
   if [[ $SKIP_DB_RESTORE != true ]] ; then
-    cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
+    cp -v -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
   fi
 }
 
@@ -197,8 +209,11 @@ restart_services () {
   done
 }
 
-while getopts ":FSt:i:s:n:f:b" opt ; do
+while getopts ":RFSt:i:s:n:f:b" opt ; do
   case ${opt} in
+    R)
+      SKIP_REMOVAL=true
+      ;;
     F)
       FORCE_RESTORE=true
       ;;

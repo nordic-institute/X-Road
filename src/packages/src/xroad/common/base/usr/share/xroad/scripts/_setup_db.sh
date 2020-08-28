@@ -1,0 +1,179 @@
+#!/bin/bash
+
+log() { echo >&2 "$@"; }
+die() {
+  log "$@"
+  exit 1
+}
+
+get_prop() {
+  crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
+}
+
+gen_pw() {
+  head -c 24 /dev/urandom | base64 | tr "/+" "_-"
+}
+
+setup_database() {
+  local -r db_name="$1"
+  local -r db_default_user="$2"
+  local -r db_properties=/etc/xroad/db.properties
+  local -r root_properties=/etc/xroad.properties
+  get_db_prop() { get_prop "$db_properties" "$db_name.hibernate.connection.$1" "$2"; }
+
+  local db_host="${3:-127.0.0.1:5432}"
+  local db_master_conn_user="$(get_prop ${root_properties} postgres.connection.user 'postgres')"
+  local db_master_user="${db_master_conn_user%%@*}"
+  local suffix="${db_master_conn_user##$db_master_user}"
+
+  local db_conn_user=$(get_db_prop 'username' "${db_default_user}${suffix}")
+  local db_user="${db_conn_user%%@*}"
+  local db_schema=$(get_prop ${db_properties} "$db_name.hibernate.hikari.dataSource.currentSchema" 'public')
+  db_schema="${db_schema%%,*}"
+  local db_password=$(get_db_prop 'password' "$(gen_pw)")
+  local db_url=$(get_db_prop 'url' "jdbc:postgresql://$db_host/$db_name")
+  local db_database="$db_name"
+  local db_options
+
+  local db_admin_conn_user=$(get_prop ${root_properties} "$db_name.database.admin_user")
+  local db_admin_password=$(get_prop ${root_properties} "$db_name.database.admin_password")
+  if [[ -z "$db_admin_conn_user" && -n "$db_admin_password" ]]; then
+    db_admin_conn_user="${db_user}_admin$suffix"
+    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
+  else
+    db_admin_conn_user="${db_admin_conn_user:-$db_conn_user}"
+    db_admin_password="${db_admin_password:-$db_password}"
+  fi
+  local db_admin_user="${db_admin_conn_user%%@*}"
+
+  export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
+
+  pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+  if [[ "$db_url" =~ $pat ]]; then
+    db_host="${BASH_REMATCH[1]:-$db_host}"
+    #match 2 unused
+    db_database="${BASH_REMATCH[3]:-$db_database}"
+    db_options="${BASH_REMATCH[4]:-$db_options}"
+  else
+    log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database$db_options'"
+  fi
+
+  local hosts
+  IFS=',' read -ra hosts <<<"$db_host"
+  local db_addr=${hosts[0]%%:*}
+  local db_port=${hosts[0]##*:}
+
+  local_psql() { su -l -c "psql -qtA -p ${db_port:-5432} $*" postgres; }
+  remote_psql() { psql -h "${db_addr:-127.0.0.1}" -p "${db_port:-5432}" -qtA "$@"; }
+
+  psql_dbuser() {
+    PGDATABASE="$db_database" PGUSER="$db_conn_user" PGPASSWORD="$db_password" remote_psql "$@"
+  }
+
+  psql_adminuser() {
+    PGDATABASE="$db_database" PGUSER="$db_admin_conn_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+  }
+
+  if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
+    local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
+    function psql_master() {
+      PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_conn_user}" remote_psql "$@"
+    }
+  else
+    function psql_master() { local_psql "$@"; }
+  fi
+
+  if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+    log "Database and user exists, skipping database creation."
+  else
+    if [[ $(get_prop ${root_properties} "$db_name.database.admin_user" "") == "" ]]; then
+      db_admin_user="${db_user}_admin"
+      db_admin_conn_user="${db_admin_user}${suffix}"
+    fi
+
+    if [[ $(get_prop ${root_properties} "$db_name.database.admin_password" "") == "" ]]; then
+      db_admin_password="$(gen_pw)"
+    fi
+
+    if [[ ! -f "$root_properties" ]]; then
+      touch ${root_properties}
+      chown root:root ${root_properties}
+      chmod 600 ${root_properties}
+    fi
+
+    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
+    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
+
+    if [[ $db_schema == "public" ]]; then
+      db_schema="$db_user"
+    fi
+
+    {
+      cat <<EOF
+\set ON_ERROR_STOP on
+CREATE DATABASE "${db_database}" ENCODING 'UTF8';
+REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
+DO \$\$
+BEGIN
+  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
+  GRANT "${db_admin_user}" to "${db_master_user}";
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'User $db_admin_user already exists';
+END
+\$\$;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
+\c "${db_database}"
+CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public to "${db_admin_user}";
+EOF
+      if [ "$db_user" != "$db_admin_user" ]; then
+        cat <<EOF
+DO \$\$
+BEGIN
+  CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
+  GRANT "${db_user}" to "${db_master_user}";
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'User $db_user already exists';
+END
+\$\$;
+GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
+GRANT USAGE ON SCHEMA public to "${db_user}";
+EOF
+      fi
+    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed."
+  fi
+
+  if [[ ! -f "$db_properties" ]]; then
+    touch ${db_properties}
+    chown xroad:xroad ${db_properties}
+    chmod 640 ${db_properties}
+  fi
+
+  crudini --set ${db_properties} '' "$db_name.hibernate.jdbc.use_streams_for_binary" true
+  crudini --set ${db_properties} '' "$db_name.hibernate.connection.driver_class" org.postgresql.Driver
+  crudini --set ${db_properties} '' "$db_name.hibernate.connection.url" "jdbc:postgresql://$db_host/$db_database$db_options"
+  if [[ $db_schema != "public" ]]; then
+    crudini --set ${db_properties} '' "$db_name.hibernate.hikari.dataSource.currentSchema" "${db_schema},public"
+  fi
+  crudini --set ${db_properties} '' "$db_name.hibernate.connection.username" "${db_conn_user}"
+  crudini --set ${db_properties} '' "$db_name.hibernate.connection.password" "${db_password}"
+
+  cd /usr/share/xroad/db/
+
+  context="--contexts=user"
+  if [[ "$db_user" != "$db_admin_user" ]]; then
+    context="--contexts=admin"
+  fi
+
+  LIQUIBASE_HOME="/usr/share/xroad/db" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
+    --classpath=/usr/share/xroad/jlib/postgresql.jar \
+    --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
+    --changeLogFile="/usr/share/xroad/db/$db_name-changelog.xml" \
+    --password="${db_admin_password}" \
+    --username="${db_admin_conn_user}" \
+    --defaultSchemaName="${db_schema}" \
+    $context \
+    update ||
+    die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+}

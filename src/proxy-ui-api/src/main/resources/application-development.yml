@@ -1,0 +1,19 @@
+# non-harmful development profile settings
+# these can be included in the production jar
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+      hibernate:
+        SQL:
+          TRACE
+        type:
+          descriptor:
+            sql:
+              BasicBinder:
+                TRACE
+web:
+  security:
+    debug: true

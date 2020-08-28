@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -119,6 +120,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     xRequestId
             );
 
+            // Check that incoming identifiers do not contain illegal characters
+            checkRequestIdentifiers();
+
             senderId = restRequest.getClientId();
             requestServiceId = restRequest.getServiceId();
 
@@ -138,6 +142,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
+    private void checkRequestIdentifiers() {
+        checkIdentifier(restRequest.getClientId());
+        checkIdentifier(restRequest.getServiceId());
+        checkIdentifier(restRequest.getTargetSecurityServer());
+    }
+
     private void updateOpMonitoringClientSecurityServerAddress() {
         try {
             opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
@@ -150,7 +160,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getRestResponse() != null) {
             opMonitoringData.setResponseAttachmentCount(0);
-            opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length
+            opMonitoringData.setResponseSize(response.getRestResponse().getMessageBytes().length
                     + decoder.getAttachmentsByteCount());
         }
     }
@@ -353,7 +363,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 }
 
                 opMonitoringData.setRequestAttachmentCount(0);
-                opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length
+                opMonitoringData.setRequestSize(restRequest.getMessageBytes().length
                         + enc.getAttachmentsByteCount());
 
                 restBodyDigest = enc.getRestBodyDigest();

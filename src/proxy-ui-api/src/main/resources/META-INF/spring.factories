@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationListener=org.niis.xroad.restapi.config.StartStopListener
+org.springframework.boot.env.EnvironmentPostProcessor=org.niis.xroad.restapi.config.DatabasePropertiesEnvironmentPostProcessor,org.niis.xroad.restapi.config.SslPropertiesEnvironmentPostProcessor,org.niis.xroad.restapi.config.CommonPropertyEnvironmentPostProcessor

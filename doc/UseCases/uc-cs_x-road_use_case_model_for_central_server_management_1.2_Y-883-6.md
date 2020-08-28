@@ -177,7 +177,7 @@ manage the central server configuration.
     - 3a.3a. CS administrator selects to terminate the use case.
 
 - 4a. The user with the inserted username does not exist or the password is incorrect.
-    - 4a.1. System displays the error message “Authentication failed”.
+    - 4a.1. System displays the error message “Authentication failed. Please try again”. The text fields are emptied.
     - 4a.2. System logs the event “Log in user failed” to the audit log.
     - 4a.3. CS administrator selects to reinsert the username and/or the password. Use case continues from step 3.
     - 4a.3a. CS administrator selects to terminate the use case.

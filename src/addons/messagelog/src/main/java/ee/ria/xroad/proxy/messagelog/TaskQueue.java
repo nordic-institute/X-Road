@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -31,7 +32,7 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +49,7 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class TaskQueue extends UntypedActor {
+public class TaskQueue extends UntypedAbstractActor {
 
     static final String START_TIMESTAMPING = "StartTimestamping";
     static final String START_TIMESTAMPING_RETRY_MODE = "StartTimestampingRetryMode";

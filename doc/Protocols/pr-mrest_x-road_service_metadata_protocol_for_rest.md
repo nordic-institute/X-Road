@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol for REST <!-- omit in toc --> 
 **Technical Specification**  
 
-Version: 0.3  
+Version: 0.4  
 Doc. ID: PR-MREST  
 
 ---
@@ -17,6 +17,7 @@ Doc. ID: PR-MREST
  29.07.2019 | 0.1     | Initial version                                                 | Ilkka Seppälä
  06.08.2019 | 0.2     | Add getOpenAPI description                                      | Ilkka Seppälä
  09.10.2019 | 0.3     | Clarify the listCentralServices response type                   | Jarkko Hyöty
+ 07.11.2019 | 0.4     | Clarify getOpenAPI description                                  | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -116,6 +117,8 @@ HTTP request headers
 ```
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
+
+Note that fetching the OpenAPI service description respects the "Verify TLS Certificate" setting of the service.
 
 The body of the response MUST contain the OpenAPI service description of the REST service indicated by the query parameters.
 

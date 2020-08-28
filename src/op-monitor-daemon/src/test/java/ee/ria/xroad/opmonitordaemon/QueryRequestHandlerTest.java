@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -76,6 +77,8 @@ public class QueryRequestHandlerTest {
             "src/test/resources/operationaldata.request";
     private static final String HEALTH_DATA_REQUEST =
             "src/test/resources/healthdata.request";
+
+    private static final String SERVICE_TYPE_REST = "REST";
 
     private static final long TEST_TIMESTAMP = System.currentTimeMillis();
 
@@ -258,9 +261,10 @@ public class QueryRequestHandlerTest {
             record.setSecurityServerType(
                     OpMonitoringData.SecurityServerType.PRODUCER
                     .getTypeString());
+            record.setServiceType(SERVICE_TYPE_REST);
             record.setSucceeded(success);
-            record.setRequestSoapSize(999L);
-            record.setResponseSoapSize(888L);
+            record.setRequestSize(999L);
+            record.setResponseSize(888L);
 
             return record;
         }

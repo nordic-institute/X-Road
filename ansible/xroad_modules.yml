@@ -6,26 +6,26 @@ modules:
     lib: common-util-1.0.jar
     target: /usr/share/xroad/jlib
     hosts: 
-      - cp-servers
-      - cs-servers
+      - cp_servers
+      - cs_servers
   signer:
     dir: signer
     build: build
     lib: signer-1.0.jar
     target: /usr/share/xroad/jlib
     hosts: 
-      - cp-servers
-      - cs-servers
-      - ss-servers
+      - cp_servers
+      - cs_servers
+      - ss_servers
   signer-console:
     dir: signer-console
     build: build
     lib: signer-console-1.0.jar
     target: /usr/share/xroad/jlib
     hosts: 
-      - cp-servers
-      - cs-servers
-      - ss-servers
+      - cp_servers
+      - cs_servers
+      - ss_servers
 
       
       

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -47,7 +48,7 @@ import ee.ria.xroad.proxymonitor.message.MetricType;
 
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -189,7 +190,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
     /**
      * Mock provider for metrics data
      */
-    public static class MockMetricsProvider extends UntypedActor {
+    public static class MockMetricsProvider extends UntypedAbstractActor {
 
         @Override
         public void onReceive(Object message) throws Throwable {

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.certificateprofile.impl;
 
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -44,19 +45,21 @@ public class SkEsteidCertificateProfileInfoProviderTest {
 
     /**
      * Tests whether getting subject identifier succeeds as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void getSubjectIdentifier() throws Exception {
         assertEquals(
-            ClientId.create("XX", "PERSON", "foobar"),
-            id("SERIALNUMBER=foobar")
+                ClientId.create("XX", "PERSON", "foobar"),
+                id("SERIALNUMBER=foobar")
         );
     }
 
     /**
      * Tests whether getting subject identifier fails if serial number of
      * the certificate is missing.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
@@ -68,24 +71,26 @@ public class SkEsteidCertificateProfileInfoProviderTest {
         X509Certificate mockCert = Mockito.mock(X509Certificate.class);
 
         Mockito.when(mockCert.getSubjectX500Principal()).thenReturn(
-            new X500Principal(name)
+                new X500Principal(name)
         );
 
         return new SkEsteIdCertificateProfileInfoProvider().getSignCertProfile(
-            new SignCertificateProfileInfo.Parameters() {
-                @Override
-                public ClientId getClientId() {
-                    return ClientId.create("XX", "foo", "bar");
+                new SignCertificateProfileInfo.Parameters() {
+                    @Override
+                    public ClientId getClientId() {
+                        return ClientId.create("XX", "foo", "bar");
+                    }
+
+                    @Override
+                    public String getMemberName() {
+                        return "foo";
+                    }
+
+                    @Override
+                    public SecurityServerId getServerId() {
+                        return null;
+                    }
                 }
-                @Override
-                public String getMemberName() {
-                    return "foo";
-                }
-                @Override
-                public SecurityServerId getServerId() {
-                    return null;
-                }
-            }
         ).getSubjectIdentifier(mockCert);
     }
 }

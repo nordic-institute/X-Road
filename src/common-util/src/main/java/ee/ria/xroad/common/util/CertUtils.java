@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -106,7 +107,23 @@ public final class CertUtils {
      * Short name is used in messages and access checking.
      */
     public static String getSubjectCommonName(X509Certificate cert) {
-        X500Principal principal = cert.getSubjectX500Principal();
+        return getPrincipalCommonName(cert.getSubjectX500Principal());
+    }
+
+    /**
+     * @param cert certificate for which to get the issuer common name
+     * @return short name of the certificate issuer.
+     */
+    public static String getIssuerCommonName(X509Certificate cert) {
+        return getPrincipalCommonName(cert.getIssuerX500Principal());
+    }
+
+    /**
+     * return common name for a certificate principal
+     * @param principal principal for which to get the issuer common name
+     * @return short name of the certificate principal.
+     */
+    private static String getPrincipalCommonName(X500Principal principal) {
         X500Name x500name = new X500Name(principal.getName());
 
         String cn = getRDNValue(x500name, BCStyle.CN);
@@ -118,6 +135,7 @@ public final class CertUtils {
 
         return cn;
     }
+
 
     /**
      * @param cert certificate from which to get the subject serial number

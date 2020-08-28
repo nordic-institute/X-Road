@@ -1,0 +1,20 @@
+Template: xroad-common/proxy-ui-api-subject
+Type: string
+Description: Insert admin UI and REST API TLS certificate subject name
+ This certificate will be used to secure admin UI and REST API connections.
+ .
+ Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/proxy-ui-api-altsubject
+Type: string
+Description: Insert admin UI and REST API TLS certificate subject name alternatives
+ This certificate will be used to secure admin UI and REST API connections.
+ .
+ Include all alternative names and IP addresses which will be used for accessing admin WebUI
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}
+

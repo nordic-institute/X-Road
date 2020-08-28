@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -35,6 +36,7 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokensStrategy;
 import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeAddedCertificatesListener;
@@ -58,7 +60,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithHashNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.csrWithIdNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 import static java.util.Collections.unmodifiableList;
@@ -215,6 +219,17 @@ public final class TokenManager {
     }
 
     /**
+     * @param keyId id of a key inside the token
+     * @return the token info DTO for the token
+     * @throws Exception if key was not found
+     */
+    public static synchronized TokenInfo findTokenInfoForKeyId(String keyId) {
+        log.trace("getTokenInfoForKeyId({})", keyId);
+        String tokenId = findTokenIdForKeyId(keyId);
+        return getTokenInfo(tokenId);
+    }
+
+    /**
      * @param keyId the key id
      * @return the token and key or throws exception if not found
      */
@@ -223,6 +238,38 @@ public final class TokenManager {
 
         return forKey((t, k) -> k.getId().equals(keyId),
                 (t, k) -> new TokenAndKey(t.getId(), k.toDTO()))
+                .orElseThrow(() -> keyNotFound(keyId));
+    }
+
+    /**
+     * @param certHash the certificate hash
+     * @return the tokenInfo and key id, or throws exception if not found
+     */
+    public static synchronized TokenInfoAndKeyId findTokenAndKeyIdForCertHash(String certHash) {
+        log.trace("findTokenAndKeyIdForCertHash({})", certHash);
+
+        String keyId = forCert((k, c) -> certHash.equals(c.getHash()),
+                (k, c) -> k.getId())
+                .orElseThrow(() -> certWithHashNotFound(certHash));
+
+        return forKey((t, k) -> k.getId().equals(keyId),
+                (t, k) -> new TokenInfoAndKeyId(t.toDTO(), keyId))
+                .orElseThrow(() -> keyNotFound(keyId));
+    }
+
+    /**
+     * @param certRequestId the certificate request id
+     * @return the tokenInfo and key id, or throws exception if not found
+     */
+    public static synchronized TokenInfoAndKeyId findTokenAndKeyIdForCertRequestId(String certRequestId) {
+        log.trace("findTokenAndKeyIdForCertRequestId({})", certRequestId);
+
+        String keyId = forCertRequest((k, c) -> certRequestId.equals(c.getId()),
+                (k, c) -> k.getId())
+                .orElseThrow(() -> csrWithIdNotFound(certRequestId));
+
+        return forKey((t, k) -> k.getId().equals(keyId),
+                (t, k) -> new TokenInfoAndKeyId(t.toDTO(), keyId))
                 .orElseThrow(() -> keyNotFound(keyId));
     }
 
@@ -411,6 +458,18 @@ public final class TokenManager {
                 .filter(c -> key.getUsage() == KeyUsageInfo.AUTHENTICATION
                         || memberId.equals(c.getMemberId()))
                 .map(c -> c.toDTO()).findFirst().orElse(null);
+    }
+
+    /**
+     * @param certReqId cert request id
+     * @return the certificate request info or null if not found
+     */
+    public static synchronized CertRequestInfo getCertRequestInfo(String certReqId) {
+        log.trace("getCertRequestInfo({})", certReqId);
+
+        return forCertRequest((k, c) -> certReqId.equals(c.getId()),
+                (k, c) -> c.toDTO())
+                .orElse(null);
     }
 
     /**
@@ -790,13 +849,8 @@ public final class TokenManager {
 
         return forCertRequest((k, c) -> c.getId().equals(certReqId),
                 (k, c) -> {
-                    if (k.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-                        // Authentication keys can only have one certificate request
-                        k.getCertRequests().clear();
-                    } else {
-                        if (!k.getCertRequests().remove(c)) {
-                            return null;
-                        }
+                    if (!k.getCertRequests().remove(c)) {
+                        return null;
                     }
 
                     return k.getId();

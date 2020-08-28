@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -47,17 +48,17 @@ public class EjbcaSignCertificateProfileInfo
     public EjbcaSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Instance identifier
-                new DnFieldDescriptionImpl("C", "Instance Identifier (C)",
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
                     params.getClientId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Member class
-                new DnFieldDescriptionImpl("O", "Member Class (O)",
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.MEMBER_CLASS,
                     params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member Code (CN)",
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
                     params.getClientId().getMemberCode()
                 ).setReadOnly(true) }
         );

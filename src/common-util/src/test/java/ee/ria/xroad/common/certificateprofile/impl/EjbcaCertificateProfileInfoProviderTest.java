@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.certificateprofile.impl;
 
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
@@ -53,21 +54,21 @@ public class EjbcaCertificateProfileInfoProviderTest {
     public void providerReturnsCorrectImplementations() {
         CertificateProfileInfoProvider provider = provider();
         assertTrue(
-            "Must return instance of DefaultAuthCertificateProfileInfo",
-            provider.getAuthCertProfile(
-                new AuthCertificateProfileInfoParameters(
-                    SecurityServerId.create("XX", "foo", "bar", "server"), "foo"
-                )
-            ) instanceof EjbcaAuthCertificateProfileInfo
+                "Must return instance of DefaultAuthCertificateProfileInfo",
+                provider.getAuthCertProfile(
+                        new AuthCertificateProfileInfoParameters(
+                                SecurityServerId.create("XX", "foo", "bar", "server"), "foo"
+                        )
+                ) instanceof EjbcaAuthCertificateProfileInfo
         );
 
         assertTrue(
-            "Must return instance of DefaultSignCertificateProfileInfo",
-            provider.getSignCertProfile(
-                new SignCertificateProfileInfoParameters(
-                    ClientId.create("XX", "foo", "bar"), "foo"
-                )
-            ) instanceof EjbcaSignCertificateProfileInfo
+                "Must return instance of DefaultSignCertificateProfileInfo",
+                provider.getSignCertProfile(
+                        new SignCertificateProfileInfoParameters(
+                                ClientId.create("XX", "foo", "bar"), "foo"
+                        )
+                ) instanceof EjbcaSignCertificateProfileInfo
         );
     }
 
@@ -77,51 +78,54 @@ public class EjbcaCertificateProfileInfoProviderTest {
     @Test
     public void signProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new DnFieldDescriptionImpl("C", "Instance Identifier (C)", "XX")
-                .setReadOnly(true),
-            new DnFieldDescriptionImpl("O", "Member Class (O)", "foo")
-                .setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Member Code (CN)", "bar")
-                .setReadOnly(true)
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER, "XX")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.MEMBER_CLASS, "foo")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "bar")
+                        .setReadOnly(true)
         };
 
         assertTrue(
-            "Did not get expected fields",
-            Arrays.areEqual(expectedFields, getSignProfile().getSubjectFields())
+                "Did not get expected fields",
+                Arrays.areEqual(expectedFields, getSignProfile().getSubjectFields())
         );
     }
 
     /**
      * Tests whether validating correct subject field succeeds as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void signProfileValidateFieldSuccessfully() throws Exception {
         getSignProfile().validateSubjectField(
-            new DnFieldValueImpl("C", "XX")
+                new DnFieldValueImpl("C", "XX")
         );
     }
 
     /**
      * Tests whether validating unknown subject field fails as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
     public void signProfileFailToValidateUnknownField() throws Exception {
         getSignProfile().validateSubjectField(
-            new DnFieldValueImpl("X", "foo")
+                new DnFieldValueImpl("X", "foo")
         );
     }
 
     /**
      * Tests whether validating black subject field of sign profile fails
      * as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
     public void signProfileFailToValidateBlankField() throws Exception {
         getSignProfile().validateSubjectField(
-            new DnFieldValueImpl("O", "")
+                new DnFieldValueImpl("O", "")
         );
     }
 
@@ -131,14 +135,14 @@ public class EjbcaCertificateProfileInfoProviderTest {
     @Test
     public void signProfileCreateSubjectDn() {
         assertEquals(
-            new X500Principal("C=foo, O=bar, CN=baz"),
-            getSignProfile().createSubjectDn(
-                new DnFieldValue[] {
-                    new DnFieldValueImpl("C", "foo"),
-                    new DnFieldValueImpl("O", "bar"),
-                    new DnFieldValueImpl("CN", "baz")
-                }
-            )
+                new X500Principal("C=foo, O=bar, CN=baz"),
+                getSignProfile().createSubjectDn(
+                        new DnFieldValue[] {
+                                new DnFieldValueImpl("C", "foo"),
+                                new DnFieldValueImpl("O", "bar"),
+                                new DnFieldValueImpl("CN", "baz")
+                        }
+                )
         );
     }
 
@@ -150,12 +154,12 @@ public class EjbcaCertificateProfileInfoProviderTest {
     public void signProfileGetSubjectIdentifier() {
         X509Certificate mockCert = Mockito.mock(X509Certificate.class);
         Mockito.when(mockCert.getSubjectX500Principal()).thenReturn(
-            new X500Principal("C=XX, O=Foo, CN=bar")
+                new X500Principal("C=XX, O=Foo, CN=bar")
         );
 
         assertEquals(
-            ClientId.create("XX", "Foo", "bar"),
-            getSignProfile().getSubjectIdentifier(mockCert)
+                ClientId.create("XX", "Foo", "bar"),
+                getSignProfile().getSubjectIdentifier(mockCert)
         );
     }
 
@@ -166,51 +170,54 @@ public class EjbcaCertificateProfileInfoProviderTest {
     @Test
     public void authProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new DnFieldDescriptionImpl("C", "Instance Identifier (C)", "XX")
-                .setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Server Code (CN)", "server")
-                .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER, "XX")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_CODE, "server")
+                        .setReadOnly(true),
         };
 
         assertTrue(
-            "Did not get expected fields",
-            Arrays.areEqual(expectedFields, getAuthProfile().getSubjectFields())
+                "Did not get expected fields",
+                Arrays.areEqual(expectedFields, getAuthProfile().getSubjectFields())
         );
     }
 
     /**
      * Tests whether validating correct subject field of auth profile succeeds
      * as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void authProfileValidateFieldSuccessfully() throws Exception {
         getAuthProfile().validateSubjectField(
-            new DnFieldValueImpl("C", "XX")
+                new DnFieldValueImpl("C", "XX")
         );
     }
 
     /**
      * Tests whether validating unknown subject field of auth profile fails
      * as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
     public void authProfileFailToValidateUnknownField() throws Exception {
         getAuthProfile().validateSubjectField(
-            new DnFieldValueImpl("O", "foo")
+                new DnFieldValueImpl("O", "foo")
         );
     }
 
     /**
      * Tests whether validating blank subject field of auth profile fails
      * as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = Exception.class)
     public void authProfileFailToValidateBlankField() throws Exception {
         getAuthProfile().validateSubjectField(
-            new DnFieldValueImpl("CN", "")
+                new DnFieldValueImpl("CN", "")
         );
     }
 
@@ -220,13 +227,13 @@ public class EjbcaCertificateProfileInfoProviderTest {
     @Test
     public void authProfileCreateSubjectDn() {
         assertEquals(
-            new X500Principal("C=foo, CN=baz"),
-            getAuthProfile().createSubjectDn(
-                new DnFieldValue[] {
-                    new DnFieldValueImpl("C", "foo"),
-                    new DnFieldValueImpl("CN", "baz")
-                }
-            )
+                new X500Principal("C=foo, CN=baz"),
+                getAuthProfile().createSubjectDn(
+                        new DnFieldValue[] {
+                                new DnFieldValueImpl("C", "foo"),
+                                new DnFieldValueImpl("CN", "baz")
+                        }
+                )
         );
     }
 
@@ -238,19 +245,19 @@ public class EjbcaCertificateProfileInfoProviderTest {
 
     private EjbcaSignCertificateProfileInfo getSignProfile() {
         return new EjbcaSignCertificateProfileInfo(
-            new SignCertificateProfileInfoParameters(
-                ClientId.create("XX", "foo", "bar"),
-                "foo"
-            )
+                new SignCertificateProfileInfoParameters(
+                        ClientId.create("XX", "foo", "bar"),
+                        "foo"
+                )
         );
     }
 
     private EjbcaAuthCertificateProfileInfo getAuthProfile() {
         return new EjbcaAuthCertificateProfileInfo(
-            new AuthCertificateProfileInfoParameters(
-                SecurityServerId.create("XX", "foo", "bar", "server"),
-                "foo"
-            )
+                new AuthCertificateProfileInfoParameters(
+                        SecurityServerId.create("XX", "foo", "bar", "server"),
+                        "foo"
+                )
         );
     }
 }

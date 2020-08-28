@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<configuration>
+<configuration scan="true" scanPeriod="60 seconds">
 
     <property name="logOutputPath" value="/var/log/xroad" />
 
@@ -10,7 +10,7 @@
             <maxFileSize>100MB</maxFileSize>
         </rollingPolicy>
         <encoder>
-            <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} [%thread] %-5level %logger{36} - %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -23,6 +23,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="akka" level="WARN" />
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
 
     <root level="INFO">

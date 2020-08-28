@@ -1,0 +1,256 @@
+buildscript {
+    ext {
+        openapiGeneratorVersion = '4.2.0'
+        nodePluginVersion = '1.3.1'
+        nodeVersion = '12.16.3'
+        swaggerParserVersion = '2.0.20'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.openapitools:openapi-generator-gradle-plugin:${openapiGeneratorVersion}"
+        classpath "com.moowork.gradle:gradle-node-plugin:${nodePluginVersion}"
+    }
+
+}
+
+plugins {
+    id "io.spring.dependency-management"
+    id 'org.springframework.boot'
+}
+
+ext {
+    set('springCloudVersion', "Hoxton.SR4")
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+}
+
+apply plugin: "com.moowork.node"
+apply plugin: 'org.openapi.generator'
+apply plugin: 'com.github.hierynomus.license'
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+    if (project.hasProperty('args')) {
+        def params = project.args.tokenize(',')
+        args = params
+    }
+}
+
+bootJar {
+    excludeDevtools = true
+}
+
+processResources {
+    from('frontend/dist/') {
+        into 'public/'
+    }
+}
+
+ext['tomcat.version'] = '9.0.37'
+
+node {
+    download = true
+    version = nodeVersion
+    nodeModulesDir = file("frontend")
+}
+
+task buildFront(type: NpmTask) {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.dir("frontend")
+    outputs.dir("frontend/dist")
+    args = ['run', 'build']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// check that npm run check-audit passes
+// check-audit uses ignores from audit-resolve.json
+task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.dir("frontend")
+    outputs.dir("frontend/dist")
+    args = ['run', 'check-audit']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.dir("frontend")
+    outputs.dir("frontend/dist")
+    args = ['run', 'license-check']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// run e2e tests vs remote url
+if (!project.hasProperty("testTargetUrl")) {
+    ext.testTargetUrl = ""
+}
+
+if (!project.hasProperty("testDataUrl")) {
+    ext.testDataUrl = ""
+}
+
+task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
+
+    doFirst {
+        if (testTargetUrl.isEmpty()) {
+            throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
+        }
+        if (testDataUrl.isEmpty()) {
+            throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
+        }
+    }
+
+    inputs.dir("frontend")
+    outputs.dir("frontend")
+
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl ]
+
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
+
+// checkFrontLicense -> checkFrontAudit -> buildFront -> processResources
+processResources.dependsOn 'buildFront'
+buildFront.dependsOn 'checkFrontAudit'
+checkFrontAudit.dependsOn 'checkFrontLicense'
+
+clean.delete << file('frontend/node_modules')
+clean.delete << file('frontend/dist')
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
+    outputDir = "$buildDir/generated-sources".toString()
+    apiPackage = "org.niis.xroad.restapi.openapi"
+    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    systemProperties = [
+        modelDocs: "false",
+        apis     : "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        models   : ""
+    ]
+    configOptions = [
+        interfaceOnly: "true",
+        useTags: "true"
+    ]
+}
+
+// openApiGenerate creates sources to generated-sources/src/main/java, instead of
+// generated-sources/ as e.g. common-util xjc. This causes problems for tooling (IntelliJ autoimports)
+task fixGeneratedSourcesDirectory {
+    doFirst {
+        println 'moving generated sources to the root, instead of src/main/java'
+        copy {
+            from "$buildDir/generated-sources/src/main/java"
+            into "$buildDir/generated-sources"
+            include '**'
+        }
+        delete "$buildDir/generated-sources/src"
+    }
+}
+
+compileJava.dependsOn 'fixGeneratedSourcesDirectory'
+fixGeneratedSourcesDirectory.dependsOn tasks.openApiGenerate
+
+// set license format to ignore generated java sources
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}
+
+jar {
+    enabled = true
+    classifier = 'plainDependency'
+}
+
+configurations {
+    compile {
+        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
+    }
+}
+
+dependencies {
+    implementation project(':serverconf')
+    implementation project(':common-ui')
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
+    implementation('org.kohsuke:libpam4j:1.11')
+    implementation('org.apache.commons:commons-compress:1.20')
+    implementation('wsdl4j:wsdl4j:1.6.3')
+    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
+    implementation("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}")
+
+    testImplementation project(':common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    testImplementation('org.hsqldb:hsqldb')
+
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+    implementation('org.openapitools:jackson-databind-nullable:0.1.0')
+    implementation('javax.validation:validation-api')
+    // /openapi-generator related
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        dependencies {
+            dependency 'com.google.guava:guava:28.0-jre'
+        }
+    }
+}
+
+task copyDeps(type: Copy) {
+    into "$buildDir/unpacked-libs"
+    from configurations.compileClasspath.find {it.name.startsWith("postgresql") }
+}
+
+build.dependsOn copyDeps
+
+test {
+    // Needed for the tests in DiagnosticsApiControllerTest class
+    systemProperty "user.timezone", "UTC"
+}

@@ -1,14 +1,19 @@
 ---
-- name: Copy RPM packages (RHEL)
-  become: yes
-  copy: src={{item}} dest=/xroad/local/RPMS/ force=no
-  with_fileglob:
-    - ../src/packages/build/xroad/redhat/RPMS/noarch/xroad-*rpm
-    - ../src/packages/build/xroad/redhat/RPMS/x86_64/xroad-*rpm
-    - ../src/packages/build/xroad-jetty9/redhat/RPMS/x86_64/xroad-*rpm
+- name: Install createrepo
+  yum:
+    name: createrepo
+    state: present
 
-- name: Clear yum cache (RHEL)
-  become: yes
-  command: yum clean all
-  args:
-    warn: no
+- name: Clean local repo
+  file:
+    path: "/xroad/"
+    state: absent
+
+- name: Copy RPM packages (RHEL)
+  copy:
+    src: "../src/packages/build/rhel/{{ ansible_distribution_major_version }}/"
+    dest: /xroad/
+
+- name: Create local package repository (RHEL)
+  command: createrepo /xroad/
+

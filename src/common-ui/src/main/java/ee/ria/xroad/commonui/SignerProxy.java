@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,11 +28,14 @@ package ee.ria.xroad.commonui;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
@@ -40,19 +44,33 @@ import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.protocol.message.ListTokens;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
 import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -246,11 +264,13 @@ public final class SignerProxy {
      * @param keyUsage specifies whether the certificate is for signing or authentication
      * @param subjectName subject name of the certificate
      * @param format the format of the request
-     * @return byte content of the certificate request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
-            GenerateCertRequest.RequestFormat format) throws Exception {
+    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId,
+            KeyUsageInfo keyUsage, String subjectName,
+            CertificateRequestFormat format) throws Exception {
+
         GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
                 format));
 
@@ -258,7 +278,45 @@ public final class SignerProxy {
 
         log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
 
-        return certRequestBytes;
+        return new GeneratedCertRequestInfo(
+                response.getCertReqId(),
+                response.getCertRequest(),
+                response.getFormat(),
+                memberId,
+                keyUsage);
+    }
+
+    /**
+     * Regenerates a certificate request for the given csr id
+     * @param certRequestId csr ID
+     * @param format the format of the request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
+     * @throws Exception if any errors occur
+     */
+    public static GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
+            CertificateRequestFormat format) throws Exception {
+        RegenerateCertRequestResponse response = execute(new RegenerateCertRequest(certRequestId, format));
+
+        log.trace("Cert request with length of {} bytes generated", response.getCertRequest().length);
+
+        return new GeneratedCertRequestInfo(
+                response.getCertReqId(),
+                response.getCertRequest(),
+                response.getFormat(),
+                response.getMemberId(),
+                response.getKeyUsage());
+    }
+
+    /**
+     * DTO since we don't want to leak signer message objects out
+     */
+    @Value
+    public static class GeneratedCertRequestInfo {
+        private final String certReqId;
+        private final byte[] certRequest;
+        private final CertificateRequestFormat format;
+        private final ClientId memberId;
+        private final KeyUsageInfo keyUsage;
     }
 
     /**
@@ -306,6 +364,106 @@ public final class SignerProxy {
         log.trace("Setting cert ('{}') status to '{}'", certId, status);
 
         execute(new SetCertStatus(certId, status));
+    }
+
+    /**
+     * Get a cert by it's hash
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     * @return CertificateInfo
+     * @throws Exception
+     */
+    public static CertificateInfo getCertForHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
+        log.trace("Getting cert by hash '{}'", hash);
+
+        GetCertificateInfoResponse response = execute(new GetCertificateInfoForHash(hash));
+        CertificateInfo certificateInfo = response.getCertificateInfo();
+
+        log.trace("Cert with hash '{}' found", hash);
+
+        return certificateInfo;
+    }
+
+    /**
+     * Get key for a given cert hash
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     * @return CertificateInfo
+     * @throws Exception
+     */
+    public static String getKeyIdForCertHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
+        log.trace("Getting cert by hash '{}'", hash);
+
+        GetKeyIdForCertHashResponse response = execute(new GetKeyIdForCertHash(hash));
+        String keyId = response.getKeyId();
+
+        log.trace("Cert with hash '{}' found", hash);
+
+        return keyId;
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for a given cert hash
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     *
+     * @return TokenInfoAndKeyId
+     * @throws Exception
+     */
+    public static TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
+        log.trace("Getting token and key id by cert hash '{}'", hash);
+
+        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertHash(hash));
+
+        log.trace("Token and key id with hash '{}' found", hash);
+
+        return response;
+    }
+
+    /**
+     * Get OCSP responses for certs with given hashes. Hashes are converted to lowercase
+     * @param certHashes cert hashes to find OCSP responses for
+     * @return base64 encoded OCSP responses. Each array item is OCSP response for
+     * corresponding cert in {@code certHashes}
+     * @throws Exception if something failed
+     */
+    public static String[] getOcspResponses(String[] certHashes) throws Exception {
+        String[] lowerCaseHashes = toLowerCase(certHashes);
+        GetOcspResponsesResponse response = execute(new GetOcspResponses(lowerCaseHashes));
+        return response.getBase64EncodedResponses();
+    }
+
+    private static String[] toLowerCase(String[] certHashes) {
+        return Arrays.stream(certHashes)
+                .map(String::toLowerCase)
+                .collect(Collectors.toList())
+                .toArray(new String[]{});
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for a given cert hash
+     * @param certRequestId
+     * @return TokenInfoAndKeyId
+     * @throws Exception
+     */
+    public static TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+        log.trace("Getting token and key id by cert request id '{}'", certRequestId);
+
+        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertRequestId(certRequestId));
+
+        log.trace("Token and key id with cert request id '{}' found", certRequestId);
+
+        return response;
+    }
+
+    /**
+     * Gets information about the token which has the specified key.
+     * @param keyId id of the key
+     * @return TokenInfo
+     * @throws Exception if any errors occur
+     */
+    public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
+        return execute(new GetTokenInfoForKeyId(keyId));
     }
 
     private static <T> T execute(Object message) throws Exception {

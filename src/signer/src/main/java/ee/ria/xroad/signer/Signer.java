@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -81,6 +82,7 @@ public class Signer implements StartStop {
         TokenManager.init();
 
         ActorRef moduleManager = createComponent(MODULE_MANAGER, getModuleManagerImpl());
+        moduleManager.tell(new Update(), ActorRef.noSender());
 
         if (SLAVE.equals(SystemProperties.getServerNodeType())) {
             // when the key conf file is changed from outside this system (i.e. a new copy from master),
@@ -92,25 +94,21 @@ public class Signer implements StartStop {
                     .buildAndStartWatcher();
         }
 
-        createComponent(ModuleManagerJob.class);
-
-        createComponent(REQUEST_PROCESSOR, SignerRequestProcessor.class);
-
         createComponent(OCSP_RESPONSE_MANAGER, OcspResponseManager.class);
         createComponent(OCSP_CLIENT, OcspClientWorker.class);
         createComponent(OCSP_CLIENT_JOB, OcspClientJob.class);
         createComponent(OCSP_CLIENT_RELOAD, OcspClientReload.class);
+        createComponent(ModuleManagerJob.class);
+
+        createComponent(REQUEST_PROCESSOR, SignerRequestProcessor.class);
     }
 
     /**
      * Executes polling immediately
      */
-    public void execute() throws Exception {
-        log.trace("sending cancel");
+    public void execute() {
         actorSystem.actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
-        log.trace("sending execute");
         actorSystem.actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientWorker.EXECUTE, ActorRef.noSender());
-        log.trace("done");
     }
 
     @Override
@@ -128,32 +126,26 @@ public class Signer implements StartStop {
     }
 
     @Override
-    public void join() throws InterruptedException {
-        log.trace("join()");
+    public void join() {
+        //NOP
     }
 
     private ActorRef createComponent(Class<?> clazz, Object... arg) {
         return createComponent(clazz.getName(), clazz, arg);
     }
 
-    private ActorRef createComponent(String name, Class<?> clazz,
-                                     Object... arg) {
+    private ActorRef createComponent(String name, Class<?> clazz, Object... arg) {
         return actorSystem.actorOf(Props.create(clazz, arg), name);
     }
 
-    @SuppressWarnings("unchecked")
     private Class<? extends AbstractModuleManager> getModuleManagerImpl() {
         String moduleManagerImplClassName =
-                System.getProperty(MODULE_MANAGER_IMPL_CLASS,
-                        DefaultModuleManagerImpl.class.getName());
-        log.debug("Using module manager implementation: {}",
-                moduleManagerImplClassName);
+                System.getProperty(MODULE_MANAGER_IMPL_CLASS, DefaultModuleManagerImpl.class.getName());
+        log.debug("Using module manager implementation: {}", moduleManagerImplClassName);
         try {
-            Class<?> clazz = Class.forName(moduleManagerImplClassName);
-            return (Class<? extends AbstractModuleManager>) clazz;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load module manager impl: "
-                    + moduleManagerImplClassName, e);
+            return Class.forName(moduleManagerImplClassName).asSubclass(AbstractModuleManager.class);
+        } catch (ClassNotFoundException | ClassCastException e) {
+            throw new RuntimeException("Could not load module manager impl: " + moduleManagerImplClassName, e);
         }
     }
 
@@ -161,14 +153,8 @@ public class Signer implements StartStop {
      * Periodically updates the ModuleManager
      */
     private static class ModuleManagerJob extends PeriodicJob {
-
         ModuleManagerJob() {
             super(MODULE_MANAGER, new Update(), MODULE_MANAGER_UPDATE_INTERVAL);
-        }
-
-        @Override
-        protected FiniteDuration getInitialDelay() {
-            return Duration.create(1, TimeUnit.SECONDS);
         }
     }
 

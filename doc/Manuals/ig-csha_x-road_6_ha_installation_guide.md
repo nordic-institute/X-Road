@@ -3,16 +3,16 @@
 ---
 
 
-# Central Server High Availability Installation Guide
+# Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 6**
 
-Version: 1.11  
+Version: 1.13  
 Doc. ID: IG-CSHA
 
 ---
 
 
-## Version history
+## Version history <!-- omit in toc -->
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
@@ -29,7 +29,10 @@ Doc. ID: IG-CSHA
  27.09.2019 | 1.9     | Minor fix | Petteri Kivimäki
  03.12.2019 | 1.10    | Removed dependency on BDR | Jarkko Hyöty
  30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database | Jarkko Hyöty 
-## Table of Contents
+ 18.03.2020 | 1.12    | Add instructions for Central Server HA Migration | Ilkka Seppälä 
+ 16.04.2020 | 1.13    | Update cluster status output
+ 
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
@@ -62,6 +65,9 @@ Doc. ID: IG-CSHA
   * [Configuring central servers](#configuring-central-servers)
   * [Fail-over](#fail-over)
     * [Automatic fail-over](#automatic-fail-over)
+* [Appendix B. Central Server HA Migration](#appendix-b-central-server-ha-migration)
+  * [Migrating from BDR to Cluster](#migrating-from-bdr-to-cluster)
+  * [Migrating from Standalone to HA Cluster](#migrating-from-standalone-to-ha-cluster)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -178,7 +184,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the central server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster preferably before installing the X-Road software.
 
 1.  On each node, edit file `/etc/xroad/conf.d/local.ini`, creating it if necessary
 2.  Add the following lines
@@ -220,7 +226,8 @@ curl -k https://cs1.example.org:4000/public_system_status/check_ha_cluster_statu
         "configuration_generated": "2019-12-03 14:47:02.053865",
         "status": "WARN"
       }
-    ]
+    ],
+    "all_nodes_ok": false
   }
 }
 ```
@@ -230,6 +237,8 @@ A node status is:
   * "WARN" if the timestamp is more than a global configuration generation interval in the past.
   * "ERROR" if the timestamp is older than the global configuration expriry time.
   * "UNKNOWN" if the node has not been seen at all.
+
+The combined status "all_nodes_ok" is true if the status of all nodes is "OK" and false otherwise.
 
 For a global view of the cluster status, the check should be executed on each node and compared to verify that nodes have a consistent view of the status.
 
@@ -381,7 +390,7 @@ The `status` should be _streaming_ and `sent_lsn` on master should be close to `
 
 ### Configuring central servers
 
-See [X-Road knowledge base](https://confluence.niis.org/display/XRDKB/X-Road+Knowledge+Base) for instructions about migrating an existing central server database to an external database.
+See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) for instructions about migrating an existing central server database to an external database.
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
 ```
@@ -428,3 +437,61 @@ Achieving and maintaining a system with automated fail-over is a complex task an
 * ClusterLabs PostgreSQL Automatic Failover (PAF): http://clusterlabs.github.io/PAF/documentation.html
   * PAF is a resource agent for Pacemaker cluster resource manager; probably the most versatile but also most difficult to configure and operate.
 
+## Appendix B. Central Server HA Migration
+
+### Migrating from BDR to Cluster
+
+This article explains how to migrate from a Central Server HA setup (<= v6.22) that uses PostgreSQL 9.4 with BDR 1.0.x to an external PostgreSQL database cluster. This article is only for Central Server versions <= v6.22.
+
+The migration is completed by following the steps below.
+
+The migration is completed by following the steps below.
+
+1. Take a backup of the Central Servers.
+2. Update Central Servers to version 6.23.0 (or later). See Central Server High Availability Installation Guide for instructions.
+    - Verify that center.ha-node-name is configured in /etc/xroad/conf.d/local.ini (on each server).
+3. Create the destination database using DB super-user privileges:
+```
+psql --host=<host> --username=<super-user, e.g. postgres> <<EOF
+create user centerui password '<password>';
+grant centerui to postgres; -- required e.g. by AWS RDS because the managed super-user does not have full privileges
+create database centerui_production owner centerui;
+\c centerui_production
+create extension hstore;
+EOF    
+```
+4. Stop Central Servers.
+    - Alternatively, one can leave the servers running but any modifications to the configuration (e.g. new Security Server registrations) during the upgrade are lost.
+5. Take a dump of the Central Server database:
+    - Note the destination database version (e.g. PostgreSQL 10.10).
+    - If necessary, install a version of the postgresql-client package that has the same major version as the destination database (e.g. postgresql-client-10).
+        - If a suitable version is not available from Ubuntu package repositories, please see https://www.postgresql.org/download/linux/ubuntu/
+    - Use the pg_dump version that has the same major version as the destination database. Do not use pg_dump from the BDR version of PostgreSQL.
+```
+/usr/lib/postgresql/<major version>/bin/pg_dump --host=localhost --username=centerui --no-privileges --no-owner --schema=public --exclude-table=xroad_bdr_replication_info --dbname=centerui_production --format=c -f center.dmp
+```
+6. Restore the dump to the new database:
+    - Use pg_restore that has the same major version as the destination database.
+```
+/usr/lib/postgresql/<major version>/bin/pg_restore --list center.dmp | sed '/FUNCTION public get_xroad_bdr_replication_info()/d' >center.list
+/usr/lib/postgresql/<major version>/bin/pg_restore --host=<host> --username=centerui --dbname=centerui_production --no-owner --single-transaction --use-list=center.list center.dmp
+```
+7. Update the configuration file /etc/xroad/db.properties with information about the new database.
+8. (Re)start Central Servers.
+9. If the local PosgreSQL is not used by other applications, stop the local instance and prevent it from starting:
+```
+sudo systemctl stop postgresql
+sudo systemctl mask postgresql
+```
+
+### Migrating from Standalone to HA Cluster
+
+Since version 6.23.0 it is possible to use an external database for the Central Server. This is the basis of the currently recommended Central Server HA solution. It is possible to migrate a standalone Central Server (version 6.23.0 or later) to the cluster based HA solution with the following steps.
+
+1. Take a backup of the Central Server.
+
+2. Follow the instructions in [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) to migrate the Central Server database from local to remote.
+
+3. Follow the instructions in [General Installation of HA Support](#4-general-installation-of-ha-support)
+
+4. Setup the database cluster as instructed in [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database).

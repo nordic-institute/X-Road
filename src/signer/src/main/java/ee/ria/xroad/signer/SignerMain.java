@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -33,18 +34,16 @@ import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.ActorSystem;
+import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
@@ -97,43 +96,35 @@ public final class SignerMain {
 
         log.info("Starting Signer on port {}...", signerPort);
 
-        adminPort = createAdminPort(SystemProperties.getSignerAdminPort());
-
         actorSystem = ActorSystem.create(SIGNER, getConf(signerPort));
-        adminPort.start();
-
         signer = new Signer(actorSystem);
+        adminPort = createAdminPort(SystemProperties.getSignerAdminPort());
+        CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(SignerMain::shutdown);
         signer.start();
-
-        Await.result(actorSystem.whenTerminated(), Duration.Inf());
-
-        shutdown();
+        adminPort.start();
     }
 
     private static void shutdown() {
         log.info("Signer shutting down...");
 
         try {
-            signer.stop();
-            signer.join();
+            if (signer != null) {
+                signer.stop();
+                signer.join();
+            }
         } catch (Exception e) {
             log.error("Error stopping signer", e);
         }
 
         try {
-            adminPort.stop();
-            adminPort.join();
+            if (adminPort != null) {
+                adminPort.stop();
+                adminPort.join();
+            }
         } catch (Exception e) {
             log.error("Error stopping admin port", e);
         }
 
-        try {
-            Await.ready(actorSystem.terminate(), Duration.Inf());
-        } catch (TimeoutException e) {
-            log.error("Timed out while waiting for akka to terminate");
-        } catch (InterruptedException e) {
-            log.error("Interrupted while waiting for akka to terminate");
-        }
     }
 
     private static AdminPort createAdminPort(int signerPort) {
@@ -177,15 +168,13 @@ public final class SignerMain {
             }
         });
 
-        port.addShutdownHook(SignerMain::shutdown);
-
         return port;
     }
 
     private static Config getConf(int signerPort) {
         Config conf = ConfigFactory.load().getConfig("signer-main")
                 .withFallback(ConfigFactory.load());
-        return conf.withValue("akka.remote.netty.tcp.port",
+        return conf.withValue("akka.remote.artery.canonical.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
     }
 }

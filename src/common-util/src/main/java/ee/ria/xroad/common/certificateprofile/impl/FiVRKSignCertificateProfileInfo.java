@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -47,24 +48,24 @@ public class FiVRKSignCertificateProfileInfo
     public FiVRKSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)",
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
                         "FI"
                 ).setReadOnly(true),
 
                 // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)",
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
                         ""
                 ).setReadOnly(false),
 
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                         params.getClientId().getXRoadInstance() + "/"
                         + params.getServerId().getServerCode() + "/"
                         + params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member code",
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
                         params.getClientId().getMemberCode()
                 ).setReadOnly(true) }
         );

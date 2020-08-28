@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.CentralServiceId;
@@ -60,7 +60,6 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.identifier.CentralServiceId.create;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.WSDL;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -135,32 +134,6 @@ public class MetadataClientRequestProcessorTest {
                 new MetadataClientRequestProcessor(LIST_CENTRAL_SERVICES, mockRequest, mockResponse);
 
         assertTrue("Wasn't able to process central services", processorToTest.canProcess());
-    }
-
-    @Test
-    public void shouldBeAbleToProcessGetWsdl() {
-
-        // WSDL GET is enabled/disabled with system property
-        // Force it to enabled state
-        System.setProperty(SystemProperties.ALLOW_GET_WSDL_REQUEST, "true");
-
-        MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(WSDL, mockRequest, mockResponse);
-
-        assertTrue("Wasn't able to process get wsdl request", processorToTest.canProcess());
-    }
-
-    @Test
-    public void shouldNotBeAbleToProcessGetWsdl() {
-
-        // WSDL GET is enabled/disabled with system property
-        // Force it to disabled state
-        System.setProperty(SystemProperties.ALLOW_GET_WSDL_REQUEST, "false");
-
-        MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(WSDL, mockRequest, mockResponse);
-
-        assertFalse("Was able to process get wsdl request", processorToTest.canProcess());
     }
 
     @Test

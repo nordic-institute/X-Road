@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -59,9 +60,10 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             implements AuthCertificateProfileInfo {
         SkAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters params) {
             super(new DnFieldDescription[] {
-                    new DnFieldDescriptionImpl("SN", "Serial Number (SN)", params.getServerId().getMemberCode())
+                    new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN,
+                            params.getServerId().getMemberCode())
                             .setReadOnly(true),
-                    new DnFieldDescriptionImpl("CN", "Common Name (CN)",
+                    new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME,
                             params.getMemberName()).setReadOnly(true) }
             );
         }
@@ -96,10 +98,10 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
 
         SkSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters params) {
             super(new DnFieldDescription[] {
-                    new DnFieldDescriptionImpl("SN", "Serial Number (SN)",
+                    new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN,
                         params.getClientId().getMemberCode()
                     ).setReadOnly(true),
-                    new DnFieldDescriptionImpl("CN", "Common Name (CN)",
+                    new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME,
                         params.getMemberName()
                     ).setReadOnly(true) }
             );

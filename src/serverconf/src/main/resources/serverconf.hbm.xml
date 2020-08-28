@@ -20,7 +20,7 @@
             <one-to-many class="ClientType"/>
         </bag>
 
-        <bag name="tsp" access="field" cascade="all-delete-orphan">
+        <bag name="tsp" access="field" cascade="all-delete-orphan" order-by="id asc">
             <key column="conf_id"/>
             <one-to-many class="TspType"/>
         </bag>
@@ -74,7 +74,7 @@
         </id>
 
         <many-to-one name="client" access="field" column="client_id"
-                     class="ClientType" cascade="all"/>
+            class="ClientType" cascade="none"/>
 
         <property name="url" access="field" not-null="true"/>
         <property name="disabled" access="field" not-null="true"/>
@@ -101,7 +101,8 @@
         </id>
 
         <many-to-one name="serviceDescription" access="field" column="servicedescription_id"
-                     class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" cascade="all"/>
+                     class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType"
+                     cascade="none"/>
 
         <property name="serviceCode" access="field" not-null="true"/>
         <property name="serviceVersion" access="field"/>
@@ -149,7 +150,8 @@
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-        <property name="data" access="field"/>
+        <!-- length is only for DDL when creating HSQLDB tables -->
+        <property name="data" access="field" length="4096"/>
     </class>
 
     <class name="AccessRightType" table="ACCESSRIGHT">

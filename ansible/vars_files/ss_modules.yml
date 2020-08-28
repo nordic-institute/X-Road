@@ -35,3 +35,8 @@ ss_modules:
     build: warble
     lib: proxy-ui.war
     target: /usr/share/xroad/jlib/webapps
+  proxy-ui-api:
+    dir: proxy-ui-api
+    build: build
+    lib: proxy-ui-api-1.0.jar
+    target: /usr/share/xroad/jlib

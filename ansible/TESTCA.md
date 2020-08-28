@@ -5,7 +5,7 @@
 The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development. 
 The scripts require Ubuntu 18.04.
 
-You can initialize the test-CA server automatically [with Ansible.](README.md). This initializes a new test-CA server if one is listed in `ca-servers` category.
+You can initialize the test-CA server automatically [with Ansible.](README.md). This initializes a new test-CA server if one is listed in `ca_servers` category.
 
 Alternatively, you can initialize the server manually. This is described in chapters 2-4. If you use Ansible, skip those chapters.
 

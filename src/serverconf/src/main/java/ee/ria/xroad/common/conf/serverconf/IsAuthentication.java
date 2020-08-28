@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,10 +26,13 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -94,6 +98,28 @@ public enum IsAuthentication {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate does not match any"
                                 + " IS certificates", client);
+            }
+
+            clientIsCertPeriodValidatation(client, auth.getCert());
+        }
+    }
+
+    private static void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) throws CodedException {
+        try {
+            cert.checkValidity();
+        } catch (CertificateExpiredException e) {
+            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is expired", client);
+            } else {
+                log.warn("Client {} TLS certificate is expired", client);
+            }
+        } catch (CertificateNotYetValidException e) {
+            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is not yet valid", client);
+            } else {
+                log.warn("Client {} TLS certificate is not yet valid", client);
             }
         }
     }

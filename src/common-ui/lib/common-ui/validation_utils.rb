@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -23,12 +24,13 @@
 # THE SOFTWARE.
 #
 
+require 'java'
 require 'addressable/uri'
 
 java_import Java::com.google.common.net.InternetDomainName
 java_import Java::com.google.common.net.InetAddresses
 java_import Java::java.net.IDN
-
+java_import Java::ee.ria.xroad.common.validation.SpringFirewallValidationRules
 
 module CommonUi
   module ValidationUtils
@@ -84,7 +86,7 @@ module CommonUi
           if validator == :required && (!params || !params[param] ||
             (params[param].is_a?(String) && params[param].length == 0))
             raise ValidationError.new(param, :required),
-              I18n.t('validation.missing_param', :param => param)
+                  I18n.t('validation.missing_param', :param => param)
           end
         end
       end
@@ -95,7 +97,7 @@ module CommonUi
         unless params_validators.is_a?(Hash) &&
           validators = params_validators[param.to_sym]
           raise ValidationError.new(param, :unexpected),
-            I18n.t('validation.unexpected_param', :param => param)
+                I18n.t('validation.unexpected_param', :param => param)
         end
 
         if value.is_a?(Hash)
@@ -105,7 +107,7 @@ module CommonUi
           values.each do |value|
             if value.is_a?(String) && value.length > MAX_PARAM_LENGTH
               raise ValidationError.new(param, :too_long),
-                I18n.t('validation.too_long_param', :param => param)
+                    I18n.t('validation.too_long_param', :param => param)
             end
 
             validators.each do |validator|
@@ -126,7 +128,7 @@ module CommonUi
       def validate(val, param)
         if !param || !val || (val.is_a?(String) && val.empty?)
           raise ValidationError.new(param, :required),
-            I18n.t('validation.missing_param', :param => param)
+                I18n.t('validation.missing_param', :param => param)
         end
       end
     end
@@ -136,7 +138,7 @@ module CommonUi
         m = val.match(/\A\d+\z/)
         unless m
           raise ValidationError.new(param, :int),
-            I18n.t('validation.invalid_int', :param => param, :val => val)
+                I18n.t('validation.invalid_int', :param => param, :val => val)
         end
       end
     end
@@ -146,7 +148,7 @@ module CommonUi
         m = val.match(/\A\d+\z/)
         unless m
           raise ValidationError.new(param, :timeout),
-            I18n.t('validation.invalid_timeout')
+                I18n.t('validation.invalid_timeout')
         end
       end
     end
@@ -158,7 +160,7 @@ module CommonUi
         emailValid = val =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/
         unless emailValid
           raise ValidationError.new(param, :email),
-            I18n.t("validation.invalid_email", :addr => val)
+                I18n.t("validation.invalid_email", :addr => val)
         end
       end
     end
@@ -168,7 +170,7 @@ module CommonUi
         m = val.match('\A[a-z0-9]*\z')
         unless m
           raise ValidationError.new(param, :filename),
-            I18n.t("validation.invalid_filename", :val => val)
+                I18n.t("validation.invalid_filename", :val => val)
         end
       end
     end
@@ -184,7 +186,7 @@ module CommonUi
 
         if invalid
           raise ValidationError.new(param, :url),
-            I18n.t("validation.invalid_url", :param => param, :val => val)
+                I18n.t("validation.invalid_url", :param => param, :val => val)
         end
       end
     end
@@ -201,7 +203,7 @@ module CommonUi
 
         if invalid
           raise ValidationError.new(param, :host),
-            I18n.t('validation.invalid_host_address')
+                I18n.t('validation.invalid_host_address')
         end
       end
     end
@@ -224,6 +226,20 @@ module CommonUi
       end
     end
 
+    class IdentifierValidator < Validator
+      def validate(val, param)
+        if SpringFirewallValidationRules::containsPercent(val) ||
+          SpringFirewallValidationRules::containsSemicolon(val) ||
+          SpringFirewallValidationRules::containsColon(val) ||
+          SpringFirewallValidationRules::containsForwardslash(val) ||
+          SpringFirewallValidationRules::containsBackslash(val) ||
+          SpringFirewallValidationRules::containsControlChars(val)
+            raise ValidationError.new(param, :identifier),
+                  I18n.t('validation.invalid_identifier', :param => param, :val => val)
+        end
+      end
+    end
+
     AVAILABLE_VALIDATORS = {
       :required => RequiredValidator.new,
       :int => IntValidator.new,
@@ -232,7 +248,8 @@ module CommonUi
       :filename => FilenameValidator.new,
       :url => URLValidator.new,
       :host => HostValidator.new,
-      :cert => CertValidator.new
+      :cert => CertValidator.new,
+      :identifier => IdentifierValidator.new
     }
   end
 end

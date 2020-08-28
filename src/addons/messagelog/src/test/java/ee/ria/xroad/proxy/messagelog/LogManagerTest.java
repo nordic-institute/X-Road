@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -32,7 +33,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
-import akka.testkit.JavaTestKit;
+import akka.testkit.javadsl.TestKit;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +44,9 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -62,20 +63,20 @@ public class LogManagerTest {
     @BeforeClass
     public static void setup() throws Exception {
         system = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(0)));
         jobManager = new JobManager();
     }
 
     @AfterClass
     public static void teardown() throws Exception {
         jobManager.stop();
-        JavaTestKit.shutdownActorSystem(system);
+        TestKit.shutdownActorSystem(system);
         system = null;
     }
 
     @Test
     public void testControlMessageOvertakesOthers() throws Exception {
-        new JavaTestKit(system) {
+        new TestKit(system) {
             {
                 final Props props = Props.create(MessageRecordingLogManager.class, jobManager)
                         .withDispatcher("akka.control-aware-dispatcher");
@@ -85,9 +86,9 @@ public class LogManagerTest {
                 subject.tell(MessageRecordingLogManager.GET_INSTANCE_MESSAGE, getRef());
                 // wait for response with handle to logmanager
                 final int timeout = 5000;
-                final FiniteDuration timeoutDuration = FiniteDuration.create(timeout, TimeUnit.MILLISECONDS);
-                MessageRecordingLogManager logManager = expectMsgClass(timeoutDuration,
-                        MessageRecordingLogManager.class);
+                final Duration timeoutDuration = Duration.ofMillis(timeout);
+                MessageRecordingLogManager logManager =
+                        expectMsgClass(timeoutDuration, MessageRecordingLogManager.class);
 
                 // stop processing messages
                 log.debug("stopping processing");
@@ -96,7 +97,7 @@ public class LogManagerTest {
                 // send bunch of messages. first one will be received and
                 // then processing stops. once processing is freed, the
                 // next one (2nd overall) should be the control message
-                List<Future> replies = new ArrayList();
+                List<Future<?>> replies = new ArrayList<>();
 
                 log.debug("asking first message");
 
@@ -112,20 +113,20 @@ public class LogManagerTest {
                 // then the rest of the messages - these are the actual test targets
                 log.debug("asking the rest of messages");
 
-            replies.add(Patterns.ask(subject, "another-foostring", timeout));
-            replies.add(Patterns.ask(subject, new SoapLogMessage(null, null, false), timeout));
-            replies.add(Patterns.ask(subject, new FindByQueryId(null, null, null), timeout));
-            replies.add(Patterns.ask(subject, new SetTimestampingStatusMessage(
-                    SetTimestampingStatusMessage.Status.SUCCESS), timeout));
-            // enable processing
-            logManager.resumeProcessingMessages();
+                replies.add(Patterns.ask(subject, "another-foostring", timeout));
+                replies.add(Patterns.ask(subject, new SoapLogMessage(null, null, false), timeout));
+                replies.add(Patterns.ask(subject, new FindByQueryId(null, null, null), timeout));
+                replies.add(Patterns.ask(subject, new SetTimestampingStatusMessage(
+                        SetTimestampingStatusMessage.Status.SUCCESS), timeout));
+                // enable processing
+                logManager.resumeProcessingMessages();
 
                 // wait for all processed
-                for (Future f : replies) {
-                    Await.ready(f, timeoutDuration);
+                for (Future<?> f : replies) {
+                    Await.ready(f, FiniteDuration.fromNanos(timeoutDuration.toNanos()));
                 }
 
-                List<Object> messages = logManager.getMessages();
+                List<Object> messages = MessageRecordingLogManager.getMessages();
 
                 log.debug("logManager mailbox contents: " + dumpMailbox(messages));
 
@@ -139,7 +140,7 @@ public class LogManagerTest {
     }
 
     private String dumpMailbox(List<Object> messages) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         int number = 1;
 
         for (Object o : messages) {

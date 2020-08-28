@@ -1,0 +1,184 @@
+<!--
+   The MIT License
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
+<template>
+  <div>
+    <div class="table-toolbar">
+      <v-text-field
+        v-model="search"
+        label="Search"
+        single-line
+        hide-details
+        class="search-input"
+      >
+        <v-icon slot="append">mdi-magnify</v-icon>
+      </v-text-field>
+      <v-btn
+        v-if="showAddGroup"
+        color="primary"
+        @click="addGroup"
+        outlined
+        rounded
+        class="ma-0 rounded-button elevation-0"
+        >{{ $t('localGroups.addGroup') }}</v-btn
+      >
+    </div>
+
+    <v-card flat>
+      <table class="xrd-table details-certificates">
+        <tr>
+          <th>{{ $t('localGroups.code') }}</th>
+          <th>{{ $t('localGroups.description') }}</th>
+          <th>{{ $t('localGroups.memberCount') }}</th>
+          <th>{{ $t('localGroups.updated') }}</th>
+        </tr>
+        <template v-if="groups && groups.length > 0">
+          <tr v-for="group in filtered()" v-bind:key="group.code">
+            <td>
+              <span class="cert-name" @click="viewGroup(group)">{{
+                group.code
+              }}</span>
+            </td>
+            <td>{{ group.description }}</td>
+            <td>{{ group.member_count }}</td>
+            <td>{{ group.updated_at | formatDate }}</td>
+          </tr>
+        </template>
+      </table>
+    </v-card>
+
+    <newGroupDialog
+      :dialog="addGroupDialog"
+      :id="id"
+      @cancel="closeDialog()"
+      @groupAdded="groupAdded()"
+    />
+  </div>
+</template>
+
+<script lang="ts">
+import Vue from 'vue';
+import * as api from '@/util/api';
+import NewGroupDialog from './NewGroupDialog.vue';
+import { mapGetters } from 'vuex';
+import { Permissions, RouteName } from '@/global';
+import { selectedFilter } from '@/util/helpers';
+import { LocalGroup } from '@/openapi-types';
+import { encodePathParameter } from '@/util/api';
+
+export default Vue.extend({
+  components: {
+    NewGroupDialog,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      search: '',
+      dialog: false,
+      groups: [] as LocalGroup[],
+      addGroupDialog: false,
+    };
+  },
+  computed: {
+    ...mapGetters(['client']),
+    showAddGroup(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_LOCAL_GROUP);
+    },
+  },
+  created() {
+    this.fetchGroups(this.id);
+  },
+  methods: {
+    addGroup(): void {
+      this.addGroupDialog = true;
+    },
+
+    closeDialog(): void {
+      this.addGroupDialog = false;
+    },
+
+    groupAdded(): void {
+      this.fetchGroups(this.id);
+      this.addGroupDialog = false;
+    },
+
+    filtered(): LocalGroup[] {
+      return selectedFilter(this.groups, this.search, 'id');
+    },
+
+    viewGroup(group: LocalGroup): void {
+      if (!group.id) {
+        return;
+      }
+      this.$router.push({
+        name: RouteName.LocalGroup,
+        params: { clientId: this.id, groupId: group.id.toString() },
+      });
+    },
+
+    fetchGroups(id: string): void {
+      api
+        .get<LocalGroup[]>(`/clients/${encodePathParameter(id)}/local-groups`)
+        .then((res) => {
+          this.groups = res.data.sort((a: LocalGroup, b: LocalGroup) => {
+            if (a.code.toLowerCase() < b.code.toLowerCase()) {
+              return -1;
+            }
+            if (a.code.toLowerCase() > b.code.toLowerCase()) {
+              return 1;
+            }
+
+            return 0;
+          });
+        })
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        });
+    },
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+@import '../../../assets/tables';
+
+.cert-name {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.details-certificates {
+  margin-top: 40px;
+}
+
+.search-input {
+  max-width: 300px;
+}
+</style>

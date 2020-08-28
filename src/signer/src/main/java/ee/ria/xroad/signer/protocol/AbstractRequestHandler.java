@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -29,7 +30,7 @@ import ee.ria.xroad.signer.protocol.message.SuccessResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -44,7 +45,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
  */
 @SuppressWarnings("unchecked")
 @Slf4j
-public abstract class AbstractRequestHandler<T> extends UntypedActor {
+public abstract class AbstractRequestHandler<T> extends UntypedAbstractActor {
 
     private static final Object SUCCESS = new SuccessResponse();
     private static final Object NOTHING = null;
@@ -58,7 +59,8 @@ public abstract class AbstractRequestHandler<T> extends UntypedActor {
                 if (result instanceof Exception) {
                     handleError(translateException((Exception) result));
                 } else if (hasSender()) {
-                    getSender().tell(result, getSelf());
+                    //use parent as sender (avoids leaking the temp request handler ref)
+                    getSender().tell(result, context().parent());
                 }
             }
         } catch (ClassCastException e) {
@@ -90,7 +92,8 @@ public abstract class AbstractRequestHandler<T> extends UntypedActor {
         log.error("Error in request handler", e);
 
         if (hasSender()) {
-            getSender().tell(e.withPrefix(SIGNER_X), getSelf());
+            //use parent as sender (avoids leaking the temp request handler ref)
+            getSender().tell(e.withPrefix(SIGNER_X), context().parent());
         }
     }
 

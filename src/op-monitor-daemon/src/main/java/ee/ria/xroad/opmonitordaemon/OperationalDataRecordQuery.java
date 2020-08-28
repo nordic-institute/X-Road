@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -151,7 +152,7 @@ final class OperationalDataRecordQuery {
     }
 
     void addOverflowCriteria(long monitoringDataTs) {
-        pred = cb.and(cb.equal(from.get(MONITORING_DATA_TS), monitoringDataTs));
+        pred = cb.and(pred, cb.equal(from.get(MONITORING_DATA_TS), monitoringDataTs));
     }
 
     List<OperationalDataRecord> list() {

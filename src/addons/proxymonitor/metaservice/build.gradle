@@ -22,9 +22,9 @@ dependencies {
 
     testCompile project (path: ":proxy", configuration: 'testArtifacts')
     testCompile project(':common-test')
-    testCompile 'org.hamcrest:hamcrest-all:1.3'
-    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
-    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
+    testCompile 'org.hamcrest:hamcrest:2.2'
+    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
+    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 }
 
 task createDirs() {
@@ -91,7 +91,7 @@ task runProxymonitorMetaserviceTest(type: JavaExec) {
             '-Dxroad.proxy.client-httpclient-so-linger=-1',
             '-Dxroad.proxy.server-connector-so-linger=-1',
             '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
-            '-Dproxy.akka.remote.netty.tcp.port=0'
+            '-Dproxy.akka.remote.artery.canonical.port=0'
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -50,7 +51,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 
 /**
  * Tests to verify system properties loading.
@@ -140,6 +140,7 @@ public class SystemPropertiesLoaderTest {
      * Test for loading files in a predetermined (alphabetical) order
      * - file paths are mock-returned in non alphabetical order
      * - expectation is for the loader to call load with paths in alphabetical order
+     *
      * @throws IOException if fileset not present
      */
     @Test
@@ -162,10 +163,10 @@ public class SystemPropertiesLoaderTest {
 
         //collect the actual Path order from the load calls
         PowerMockito.doAnswer(invocation -> {
-                    SystemPropertiesLoader.FileWithSections file =
-                            (SystemPropertiesLoader.FileWithSections) invocation.getArguments()[0];
-                    actualFilePaths.add(Paths.get(file.getName()));
-                    return null;
+            SystemPropertiesLoader.FileWithSections file =
+                    (SystemPropertiesLoader.FileWithSections) invocation.getArguments()[0];
+            actualFilePaths.add(Paths.get(file.getName()));
+            return null;
         }).when(spy, "load", Mockito.any(SystemPropertiesLoader.FileWithSections.class));
 
         spy.loadFilesInOrder(
@@ -179,8 +180,9 @@ public class SystemPropertiesLoaderTest {
     /**
      * Test loading a mix of existing and non-existing files. Expectation is to receive load calls
      * for the existing files in entry order.
+     *
      * @throws FileNotFoundException If none of the input files can be loaded
-     * @throws Exception If something goes wrong with capturing calls to load
+     * @throws Exception             If something goes wrong with capturing calls to load
      */
     @Test
     public void loadMutuallyAlternativeFiles() throws Exception {
@@ -193,9 +195,9 @@ public class SystemPropertiesLoaderTest {
         );
 
         final List<String> expectedFileNames = ImmutableList.of(
-          "src/test/resources/loading_order_inis/override-x.ini",
-          "src/test/resources/loading_order_inis/override-1.ini",
-          "src/test/resources/loading_order_inis/override-a.ini"
+                "src/test/resources/loading_order_inis/override-x.ini",
+                "src/test/resources/loading_order_inis/override-1.ini",
+                "src/test/resources/loading_order_inis/override-a.ini"
         );
 
         final List<String> actualFileNames = new ArrayList<>();
@@ -217,6 +219,7 @@ public class SystemPropertiesLoaderTest {
     /**
      * Test loading non-existing files with the mutually alternative file loading mechanism. Expectation is that
      * FileNotFoundException is thrown listing all the attempted files in the message.
+     *
      * @throws FileNotFoundException Expected exception when loader is unable to find any of the input files
      */
     @Test
@@ -230,7 +233,7 @@ public class SystemPropertiesLoaderTest {
 
         expectedException.expect(FileNotFoundException.class);
         expectedException.expectMessage("None of the following configuration files were found: "
-                + String.join(", ",  initialFileNames));
+                + String.join(", ", initialFileNames));
 
         SystemPropertiesLoader testLoader = SystemPropertiesLoader.create("");
         testLoader.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames);
@@ -249,7 +252,6 @@ public class SystemPropertiesLoaderTest {
             properties.put(args[0].toString(), args[1].toString());
             return null;
         }).when(spy).setProperty(Mockito.anyString(), Mockito.anyString());
-
 
         for (String fileName : fileNames) {
             spy.with(fileName, sectionNames);

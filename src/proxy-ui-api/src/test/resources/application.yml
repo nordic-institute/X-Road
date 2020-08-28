@@ -1,0 +1,39 @@
+# properties for test runtime
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
+    show-sql: false
+  profiles:
+    active: test
+  main:
+    lazy-initialization: true
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        transaction:
+          interceptor: TRACE
+
+log4j:
+  logger:
+    org:
+      springframework:
+        orm:
+          jpa: DEBUG
+        transaction: DEBUG
+
+ratelimit:
+  requests:
+    per:
+      second: 60
+      minute: 3600
+
+#server:
+#  error:
+#    include-stacktrace: always
+#    include-exception: true

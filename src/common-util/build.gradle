@@ -23,7 +23,6 @@ dependencies {
     compile 'commons-jxpath:commons-jxpath:1.3'
     compile 'org.slf4j:jcl-over-slf4j:1.7.26'
     compile "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
-    compile 'xerces:xercesImpl:2.12.0'
 
     compile "org.eclipse.jetty:jetty-server:$jettyVersion"
 
@@ -39,17 +38,17 @@ dependencies {
     compile 'org.apache.httpcomponents:httpclient:4.5.6'
     compile 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
-    compile "com.typesafe.akka:akka-actor_2.11:$akkaVersion"
-    compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
-    compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
+    compile "com.typesafe.akka:akka-actor_$akkaVersion"
+    compile "com.typesafe.akka:akka-remote_$akkaVersion"
+    compile "com.typesafe.akka:akka-slf4j_$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.10.2'
+    compile "com.fasterxml.jackson.core:jackson-databind:${project.property('jackson.version')}"
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'com.google.guava:guava:28.0-jre'
 
-    testCompile 'org.powermock:powermock-module-junit4:1.6.6'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.6'
-    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
+    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
+    testCompile 'org.mockito:mockito-core:3.4.6'
     testCompile project(':common-test').sourceSets.main.output
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"

@@ -1,5 +1,6 @@
 #
 # The MIT License
+# Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
 # Copyright (c) 2018 Estonian Information System Authority (RIA),
 # Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
 # Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -36,15 +37,15 @@ class DbConfParser
     ini_conf.load(@conf_file)
 
     db_conf = {
-      "adapter" => ini_conf.getString("adapter"),
-      "encoding" => ini_conf.getString("encoding"),
-      "username" => ini_conf.getString("username"),
-      "password" => ini_conf.getString("password"),
-      "database" => ini_conf.getString("database"),
-      "host" => ini_conf.getString("host", "localhost"),
-      "port" => ini_conf.getInt("port", 5432),
-      "reconnect" => ini_conf.getBoolean("reconnect", true),
-      "properties" => {}
+        "adapter" => ini_conf.getString("adapter"),
+        "encoding" => ini_conf.getString("encoding"),
+        "username" => ini_conf.getString("username"),
+        "password" => ini_conf.getString("password"),
+        "database" => ini_conf.getString("database"),
+        "host" => ini_conf.getString("host", "localhost"),
+        "port" => ini_conf.getInt("port", 5432),
+        "reconnect" => ini_conf.getBoolean("reconnect", true),
+        :properties => {}
     }
 
     if ini_conf.get_string("url")
@@ -53,20 +54,25 @@ class DbConfParser
 
     if db_conf["adapter"] == "postgresql" && ini_conf.get_string("secondary_hosts")
       secondary_hosts = ini_conf.get_string("secondary_hosts").split("\s*,\s*")
-                          .map { |x| x.include?(":") ? x : "#{x}:#{db_conf["port"]}" }
-                          .join(",")
+                            .map { |x| x.include?(":") ? x : "#{x}:#{db_conf["port"]}" }
+                            .join(",")
       db_conf["url"] =
-        "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}"
-
-      db_conf["properties"] = {
-        targetServerType: "master",
+          "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}"
+      db_conf[:properties] = {
+          targetServerType: "master",
       }
+    end
+
+    schema = ini_conf.getString("schema", db_conf["username"])
+    db_conf[:schema] = schema
+    if schema != "public"
+      db_conf[:properties][:currentSchema] = "#{schema},public"
     end
 
     it = ini_conf.get_section("properties").get_keys()
     while it.has_next?
       key = it.next
-      db_conf["properties"][key.to_sym] = ini_conf.get_string("properties." + key)
+      db_conf[:properties][key.to_sym] = ini_conf.get_string("properties." + key)
     end
 
     return { @environment => db_conf }

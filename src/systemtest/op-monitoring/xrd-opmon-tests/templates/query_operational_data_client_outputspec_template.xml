@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>{params[client_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[client_class]}</id:memberClass>
+            <id:memberCode>{params[client_code]}</id:memberCode>
+            <id:subsystemCode>{params[client_system]}</id:subsystemCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>{params[client_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[client_class]}</id:memberClass>
+            <id:memberCode>{params[client_code]}</id:memberCode>
+            <id:serviceCode>getSecurityServerOperationalData</id:serviceCode>
+            <id:serviceVersion>красивая родина</id:serviceVersion>
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>{params[client_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[client_class]}</id:memberClass>
+            <id:memberCode>{params[client_code]}</id:memberCode>
+            <id:serverCode>{params[client_server_code]}</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>{message_id_placeholder}</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <om:getSecurityServerOperationalData>
+            <om:searchCriteria>
+                <om:recordsFrom>{records_from_placeholder}</om:recordsFrom>
+                <om:recordsTo>{records_to_placeholder}</om:recordsTo>
+            </om:searchCriteria>
+            <om:outputSpec>
+                <om:outputField>clientMemberCode</om:outputField>
+                <om:outputField>clientMemberClass</om:outputField>
+                <om:outputField>serviceCode</om:outputField>
+                <om:outputField>serviceVersion</om:outputField>
+            </om:outputSpec>
+        </om:getSecurityServerOperationalData>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

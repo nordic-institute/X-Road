@@ -3,14 +3,17 @@
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
-
+  
 - name: install required packages
-  package:
-      name: "{{ item }}"
+  apt:
+      name: "{{ items }}"
       state: present
-  with_items:
-    - "acl"
-    - "nginx-light"
+      update_cache: yes
+  vars:
+    items:
+      - "acl"
+      - "nginx-light"
+      - "openssl"
 
 - name: group ca
   group:

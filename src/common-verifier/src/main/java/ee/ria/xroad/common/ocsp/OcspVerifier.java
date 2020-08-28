@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -27,8 +28,10 @@ package ee.ria.xroad.common.ocsp;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.TimeBasedObjectCache;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.bouncycastle.asn1.DERBitString;
@@ -48,10 +51,11 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.joda.time.DateTime;
 
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
@@ -76,8 +80,17 @@ public final class OcspVerifier {
 
     private final OcspVerifierOptions options;
 
-    private static final TimeBasedObjectCache CACHE = new TimeBasedObjectCache(SystemProperties
-            .getOcspVerifierCachePeriod());;
+    private static final Cache<String, SingleResp> RESPONSE_VALIDITY_CACHE;
+
+    private static final int RESPONSE_VALIDITY_CACHE_MAX_SIZE = 1000;
+
+    static {
+        RESPONSE_VALIDITY_CACHE = CacheBuilder.newBuilder()
+                .expireAfterWrite(SystemProperties.getOcspVerifierCachePeriod(),
+                        TimeUnit.SECONDS)
+                .maximumSize(RESPONSE_VALIDITY_CACHE_MAX_SIZE)
+                .build();
+    }
 
     /**
      * Constructor
@@ -101,7 +114,7 @@ public final class OcspVerifier {
      * if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer) throws Exception {
+                                        X509Certificate subject, X509Certificate issuer) throws Exception {
         verifyValidityAndStatus(response, subject, issuer, new Date());
     }
 
@@ -116,8 +129,8 @@ public final class OcspVerifier {
      * if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer, Date atDate)
-                    throws Exception {
+                                        X509Certificate subject, X509Certificate issuer, Date atDate)
+            throws Exception {
         verifyValidity(response, subject, issuer, atDate);
         verifyStatus(response);
     }
@@ -132,7 +145,7 @@ public final class OcspVerifier {
      * if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer) throws Exception {
+                               X509Certificate issuer) throws Exception {
         verifyValidity(response, subject, issuer, new Date());
     }
 
@@ -147,10 +160,10 @@ public final class OcspVerifier {
      * if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer, Date atDate) throws Exception {
+                               X509Certificate issuer, Date atDate) throws Exception {
         log.debug("verifyValidity(subject: {}, issuer: {}, atDate: {})",
                 new Object[] {subject.getSubjectX500Principal().getName(),
-                    issuer.getSubjectX500Principal().getName(), atDate});
+                        issuer.getSubjectX500Principal().getName(), atDate});
 
         SingleResp singleResp = verifyResponseValidityCached(response, subject, issuer);
         verifyValidityAt(atDate, singleResp);
@@ -172,25 +185,24 @@ public final class OcspVerifier {
             log.debug("Verify OCSP nextUpdate, atDate: {} nextUpdate: {}", atDate, singleResp.getNextUpdate());
             if (singleResp.getNextUpdate() != null
                     && singleResp.getNextUpdate().before(atDate)) {
-                SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                 throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s", fmt.format(atDate),
-                                fmt.format(singleResp.getNextUpdate())));
+                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s",
+                                atDate.toInstant(), singleResp.getNextUpdate().toInstant()));
             }
         } else {
             log.debug("OCSP nextUpdate verification is turned off");
         }
     }
 
-    private synchronized SingleResp verifyResponseValidityCached(OCSPResp response, X509Certificate subject,
+    private SingleResp verifyResponseValidityCached(OCSPResp response, X509Certificate subject,
                                                                  X509Certificate issuer)
             throws Exception {
-        String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
-        if (!CACHE.isValid(key)) {
-            CACHE.setValue(key, verifyResponseValidity(response, subject, issuer));
+        try {
+            final String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
+            return RESPONSE_VALIDITY_CACHE.get(key, () -> verifyResponseValidity(response, subject, issuer));
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            throw (Exception)e.getCause();
         }
-
-        return (SingleResp) CACHE.getValue(key);
     }
 
     private SingleResp verifyResponseValidity(OCSPResp response, X509Certificate subject, X509Certificate issuer)
@@ -269,11 +281,11 @@ public final class OcspVerifier {
      */
     public boolean isExpired(SingleResp singleResp, Date atDate) {
         Date allowedThisUpdate = new DateTime(atDate)
-            .minusSeconds(ocspFreshnessSeconds).toDate();
+                .minusSeconds(ocspFreshnessSeconds).toDate();
 
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
-                        allowedThisUpdate, atDate });
+                    allowedThisUpdate, atDate });
 
         return singleResp.getThisUpdate().before(allowedThisUpdate);
     }
@@ -369,7 +381,7 @@ public final class OcspVerifier {
     }
 
     private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-            X509Certificate issuer) throws Exception {
+                                                  X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
         if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {

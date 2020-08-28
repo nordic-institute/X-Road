@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<configuration>
+<configuration scan="true" scanPeriod="60 seconds">
 
     <property name="logOutputPath" value="/var/log/xroad" />
 
@@ -12,7 +12,7 @@
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
         <encoder>
-            <pattern>%d %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} %-5level [%thread] %logger{36} - %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -25,14 +25,15 @@
             <onMismatch>DENY</onMismatch>
             <onMatch>NEUTRAL</onMatch>
         </filter>
-        <syslogHost>localhost</syslogHost>
+        <syslogHost>127.0.0.1</syslogHost>
         <port>514</port>
         <facility>LOCAL0</facility>
-        <suffixPattern>%-5level [%logger{36}] %d{yyyy-MM-dd HH:mm:ssZ} - %msg</suffixPattern>
+        <suffixPattern>%-5level [%logger{36}] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} - %msg</suffixPattern>
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
-    
+    <logger name="akka" level="WARN" />
+
     <!--TokenManager is very verbose /-->
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF" />
 

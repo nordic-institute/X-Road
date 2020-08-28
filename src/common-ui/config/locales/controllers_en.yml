@@ -62,6 +62,7 @@ en:
     invalid_email: "Invalid e-mail address: '%{addr}'"
     invalid_filename: "Invalid filename: '%{val}'"
     invalid_int: "Invalid integer: '%{val}'"
+    invalid_identifier: "Invalid identifier: '%{val}'"
     invalid_timeout: "Timeout value must be a positive integer."
     invalid_url: "'%{val}' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'"
     invalid_host_address: "Invalid host address"

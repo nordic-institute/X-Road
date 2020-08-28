@@ -15,9 +15,11 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires:  rlwrap, crudini
+%if 0%{?el7}
+Requires:  rlwrap
+%endif
 Requires:  jre-1.8.0-headless >= 1.8.0.51
-Requires:  sudo
+Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
 
@@ -50,10 +52,10 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.2.7.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.2.14.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 
 cp -p %{srcdir}/../../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../proxy-ui/build/libs/postgresql-42.2.7.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/postgresql-42.2.14.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
@@ -89,6 +91,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
+/usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/db/liquibase-3.5.1.jar
 /usr/share/xroad/db/liquibase.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt

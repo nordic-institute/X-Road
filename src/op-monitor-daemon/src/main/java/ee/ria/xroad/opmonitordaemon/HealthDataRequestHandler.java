@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -61,8 +62,9 @@ import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.findHistogram;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getServiceTypeName;
 
 /**
  * Query handler for health data requests.
@@ -182,6 +184,10 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
                 g -> serviceEvents.setLastUnsuccessfulRequestTimestamp(
                         g.getValue()));
 
+        Optional<Gauge<String>> serviceType =
+                Optional.ofNullable(findGauge(healthMetricRegistry, getServiceTypeName(service)));
+        serviceType.ifPresent(g -> serviceEvents.setServiceType(g.getValue()));
+
         serviceEvents.setLastPeriodStatistics(buildLastPeriodStats(service));
 
         return serviceEvents;
@@ -220,27 +226,27 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
                         h.getSnapshot().getStdDev());
             });
 
-            Optional<Histogram> requestSoapSize =
+            Optional<Histogram> requestSize =
                     Optional.ofNullable(findHistogram(healthMetricRegistry,
-                            getRequestSoapSizeName(service)));
-            requestSoapSize.ifPresent(h -> {
-                lastPeriodStats.setRequestMinSoapSize(h.getSnapshot().getMin());
-                lastPeriodStats.setRequestAverageSoapSize(
+                            getRequestSizeName(service)));
+            requestSize.ifPresent(h -> {
+                lastPeriodStats.setRequestMinSize(h.getSnapshot().getMin());
+                lastPeriodStats.setRequestAverageSize(
                         h.getSnapshot().getMean());
-                lastPeriodStats.setRequestMaxSoapSize(h.getSnapshot().getMax());
-                lastPeriodStats.setRequestSoapSizeStdDev(
+                lastPeriodStats.setRequestMaxSize(h.getSnapshot().getMax());
+                lastPeriodStats.setRequestSizeStdDev(
                         h.getSnapshot().getStdDev());
             });
 
-            Optional<Histogram> responseSoapSize =
+            Optional<Histogram> responseSize =
                     Optional.ofNullable(findHistogram(healthMetricRegistry,
-                            getResponseSoapSizeName(service)));
-            responseSoapSize.ifPresent(h -> {
-                lastPeriodStats.setResponseMinSoapSize(h.getSnapshot().getMin());
-                lastPeriodStats.setResponseAverageSoapSize(
+                            getResponseSizeName(service)));
+            responseSize.ifPresent(h -> {
+                lastPeriodStats.setResponseMinSize(h.getSnapshot().getMin());
+                lastPeriodStats.setResponseAverageSize(
                         h.getSnapshot().getMean());
-                lastPeriodStats.setResponseMaxSoapSize(h.getSnapshot().getMax());
-                lastPeriodStats.setResponseSoapSizeStdDev(
+                lastPeriodStats.setResponseMaxSize(h.getSnapshot().getMax());
+                lastPeriodStats.setResponseSizeStdDev(
                         h.getSnapshot().getStdDev());
             });
         }
