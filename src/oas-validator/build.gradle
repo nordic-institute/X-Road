@@ -3,25 +3,16 @@ plugins {
     id "com.github.johnrengelman.shadow" version "4.0.4"
 }
 
-ext {
-    version = "1.0"
-}
-
 repositories {
     mavenCentral()
 }
 
 jar {
-    version = "$version"
     manifest {
         attributes(
             'Main-Class': 'org.niis.xroad.oasvalidator.Oas3Validator'
         )
     }
-}
-
-shadowJar {
-    version = "$version"
 }
 
 build.dependsOn shadowJar

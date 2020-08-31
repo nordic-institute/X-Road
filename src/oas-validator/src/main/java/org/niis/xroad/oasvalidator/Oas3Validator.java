@@ -35,8 +35,7 @@ public final class Oas3Validator {
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            throw new IllegalArgumentException(
-                    "Please provide the api definition document path as an argument");
+            throw new IllegalArgumentException("Please provide the api definition document path as an only argument");
         }
         File file = new File(args[0]);
         new OpenApi3Parser().parse(file, true);
