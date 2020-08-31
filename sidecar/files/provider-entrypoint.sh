@@ -16,8 +16,6 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/services/local.conf
     cp -a /tmp/*logback* /etc/xroad/conf.d/
     chown xroad:xroad /etc/xroad/conf.d/
-    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
-    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 fi
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then

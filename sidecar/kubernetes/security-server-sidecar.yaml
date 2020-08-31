@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: security-server-sidecar-{{LATEST_TAG}}
+  name: security-server-sidecar
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    run: security-server-sidecar-{{LATEST_TAG}}
+    run: security-server-sidecar
 spec:
   type: LoadBalancer
   selector:
-    run: security-server-sidecar-{{LATEST_TAG}}
+    run: security-server-sidecar
   ports:
   - port: 5500
     targetPort: 5500
@@ -19,39 +19,47 @@ spec:
     targetPort: 5577
     protocol: TCP
     name: ocsp
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: tcp-4000
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: tcp-80
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: tcp-443
+  - port: 4001
+    targetPort: 4001
+    protocol: TCP
+    name: tcp-4001
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: security-server-sidecar-{{LATEST_TAG}}
+  name: security-server-sidecar
 spec:
   selector:
     matchLabels:
-      run: security-server-sidecar-{{LATEST_TAG}}
-  replicas: 1
+      run: security-server-sidecar
+  replicas: {{NUMBER_REPLICAS}}
   template:
     metadata:
       labels:
-        run: security-server-sidecar-{{LATEST_TAG}}
+        run: security-server-sidecar
     spec:
       volumes:
       - name: sidecar-config-volume
         persistentVolumeClaim:
-          claimName: "{{VOLUME_CLAIM}}"
+          claimName: sidecar-config-claim
       containers:
-      - name: security-server-sidecar-{{LATEST_TAG}}
-        image: niis/xroad-security-server-sidecar:{{LATEST_TAG}}
-        imagePullPolicy: "Always"
+      - name: security-server-sidecar
+        image: niis/xroad-security-server-sidecar:latest
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
-        resources:
-          requests:
-            cpu: 500m
-            ephemeral-storage: "1Gi"
-          limits:
-            cpu: "1"
-            ephemeral-storage: "1Gi"
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"
