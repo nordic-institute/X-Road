@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API
-  version: "1.0.28"
+  version: "1.0.29"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -14,7 +14,7 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://app.swaggerhub.com/apis/Gofore/X-Road/1.0.28/api/v1
+  - url: https://app.swaggerhub.com/apis/Gofore/X-Road/1.0.29/api/v1
     description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
@@ -2517,7 +2517,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /language:
+  /language/{code}:
     put: # ok
       tags:
         - language
@@ -5047,7 +5047,7 @@ components:
           maxLength: 255
         member_count:
           type: integer
-          format: uint
+          format: int32
           description: member count
           example: 10
           minimum: 0
@@ -5516,7 +5516,7 @@ components:
           maxLength: 255
         timeout:
           type: integer
-          format: uint
+          format: int32
           description: service time out value
           example: 60
           minimum: 0
@@ -5535,7 +5535,7 @@ components:
           example: true
         subjects_count:
           type: integer
-          format: uint
+          format: int32
           description: count of acl subjects
           example: 5
           minimum: 0
@@ -5569,7 +5569,7 @@ components:
           maxLength: 255
         timeout:
           type: integer
-          format: uint
+          format: int32
           description: service time out value
           example: 60
           minimum: 0
