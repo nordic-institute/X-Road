@@ -88,10 +88,14 @@ then
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
+        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
+        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
+        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
+        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         pg_ctlcluster 10 main stop
         nginx -s stop
     fi
