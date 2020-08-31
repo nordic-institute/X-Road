@@ -81,19 +81,19 @@ fi
 if [ ! -f ${DB_PROPERTIES} ]
 then
     echo "Creating serverconf database and properties file"
-    if [[ "${XROAD_DB_HOST}" != "127.0.0.1" && -f ${ROOT_PROPERTIES} && `crudini --get ${ROOT_PROPERTIES} '' postgres.connection.password` != "" ]];
+    if [[ ! -z "${XROAD_DB_PWD}" && "${XROAD_DB_HOST}" != "127.0.0.1" ]];
     then
         echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
+        touch /etc/xroad.properties
+        chown root:root /etc/xroad.properties
+        chmod 600 /etc/xroad.properties
+        echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
-        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
-        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         pg_ctlcluster 10 main stop
         nginx -s stop
     fi
