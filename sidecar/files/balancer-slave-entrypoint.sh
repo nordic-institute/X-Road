@@ -101,16 +101,16 @@ fi
 
 #cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
-# Configure master pod in balancer
-adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
-sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys &&
-crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
-chown xroad:xroad /etc/xroad/conf.d/node.ini &&
-crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface '0.0.0.0' &&
-crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port '5588' &&
-crudini --set /etc/xroad/conf.d/local.ini proxy server-support-clients-pooled-connections 'false' &&
-cat /etc/.ssh/id_rsa.pub >> /home/xroad-slave/.ssh/authorized_keys &&
-sudo /etc/init.d/ssh restart &&
+#Configure node pod for balanacer
+crudini --set /etc/xroad/conf.d/node.ini node type 'slave' && 
+chown xroad:xroad /etc/xroad/conf.d/node.ini  &&
+sudo /etc/init.d/ssh restart  &&
+rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/  &&
+crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' && 
+sudo groupdel xroad-security-officer  &&
+sudo groupdel xroad-registration-officer  &&
+sudo groupdel xroad-service-administrator  &&
+sudo groupdel xroad-system-administrator   
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
