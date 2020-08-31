@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" version "4.0.4"
+}
+
+ext {
+    version = "1.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    version = "$version"
+    manifest {
+        attributes(
+            'Main-Class': 'org.niis.xroad.oasvalidator.Oas3Validator'
+        )
+    }
+}
+
+shadowJar {
+    version = "$version"
+}
+
+build.dependsOn shadowJar
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile 'org.openapi4j:openapi-parser:1.0.4'
+    compile 'org.openapi4j:openapi-schema-validator:1.0.4'
+}
