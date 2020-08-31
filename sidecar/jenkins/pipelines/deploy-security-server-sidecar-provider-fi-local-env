@@ -1,35 +1,54 @@
 pipeline {
-    agent any
+    agent { label 'dev-test' }
     parameters {
-        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
-        string(description: "Token code for MFA login", name: "TOKEN_CODE", defaultValue: "${params?.TOKEN_CODE}")
+        string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
+        string(description: "Log level of Security Server Sidecar", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
+    }
+    environment {
+        XROAD_DB_HOST = '127.0.0.1'
+        XROAD_DB_PORT = '5432'
+        XROAD_DB_PWD = 'secret1234'
+        VOLUME_CLAIM = 'sidecar-config-fi-provider-claim'
     }
     stages {
-        stage('Apply cluster configuration') {
+        stage('Deploy Security Server Sidecar image in AWS EKS environment') {
             steps {
-                sh '''
-                    unset AWS_SESSION_TOKEN
-                    unset AWS_SECRET_ACCESS_KEY
-                    unset AWS_ACCESS_KEY_ID
-
-                    CREDENTIALS=`aws sts get-session-token --serial-number arn:aws:iam::942718799483:mfa/raul.martinez --token-code $TOKEN_CODE`
-
-                    export AWS_ACCESS_KEY_ID=`echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId'`
-                    export AWS_SECRET_ACCESS_KEY=`echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey'`
-                    export AWS_SESSION_TOKEN=`echo $CREDENTIALS | jq -r '.Credentials.SessionToken'`
-
-                    aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}
-                '''
-            }
-        }
-        stage('Build X-Road Security Server Sidecar image') {
-            steps {
-                sh 'kubectl apply -f sidecar/kubernetes/security-server-sidecar-provider-fi.yaml'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'cat "sidecar/kubernetes/security-server-sidecar-latest.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" | sed "s/{{LATEST_TAG}}/$LATEST_TAG/g" | kubectl apply -f -'
+                }
             }
         }
         stage('Rollout status') {
             steps {
-                sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-provider-fi'
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${LATEST_TAG}'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    retry (8) {
+                        sleep(time: 10, unit: 'SECONDS')
+                        script {
+                            def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${LATEST_TAG} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
+                            if (response == '302') {
+                                echo '========> Security server sidecar ${LATEST_TAG} is successfully running'
+                                currentBuild.result = 'SUCCESS'
+                            } else {
+                                error("========> Security server sidecar ${LATEST_TAG} returned " + response + " . Try again in 10s")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage ('Clean up') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl delete deployment.apps/security-server-sidecar-${LATEST_TAG}'
+                    sh 'kubectl delete service/security-server-sidecar-${LATEST_TAG}'
+                }
             }
         }
     }
