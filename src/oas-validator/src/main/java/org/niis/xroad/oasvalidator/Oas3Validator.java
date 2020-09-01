@@ -25,20 +25,71 @@
  */
 package org.niis.xroad.oasvalidator;
 
+import io.swagger.parser.OpenAPIParser;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import org.eclipse.microprofile.openapi.models.OpenAPI;
+import org.openapi4j.core.exception.ResolutionException;
+import org.openapi4j.core.validation.ValidationException;
 import org.openapi4j.parser.OpenApi3Parser;
+import org.openapitools.empoa.swagger.core.internal.SwAdapter;
+import org.openapitools.openapistylevalidator.OpenApiSpecStyleValidator;
+import org.openapitools.openapistylevalidator.ValidatorParameters;
+import org.openapitools.openapistylevalidator.styleerror.StyleError;
 
 import java.io.File;
+import java.util.List;
 
 public final class Oas3Validator {
     private Oas3Validator() {
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws ResolutionException {
         if (args.length != 1) {
-            throw new IllegalArgumentException("Please provide the api definition document path as an only argument");
+            throw new IllegalArgumentException("Please provide the api definition document path as only argument");
         }
-        File file = new File(args[0]);
-        new OpenApi3Parser().parse(file, true);
-        System.out.println("OpenAPI validation OK: " + file.getPath());
+        File apiSpecFile = new File(args[0]);
+        String apiSpecFilePath = apiSpecFile.getAbsolutePath();
+        System.out.println("Validating API specification: " + apiSpecFilePath);
+        int validationExitCode = validateOpenApiSpec(apiSpecFile);
+        int styleValidationExitCode = validateOpenApiSpecStyle(apiSpecFilePath);
+        if (validationExitCode + styleValidationExitCode > 0) {
+            System.err.println(System.lineSeparator() + "OpenAPI validation failed: " + apiSpecFilePath);
+            System.exit(1);
+        }
+        System.out.println(System.lineSeparator() + "OpenAPI validation OK: " + apiSpecFilePath);
+        System.exit(0);
+    }
+
+    static int validateOpenApiSpec(File apiSpecFile) throws ResolutionException {
+        try {
+            new OpenApi3Parser().parse(apiSpecFile, true);
+            return 0;
+        } catch (ValidationException e) {
+            System.err.println(e.results().toString());
+            return 1;
+        }
+    }
+
+    static int validateOpenApiSpecStyle(String pathToApiSpec) {
+        OpenAPIParser openApiParser = new OpenAPIParser();
+        SwaggerParseResult parserResult = openApiParser.readLocation(pathToApiSpec, null, null);
+        OpenAPI openAPI = SwAdapter.toOpenAPI(parserResult.getOpenAPI());
+        OpenApiSpecStyleValidator validator = new OpenApiSpecStyleValidator(openAPI);
+
+        // define parameters for style checking
+        ValidatorParameters params = new ValidatorParameters();
+        params.setParameterNamingConvention(ValidatorParameters.NamingConvention.UnderscoreCase);
+        params.setPropertyNamingConvention(ValidatorParameters.NamingConvention.UnderscoreCase);
+        params.setPathNamingConvention(ValidatorParameters.NamingConvention.HyphenCase);
+        params.setValidateModelPropertiesExample(false);
+
+        List<StyleError> styleErrors = validator.validate(params);
+        if (styleErrors.isEmpty()) {
+            return 0;
+        } else {
+            System.err.println("Style validation error(s):");
+            styleErrors.forEach(styleError -> System.err.println(styleError.toString()));
+            return 1;
+        }
     }
 }

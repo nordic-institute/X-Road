@@ -26,6 +26,8 @@ paths:
     post: # ok
       tags:
         - security server
+      operationId: login
+      description: Login with cookie authentication
       summary: Logs in and returns the authentication cookie
       requestBody:
         required: true

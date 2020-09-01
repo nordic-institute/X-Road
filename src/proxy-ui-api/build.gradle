@@ -209,17 +209,17 @@ configurations {
 }
 
 task validateApiDefinition(type: JavaExec) {
-    args "$projectDir/src/main/resources/openapi-definition.yaml".toString()
-
     main = 'org.niis.xroad.oasvalidator.Oas3Validator'
+    args "$projectDir/src/main/resources/openapi-definition.yaml".toString()
     classpath = sourceSets.main.compileClasspath
+    logging.level = LogLevel.ERROR
 }
 
 task validateApiAuthDefinition(type: JavaExec) {
-    args "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
-
     main = 'org.niis.xroad.oasvalidator.Oas3Validator'
+    args "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
     classpath = sourceSets.main.compileClasspath
+    logging.level = LogLevel.ERROR
 }
 
 tasks.openApiGenerate.dependsOn 'validateApiDefinition'

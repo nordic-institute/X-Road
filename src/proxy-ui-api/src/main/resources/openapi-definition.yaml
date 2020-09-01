@@ -2903,6 +2903,7 @@ paths:
     get:
       tags:
         - endpoints
+      summary: Get an endpoint by its id
       operationId: getEndpoint
       description: Administrator fetches an endpoint
       parameters:
@@ -2937,6 +2938,7 @@ paths:
     patch:
       tags:
         - endpoints
+      summary: Update an endpoint
       operationId: updateEndpoint
       description: Administrator updates an endpoint
       parameters:
