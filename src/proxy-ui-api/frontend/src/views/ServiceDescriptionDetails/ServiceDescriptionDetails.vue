@@ -93,7 +93,7 @@
         <template
           v-if="
             serviceDesc.type === serviceTypeEnum.REST ||
-              serviceDesc.type === serviceTypeEnum.OPENAPI3
+            serviceDesc.type === serviceTypeEnum.OPENAPI3
           "
         >
           <div>{{ $t('services.serviceCode') }}</div>

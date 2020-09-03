@@ -110,7 +110,7 @@
         <template
           v-else-if="
             item.type === clientTypes.VIRTUAL_MEMBER ||
-              item.type === clientTypes.MEMBER
+            item.type === clientTypes.MEMBER
           "
         >
           <v-icon color="grey darken-2" class="icon-member icon-size"
@@ -148,8 +148,8 @@
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
                 item.type === clientTypes.VIRTUAL_MEMBER) &&
-                item.member_name &&
-                showAddClient
+              item.member_name &&
+              showAddClient
             "
             @click="addSubsystem(item)"
             >{{ $t('action.addSubsystem') }}</SmallButton
@@ -158,9 +158,9 @@
           <SmallButton
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
-                item.type !== clientTypes.VIRTUAL_MEMBER &&
-                item.status === 'SAVED' &&
-                showRegister
+              item.type !== clientTypes.VIRTUAL_MEMBER &&
+              item.status === 'SAVED' &&
+              showRegister
             "
             @click="registerClient(item)"
             >{{ $t('action.register') }}</SmallButton

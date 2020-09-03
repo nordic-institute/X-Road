@@ -106,7 +106,7 @@ export default Vue.extend({
     candidateSelection(candidate: ServiceClient): void {
       this.serviceClientCandidateSelection = candidate;
     },
-    fetchData: function(): void {
+    fetchData: function (): void {
       api
         .get<ServiceClient[]>(
           `/clients/${encodePathParameter(this.id)}/service-clients`,

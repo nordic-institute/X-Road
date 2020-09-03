@@ -32,7 +32,7 @@
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px;" class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0">
         <v-expansion-panels class="elevation-0" v-model="expandPanel" multiple>
           <v-expansion-panel class="elevation-0">
             <v-expansion-panel-header></v-expansion-panel-header>

@@ -82,7 +82,7 @@
               single-line
               @input="setTouched()"
               type="number"
-              style="max-width: 200px;"
+              style="max-width: 200px"
               name="serviceTimeout"
               :error-messages="errors"
               data-test="service-timeout"

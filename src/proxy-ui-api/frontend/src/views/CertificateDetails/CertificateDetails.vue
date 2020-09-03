@@ -142,7 +142,7 @@ export default Vue.extend({
       confirmUnregisterCertificate: false,
       confirmUnregisterError: false,
       unregisterLoading: false,
-      unregisterErrorResponse: undefined as undefined | object,
+      unregisterErrorResponse: undefined as undefined | Record<string, unknown>,
     };
   },
   computed: {

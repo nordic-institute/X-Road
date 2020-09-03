@@ -142,7 +142,7 @@ export default Vue.extend({
   },
   data: () => {
     return {
-      endpoint: {} as Endpoint | {},
+      endpoint: {} as Endpoint | Record<string, unknown>,
       serviceClients: [] as ServiceClient[],
       confirmDeleteAll: false as boolean,
       confirmDeleteOne: false as boolean,

@@ -75,8 +75,8 @@
       class="empty"
       v-if="
         serviceCandidates.length > 0 &&
-          searchResults &&
-          searchResults.length === 0
+        searchResults &&
+        searchResults.length === 0
       "
     >
       {{ $t('action.emptySearch', { msg: search }) }}

@@ -60,7 +60,7 @@
                 class="table-button-fix test-register"
                 v-if="
                   showRegisterCertButton &&
-                    cert.possible_actions.includes('REGISTER')
+                  cert.possible_actions.includes('REGISTER')
                 "
                 @click="showRegisterCertDialog(cert)"
                 >{{ $t('action.register') }}</SmallButton
@@ -108,7 +108,7 @@
         <template
           v-if="
             key.certificate_signing_requests &&
-              key.certificate_signing_requests.length > 0
+            key.certificate_signing_requests.length > 0
           "
         >
           <tr
