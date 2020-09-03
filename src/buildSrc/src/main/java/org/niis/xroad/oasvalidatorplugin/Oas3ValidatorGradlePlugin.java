@@ -47,6 +47,9 @@ public class Oas3ValidatorGradlePlugin implements Plugin<Project> {
 
         project.task(TASK_NAME)
                 .doLast(task -> {
+                    if (extension.getApiDefinitionPaths() == null || extension.getApiDefinitionPaths().isEmpty()) {
+                        throw new GradleException("No API definition file paths provided");
+                    }
                     System.out.println(System.lineSeparator() + "--- API VALIDATION START ---");
                     boolean isCompleteValidationSuccess = true;
                     List<ApiValidationResults> allValidationResults = new ArrayList<>();
