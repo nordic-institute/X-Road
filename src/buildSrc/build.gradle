@@ -1,21 +1,11 @@
 plugins {
     id 'java'
-    id "com.github.johnrengelman.shadow" version "4.0.4"
+    id 'java-gradle-plugin'
 }
 
 repositories {
     mavenCentral()
 }
-
-jar {
-    manifest {
-        attributes(
-            'Main-Class': 'org.niis.xroad.oasvalidator.Oas3Validator'
-        )
-    }
-}
-
-build.dependsOn shadowJar
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'

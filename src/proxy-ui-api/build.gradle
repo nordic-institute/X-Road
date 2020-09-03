@@ -1,3 +1,5 @@
+import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
+
 buildscript {
     ext {
         openapiGeneratorVersion = '4.2.0'
@@ -34,6 +36,7 @@ sourceSets {
 apply plugin: "com.moowork.node"
 apply plugin: 'org.openapi.generator'
 apply plugin: 'com.github.hierynomus.license'
+apply plugin: Oas3ValidatorGradlePlugin
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -208,27 +211,16 @@ configurations {
     }
 }
 
-task validateApiDefinition(type: JavaExec) {
-    main = 'org.niis.xroad.oasvalidator.Oas3Validator'
-    args "$projectDir/src/main/resources/openapi-definition.yaml".toString()
-    classpath = sourceSets.main.compileClasspath
-    logging.level = LogLevel.ERROR
-}
+apiValidationParameters.apiDefinitionPaths = [
+    "$projectDir/src/main/resources/openapi-definition.yaml".toString(),
+    "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
+]
 
-task validateApiAuthDefinition(type: JavaExec) {
-    main = 'org.niis.xroad.oasvalidator.Oas3Validator'
-    args "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
-    classpath = sourceSets.main.compileClasspath
-    logging.level = LogLevel.ERROR
-}
-
-tasks.openApiGenerate.dependsOn 'validateApiDefinition'
-tasks.openApiGenerate.dependsOn 'validateApiAuthDefinition'
+tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
 
 dependencies {
     implementation project(':serverconf')
     implementation project(':common-ui')
-    compileOnly project(':oas-validator')
 
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')

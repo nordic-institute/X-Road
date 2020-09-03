@@ -23,39 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.oasvalidator;
+package org.niis.xroad.oasvalidatorplugin;
 
-import org.junit.Test;
-import org.openapi4j.core.exception.ResolutionException;
+import java.util.List;
 
-import java.io.File;
-
-import static org.junit.Assert.assertEquals;
-
-public class Oas3ValidatorTest {
-
-    @Test(expected = ResolutionException.class)
-    public void validateApiSpecNotFound() throws ResolutionException {
-        Oas3Validator.validateOpenApiSpec(new File("src/test/resources/not-found.yaml"));
+public class Oas3ValidatorExtension {
+    public Oas3ValidatorExtension() {
     }
 
-    @Test
-    public void validateApiSpecSuccess() throws ResolutionException {
-        int exitCode = Oas3Validator.validateOpenApiSpec(
-                new File("src/test/resources/petstore-validation-success.yaml"));
-        assertEquals(0, exitCode);
+    private List<String> apiDefinitionPaths;
+
+    public List<String> getApiDefinitionPaths() {
+        return apiDefinitionPaths;
     }
 
-    @Test
-    public void validateApiSpecFail() throws ResolutionException {
-        int exitCode = Oas3Validator.validateOpenApiSpec(
-                new File("src/test/resources/petstore-validation-fail.yaml"));
-        assertEquals(1, exitCode);
-    }
-
-    @Test
-    public void validateApiSpecStyleFail() {
-        int exitCode = Oas3Validator.validateOpenApiSpecStyle("src/test/resources/petstore-validation-style-fail.yaml");
-        assertEquals(1, exitCode);
+    public void setApiDefinitionPaths(List<String> apiDefinitionPaths) {
+        this.apiDefinitionPaths = apiDefinitionPaths;
     }
 }

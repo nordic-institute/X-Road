@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.oasvalidator;
+package org.niis.xroad.oasvalidatorplugin;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -38,39 +38,43 @@ import org.openapitools.openapistylevalidator.styleerror.StyleError;
 
 import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class Oas3Validator {
     private Oas3Validator() {
     }
 
-    public static void main(String[] args) throws ResolutionException {
-        if (args.length != 1) {
-            throw new IllegalArgumentException("Please provide the api definition document path as only argument");
+    public static ApiValidationResults validate(String apiSpecPath) throws ResolutionException {
+        if (apiSpecPath == null) {
+            throw new IllegalArgumentException("API definition document path is required");
         }
-        File apiSpecFile = new File(args[0]);
+        File apiSpecFile = new File(apiSpecPath);
         String apiSpecFilePath = apiSpecFile.getAbsolutePath();
-        System.out.println("Validating API specification: " + apiSpecFilePath);
-        int validationExitCode = validateOpenApiSpec(apiSpecFile);
-        int styleValidationExitCode = validateOpenApiSpecStyle(apiSpecFilePath);
-        if (validationExitCode + styleValidationExitCode > 0) {
-            System.err.println(System.lineSeparator() + "OpenAPI validation failed: " + apiSpecFilePath);
-            System.exit(1);
-        }
-        System.out.println(System.lineSeparator() + "OpenAPI validation OK: " + apiSpecFilePath);
-        System.exit(0);
+        ApiValidationResult specValidationResult = validateOpenApiSpec(apiSpecFile);
+        ApiValidationResult styleValidationResult = validateOpenApiSpecStyle(apiSpecFilePath);
+        boolean isSuccess = specValidationResult.isSuccess() && styleValidationResult.isSuccess();
+        System.out.println(System.lineSeparator() + "Validating API specification: " + apiSpecFilePath + " -> "
+                + (isSuccess ? "SUCCESS" : "FAILED"));
+        printValidationResults(specValidationResult);
+        printValidationResults(styleValidationResult);
+        ApiValidationResults apiValidationResults = new ApiValidationResults();
+        apiValidationResults.setApiDefinitionPath(apiSpecPath);
+        apiValidationResults.setSpecificationValidationResult(specValidationResult);
+        apiValidationResults.setStyleValidationResult(styleValidationResult);
+        return apiValidationResults;
     }
 
-    static int validateOpenApiSpec(File apiSpecFile) throws ResolutionException {
+    private static ApiValidationResult validateOpenApiSpec(File apiSpecFile) throws ResolutionException {
         try {
             new OpenApi3Parser().parse(apiSpecFile, true);
-            return 0;
+            return ApiValidationResult.success(ApiValidationResult.ValidationType.SPECIFICATION_VALIDATION);
         } catch (ValidationException e) {
-            System.err.println(e.results().toString());
-            return 1;
+            return ApiValidationResult.fail(ApiValidationResult.ValidationType.SPECIFICATION_VALIDATION, e.results()
+                    .toString());
         }
     }
 
-    static int validateOpenApiSpecStyle(String pathToApiSpec) {
+    private static ApiValidationResult validateOpenApiSpecStyle(String pathToApiSpec) {
         OpenAPIParser openApiParser = new OpenAPIParser();
         SwaggerParseResult parserResult = openApiParser.readLocation(pathToApiSpec, null, null);
         OpenAPI openAPI = SwAdapter.toOpenAPI(parserResult.getOpenAPI());
@@ -85,11 +89,21 @@ public final class Oas3Validator {
 
         List<StyleError> styleErrors = validator.validate(params);
         if (styleErrors.isEmpty()) {
-            return 0;
+            return ApiValidationResult.success(ApiValidationResult.ValidationType.STYLE_VALIDATION);
         } else {
-            System.err.println("Style validation error(s):");
-            styleErrors.forEach(styleError -> System.err.println(styleError.toString()));
-            return 1;
+            String errorOutput = styleErrors.stream().map(StyleError::toString).collect(Collectors.joining());
+            return ApiValidationResult.fail(ApiValidationResult.ValidationType.STYLE_VALIDATION,
+                    errorOutput);
+        }
+    }
+
+    private static void printValidationResults(ApiValidationResult validationResult) {
+        boolean isValidationSuccess = validationResult.isSuccess();
+        if (!isValidationSuccess) {
+            String errorMessage = "--- " + validationResult.getValidationType().toString()
+                    + " errors ---";
+            System.err.println(errorMessage);
+            System.err.println(System.lineSeparator() + validationResult.getErrorOutput());
         }
     }
 }

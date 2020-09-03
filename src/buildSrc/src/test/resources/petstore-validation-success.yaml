@@ -1,6 +1,9 @@
 openapi: "3.0.0"
 info:
+  contact:
+    name: Petstore Owner
   version: 1.0.0
+  description: Petstore API
   title: Swagger Petstore
   license:
     name: MIT
@@ -9,6 +12,7 @@ servers:
 paths:
   /pets:
     get:
+      description: List every animal in the store
       summary: List all pets
       operationId: listPets
       tags:
@@ -40,6 +44,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     post:
+      description: Add a new animal into the store
       summary: Create a pet
       operationId: createPets
       tags:
@@ -53,14 +58,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /pets/{petId}:
+  /pets/{pet_id}:
     get:
+      description: Get info of one specific animal
       summary: Info for a specific pet
       operationId: showPetById
       tags:
         - pets
       parameters:
-        - name: petId
+        - name: pet_id
           in: path
           required: true
           description: The id of the pet to retrieve
@@ -101,7 +107,6 @@ components:
     Error:
       type: object
       required:
-        - code
         - code
         - message
       properties:
