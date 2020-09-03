@@ -34,17 +34,20 @@ import org.junit.Test;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
+import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.io.IOException;
@@ -97,14 +100,64 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
     }
 
-    @Test
+    @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "VIEW_PROXY_INTERNAL_CERT" })
-    public void getSystemCertificateWithViewProxyInternalCertPermission() throws Exception {
-        getSystemCertificate();
+    public void getSystemCertificateWrongPermission() {
+        systemApiController.getSystemCertificate();
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_INTERNAL_SSL_CERT" })
+    @WithMockUser(authorities = { "EXPORT_INTERNAL_TLS_CERT" })
+    public void downloadSystemCertificateCorrectPermission() {
+        systemApiController.downloadSystemCertificate();
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "EXPORT_PROXY_INTERNAL_CERT" })
+    public void downloadSystemCertificateWrongPermission() {
+        systemApiController.downloadSystemCertificate();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "IMPORT_INTERNAL_TLS_CERT" })
+    public void importSystemCertificateCorrectPermission() {
+        systemApiController.importSystemCertificate(
+                CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes()));
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "IMPORT_PROXY_INTERNAL_CERT" })
+    public void importSystemCertificateWrongPermission() {
+        systemApiController.importSystemCertificate(
+                CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes()));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "GENERATE_INTERNAL_TLS_KEY_CERT" })
+    public void generateSystemTlsKeyAndCertificateCorrectPermission() {
+        systemApiController.generateSystemTlsKeyAndCertificate();
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "GENERATE_INTERNAL_SSL" })
+    public void generateSystemTlsKeyAndCertificateWrongPermission() {
+        systemApiController.generateSystemTlsKeyAndCertificate();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "GENERATE_INTERNAL_TLS_CSR" })
+    public void generateSystemCertificateRequestCorrectPermission() {
+        systemApiController.generateSystemCertificateRequest(new DistinguishedName().name("foobar"));
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "GENERATE_INTERNAL_CERT_REQ" })
+    public void generateSystemCertificateRequestWrongPermission() {
+        systemApiController.generateSystemCertificateRequest(new DistinguishedName().name("foobar"));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_INTERNAL_TLS_CERT" })
     public void getSystemCertificateWithViewInternalSslCertPermission() throws Exception {
         getSystemCertificate();
     }

@@ -199,12 +199,12 @@ export default Vue.extend({
     },
     canViewSSCert(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.VIEW_INTERNAL_SSL_CERT,
+        Permissions.VIEW_INTERNAL_TLS_CERT,
       );
     },
     canExportSSCert(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_SSL_CERT,
+        Permissions.EXPORT_INTERNAL_TLS_CERT,
       );
     },
   },
