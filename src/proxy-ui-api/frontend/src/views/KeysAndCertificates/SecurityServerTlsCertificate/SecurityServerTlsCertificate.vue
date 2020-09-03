@@ -133,22 +133,22 @@ export default Vue.extend({
   computed: {
     generateKeyVisible(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.GENERATE_INTERNAL_SSL,
+        Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
       );
     },
     importCertificateVisible(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.IMPORT_INTERNAL_SSL_CERT,
+        Permissions.IMPORT_INTERNAL_TLS_CERT,
       );
     },
     exportCertificateVisible(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_SSL_CERT,
+        Permissions.EXPORT_INTERNAL_TLS_CERT,
       );
     },
     generateCsrVisible(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_SSL_CERT,
+        Permissions.GENERATE_INTERNAL_TLS_CSR,
       );
     },
   },

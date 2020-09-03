@@ -74,12 +74,12 @@ public enum RestApiAuditEvent {
     DELETE_LOCAL_GROUP("Delete group"),
 
     // system parameters
-    GENERATE_INTERNAL_CERT_REQ("Generate certificate request for TLS"),
-    IMPORT_PROXY_INTERNAL_CERT("Import TLS certificate from file"),
+    GENERATE_INTERNAL_TLS_CSR("Generate certificate request for TLS"),
+    IMPORT_INTERNAL_TLS_CERT("Import TLS certificate from file"),
     UPLOAD_ANCHOR("Upload configuration anchor"),
     ADD_TSP("Add timestamping service"),
     DELETE_TSP("Delete timestamping service"),
-    GENERATE_INTERNAL_SSL("Generate new internal TLS key and certificate"),
+    GENERATE_INTERNAL_TLS_KEY_CERT("Generate new internal TLS key and certificate"),
 
     // keys and certificates events
     LOGIN_TOKEN("Log in to token"),
