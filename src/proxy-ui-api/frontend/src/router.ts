@@ -124,7 +124,7 @@ const router = new Router({
           path: '/keys/apikey/create',
           component: CreateApiKeyStepper,
           props: true,
-          meta: { permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS] },
+          meta: { permissions: [Permissions.CREATE_API_KEY] },
         },
         {
           name: RouteName.GenerateInternalCSR,
@@ -144,6 +144,12 @@ const router = new Router({
         },
         {
           path: '/settings',
+          meta: {
+            permissions: [
+              Permissions.VIEW_SYS_PARAMS,
+              Permissions.BACKUP_CONFIGURATION,
+            ],
+          },
           components: {
             default: Settings,
             top: TabsBase,
@@ -154,12 +160,14 @@ const router = new Router({
               path: '',
               component: SystemParameters,
               props: true,
+              meta: { permissions: [Permissions.VIEW_SYS_PARAMS] },
             },
             {
               name: RouteName.BackupAndRestore,
               path: 'backup',
               component: BackupAndRestore,
               props: true,
+              meta: { permissions: [Permissions.BACKUP_CONFIGURATION] },
             },
           ],
         },
