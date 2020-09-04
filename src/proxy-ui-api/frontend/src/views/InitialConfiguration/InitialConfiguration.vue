@@ -182,7 +182,9 @@ export default Vue.extend({
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
           this.$store.dispatch('checkAlertStatus'); // Check if we have any alerts after initialisation
-          this.$router.replace({ name: RouteName.Clients });
+          this.$router.replace({
+            name: this.$store.getters.firstAllowedTab.to.name,
+          });
         })
         .catch((error) => {
           if (error?.response?.data?.warnings) {
