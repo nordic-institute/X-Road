@@ -451,8 +451,16 @@ var restEndpointCommands = {
     this.api.waitForElementVisible('//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
     return this;
   },
+  openEndpointAccessRights: function(method, path) {
+    this.api.click(`//td[contains(@class, "wrap-right-tight") and preceding-sibling::td/text() = "${path}" and preceding-sibling::td/span/text() = "${method}"]//button[contains(@data-test, "endpoint-edit-accessrights")]`);
+    return this;
+  },
   openEndpoint: function(method, path) {
     this.api.click('//table[.//*[contains(text(),"HTTP Request Method")]]//tr[.//*[contains(text(),"'+method+'")] and .//*[contains(text(),"'+path+'")]]//button[@data-test="endpoint-edit"]');
+    return this;
+  },
+  close: function() {
+    this.click('@closeButton');
     return this;
   }
 };
@@ -1119,7 +1127,13 @@ module.exports = {
           locateStrategy: 'xpath' },
         closeButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
-          locateStrategy: 'xpath' }
+          locateStrategy: 'xpath' },
+        editButton: {
+          selector: '//button[contains(@data-test, "endpoint-edit"]',
+          locateStrategy: 'xpath' },
+        accessRightsButton: {
+          selector: '//button[contains(@data-test, "endpoint-edit-accessrights"]',
+          locateStrategy: 'xpath' },
       }
     },
     wsdlAddSubjectsPopup: {
