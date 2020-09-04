@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -62,6 +63,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
@@ -107,47 +109,12 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "EXPORT_INTERNAL_TLS_CERT" })
-    public void downloadSystemCertificateCorrectPermission() {
-        systemApiController.downloadSystemCertificate();
-    }
-
-    @Test(expected = AccessDeniedException.class)
-    @WithMockUser(authorities = { "EXPORT_PROXY_INTERNAL_CERT" })
-    public void downloadSystemCertificateWrongPermission() {
-        systemApiController.downloadSystemCertificate();
-    }
-
-    @Test
-    @WithMockUser(authorities = { "IMPORT_INTERNAL_TLS_CERT" })
-    public void importSystemCertificateCorrectPermission() {
-        systemApiController.importSystemCertificate(
-                CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes()));
-    }
-
-    @Test(expected = AccessDeniedException.class)
-    @WithMockUser(authorities = { "IMPORT_PROXY_INTERNAL_CERT" })
-    public void importSystemCertificateWrongPermission() {
-        systemApiController.importSystemCertificate(
-                CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes()));
-    }
-
-    @Test
-    @WithMockUser(authorities = { "GENERATE_INTERNAL_TLS_KEY_CERT" })
-    public void generateSystemTlsKeyAndCertificateCorrectPermission() {
-        systemApiController.generateSystemTlsKeyAndCertificate();
-    }
-
-    @Test(expected = AccessDeniedException.class)
-    @WithMockUser(authorities = { "GENERATE_INTERNAL_SSL" })
-    public void generateSystemTlsKeyAndCertificateWrongPermission() {
-        systemApiController.generateSystemTlsKeyAndCertificate();
-    }
-
-    @Test
     @WithMockUser(authorities = { "GENERATE_INTERNAL_TLS_CSR" })
-    public void generateSystemCertificateRequestCorrectPermission() {
-        systemApiController.generateSystemCertificateRequest(new DistinguishedName().name("foobar"));
+    public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
+        when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
+        ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
+                new DistinguishedName().name("foobar"));
+        assertNotNull(result);
     }
 
     @Test(expected = AccessDeniedException.class)
