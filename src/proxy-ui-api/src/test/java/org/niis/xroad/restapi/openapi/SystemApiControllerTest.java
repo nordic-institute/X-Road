@@ -62,6 +62,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
@@ -110,7 +111,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = { "GENERATE_INTERNAL_TLS_CSR" })
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
         when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
-        systemApiController.generateSystemCertificateRequest(new DistinguishedName().name("foobar"));
+        ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
+                new DistinguishedName().name("foobar"));
+        assertNotNull(result);
     }
 
     @Test(expected = AccessDeniedException.class)
