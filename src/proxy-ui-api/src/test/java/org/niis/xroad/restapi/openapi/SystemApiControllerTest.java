@@ -41,7 +41,6 @@ import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
-import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -105,20 +104,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = { "VIEW_PROXY_INTERNAL_CERT" })
     public void getSystemCertificateWrongPermission() {
         systemApiController.getSystemCertificate();
-    }
-
-    @Test
-    @WithMockUser(authorities = { "IMPORT_INTERNAL_TLS_CERT" })
-    public void importSystemCertificateCorrectPermission() {
-        systemApiController.importSystemCertificate(
-                CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes()));
-    }
-
-    @Test(expected = AccessDeniedException.class)
-    @WithMockUser(authorities = { "IMPORT_PROXY_INTERNAL_CERT" })
-    public void importSystemCertificateWrongPermission() {
-        systemApiController.importSystemCertificate(
-                CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes()));
     }
 
     @Test
