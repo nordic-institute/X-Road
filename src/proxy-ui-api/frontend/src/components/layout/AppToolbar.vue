@@ -88,7 +88,7 @@ export default Vue.extend({
           // Ignore the error regarding navigating to the same path
           if (err.name !== 'NavigationDuplicated') {
             // But print any other errors to the console
-            console.error(err);
+            throw err;
           }
         });
     },
