@@ -124,7 +124,7 @@ const router = new Router({
           name: RouteName.GenerateInternalCSR,
           path: '/keys/tsl-cert/generate-csr',
           component: GenerateInternalCsr,
-          meta: { permission: Permissions.GENERATE_INTERNAL_SSL_CSR },
+          meta: { permission: Permissions.GENERATE_INTERNAL_TLS_CSR },
           props: true,
         },
         {
