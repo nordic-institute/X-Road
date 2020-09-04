@@ -122,13 +122,13 @@ export enum Permissions {
   REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
   SEND_AUTH_CERT_DEL_REQ = 'SEND_AUTH_CERT_DEL_REQ', // auth cert details > unregister
   SEND_AUTH_CERT_REG_REQ = 'SEND_AUTH_CERT_REG_REQ', // sign and keys > register
-  SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ',
-  SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ',
+  SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ', // client / subsystem > delete
+  SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register 
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
-  UPLOAD_ANCHOR = 'UPLOAD_ANCHOR',
+  UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES',
-  VIEW_ANCHOR = 'VIEW_ANCHOR',
+  VIEW_ANCHOR = 'VIEW_ANCHOR', // settings > system paramters > configuration anchor
   VIEW_APPROVED_CERTIFICATE_AUTHORITIES = 'VIEW_APPROVED_CERTIFICATE_AUTHORITIES', // Settings / certificate authorities
   VIEW_CLIENTS = 'VIEW_CLIENTS', // clients tab (clients table)
   VIEW_CLIENT_ACL_SUBJECTS = 'VIEW_CLIENT_ACL_SUBJECTS', // subsystem "service clients" tab
@@ -141,8 +141,8 @@ export enum Permissions {
   VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL',
-  VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS',
-  VIEW_TSPS = 'VIEW_TSPS',
+  VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
+  VIEW_TSPS = 'VIEW_TSPS', // settings > system paramters > timestamping services
 }
 
 export enum UsageTypes {
