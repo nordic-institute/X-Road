@@ -302,7 +302,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "PREVIEW_ANCHOR" })
+    @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
     public void previewAnchor() throws IOException {
         Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
         ResponseEntity<Anchor> response = systemApiController.previewAnchor(true, anchorResource);
