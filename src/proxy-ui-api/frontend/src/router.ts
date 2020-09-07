@@ -104,8 +104,8 @@ const router = new Router({
               props: true,
               meta: {
                 permissions: [
-                  Permissions.CREATE_API_KEY,
                   Permissions.VIEW_API_KEYS,
+                  Permissions.CREATE_API_KEY,
                   Permissions.UPDATE_API_KEY,
                   Permissions.REVOKE_API_KEY,
                 ],
