@@ -123,7 +123,7 @@ export enum Permissions {
   SEND_AUTH_CERT_DEL_REQ = 'SEND_AUTH_CERT_DEL_REQ', // auth cert details > unregister
   SEND_AUTH_CERT_REG_REQ = 'SEND_AUTH_CERT_REG_REQ', // sign and keys > register
   SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ', // client / subsystem > delete
-  SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register 
+  SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor

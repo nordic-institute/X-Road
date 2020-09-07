@@ -109,13 +109,14 @@ const router = new Router({
                   Permissions.UPDATE_API_KEY,
                   Permissions.REVOKE_API_KEY,
                 ],
-              }
+              },
             },
             {
               name: RouteName.SSTlsCertificate,
               path: 'tls-cert',
               component: SSTlsCertificate,
               props: true,
+              meta: { permissions: [Permissions.VIEW_INTERNAL_TLS_CERT] },
             },
           ],
         },
@@ -316,7 +317,9 @@ const router = new Router({
             default: ClientTlsCertificate,
           },
           props: { default: true },
-          meta: { permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS] },
+          meta: {
+            permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS],
+          },
         },
         {
           name: RouteName.ServiceClientAccessRights,
