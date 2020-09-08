@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.26  
+Version: 2.27  
 Doc. ID: IG-SS
 
 ---
@@ -51,6 +51,7 @@ Doc. ID: IG-SS
  24.06.2020 | 2.24    | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
  09.08.2020 | 2.25    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram) | Petteri Kivimäki
  17.08.2020 | 2.26    | Update for RHEL 8. | Jarkko Hyöty
+ 08.09.2020 | 2.27    | Fix minimum RAM requirement. | Ilkka Seppälä
 
 ## License
 
@@ -61,31 +62,32 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2 Installation](#2-installation)
-  * [2.1 Supported Platforms](#21-supported-platforms)
-  * [2.2 Reference Data](#22-reference-data)
-    * [2.2.1 Network Diagram](#221-network-diagram)
-  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Post-Installation Checks](#26-post-installation-checks)
-  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  * [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
-  * [2.9 Remote Database Post-Installation Tasks](#29-remote-database-post-installation-tasks)
-* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Reference Data](#32-reference-data)
-  * [3.3 Configuration](#33-configuration)
-* [4 Installation Error handling](#4-installation-error-handling)
-  * [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
-  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
-  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  * [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
-  * [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2 Installation](#2-installation)
+  - [2.1 Supported Platforms](#21-supported-platforms)
+  - [2.2 Reference Data](#22-reference-data)
+    - [2.2.1 Network Diagram](#221-network-diagram)
+  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Installation](#25-installation)
+  - [2.6 Post-Installation Checks](#26-post-installation-checks)
+  - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
+  - [2.9 Remote Database Post-Installation Tasks](#29-remote-database-post-installation-tasks)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  - [3.1 Prerequisites](#31-prerequisites)
+  - [3.2 Reference Data](#32-reference-data)
+  - [3.3 Configuration](#33-configuration)
+- [4 Installation Error handling](#4-installation-error-handling)
+  - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
+  - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -187,7 +189,7 @@ Minimum recommended hardware parameters:
 
 * the server’s hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu in general;
 * a 64-bit dual-core Intel, AMD or compatible CPU; AES instruction set support is highly recommended;
-* 3 GB RAM;
+* 4 GB RAM;
 * a 100 Mbps network interface card;
 * if necessary, interfaces for the use of hardware tokens.
 
