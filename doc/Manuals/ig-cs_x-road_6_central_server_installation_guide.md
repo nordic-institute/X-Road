@@ -49,8 +49,10 @@ Doc. ID: IG-CS
   - [2.1 General](#21-general)
   - [2.2 Local Database](#22-local-database)
   - [2.3 Remote Database](#23-remote-database)
-  - [2.4 Cloud Database](#24-cloud-database)
-  - [2.5 Summary](#25-summary)
+  - [2.4 Remote Cloud Database](#24-remote-cloud-database)
+  - [2.5 Remote Database Cluster](#25-remote-database-cluster)
+  - [2.6 Cloud Database Cluster](#26-cloud-database-cluster)
+  - [2.7 Summary](#27-summary)
 - [3. Installation](#3-installation)
   - [3.1 Prerequisites to Installation](#31-prerequisites-to-installation)
   - [3.2 Reference Data](#32-reference-data)
@@ -104,40 +106,59 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 General
 
-X-Road Central Server can be deployed in multiple ways. The simplest option is to have a single Central Server with local database. Single server is fine for development purposes, but for production we need to have a more robust solution with no single point of failure.
-
-The second option is to use a remote database cluster with redundant front-end nodes. This setup is fault-tolerant and suitable for production.
-
-The third option is to use a cloud native database solution. In many ways it is similar to the remote database cluster, but typically offers a set of tools to make maintenance easier for the administrator.
+X-Road Central Server can be deployed in multiple ways. The simplest option is to have a single Central Server with local database. This is usually fine for development purposes, but there are multiple reasons to tailor the deployment.
 
 ### 2.2 Local Database
 
-The simplest deployment option is to use a single Central Server with local database. This choice is the easiest when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
+The simplest deployment option is to use a single Central Server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
 
-![outbound traffic](img/ig-cs_local_db.png)
+![Central Server with local database](img/ig-cs_local_db.png)
 
 ### 2.3 Remote Database
 
-When aiming for production it's recommended to use redundant front-end nodes and a remote database cluster. This way the single point of failure is avoided and the system can recover from both front-end node and database failures.
+It is possible to use a remote database with Central Server. This option is sometimes used in development when there's need to externalize the database state.
 
-![outbound traffic](img/ig-cs_remote_db.png)
+![Central Server with single remote database](img/ig-cs_remote_db.png)
 
-### 2.4 Cloud Database
+### 2.4 Remote Cloud Database
+ 
+Central Server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
 
-![outbound traffic](img/ig-cs_cloud_db.png)
+![Central Server with single remote database](img/ig-cs_cloud_db.png)
 
-### 2.5 Summary
+### 2.5 Remote Database Cluster
 
-table
+When aiming for production it's recommended to use redundant front-end nodes and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
+
+![Central Server with remote database cluster](img/ig-cs_remote_db_cluster.png)
+
+### 2.6 Cloud Database Cluster
+
+When Central Server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes in separate availability zones.
+
+![Central Server with cloud database cluster](img/ig-cs_cloud_db_cluster.png)
+
+### 2.7 Summary
+
+The following table lists a summary of the Central Server deployment options and indicates whether they are aimed for development or production use.
+
+| Deployment               | Dev  | Prod  |
+|--------------------------|------|-------|
+| Local database           | x    |       |
+| Remote database          | x    |       |
+| Cloud database           | x    |       |
+| Remote database cluster  |      | x     |
+| Cloud database cluster   |      | x     |
 
 ## 3. Installation
 
 ### 3.1 Prerequisites to Installation
 
-The central server software assumes an existing installation of the Ubuntu operating system, on an x86-64bit platform.
-To provide management services, a security server is installed alongside the central server.
+The central server software assumes an existing installation of the Ubuntu operating system, on an x86-64bit platform. To provide management services, a security server is installed alongside the central server.
+
 The central server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
-Note: If the central server is a part of a cluster for achieving high availability, the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#Ref_IG-CSHA) for details.
+
+If the central server is a part of a cluster for achieving high availability (deployment option remote database cluster or cloud database cluster), the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#Ref_IG-CSHA) for details.
 
 ### 3.2 Reference Data
 
