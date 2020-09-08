@@ -83,7 +83,7 @@
         </div>
         <div class="info-row">
           <div class="row-title">{{ $t('keys.readOnly') }}</div>
-          <div class="row-data">{{ key.read_only }}</div>
+          <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
         </div>
       </div>
 
@@ -131,12 +131,17 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { UsageTypes, Permissions, PossibleActions } from '@/global';
-import { Key, PossibleActions as PossibleActionsList } from '@/openapi-types';
+import {
+  Key,
+  PossibleActions as PossibleActionsList,
+  Token,
+} from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
+import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   components: {
@@ -163,9 +168,11 @@ export default Vue.extend({
       deleting: false as boolean,
       warningInfo: [] as string[],
       warningDialog: false as boolean,
+      tokenForCurrentKey: {} as Token,
     };
   },
   computed: {
+    ...mapGetters(['tokens']),
     canEdit(): boolean {
       if (!this.possibleActions.includes(PossibleActions.EDIT_FRIENDLY_NAME)) {
         return false;
@@ -213,17 +220,31 @@ export default Vue.extend({
     },
 
     fetchData(id: string): void {
-      api
-        .get<Key>(`/keys/${encodePathParameter(id)}`)
-        .then((res) => {
-          this.key = res.data;
-          this.fetchPossibleActions(id);
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
-    },
+      const promises = [];
+      const keyPromise = api.get<Key>(`/keys/${encodePathParameter(id)}`);
 
+      promises.push(keyPromise);
+
+      if (this.tokens?.length === 0) {
+        const tokenPromise = this.$store.dispatch('fetchTokens');
+        promises.push(tokenPromise);
+      }
+
+      keyPromise.then((res) => {
+        this.key = res.data;
+        this.fetchPossibleActions(id);
+      })
+      .catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
+
+      // Find the token that contains current key after token and keys are fetched
+      Promise.all(promises).then( () => {
+        this.tokenForCurrentKey = this.tokens.find((token: Token) =>
+          token.keys.find((key: Key) => key.id === this.id)
+        );
+      });
+    },
     fetchPossibleActions(id: string): void {
       api
         .get<PossibleActionsList>(
