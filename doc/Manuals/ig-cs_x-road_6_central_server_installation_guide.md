@@ -58,12 +58,14 @@ Doc. ID: IG-CS
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Requirements to the Central Server](#33-requirements-to-the-central-server)
   - [3.4 Preparing OS](#34-preparing-os)
-  - [3.5 Installation](#35-installation)
-    - [3.5.1 Remote Database Installation Steps](#351-remote-database-installation-steps)
-  - [3.6 Installing the Support for Hardware Tokens](#36-installing-the-support-for-hardware-tokens)
-  - [3.7 Installing the Support for Monitoring](#37-installing-the-support-for-monitoring)
-  - [3.8 Remote Database Post-Installation Tasks](#38-remote-database-post-installation-tasks)
-  - [3.9 Post-Installation Checks](#39-post-installation-checks)
+  - [3.5 Prepare for Installation](#35-prepare-for-installation)
+  - [3.6 Setup Package Repository](#36-setup-package-repository)
+  - [3.7 Remote Database Installation](#37-remote-database-installation)
+  - [3.8 Package Installation](#38-package-installation)
+  - [3.9 Installing the Support for Hardware Tokens](#39-installing-the-support-for-hardware-tokens)
+  - [3.10 Installing the Support for Monitoring](#310-installing-the-support-for-monitoring)
+  - [3.11 Remote Database Post-Installation Tasks](#311-remote-database-post-installation-tasks)
+  - [3.12 Post-Installation Checks](#312-post-installation-checks)
 - [4 Initial Configuration](#4-initial-configuration)
   - [4.1 Reference Data](#41-reference-data)
   - [4.2 Initializing the Central Server](#42-initializing-the-central-server)
@@ -75,6 +77,7 @@ Doc. ID: IG-CS
   - [6.2 PostgreSQL Is Not UTF8 Compatible](#62-postgresql-is-not-utf8-compatible)
   - [6.3 Could Not Create Default Cluster](#63-could-not-create-default-cluster)
   - [6.4 Is Postgres Running on Port 5432?](#64-is-postgres-running-on-port-5432)
+- [Annex A Central Server Default Databases and Users](#annex-a-central-server-default-databases-and-users)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -207,7 +210,11 @@ Requirements for software and settings:
   Add the following line to the file /etc/environment: `LC_ALL=en_US.UTF-8`  
   Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
-### 3.5 Installation
+### 3.5 Prepare for Installation
+
+The list of databases and database users created by the default installation can be found at [Annex A Central Server Default Databases and Users](#annex-a-central-server-default-databases-and-users). It's possible to customize the database names, users, passwords etc. by pre-creating `/etc/xroad/db.properties` before running the installer. The details are found in chapter [3.7 Remote Database Installation](#37-remote-database-installation).
+
+### 3.6 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
@@ -221,34 +228,9 @@ Add X-Road package repository (**reference data: 1.1**)
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
-**Optional step:** In case you want to install central server with remote database, now do the steps outlined in chapter [3.5.1](#351-remote-database-installation-steps), and then continue from here.
+### 3.7 Remote Database Installation
 
-Issue the following commands to install the central server packages:
-
-  ```
-  sudo apt-get update
-  sudo apt-get install xroad-centralserver
-  ```
-
-Upon the first installation of the central server software, the system asks for the following information.
-
-- Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.3).
-
-- Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
-
-- The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. 
-
-  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`. 
-  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
-
-- Identification of the TLS certificate that is used for securing the HTTPS access point used for providing management services (reference data: 1.7; 1.10). The name and IP addresses detected from the operating system are suggested as default values.
-
-  ATTENTION: The central server IP address or DNS name that security servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.8).
-
-  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
-  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
-
-#### 3.5.1 Remote Database Installation Steps
+**This is an optional step.** In case you want to install central server with remote database, perform the steps in this chapter. Otherwise, skip it and continue from the next chapter.
 
 When using a remote database server with the central server, you should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
@@ -292,7 +274,34 @@ Then edit `/etc/xroad/db.properties` contents. See the example below. Replace th
   schema=centerui
   ```
 
-### 3.6 Installing the Support for Hardware Tokens
+### 3.8 Package Installation
+
+Issue the following commands to install the central server packages:
+
+  ```
+  sudo apt-get update
+  sudo apt-get install xroad-centralserver
+  ```
+
+Upon the first installation of the central server software, the system asks for the following information.
+
+- Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.3).
+
+- Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+- The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. 
+
+  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`. 
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+- Identification of the TLS certificate that is used for securing the HTTPS access point used for providing management services (reference data: 1.7; 1.10). The name and IP addresses detected from the operating system are suggested as default values.
+
+  ATTENTION: The central server IP address or DNS name that security servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.8).
+
+  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+### 3.9 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -334,13 +343,13 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
-### 3.7 Installing the Support for Monitoring
+### 3.10 Installing the Support for Monitoring
 
 The optional configuration for monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 3.8 Remote Database Post-Installation Tasks
+### 3.11 Remote Database Post-Installation Tasks
 
 Local PostgreSQL is always installed with Central Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
 
@@ -352,7 +361,7 @@ To disable the local PostgreSQL server so that it does not start automatically w
 
 `systemctl mask postgresql`
 
-### 3.9 Post-Installation Checks
+### 3.12 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -490,3 +499,14 @@ Then check if any of the following errors occurred during the installation of Po
 The interrupted installation can be finished using
 
 `sudo apt-get -f install`
+
+## Annex A Central Server Default Databases and Users
+
+| Database                 | Explanation                                               |
+|--------------------------|-----------------------------------------------------------|
+| centerui_production      | Central server configuration database                     |
+
+| Database User            | Explanation                                               |
+|--------------------------|-----------------------------------------------------------|
+| postgres                 | Database superuser                                        |
+| centerui                 | Central server database user                              |
