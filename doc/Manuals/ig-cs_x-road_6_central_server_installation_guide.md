@@ -59,6 +59,7 @@ Doc. ID: IG-CS
   - [3.3 Requirements to the Central Server](#33-requirements-to-the-central-server)
   - [3.4 Preparing OS](#34-preparing-os)
   - [3.5 Installation](#35-installation)
+    - [3.5.1 Remote Database Installation Steps](#351-remote-database-installation-steps)
   - [3.6 Installing the Support for Hardware Tokens](#36-installing-the-support-for-hardware-tokens)
   - [3.7 Installing the Support for Monitoring](#37-installing-the-support-for-monitoring)
   - [3.8 Remote Database Post-Installation Tasks](#38-remote-database-post-installation-tasks)
@@ -209,6 +210,7 @@ Requirements for software and settings:
 ### 3.5 Installation
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+
   ```
   curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
   ```
@@ -219,41 +221,7 @@ Add X-Road package repository (**reference data: 1.1**)
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
-(Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
-
-  ```
-  sudo touch /etc/xroad.properties
-  sudo chown root:root /etc/xroad.properties
-  sudo chmod 600 /etc/xroad.properties
-  ```
-
-  Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
-
-      postgres.connection.password = <database superuser password>
-      postgres.connection.user = <database superuser name, postgres by default>
-
-  If your remote database is in Microsoft Azure the connection usernames need to be in format `username@servername`. Therefore you need to precreate also db.properties file as follows. First create the directory and file.
-
-      sudo mkdir /etc/xroad
-      sudo chown xroad:xroad /etc/xroad
-      sudo chmod 751 /etc/xroad
-      sudo touch /etc/xroad/db.properties
-      sudo chown xroad:xroad /etc/xroad/db.properties
-      sudo chmod 640 /etc/xroad/db.properties
-
-  Then edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
-
-      adapter=postgresql
-      encoding=utf8
-      username=centerui@servername
-      password=<database password>
-      database=centerui_production
-      reconnect=true
-      host=servername.postgres.database.azure.com
-      port=5432
-      schema=centerui
-
-  In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+**Optional step:** In case you want to install central server with remote database, now do the steps outlined in chapter [3.5.1](#351-remote-database-installation-steps), and then continue from here.
 
 Issue the following commands to install the central server packages:
 
@@ -279,6 +247,50 @@ Upon the first installation of the central server software, the system asks for 
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+#### 3.5.1 Remote Database Installation Steps
+
+When using a remote database server with the central server, you should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+To use a remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
+
+  ```
+  sudo touch /etc/xroad.properties
+  sudo chown root:root /etc/xroad.properties
+  sudo chmod 600 /etc/xroad.properties
+  ```
+
+Edit `/etc/xroad.properties` contents. See the example below. Replace the parameter values with your own.
+
+  ```
+  postgres.connection.password = <database superuser password>
+  postgres.connection.user = <database superuser name, postgres by default>
+  ```
+
+**Optional step:** The last steps in this chapter should only be performed if your remote database is in Microsoft Azure. For Azure, the connection usernames need to be in format `username@servername`. Therefore you need to precreate also `db.properties` file as follows. First create the directory and the file.
+
+  ```
+  sudo mkdir /etc/xroad
+  sudo chown xroad:xroad /etc/xroad
+  sudo chmod 751 /etc/xroad
+  sudo touch /etc/xroad/db.properties
+  sudo chown xroad:xroad /etc/xroad/db.properties
+  sudo chmod 640 /etc/xroad/db.properties
+  ```
+
+Then edit `/etc/xroad/db.properties` contents. See the example below. Replace the parameter values with your own.
+
+  ```
+  adapter=postgresql
+  encoding=utf8
+  username=centerui@servername
+  password=<database password>
+  database=centerui_production
+  reconnect=true
+  host=servername.postgres.database.azure.com
+  port=5432
+  schema=centerui
+  ```
 
 ### 3.6 Installing the Support for Hardware Tokens
 
