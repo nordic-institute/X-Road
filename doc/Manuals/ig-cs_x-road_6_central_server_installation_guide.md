@@ -166,7 +166,7 @@ Requirements for software and settings:
 
 ### 2.5 Prepare for Installation
 
-The database properties created by the default installation can be found at [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [3.5.1 Customize the Database Properties](#351-customize-the-database-properties).
+The database properties created by the default installation can be found at [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
 ### 2.5.1 Customize the Database Properties
 
