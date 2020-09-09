@@ -230,7 +230,7 @@ Edit `/etc/xroad.properties` contents. See the example below. Replace the parame
   postgres.connection.password = <database superuser password>
   ```
 
-**Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [3.5.1 Customize the Database Properties](#351-customize-the-database-properties).
+**Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
 ### 2.8 Package Installation
 
