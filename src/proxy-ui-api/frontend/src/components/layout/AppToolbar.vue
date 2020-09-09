@@ -86,8 +86,11 @@ export default Vue.extend({
         })
         .catch((err) => {
           // Ignore the error regarding navigating to the same path
-          if (err.name !== 'NavigationDuplicated') {
-            // But print any other errors to the console
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.log('Duplicate navigation');
+          } else {
+            // Throw for any other errors
             throw err;
           }
         });
