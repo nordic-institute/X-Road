@@ -59,6 +59,7 @@ Doc. ID: IG-CS
   - [3.3 Requirements to the Central Server](#33-requirements-to-the-central-server)
   - [3.4 Preparing OS](#34-preparing-os)
   - [3.5 Prepare for Installation](#35-prepare-for-installation)
+  - [3.5.1 Customize the Database Properties](#351-customize-the-database-properties)
   - [3.6 Setup Package Repository](#36-setup-package-repository)
   - [3.7 Remote Database Installation](#37-remote-database-installation)
   - [3.8 Package Installation](#38-package-installation)
@@ -77,7 +78,7 @@ Doc. ID: IG-CS
   - [6.2 PostgreSQL Is Not UTF8 Compatible](#62-postgresql-is-not-utf8-compatible)
   - [6.3 Could Not Create Default Cluster](#63-could-not-create-default-cluster)
   - [6.4 Is Postgres Running on Port 5432?](#64-is-postgres-running-on-port-5432)
-- [Annex A Central Server Default Databases and Users](#annex-a-central-server-default-databases-and-users)
+- [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -110,11 +111,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 General
 
-X-Road Central Server can be deployed in multiple ways. The simplest option is to have a single Central Server with local database. This is usually fine for development purposes, but there are multiple reasons to tailor the deployment.
+X-Road central server can be deployed in multiple ways. The simplest option is to have a single central server with local database. This is usually fine for development purposes, but there are multiple reasons to tailor the deployment.
 
 ### 2.2 Local Database
 
-The simplest deployment option is to use a single Central Server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
+The simplest deployment option is to use a single central server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
 
 ![Central Server with local database](img/ig-cs_local_db.png)
 
@@ -126,25 +127,25 @@ It is possible to use a remote database with Central Server. This option is some
 
 ### 2.4 Remote Cloud Database
  
-Central Server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
+Central server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
 
-![Central Server with single remote database](img/ig-cs_cloud_db.png)
+![Central server with single remote database](img/ig-cs_cloud_db.png)
 
 ### 2.5 Remote Database Cluster
 
 When aiming for production it's recommended to use redundant front-end nodes and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
 
-![Central Server with remote database cluster](img/ig-cs_remote_db_cluster.png)
+![Central server with remote database cluster](img/ig-cs_remote_db_cluster.png)
 
 ### 2.6 Cloud Database Cluster
 
-When Central Server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes in separate availability zones.
+When central server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes in separate availability zones.
 
-![Central Server with cloud database cluster](img/ig-cs_cloud_db_cluster.png)
+![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster.png)
 
 ### 2.7 Summary
 
-The following table lists a summary of the Central Server deployment options and indicates whether they are aimed for development or production use.
+The following table lists a summary of the central server deployment options and indicates whether they are aimed for development or production use.
 
 | Deployment               | Dev  | Prod  |
 |--------------------------|------|-------|
@@ -212,7 +213,34 @@ Requirements for software and settings:
 
 ### 3.5 Prepare for Installation
 
-The list of databases and database users created by the default installation can be found at [Annex A Central Server Default Databases and Users](#annex-a-central-server-default-databases-and-users). It's possible to customize the database names, users, passwords etc. by pre-creating `/etc/xroad/db.properties` before running the installer. The details are found in chapter [3.7 Remote Database Installation](#37-remote-database-installation).
+The database properties created by the default installation can be found at [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [3.5.1 Customize the Database Properties](#351-customize-the-database-properties).
+
+### 3.5.1 Customize the Database Properties
+
+**This is an optional step.** Central server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
+
+  ```
+  sudo mkdir /etc/xroad
+  sudo chown xroad:xroad /etc/xroad
+  sudo chmod 751 /etc/xroad
+  sudo touch /etc/xroad/db.properties
+  sudo chown xroad:xroad /etc/xroad/db.properties
+  sudo chmod 640 /etc/xroad/db.properties
+  ```
+
+Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties).
+
+  ```
+  adapter=postgresql
+  encoding=utf8
+  username=<database user>
+  password=<database password>
+  database=<database name>
+  reconnect=true
+  host=<database host>
+  port=<database port>
+  schema=<database schema>
+  ```
 
 ### 3.6 Setup Package Repository
 
@@ -245,34 +273,11 @@ To use a remote database server instead of the default locally installed one, yo
 Edit `/etc/xroad.properties` contents. See the example below. Replace the parameter values with your own.
 
   ```
+  postgres.connection.user = <database superuser name (postgres by default)>
   postgres.connection.password = <database superuser password>
-  postgres.connection.user = <database superuser name, postgres by default>
   ```
 
-**Optional step:** The last steps in this chapter should only be performed if your remote database is in Microsoft Azure. For Azure, the connection usernames need to be in format `username@servername`. Therefore you need to precreate also `db.properties` file as follows. First create the directory and the file.
-
-  ```
-  sudo mkdir /etc/xroad
-  sudo chown xroad:xroad /etc/xroad
-  sudo chmod 751 /etc/xroad
-  sudo touch /etc/xroad/db.properties
-  sudo chown xroad:xroad /etc/xroad/db.properties
-  sudo chmod 640 /etc/xroad/db.properties
-  ```
-
-Then edit `/etc/xroad/db.properties` contents. See the example below. Replace the parameter values with your own.
-
-  ```
-  adapter=postgresql
-  encoding=utf8
-  username=centerui@servername
-  password=<database password>
-  database=centerui_production
-  reconnect=true
-  host=servername.postgres.database.azure.com
-  port=5432
-  schema=centerui
-  ```
+**Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [3.5.1 Customize the Database Properties](#351-customize-the-database-properties).
 
 ### 3.8 Package Installation
 
@@ -351,7 +356,7 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 
 ### 3.11 Remote Database Post-Installation Tasks
 
-Local PostgreSQL is always installed with Central Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
+Local PostgreSQL is always installed with central server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
 
 To stop the local PostgreSQL server
 
@@ -500,13 +505,18 @@ The interrupted installation can be finished using
 
 `sudo apt-get -f install`
 
-## Annex A Central Server Default Databases and Users
+## Annex A Central Server Default Database Properties
 
-| Database                 | Explanation                                               |
-|--------------------------|-----------------------------------------------------------|
-| centerui_production      | Central server configuration database                     |
+`/etc/xroad/db.properties`
 
-| Database User            | Explanation                                               |
-|--------------------------|-----------------------------------------------------------|
-| postgres                 | Database superuser                                        |
-| centerui                 | Central server database user                              |
+```
+adapter=postgresql
+encoding=utf8
+username=centerui
+password=<randomly generated password stored is stored here>
+database=centerui_production
+schema=centerui
+reconnect=true
+host = 127.0.0.1
+port = 5432
+```
