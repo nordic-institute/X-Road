@@ -28,7 +28,6 @@ package org.niis.xroad.oasvalidatorplugin;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.openapi4j.core.exception.ResolutionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +56,8 @@ public class Oas3ValidatorGradlePlugin implements Plugin<Project> {
                         try {
                             ApiValidationResults validationResults = Oas3Validator.validate(path);
                             allValidationResults.add(validationResults);
-                        } catch (ResolutionException e) {
-                            throw new GradleException("API definition not found", e);
+                        } catch (Exception e) {
+                            throw new GradleException("API definition malformed or not found", e);
                         }
                     });
                     for (ApiValidationResults apiValidationResults : allValidationResults) {

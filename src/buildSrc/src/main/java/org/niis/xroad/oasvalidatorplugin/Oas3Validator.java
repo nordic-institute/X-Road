@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Oas3Validator {
+
     private Oas3Validator() {
     }
 
@@ -50,10 +51,11 @@ public final class Oas3Validator {
         }
         File apiSpecFile = new File(apiSpecPath);
         String apiSpecFilePath = apiSpecFile.getAbsolutePath();
+        System.out.println(System.lineSeparator() + "Validating API specification: " + apiSpecFilePath);
         ApiValidationResult specValidationResult = validateOpenApiSpec(apiSpecFile);
         ApiValidationResult styleValidationResult = validateOpenApiSpecStyle(apiSpecFilePath);
         boolean isSuccess = specValidationResult.isSuccess() && styleValidationResult.isSuccess();
-        System.out.println(System.lineSeparator() + "Validating API specification: " + apiSpecFilePath + " -> "
+        System.out.println("Validating API specification: " + apiSpecFilePath + " -> "
                 + (isSuccess ? "SUCCESS" : "FAILED"));
         printValidationResults(specValidationResult);
         printValidationResults(styleValidationResult);
@@ -77,6 +79,11 @@ public final class Oas3Validator {
     private static ApiValidationResult validateOpenApiSpecStyle(String pathToApiSpec) {
         OpenAPIParser openApiParser = new OpenAPIParser();
         SwaggerParseResult parserResult = openApiParser.readLocation(pathToApiSpec, null, null);
+        // the SwaggerParseResult messages are not always very accurate
+        if (parserResult.getMessages() != null && !parserResult.getMessages().isEmpty()) {
+            return ApiValidationResult.fail(ApiValidationResult.ValidationType.STYLE_VALIDATION,
+                    String.join(System.lineSeparator(), parserResult.getMessages()));
+        }
         OpenAPI openAPI = SwAdapter.toOpenAPI(parserResult.getOpenAPI());
         OpenApiSpecStyleValidator validator = new OpenApiSpecStyleValidator(openAPI);
 
