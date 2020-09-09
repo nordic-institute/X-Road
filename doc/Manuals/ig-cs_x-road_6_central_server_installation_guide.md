@@ -45,40 +45,39 @@ Doc. ID: IG-CS
   - [1.1 Target Audience](#11-target-audience)
   - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
   - [1.3 References](#13-references)
-- [2. Deployment Options](#2-deployment-options)
-  - [2.1 General](#21-general)
-  - [2.2 Local Database](#22-local-database)
-  - [2.3 Remote Database](#23-remote-database)
-  - [2.4 Remote Cloud Database](#24-remote-cloud-database)
-  - [2.5 Remote Database Cluster](#25-remote-database-cluster)
-  - [2.6 Cloud Database Cluster](#26-cloud-database-cluster)
-  - [2.7 Summary](#27-summary)
-- [3. Installation](#3-installation)
-  - [3.1 Prerequisites to Installation](#31-prerequisites-to-installation)
-  - [3.2 Reference Data](#32-reference-data)
-  - [3.3 Requirements to the Central Server](#33-requirements-to-the-central-server)
-  - [3.4 Preparing OS](#34-preparing-os)
-  - [3.5 Prepare for Installation](#35-prepare-for-installation)
-  - [3.5.1 Customize the Database Properties](#351-customize-the-database-properties)
-  - [3.6 Setup Package Repository](#36-setup-package-repository)
-  - [3.7 Remote Database Installation](#37-remote-database-installation)
-  - [3.8 Package Installation](#38-package-installation)
-  - [3.9 Installing the Support for Hardware Tokens](#39-installing-the-support-for-hardware-tokens)
-  - [3.10 Installing the Support for Monitoring](#310-installing-the-support-for-monitoring)
-  - [3.11 Remote Database Post-Installation Tasks](#311-remote-database-post-installation-tasks)
-  - [3.12 Post-Installation Checks](#312-post-installation-checks)
-- [4 Initial Configuration](#4-initial-configuration)
-  - [4.1 Reference Data](#41-reference-data)
-  - [4.2 Initializing the Central Server](#42-initializing-the-central-server)
-  - [4.3 Configuring the Central Server and the Management Services' Security Server](#43-configuring-the-central-server-and-the-management-services-security-server)
-- [5 Additional configuration](#5-additional-configuration)
-  - [5.1 Global configuration V1 support](#51-global-configuration-v1-support)
-- [6 Installation Error Handling](#6-installation-error-handling)
-  - [6.1 Cannot Set LC_ALL to Default Locale](#61-cannot-set-lc_all-to-default-locale)
-  - [6.2 PostgreSQL Is Not UTF8 Compatible](#62-postgresql-is-not-utf8-compatible)
-  - [6.3 Could Not Create Default Cluster](#63-could-not-create-default-cluster)
-  - [6.4 Is Postgres Running on Port 5432?](#64-is-postgres-running-on-port-5432)
+- [2. Installation](#2-installation)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  - [2.2 Reference Data](#22-reference-data)
+  - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Prepare for Installation](#25-prepare-for-installation)
+  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
+  - [2.6 Setup Package Repository](#26-setup-package-repository)
+  - [2.7 Remote Database Installation](#27-remote-database-installation)
+  - [2.8 Package Installation](#28-package-installation)
+  - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
+  - [2.10 Installing the Support for Monitoring](#210-installing-the-support-for-monitoring)
+  - [2.11 Remote Database Post-Installation Tasks](#211-remote-database-post-installation-tasks)
+  - [2.12 Post-Installation Checks](#212-post-installation-checks)
+- [3 Initial Configuration](#3-initial-configuration)
+  - [3.1 Reference Data](#31-reference-data)
+  - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+  - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+- [4 Additional configuration](#4-additional-configuration)
+  - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+- [5 Installation Error Handling](#5-installation-error-handling)
+  - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
+  - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+  - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+  - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
+- [Annex B Deployment Options](#annex-b-deployment-options)
+  - [B.1 General](#b1-general)
+  - [B.2 Local Database](#b2-local-database)
+  - [B.3 Remote Database](#b3-remote-database)
+  - [B.4 Remote Database Cluster](#b4-remote-database-cluster)
+  - [B.5 Cloud Database Cluster](#b5-cloud-database-cluster)
+  - [B.6 Summary](#b6-summary)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -107,65 +106,19 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
-## 2. Deployment Options
+## 2. Installation
 
-### 2.1 General
-
-X-Road central server can be deployed in multiple ways. The simplest option is to have a single central server with local database. This is usually fine for development purposes, but there are multiple reasons to tailor the deployment.
-
-### 2.2 Local Database
-
-The simplest deployment option is to use a single central server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
-
-![Central Server with local database](img/ig-cs_local_db.png)
-
-### 2.3 Remote Database
-
-It is possible to use a remote database with Central Server. This option is sometimes used in development when there's need to externalize the database state.
-
-![Central Server with single remote database](img/ig-cs_remote_db.png)
-
-### 2.4 Remote Cloud Database
- 
-Central server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
-
-![Central server with single remote database](img/ig-cs_cloud_db.png)
-
-### 2.5 Remote Database Cluster
-
-When aiming for production it's recommended to use redundant front-end nodes and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
-
-![Central server with remote database cluster](img/ig-cs_remote_db_cluster.png)
-
-### 2.6 Cloud Database Cluster
-
-When central server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes in separate availability zones.
-
-![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster.png)
-
-### 2.7 Summary
-
-The following table lists a summary of the central server deployment options and indicates whether they are aimed for development or production use.
-
-| Deployment               | Dev  | Prod  |
-|--------------------------|------|-------|
-| Local database           | x    |       |
-| Remote database          | x    |       |
-| Cloud database           | x    |       |
-| Remote database cluster  |      | x     |
-| Cloud database cluster   |      | x     |
-
-## 3. Installation
-
-### 3.1 Prerequisites to Installation
+### 2.1 Prerequisites to Installation
 
 The central server software assumes an existing installation of the Ubuntu operating system, on an x86-64bit platform. To provide management services, a security server is installed alongside the central server.
 
 The central server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
+There are many alternatives how the central server can be deployed. The options are described in [Annex B Deployment Options](#annex-b-deployment-options).
+
 If the central server is a part of a cluster for achieving high availability (deployment option remote database cluster or cloud database cluster), the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#Ref_IG-CSHA) for details.
 
-### 3.2 Reference Data
+### 2.2 Reference Data
 
 Note: The information in empty cells will be determined at the latest during the server’s installation, by the person performing the installation.
 
@@ -186,7 +139,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.9  | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
 | 1.10 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the services TLS certificate |
 
-### 3.3 Requirements to the Central Server
+### 2.3 Requirements to the Central Server
 
 Minimum recommended hardware parameters:
 - the server hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu in general;
@@ -199,7 +152,7 @@ Requirements for software and settings:
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
-### 3.4 Preparing OS
+### 2.4 Preparing OS
 
 - Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. 
 
@@ -211,11 +164,11 @@ Requirements for software and settings:
   Add the following line to the file /etc/environment: `LC_ALL=en_US.UTF-8`  
   Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
-### 3.5 Prepare for Installation
+### 2.5 Prepare for Installation
 
 The database properties created by the default installation can be found at [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [3.5.1 Customize the Database Properties](#351-customize-the-database-properties).
 
-### 3.5.1 Customize the Database Properties
+### 2.5.1 Customize the Database Properties
 
 **This is an optional step.** Central server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
@@ -242,7 +195,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
   schema=<database schema>
   ```
 
-### 3.6 Setup Package Repository
+### 2.6 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
@@ -256,7 +209,7 @@ Add X-Road package repository (**reference data: 1.1**)
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
-### 3.7 Remote Database Installation
+### 2.7 Remote Database Installation
 
 **This is an optional step.** In case you want to install central server with remote database, perform the steps in this chapter. Otherwise, skip it and continue from the next chapter.
 
@@ -279,7 +232,7 @@ Edit `/etc/xroad.properties` contents. See the example below. Replace the parame
 
 **Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [3.5.1 Customize the Database Properties](#351-customize-the-database-properties).
 
-### 3.8 Package Installation
+### 2.8 Package Installation
 
 Issue the following commands to install the central server packages:
 
@@ -306,7 +259,7 @@ Upon the first installation of the central server software, the system asks for 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-### 3.9 Installing the Support for Hardware Tokens
+### 2.9 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -348,13 +301,13 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
-### 3.10 Installing the Support for Monitoring
+### 2.10 Installing the Support for Monitoring
 
 The optional configuration for monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 3.11 Remote Database Post-Installation Tasks
+### 2.11 Remote Database Post-Installation Tasks
 
 Local PostgreSQL is always installed with central server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
 
@@ -366,7 +319,7 @@ To disable the local PostgreSQL server so that it does not start automatically w
 
 `systemctl mask postgresql`
 
-### 3.12 Post-Installation Checks
+### 2.12 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -383,9 +336,9 @@ The installation is successful if the system services are started and the user i
 
 -   Ensure that the central server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
-## 4 Initial Configuration
+## 3 Initial Configuration
 
-### 4.1 Reference Data
+### 3.1 Reference Data
 
 Note: The information in empty cells will be entered at the latest during the installation, by the person performing the installation.
 
@@ -399,7 +352,7 @@ Attention: Data necessary for the functioning of the operating system is not inc
 | 2.4     |        | Codes and descriptions of the member classes used in the X-Road instance |
 
 
-### 4.2 Initializing the Central Server
+### 3.2 Initializing the Central Server
 
 The central server user interface can be accessed at https://CENTRALSERVER:4000/ (reference data: 1.7; 1.6)
 
@@ -407,7 +360,7 @@ The central server user interface can be accessed at https://CENTRALSERVER:4000/
 2. Set the central server public DNS hostname or public IP address (reference data: 2.2).
 3. Set the PIN of the software token (reference data: 2.3). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN is lost.
 
-### 4.3 Configuring the Central Server and the Management Services' Security Server
+### 3.3 Configuring the Central Server and the Management Services' Security Server
 
 Upon the first configuration of the central server and the management services' security server, the following actions must be carried out.
 
@@ -430,15 +383,15 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 12. Configure the management services. Refer to [UG-CS](#Ref_UG-CS) section „Configuring the Management Services in The Management Services’ Security Server”.
 
 
-## 5 Additional configuration
+## 4 Additional configuration
 
-### 5.1 Global configuration V1 support
+### 4.1 Global configuration V1 support
 
 The support for global configuration version V1 has been removed in X-Road version 6.20. The central server produces only V2 global configuration which is expected by security servers from version 6.8.x and up.
 
-## 6 Installation Error Handling
+## 5 Installation Error Handling
 
-### 6.1 Cannot Set LC_ALL to Default Locale
+### 5.1 Cannot Set LC_ALL to Default Locale
 
 If running the locale command results in the error message
 
@@ -459,7 +412,7 @@ Set the operating system locale. Add following line to /etc/environment file.
 
 After updating the system’s locale settings, it is recommended to restart the operating system.
 
-### 6.2 PostgreSQL Is Not UTF8 Compatible
+### 5.2 PostgreSQL Is Not UTF8 Compatible
 
 If the central server installation is aborted, with the error message
 
@@ -474,7 +427,7 @@ To complete the interrupted installation, run the command:
 
 `sudo apt-get -f install`
 
-### 6.3 Could Not Create Default Cluster
+### 5.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation
 
@@ -489,7 +442,7 @@ The interrupted installation can be finished using
 
 `sudo apt-get -f install`
 
-### 6.4 Is Postgres Running on Port 5432?
+### 5.4 Is Postgres Running on Port 5432?
 
 If the following error message appears during installation
 
@@ -520,3 +473,50 @@ reconnect=true
 host = 127.0.0.1
 port = 5432
 ```
+
+## Annex B Deployment Options
+
+### B.1 General
+
+X-Road central server can be deployed in multiple ways. The simplest option is to have a single central server with local database. This is usually fine for development purposes, but there are multiple reasons to tailor the deployment.
+
+### B.2 Local Database
+
+The simplest deployment option is to use a single central server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
+
+![Central server with local database](img/ig-cs_local_db.png)
+
+### B.3 Remote Database
+
+It is possible to use a remote database with central server. This option is sometimes used in development when there's need to externalize the database state.
+
+Central server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
+
+![Central server with remote database](img/ig-cs_remote_db.png)
+
+Central server itself can also be clustered. In clustered mode high-availability is built in to the system and the clients (security servers and configuration proxies) can continue operation despite a loss of central server node.
+
+![Central server cluster with remote database](img/ig-cs_cluster_remote_db.png)
+
+### B.4 Remote Database Cluster
+
+When aiming for production it's recommended to use redundant front-end nodes (clustered central server) and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
+
+![Central server with remote database cluster](img/ig-cs_remote_db_cluster.png)
+
+### B.5 Cloud Database Cluster
+
+When central server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes (clustered central server) in separate availability zones.
+
+![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster.png)
+
+### B.6 Summary
+
+The following table lists a summary of the central server deployment options and indicates whether they are aimed for development or production use.
+
+| Deployment               | Dev  | Prod  |
+|--------------------------|------|-------|
+| Local database           | x    |       |
+| Remote database          | x    |       |
+| Remote database cluster  |      | x     |
+| Cloud database cluster   |      | x     |
