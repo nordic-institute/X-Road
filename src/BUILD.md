@@ -4,7 +4,10 @@ Running the X-Road software requires Linux (Ubuntu or RHEL). As a development en
 
 **Tools**
 
-*Required for building*
+*Required for building in Docker (recommended)*
+* Docker (for deb/rpm packaging)
+
+*Required for building natively (without Docker)*
 * OpenJDK / JDK version 8
 * Gradle
 * JRuby and rvm (ruby version manager)
@@ -19,7 +22,15 @@ Running the X-Road software requires Linux (Ubuntu or RHEL). As a development en
 
 The development environment should have at least 8GB of memory and 20GB of free disk space (applies to a virtual machine as well), especially if you set up a local X-Road instance.
 
-## Dependency installation and building instructions
+## Dependency installation and instructions for building in Docker
+
+* Install Docker
+
+* Build the software and installation packages:
+
+    `./build_packages.sh`
+
+## Dependency installation and instructions for building natively (without Docker)
 
 * Requires Ubuntu >=16.04, 18.04 is recommended.
 
