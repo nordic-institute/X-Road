@@ -6,8 +6,8 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.9  
-25.10.2019
+Version: 1.10
+10.09.2020
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -34,6 +34,7 @@ Doc. ID: ARC-SS
  17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                      | Petteri Kivimäki
  31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)             | Ilkka Seppälä
  21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
+ 10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -49,65 +50,59 @@ Doc. ID: ARC-SS
   - [2.2 Message Log](#22-message-log)
   - [2.3 Metadata Services](#23-metadata-services)
   - [2.4 Operational Monitoring Services](#24-operational-monitoring-services)
-  - [2.5 Operational Monitoring Buffer](#25-operational-monitoring-buffer)
+  - [2.5 Opmonitor](#25-opmonitor)
   - [2.6 Signer](#26-signer)
   - [2.7 Database](#27-database)
-  - [2.8 User Interface](#28-user-interface)
-  - [2.9 Servlet Engine](#29-servlet-engine)
+  - [2.8 User Interface Frontend](#28-user-interface-frontend)
+  - [2.9 Management REST API](#29-management-rest-api)
   - [2.10 Configuration Client](#210-configuration-client)
   - [2.11 Password Store](#211-password-store)
   - [2.12 SSCD](#212-sscd)
   - [2.13 Environmental Monitoring Service](#213-environmental-monitoring-service)
   - [2.14 Monitor](#214-monitor)
 - [3 Process View](#3-process-view)
-  - [3.1 Nginx](#31-nginx)
+  - [3.1 xroad-proxy-ui-api](#31-xroad-proxy-ui-api)
     - [3.1.1 Role and responsibilities](#311-role-and-responsibilities)
     - [3.1.2 Encapsulated data](#312-encapsulated-data)
     - [3.1.3 Messaging](#313-messaging)
-    - [3.1.4 Input/ouput ports](#314-inputouput-ports)
+    - [3.1.4 Input/output ports](#314-inputoutput-ports)
     - [3.1.5 Persistent data](#315-persistent-data)
-  - [3.2 xroad-jetty](#32-xroad-jetty)
+  - [3.2 xroad-signer](#32-xroad-signer)
     - [3.2.1 Role and responsibilities](#321-role-and-responsibilities)
     - [3.2.2 Encapsulated data](#322-encapsulated-data)
     - [3.2.3 Messaging](#323-messaging)
-    - [3.2.4 Input/ouput ports](#324-inputouput-ports)
+    - [3.2.4 Input/output ports](#324-inputoutput-ports)
     - [3.2.5 Persistent data](#325-persistent-data)
-  - [3.3 xroad-signer](#33-xroad-signer)
+  - [3.3 xroad-confclient](#33-xroad-confclient)
     - [3.3.1 Role and responsibilities](#331-role-and-responsibilities)
     - [3.3.2 Encapsulated data](#332-encapsulated-data)
     - [3.3.3 Messaging](#333-messaging)
-    - [3.3.4 Input/ouput ports](#334-inputouput-ports)
+    - [3.3.4 Input/output ports](#334-inputoutput-ports)
     - [3.3.5 Persistent data](#335-persistent-data)
-  - [3.4 xroad-confclient](#34-xroad-confclient)
+  - [3.4 xroad-proxy](#34-xroad-proxy)
     - [3.4.1 Role and responsibilities](#341-role-and-responsibilities)
     - [3.4.2 Encapsulated data](#342-encapsulated-data)
     - [3.4.3 Messaging](#343-messaging)
-    - [3.4.4 Input/ouput ports](#344-inputouput-ports)
+    - [3.4.4 Input/output ports](#344-inputoutput-ports)
     - [3.4.5 Persistent data](#345-persistent-data)
-  - [3.5 xroad-proxy](#35-xroad-proxy)
+  - [3.5 postgresql](#35-postgresql)
     - [3.5.1 Role and responsibilities](#351-role-and-responsibilities)
     - [3.5.2 Encapsulated data](#352-encapsulated-data)
     - [3.5.3 Messaging](#353-messaging)
-    - [3.5.4 Input/ouput ports](#354-inputouput-ports)
+    - [3.5.4 Input/output ports](#354-inputoutput-ports)
     - [3.5.5 Persistent data](#355-persistent-data)
-  - [3.6 postgresql](#36-postgresql)
+  - [3.6 xroad-monitor](#36-xroad-monitor)
     - [3.6.1 Role and responsibilities](#361-role-and-responsibilities)
     - [3.6.2 Encapsulated data](#362-encapsulated-data)
     - [3.6.3 Messaging](#363-messaging)
-    - [3.6.4 Input/ouput ports](#364-inputouput-ports)
+    - [3.6.4 Input/output ports](#364-inputoutput-ports)
     - [3.6.5 Persistent data](#365-persistent-data)
-  - [3.7 xroad-monitor](#37-xroad-monitor)
+  - [3.7 xroad-opmonitor](#37-xroad-opmonitor)
     - [3.7.1 Role and responsibilities](#371-role-and-responsibilities)
     - [3.7.2 Encapsulated data](#372-encapsulated-data)
     - [3.7.3 Messaging](#373-messaging)
-    - [3.7.4 Input/ouput ports](#374-inputouput-ports)
+    - [3.7.4 Input/output ports](#374-inputoutput-ports)
     - [3.7.5 Persistent data](#375-persistent-data)
-  - [3.8 xroad-opmonitor](#38-xroad-opmonitor)
-    - [3.8.1 Role and responsibilities](#381-role-and-responsibilities)
-    - [3.8.2 Encapsulated data](#382-encapsulated-data)
-    - [3.8.3 Messaging](#383-messaging)
-    - [3.8.4 Input/ouput ports](#384-inputouput-ports)
-    - [3.8.5 Persistent data](#385-persistent-data)
 - [4 Interfaces](#4-interfaces)
   - [4.1 Management Services](#41-management-services)
   - [4.2 Download Configuration](#42-download-configuration)
@@ -213,7 +208,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 
 <a id="Ref_Security_server_component_diagram" class="anchor"></a>
-![](img/arc-ss_security_server_component_diagram.png)
+![](img/arc-ss_security_server_component_diagram.svg?2)
 
 Figure 1. Security server component diagram
 
@@ -247,16 +242,17 @@ The component is a proxy addon.
 ### 2.4 Operational Monitoring Services
 
 Provides methods that can be used by X-Road participants to get operational monitoring information of the security server.
+It requests the data from the local opmonitor service via an SOAP XML request and mediates the SOAP XML response to the caller.
 
 The component is a proxy addon.
 
 
-### 2.5 Operational Monitoring Buffer
+### 2.5 Opmonitor
 
-The operational monitoring buffer is an in memory circular buffer that mediates operational monitoring data of the proxy to the operational monitoring daemon.
+Opmonitor component collects operational monitoring information such as which services have been called, how many times, what was the size of the response, etc. 
+The monitoring data is published via SOAP XML and (optional) JMX interfaces.
 
-The component is a proxy addon.
-
+The component is a separate daemon process.
 
 ### 2.6 Signer
 
@@ -274,22 +270,32 @@ The security server configuration is held in a PostgreSQL\[[1](#Ref_1)\] databas
 \[1\] See <http://www.postgresql.org/> for details.
 
 
-### 2.8 User Interface
+### 2.8 User Interface Frontend
 
-The security server user interface allows a user to manage the security server configuration. The user interface is web-based and is packaged as a *war* archive that is deployed on the servlet engine.
+The security server user interface allows a user to manage the security server configuration. 
 
-Certain operations attempt to modify the X-Road global configuration and require management requests to be sent to the X-Road central server. These requests need to be approved by the central server administrator before they are reflected in the global configuration.
+The user interface is a single page web application that makes requests to the management REST API to read and modify configuration.
+
+The user interface fetches it's resources (images, stylesheets, javascript files) from the web application which
+hosts the management REST API.
+
+### 2.9 Management REST API
+
+The management REST API offers endpoints that can be used to read and modify the security server configuration.
+These endpoints are used by the user interface frontend, and can be used by standalone API clients.
+The management REST API is packaged in an executable Spring Boot\[[2](#Ref_2)\] *jar* archive.
+This Spring Boot application starts an embedded Tomcat\[[3](#Ref_3)\] servlet engine, which also serves the resources for the user interface frontend.
+Embedded Tomcat listens on a fixed port that is configured in internal configuration files.
+
+Certain API operations attempt to modify the X-Road global configuration and require management requests to be sent to the X-Road central server. These requests need to be approved by the central server administrator before they are reflected in the global configuration.
 
 User action events that change the system state or configuration are logged into the audit log. The actions are logged regardless of whether the outcome was a success or a failure. The complete list of the audit log events is described in \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-
-### 2.9 Servlet Engine
-
-The Jetty\[[2](#Ref_2)\] servlet engine hosts the user interface, listening on a port that is configurable in the X-Road configuration files.
-
-
 <a id="Ref_2" class="anchor"></a>
-\[2\] See <http://www.eclipse.org/jetty/> for details.
+\[2\] See <https://spring.io/projects/spring-boot> for details.
+
+<a id="Ref_3" class="anchor"></a>
+\[3\] See <http://tomcat.apache.org/> for details.
 
 
 ### 2.10 Configuration Client
@@ -317,234 +323,230 @@ Provides method that can be used by X-Road participants to get environmental dat
 
 The component is a proxy addon.
 
-
 ### 2.14 Monitor
 
-Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via Akka and JMX interfaces.
+Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via Akka and (optional) JMX interfaces.
+
+The component is a separate daemon process.
 
 ## 3 Process View
 
 <a id="Ref_Security_Server_process_diagram" class="anchor"></a>
-![](img/arc-ss_security_server_process_diagram.png)
+![](img/arc-ss_security_server_process_diagram.svg)
 
 Figure 2. Security server process diagram
 
-### 3.1 Nginx
+### 3.1 xroad-proxy-ui-api
 
 #### 3.1.1 Role and responsibilities
 
-Nginx works as a reverse proxy in front Security Server user interface served by xroad-jetty process. It hides xroad-jetty from the outside world improving security. It takes care of TLS termination removing the need to install certificates on the backend server. Handling TLS termination in nginx also reduces load on the backend server since it can then handle unencrypted traffic.
+Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST APIs that can be used for management operations.
 
 #### 3.1.2 Encapsulated data
 
-Nginx hides xroad-jetty process from outside world.
+Xroad-proxy-ui-api reads and writes some data from filesystem. This includes configuration anchor, configuration backups, and internal TLS certificate.
+
+Xroad-proxy-ui-api reads and modifies Security Server configuration using postgresql database serverconf. 
+The database model is specified in \[[DM-SS](#Ref_DM-SS)\].
+
+Xroad-proxy-ui-api reads global configuration from filesystem.
+
+Data related to token keys, certificates and CSRs is accessed through xroad-signer.
 
 #### 3.1.3 Messaging
 
-Nginx accepts https traffic to interface A in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. After TLS termination the requests are routed to xroad-jetty backend server interface W in \[[Figure 2](#Ref_Security_Server_process_diagram)\] using http. Responses from the backend server are returned to the client through nginx.
+Xroad-proxy-ui-api accepts https traffic to interface A in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
+Interface A handles both requests to serve content for the UI and requests for REST API calls.
+Interface A is directly exposed to outside world.
 
-#### 3.1.4 Input/ouput ports
-
-Nginx has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
-
-#### 3.1.5 Persistent data
-
-General documentation about nginx can be found at http://nginx.org/en/docs/. X-Road specific configuration is installed to /etc/xroad/nginx.
-
-### 3.2 xroad-jetty
-
-#### 3.2.1 Role and responsibilities
-
-Xroad-jetty process serves the administration user interface of the Security Server. Users configure their Security Server using this interface.
-
-#### 3.2.2 Encapsulated data
-
-General documentation about Jetty can be found at https://www.eclipse.org/jetty/documentation/current/index.html. X-Road specific configuration is installed to /etc/xroad/jetty.\[[Figure 2](#Ref_Security_Server_process_diagram)\]
-
-#### 3.2.3 Messaging
-
-The user interface W in \[[Figure 2](#Ref_Security_Server_process_diagram)\] served by xroad-jetty is not directly exposed to outside world but can only be accessed via nginx reverse proxy interface A. The traffic between nginx and xroad-jetty is unencrypted http.
-
-Xroad-jetty communicates with Central Server's management services interface M (see \[[PR-MSERV](#Ref_PR-MSERV)\]).
+Xroad-proxy-ui-api communicates with Central Server's management services interface M (see \[[PR-MSERV](#Ref_PR-MSERV)\]).
 
 Global configuration is downloaded from Central Server (or Configuration Proxy in some cases) utilizing xroad-confclient and stored on disk.
 
-Xroad-jetty communicates with xroad-confclient in three different scenarios:
+Xroad-proxy-ui-api communicates with xroad-confclient in three different scenarios:
 - When configuration anchor is uploaded to Security Server, it launches fetching of global conf using admin port interface C of xroad-confclient.
 - To get the status of global configuration fetching for diagnostics, it accesses xroad-confclient admin port interface C.
-- Xroad-jetty also reads the global configuration files on disk directly.
+- Xroad-proxy-ui-api also reads the global configuration files on disk directly.
 
-Xroad-jetty communicates with xroad-signer interface S to manage token, key, and certificate information. Currently the signer protocol is strictly internal and there is no documentation about it.
+Xroad-proxy-ui-api communicates with xroad-signer interface S to manage token, key, and certificate information.
+Currently the signer protocol is strictly internal and there is no documentation about it.
 
-Finally xroad-jetty reads/writes its data to postgresql interface D.
+Finally Xroad-proxy-ui-api reads/writes data to postgresql interface D.
 
-#### 3.2.4 Input/ouput ports
+#### 3.1.4 Input/output ports
 
-The port where xroad-jetty serves its user interface is internal and specified in /etc/xroad/jetty/jetty-admin.xml.
+Xroad-proxy-ui-api has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
-Xroad-jetty accesses xroad-confclient's admin port to command it to download global configuration. The output port is internal and specified in xroad-confclient's source code.
+Xroad-proxy-ui-api accesses xroad-confclient's admin port to command it to download global configuration. The output port is internal and specified in xroad-confclient's source code.
 
-Xroad-jetty accesses xroad-signer's admin and signer protocol ports. Both ports are internal and must be looked up in the xroad-signer's source code.
+Xroad-proxy-ui-api accesses xroad-signer's admin and signer protocol ports. Both ports are internal and must be looked up in the xroad-signer's source code.
 
-Xroad-jetty accesses postgresql using the port specified in /etc/xroad/db.properties.
+Xroad-proxy-ui-api accesses postgresql using the port specified in /etc/xroad/db.properties.
 
-#### 3.2.5 Persistent data
+#### 3.1.5 Persistent data
 
-The data used by xroad-jetty is persisted to postgresql database serverconf. The database model is specified in \[[DM-SS](#Ref_DM-SS)\].
+Xroad-proxy-ui-api reads and writes some data from filesystem. This includes configuration anchor, configuration backups, and internal TLS certificate.
 
-### 3.3 xroad-signer
+Xroad-proxy-ui-api reads and modifies Security Server configuration using postgresql database serverconf. 
+The database model is specified in \[[DM-SS](#Ref_DM-SS)\].
 
-#### 3.3.1 Role and responsibilities
+Xroad-proxy-ui-api reads global configuration from filesystem.
+
+Data related to token keys, certificates and CSRs is accessed through xroad-signer.
+
+### 3.2 xroad-signer
+
+#### 3.2.1 Role and responsibilities
 
 Xroad-signer is responsible for managing tokens, keys and certificates.
 
-#### 3.3.2 Encapsulated data
+#### 3.2.2 Encapsulated data
 
 Xroad-signer encapsulates keystore, where the Security Server's secret keys are stored.
 
 Xroad-signer encapsulates keyconf, which tracks the configuration related to tokens, keys and certificates.
 
-#### 3.3.3 Messaging
+#### 3.2.3 Messaging
 
 Xroad-signer fetches information from certificate authority's OCSP responder.
 
-Xroad-signer offers interface S in \[[Figure 2](#Ref_Security_Server_process_diagram)\] for signing requests. It is used by xroad-jetty and xroad-proxy. Additionally xroad-proxy is accessing directly the keyconf.xml encapsulated by xroad-signer.
+Xroad-signer offers interface S in \[[Figure 2](#Ref_Security_Server_process_diagram)\] for signing requests. It is used by xroad-proxy-ui-api and xroad-proxy. Additionally xroad-proxy is accessing directly the keyconf.xml encapsulated by xroad-signer.
 
-Xroad-signer offers interface B which is admin interface for commanding xroad-signer. It is used by xroad-jetty and xroad-proxy.
+Xroad-signer offers interface B which is admin interface for commanding xroad-signer. It is used by xroad-proxy-ui-api and xroad-proxy.
 
-#### 3.3.4 Input/ouput ports
+#### 3.2.4 Input/output ports
 
 Xroad-signer has two input ports for interfaces B and S. The ports are internal and not documented elsewhere than the source code.
 
 Xroad-signer has output port for accessing OCSP responder. The port number is configured in Central Server and xroad-signer reads it from the global configuration.
 
-#### 3.3.5 Persistent data
+#### 3.2.5 Persistent data
 
 Xroad-signer persists the configuration in /etc/xroad/signer/keyconf.xml.
 
 Xroad-signer persists the secret keys in keystore that can be a file in the disk or then it can be stored inside a hardware security module (HSM).
 
-### 3.4 xroad-confclient
+### 3.3 xroad-confclient
 
-#### 3.4.1 Role and responsibilities
+#### 3.3.1 Role and responsibilities
 
 Xroad-confclient is responsible for fetching global configuration from a configuration source. Configuration source can be Central Server or Configuration Proxy.
 
-#### 3.4.2 Encapsulated data
+#### 3.3.2 Encapsulated data
 
-Xroad-confclient downloads the global configuration and stores it to local disk. Other processes xroad-proxy, xroad-jetty and xroad-signer access the files on the disk directly.
+Xroad-confclient downloads the global configuration and stores it to local disk. Other processes xroad-proxy, xroad-proxy-ui-api and xroad-signer access the files on the disk directly.
 
-#### 3.4.3 Messaging
+#### 3.3.3 Messaging
 
 Xroad-confclient downloads global configuration from a configuration source, namely Central Server or Configuration Proxy, through interface G in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. The protocol used in downloading configuration is specified in \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-Xroad-confclient offers admin interface C for commands and queries. This is used by xroad-jetty to fetch diagnostics information.
+Xroad-confclient offers admin interface C for commands and queries. This is used by xroad-proxy-ui-api to fetch diagnostics information.
 
-#### 3.4.4 Input/ouput ports
+#### 3.3.4 Input/output ports
 
 Xroad-confclient has single input port for admin commands and queries. The port number is for internal use and specified in the source code only.
 
-#### 3.4.5 Persistent data
+#### 3.3.4 Persistent data
 
 Xroad-confclient downloads and persists global configuration on disk.
 
-### 3.5 xroad-proxy
+### 3.4 xroad-proxy
 
-#### 3.5.1 Role and responsibilities
+#### 3.4.1 Role and responsibilities
 
 Xroad-proxy is the most significant process on the Security Server. It is responsible for transmitting messages.
 
-#### 3.5.2 Encapsulated data
+#### 3.4.2 Encapsulated data
 
 Xroad-proxy configuration is stored in postgresql database.
 
-#### 3.5.3 Messaging
+#### 3.4.3 Messaging
 
 Xroad-proxy accepts messages from local trusted network through interface C in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
 
 Xroad-proxy accepts messages from untrusted network through interface S. Related to this interface there is another interface O that allows downloading of OCSP responses from Security Server.
 
-Additionally xroad-proxy offers interface P for admin commands and queries. It is used by xroad-jetty diagnostics to query timestamping status and can be used to set Security Server in maintenance mode during cluster rolling upgrade.
+Additionally xroad-proxy offers interface P for admin commands and queries. It is used by xroad-proxy-ui-api diagnostics to query timestamping status and can be used to set Security Server in maintenance mode during cluster rolling upgrade.
 
-#### 3.5.4 Input/ouput ports
+#### 3.4.4 Input/output ports
 
 Xroad-proxy has input ports for message exchange from internal and external network (C and S) and one input port meant for uploading OCSP responses (O). The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
 Additionally there is an input port for admin queries and commands (P). The port number is specified in \[[IG-XLB](#Ref_IG-XLB)\].
 
-#### 3.5.5 Persistent data
+#### 3.4.5 Persistent data
 
 Xroad-proxy uses postgresql for persistent data storage. The database model is specified in \[[DM-SS](#Ref_DM-SS)\].
 
-### 3.6 postgresql
+### 3.5 postgresql
 
-#### 3.6.1 Role and responsibilities
+#### 3.5.1 Role and responsibilities
 
 Postgresql is the primary persistent data storage used by Security Server.
 
-#### 3.6.2 Encapsulated data
+#### 3.5.2 Encapsulated data
 
 Postgresql stores databases, tables, and triggers.
 
-#### 3.6.3 Messaging
+#### 3.5.3 Messaging
 
-Postgresql is used by xroad-jetty, xroad-proxy and xroad-opmonitor for persistent data storage.
+Postgresql is used by xroad-proxy-ui-api, xroad-proxy and xroad-opmonitor for persistent data storage.
 
-#### 3.6.4 Input/ouput ports
+#### 3.5.4 Input/output ports
 
 Postgresql has single input port for querying and storing data. The Security Server installation uses the default port of PostgreSQL, but it is possible to customize.
 
-#### 3.6.5 Persistent data
+#### 3.5.5 Persistent data
 
 Postgresql persists databases, tables, and triggers based on the needs of its clients.
 
-### 3.7 xroad-monitor
+### 3.6 xroad-monitor
 
-#### 3.7.1 Role and responsibilities
+#### 3.6.1 Role and responsibilities
 
 Xroad-monitor is responsible for environmental monitoring of Security Server. It gathers statistics about different things like running processes, memory usage, certificate statuses etc. using its sensors.
 
-#### 3.7.2 Encapsulated data
+#### 3.6.2 Encapsulated data
 
 The sensor data is stored in memory of the xroad-monitor process.
 
-#### 3.7.3 Messaging
+#### 3.6.3 Messaging
 
 Xroad-monitor's sensor data is queried by xroad-proxy using interface Q in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
 
 Sensor data is also accessible via JMX protocol through interface J.
 
-#### 3.7.4 Input/ouput ports
+#### 3.6.4 Input/output ports
 
 The input port for querying sensor data is internal and can be found from the source code.
 
 The input port for accessing sensor data through JMX protocol is closed by default and must be opened separately by editing /etc/xroad/services/monitor.conf.
 
-#### 3.7.5 Persistent data
+#### 3.6.5 Persistent data
 
 Xroad-monitor doesn't persist the sensor data, but rather stores it in the process memory only.
 
-### 3.8 xroad-opmonitor
+### 3.7 xroad-opmonitor
 
-#### 3.8.1 Role and responsibilities
+#### 3.7.1 Role and responsibilities
 
 Xroad-opmonitor is responsible for operational monitoring of Security Server. Operational monitoring means gathering statistics about service calls, successes and failures etc.
 
-#### 3.8.2 Encapsulated data
+#### 3.7.2 Encapsulated data
 
 Xroad-opmonitor stores the operational data in postgresql database. There is also a buffer for this data in xroad-proxy process.
 
-#### 3.8.3 Messaging
+#### 3.7.3 Messaging
 
 Xroad-opmonitor communicates with xroad-proxy through operational monitoring query and store interfaces Q and S respectively in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. The protocols are described in \[[PR-OPMON](#Ref_PR-OPMON)\].
 
 Operational monitoring data is also made available via JMX protocol through interface J.
 
-#### 3.8.4 Input/ouput ports
+#### 3.7.4 Input/output ports
 
 The input ports for query, store, and JMX access of operational monitoring data are specified in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 
-#### 3.8.5 Persistent data
+#### 3.7.5 Persistent data
 
 Xroad-opmonitor persists data to postgresql database.
 
@@ -662,7 +664,7 @@ Monitor JMX interface publishes local security server environmental monitoring d
 In scenarios where availability is not a critical concern (such as testing environments) a single security server can be used. The authentication and signing keys are stored on a HSM device. [Figure 2](#Ref_Simple_security_server_deployment) shows the corresponding deployment diagram.
 
 <a id="Ref_Simple_security_server_deployment" class="anchor"></a>
-![](img/arc-ss_simple_security_server_deployment.png)
+![](img/arc-ss_simple_security_server_deployment.svg)
 
 Figure 3. Simple security server deployment
 

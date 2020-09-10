@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.46
+Version: 2.47
 Doc. ID: UG-SS
 
 ---
@@ -79,6 +79,7 @@ Doc. ID: UG-SS
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
  30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
+ 10.10.2020 | 2.47    | Corrections in Chapter [19 Management REST APIs](#19-management-rest-apis) | Janne Mattila
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -338,7 +339,7 @@ To remove a user permission, remove the user from the corresponding system group
 
     deluser username xroad-security-officer
 
-User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#171-system-services)).
+Modified user permissions are applied only after user does a new log in.
 
 To remove a user, enter:
 
@@ -1880,14 +1881,12 @@ It is possibility to limit what allowed non-owners can request via environmental
 
 The most important system services of a security server are as follows.
 
- **Service**        | **Purpose**                                   | **Log**
-------------------- | --------------------------------------------- | -----------------------------------------
- `xroad-confclient` | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-jetty `     | Application server running the user interface | `/var/log/xroad/jetty/`
- `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
- `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
- `xroad-proxy-ui-api`  | Management UI and REST API                 | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
- `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`
+ **Service**           | **Purpose**                                             | **Log**
+-------------------    | ------------------------------------------------------  | -----------------------------------------
+ `xroad-confclient`    | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
+ `xroad-proxy`         | Message exchanger                                       | `/var/log/xroad/proxy.log`
+ `xroad-signer`        | Manager process for key settings                        | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`  | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
 
 System services are managed through the *systemd* facility.
 
@@ -1973,7 +1972,7 @@ using the web UI.
 Management REST APIs are protected with an API key based authentication. To execute REST calls, API keys need to be created.
 
 All REST APIs are protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
-with `curl` you need to use `--insecure` or `-k` option.
+with `curl` you might use `--insecure` or `-k` option).
 
 Request sent to REST APIs have a *limit for maximum size*. If a too large request is sent
 to REST API, it will not be processed, and http status 413 Payload too large will be returned.
@@ -2021,12 +2020,12 @@ be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 #### 19.1.1 Creating new API keys
 
-A new API key is created with a `POST` request to `/api/api-keys`. Message body must contain the roles to be
+A new API key is created with a `POST` request to `/api/v1/api-keys`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the actual API key. After this point the key
 cannot be retrieved, as it is not stored in plaintext.
 
 ```
-curl -X POST -u <user>:<password> https://localhost:4000/api/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+curl -X POST -u <user>:<password> https://localhost:4000/api/v1/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
@@ -2042,10 +2041,10 @@ In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
 
 #### 19.1.2 Listing API keys
 
-Existing API keys can be listed with a `GET` request to `/api/api-keys`. This lists all keys, regardless of who has created them.
+Existing API keys can be listed with a `GET` request to `/api/v1/api-keys`. This lists all keys, regardless of who has created them.
 
 ```
-curl -X GET -u <user>:<password> https://localhost:4000/api/api-keys -k
+curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
 [
   {
     "id": 59,
@@ -2063,11 +2062,11 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/api-keys -k
 
 #### 19.1.3 Updating API keys
 
-An existing API key is updated with a `PUT` request to `/api/api-key/{id}`. Message body must contain the roles to be
+An existing API key is updated with a `PUT` request to `/api/v1/api-keys/{id}`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the key id and roles associated with the key.
 
 ```
-curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-keys/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "id": 60,
   "roles": [
@@ -2080,11 +2079,11 @@ curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '[
 
 #### 19.1.4 Revoking API keys
 
-An API key can be revoked with a `DELETE` request to `/api/api-keys/{id}`. Server responds with `HTTP 200` if
+An API key can be revoked with a `DELETE` request to `/api/v1/api-keys/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
 
 ```
-curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-keys/60  -k
+curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -k
 
 ```
 
@@ -2110,7 +2109,7 @@ Once a valid API key has been created, it is used by providing an `Authorization
 header in the REST calls. For example
 
 ```
-curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/clients" -k
+curl --header "Authorization: X-Road-ApiKey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/clients" -k
 [
   {
     "id": "XRD2:GOV:999:foobar",
@@ -2121,15 +2120,15 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
     "status": "saved
 ...
 ```
-
-The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
-as the corresponding UI operations.
+The available APIs are documented in OpenAPI specification 
+([openapi-definition.yaml](https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml)).
+Access rights for different APIs follow the same rules as the corresponding UI operations.
 Access to regular APIs is allowed from all IP addresses by default, but this can
 be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### 19.3 Correlation ID HTTP header
 
-The REST APIs return an **X-Road-UI-Correlation-ID** HTTP header. This header is also logged in `proxy_ui_api.log`, so it
+The REST APIs return an **x-road-ui-correlation-id** HTTP header. This header is also logged in `proxy_ui_api.log`, so it
 can be used to find the log messages related to a specific API call.
 
 The correlation ID header is returned for all requests, both successful and failed ones.
