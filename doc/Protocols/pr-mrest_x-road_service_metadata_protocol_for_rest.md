@@ -2,24 +2,25 @@
 
 ---
 
-# X-Road: Service Metadata Protocol for REST <!-- omit in toc --> 
-**Technical Specification**  
+# X-Road: Service Metadata Protocol for REST <!-- omit in toc -->
+
+**Technical Specification**
 
 Version: 0.4  
-Doc. ID: PR-MREST  
+Doc. ID: PR-MREST
 
 ---
 
-## Version history <!-- omit in toc --> 
+## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 29.07.2019 | 0.1     | Initial version                                                 | Ilkka Seppälä
- 06.08.2019 | 0.2     | Add getOpenAPI description                                      | Ilkka Seppälä
- 09.10.2019 | 0.3     | Clarify the listCentralServices response type                   | Jarkko Hyöty
- 07.11.2019 | 0.4     | Clarify getOpenAPI description                                  | Ilkka Seppälä
+| Date       | Version | Description                                   | Author        |
+| ---------- | ------- | --------------------------------------------- | ------------- |
+| 29.07.2019 | 0.1     | Initial version                               | Ilkka Seppälä |
+| 06.08.2019 | 0.2     | Add getOpenAPI description                    | Ilkka Seppälä |
+| 09.10.2019 | 0.3     | Clarify the listCentralServices response type | Jarkko Hyöty  |
+| 07.11.2019 | 0.4     | Clarify getOpenAPI description                | Ilkka Seppälä |
 
-## Table of Contents <!-- omit in toc --> 
+## Table of Contents <!-- omit in toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
@@ -54,12 +55,12 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.2 References
 
 1. <a name="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID:
-[PR-META](pr-meta_x-road_service_metadata_protocol.md).
+   [PR-META](pr-meta_x-road_service_metadata_protocol.md).
 2. <a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997,
-[https://www.ietf.org/rfc/rfc2119.txt](https://www.ietf.org/rfc/rfc2119.txt)
+   [https://www.ietf.org/rfc/rfc2119.txt](https://www.ietf.org/rfc/rfc2119.txt)
 3. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 4. <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road: Message Protocol for REST. Document ID:
-[PR-REST](pr-rest_x-road_message_protocol_for_rest.md).
+   [PR-REST](pr-rest_x-road_message_protocol_for_rest.md).
 
 ## 2 Retrieving List of Service Providers
 
@@ -74,19 +75,22 @@ Note. The listCentralServices metaservice ignores the Accept header and returns 
 
 X-Road provides two methods for getting the list of services offered by an X-Road client:
 
-* `listMethods` lists all REST services offered by a service provider.
+- `listMethods` lists all REST services offered by a service provider.
 
-* `allowedMethods` lists all REST services offered by a service provider that the caller has permission to invoke.
+- `allowedMethods` lists all REST services offered by a service provider that the caller has permission to invoke.
 
 Both methods are invoked as regular X-Road REST services (see specification \[[PR-REST](#Ref_PR-REST)\] for details on the X-Road REST protocol).
 
 The serviceId MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be either `listMethods` or `allowedMethods`.
 
 Request example
+
 ```
 GET /r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/listMethods
 ```
+
 HTTP request headers
+
 ```
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
@@ -101,7 +105,7 @@ Annexes [B.1](#c1-listmethods-response) and [B.2](#c2-allowedmethods-response) c
 
 X-Road provides a metaservice for fetching service descriptions of REST services.
 
-* `getOpenAPI` returns the OpenAPI service description of a REST service
+- `getOpenAPI` returns the OpenAPI service description of a REST service
 
 The method is invoked as regular X-Road REST service (see specification \[[PR-REST](#Ref_PR-REST)\] for details on the X-Road REST protocol).
 
@@ -110,10 +114,13 @@ The serviceId MUST contain the identifier of the target service provider and the
 The query parameters must contain `serviceCode=xxx` where xxx is the service code of the REST service we want to get the service description from.
 
 Request example
+
 ```
 GET /r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/getOpenAPI?serviceCode=listFirms
 ```
+
 HTTP request headers
+
 ```
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
@@ -132,20 +139,20 @@ Annex [B.3](#b3-getopenapi-response) contains an example response message for th
 openapi: 3.0.0
 info:
   title: X-Road Service Metadata API for REST
-  version: '0.2'
+  version: "0.2"
 servers:
   - url: https://{securityserver}/r1
     variables:
       securityserver:
-        default: ''
-        description: 'security server address'
+        default: ""
+        description: "security server address"
 paths:
   /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/listMethods:
     parameters:
-      - $ref: '#/components/parameters/xRoadInstance'
-      - $ref: '#/components/parameters/memberClass'
-      - $ref: '#/components/parameters/memberCode'
-      - $ref: '#/components/parameters/subsystemCode'
+      - $ref: "#/components/parameters/xRoadInstance"
+      - $ref: "#/components/parameters/memberClass"
+      - $ref: "#/components/parameters/memberCode"
+      - $ref: "#/components/parameters/subsystemCode"
     get:
       tags:
         - metaservices
@@ -161,18 +168,18 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List of REST services
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/methodList'
+                $ref: "#/components/schemas/methodList"
   /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/allowedMethods:
     parameters:
-      - $ref: '#/components/parameters/xRoadInstance'
-      - $ref: '#/components/parameters/memberClass'
-      - $ref: '#/components/parameters/memberCode'
-      - $ref: '#/components/parameters/subsystemCode'
+      - $ref: "#/components/parameters/xRoadInstance"
+      - $ref: "#/components/parameters/memberClass"
+      - $ref: "#/components/parameters/memberCode"
+      - $ref: "#/components/parameters/subsystemCode"
     get:
       tags:
         - metaservices
@@ -188,13 +195,18 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List of allowed REST services
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/methodList'
+                $ref: "#/components/schemas/methodList"
   /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/getOpenAPI:
+    parameters:
+      - $ref: "#/components/parameters/xRoadInstance"
+      - $ref: "#/components/parameters/memberClass"
+      - $ref: "#/components/parameters/memberCode"
+      - $ref: "#/components/parameters/subsystemCode"
     get:
       tags:
         - metaservices
@@ -210,8 +222,8 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-        description: OpenAPI description of the specified REST service
+        "200":
+          description: OpenAPI description of the specified REST service
           content:
             application/json:
               schema:
@@ -219,10 +231,10 @@ paths:
             text/yaml:
               schema:
                 type: string
-        '400':
-        description: Error in request
-        '500':
-        description: Internal error
+        "400":
+          description: Error in request
+        "500":
+          description: Internal error
 components:
   parameters:
     xRoadInstance:
@@ -256,7 +268,7 @@ components:
         member:
           type: array
           items:
-            $ref: '#/components/schemas/serviceId'
+            $ref: "#/components/schemas/serviceId"
     serviceId:
       type: object
       properties:
@@ -296,24 +308,24 @@ components:
 
 ```json
 {
-    "service": [
-        {
-            "member_class": "CLASS2",
-            "member_code": "MEMBER2",
-            "object_type": "SERVICE",
-            "service_code": "payloadgen",
-            "subsystem_code": "SUBSYSTEM2",
-            "xroad_instance": "INSTANCE"
-        },
-        {
-            "member_class": "CLASS2",
-            "member_code": "MEMBER2",
-            "object_type": "SERVICE",
-            "service_code": "kore",
-            "subsystem_code": "SUBSYSTEM2",
-            "xroad_instance": "INSTANCE"
-        }
-    ]
+  "service": [
+    {
+      "member_class": "CLASS2",
+      "member_code": "MEMBER2",
+      "object_type": "SERVICE",
+      "service_code": "payloadgen",
+      "subsystem_code": "SUBSYSTEM2",
+      "xroad_instance": "INSTANCE"
+    },
+    {
+      "member_class": "CLASS2",
+      "member_code": "MEMBER2",
+      "object_type": "SERVICE",
+      "service_code": "kore",
+      "subsystem_code": "SUBSYSTEM2",
+      "xroad_instance": "INSTANCE"
+    }
+  ]
 }
 ```
 
@@ -323,16 +335,16 @@ components:
 
 ```json
 {
-    "service": [
-        {
-            "member_class": "CLASS2",
-            "member_code": "MEMBER2",
-            "object_type": "SERVICE",
-            "service_code": "payloadgen",
-            "subsystem_code": "SUBSYSTEM2",
-            "xroad_instance": "INSTANCE"
-        }
-    ]
+  "service": [
+    {
+      "member_class": "CLASS2",
+      "member_code": "MEMBER2",
+      "object_type": "SERVICE",
+      "service_code": "payloadgen",
+      "subsystem_code": "SUBSYSTEM2",
+      "xroad_instance": "INSTANCE"
+    }
+  ]
 }
 ```
 
@@ -363,7 +375,7 @@ paths:
             type: integer
             format: int32
       responses:
-        '200':
+        "200":
           description: A paged array of firms
           headers:
             x-next:
@@ -371,7 +383,7 @@ paths:
               schema:
                 type: string
           content:
-            application/json:    
+            application/json:
               schema:
                 $ref: "#/components/schemas/Firms"
         default:
