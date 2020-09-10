@@ -1,3 +1,5 @@
+import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
+
 buildscript {
     ext {
         openapiGeneratorVersion = '4.2.0'
@@ -34,6 +36,7 @@ sourceSets {
 apply plugin: "com.moowork.node"
 apply plugin: 'org.openapi.generator'
 apply plugin: 'com.github.hierynomus.license'
+apply plugin: Oas3ValidatorGradlePlugin
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -123,7 +126,7 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.dir("frontend")
     outputs.dir("frontend")
 
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl ]
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl]
 
     execOverrides {
         it.workingDir = 'frontend'
@@ -154,7 +157,7 @@ openApiGenerate {
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags: "true"
+        useTags      : "true"
     ]
 }
 
@@ -173,6 +176,7 @@ task fixGeneratedSourcesDirectory {
 }
 
 compileJava.dependsOn 'fixGeneratedSourcesDirectory'
+compileJava.dependsOn tasks.openApiGenerate
 fixGeneratedSourcesDirectory.dependsOn tasks.openApiGenerate
 
 // set license format to ignore generated java sources
@@ -207,9 +211,17 @@ configurations {
     }
 }
 
+apiValidationParameters.apiDefinitionPaths = [
+    "$projectDir/src/main/resources/openapi-definition.yaml".toString(),
+    "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
+]
+
+tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
+
 dependencies {
     implementation project(':serverconf')
     implementation project(':common-ui')
+
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
@@ -243,7 +255,7 @@ dependencyManagement {
 
 task copyDeps(type: Copy) {
     into "$buildDir/unpacked-libs"
-    from configurations.compileClasspath.find {it.name.startsWith("postgresql") }
+    from configurations.compileClasspath.find { it.name.startsWith("postgresql") }
 }
 
 build.dependsOn copyDeps
