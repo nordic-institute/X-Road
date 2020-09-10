@@ -52,8 +52,8 @@ Doc. ID: IG-CS
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Prepare for Installation](#25-prepare-for-installation)
   - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.6 Setup Package Repository](#26-setup-package-repository)
-  - [2.7 Remote Database Installation](#27-remote-database-installation)
+  - [2.6 Remote Database Installation](#26-remote-database-installation)
+  - [2.7 Setup Package Repository](#27-setup-package-repository)
   - [2.8 Package Installation](#28-package-installation)
   - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
   - [2.10 Installing the Support for Monitoring](#210-installing-the-support-for-monitoring)
@@ -181,7 +181,7 @@ The database properties created by the default installation can be found at [Ann
   sudo chmod 640 /etc/xroad/db.properties
   ```
 
-Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties).
+Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
 
   ```
   adapter=postgresql
@@ -195,21 +195,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
   schema=<database schema>
   ```
 
-### 2.6 Setup Package Repository
-
-Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-
-  ```
-  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-  ```
-
-Add X-Road package repository (**reference data: 1.1**)
-
-  ```
-  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-  ```
-
-### 2.7 Remote Database Installation
+### 2.6 Remote Database Installation
 
 **This is an optional step.** In case you want to install central server with remote database, perform the steps in this chapter. Otherwise, skip it and continue from the next chapter.
 
@@ -231,6 +217,20 @@ Edit `/etc/xroad.properties` contents. See the example below. Replace the parame
   ```
 
 **Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
+
+### 2.7 Setup Package Repository
+
+Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+
+  ```
+  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+  ```
+
+Add X-Road package repository (**reference data: 1.1**)
+
+  ```
+  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+  ```
 
 ### 2.8 Package Installation
 
@@ -484,7 +484,7 @@ X-Road central server can be deployed in multiple ways. The simplest option is t
 
 The simplest deployment option is to use a single central server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
 
-![Central server with local database](img/ig-cs_local_db.png)
+[![Central server with local database](img/ig-cs_local_db_small.png)](img/ig-cs_local_db.png)
 
 ### B.3 Remote Database
 
@@ -492,23 +492,23 @@ It is possible to use a remote database with central server. This option is some
 
 Central server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
 
-![Central server with remote database](img/ig-cs_remote_db.png)
+[![Central server with remote database](img/ig-cs_remote_db_small.png)](img/ig-cs_remote_db.png)
 
-Central server itself can also be clustered. In clustered mode high-availability is built in to the system and the clients (security servers and configuration proxies) can continue operation despite a loss of central server node.
+Central server itself can also be clustered. In clustered mode high-availability is built in to the system and the clients (security servers and configuration proxies) can continue operation despite a loss of a central server node.
 
-![Central server cluster with remote database](img/ig-cs_cluster_remote_db.png)
+[![Central server cluster with remote database](img/ig-cs_cluster_remote_db_small.png)](img/ig-cs_cluster_remote_db.png)
 
 ### B.4 Remote Database Cluster
 
 When aiming for production it's recommended to use redundant front-end nodes (clustered central server) and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
 
-![Central server with remote database cluster](img/ig-cs_remote_db_cluster.png)
+[![Central server with remote database cluster](img/ig-cs_remote_db_cluster_small.png)](img/ig-cs_remote_db_cluster.png)
 
 ### B.5 Cloud Database Cluster
 
 When central server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes (clustered central server) in separate availability zones.
 
-![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster.png)
+[![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster_small.png)](img/ig-cs_cloud_db_cluster.png)
 
 ### B.6 Summary
 
