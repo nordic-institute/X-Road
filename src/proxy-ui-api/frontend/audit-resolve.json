@@ -7,6 +7,10 @@
     "1548|@vue/cli-service>copy-webpack-plugin>serialize-javascript": {
       "decision": "ignore",
       "madeAt": 1597218844455
+    },
+    "1556|dtsgenerator>cross-fetch>node-fetch": {
+      "decision": "postpone",
+      "madeAt": 1599830728765
     }
   },
   "rules": {},

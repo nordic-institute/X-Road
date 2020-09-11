@@ -77,6 +77,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,6 +87,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.niis.xroad.restapi.service.TokenCertificateService.AuthCertificateNotSupportedException.AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificate;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockCertificate;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 
 /**
@@ -96,15 +99,27 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Autowired
     TokenCertificatesApiController tokenCertificatesApiController;
 
+    private static final String AUTH_CERT_HASH = "auth-cert-hash";
+
     @Before
     public void setup() throws Exception {
         doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any());
         doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
         doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfFacade).getInstanceIdentifier();
         doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfFacade).getSubjectName(any(), any());
-        CertificateInfo certificateInfo = new CertificateInfoBuilder()
+        CertificateInfo signCertificateInfo = new CertificateInfoBuilder().certificate(getMockCertificate())
                 .certificateStatus("SAVED").build();
-        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        CertificateInfo authCertificateInfo = new CertificateInfoBuilder().certificate(getMockAuthCertificate())
+                .certificateStatus("SAVED").build();
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String certId = (String) args[0];
+            if (AUTH_CERT_HASH.equals(certId)) {
+                return authCertificateInfo;
+            } else {
+                return signCertificateInfo;
+            }
+        }).when(signerProxyFacade).getCertForHash(any());
         doAnswer(answer -> "key-id").when(signerProxyFacade).getKeyIdForCertHash(any());
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
         KeyInfo keyInfo = new KeyInfoBuilder().id("key-id").build();
@@ -140,7 +155,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_AUTH_CERT")
     public void importAuthCertificate() throws Exception {
-        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        X509Certificate mockAuthCert = getMockAuthCertificate();
         CertificateInfo certificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
                 .certificate(mockAuthCert)
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
@@ -158,7 +173,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importAuthCertificateWithWrongPermission() throws Exception {
-        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        X509Certificate mockAuthCert = getMockAuthCertificate();
         Resource body = CertificateTestUtils.getResource(mockAuthCert.getEncoded());
         tokenCertificatesApiController.importCertificate(body);
     }
@@ -169,7 +184,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         ClientId notFoundId = TestUtils.getClientId(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO,
                 TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3);
         doAnswer(answer -> notFoundId).when(globalConfFacade).getSubjectName(any(), any());
-        X509Certificate mockCert = CertificateTestUtils.getMockCertificate();
+        X509Certificate mockCert = getMockCertificate();
         Resource body = CertificateTestUtils.getResource(mockCert.getEncoded());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -269,7 +284,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     }
 
     @Test
-    @WithMockUser(authorities = "VIEW_CERT")
+    @WithMockUser(authorities = {"VIEW_AUTH_CERT", "VIEW_SIGN_CERT"})
     public void getCertificateForHash() throws Exception {
         ResponseEntity<TokenCertificate> response =
                 tokenCertificatesApiController.getCertificate(MOCK_CERTIFICATE_HASH);
@@ -279,7 +294,36 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     }
 
     @Test
-    @WithMockUser(authorities = "VIEW_CERT")
+    @WithMockUser(authorities = "VIEW_AUTH_CERT")
+    public void getCertificateForHashAuthPermissions() throws Exception {
+        ResponseEntity<TokenCertificate> response =
+                tokenCertificatesApiController.getCertificate(AUTH_CERT_HASH);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        try {
+            tokenCertificatesApiController.getCertificate("not-an-auth-cert-means-sign-cert");
+            fail("should have thrown AccessDeniedException");
+        } catch (AccessDeniedException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_SIGN_CERT")
+    public void getCertificateForHashSignPermissions() throws Exception {
+        ResponseEntity<TokenCertificate> response =
+                tokenCertificatesApiController.getCertificate("not-an-auth-cert-means-sign-cert");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        try {
+            tokenCertificatesApiController.getCertificate(AUTH_CERT_HASH);
+            fail("should have thrown AccessDeniedException");
+        } catch (AccessDeniedException expected) {
+        }
+    }
+
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_AUTH_CERT", "VIEW_SIGN_CERT"})
     public void getCertificateForHashNotFound() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
@@ -331,7 +375,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_AUTH_CERT")
     public void importAuthCertificateFromToken() throws Exception {
-        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        X509Certificate mockAuthCert = getMockAuthCertificate();
         CertificateInfo certificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
                 .certificate(mockAuthCert)
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
