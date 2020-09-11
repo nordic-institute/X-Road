@@ -102,7 +102,7 @@ export default Vue.extend({
         return false;
       }
 
-      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ);
+      return this.$store.getters.hasPermission(Permissions.DELETE_CLIENT);
     },
 
     tabs(): Tab[] {
