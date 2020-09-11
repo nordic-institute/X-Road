@@ -34,7 +34,7 @@ Doc. ID: ARC-SS
  17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                      | Petteri Kivimäki
  31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)             | Ilkka Seppälä
  21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
- 10.09.2020 | 1.10    | Updates for API based UI                                    | Jarkko Hyöty
+ 10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
 
 ## Table of Contents <!-- omit in toc -->
 
