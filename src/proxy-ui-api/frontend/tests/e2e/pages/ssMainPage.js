@@ -163,6 +163,10 @@ var localGroupPopupCommands = {
     this.click('@localGroupTestComCheckbox');
     return this;
   },
+  selectMember: function(member) {
+    this.api.click(`//tr[.//*[contains(text(), "${member}")]]//*[contains(@class, "v-input--selection-controls__ripple")]`);
+    return this;
+  },
   clickRemoveAll: function() {
     this.click('@localGroupRemoveAllButton');
     return this;
