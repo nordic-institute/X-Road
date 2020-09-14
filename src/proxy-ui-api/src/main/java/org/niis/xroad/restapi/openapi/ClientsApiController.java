@@ -80,6 +80,7 @@ import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.restapi.service.InvalidServiceUrlException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
@@ -407,8 +408,8 @@ public class ClientsApiController implements ClientsApi {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
                         clientId, url, ignoreWarnings);
-            } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                    | InvalidUrlException | InvalidWsdlException e) {
+            } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
+                    | InvalidWsdlException | InvalidServiceUrlException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
