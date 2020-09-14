@@ -149,21 +149,24 @@ See [[ARC-CP]](#ARC-CP) for the configuration proxy details.
 <a id="Ref_Technology_matrix_of_the_security_server" class="anchor"></a>
 Table 4. Technology matrix of the security server
 
- **Technology**     | **Signer**   | **Proxy**   | **Password Store**   | **Message Log**   | **Metadata Services**   | **Database**   | **Configuration Client**   | **User Interface**   | **Servlet Engine**   | **Monitor**   | **Environmental Monitoring Service**   | **Operational Monitoring Buffer**   | **Operational Monitoring Services**
-------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
- Java 8             | X   | X   |     | X   | X   |     | X   | X   | X   | X   | X   | X   | X
- C                  |     |     | X   |     |     |     |     |     |     |     |     |     |
- Logback            | X   | X   |     | X   | X   |     | X   | X   |     |     | X   | X   | X
- Akka 2.X           | X   | X   |     | X   |     |     |     | X   |     | X   | X   | X   |
- Jetty 9            |     |     |     |     |     |     |     |     | X   |     |     |     |
- JRuby 9.X          |     |     |     |     |     |     |     | X   |     |     |     |     |
- Javascript         |     |     |     |     |     |     |     | X   |     |     |     |     |
- PostgreSQL 10      |     |     |     |     |     | X   |     |     |     |     |     |     |
- PAM                |     |     |     |     |     |     |     |     | X   |     |     |     |
- Liquibase          |     |     |     |     |     | X   |     |     |     |     |     |     |
- systemd            | X   | X   |     |     |     |     | X   |     | X   |     |     |     |
- PKCS \#11\[[2](#Ref_2)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |
- Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |
+ **Technology**                 | **Signer** | **Proxy** | **Password Store** | **Message Log**  | **Metadata Services** | **Database** | **Configuration Client** | **User Interface frontend** | **REST API** | **Monitor** | **Environmental Monitoring Service** | **Operational Monitoring Buffer** | **Operational Monitoring Services**
+------------------------------- | ---------- | --------- | ------------------ | ---------------- | --------------------- | ------------ | ------------------------ | --------------------------- | ------------ | ----------- | ------------------------------------ | --------------------------------- | ---
+ Java 8                         | X          | X         |                    | X                | X                     |              | X                        |                             | X            | X           | X                                    | X                                 | X
+ C                              |            |           | X                  |                  |                       |              |                          |                             |              |             |                                      |                                   |
+ Logback                        | X          | X         |                    | X                | X                     |              | X                        |                             | X            |             | X                                    | X                                 | X
+ Akka 2.X                       | X          | X         |                    | X                |                       |              |                          |                             | X            | X           | X                                    | X                                 |
+ Javascript                     |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ PostgreSQL 10                  |            |           |                    |                  |                       | X            |                          |                             | X            |             |                                      |                                   |
+ PAM                            |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+ Liquibase                      |            |           |                    |                  |                       | X            |                          |                             |              |             |                                      |                                   |
+ systemd                        | X          | X         |                    |                  |                       |              | X                        |                             | X            |             |                                      |                                   |
+ PKCS \#11\[[2](#Ref_2)\]       | X          |           |                    |                  |                       |              |                          |                             |              |             |                                      |                                   |
+ Dropwizard Metrics             |            |           |                    |                  |                       |              |                          |                             |              | X           |                                      |                                   |
+ Spring Boot                    |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+ Vue.js                         |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ Npm                            |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ OpenAPI                        |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |      
+ Embedded Tomcat 9.X            |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
 
 See [[ARC-SS]](#ARC-SS) for the security server details.
 
