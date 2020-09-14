@@ -74,6 +74,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_DELETED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL_NEW;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL;
+import static org.niis.xroad.restapi.util.FormatUtils.HTTPS_PROTOCOL;
+import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
 
 /**
  * ServiceDescription service
@@ -258,6 +260,8 @@ public class ServiceDescriptionService {
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
 
+        validateServiceUrls(wsdlProcessingResult.getParsedServices());
+
         if (!ignoreWarnings && !wsdlProcessingResult.getWarnings().isEmpty()) {
             throw new UnhandledWarningsException(wsdlProcessingResult.getWarnings());
         }
@@ -273,6 +277,25 @@ public class ServiceDescriptionService {
         client.getServiceDescription().add(serviceDescriptionType);
         clientRepository.saveOrUpdateAndFlush(client);
         return serviceDescriptionType;
+    }
+
+    /**
+     * Validate that all service URLs begin with HTTP or HTTPS. This should be checked only when ADDING a new WSDL
+     * @param parsedServices
+     * @throws InvalidServiceUrlException if one or more URLs do not start with HTTP or HTTPS
+     */
+    private void validateServiceUrls(Collection<WsdlParser.ServiceInfo> parsedServices) throws
+            InvalidServiceUrlException {
+        final List<String> invalidUrls = new ArrayList<>();
+        parsedServices.forEach(serviceInfo -> {
+            if (serviceInfo.url != null && !serviceInfo.url.startsWith(HTTP_PROTOCOL)
+                    && !serviceInfo.url.startsWith(HTTPS_PROTOCOL)) {
+                invalidUrls.add(serviceInfo.url);
+            }
+        });
+        if (!invalidUrls.isEmpty()) {
+            throw new InvalidServiceUrlException(invalidUrls);
+        }
     }
 
     /**
@@ -907,7 +930,7 @@ public class ServiceDescriptionService {
      * it just updates to the same URL value
      *
      * @param serviceDescriptionType
-     * @param url                    the new url
+     * @param url the new url
      * @return ServiceDescriptionType
      * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
      * @throws WrongServiceDescriptionTypeException if SD with given id was not a WSDL based one
@@ -1178,11 +1201,11 @@ public class ServiceDescriptionService {
      * Fatal problems result in thrown exception, warnings are returned in
      * WsdlProcessingResult
      *
-     * @param client                      client who is associated with the wsdl
-     * @param url                         url of the wsdl
+     * @param client client who is associated with the wsdl
+     * @param url url of the wsdl
      * @param updatedServiceDescriptionId id of the service description we
-     *                                    will update with this wsdl, or null
-     *                                    if we're adding a new one
+     * will update with this wsdl, or null
+     * if we're adding a new one
      * @return parsed and validated wsdl and possible warnings
      * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
      * @throws InvalidUrlException if url was empty or invalid

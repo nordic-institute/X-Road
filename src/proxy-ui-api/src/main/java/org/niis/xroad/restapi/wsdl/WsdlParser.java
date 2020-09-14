@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.wsdl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.InvalidServiceUrlException;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -64,15 +63,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.niis.xroad.restapi.util.FormatUtils.HTTPS_PROTOCOL;
-import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
 
 /**
  * Utils for WSDL parsing
@@ -111,17 +106,13 @@ public final class WsdlParser {
      * @throws WsdlNotFoundException if a WSDL was not found at given URL
      * @throws WsdlParseException if anything else than WsdlNotFoundException went wrong in parsing (e.g. document
      * size exceeds the limit defined by {@link #MAX_DESCRIPTION_SIZE})
-     * @throws InvalidServiceUrlException if a service in the WSDL has a URL that doesn't start with HTTP or HTTPS
      */
-    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException,
-            InvalidServiceUrlException {
+    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException {
         try {
             return internalParseWSDL(wsdlUrl);
         } catch (PrivateWsdlNotFoundException e) {
             log.error("Reading WSDL from {} failed", wsdlUrl, e);
             throw new WsdlNotFoundException(e);
-        } catch (InvalidServiceUrlException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Reading WSDL from {} failed", wsdlUrl, e);
             throw new WsdlParseException(clarifyWsdlParsingException(e));
@@ -159,7 +150,7 @@ public final class WsdlParser {
         Collection<Service> services = definition.getServices().values();
 
         Map<String, ServiceInfo> result = new HashMap<>();
-        final List<String> invalidUrls = new ArrayList<>();
+
         for (Service service : services) {
             for (Port port : (Collection<Port>) service.getPorts().values()) {
                 if (!hasSoapOverHttpBinding(port)) {
@@ -167,9 +158,6 @@ public final class WsdlParser {
                 }
 
                 String url = getUrl(port);
-                if (url != null && !url.startsWith(HTTP_PROTOCOL) && !url.startsWith(HTTPS_PROTOCOL)) {
-                    invalidUrls.add(url);
-                }
                 for (BindingOperation operation : (List<BindingOperation>) port.getBinding().getBindingOperations()) {
                     String title = getChildValue("title",
                             operation.getOperation().getDocumentationElement());
@@ -180,9 +168,6 @@ public final class WsdlParser {
                             operation.getName(), title, url, version));
                 }
             }
-        }
-        if (!invalidUrls.isEmpty()) {
-            throw new InvalidServiceUrlException(invalidUrls);
         }
 
         return result.values();
