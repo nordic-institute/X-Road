@@ -83,7 +83,7 @@
             @certificateClick="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
-              <template v-if="hasPermission">
+              <template v-if="canImportFromToken">
                 <SmallButton
                   v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                   class="table-button-fix"
@@ -204,24 +204,32 @@ export default Vue.extend({
     };
   },
   computed: {
-    hasPermission(): boolean {
+    canImportFromToken(): boolean {
+      // Can the user import cwrtificate from hardware token
+      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
+    },
+
+    showRegisterCertButton(): boolean {
+      // Decide if the user can register a certificate
       return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+        Permissions.SEND_AUTH_CERT_REG_REQ,
       );
     },
-    showRegisterCertButton(): boolean {
-      if (
-        this.hasPermission &&
-        this.$store.getters.hasPermission(Permissions.SEND_AUTH_CERT_REG_REQ)
-      ) {
-        return true;
-      }
-      return false;
+
+    canCreateAuthCsr(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.GENERATE_AUTH_CERT_REQ,
+      );
+    },
+    canCreateSignCsr(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.GENERATE_AUTH_CERT_REQ,
+      );
     },
   },
   methods: {
     canDeleteCsr(key: Key): boolean {
-      // Decide if the user can delete CSR based on the key usage type anr permissions
+      // Decide if the user can delete CSR based on the key usage type and permissions
       if (key.usage === 'AUTHENTICATION') {
         return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_CERT);
       }
