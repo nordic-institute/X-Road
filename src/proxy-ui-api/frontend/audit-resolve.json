@@ -2,15 +2,7 @@
   "decisions": {
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1597218830120
-    },
-    "1548|@vue/cli-service>copy-webpack-plugin>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1597218844455
-    },
-    "1556|dtsgenerator>cross-fetch>node-fetch": {
-      "decision": "postpone",
-      "madeAt": 1599830728765
+      "madeAt": 1600081668835
     }
   },
   "rules": {},
