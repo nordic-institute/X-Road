@@ -81,18 +81,20 @@
           <td>{{ accessRight.service_code }}</td>
           <td>{{ accessRight.service_title }}</td>
           <td>{{ accessRight.rights_given_at }}</td>
-          <td class="button-wrap">
-            <v-btn
-              v-if="canEdit"
-              small
-              outlined
-              rounded
-              color="primary"
-              class="xrd-small-button xrd-table-button"
-              data-test="access-right-remove"
-              @click="remove(accessRight)"
-              >{{ $t('action.remove') }}</v-btn
-            >
+          <td>
+            <div class="button-wrap">
+              <v-btn
+                v-if="canEdit"
+                small
+                outlined
+                rounded
+                color="primary"
+                class="xrd-small-button xrd-table-button"
+                data-test="access-right-remove"
+                @click="remove(accessRight)"
+                >{{ $t('action.remove') }}</v-btn
+              >
+            </div>
           </td>
         </tr>
       </tbody>
