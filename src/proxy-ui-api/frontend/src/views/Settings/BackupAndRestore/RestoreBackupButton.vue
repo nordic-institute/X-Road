@@ -25,7 +25,6 @@
  -->
 <template>
   <small-button
-    v-if="canBackup"
     :min_width="50"
     class="xrd-table-button"
     data-test="backup-restore"
@@ -51,6 +50,7 @@ import * as api from '@/util/api';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { encodePathParameter } from '@/util/api';
+
 export default Vue.extend({
   name: 'RestoreBackupButton',
   components: {
@@ -58,11 +58,6 @@ export default Vue.extend({
     ConfirmDialog,
   },
   props: {
-    canBackup: {
-      type: Boolean,
-      default: false,
-      required: true,
-    },
     backup: {
       type: Object as Prop<Backup>,
       required: true,
