@@ -89,6 +89,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.InvalidServiceUrlException.ERROR_INVALID_SERVICE_URL;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WsdlUrlAlreadyExistsException.ERROR_WSDL_EXISTS;
@@ -718,6 +719,22 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_WSDL" })
+    public void addWsdlServiceDescriptionBadServiceUrl() {
+        ServiceDescriptionAdd serviceDescription =
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/invalid-serviceurl.wsdl");
+        serviceDescription.setType(ServiceType.WSDL);
+        try {
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_INVALID_SERVICE_URL, expected.getErrorDeviation().getCode());
+            assertFalse(expected.getErrorDeviation().getMetadata().isEmpty());
         }
     }
 
