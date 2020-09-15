@@ -121,7 +121,7 @@ export const userGetters: GetterTree<UserState, RootState> = {
     return state.initializationStatus?.software_token_init_status;
   },
 
-  hasInitState: (state) => {
+  hasInitState: (state: UserState) => {
     return typeof state.initializationStatus !== 'undefined';
   },
 
