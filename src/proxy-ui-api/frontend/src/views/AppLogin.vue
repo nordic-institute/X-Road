@@ -203,7 +203,6 @@ export default (Vue as VueConstructor<
         .dispatch('fetchInitializationStatus')
         .then(
           () => {
-            console.log('hasInitState', this.$store.getters.hasInitState);
             if (!this.$store.getters.hasInitState) {
               this.$store.dispatch(
                 'showErrorMessageCode',
@@ -211,6 +210,7 @@ export default (Vue as VueConstructor<
               );
               redirectToLogin();
 
+              return;
             } else if (this.$store.getters.needsInitialization) {
 
               // Check if the user has permission to initialize the server
