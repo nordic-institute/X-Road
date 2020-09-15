@@ -126,6 +126,7 @@ export const userGetters: GetterTree<UserState, RootState> = {
   },
 
   needsInitialization: (state) => {
+    console.log(state);
     return !(
       state.initializationStatus?.is_anchor_imported &&
       state.initializationStatus.is_server_code_initialized &&
