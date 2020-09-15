@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.4  
-12.05.2020
+Version: 1.5
+15.09.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -18,6 +18,7 @@ Doc. ID: ARC-TEC
  17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10          | Petteri Kivimäki
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
  12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
+ 15.09.2020 | 1.5     | Updated to match security server REST API architecture      | Janne Mattila
 
 ## Table of Contents
 
@@ -67,24 +68,29 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></a>
 Table 1. Technology matrix of the X-Road
 
- **Technology**     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon**
------------------------ | ------------------- | ------------------ | ------------------- | -------------------
- Java 8             | X                   | X                  | X                       | X
- C                  | X                   | X                  |                         |
- Logback            | X                   | X                  | X                       | X
- Akka 2.X           | X                   | X                  | X                       | X
- Jetty 9            | X                   | X                  |                         |
- JRuby 9.X          | X                   | X                  |                         |
- Ubuntu 18.04       | X                   | X                  | X                       | X
- Red Hat Enterprise Linux 7 (RHEL7)       | X                   |                    |                         | X
- PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |
- PostgreSQL 10      | X                   | X                  |                         | X
- nginx              | X                   | X                  | X                       |
- PAM                | X                   | X                  |                         |
- Liquibase          | X                   | X                  |                         | X
- systemd            | X                   | X                  | X                       | X
- PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
- Dropwizard Metrics | X                   |                    |                         | X
+ **Technology**                     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon**
+----------------------------------- | ------------------- | ------------------ | ----------------------- | -------------------
+ Java 8                             | X                   | X                  | X                       | X
+ C                                  | X                   | X                  |                         |
+ Logback                            | X                   | X                  | X                       | X
+ Akka 2.X                           | X                   | X                  | X                       | X
+ Jetty 9                            |                     | X                  |                         |
+ JRuby 9.X                          |                     | X                  |                         |
+ Ubuntu 18.04                       | X                   | X                  | X                       | X
+ Red Hat Enterprise Linux 7 (RHEL7) | X                   |                    |                         | X
+ PostgreSQL 9.4                     |                     | X\[[1](#Ref_1)\]   |                         |
+ PostgreSQL 10                      | X                   | X                  |                         | X
+ nginx                              |                     | X                  | X                       |
+ PAM                                | X                   | X                  |                         |
+ Liquibase                          | X                   | X                  |                         | X
+ systemd                            | X                   | X                  | X                       | X
+ PKCS \#11\[[2](#Ref_2)\]           | X                   | X                  | X                       |
+ Dropwizard Metrics                 | X                   |                    |                         | X
+ Spring Boot                        | X                   |                    |                         |  
+ Vue.js                             | X                   |                    |                         |  
+ Npm                                | X                   |                    |                         |  
+ OpenAPI                            | X                   |                    |                         |  
+ Embedded Tomcat 9.X                | X                   |                    |                         |  
 
 See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 
