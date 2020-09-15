@@ -96,6 +96,7 @@ export enum Permissions {
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
   EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES', // client > service clients
   EDIT_CLIENT_INTERNAL_CONNECTION_TYPE = 'EDIT_CLIENT_INTERNAL_CONNECTION_TYPE', // internal servers > connection type
+  EDIT_ENDPOINT_ACL = 'EDIT_ENDPOINT_ACL', // edit endpoint acess rights
   EDIT_KEY_FRIENDLY_NAME = 'EDIT_KEY_FRIENDLY_NAME', // keys and certificates > sign and auth keys > key
   EDIT_LOCAL_GROUP_DESC = 'EDIT_LOCAL_GROUP_DESC', // client > local groups
   EDIT_LOCAL_GROUP_MEMBERS = 'EDIT_LOCAL_GROUP_MEMBERS', // client > local groups
@@ -138,6 +139,7 @@ export enum Permissions {
   VIEW_CLIENT_INTERNAL_CONNECTION_TYPE = 'VIEW_CLIENT_INTERNAL_CONNECTION_TYPE', // internal servers > connection type
   VIEW_CLIENT_LOCAL_GROUPS = 'VIEW_CLIENT_LOCAL_GROUPS', // subsystem "local groups" tab
   VIEW_CLIENT_SERVICES = 'VIEW_CLIENT_SERVICES', // subsystem "services" tab
+  VIEW_ENDPOINT_ACL = 'VIEW_ENDPOINT_ACL', // client > services > rest > endpoint > acces rights
   VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
