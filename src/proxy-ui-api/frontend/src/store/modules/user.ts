@@ -122,6 +122,7 @@ export const userGetters: GetterTree<UserState, RootState> = {
   },
 
   hasInitState: (state: UserState) => {
+    console.log(state.initializationStatus);
     return typeof state.initializationStatus !== 'undefined';
   },
 

@@ -203,7 +203,8 @@ export default (Vue as VueConstructor<
         .dispatch('fetchInitializationStatus')
         .then(
           () => {
-            if(!this.$store.getters.hasInitState) {
+            console.log('hasInitState', this.$store.getters.hasInitState);
+            if (!this.$store.getters.hasInitState) {
               this.$store.dispatch(
                 'showErrorMessageCode',
                 'initialConfiguration.noInitializationStatus',
