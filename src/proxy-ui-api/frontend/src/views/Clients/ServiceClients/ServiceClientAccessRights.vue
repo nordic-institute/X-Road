@@ -26,7 +26,6 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <subViewTitle :title="serviceClientId" @close="close" />
-
     <v-card flat>
       <table class="xrd-table service-client-margin">
         <thead>
@@ -49,10 +48,11 @@
           @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
-          v-if="serviceClientAccessRights.length > 0"
+          v-if="canEdit && serviceClientAccessRights.length > 0"
           >{{ $t('serviceClients.removeAll') }}
         </large-button>
         <large-button
+          v-if="canEdit"
           @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
@@ -83,6 +83,7 @@
           <td>{{ accessRight.rights_given_at }}</td>
           <td class="button-wrap">
             <v-btn
+              v-if="canEdit"
               small
               outlined
               rounded
@@ -152,6 +153,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ServiceCandidate } from '@/ui-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
+import { Permissions } from '@/global';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
@@ -172,6 +174,11 @@ export default Vue.extend({
     serviceClientId: {
       type: String,
       required: true,
+    },
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_ACL);
     },
   },
   data() {
