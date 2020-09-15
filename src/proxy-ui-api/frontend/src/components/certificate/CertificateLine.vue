@@ -101,7 +101,7 @@ export default Vue.extend({
 
       if (this.date) {
         // Return readable presentation of date
-        const event = new Date(this.sourceObject.not_before);
+        const event = new Date(this.sourceObject[this.childKey]);
         return event.toString();
       }
 
