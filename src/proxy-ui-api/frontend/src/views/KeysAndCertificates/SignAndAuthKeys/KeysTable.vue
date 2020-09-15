@@ -164,7 +164,7 @@ import {
   TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
-import { Permissions, UsageTypes, PossibleActions } from '@/global';
+import { Permissions, UsageTypes } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
