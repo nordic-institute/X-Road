@@ -648,6 +648,7 @@
   "initialConfiguration": {
     "title": "Initial configuration",
     "noPermission": "This Security Server is currently not initialised, please contact an administrator to do the initial configuration",
+    "noInitializationStatus": "No initialization status available",
     "success": "Server initialised",
     "anchor": {
       "title": "Configuration Anchor",
