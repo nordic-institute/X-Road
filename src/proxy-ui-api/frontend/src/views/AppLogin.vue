@@ -210,7 +210,6 @@ export default (Vue as VueConstructor<
               );
               redirectToLogin();
 
-              return;
             } else if (this.$store.getters.needsInitialization) {
 
               // Check if the user has permission to initialize the server
