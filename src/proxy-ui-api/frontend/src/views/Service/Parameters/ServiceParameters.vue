@@ -51,6 +51,7 @@
               name="serviceUrl"
               :error-messages="errors"
               data-test="service-url"
+              :disabled="!canEdit"
             ></v-text-field>
           </ValidationProvider>
         </div>
@@ -85,6 +86,7 @@
               style="max-width: 200px;"
               name="serviceTimeout"
               :error-messages="errors"
+              :disabled="!canEdit"
               data-test="service-timeout"
             ></v-text-field>
           </ValidationProvider>
@@ -108,7 +110,7 @@
         </div>
         <div class="edit-input">
           <v-checkbox
-            :disabled="!isHttpsMethod()"
+            :disabled="!isHttpsMethod() || !canEdit"
             @change="setTouched()"
             v-model="service.ssl_auth"
             color="primary"
@@ -129,6 +131,7 @@
 
       <div class="button-wrap">
         <large-button
+          v-if="canEdit"
           :disabled="invalid || disableSave"
           :loading="saving"
           @click="save(false)"
@@ -143,12 +146,14 @@
       <div class="row-buttons">
         <large-button
           :disabled="!hasServiceClients"
+          v-if="canEdit"
           outlined
           @click="removeAllServiceClients()"
           data-test="remove-subjects"
           >{{ $t('action.removeAll') }}</large-button
         >
         <large-button
+          v-if="canEdit"
           outlined
           class="add-members-button"
           @click="showAddServiceClientDialog()"
@@ -176,6 +181,7 @@
             <td>
               <div class="button-wrap">
                 <v-btn
+                  v-if="canEdit"
                   small
                   outlined
                   rounded
@@ -247,7 +253,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
+import { RouteName, Permissions } from '@/global';
 import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { encodePathParameter } from '@/util/api';
@@ -303,7 +309,13 @@ export default Vue.extend({
       return !this.service || !this.touched;
     },
     showApplyToAll(): boolean {
-      return this.$route.query.descriptionType === ServiceTypeEnum.WSDL;
+      return (
+        this.$route.query.descriptionType === ServiceTypeEnum.WSDL &&
+        this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS)
+      );
+    },
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
     },
   },
 
