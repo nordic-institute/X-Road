@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API
-  version: "1.0.28"
+  version: "1.0.29"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -14,7 +14,7 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://app.swaggerhub.com/apis/Gofore/X-Road/1.0.28/api/v1
+  - url: https://app.swaggerhub.com/apis/Gofore/X-Road/1.0.29/api/v1
     description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
@@ -2517,7 +2517,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /language:
+  /language/{code}:
     put: # ok
       tags:
         - language
@@ -2903,6 +2903,7 @@ paths:
     get:
       tags:
         - endpoints
+      summary: Get an endpoint by its id
       operationId: getEndpoint
       description: Administrator fetches an endpoint
       parameters:
@@ -2937,6 +2938,7 @@ paths:
     patch:
       tags:
         - endpoints
+      summary: Update an endpoint
       operationId: updateEndpoint
       description: Administrator updates an endpoint
       parameters:
@@ -4356,7 +4358,8 @@ components:
           format: binary
     TokenCertificateSigningRequest: # ok
       type: object
-      description: CSR for certificate that is stored in a Token
+      description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be
+        done to this object, e.g DELETE (only for csr related operations and does not consider user authorization).
       required:
         - id
         - owner_id
@@ -4378,12 +4381,11 @@ components:
           readOnly: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     TokenCertificate: # ok
       type: object
-      description: certificate that is stored in a Token (auth or sign cert)
+      description: Certificate that is stored in a Token (auth or sign cert). Also includes the possible actions
+        that can be done to this object, e.g DELETE (only for cert related operations and does not consider
+        user authorization).
       required:
         - ocsp_status
         - owner_id
@@ -4416,9 +4418,6 @@ components:
           $ref: '#/components/schemas/CertificateStatus'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     OcspResponderDiagnostics: # ok
       type: object
       description: Ocsp responder diagnostics
@@ -4750,7 +4749,6 @@ components:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
-          readOnly: true
     ClientAdd: # ok
       type: object
       description: request to add client. Carries a Client and ignore warnings parameter
@@ -4769,6 +4767,7 @@ components:
       format: enum
       description: client status
       example: REGISTERED
+      readOnly: true
       enum:
         - REGISTERED
         - SAVED
@@ -4842,7 +4841,7 @@ components:
     CsrFormat: # ok
       type: string
       format: enum
-      description: csr format
+      description: format of the certificate signing request (PEM or DER)
       example: PEM
       default: PEM
       enum:
@@ -4858,7 +4857,6 @@ components:
         - subject_field_values
       properties:
         key_usage_type:
-          description: which usage type this CSR is for (signing or authentication)
           $ref: '#/components/schemas/KeyUsageType'
         ca_name:
           type: string
@@ -4868,7 +4866,6 @@ components:
           minLength: 1
           maxLength: 255
         csr_format:
-          description: format of the certificate signing request (PEM or DER)
           $ref: '#/components/schemas/CsrFormat'
         member_id:
           type: string
@@ -5052,7 +5049,7 @@ components:
           maxLength: 255
         member_count:
           type: integer
-          format: uint
+          format: int32
           description: member count
           example: 10
           minimum: 0
@@ -5210,7 +5207,8 @@ components:
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     Key: # ok
       type: object
-      description: key for the certificate
+      description: Key for the certificate. Also includes the possible actions that can be done to this object,
+        e.g DELETE (only for key related operations and does not consider user authorization).
       required:
         - id
         - name
@@ -5262,9 +5260,6 @@ components:
           example: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     KeyName: # ok
       type: object
       required:
@@ -5322,7 +5317,7 @@ components:
     KeyUsageType: # ok
       type: string
       format: enum
-      description: intended usage for the key
+      description: intended usage for the key (signing or authentication)
       example: AUTHENTICATION
       enum:
         - AUTHENTICATION
@@ -5523,7 +5518,7 @@ components:
           maxLength: 255
         timeout:
           type: integer
-          format: uint
+          format: int32
           description: service time out value
           example: 60
           minimum: 0
@@ -5542,7 +5537,7 @@ components:
           example: true
         subjects_count:
           type: integer
-          format: uint
+          format: int32
           description: count of acl subjects
           example: 5
           minimum: 0
@@ -5576,7 +5571,7 @@ components:
           maxLength: 255
         timeout:
           type: integer
-          format: uint
+          format: int32
           description: service time out value
           example: 60
           minimum: 0
@@ -5678,7 +5673,6 @@ components:
           readOnly: true
         service_client_type:
           $ref: '#/components/schemas/ServiceClientType'
-          readOnly: true
         rights_given_at:
           type: string
           format: date-time
@@ -5840,6 +5834,7 @@ components:
       format: text
       description: subject type
       example: GLOBALGROUP
+      readOnly: true
       enum:
         - GLOBALGROUP
         - LOCALGROUP
@@ -5912,7 +5907,8 @@ components:
         - UNKNOWN
     Token: # ok
       type: object
-      description: token
+      description: Token. Also includes the possible actions that can be done to this object,
+        e.g DELETE (only for token related operations and does not consider user authorization).
       required:
         - id
         - name
@@ -5976,9 +5972,6 @@ components:
             $ref: '#/components/schemas/KeyValuePair'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-          description: possible actions that can be done to this object, e.g DELETE.
-            Has value only for operationIds getToken and getTokens.
-            Does not consider user authorization.
     TokenInitStatus: # ok
       type: string
       format: enum

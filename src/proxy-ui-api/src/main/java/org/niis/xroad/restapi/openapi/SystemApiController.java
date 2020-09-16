@@ -64,9 +64,9 @@ import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_CERT_REQ;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_SSL;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.IMPORT_PROXY_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_TLS_CSR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_TLS_KEY_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.IMPORT_INTERNAL_TLS_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
@@ -113,7 +113,7 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EXPORT_PROXY_INTERNAL_CERT')")
+    @PreAuthorize("hasAuthority('EXPORT_INTERNAL_TLS_CERT')")
     public ResponseEntity<Resource> downloadSystemCertificate() {
         String filename = "certs.tar.gz";
         byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
@@ -121,7 +121,7 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('VIEW_PROXY_INTERNAL_CERT', 'VIEW_INTERNAL_SSL_CERT')")
+    @PreAuthorize("hasAuthority('VIEW_INTERNAL_TLS_CERT')")
     public ResponseEntity<CertificateDetails> getSystemCertificate() {
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
         CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);
@@ -137,8 +137,8 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_SSL')")
-    @AuditEventMethod(event = GENERATE_INTERNAL_SSL)
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_KEY_CERT')")
+    @AuditEventMethod(event = GENERATE_INTERNAL_TLS_KEY_CERT)
     public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
@@ -189,8 +189,8 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_CERT_REQ')")
-    @AuditEventMethod(event = GENERATE_INTERNAL_CERT_REQ)
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_CSR')")
+    @AuditEventMethod(event = GENERATE_INTERNAL_TLS_CSR)
     public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedName distinguishedName) {
         byte[] csrBytes = null;
         try {
@@ -202,8 +202,8 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('IMPORT_PROXY_INTERNAL_CERT')")
-    @AuditEventMethod(event = IMPORT_PROXY_INTERNAL_CERT)
+    @PreAuthorize("hasAuthority('IMPORT_INTERNAL_TLS_CERT')")
+    @AuditEventMethod(event = IMPORT_INTERNAL_TLS_CERT)
     public ResponseEntity<CertificateDetails> importSystemCertificate(Resource certificateResource) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later

@@ -104,15 +104,14 @@ export enum Permissions {
   EDIT_TOKEN_FRIENDLY_NAME = 'EDIT_TOKEN_FRIENDLY_NAME',
   EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description
   ENABLE_DISABLE_WSDL = 'ENABLE_DISABLE_WSDL', // client > services > enable / disable WSDL switch
-  EXPORT_INTERNAL_SSL_CERT = 'EXPORT_INTERNAL_SSL_CERT', // export certificate in "internal servers" view & ss tls cert
+  EXPORT_INTERNAL_TLS_CERT = 'EXPORT_INTERNAL_TLS_CERT', // export SS TLS certificate in "internal servers" view & system parameters
   GENERATE_AUTH_CERT_REQ = 'GENERATE_AUTH_CERT_REQ',
-  GENERATE_INTERNAL_CERT_REQ = 'GENERATE_INTERNAL_CERT_REQ',
-  GENERATE_INTERNAL_SSL = 'GENERATE_INTERNAL_SSL', // Security server TLS certificate
-  GENERATE_INTERNAL_SSL_CSR = 'GENERATE_INTERNAL_SSL_CSR', // Security server TLS certificate
+  GENERATE_INTERNAL_TLS_KEY_CERT = 'GENERATE_INTERNAL_TLS_KEY_CERT', // Generate Security server TLS key and certificate
+  GENERATE_INTERNAL_TLS_CSR = 'GENERATE_INTERNAL_TLS_CSR', // Security server TLS certificate
   GENERATE_KEY = 'GENERATE_KEY',
   GENERATE_SIGN_CERT_REQ = 'GENERATE_SIGN_CERT_REQ',
   IMPORT_AUTH_CERT = 'IMPORT_AUTH_CERT',
-  IMPORT_INTERNAL_SSL_CERT = 'IMPORT_INTERNAL_SSL_CERT', // Security server TLS certificate
+  IMPORT_INTERNAL_TLS_CERT = 'IMPORT_INTERNAL_TLS_CERT', // Import security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
   INIT_CONFIG = 'INIT_CONFIG',
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
@@ -123,13 +122,13 @@ export enum Permissions {
   REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
   SEND_AUTH_CERT_DEL_REQ = 'SEND_AUTH_CERT_DEL_REQ', // auth cert details > unregister
   SEND_AUTH_CERT_REG_REQ = 'SEND_AUTH_CERT_REG_REQ', // sign and keys > register
-  SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ',
-  SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ',
+  SEND_CLIENT_DEL_REQ = 'SEND_CLIENT_DEL_REQ', // client / subsystem > delete
+  SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
-  UPLOAD_ANCHOR = 'UPLOAD_ANCHOR',
+  UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES',
-  VIEW_ANCHOR = 'VIEW_ANCHOR',
+  VIEW_ANCHOR = 'VIEW_ANCHOR', // settings > system paramters > configuration anchor
   VIEW_APPROVED_CERTIFICATE_AUTHORITIES = 'VIEW_APPROVED_CERTIFICATE_AUTHORITIES', // Settings / certificate authorities
   VIEW_CLIENTS = 'VIEW_CLIENTS', // clients tab (clients table)
   VIEW_CLIENT_ACL_SUBJECTS = 'VIEW_CLIENT_ACL_SUBJECTS', // subsystem "service clients" tab
@@ -139,11 +138,11 @@ export enum Permissions {
   VIEW_CLIENT_INTERNAL_CONNECTION_TYPE = 'VIEW_CLIENT_INTERNAL_CONNECTION_TYPE', // internal servers > connection type
   VIEW_CLIENT_LOCAL_GROUPS = 'VIEW_CLIENT_LOCAL_GROUPS', // subsystem "local groups" tab
   VIEW_CLIENT_SERVICES = 'VIEW_CLIENT_SERVICES', // subsystem "services" tab
-  VIEW_INTERNAL_SSL_CERT = 'VIEW_INTERNAL_SSL_CERT', // view certificate in client "internal servers"
+  VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL',
-  VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS',
-  VIEW_TSPS = 'VIEW_TSPS',
+  VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
+  VIEW_TSPS = 'VIEW_TSPS', // settings > system paramters > timestamping services
 }
 
 export enum UsageTypes {

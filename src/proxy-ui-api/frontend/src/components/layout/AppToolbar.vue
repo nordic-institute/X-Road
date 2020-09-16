@@ -80,7 +80,20 @@ export default Vue.extend({
   },
   methods: {
     home(): void {
-      this.$router.replace({ name: RouteName.Clients });
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
+        })
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.log('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
+        });
     },
     logout(): void {
       this.$store.dispatch('logout');
