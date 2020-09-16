@@ -208,7 +208,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 
 <a id="Ref_Security_server_component_diagram" class="anchor"></a>
-![](img/arc-ss_security_server_component_diagram.svg)
+![](img/arc-ss_security_server_component_diagram.png)
 
 Figure 1. Security server component diagram
 
@@ -320,7 +320,7 @@ Monitor component collects environmental monitoring information such as running 
 ## 3 Process View
 
 <a id="Ref_Security_Server_process_diagram" class="anchor"></a>
-![](img/arc-ss_security_server_process_diagram.png)
+![](img/arc-ss_security_server_process_diagram.svg)
 
 Figure 2. Security server process diagram
 
