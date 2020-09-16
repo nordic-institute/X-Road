@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API
-  version: "1.0.29"
+  version: "1.0.30"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -14,7 +14,7 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://app.swaggerhub.com/apis/Gofore/X-Road/1.0.29/api/v1
+  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.30/api/v1
     description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
@@ -1568,10 +1568,10 @@ paths:
       operationId: addClientServiceDescription
       description: >
         Administrator adds a new service description for the client.
+        This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionAdd.ignore_warnings` = true.
         If ServiceDescriptionAdd.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
           - WSDL validation fails and validation warnings are returned
           - OpenAPI3 document has non-fatal errors that are returned as warnings
-        The warnings can be ignored by setting ServiceDescriptionAdd.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -1837,13 +1837,13 @@ paths:
       operationId: initSecurityServer
       description: >
         Administrator initializes a new Security Server with the provided initial configuration.
-        If InitialServerConf.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+        This endpoint can return a warnings response which can be ignored by setting `InitialServerConf.ignore_warnings` = true.
+        If `InitialServerConf.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
           - server code has already been set for this Security Server
           - server owner has already been set for this Security Server
           - software token has already been initialized in this Security Server
           - the provided owner member is unregistered
           - the provided server id is already in use by another Security Server
-        The warnings can be ignored by settings InitialServerConf.ignore_warnings = true
       requestBody:
         description: initial security server configuration
         content:
@@ -2213,6 +2213,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CsrGenerate'
+            examples:
+              example1:
+                $ref: '#/components/examples/CsrGenerateExample1'
+              example2:
+                $ref: '#/components/examples/CsrGenerateExample2'
       responses:
         '201':
           description: created CSR
@@ -2716,10 +2721,10 @@ paths:
       operationId: updateService
       description: >
         Administrator updates the service.
-        If ServiceUpdate.ignore_warnings = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true:
+        This endpoint can return a warnings response which can be ignored by setting `ServiceUpdate.ignore_warnings` = true.
+        If `ServiceUpdate.ignore_warnings` = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true:
           - SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails
           - SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)
-        The warnings can be ignored by settings ServiceUpdate.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -3193,10 +3198,10 @@ paths:
       operationId: updateServiceDescription
       description: >
         Administrator updates the selected service description.
-        If ServiceDescriptionUpdate.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+        This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionUpdate.ignore_warnings` = true.
+        If `ServiceDescriptionUpdate.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
           - WSDL validation fails and validation warnings are returned
           - OpenAPI3 document has non-fatal errors that are returned as warnings
-        The warnings can be ignored by setting ServiceDescriptionUpdate.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -3341,10 +3346,10 @@ paths:
       operationId: refreshServiceDescription
       description: >
         Administrator refreshes service description.
-        If IgnoreWarnings.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+        This endpoint can return a warnings response which can be ignored by setting `IgnoreWarnings.ignore_warnings` = true.
+        If `IgnoreWarnings.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
           - WSDL validation fails and validation warnings are returned
           - OpenAPI3 document has non-fatal errors that are returned as warnings
-        The warnings can be ignored by setting IgnoreWarnings.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -4120,6 +4125,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeyLabelWithCsrGenerate'
+            examples:
+              example1:
+                $ref: '#/components/examples/KeyLabelWithCsrGenerateExample'
       responses:
         '201':
           description: key created for the token
@@ -4292,6 +4300,46 @@ paths:
         '500':
           description: internal server error
 components:
+  examples:
+    CsrGenerateExample1:
+      summary: Request body example 1
+      value:
+        key_usage_type: SIGNING
+        ca_name: Customized Test CA CN
+        csr_format: DER
+        member_id: CS:NIIS:1234
+        subject_field_values:
+          CN: something.niis.org
+          C: FI
+          O: NIIS
+          serialNumber: CS/SS1/NIIS
+    CsrGenerateExample2:
+      summary: Request body example 2
+      value:
+        key_usage_type: AUTHENTICATION
+        ca_name: Customized Test CA CN
+        csr_format: PEM
+        subject_field_values:
+          CN: something.niis.org
+          C: FI
+          O: NIIS
+          L: Helsinki
+          OU: Development
+          serialNumber: CS/SS1/NIIS
+    KeyLabelWithCsrGenerateExample:
+      summary: Request body example 1
+      value:
+        key_label: My new key
+        csr_generate_request:
+          key_usage_type: SIGNING
+          ca_name: Customized Test CA CN
+          csr_format: DER
+          member_id: CS:NIIS:1234
+          subject_field_values:
+            CN: something.niis.org
+            C: FI
+            O: NIIS
+            serialNumber: CS/SS1/NIIS
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
