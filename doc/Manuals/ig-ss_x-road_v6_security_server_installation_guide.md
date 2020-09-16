@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.27  
+Version: 2.28  
 Doc. ID: IG-SS
 
 ---
@@ -52,6 +52,7 @@ Doc. ID: IG-SS
  09.08.2020 | 2.25    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram) | Petteri Kivimäki
  17.08.2020 | 2.26    | Update for RHEL 8. | Jarkko Hyöty
  08.09.2020 | 2.27    | Fix minimum RAM requirement. | Ilkka Seppälä
+ 16.09.2020 | 2.28    | Describe deployment options and database customization options. | Ilkka Seppälä
 
 ## License
 
@@ -68,7 +69,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
   - [1.3 References](#13-references)
 - [2 Installation](#2-installation)
-  - [2.1 Supported Platforms](#21-supported-platforms)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
@@ -88,6 +89,14 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
   - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
   - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+- [Annex B Deployment Options](#annex-b-deployment-options)
+  - [B.1 General](#b1-general)
+  - [B.2 Local Database](#b2-local-database)
+  - [B.3 Remote Database](#b3-remote-database)
+  - [B.4 High Availability Setup](#b4-high-availability-setup)
+  - [B.5 Load Balancing Setup](#b5-load-balancing-setup)
+  - [B.6 Summary](#b6-summary)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -114,10 +123,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID:
 [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
 
+4. <a name="Ref_IG-XLB" class="anchor"></a>\[IG-XLB\] X-Road: External Load Balancer Installation Guide. Document ID:
+[IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md).
+
 ## 2 Installation
 
 
-### 2.1 Supported Platforms
+### 2.1 Prerequisites to Installation
+
+There are multiple alternatives how the security server can be deployed. The options are described in [Annex B Deployment Options](#annex-b-deployment-options).
 
 The security server runs on the following platforms:
 
@@ -504,3 +518,61 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
 
+## Annex A Security Server Default Database Properties
+
+`/etc/xroad/db.properties`
+
+```
+adapter=postgresql
+encoding=utf8
+username=centerui
+password=<randomly generated password stored is stored here>
+database=centerui_production
+schema=centerui
+reconnect=true
+host = 127.0.0.1
+port = 5432
+```
+
+## Annex B Deployment Options
+
+### B.1 General
+
+X-Road security server has multiple deployment options. The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
+
+### B.2 Local Database
+
+The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements are different.
+
+![Security server with local database](img/ig-ss_local_db.svg)
+
+### B.3 Remote Database
+
+It is possible to use a remote database with security server. This option is sometimes used in development/testing when there's need to externalize the database state.
+
+Security server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
+
+![Security server with remote database](img/ig-ss_remote_db.svg)
+
+### B.4 High Availability Setup
+
+In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+
+![Security server high-availability setup](img/ig-ss_high_availability.svg)
+
+### B.5 Load Balancing Setup
+
+Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
+
+![Security server load balancing setup](img/ig-ss_load_balancing.svg)
+
+### B.6 Summary
+
+The following table lists a summary of the security server deployment options and indicates whether they are aimed for development or production use.
+
+| Deployment               | Dev  | Prod  |
+|--------------------------|------|-------|
+| Local database           | x    |       |
+| Remote database          | x    |       |
+| High-availability Setup  |      | x     |
+| Load Balancing Setup     |      | x     |
