@@ -369,7 +369,7 @@ public class ServiceDescriptionService {
 
         // Create endpoints
         EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
-        List endpoints = new ArrayList<EndpointType>();
+        List<EndpointType> endpoints = new ArrayList<>();
         endpoints.add(endpointType);
         endpoints.addAll(result.getOperations().stream()
                 .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))

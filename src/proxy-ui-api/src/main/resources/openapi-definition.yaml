@@ -123,7 +123,11 @@ paths:
         - backups
       summary: upload new backup for the security server
       operationId: uploadBackup
-      description: Uploads new security server backup to the system
+      description: >
+        Uploads new security server backup to the system
+        Note that it is possible to overwrite an existing backup file with the same name.
+        Attempt to upload a new backup file having the same name with an existing backup and with query parameter ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
+        Attempt to upload a new backup file having the same name with an existing backup and with query parameter ignore_warnings = true will overwrite the existing backup.
       parameters:
         - in: query
           name: ignore_warnings
@@ -1562,7 +1566,12 @@ paths:
         - clients
       summary: add new service description for the security server client
       operationId: addClientServiceDescription
-      description: Administrator adds a new service description for the client.
+      description: >
+        Administrator adds a new service description for the client.
+        If ServiceDescriptionAdd.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+          - WSDL validation fails and validation warnings are returned
+          - OpenAPI3 document has non-fatal errors that are returned as warnings
+        The warnings can be ignored by setting ServiceDescriptionAdd.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -1826,7 +1835,15 @@ paths:
         - initialization
       summary: Initialize a new security server with the provided initial configuration
       operationId: initSecurityServer
-      description: Administrator initializes a new security server with the provided initial configuration
+      description: >
+        Administrator initializes a new Security Server with the provided initial configuration.
+        If InitialServerConf.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+          - server code has already been set for this Security Server
+          - server owner has already been set for this Security Server
+          - software token has already been initialized in this Security Server
+          - the provided owner member is unregistered
+          - the provided server id is already in use by another Security Server
+        The warnings can be ignored by settings InitialServerConf.ignore_warnings = true
       requestBody:
         description: initial security server configuration
         content:
@@ -2697,7 +2714,12 @@ paths:
         - services
       summary: update service
       operationId: updateService
-      description: Administrator updates the service.
+      description: >
+        Administrator updates the service.
+        If ServiceUpdate.ignore_warnings = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true:
+          - SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails
+          - SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)
+        The warnings can be ignored by settings ServiceUpdate.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -3169,7 +3191,12 @@ paths:
         - service-descriptions
       summary: update url or service code for the selected service description
       operationId: updateServiceDescription
-      description: Administrator updates the selected service description.
+      description: >
+        Administrator updates the selected service description.
+        If ServiceDescriptionUpdate.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+          - WSDL validation fails and validation warnings are returned
+          - OpenAPI3 document has non-fatal errors that are returned as warnings
+        The warnings can be ignored by setting ServiceDescriptionUpdate.ignore_warnings = true
       parameters:
         - in: path
           name: id
@@ -3312,7 +3339,12 @@ paths:
         - service-descriptions
       summary: refresh selected service description
       operationId: refreshServiceDescription
-      description: Administrator refreshes service description.
+      description: >
+        Administrator refreshes service description.
+        If IgnoreWarnings.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
+          - WSDL validation fails and validation warnings are returned
+          - OpenAPI3 document has non-fatal errors that are returned as warnings
+        The warnings can be ignored by setting IgnoreWarnings.ignore_warnings = true
       parameters:
         - in: path
           name: id
