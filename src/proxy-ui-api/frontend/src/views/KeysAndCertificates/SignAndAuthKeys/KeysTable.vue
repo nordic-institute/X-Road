@@ -205,7 +205,7 @@ export default Vue.extend({
   },
   computed: {
     canImportFromToken(): boolean {
-      // Can the user import cwrtificate from hardware token
+      // Can the user import certificate from hardware token
       return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
     },
 
@@ -213,17 +213,6 @@ export default Vue.extend({
       // Decide if the user can register a certificate
       return this.$store.getters.hasPermission(
         Permissions.SEND_AUTH_CERT_REG_REQ,
-      );
-    },
-
-    canCreateAuthCsr(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_AUTH_CERT_REQ,
-      );
-    },
-    canCreateSignCsr(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_AUTH_CERT_REQ,
       );
     },
   },
