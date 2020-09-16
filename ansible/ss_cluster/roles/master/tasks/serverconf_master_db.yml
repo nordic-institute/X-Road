@@ -40,6 +40,19 @@
   command: psql -p "{{ serverconf_db_port }}" -c "CREATE USER serverconf PASSWORD '{{ serverconf_password }}'"
   when: serverconf_user_exists.stdout == ""
 
+- name: check if serverconf_admin user exists
+  become: yes
+  become_user: postgres
+  command: psql -p "{{ serverconf_db_port }}" -qtAc "SELECT 1 FROM pg_roles WHERE rolname='serverconf_admin'"
+  register: serverconf_admin_user_exists
+  changed_when: false
+
+- name: create serverconf_admin user
+  become: yes
+  become_user: postgres
+  command: psql -p "{{ serverconf_db_port }}" -c "CREATE USER serverconf_admin PASSWORD '{{ serverconf_admin_password }}'"
+  when: serverconf_admin_user_exists.stdout == ""
+
 - name: check if database exists
   become: yes
   become_user: postgres
@@ -47,33 +60,15 @@
   register: serverconf_database_exists
   changed_when: false
 
-- name: create serverconf_admin role
-  become: yes
-  become_user: postgres
-  shell:
-      cmd: |
-          psql -p "{{ serverconf_db_port }}" <<"__EOF__"
-          DO $$
-          BEGIN
-          IF NOT EXISTS(SELECT 1 FROM pg_roles where rolname='serverconf_admin') THEN
-            CREATE ROLE serverconf_admin NOLOGIN;
-            RAISE NOTICE 'created';
-          END IF;
-          END$$;
-          __EOF__
-  register: result
-  changed_when: "'created' in result.stderr"
-  failed_when: "'ERROR:' in result.stderr"
-
 - name: copy serverconf database to a new instance
   become: yes
   become_user: postgres
   shell: pg_dump -C serverconf | psql -p "{{ serverconf_db_port }}" -f -
   when: serverconf_database_exists.stdout == ""
   register: copy_db
-  failed_when: copy_db.stderr != "" 
+  failed_when: copy_db.stderr != ""
 
-- name: create slavenode role 
+- name: create slavenode role
   become: yes
   become_user: postgres
   shell:
@@ -91,7 +86,7 @@
   changed_when: "'created' in result.stderr"
   failed_when: "'ERROR:' in result.stderr"
 
-- name: create replication users  
+- name: create replication users
   become: yes
   become_user: postgres
   shell:
