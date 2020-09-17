@@ -96,7 +96,11 @@ public class ServiceConverter {
         service.setId(convertId(serviceType, clientId));
         service.setServiceCode(serviceType.getServiceCode());
         service.setFullServiceCode(FormatUtils.getServiceFullName(serviceType));
-        service.setSslAuth((boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true));
+        if (serviceType.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
+            service.setSslAuth(false);
+        } else {
+            service.setSslAuth((boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true));
+        }
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
         service.setTitle(serviceType.getTitle());
