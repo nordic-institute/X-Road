@@ -2866,6 +2866,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ServiceClients'
+            examples:
+              example1:
+                $ref: '#/components/examples/IdArrayExample'
       responses:
         '201':
           description: access rights added
@@ -2913,6 +2916,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ServiceClients'
+            examples:
+              example1:
+                $ref: '#/components/examples/IdArrayExample'
       responses:
         '204':
           description: access right(s) deletion was successful
@@ -3094,6 +3100,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ServiceClients'
+            examples:
+              example1:
+                $ref: '#/components/examples/IdArrayExample'
       responses:
         '201':
           description: access rights added
@@ -3141,6 +3150,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ServiceClients'
+            examples:
+              example1:
+                $ref: '#/components/examples/IdArrayExample'
       responses:
         '204':
           description: access right(s) deleted
@@ -4340,6 +4352,13 @@ components:
             C: FI
             O: NIIS
             serialNumber: CS/SS1/NIIS
+    IdArrayExample:
+      summary: Request body example
+      value:
+        items:
+          - DEV:ORG:1234:Subsystem
+          - DEV:security-server-owners
+          - "123"
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
@@ -5039,30 +5058,6 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/CodeWithDetails'
-    GlobalConfiguration: # ok
-      type: object
-      description: global configuration
-      required:
-        - status
-        - updated_at
-        - next_update_at
-      properties:
-        status:
-          $ref: '#/components/schemas/ConfigurationStatus'
-        updated_at:
-          type: string
-          format: date-time
-          description: last time updated
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        next_update_at:
-          type: string
-          format: date-time
-          description: last time updated
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
     InitialServerConf: # ok
       type: object
       description: security server initial configuration
