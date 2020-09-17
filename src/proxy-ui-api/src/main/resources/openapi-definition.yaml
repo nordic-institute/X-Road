@@ -742,10 +742,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/ErrorInfo'
+                $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1599,10 +1596,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/ErrorInfo'
+                $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3240,10 +3234,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/ErrorInfo'
+                $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3388,10 +3379,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/ErrorInfo'
+                $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
