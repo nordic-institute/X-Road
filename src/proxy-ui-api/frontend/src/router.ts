@@ -88,28 +88,35 @@ const router = new Router({
             default: KeysAndCertificates,
             top: TabsBase,
           },
-          meta: { permission: Permissions.VIEW_KEYS },
+          meta: { permissions: [Permissions.VIEW_KEYS] },
           children: [
             {
               name: RouteName.SignAndAuthKeys,
               path: '',
               component: SignAndAuthKeys,
               props: true,
-              meta: { permission: Permissions.VIEW_KEYS },
+              meta: { permissions: [Permissions.VIEW_KEYS] },
             },
             {
               name: RouteName.ApiKey,
               path: 'apikey',
               component: ApiKey,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+              meta: {
+                permissions: [
+                  Permissions.VIEW_API_KEYS,
+                  Permissions.CREATE_API_KEY,
+                  Permissions.UPDATE_API_KEY,
+                  Permissions.REVOKE_API_KEY,
+                ],
+              },
             },
             {
               name: RouteName.SSTlsCertificate,
               path: 'tls-cert',
               component: SSTlsCertificate,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+              meta: { permissions: [Permissions.VIEW_INTERNAL_TLS_CERT] },
             },
           ],
         },
@@ -118,13 +125,13 @@ const router = new Router({
           path: '/keys/apikey/create',
           component: CreateApiKeyStepper,
           props: true,
-          meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+          meta: { permissions: [Permissions.CREATE_API_KEY] },
         },
         {
           name: RouteName.GenerateInternalCSR,
           path: '/keys/tsl-cert/generate-csr',
           component: GenerateInternalCsr,
-          meta: { permission: Permissions.GENERATE_INTERNAL_SSL_CSR },
+          meta: { permissions: [Permissions.GENERATE_INTERNAL_TLS_CSR] },
           props: true,
         },
         {
@@ -134,10 +141,16 @@ const router = new Router({
             default: Diagnostics,
             top: TabsBase,
           },
-          meta: { permission: Permissions.DIAGNOSTICS },
+          meta: { permissions: [Permissions.DIAGNOSTICS] },
         },
         {
           path: '/settings',
+          meta: {
+            permissions: [
+              Permissions.VIEW_SYS_PARAMS,
+              Permissions.BACKUP_CONFIGURATION,
+            ],
+          },
           components: {
             default: Settings,
             top: TabsBase,
@@ -148,12 +161,14 @@ const router = new Router({
               path: '',
               component: SystemParameters,
               props: true,
+              meta: { permissions: [Permissions.VIEW_SYS_PARAMS] },
             },
             {
               name: RouteName.BackupAndRestore,
               path: 'backup',
               component: BackupAndRestore,
               props: true,
+              meta: { permissions: [Permissions.BACKUP_CONFIGURATION] },
             },
           ],
         },
@@ -167,6 +182,7 @@ const router = new Router({
           props: {
             default: true,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.AddClient,
@@ -174,6 +190,7 @@ const router = new Router({
           components: {
             default: AddClient,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.AddMember,
@@ -184,11 +201,12 @@ const router = new Router({
           props: {
             default: true,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
-          meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+          meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
           redirect: '/subsystem/details/:id',
           components: {
             default: Subsystem,
@@ -203,42 +221,42 @@ const router = new Router({
               path: '/subsystem/details/:id',
               component: ClientDetails,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+              meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
             },
             {
               name: RouteName.SubsystemServiceClients,
               path: '/subsystem/serviceclients/:id',
               component: ServiceClients,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+              meta: { permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS] },
             },
             {
               name: RouteName.SubsystemServices,
               path: '/subsystem/services/:id',
               component: Services,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_SERVICES },
+              meta: { permissions: [Permissions.VIEW_CLIENT_SERVICES] },
             },
             {
               name: RouteName.SubsystemServers,
               path: '/subsystem/internalservers/:id',
               component: InternalServers,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS },
+              meta: { permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS] },
             },
             {
               name: RouteName.SubsystemLocalGroups,
               path: '/subsystem/localgroups/:id',
               component: LocalGroups,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS },
+              meta: { permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS] },
             },
           ],
         },
         {
           name: RouteName.Client,
           path: '/client',
-          meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+          meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
           redirect: '/client/details/:id',
           components: {
             default: Client,
@@ -251,14 +269,14 @@ const router = new Router({
               path: '/client/details/:id',
               component: ClientDetails,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+              meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
             },
             {
               name: RouteName.MemberServers,
               path: '/client/internalservers/:id',
               component: InternalServers,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS },
+              meta: { permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS] },
             },
           ],
         },
@@ -269,7 +287,7 @@ const router = new Router({
             default: Clients,
             top: TabsBase,
           },
-          meta: { permission: Permissions.VIEW_CLIENTS },
+          meta: { permissions: [Permissions.VIEW_CLIENTS] },
         },
         {
           name: RouteName.Certificate,
@@ -302,7 +320,9 @@ const router = new Router({
             default: ClientTlsCertificate,
           },
           props: { default: true },
-          meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS },
+          meta: {
+            permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS],
+          },
         },
         {
           name: RouteName.ServiceClientAccessRights,
@@ -464,9 +484,9 @@ router.beforeEach((to: Route, from: Route, next: Next) => {
       }
     }
 
-    if (!to.meta.permission) {
+    if (!to.meta.permissions) {
       next();
-    } else if (store.getters.hasPermission(to.meta.permission)) {
+    } else if (store.getters.hasAnyOfPermissions(to.meta.permissions)) {
       // This route is allowed
       next();
     } else {

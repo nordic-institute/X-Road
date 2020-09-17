@@ -213,7 +213,9 @@ export default (Vue as VueConstructor<
               this.$router.replace({ name: RouteName.InitialConfiguration });
             } else {
               this.fetchCurrentSecurityServer();
-              this.$router.replace({ name: RouteName.Clients });
+              this.$router.replace({
+                name: this.$store.getters.firstAllowedTab.to.name,
+              });
             }
           },
           (error) => {
