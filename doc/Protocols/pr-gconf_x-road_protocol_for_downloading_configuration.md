@@ -12,7 +12,7 @@ Doc. ID: PR-GCONF
 | 23.10.2015 | 2.1       | Shared-parameters chema updated | Siim Annuk         |
 | 28.10.2015 | 2.2       | Typos fixed | Siim Annuk           |
 | 09.11.2015 | 2.3       | More typos | Margus Freudenthal         |
-| 17.12.2015 | 2.4       | Added description of monitoring paramters  | Janne Mattila |
+| 17.12.2015 | 2.4       | Added description of monitoring parameters  | Janne Mattila |
 | 05.09.2016 | 2.5       | Added description of optional configuration parts | Janne Mattila |
 |            | 2.6       | Converted to markdown format |  |
 | 20.01.2017 | 2.7       | Added version history | Sami Kallio |

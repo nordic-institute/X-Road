@@ -64,49 +64,49 @@ Doc. ID: ARC-SS
     - [3.1.1 Role and responsibilities](#311-role-and-responsibilities)
     - [3.1.2 Encapsulated data](#312-encapsulated-data)
     - [3.1.3 Messaging](#313-messaging)
-    - [3.1.4 Input/ouput ports](#314-inputouput-ports)
+    - [3.1.4 Input/output ports](#314-inputoutput-ports)
     - [3.1.5 Persistent data](#315-persistent-data)
   - [3.2 xroad-jetty](#32-xroad-jetty)
     - [3.2.1 Role and responsibilities](#321-role-and-responsibilities)
     - [3.2.2 Encapsulated data](#322-encapsulated-data)
     - [3.2.3 Messaging](#323-messaging)
-    - [3.2.4 Input/ouput ports](#324-inputouput-ports)
+    - [3.2.4 Input/output ports](#324-inputoutput-ports)
     - [3.2.5 Persistent data](#325-persistent-data)
   - [3.3 xroad-signer](#33-xroad-signer)
     - [3.3.1 Role and responsibilities](#331-role-and-responsibilities)
     - [3.3.2 Encapsulated data](#332-encapsulated-data)
     - [3.3.3 Messaging](#333-messaging)
-    - [3.3.4 Input/ouput ports](#334-inputouput-ports)
+    - [3.3.4 Input/output ports](#334-inputoutput-ports)
     - [3.3.5 Persistent data](#335-persistent-data)
   - [3.4 xroad-confclient](#34-xroad-confclient)
     - [3.4.1 Role and responsibilities](#341-role-and-responsibilities)
     - [3.4.2 Encapsulated data](#342-encapsulated-data)
     - [3.4.3 Messaging](#343-messaging)
-    - [3.4.4 Input/ouput ports](#344-inputouput-ports)
+    - [3.4.4 Input/output ports](#344-inputoutput-ports)
     - [3.4.5 Persistent data](#345-persistent-data)
   - [3.5 xroad-proxy](#35-xroad-proxy)
     - [3.5.1 Role and responsibilities](#351-role-and-responsibilities)
     - [3.5.2 Encapsulated data](#352-encapsulated-data)
     - [3.5.3 Messaging](#353-messaging)
-    - [3.5.4 Input/ouput ports](#354-inputouput-ports)
+    - [3.5.4 Input/output ports](#354-inputoutput-ports)
     - [3.5.5 Persistent data](#355-persistent-data)
   - [3.6 postgresql](#36-postgresql)
     - [3.6.1 Role and responsibilities](#361-role-and-responsibilities)
     - [3.6.2 Encapsulated data](#362-encapsulated-data)
     - [3.6.3 Messaging](#363-messaging)
-    - [3.6.4 Input/ouput ports](#364-inputouput-ports)
+    - [3.6.4 Input/output ports](#364-inputoutput-ports)
     - [3.6.5 Persistent data](#365-persistent-data)
   - [3.7 xroad-monitor](#37-xroad-monitor)
     - [3.7.1 Role and responsibilities](#371-role-and-responsibilities)
     - [3.7.2 Encapsulated data](#372-encapsulated-data)
     - [3.7.3 Messaging](#373-messaging)
-    - [3.7.4 Input/ouput ports](#374-inputouput-ports)
+    - [3.7.4 Input/output ports](#374-inputoutput-ports)
     - [3.7.5 Persistent data](#375-persistent-data)
   - [3.8 xroad-opmonitor](#38-xroad-opmonitor)
     - [3.8.1 Role and responsibilities](#381-role-and-responsibilities)
     - [3.8.2 Encapsulated data](#382-encapsulated-data)
     - [3.8.3 Messaging](#383-messaging)
-    - [3.8.4 Input/ouput ports](#384-inputouput-ports)
+    - [3.8.4 Input/output ports](#384-inputoutput-ports)
     - [3.8.5 Persistent data](#385-persistent-data)
 - [4 Interfaces](#4-interfaces)
   - [4.1 Management Services](#41-management-services)
@@ -343,7 +343,7 @@ Nginx hides xroad-jetty process from outside world.
 
 Nginx accepts https traffic to interface A in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. After TLS termination the requests are routed to xroad-jetty backend server interface W in \[[Figure 2](#Ref_Security_Server_process_diagram)\] using http. Responses from the backend server are returned to the client through nginx.
 
-#### 3.1.4 Input/ouput ports
+#### 3.1.4 Input/output ports
 
 Nginx has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
@@ -378,7 +378,7 @@ Xroad-jetty communicates with xroad-signer interface S to manage token, key, and
 
 Finally xroad-jetty reads/writes its data to postgresql interface D.
 
-#### 3.2.4 Input/ouput ports
+#### 3.2.4 Input/output ports
 
 The port where xroad-jetty serves its user interface is internal and specified in /etc/xroad/jetty/jetty-admin.xml.
 
@@ -412,7 +412,7 @@ Xroad-signer offers interface S in \[[Figure 2](#Ref_Security_Server_process_dia
 
 Xroad-signer offers interface B which is admin interface for commanding xroad-signer. It is used by xroad-jetty and xroad-proxy.
 
-#### 3.3.4 Input/ouput ports
+#### 3.3.4 Input/output ports
 
 Xroad-signer has two input ports for interfaces B and S. The ports are internal and not documented elsewhere than the source code.
 
@@ -440,7 +440,7 @@ Xroad-confclient downloads global configuration from a configuration source, nam
 
 Xroad-confclient offers admin interface C for commands and queries. This is used by xroad-jetty to fetch diagnostics information.
 
-#### 3.4.4 Input/ouput ports
+#### 3.4.4 Input/output ports
 
 Xroad-confclient has single input port for admin commands and queries. The port number is for internal use and specified in the source code only.
 
@@ -466,7 +466,7 @@ Xroad-proxy accepts messages from untrusted network through interface S. Related
 
 Additionally xroad-proxy offers interface P for admin commands and queries. It is used by xroad-jetty diagnostics to query timestamping status and can be used to set Security Server in maintenance mode during cluster rolling upgrade.
 
-#### 3.5.4 Input/ouput ports
+#### 3.5.4 Input/output ports
 
 Xroad-proxy has input ports for message exchange from internal and external network (C and S) and one input port meant for uploading OCSP responses (O). The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
@@ -490,7 +490,7 @@ Postgresql stores databases, tables, and triggers.
 
 Postgresql is used by xroad-jetty, xroad-proxy and xroad-opmonitor for persistent data storage.
 
-#### 3.6.4 Input/ouput ports
+#### 3.6.4 Input/output ports
 
 Postgresql has single input port for querying and storing data. The Security Server installation uses the default port of PostgreSQL, but it is possible to customize.
 
@@ -514,7 +514,7 @@ Xroad-monitor's sensor data is queried by xroad-proxy using interface Q in \[[Fi
 
 Sensor data is also accessible via JMX protocol through interface J.
 
-#### 3.7.4 Input/ouput ports
+#### 3.7.4 Input/output ports
 
 The input port for querying sensor data is internal and can be found from the source code.
 
@@ -540,7 +540,7 @@ Xroad-opmonitor communicates with xroad-proxy through operational monitoring que
 
 Operational monitoring data is also made available via JMX protocol through interface J.
 
-#### 3.8.4 Input/ouput ports
+#### 3.8.4 Input/output ports
 
 The input ports for query, store, and JMX access of operational monitoring data are specified in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 

@@ -1076,7 +1076,7 @@ To restore configuration, follow these steps.
 3. Click Confirm to proceed.
 4. A window opens displaying the output from the restore script; click OK to close it.
 
-If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interface described in the next chapter.
 
 ## 13.3 Restoring the Configuration from the Command Line
 

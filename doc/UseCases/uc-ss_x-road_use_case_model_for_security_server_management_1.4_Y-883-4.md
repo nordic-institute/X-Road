@@ -1962,7 +1962,7 @@ local file system.
 
 - 10a. SS administrator tried to import a certificate that is not issued by an approved certification service.
     - 10a.1. System displays the error message “Failed to import certificate: Certificate is not issued by approved certification service provider.”.
-    - 10a.2. System logs the event “Import certificate from file failed” tothe audit log.
+    - 10a.2. System logs the event “Import certificate from file failed” to the audit log.
     - 10a.3. SS administrator selects to reselect the file. Use case continuesfrom step 3.
         - 10a.3a. SS administrator selects to terminate the use case.
 

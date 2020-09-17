@@ -123,7 +123,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
 4.  Time window for node failure repairing.
 
-    A node can work (i.e. provide valid global configuration to the X-Road instance) as long as it can read from and write to the shared configuration database. If one node loses database access, other nodes continue providing valid global configuration, and security servers will switch downloading the configuration from a healthly node. In the case all nodes or the shared database fails, security servers can function until global configuration exprires, but new security servers can not be added to the X-Road instance.
+    A node can work (i.e. provide valid global configuration to the X-Road instance) as long as it can read from and write to the shared configuration database. If one node loses database access, other nodes continue providing valid global configuration, and security servers will switch downloading the configuration from a healthy node. In the case all nodes or the shared database fails, security servers can function until global configuration expires, but new security servers can not be added to the X-Road instance.
 
 5.  Configuration files (located in `/etc/xroad/`) are not synchronized between nodes. It is the responsibility of the system administrator to change them in all nodes if required or stated by the user manual.
 
@@ -235,7 +235,7 @@ The status information is based on the data in the configuration database and ot
 A node status is:
   * "OK" if the configuration is recently generated.
   * "WARN" if the timestamp is more than a global configuration generation interval in the past.
-  * "ERROR" if the timestamp is older than the global configuration expriry time.
+  * "ERROR" if the timestamp is older than the global configuration expiry time.
   * "UNKNOWN" if the node has not been seen at all.
 
 The combined status "all_nodes_ok" is true if the status of all nodes is "OK" and false otherwise.
@@ -373,7 +373,7 @@ flush_lsn        | 0/2A03F000
 replay_lsn       | 0/2A03F000
 ```
 
-On stanbys, check pg_stat_wal_receiver view:
+On standbys, check pg_stat_wal_receiver view:
 ```
 sudo -iu postgres psql -txc "SELECT * FROM pg_stat_wal_receiver"
 ...
@@ -386,7 +386,7 @@ last_msg_receipt_time | 2019-12-30 07:32:03.903118+00
 slot_name             | standby_node1
 ```
 
-The `status` should be _streaming_ and `sent_lsn` on master should be close to `received_lsn` on the stanbys. If replication slots are in use, one can also compare the `sent_lsn` and `replay_lsn` values on the master.
+The `status` should be _streaming_ and `sent_lsn` on master should be close to `received_lsn` on the standbys. If replication slots are in use, one can also compare the `sent_lsn` and `replay_lsn` values on the master.
 
 ### Configuring central servers
 

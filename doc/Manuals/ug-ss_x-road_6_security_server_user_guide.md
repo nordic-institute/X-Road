@@ -550,7 +550,7 @@ To add a new member and change it to Owner member, the following actions must be
 
     2.1 On the **Clients** view, locate the new member in the Clients list and click **Register** in the corresponding row
     
-    2.2 In the opening dialog, click **Register**. A registeration request is sent to the X-Road Governing Authority
+    2.2 In the opening dialog, click **Register**. A registration request is sent to the X-Road Governing Authority
     
     Note: Once the request is approved, the new member appears as "Registered" - it can be set as Owner member.
 
@@ -1620,7 +1620,7 @@ To **restore configuration**, follow these steps.
 
 2.  A window opens displaying the output of the restore script; click **OK** to close it.
 
-If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interface described in the next chapter.
 
 To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **Confirm**.
 

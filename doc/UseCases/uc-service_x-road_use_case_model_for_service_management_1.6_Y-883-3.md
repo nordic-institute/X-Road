@@ -2477,7 +2477,7 @@ the central server.
 
 **Actors**: CS administrator
 
-**Brief** **Description**: CS administrator edits the X-Road indentifier
+**Brief** **Description**: CS administrator edits the X-Road identifier
 of the implementing service of a central service.
 
 **Preconditions**: The central service is added to central server.

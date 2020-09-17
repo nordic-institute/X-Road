@@ -246,7 +246,7 @@ New record creation process starts when an X-Road system administrator receives 
 | name | character varying(255) |  | Name of the CA, used in user interfaces. Technically this is the subject name of the top level certification authority certificate. |
 | top_ca_id [FK] | integer |  | ID of the top level CA certificate entry of the record. See also documentation of the table ca_infos. Cannot be NULL. |
 | authentication_only | boolean |  | If true, this CA can only issue authentication certificates. If false, this CA can issue all certificates. |
-| cert_profile_info | character varying(255) |  | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both central server and securitys servers. Cannot be NULL. |
+| cert_profile_info | character varying(255) |  | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both central server and security servers. Cannot be NULL. |
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework. |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework. |
 
@@ -263,7 +263,7 @@ New record creation process starts when an X-Road system administrator receives 
 | id [PK] | integer | NOT NULL | Primary key |
 | name | character varying(255) |  | Name of the TSA, used in user interfaces. Technically, this is the subject name of the TSA certificate. |
 | url | character varying(255) |  | URL that is used for sending time-stamping requests. Must correspond to the URL format. Cannot be NULL. |
-| cert | bytea |  | TSA certificate that is used to verify issued time stamps. Stored in DER-encoded form. Cannot be NULL. |
+| cert | byte |  | TSA certificate that is used to verify issued time stamps. Stored in DER-encoded form. Cannot be NULL. |
 | valid_from | timestamp without time zone |  | Start of validity period of the TSA's certificate. Extracted from the uploaded certificate. |
 | valid_to | timestamp without time zone |  | End of validity period of the TSA's certificate. Extracted from the uploaded certificate. |
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework. |
@@ -287,7 +287,7 @@ Prerequisite for creating the record is that a pair of authentication certificat
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key |
 | security_server_id [FK] | integer |  | ID of the security server the authentication certificate belongs to. References id attribute of security_servers entity. Cannot be NULL. |
-| cert | bytea |  | Authentication certificate contents (in DER encoding). Cannot be NULL. |
+| cert | byte |  | Authentication certificate contents (in DER encoding). Cannot be NULL. |
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework. |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework. |
 
@@ -312,7 +312,7 @@ Accordingly, the record is deleted when either the approved CA is deleted (see a
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key |
-| cert | bytea |  | Contents of the CA certificate (in DER encoding). Cannot be NULL. |
+| cert | byte |  | Contents of the CA certificate (in DER encoding). Cannot be NULL. |
 | intermediate_ca_id [FK] | integer |  | Used to associate the ca_info record with a top-level CA record. This field is present only for intermediate-level CAs (top-level CA is referenced directly by the ca_info table. References to id attribute of approved_cas entity. |
 | valid_from | timestamp without time zone |  | Start of validity period of the CA's certificate. Extracted from the certificate. |
 | valid_to | timestamp without time zone |  | End of validity period of the CA's certificate. Extracted from the certificate. |
@@ -362,7 +362,7 @@ The record is created when a new key for signing global configuration is needed 
 | id [PK] | integer | NOT NULL | Primary key |
 | configuration_source_id [FK] | integer |  | ID of the configuration source that uses this signing key. References id attribute of configuration_sources entity. Cannot be NULL. |
 | key_identifier  | character varying(255) |  | Contents of the configuration signing certificate (in DER encoding).  |
-| cert | bytea |  |  |
+| cert | byte |  |  |
 | key_generated_at  | timestamp without time zone |  | The signing key generation time.  |
 | token_identifier  | character varying(255) |  | Unique identifier of hardware or software token used for signing the configuration.  |
 
@@ -388,7 +388,7 @@ The record is created when the configuration source tab (either for internal or 
 | id [PK] | integer | NOT NULL | Primary key |
 | source_type  | character varying(255) |  | Type of the configuration source, can be either 'internal' or 'external'.  |
 | active_key_id [FK] | integer |  | ID of the active key that is used to sign the distributed configuration (all the other keys are only included in the generated configuration anchor).References id attribute of configuration_signing_keys entity.  |
-| anchor_file  | qqbytea |  | Configuration anchor file (in XML format). The anchor is re-generated if any information contained in the anchor is saved. |
+| anchor_file  | byte |  | Configuration anchor file (in XML format). The anchor is re-generated if any information contained in the anchor is saved. |
 | anchor_file_hash  | text |  | Configuration anchor file hash (for displaying in user interface). Updated when the configuration anchor is re-generated. |
 | anchor_generated_at  | timestamp without time zone |  | Configuration anchor generation time. Updated when the configuration anchor is re-generated. |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
@@ -414,7 +414,7 @@ The record is always deleted before new record with particular file name is crea
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key |
 | file_name  | character varying(255) |  | Name of the distributed file. Any valid file name. Cannot be NULL. |
-| file_data  | bytea |  | Contents of the distributed file. Cannot be NULL. |
+| file_data  | byte |  | Contents of the distributed file. Cannot be NULL. |
 | content_identifier  | character varying(255) |  | Content identifier of the distributed file. The content identifier is used by security server to determine the exact type of the file. Must be unique inside an X-Road instance. Cannot be NULL. |
 | file_updated_at  | timestamp without time zone |  | Time when the distributed file was last updated.  |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
@@ -539,7 +539,7 @@ The record is created when a new OCSP responder needs to be registered for eithe
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key. |
 | url  | character varying(255) |  | URL of the OCSP server. Must correspond to the URL format. Cannot be NULL. |
-| cert  | bytea |  | Certificate used by the OCSP server to sign OCSP responses (in DER encoding). |
+| cert  | byte |  | Certificate used by the OCSP server to sign OCSP responses (in DER encoding). |
 | ca_info_id [FK] | integer |  | ID of the CA info record this OCSP info belongs to. References id attribute of ca_infos entity. Cannot be NULL. |
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
@@ -601,7 +601,7 @@ The record is never deleted.
 | type  | character varying(255) |  | Application model class type, managed automatically by the Rails framework. Possible values are 'AuthCertRegRequest', 'ClientRegRequest', 'AuthCertDeletionRequest' and 'ClientDeletionRequest'. |
 | security_server_id [FK] | integer |  | ID of the security server related to the request.. References id attribute of identifiers entity. Cannot be NULL. |
 | sec_serv_user_id [FK] | integer |  | ID of the security server client related to the request. Applicable when type is client registration request or client deletion request, otherwise NULL. References id attribute of identifiers entity. |
-| auth_cert  | bytea |  | Applicable for authentication certificate registration or deletion request, otherwise NULL. Contents of the authentication certificate (in DER encoding).  |
+| auth_cert  | byte |  | Applicable for authentication certificate registration or deletion request, otherwise NULL. Contents of the authentication certificate (in DER encoding).  |
 | address | character varying(255) |  | Security server address for helping X-Road clients to locate the security server. Added into the global configuration when authentication certificate registration request is approved. Applicable only for requests of type 'AuthCertRegRequest', otherwise NULL.  |
 | origin | character varying(255) |  | Specifies where the request is from either CENTER or from SECURITY_SERVER.  |
 | server_owner_name  | character varying(255) |  | Security server owner name (for displaying in the user interface).  |
@@ -811,7 +811,7 @@ The record is created or modified exactly the same way as described in the docum
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK]  | integer | NOT NULL | Primary key |
 | instance_identifier | character varying(255) |  | Instance identifier of the trusted anchor. Cannot be NULL. |
-| trusted_anchor_file  | bytea |  | Trusted anchor file (in XML format). Cannot be NULL. |
+| trusted_anchor_file  | byte |  | Trusted anchor file (in XML format). Cannot be NULL. |
 | trusted_anchor_hash  | text |  | Hash of the trusted anchor file. Cannot be NULL. |
 | created_at  | timestamp without time zone |  | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone |  | Record last modified time, managed automatically by the Rails framework.  |
