@@ -34,9 +34,9 @@
     <td class="no-border" colspan="4"></td>
     <td class="no-border td-align-right">
       <SmallButton
-        v-if="hasPermission"
+        v-if="showGenerateCsr"
         class="table-button-fix"
-        :disabled="disableGenerateCsr(tokenKey)"
+        :disabled="disableGenerateCsr"
         @click="generateCsr"
         >{{ $t('keys.generateCsr') }}</SmallButton
       >
@@ -50,11 +50,9 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-
 import SmallButton from '@/components/ui/SmallButton.vue';
-
 import { Key, TokenCertificate } from '@/openapi-types';
-import { PossibleActions } from '@/global';
+import { PossibleActions, Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -65,29 +63,41 @@ export default Vue.extend({
       type: Object as Prop<Key>,
       required: true,
     },
-    hasPermission: {
-      type: Boolean,
-    },
     tokenLoggedIn: {
       type: Boolean,
     },
   },
-  methods: {
-    disableGenerateCsr(key: Key): boolean {
-      if (!this.tokenLoggedIn) {
-        return true;
+  computed: {
+    showGenerateCsr(): boolean {
+      // Check if the user has permission to see generate csr action
+      if (this.tokenKey.usage === 'AUTHENTICATION') {
+        return this.$store.getters.hasPermission(
+          Permissions.GENERATE_AUTH_CERT_REQ,
+        );
       }
+      // If key usage is not auth then it has to be sign
+      return this.$store.getters.hasPermission(
+        Permissions.GENERATE_SIGN_CERT_REQ,
+      );
+    },
 
+    disableGenerateCsr(): boolean {
+      // Check if the generate csr action should be disabled
       if (
-        key.possible_actions?.includes(PossibleActions.GENERATE_AUTH_CSR) ||
-        key.possible_actions?.includes(PossibleActions.GENERATE_SIGN_CSR)
+        this.tokenKey.possible_actions?.includes(
+          PossibleActions.GENERATE_AUTH_CSR,
+        ) ||
+        this.tokenKey.possible_actions?.includes(
+          PossibleActions.GENERATE_SIGN_CSR,
+        )
       ) {
         return false;
       }
 
       return true;
     },
-
+  },
+  methods: {
     keyClick(): void {
       this.$emit('keyClick');
     },

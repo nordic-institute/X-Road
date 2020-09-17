@@ -182,6 +182,7 @@ const router = new Router({
           props: {
             default: true,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.AddClient,
@@ -189,6 +190,7 @@ const router = new Router({
           components: {
             default: AddClient,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.AddMember,
@@ -199,6 +201,7 @@ const router = new Router({
           props: {
             default: true,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.Subsystem,

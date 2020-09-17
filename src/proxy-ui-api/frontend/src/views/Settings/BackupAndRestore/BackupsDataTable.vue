@@ -46,7 +46,7 @@
                 >{{ $t('action.download') }}
               </small-button>
               <restore-backup-button
-                :can-backup="canBackup"
+                v-if="canRestore"
                 :backup="backup"
                 @restored="refreshData"
               />
@@ -73,6 +73,7 @@ import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupBu
 import { Prop } from 'vue/types/options';
 import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
 import { encodePathParameter } from '@/util/api';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -93,6 +94,13 @@ export default Vue.extend({
     backups: {
       type: Array as Prop<Backup[]>,
       required: true,
+    },
+  },
+  computed: {
+    canRestore(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.RESTORE_CONFIGURATION,
+      );
     },
   },
   methods: {

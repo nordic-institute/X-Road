@@ -37,7 +37,7 @@
             :items="usageList"
             class="form-input"
             v-model="usage"
-            :disabled="isUsageReadOnly"
+            :disabled="isUsageReadOnly || !permissionForUsage"
             data-test="csr-usage-select"
           ></v-select>
         </ValidationProvider>
@@ -127,7 +127,7 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { UsageTypes, CsrFormatTypes } from '@/global';
+import { UsageTypes, CsrFormatTypes, Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -151,6 +151,7 @@ export default Vue.extend({
       usageTypes: UsageTypes,
       usageList: Object.values(UsageTypes),
       csrFormatList: Object.values(CsrFormatTypes),
+      permissionForUsage: true,
     };
   },
   computed: {
@@ -204,6 +205,26 @@ export default Vue.extend({
   created() {
     // Fetch member id:s for the client selection dropdown
     this.$store.dispatch('fetchAllMemberIds');
+
+    // Check if the user has permission for only one type of CSR
+    const signPermission = this.$store.getters.hasPermission(
+      Permissions.GENERATE_SIGN_CERT_REQ,
+    );
+    const authPermission = this.$store.getters.hasPermission(
+      Permissions.GENERATE_AUTH_CERT_REQ,
+    );
+
+    if (signPermission && !authPermission) {
+      // lock usage type to sign
+      this.usage = UsageTypes.SIGNING;
+      this.permissionForUsage = false;
+    }
+
+    if (!signPermission && authPermission) {
+      // lock usage type to auth
+      this.usage = UsageTypes.AUTHENTICATION;
+      this.permissionForUsage = false;
+    }
   },
 
   watch: {

@@ -61,8 +61,9 @@
 
     <template v-slot:content>
       <div>
-        <div class="button-wrap" v-if="canActivateToken">
+        <div class="button-wrap">
           <large-button
+            v-if="canAddKey"
             outlined
             @click="addKey()"
             :disabled="!token.logged_in"
@@ -70,6 +71,7 @@
             >{{ $t('keys.addKey') }}</large-button
           >
           <file-upload
+            v-if="canImportCertificate"
             accepts=".pem, .cer, .der"
             @fileChanged="importCert"
             v-slot="{ upload }"
@@ -162,6 +164,15 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(
         Permissions.ACTIVATE_DEACTIVATE_TOKEN,
       );
+    },
+    canImportCertificate(): boolean {
+      return (
+        this.$store.getters.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
+        this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT)
+      );
+    },
+    canAddKey(): boolean {
+      return this.$store.getters.hasPermission(Permissions.GENERATE_KEY);
     },
   },
   methods: {
