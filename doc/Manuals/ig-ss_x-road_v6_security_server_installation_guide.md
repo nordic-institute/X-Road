@@ -74,6 +74,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Prepare for Installation](#25-prepare-for-installation)
+  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
   - [2.5 Installation](#25-installation)
   - [2.6 Post-Installation Checks](#26-post-installation-checks)
   - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
@@ -233,6 +235,13 @@ Requirements to software and settings:
 * Ensure that the locale is available
 
         sudo locale-gen en_US.UTF-8
+
+### 2.5 Prepare for Installation
+
+The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
+
+
+### 2.5.1 Customize the Database Properties
 
 
 ### 2.5 Installation
@@ -523,15 +532,20 @@ To be sure that packages are installed correctly please use `sudo apt upgrade` o
 `/etc/xroad/db.properties`
 
 ```
-adapter=postgresql
-encoding=utf8
-username=centerui
-password=<randomly generated password stored is stored here>
-database=centerui_production
-schema=centerui
-reconnect=true
-host = 127.0.0.1
-port = 5432
+serverconf.hibernate.jdbc.use_streams_for_binary = true
+serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+serverconf.hibernate.connection.driver_class = org.postgresql.Driver
+serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
+serverconf.hibernate.connection.username = serverconf
+serverconf.hibernate.connection.password = <randomly generated password stored is stored here>
+messagelog.hibernate.jdbc.use_streams_for_binary = true
+messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+messagelog.hibernate.jdbc.batch_size = 50
+messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
+messagelog.hibernate.connection.username = messagelog
+messagelog.hibernate.connection.password = <randomly generated password stored is stored here>
+serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
 ```
 
 ## Annex B Deployment Options
@@ -542,15 +556,15 @@ X-Road security server has multiple deployment options. The simplest choice is t
 
 ### B.2 Local Database
 
-The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements are different.
+The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security server with local database](img/ig-ss_local_db.svg)
 
 ### B.3 Remote Database
 
-It is possible to use a remote database with security server. This option is sometimes used in development/testing when there's need to externalize the database state.
+It is possible to use a remote database with security server. This option is sometimes used in development and testing when there's need to externalize the database state.
 
-Security server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
+Security server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
 
 ![Security server with remote database](img/ig-ss_remote_db.svg)
 
@@ -562,7 +576,7 @@ In production systems it's rarely acceptable to have a single point of failure. 
 
 ### B.5 Load Balancing Setup
 
-Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
+Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
 ![Security server load balancing setup](img/ig-ss_load_balancing.svg)
 
