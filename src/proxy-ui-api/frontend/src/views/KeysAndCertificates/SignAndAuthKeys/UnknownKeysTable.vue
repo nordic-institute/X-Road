@@ -48,7 +48,7 @@
                 {{ key.id }}
               </div>
               <SmallButton
-                v-if="hasPermission"
+                v-if="canCreateCsr"
                 class="table-button-fix"
                 :disabled="disableGenerateCsr(key)"
                 @click="generateCsr(key)"
@@ -93,10 +93,10 @@ export default Vue.extend({
     },
   },
   computed: {
-    hasPermission(): boolean {
-      // Can the user login to the token and see actions
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+    canCreateCsr(): boolean {
+      return (
+        this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
+        this.$store.getters.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
       );
     },
   },

@@ -74,6 +74,10 @@ export const userGetters: GetterTree<UserState, RootState> = {
   hasPermission: (state) => (perm: string) => {
     return state.permissions.includes(perm);
   },
+  hasAnyOfPermissions: (state) => (perm: string[]) => {
+    // Return true if the user has at least one of the tabs permissions
+    return perm.some((permission) => state.permissions.includes(permission));
+  },
   getAllowedTabs: (state, getters) => (tabs: Tab[]) => {
     // returns filtered array of objects based on the 'permission' attribute
     const filteredTabs = tabs.filter((tab: Tab) => {

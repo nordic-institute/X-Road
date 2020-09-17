@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 
+const addSubjectsPopup = require('./common/addSubjectsPopup');
+
 var navigateCommands = {
   openClientsTab: function() {
     this.click('@clientsTab');
@@ -159,6 +161,10 @@ var localGroupPopupCommands = {
   },
   selectNewTestComMember: function() {
     this.click('@localGroupTestComCheckbox');
+    return this;
+  },
+  selectMember: function(member) {
+    this.api.click(`//tr[.//*[contains(text(), "${member}")]]//*[contains(@class, "v-input--selection-controls__ripple")]`);
     return this;
   },
   clickRemoveAll: function() {
@@ -451,41 +457,16 @@ var restEndpointCommands = {
     this.api.waitForElementVisible('//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
     return this;
   },
+  openEndpointAccessRights: function(method, path) {
+    this.api.click(`//td[contains(@class, "wrap-right-tight") and preceding-sibling::td/text() = "${path}" and preceding-sibling::td/span/text() = "${method}"]//button[contains(@data-test, "endpoint-edit-accessrights")]`);
+    return this;
+  },
   openEndpoint: function(method, path) {
     this.api.click('//table[.//*[contains(text(),"HTTP Request Method")]]//tr[.//*[contains(text(),"'+method+'")] and .//*[contains(text(),"'+path+'")]]//button[@data-test="endpoint-edit"]');
     return this;
-  }
-};
-
-var wsdlAddSubjectsCommands = {
-  startSearch: function() {
-    this.click('@searchButton');
-    return this;
   },
-  selectServiceClientType: function(type) {
-    this.click('@serviceClientTypeDropdown');
-    // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click('//div[@role="listbox"]//div[contains(@class,"v-list-item__title") and contains(text(),"'+type+'")]');
-    return this;
-  },
-  addSelected: function() {
-    this.click('@addButton');
-    return this;
-  },
-  cancel: function() {
-    this.click('@cancelButton');
-    return this;
-  },
-  selectSubject: function(subject) {
-    this.api.click(this.selector + '//tr[.//td[contains(text(),"'+subject+'")]]//input[contains(@data-test, "sc-checkbox")]/following-sibling::div');
-    return this;
-  },
-  verifyClientTypeVisible: function(type) {
-    this.api.waitForElementVisible('//table[contains(@class, "members-table")]//td[contains(text(), "'+type+'")]');
-    return this;
-  },
-  verifyClientTypeNotPresent: function(type) {
-    this.api.waitForElementNotPresent('//table[contains(@class, "members-table")]//td[contains(text(), "'+type+'")]');
+  close: function() {
+    this.click('@closeButton');
     return this;
   }
 };
@@ -1119,31 +1100,16 @@ module.exports = {
           locateStrategy: 'xpath' },
         closeButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
-          locateStrategy: 'xpath' }
+          locateStrategy: 'xpath' },
+        editButton: {
+          selector: '//button[contains(@data-test, "endpoint-edit"]',
+          locateStrategy: 'xpath' },
+        accessRightsButton: {
+          selector: '//button[contains(@data-test, "endpoint-edit-accessrights"]',
+          locateStrategy: 'xpath' },
       }
     },
-    wsdlAddSubjectsPopup: {
-      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Add Subjects")]]',
-      locateStrategy: 'xpath',
-      commands: [wsdlAddSubjectsCommands],
-      elements: {
-        searchButton: {
-          selector: '//button[@data-test="search-button"]',
-          locateStrategy: 'xpath' },
-        addButton: {
-          selector: '//button[@data-test="save"]',
-          locateStrategy: 'xpath' },
-        cancelButton: {
-          selector: '//button[@data-test="cancel-button"]',
-          locateStrategy: 'xpath' },
-        serviceClientTypeDropdown: {
-          selector: '//input[@data-test="serviceClientType"]/parent::*',
-          locateStrategy: 'xpath' },
-        timeoutApplyToAllCheckbox: {
-          selector: '//input[@data-test="timeout-all"]/following-sibling::div',
-          locateStrategy: 'xpath' }
-      }
-    },
+    wsdlAddSubjectsPopup: addSubjectsPopup,
     addEndpointPopup: {
       selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Add Endpoint")]]',
       locateStrategy: 'xpath',
