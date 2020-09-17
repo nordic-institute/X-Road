@@ -128,7 +128,7 @@ read more about the SOAP body logging options in the [Message log add-on paramet
 Guide \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ## 4 XML Schema for the extension
-The XML Schema for the extension is below. It can also be found at [`http://x-road.eu/xsd/security-token.xsd`](http://x-road.eu/xsd/security-token.xsd) and locally [here](./security-token.xsd).
+The XML Schema for the extension is below. It can also be found at [`http://x-road.eu/xsd/security-token.xsd`](http://x-road.eu/xsd/security-token.xsd) and [here](https://github.com/nordic-institute/X-Road/blob/master/doc/Protocols/SecurityTokenExtension/security-token.xsd).
  ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema elementFormDefault="qualified"

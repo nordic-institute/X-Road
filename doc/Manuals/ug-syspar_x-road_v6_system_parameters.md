@@ -123,7 +123,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 1.  <a id="Ref_INI"></a>\[INI\] INI file, [http://en.wikipedia.org/wiki/INI_file](http://en.wikipedia.org/wiki/INI_file).
 2.  <a id="Ref_CRON"></a>\[CRON\] Quartz Scheduler
-    CRON expression, [http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html](http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html).
+    CRON expression, [http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html).
 3.  <a id="Ref_PR-MESS"></a>\[PR-MESS\] [X-Road Message Protocol v. 4.0](../Protocols/pr-mess_x-road_message_protocol.md).
 4.  <a id="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] [Security Server Targeting Extension for the X-Road Message Protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md).
 5.  <a id="Ref_PR-SECTOKEN"></a>\[PR-SECTOKEN\] [Security Token Extension for the X-Road Message Protocol](../Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md).
@@ -385,7 +385,7 @@ the message log.
 | auth-cert-reg-signature-digest-algorithm-id      | SHA-512                                    | Signature digest algorithm used for generating authentication certificate registration request.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 
 Configurable SSL connection parameters are those
-[Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+[Spring Boot's common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
 that start with `server.ssl`.
 
 ssl.properties can be used to override any `server.ssl.*` property, also those that do not have default values. However, the result of merging default properties
