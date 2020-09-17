@@ -161,7 +161,7 @@ The interface is described in more detail in [[ARC-G]](#ARC-G) and [[PR-GCONF]]
 
 Figure 2 shows the deployment diagram.
 
-<img src="x-road_operational_monitoring_daemon_deployment.png" width="40%" />
+![Operational Monitoring Daemon Deployment Diagram](./x-road_operational_monitoring_daemon_deployment.png)
 
 **Figure 2. Operational monitoring daemon deployment**
 
