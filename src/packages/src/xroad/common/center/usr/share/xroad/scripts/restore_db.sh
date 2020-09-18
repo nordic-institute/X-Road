@@ -105,7 +105,7 @@ COMMIT;
 SELECT bdr.wait_slot_confirm_lsn(NULL, NULL);
 SELECT pg_sleep(5);
 BEGIN;
-SELECT "$USER".fix_sequence();
+SELECT "$SCHEMA".fix_sequence('$SCHEMA');
 COMMIT;
 RESET ROLE;
 GRANT CONNECT ON DATABASE "$DATABASE" TO "$USER";
