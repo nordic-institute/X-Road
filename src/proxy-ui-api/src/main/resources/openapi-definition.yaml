@@ -93,7 +93,8 @@ paths:
         - backups
       summary: add new backup for the security server
       operationId: addBackup
-      description: Adds security server backup to the system
+      description: >
+        Adds security server backup to the system
       responses:
         '201':
           description: item created
@@ -105,6 +106,15 @@ paths:
           description: item accepted
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -154,6 +164,15 @@ paths:
           description: item accepted
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -222,6 +241,15 @@ paths:
                 $ref: '#/components/schemas/TokensLoggedOut'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -294,6 +322,15 @@ paths:
                 $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -363,6 +400,15 @@ paths:
           description: deletion was successful
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -461,6 +507,15 @@ paths:
                 $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -568,6 +623,15 @@ paths:
           description: request was successful
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -600,6 +664,15 @@ paths:
           description: request was successful
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -743,6 +816,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
+                validation_warnings_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1000,6 +1082,15 @@ paths:
           description: deletion was successful
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1030,6 +1121,15 @@ paths:
           description: client was registered
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1508,6 +1608,15 @@ paths:
           description: unregister was successful
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1597,6 +1706,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
+                validation_warnings_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+
         '401':
           description: authentication credentials are missing
         '403':
@@ -1727,6 +1846,15 @@ paths:
           description: client was set as owner
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1849,6 +1977,19 @@ paths:
           description: security server initialized
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
+                validation_warnings_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2177,6 +2318,17 @@ paths:
           description: key deletion was successful
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2208,10 +2360,10 @@ paths:
             schema:
               $ref: '#/components/schemas/CsrGenerate'
             examples:
-              example1:
-                $ref: '#/components/examples/CsrGenerateExample1'
-              example2:
-                $ref: '#/components/examples/CsrGenerateExample2'
+              sign_csr_example:
+                $ref: '#/components/examples/SignCsrGenerateExample'
+              auth_csr_example:
+                $ref: '#/components/examples/AuthCsrGenerateExample'
       responses:
         '201':
           description: created CSR
@@ -2744,6 +2896,15 @@ paths:
                 $ref: '#/components/schemas/Service'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2786,6 +2947,15 @@ paths:
                 $ref: '#/components/schemas/Endpoint'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2861,7 +3031,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ServiceClients'
             examples:
-              example1:
+              id_array_example:
                 $ref: '#/components/examples/IdArrayExample'
       responses:
         '201':
@@ -2911,7 +3081,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ServiceClients'
             examples:
-              example1:
+              id_array_example:
                 $ref: '#/components/examples/IdArrayExample'
       responses:
         '204':
@@ -2992,6 +3162,15 @@ paths:
                 $ref: '#/components/schemas/Endpoint'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3025,6 +3204,15 @@ paths:
           description: endpoint deleted
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3064,6 +3252,15 @@ paths:
                   $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3095,7 +3292,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ServiceClients'
             examples:
-              example1:
+              id_array_example:
                 $ref: '#/components/examples/IdArrayExample'
       responses:
         '201':
@@ -3110,6 +3307,15 @@ paths:
                   $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3145,13 +3351,22 @@ paths:
             schema:
               $ref: '#/components/schemas/ServiceClients'
             examples:
-              example1:
+              id_array_example:
                 $ref: '#/components/examples/IdArrayExample'
       responses:
         '204':
           description: access right(s) deleted
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3235,6 +3450,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
+                validation_warnings_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3380,6 +3604,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/WarningsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3633,6 +3864,15 @@ paths:
           description: tls key generated
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4126,7 +4366,7 @@ paths:
             schema:
               $ref: '#/components/schemas/KeyLabelWithCsrGenerate'
             examples:
-              example1:
+              key_label_csr_example:
                 $ref: '#/components/examples/KeyLabelWithCsrGenerateExample'
       responses:
         '201':
@@ -4137,6 +4377,15 @@ paths:
                 $ref: '#/components/schemas/KeyWithCertificateSigningRequestId'
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4301,8 +4550,8 @@ paths:
           description: internal server error
 components:
   examples:
-    CsrGenerateExample1:
-      summary: Request body example 1
+    SignCsrGenerateExample:
+      summary: Sign CSR generate request body example
       value:
         key_usage_type: SIGNING
         ca_name: Customized Test CA CN
@@ -4313,8 +4562,8 @@ components:
           C: FI
           O: NIIS
           serialNumber: CS/SS1/NIIS
-    CsrGenerateExample2:
-      summary: Request body example 2
+    AuthCsrGenerateExample:
+      summary: Auth CSR generate request body example
       value:
         key_usage_type: AUTHENTICATION
         ca_name: Customized Test CA CN
@@ -4327,7 +4576,7 @@ components:
           OU: Development
           serialNumber: CS/SS1/NIIS
     KeyLabelWithCsrGenerateExample:
-      summary: Request body example 1
+      summary: Key label and CSR generate request body example 1
       value:
         key_label: My new key
         csr_generate_request:
@@ -4341,12 +4590,48 @@ components:
             O: NIIS
             serialNumber: CS/SS1/NIIS
     IdArrayExample:
-      summary: Request body example
+      summary: Id array request body example
       value:
         items:
           - DEV:ORG:1234:Subsystem
           - DEV:security-server-owners
           - "123"
+    ErrorExample:
+      summary: Error response body example
+      value:
+        status: 400
+        code: invalid_filename
+    ErrorWithMetadataExample:
+      summary: Error with metadata response body example
+      value:
+        status: 400
+        code: invalid_service_url
+        metadata:
+          - "sftp://some.sftp.server"
+    ValidationErrorsExample:
+      summary: Validation errors response body example
+      value:
+        status: 400
+        code: validation_failure
+        validation_errors:
+          "clientAdd.client.memberCode":
+            - NoPercent
+          "clientAdd.client.subsystemCode":
+            - NoPercent
+            - NoBackslashes
+    WarningsExample:
+      summary: Warnings response body example
+      value:
+        status: 400
+        code: warnings_detected
+        warnings:
+          - code: adding_services
+            metadata:
+              - "newService.v1"
+              - "anotherNewService.v1"
+          - code: deleting_services
+            metadata:
+              - "someOldService.v1"
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
