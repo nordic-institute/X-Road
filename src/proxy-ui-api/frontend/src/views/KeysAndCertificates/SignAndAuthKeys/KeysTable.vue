@@ -41,8 +41,6 @@
         <!-- SOFTWARE token table body -->
         <template v-if="tokenType === 'SOFTWARE'">
           <KeyRow
-            :disableGenerateCsr="disableGenerateCsr(key)"
-            :hasPermission="hasPermission"
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
             @generateCsr="generateCsr(key)"
@@ -72,8 +70,6 @@
         <!-- HARDWARE token table body -->
         <template v-if="tokenType === 'HARDWARE'">
           <KeyRow
-            :disableGenerateCsr="disableGenerateCsr(key)"
-            :hasPermission="hasPermission"
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
             @generateCsr="generateCsr(key)"
@@ -87,7 +83,7 @@
             @certificateClick="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
-              <template v-if="hasPermission">
+              <template v-if="canImportFromToken">
                 <SmallButton
                   v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                   class="table-button-fix"
@@ -125,7 +121,9 @@
             <td class="td-align-right">
               <SmallButton
                 class="table-button-fix"
-                v-if="hasPermission && req.possible_actions.includes('DELETE')"
+                v-if="
+                  req.possible_actions.includes('DELETE') && canDeleteCsr(key)
+                "
                 @click="showDeleteCsrDialog(req, key)"
                 >{{ $t('keys.deleteCsr') }}</SmallButton
               >
@@ -166,7 +164,7 @@ import {
   TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
-import { Permissions, UsageTypes, PossibleActions } from '@/global';
+import { Permissions, UsageTypes } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
@@ -206,37 +204,26 @@ export default Vue.extend({
     };
   },
   computed: {
-    hasPermission(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      );
+    canImportFromToken(): boolean {
+      // Can the user import certificate from hardware token
+      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
     },
+
     showRegisterCertButton(): boolean {
-      if (
-        this.hasPermission &&
-        this.$store.getters.hasPermission(Permissions.SEND_AUTH_CERT_REG_REQ)
-      ) {
-        return true;
-      }
-      return false;
+      // Decide if the user can register a certificate
+      return this.$store.getters.hasPermission(
+        Permissions.SEND_AUTH_CERT_REG_REQ,
+      );
     },
   },
   methods: {
-    disableGenerateCsr(key: Key): boolean {
-      if (!this.tokenLoggedIn) {
-        return true;
+    canDeleteCsr(key: Key): boolean {
+      // Decide if the user can delete CSR based on the key usage type and permissions
+      if (key.usage === 'AUTHENTICATION') {
+        return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_CERT);
       }
-
-      if (
-        key.possible_actions?.includes(PossibleActions.GENERATE_AUTH_CSR) ||
-        key.possible_actions?.includes(PossibleActions.GENERATE_SIGN_CSR)
-      ) {
-        return false;
-      }
-
-      return true;
+      return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_CERT);
     },
-
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },

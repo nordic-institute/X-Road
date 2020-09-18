@@ -61,7 +61,7 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 @RestController
 @RequestMapping(ApiKeysController.API_KEYS_V1_PATH)
 @Slf4j
-@PreAuthorize("hasRole('XROAD_SYSTEM_ADMINISTRATOR')")
+@PreAuthorize("denyAll")
 public class ApiKeysController {
 
     public static final String API_KEYS_V1_PATH = API_V1_PREFIX + "/api-keys";
@@ -80,6 +80,7 @@ public class ApiKeysController {
      */
     @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @AuditEventMethod(event = API_KEY_CREATE)
+    @PreAuthorize("hasAuthority('CREATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
         try {
             PersistentApiKeyType createdKeyData = apiKeyService.create(roles);
@@ -94,6 +95,7 @@ public class ApiKeysController {
      */
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @AuditEventMethod(event = API_KEY_UPDATE)
+    @PreAuthorize("hasAuthority('UPDATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
             @RequestBody List<String> roles) {
         try {
@@ -110,6 +112,7 @@ public class ApiKeysController {
      * list api keys from db
      */
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<Collection<PublicApiKeyData>> list() {
         Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
         return new ResponseEntity<>(publicApiKeyDataConverter.convert(keys), HttpStatus.OK);
@@ -122,6 +125,7 @@ public class ApiKeysController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @AuditEventMethod(event = API_KEY_REMOVE)
+    @PreAuthorize("hasAuthority('REVOKE_API_KEY')")
     public ResponseEntity revoke(@PathVariable("id") long id) {
         try {
             apiKeyService.removeById(id);

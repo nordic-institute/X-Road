@@ -91,6 +91,7 @@ export default Vue.extend({
           to: {
             name: RouteName.SignAndAuthKeys,
           },
+          permissions: [Permissions.VIEW_KEYS],
           helpImage: 'keys_and_certificates.png',
           helpTitle: 'keys.helpTitleKeys',
           helpText: 'keys.helpTextKeys',
@@ -101,7 +102,12 @@ export default Vue.extend({
           to: {
             name: RouteName.ApiKey,
           },
-          permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS],
+          permissions: [
+            Permissions.CREATE_API_KEY,
+            Permissions.VIEW_API_KEYS,
+            Permissions.UPDATE_API_KEY,
+            Permissions.REVOKE_API_KEY,
+          ],
           helpImage: 'api_keys.png',
           helpTitle: 'keys.helpTitleApi',
           helpText: 'keys.helpTextApi',
@@ -112,7 +118,7 @@ export default Vue.extend({
           to: {
             name: RouteName.SSTlsCertificate,
           },
-          permissions: [Permissions.VIEW_CLIENT_SERVICES],
+          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
           helpImage: 'tls_certificate.png',
           helpTitle: 'keys.helpTitleSS',
           helpText: 'keys.helpTextSS',

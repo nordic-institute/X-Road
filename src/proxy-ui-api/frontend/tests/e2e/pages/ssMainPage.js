@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 
+const addSubjectsPopup = require('./common/addSubjectsPopup');
+
 var navigateCommands = {
   openClientsTab: function() {
     this.click('@clientsTab');
@@ -159,6 +161,10 @@ var localGroupPopupCommands = {
   },
   selectNewTestComMember: function() {
     this.click('@localGroupTestComCheckbox');
+    return this;
+  },
+  selectMember: function(member) {
+    this.api.click(`//tr[.//*[contains(text(), "${member}")]]//*[contains(@class, "v-input--selection-controls__ripple")]`);
     return this;
   },
   clickRemoveAll: function() {
@@ -372,11 +378,11 @@ var serviceDetailsCommands = {
   }
 };
 
-var wsdlOperationCommands = { 
+var wsdlOperationCommands = {
   openEndpointsTab: function() {
     this.click('@endpointsTab');
     return this;
-  },  
+  },
   saveParameters: function() {
     this.click('@saveButton');
     return this;
@@ -391,7 +397,7 @@ var wsdlOperationCommands = {
   },
   toggleTimeoutApplyToAll: function() {
     this.click('@timeoutApplyToAllCheckbox');
-    return this;sslAuth
+    return this;
   },
   toggleVerifyCertApplyToAll: function() {
     this.click('@verifyCertApplyToAllCheckbox');
@@ -425,6 +431,17 @@ var wsdlOperationCommands = {
   }
 };
 
+var sslCheckFailDialogCommands = {
+  continue: function() {
+    this.click('@continueButton');
+    return this;
+  },
+  cancel: function() {
+    this.click('@cancelButton');
+    return this;
+  }
+};
+
 var restEndpointCommands = {
   openAddDialog: function() {
     this.click('@addButton');
@@ -440,41 +457,16 @@ var restEndpointCommands = {
     this.api.waitForElementVisible('//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
     return this;
   },
+  openEndpointAccessRights: function(method, path) {
+    this.api.click(`//td[contains(@class, "wrap-right-tight") and preceding-sibling::td/text() = "${path}" and preceding-sibling::td/span/text() = "${method}"]//button[contains(@data-test, "endpoint-edit-accessrights")]`);
+    return this;
+  },
   openEndpoint: function(method, path) {
     this.api.click('//table[.//*[contains(text(),"HTTP Request Method")]]//tr[.//*[contains(text(),"'+method+'")] and .//*[contains(text(),"'+path+'")]]//button[@data-test="endpoint-edit"]');
     return this;
-  }
-};
-
-var wsdlAddSubjectsCommands = {
-  startSearch: function() {
-    this.click('@searchButton');
-    return this;
   },
-  selectServiceClientType: function(type) {
-    this.click('@serviceClientTypeDropdown');
-    // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click('//div[@role="listbox"]//div[contains(@class,"v-list-item__title") and contains(text(),"'+type+'")]'); 
-    return this;
-  },
-  addSelected: function() {
-    this.click('@addButton');
-    return this;
-  },
-  cancel: function() {
-    this.click('@cancelButton');
-    return this;
-  },
-  selectSubject: function(subject) {
-    this.api.click(this.selector + '//tr[.//td[contains(text(),"'+subject+'")]]//input[contains(@data-test, "sc-checkbox")]/following-sibling::div');
-    return this;
-  },
-  verifyClientTypeVisible: function(type) {
-    this.api.waitForElementVisible('//table[contains(@class, "members-table")]//td[contains(text(), "'+type+'")]');
-    return this;
-  },
-  verifyClientTypeNotPresent: function(type) {
-    this.api.waitForElementNotPresent('//table[contains(@class, "members-table")]//td[contains(text(), "'+type+'")]');
+  close: function() {
+    this.click('@closeButton');
     return this;
   }
 };
@@ -487,10 +479,10 @@ var addEndpointCommands = {
   },
   selectRequestMethod: function(method) {
     this.click('@methodDropdown');
- 
+
     this.api.pause(1000);
     // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click('//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"'+method+'")]'); 
+    this.api.click('//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"'+method+'")]');
 
     return this;
   },
@@ -545,31 +537,31 @@ module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
   elements: {
-    clientsTab: { 
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Clients"]', 
+    clientsTab: {
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Clients"]',
       locateStrategy: 'xpath'},
-    keysTab: { 
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Keys and certificates"]', 
+    keysTab: {
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Keys and certificates"]',
       locateStrategy: 'xpath'},
-    diagnosticsTab: { 
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Diagnostics"]', 
+    diagnosticsTab: {
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Diagnostics"]',
       locateStrategy: 'xpath'},
-    settingsTab: { 
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Settings"]', 
+    settingsTab: {
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Settings"]',
       locateStrategy: 'xpath' },
-    userMenuButton: { 
-      selector: 'div.v-toolbar__content button .mdi-account-circle', 
+    userMenuButton: {
+      selector: 'div.v-toolbar__content button .mdi-account-circle',
       locateStrategy: 'css selector' },
-    userMenuitemLogout: { 
+    userMenuitemLogout: {
       selector: '#logout-list-tile',
       locateStrategy: 'css selector' },
-    logoutOKButton: { 
-      selector: '//div[contains(@class, "v-dialog")]//button[.//*[contains(text(), "Ok")]]', 
+    logoutOKButton: {
+      selector: '//div[contains(@class, "v-dialog")]//button[.//*[contains(text(), "Ok")]]',
       locateStrategy: 'xpath' },
-    snackBarCloseButton: { 
+    snackBarCloseButton: {
       selector: '//button[@data-test="close-snackbar"]',
       locateStrategy: 'xpath' },
-    snackBarMessage: { 
+    snackBarMessage: {
       selector: '//div[contains(@class, "v-snack__content")]',
       locateStrategy: 'xpath' }
   },
@@ -579,23 +571,23 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [clientTabCommands],
       elements: {
-        addClientButton: { 
+        addClientButton: {
           selector: '//button[.//*[contains(text(), "add client")]]',
           locateStrategy: 'xpath' },
-        listNameHeader: { 
-          selector: '//th[span[contains(text(),"Name")]]', 
+        listNameHeader: {
+          selector: '//th[span[contains(text(),"Name")]]',
           locateStrategy: 'xpath' },
-        listIDHeader: { 
-          selector: '//th[span[contains(text(),"ID")]]', 
+        listIDHeader: {
+          selector: '//th[span[contains(text(),"ID")]]',
           locateStrategy: 'xpath' },
-        listStatusHeader: { 
-          selector: '//th[span[contains(text(),"Status")]]', 
+        listStatusHeader: {
+          selector: '//th[span[contains(text(),"Status")]]',
           locateStrategy: 'xpath' },
-        testServiceListItem: { 
-          selector: '//tbody//span[contains(text(),"TestService")]', 
+        testServiceListItem: {
+          selector: '//tbody//span[contains(text(),"TestService")]',
           locateStrategy: 'xpath' },
-        testGovListItem: { 
-          selector: '//tbody//span[contains(text(),"TestGov")]', 
+        testGovListItem: {
+          selector: '//tbody//span[contains(text(),"TestGov")]',
           locateStrategy: 'xpath' }
       }
     },
@@ -604,19 +596,19 @@ module.exports = {
       locateStrategy: 'css selector',
       commands: [clientInfoCommands],
       elements: {
-        detailsTab: { 
+        detailsTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "details")]',
           locateStrategy: 'xpath' },
-        serviceClientsTab: { 
+        serviceClientsTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "service clients")]',
           locateStrategy: 'xpath' },
-        servicesTab: { 
+        servicesTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "services")]',
           locateStrategy: 'xpath' },
-        internalServersTab: { 
+        internalServersTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "internal servers")]',
           locateStrategy: 'xpath' },
-        localGroupsTab: { 
+        localGroupsTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "local groups")]',
           locateStrategy: 'xpath' }
       },
@@ -626,84 +618,84 @@ module.exports = {
           locateStrategy: 'xpath',
           commands: [clientDetailsCommands],
           elements: {
-            clientSignCertificate: { 
+            clientSignCertificate: {
               selector: 'span.cert-name',
               locateStrategy: 'css selector' }
-          }      
+          }
         },
         localGroups: {
           selector: '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "local groups")]]',
           locateStrategy: 'xpath',
           commands: [clientLocalGroupsCommands],
           elements: {
-            filterInput: { 
+            filterInput: {
               selector: '//input',
               locateStrategy: 'xpath' },
-            addGroupButton: { 
+            addGroupButton: {
               selector: '//button[.//*[contains(text(), "Add group")]]',
               locateStrategy: 'xpath' },
-            confirmAddButton: { 
+            confirmAddButton: {
               selector: '//button[@data-test="dialog-save-button"]',
               locateStrategy: 'xpath' },
             cancelAddButton: {
               selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath' },
-            groupCode: { 
+            groupCode: {
               selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Code")]]//input',
               locateStrategy: 'xpath' },
-            groupDescription: { 
+            groupDescription: {
               selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Description")]]//input',
               locateStrategy: 'xpath' },
-            groupCodeCellAbb: { 
+            groupCodeCellAbb: {
               selector: '//table[contains(@class, "details-certificates")]//span[contains(text(),"abb")]',
               locateStrategy: 'xpath' },
-            groupCodeCellBac: { 
+            groupCodeCellBac: {
               selector: '//table[contains(@class, "details-certificates")]//span[contains(text(),"bac")]',
               locateStrategy: 'xpath' },
-            groupCodeCellCbb: { 
+            groupCodeCellCbb: {
               selector: '//table[contains(@class, "details-certificates")]//span[contains(text(),"cbb")]',
               locateStrategy: 'xpath' },
-            abbDetails: { 
+            abbDetails: {
               selector: '//span[contains(text(),"abb")]',
               locateStrategy: 'xpath' },
-            bacDetails: { 
+            bacDetails: {
               selector: '//span[contains(text(),"bac")]',
               locateStrategy: 'xpath' },
-            bacDetails: { 
+            bacDetails: {
               selector: '//span[contains(text(),"cbb")]',
               locateStrategy: 'xpath' }
-          }      
+          }
         },
         services: {
           selector: '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "services")]]',
           locateStrategy: 'xpath',
           commands: [clientServicesCommands],
           elements: {
-            addWSDLButton: { 
+            addWSDLButton: {
               selector: '//button[contains(@data-test, "add-wsdl-button")]',
               locateStrategy: 'xpath' },
-            addRESTButton: { 
+            addRESTButton: {
               selector: '//button[contains(@data-test, "add-rest-button")]',
               locateStrategy: 'xpath' },
-            filterServices: { 
+            filterServices: {
               selector: '//input[contains(@data-test, "search-service")]',
               locateStrategy: 'xpath' },
-            addDialogTitle: { 
+            addDialogTitle: {
               selector: '//input[@data-test="dialog-title"]',
               locateStrategy: 'xpath' },
-            newServiceUrl: { 
+            newServiceUrl: {
               selector: '//input[contains(@name, "serviceUrl")]',
               locateStrategy: 'xpath' },
-            newServiceCode: { 
+            newServiceCode: {
               selector: '//input[contains(@name, "serviceCode")]',
               locateStrategy: 'xpath' },
-            serviceUrlMessage: { 
+            serviceUrlMessage: {
               selector: '//div[contains(@class, "v-messages__message")]',
               locateStrategy: 'xpath' },
-            serviceCodeMessage: { 
+            serviceCodeMessage: {
               selector: '//div[contains(@class, "v-input") and .//input[@name="serviceCode"]]//div[contains(@class, "v-messages__message")]',
               locateStrategy: 'xpath' },
-            confirmAddServiceButton: { 
+            confirmAddServiceButton: {
               selector: '//button[contains(@data-test, "dialog-save-button")]',
               locateStrategy: 'xpath' },
             cancelAddServiceButton: {
@@ -727,39 +719,39 @@ module.exports = {
             serviceExpandButton: {
               selector: '//*[contains(@data-test, "service-description-accordion")]//button',
               locateStrategy: 'xpath' },
-            refreshButton: { 
+            refreshButton: {
               selector: '//button[contains(@data-test, "refresh-button")]',
               locateStrategy: 'xpath' },
             refreshTimestamp: {
               selector: '//*[contains(@class, "refresh-time")]',
               locateStrategy: 'xpath' },
-            serviceDetailsDeleteButton: { 
+            serviceDetailsDeleteButton: {
               selector: '//button[.//*[contains(text(), "Delete")]]',
               locateStrategy: 'xpath' },
             serviceDetailsSaveButton: {
               selector: '//button[.//*[contains(text(), "Save")]]',
               locateStrategy: 'xpath' },
-            serviceDetailsCancelButton: { 
+            serviceDetailsCancelButton: {
               selector: '//button[.//*[contains(text(), "Cancel")]]',
               locateStrategy: 'xpath' },
-            serviceEnableToggle: { 
-              selector: '//*[contains(@class, "v-input--selection-controls__ripple")]', 
+            serviceEnableToggle: {
+              selector: '//*[contains(@class, "v-input--selection-controls__ripple")]',
               locateStrategy: 'xpath' },
-            confirmDisableButton: { 
+            confirmDisableButton: {
               selector: '//button[contains(@data-test, "dialog-save-button")]',
               locateStrategy: 'xpath' },
             cancelDisableButton: {
               selector: '//button[contains(@data-test, "dialog-cancel-button")]',
               locateStrategy: 'xpath' },
-            disableNotice: { 
+            disableNotice: {
               selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(@class, "dlg-row-title") and contains(text(), "Disable notice")]]//input',
               locateStrategy: 'xpath' },
-            operationUrl: { 
+            operationUrl: {
               selector: '//td[contains(@data-test, "service-url")]',
               locateStrategy: 'xpath' }
-          }      
+          }
         }
-      }     
+      }
     },
     keysTab: {
       selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
@@ -773,7 +765,7 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
-        certificateInfoCloseButton: { 
+        certificateInfoCloseButton: {
           selector: 'div.cert-dialog-header #close-x',
           locateStrategy: 'css selector' }
       }
@@ -783,16 +775,16 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [localGroupPopupCommands],
       elements: {
-        localGroupAddMembersButton: { 
+        localGroupAddMembersButton: {
           selector: '//button[.//*[contains(text(), "Add Members")]]',
           locateStrategy: 'xpath' },
-        localGroupRemoveAllButton: { 
+        localGroupRemoveAllButton: {
           selector: '//button[.//*[contains(text(), "Remove All")]]',
           locateStrategy: 'xpath' },
-        localGroupDeleteButton: { 
+        localGroupDeleteButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
           locateStrategy: 'xpath' },
-        localGroupAddSelectedButton: { 
+        localGroupAddSelectedButton: {
           selector: '//button[.//*[contains(text(), "Add selected")]]',
           locateStrategy: 'xpath' },
         localGroupSearchButton: {
@@ -804,7 +796,7 @@ module.exports = {
         localGroupTestComCheckbox: {
           selector: '//tr[.//*[contains(text(), "TestCom")]]//*[contains(@class, "v-input--selection-controls__ripple")]',
           locateStrategy: 'xpath' },
-        localGroupRemoveMemberButton: { 
+        localGroupRemoveMemberButton: {
           selector: '//button[.//*[contains(text(), "Add group")]]',
           locateStrategy: 'xpath' },
         localGroupSearchWrap: {
@@ -825,13 +817,13 @@ module.exports = {
         localGroupTestOrgRemoveButton: {
           selector: '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
           locateStrategy: 'xpath' },
-        localGroupDescriptionLabel: { 
+        localGroupDescriptionLabel: {
           selector: '//div[contains(@class, "edit-row")]//div[contains(text(), "Edit description")]',
           locateStrategy: 'xpath' },
-        localGroupDescription: { 
+        localGroupDescription: {
           selector: '//div[contains(@class, "description-input")]//input',
           locateStrategy: 'xpath' },
-        localGroupPopupCloseButton: { 
+        localGroupPopupCloseButton: {
           selector: '//button[.//*[contains(text(), "Close")]]',
           locateStrategy: 'xpath' }
       }
@@ -841,10 +833,10 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [servicesWarningPopupCommands],
       elements: {
-        warningContinueButton: { 
+        warningContinueButton: {
           selector: '//button[.//*[contains(text(), "Continue")]]',
           locateStrategy: 'xpath' },
-        warningCancelButton: { 
+        warningCancelButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
           locateStrategy: 'xpath' }
       }
@@ -857,25 +849,25 @@ module.exports = {
         serviceDetailsCloseButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
           locateStrategy: 'xpath' },
-        deleteServiceButton: { 
+        deleteServiceButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
           locateStrategy: 'xpath' },
-        confirmDeleteButton: { 
+        confirmDeleteButton: {
           selector: '//button[contains(@data-test, "dialog-save-button")]',
           locateStrategy: 'xpath' },
         cancelDeleteButton: {
           selector: '//button[contains(@data-test, "dialog-cancel-button")]',
           locateStrategy: 'xpath' },
-        serviceURL: { 
+        serviceURL: {
           selector: '//*[contains(@class, "url-input")]//input',
           locateStrategy: 'xpath' },
-        URLMessage: { 
+        URLMessage: {
           selector: '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        confirmDialogButton: { 
+        confirmDialogButton: {
           selector: '//button[.//*[contains(text(), "Save")]]',
           locateStrategy: 'xpath' },
-        cancelDialogButton: { 
+        cancelDialogButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
           locateStrategy: 'xpath' }
       }
@@ -883,39 +875,39 @@ module.exports = {
     restServiceDetails: {
       selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "cert-headline") and contains(text(),"REST details")]]',
       locateStrategy: 'xpath',
-      commands: [serviceDetailsCommands],  
+      commands: [serviceDetailsCommands],
       elements: {
         serviceDetailsCloseButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
           locateStrategy: 'xpath' },
-        deleteServiceButton: { 
+        deleteServiceButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
           locateStrategy: 'xpath' },
-        confirmDeleteButton: { 
+        confirmDeleteButton: {
           selector: '//button[contains(@data-test, "dialog-save-button")]',
           locateStrategy: 'xpath' },
         cancelDeleteButton: {
           selector: '//button[contains(@data-test, "dialog-cancel-button")]',
           locateStrategy: 'xpath' },
-        serviceURL: { 
+        serviceURL: {
           selector: '//*[contains(@class, "url-input")]//input',
           locateStrategy: 'xpath' },
-        serviceCode: { 
+        serviceCode: {
           selector: '//*[contains(@class, "code-input")]//input',
           locateStrategy: 'xpath' },
-        serviceType: { 
+        serviceType: {
           selector: '//*[contains(@class, "edit-row") and .//*[contains(text(), "URL type")]]/*[contains(@class, "code-input")]',
           locateStrategy: 'xpath' },
-        URLMessage: { 
+        URLMessage: {
           selector: '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        codeMessage: { 
+        codeMessage: {
           selector: '//*[contains(@class, "code-input")]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        confirmDialogButton: { 
+        confirmDialogButton: {
           selector: '//button[.//*[contains(text(), "Save")]]',
           locateStrategy: 'xpath' },
-        cancelDialogButton: { 
+        cancelDialogButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
           locateStrategy: 'xpath' }
       }
@@ -923,39 +915,39 @@ module.exports = {
     openApiServiceDetails: {
       selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "cert-headline") and contains(text(),"OpenAPI 3 details")]]',
       locateStrategy: 'xpath',
-      commands: [serviceDetailsCommands],  
+      commands: [serviceDetailsCommands],
       elements: {
         serviceDetailsCloseButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
           locateStrategy: 'xpath' },
-        deleteServiceButton: { 
+        deleteServiceButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
           locateStrategy: 'xpath' },
-        confirmDeleteButton: { 
+        confirmDeleteButton: {
           selector: '//button[contains(@data-test, "dialog-save-button")]',
           locateStrategy: 'xpath' },
         cancelDeleteButton: {
           selector: '//button[contains(@data-test, "dialog-cancel-button")]',
           locateStrategy: 'xpath' },
-        serviceURL: { 
+        serviceURL: {
           selector: '//*[contains(@class, "url-input")]//input',
           locateStrategy: 'xpath' },
-        serviceCode: { 
+        serviceCode: {
           selector: '//*[contains(@class, "code-input")]//input[@name="code_field"]',
           locateStrategy: 'xpath' },
-        serviceType: { 
+        serviceType: {
           selector: '//*[contains(@class, "edit-row") and .//*[contains(text(), "URL type")]]/*[contains(@class, "code-input")]',
           locateStrategy: 'xpath' },
-        URLMessage: { 
+        URLMessage: {
           selector: '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        codeMessage: { 
+        codeMessage: {
           selector: '//*[contains(@class, "code-input")]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        confirmDialogButton: { 
+        confirmDialogButton: {
           selector: '//button[.//*[contains(text(), "Save")]]',
           locateStrategy: 'xpath' },
-        cancelDialogButton: { 
+        cancelDialogButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
           locateStrategy: 'xpath' }
       }
@@ -965,117 +957,130 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [wsdlOperationCommands],
       elements: {
-        parametersTab: { 
+        parametersTab: {
           selector: '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Service Parameters")]',
           locateStrategy: 'xpath' },
-        endpointsTab: { 
+        endpointsTab: {
           selector: '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Endpoints")]',
           locateStrategy: 'xpath' },
-        urlApplyToAllCheckbox: { 
-          selector: '//input[contains(@data-test, "url-all")]/following-sibling::div', 
+        urlApplyToAllCheckbox: {
+          selector: '//input[contains(@data-test, "url-all")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        timeoutApplyToAllCheckbox: { 
+        timeoutApplyToAllCheckbox: {
           selector: '//input[contains(@data-test, "timeout-all")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        verifyCertApplyToAllCheckbox: { 
+        verifyCertApplyToAllCheckbox: {
           selector: '//input[contains(@data-test, "ssl-auth-all")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        serviceURL: { 
+        serviceURL: {
           selector: '//input[contains(@data-test, "service-url")]',
           locateStrategy: 'xpath' },
-        timeout: { 
+        timeout: {
           selector: '//input[contains(@data-test, "service-timeout")]',
           locateStrategy: 'xpath' },
-        sslAuth: { 
+        sslAuth: {
           selector: '//input[contains(@data-test, "ssl-auth")]',
           locateStrategy: 'xpath' },
-        sslAuthClickarea: { 
+        sslAuthClickarea: {
           selector: '//input[contains(@data-test, "ssl-auth")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        save2Button: { 
+        save2Button: {
           selector: '//button[contains(@data-test, "save-service-parameters")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        saveButton: { 
+        saveButton: {
           selector: '//button[contains(@data-test, "save-service-parameters")]',
           locateStrategy: 'xpath' },
-        closeButton: { 
+        closeButton: {
           selector: '//button[contains(@data-test, "close")]',
           locateStrategy: 'xpath' },
-        urlHelp: { 
+        urlHelp: {
           selector: '//div[contains(@class, "edit-title") and contains(text(), "Service URL")]//i',
           locateStrategy: 'xpath' },
-        timeoutHelp: { 
+        timeoutHelp: {
           selector: '//div[contains(@class, "edit-title") and contains(text(), "Timeout")]//i',
           locateStrategy: 'xpath' },
-        verifyCertHelp: { 
+        verifyCertHelp: {
           selector: '//div[contains(@class, "edit-title") and contains(text(), "Verify TLS certificate")]//i',
           locateStrategy: 'xpath' },
-        activeTooltip: { 
+        activeTooltip: {
           selector: '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
           locateStrategy: 'xpath' },
-        addSubjectsButton: { 
+        addSubjectsButton: {
           selector: '//button[contains(@data-test, "show-add-subjects")]',
           locateStrategy: 'xpath' },
-        removeAllButton: { 
+        removeAllButton: {
           selector: '//button[contains(@data-test, "remove-subjects")]',
           locateStrategy: 'xpath' }
-      }      
+      }
     },
     restOperationDetails: {
       selector: '//div[contains(@class, "base-full-width") and .//*[@data-test="service-tab" and contains(./descendant-or-self::*,"Endpoints")]]',
       locateStrategy: 'xpath',
       commands: [wsdlOperationCommands],
       elements: {
-        parametersTab: { 
+        parametersTab: {
           selector: '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Service Parameters")]',
           locateStrategy: 'xpath' },
-        endpointsTab: { 
+        endpointsTab: {
           selector: '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Endpoints")]',
           locateStrategy: 'xpath' },
         closeButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
           locateStrategy: 'xpath' },
-        serviceURL: { 
+        serviceURL: {
           selector: '//input[contains(@data-test, "service-url")]',
           locateStrategy: 'xpath' },
-        timeout: { 
+        timeout: {
           selector: '//input[contains(@data-test, "service-timeout")]',
           locateStrategy: 'xpath' },
-        sslAuth: { 
+        sslAuth: {
           selector: '//input[contains(@data-test, "ssl-auth")]',
           locateStrategy: 'xpath' },
-        sslAuthClickarea: { 
+        sslAuthClickarea: {
           selector: '//input[contains(@data-test, "ssl-auth")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        save2Button: { 
+        save2Button: {
           selector: '//button[contains(@data-test, "save-service-parameters")]/following-sibling::div',
           locateStrategy: 'xpath' },
-        saveButton: { 
+        saveButton: {
           selector: '//button[contains(@data-test, "save-service-parameters")]',
           locateStrategy: 'xpath' },
-        addButton: { 
+        addButton: {
           selector: '//button[contains(@data-test, "endpoint-add")]',
           locateStrategy: 'xpath' },
-        closeButton: { 
+        closeButton: {
           selector: '//button[contains(@data-test, "close")]',
           locateStrategy: 'xpath' },
-        urlHelp: { 
+        urlHelp: {
           selector: '//div[contains(@class, "edit-title") and contains(text(), "Service URL")]//i',
           locateStrategy: 'xpath' },
-        timeoutHelp: { 
+        timeoutHelp: {
           selector: '//div[contains(@class, "edit-title") and contains(text(), "Timeout")]//i',
           locateStrategy: 'xpath' },
-        verifyCertHelp: { 
+        verifyCertHelp: {
           selector: '//div[contains(@class, "edit-title") and contains(text(), "Verify TLS certificate")]//i',
           locateStrategy: 'xpath' },
-        activeTooltip: { 
+        activeTooltip: {
           selector: '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
           locateStrategy: 'xpath' },
-        addSubjectsButton: { 
+        addSubjectsButton: {
           selector: '//button[contains(@data-test, "show-add-subjects")]',
           locateStrategy: 'xpath' },
-        removeAllButton: { 
+        removeAllButton: {
           selector: '//button[contains(@data-test, "remove-subjects")]',
+          locateStrategy: 'xpath' }
+      }
+    },
+    sslCheckFailDialog: {
+      selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Warning")]]',
+      locateStrategy: 'xpath',
+      commands: [sslCheckFailDialogCommands],
+      elements: {
+        continueButton: {
+          selector: '//button[contains(@data-test, "dialog-save-button")]',
+          locateStrategy: 'xpath' },
+        cancelButton: {
+          selector: '//button[contains(@data-test, "dialog-cancel-button")]',
           locateStrategy: 'xpath' }
       }
     },
@@ -1084,60 +1089,45 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [restEndpointCommands],
       elements: {
-        parametersTab: { 
+        parametersTab: {
           selector: '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Service Parameters")]',
           locateStrategy: 'xpath' },
-        endpointsTab: { 
+        endpointsTab: {
           selector: '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Endpoints")]',
           locateStrategy: 'xpath' },
-        addButton: { 
+        addButton: {
           selector: '//button[contains(@data-test, "endpoint-add")]',
           locateStrategy: 'xpath' },
         closeButton: {
           selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
-          locateStrategy: 'xpath' }
+          locateStrategy: 'xpath' },
+        editButton: {
+          selector: '//button[contains(@data-test, "endpoint-edit"]',
+          locateStrategy: 'xpath' },
+        accessRightsButton: {
+          selector: '//button[contains(@data-test, "endpoint-edit-accessrights"]',
+          locateStrategy: 'xpath' },
       }
     },
-    wsdlAddSubjectsPopup: {
-      selector: '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Add Subjects")]]',
-      locateStrategy: 'xpath',
-      commands: [wsdlAddSubjectsCommands],
-      elements: {
-        searchButton: { 
-          selector: '//button[@data-test="search-button"]',
-          locateStrategy: 'xpath' },
-        addButton: { 
-          selector: '//button[@data-test="save"]',
-          locateStrategy: 'xpath' },
-        cancelButton: { 
-          selector: '//button[@data-test="cancel-button"]',
-          locateStrategy: 'xpath' },
-        serviceClientTypeDropdown: { 
-          selector: '//input[@data-test="serviceClientType"]/parent::*',
-          locateStrategy: 'xpath' },
-        timeoutApplyToAllCheckbox: { 
-          selector: '//input[@data-test="timeout-all"]/following-sibling::div',
-          locateStrategy: 'xpath' }
-      }
-    },
+    wsdlAddSubjectsPopup: addSubjectsPopup,
     addEndpointPopup: {
       selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Add Endpoint")]]',
       locateStrategy: 'xpath',
       commands: [addEndpointCommands],
       elements: {
-        addButton: { 
+        addButton: {
           selector: '//button[@data-test="dialog-save-button"]',
           locateStrategy: 'xpath' },
-        cancelButton: { 
+        cancelButton: {
           selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath' },
-        requestPath: { 
+        requestPath: {
           selector: '//input[@data-test="endpoint-path"]',
           locateStrategy: 'xpath' },
-        requestPathMessage: { 
+        requestPathMessage: {
           selector: '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        methodDropdown: { 
+        methodDropdown: {
           selector: '//input[@data-test="endpoint-method"]/parent::*',
           locateStrategy: 'xpath' }
       }
@@ -1147,22 +1137,22 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [addEndpointCommands],
       elements: {
-        addButton: { 
+        addButton: {
           selector: '//button[.//*[contains(text(), "Save")]]',
           locateStrategy: 'xpath' },
-        cancelButton: { 
+        cancelButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
           locateStrategy: 'xpath' },
-        deleteButton: { 
+        deleteButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
           locateStrategy: 'xpath' },
-        requestPath: { 
+        requestPath: {
           selector: '//input[@data-test="endpoint-path"]',
           locateStrategy: 'xpath' },
-        requestPathMessage: { 
+        requestPathMessage: {
           selector: '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
           locateStrategy: 'xpath' },
-        methodDropdown: { 
+        methodDropdown: {
           selector: '//input[@data-test="endpoint-method"]/parent::*',
           locateStrategy: 'xpath' },
         deleteYesButton: {
@@ -1178,10 +1168,10 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
-        yesButton: { 
+        yesButton: {
           selector: '//button[@data-test="dialog-save-button"]',
           locateStrategy: 'xpath' },
-        cancelButton: { 
+        cancelButton: {
           selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath' }
       }
@@ -1191,10 +1181,10 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
-        yesButton: { 
+        yesButton: {
           selector: '//button[@data-test="dialog-save-button"]',
           locateStrategy: 'xpath' },
-        cancelButton: { 
+        cancelButton: {
           selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath' }
       }

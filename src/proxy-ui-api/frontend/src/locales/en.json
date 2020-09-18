@@ -15,8 +15,8 @@
     },
     "keys": {
       "signAndAuthKeys": "SIGN and AUTH Keys",
-      "apiKey": "API Key",
-      "ssTlsCertificate": "Security Server TLS Certificate"
+      "apiKey": "API Keys",
+      "ssTlsCertificate": "Security Server TLS Key"
     },
     "settings": {
       "systemParameters": "System Parameters",
@@ -648,6 +648,7 @@
   "initialConfiguration": {
     "title": "Initial configuration",
     "noPermission": "This Security Server is currently not initialised, please contact an administrator to do the initial configuration",
+    "noInitializationStatus": "No initialization status available",
     "success": "Server initialised",
     "anchor": {
       "title": "Configuration Anchor",
@@ -923,6 +924,7 @@
     "global_conf_outdated": "Global configuration is outdated",
     "cannot_register_owner": "Cannot register the owner",
     "validation_failure": "Validation failure",
+    "signer_not_reachable": "Signer is not currently reachable. Please check the signer log for details.",
     "core": {
       "Signer": {
         "UnknownMember": "X-Road core - signer: Unknown member"

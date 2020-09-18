@@ -359,13 +359,8 @@ public class TokenCertificateService {
             CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
             AuthCertificateNotSupportedException, ClientNotFoundException {
         globalConfService.verifyGlobalConfValidity();
-        X509Certificate x509Certificate = null;
+        X509Certificate x509Certificate = convertToX509Certificate(certificateBytes);
         CertificateInfo certificateInfo = null;
-        try {
-            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
-        } catch (Exception e) {
-            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
-        }
         KeyUsageInfo keyUsageInfo = null;
         try {
             String certificateState;
@@ -406,6 +401,20 @@ public class TokenCertificateService {
         }
         auditDataHelper.put(KEY_USAGE, keyUsageInfo);
         return certificateInfo;
+    }
+
+    /**
+     * Convert cert bytes to X509Certificate, throw InvalidCertificateException if not possible
+     * @throws InvalidCertificateException
+     */
+    private X509Certificate convertToX509Certificate(byte[] certificateBytes) throws InvalidCertificateException {
+        X509Certificate x509Certificate;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+        return x509Certificate;
     }
 
     /**
@@ -532,31 +541,37 @@ public class TokenCertificateService {
     /**
      * Check user authority to the given certificate
      * @param certificateBytes
-     * @throws InvalidCertificateException
-     * @throws AccessDeniedException
+     * @throws InvalidCertificateException if bytes were not valid cert
+     * @throws AccessDeniedException if no authority to activate or disable cert
      */
-    public void verifyActivateDisableAuthority(byte[] certificateBytes) throws InvalidCertificateException,
+    private void verifyActivateDisableAuthority(byte[] certificateBytes) throws InvalidCertificateException,
             AccessDeniedException {
-        X509Certificate x509Certificate = null;
-        try {
-            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
-        } catch (Exception e) {
-            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
-        }
 
-        try {
-            boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
-            if (isAuthCert) {
-                securityHelper.verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
-            } else {
-                securityHelper.verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
-            }
-        } catch (AccessDeniedException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("error in checking authority to the certificate", e);
+        if (isAuthCertBytes(certificateBytes)) {
+            securityHelper.verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
+        } else {
+            securityHelper.verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
         }
     }
+
+    /**
+     * Check if given bytes represent an auth cert
+     * @param certificateBytes
+     * @throws InvalidCertificateException if bytes were not valid cert
+     * @throws AccessDeniedException if no authority to activate or disable cert
+     */
+    public boolean isAuthCertBytes(byte[] certificateBytes) throws InvalidCertificateException,
+            AccessDeniedException {
+
+        X509Certificate x509Certificate = convertToX509Certificate(certificateBytes);
+
+        try {
+            return CertUtils.isAuthCert(x509Certificate);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("error in checking if certificate is auth cert", e);
+        }
+    }
+
 
     /**
      * Returns the given certificate owner's client ID.

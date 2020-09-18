@@ -268,7 +268,7 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
-      let query = `/clients/${this.clientId}/service-client-candidates?name=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
+      let query = `/clients/${this.clientId}/service-client-candidates?member_name_group_description=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
 
       // These checks are needed because instance, subject type and member class (dropdowns) return undefined if they are first selected and then cleared
       if (this.instance) {
