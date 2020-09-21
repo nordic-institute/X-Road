@@ -76,11 +76,13 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Prepare for Installation](#25-prepare-for-installation)
   - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.5 Installation](#25-installation)
-  - [2.6 Post-Installation Checks](#26-post-installation-checks)
-  - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
-  - [2.9 Remote Database Post-Installation Tasks](#29-remote-database-post-installation-tasks)
+  - [2.6 Remote Database Installation](#26-remote-database-installation)
+  - [2.7 Setup Package Repository](#27-setup-package-repository)
+  - [2.8 Package Installation](#28-package-installation)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
+  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+  - [2.12 Remote Database Post-Installation Tasks](#212-remote-database-post-installation-tasks)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
@@ -240,40 +242,83 @@ Requirements to software and settings:
 
 The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
-
 ### 2.5.1 Customize the Database Properties
 
+**This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
-### 2.5 Installation
+  ```
+  sudo mkdir /etc/xroad
+  sudo chown xroad:xroad /etc/xroad
+  sudo chmod 751 /etc/xroad
+  sudo touch /etc/xroad/db.properties
+  sudo chown xroad:xroad /etc/xroad/db.properties
+  sudo chmod 640 /etc/xroad/db.properties
+  ```
 
-To install the X-Road security server software on *Ubuntu* operating system, follow these steps.
+Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
 
-1. Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-    ```
-    curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-    ```
-2. Add X-Road package repository (**reference data: 1.1**)
-    ```
-    sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-    ```
-3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. This can be done by performing the following steps:
-    ```
-    sudo touch /etc/xroad.properties
-    sudo chown root:root /etc/xroad.properties
-    sudo chmod 600 /etc/xroad.properties
-    ```
-    Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
-    ```
-    postgres.connection.password = {database superuser password}
-    postgres.connection.user = {database superuser name, postgres by default}
-    ```
-    * If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
-    * One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+  ```
+  serverconf.hibernate.jdbc.use_streams_for_binary = true
+  serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+  serverconf.hibernate.connection.driver_class = org.postgresql.Driver
+  serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
+  serverconf.hibernate.connection.username = <serverconf username>
+  serverconf.hibernate.connection.password = <serverconf password>
+  messagelog.hibernate.jdbc.use_streams_for_binary = true
+  messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+  messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+  messagelog.hibernate.jdbc.batch_size = 50
+  messagelog.hibernate.connection.url = jdbc:postgresql://<host:port>/messagelog
+  messagelog.hibernate.connection.username = <messagelog username>
+  messagelog.hibernate.connection.password = <messagelog password>
+  serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+  ```
 
-4. Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
-        sudo apt-get update
-        sudo apt-get install xroad-securityserver
+### 2.6 Remote Database Installation
+
+**This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. Create the file by performing the following steps:
+
+  ```
+  sudo touch /etc/xroad.properties
+  sudo chown root:root /etc/xroad.properties
+  sudo chmod 600 /etc/xroad.properties
+  ```
+
+  Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
+
+  ```
+  postgres.connection.password = <database superuser password>
+  postgres.connection.user = <database superuser name, postgres by default>
+  ```
+
+* If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
+* One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+
+### 2.7 Setup Package Repository
+
+Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+
+  ```
+  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+  ```
+
+Add X-Road package repository (**reference data: 1.1**)
+
+  ```
+  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+  ```
+
+
+### 2.8 Package Installation
+
+Issue the following commands to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+
+  ```
+  sudo apt-get update
+  sudo apt-get install xroad-securityserver
+  ```
 
 Upon the first installation of the packages, the system asks for the following information.
 
@@ -305,7 +350,7 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 
 **N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 
-### 2.6 Post-Installation Checks
+### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
@@ -323,7 +368,7 @@ The installation is successful if system services are started and the user inter
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
 
-### 2.7 Installing the Support for Hardware Tokens
+### 2.10 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -366,11 +411,11 @@ Parameter   | Type    | Default Value | Explanation
 **Note 2:** The item separator of the type STRING LIST is ",".
 
 
-### 2.8 Installing the Support for Environmental Monitoring
+### 2.11 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
-### 2.9 Remote Database Post-Installation Tasks
+### 2.12 Remote Database Post-Installation Tasks
 
 Local PostgreSQL is always installed with Security Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
 
