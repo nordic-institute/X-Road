@@ -79,6 +79,7 @@ Doc. ID: UG-SS
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
  30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
+ 21.09.2020 | 2.47    | Added a validation error example to [19.4 Validation errors](#194-validation-errors) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2143,7 +2144,39 @@ For example, these log messages are related to an API call with correlation ID `
 
 ### 19.4 Validation errors
 
-An error response from the REST API can include validation errors if an unsupported parameter was provided with the request. 
+An error response from the REST API can include validation errors if an unsupported parameter was provided with the request.
+When 
+
+Example request and response of adding a new subsystem with illegal characters:
+```
+POST https://ss1:4100/api/v1/clients
+
+Request body:
+{
+  "client": {
+    "member_class": "ORG",
+    "member_code": "0/1234",
+    "subsystem_code": "Subsystem%Code"
+  },
+  "ignore_warnings": false
+}
+
+Response body:
+{
+  "error": {
+    "code": "validation_failure",
+    "validation_errors": {
+      "clientAdd.client.memberCode": [
+        "NoForwardslashes"
+      ],
+      "clientAdd.client.subsystemCode": [
+        "NoPercents"
+      ]
+    }
+  },
+  "status": 400
+}
+```
 
 In addition to the validation messages declared in Java Validation API, the following validation errors are possible:
 ```
