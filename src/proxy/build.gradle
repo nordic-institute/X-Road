@@ -12,12 +12,10 @@ dependencies {
     compile 'xerces:xercesImpl:2.12.0'
 
     testCompile project(':common-test')
-    testCompile 'org.hsqldb:hsqldb:2.5.0'
+    testCompile 'org.hsqldb:hsqldb:2.5.1'
     testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 
-    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
-    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
-    testCompile 'io.rest-assured:rest-assured:3.3.0'
+    testCompile 'io.rest-assured:rest-assured:4.3.1'
 
     testCompile 'wsdl4j:wsdl4j:1.6.3'
 
@@ -36,6 +34,7 @@ jar {
 shadowJar {
     classifier = ''
     append('reference.conf')
+    exclude('**/module-info.class')
     from rootProject.file("LICENSE.txt")
 }
 

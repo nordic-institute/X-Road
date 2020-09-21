@@ -29,7 +29,7 @@ ext {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
     }
 }
 
@@ -146,7 +146,7 @@ clean.delete << file('frontend/dist')
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources".toString()
+    outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     systemProperties = [
@@ -161,23 +161,13 @@ openApiGenerate {
     ]
 }
 
-// openApiGenerate creates sources to generated-sources/src/main/java, instead of
-// generated-sources/ as e.g. common-util xjc. This causes problems for tooling (IntelliJ autoimports)
-task fixGeneratedSourcesDirectory {
-    doFirst {
-        println 'moving generated sources to the root, instead of src/main/java'
-        copy {
-            from "$buildDir/generated-sources/src/main/java"
-            into "$buildDir/generated-sources"
-            include '**'
-        }
-        delete "$buildDir/generated-sources/src"
-    }
+// Fix up to date check
+tasks.openApiGenerate {
+    inputs.files file(openApiGenerate.inputSpec)
+    outputs.files fileTree(openApiGenerate.outputDir)
 }
 
-compileJava.dependsOn 'fixGeneratedSourcesDirectory'
 compileJava.dependsOn tasks.openApiGenerate
-fixGeneratedSourcesDirectory.dependsOn tasks.openApiGenerate
 
 // set license format to ignore generated java sources
 task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
@@ -194,11 +184,6 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}
 
 jar {
     enabled = true
@@ -232,6 +217,7 @@ dependencies {
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}")
+    implementation 'joda-time:joda-time:2.10.6'
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -248,7 +234,7 @@ dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         dependencies {
-            dependency 'com.google.guava:guava:28.0-jre'
+            dependency 'com.google.guava:guava:29.0-jre'
         }
     }
 }

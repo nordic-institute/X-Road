@@ -53,7 +53,6 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
 import scala.concurrent.Await;
@@ -61,6 +60,7 @@ import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -102,7 +102,7 @@ public class LogManager extends AbstractLogManager {
     static final boolean TRUNCATED_BODY_ALLOWED = MessageLogProperties.isTruncatedBodyAllowed();
 
     // Date at which a time-stamping first failed.
-    private DateTime timestampFailed;
+    private Instant timestampFailed;
 
     private final ActorRef timestamper;
     private final ActorRef timestamperJob;
@@ -369,7 +369,7 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    void setTimestampFailed(DateTime atTime) {
+    void setTimestampFailed(Instant atTime) {
         if (timestampFailed == null) {
             timestampFailed = atTime;
             this.timestamperJob.tell(FAILED, ActorRef.noSender());
@@ -390,7 +390,7 @@ public class LogManager extends AbstractLogManager {
             }
 
             if (isTimestampFailed()) {
-                if (new DateTime().minusSeconds(period).isAfter(timestampFailed)) {
+                if (Instant.now().minusSeconds(period).isAfter(timestampFailed)) {
                     throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages");
                 }
             }

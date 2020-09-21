@@ -55,10 +55,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
@@ -85,13 +81,11 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link ProxyMonitorServiceHandlerImpl}
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MonitorClient.class)
 public class ProxyMonitorServiceHandlerMetricsTest {
 
 
@@ -195,8 +189,8 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         type.setValue(expectedMetricValue);
         metrics.add(type);
 
-        MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(metricSetType);
+        MonitorClient mockMonitorClient = mock(MonitorClient.class);
+        when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
@@ -226,20 +220,19 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }
 
     /**
      * As above but only environmental parameters defined in outputSpec.
-     *
      * @throws Exception
      */
     @Test
@@ -280,8 +273,8 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         type.setValue(expectedMetricValue);
         metrics.add(type);
 
-        MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(),
+        MonitorClient mockMonitorClient = mock(MonitorClient.class);
+        when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(),
                 anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
@@ -312,13 +305,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }

@@ -29,12 +29,16 @@ import ee.ria.xroad.common.util.FileContentChangeChecker;
 
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration.ConfigurationRuntimeException;
-import org.apache.commons.configuration.ConversionException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.SubnodeConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
+import org.apache.commons.configuration2.ex.ConversionException;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -175,7 +179,10 @@ public final class ModuleConf {
         MODULES.clear();
         MODULES.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
 
-        HierarchicalINIConfiguration conf = new HierarchicalINIConfiguration(fileName);
+        INIConfiguration conf = new INIConfiguration();
+        try (Reader reader = Files.newBufferedReader(Paths.get(fileName), StandardCharsets.UTF_8)) {
+            conf.read(reader);
+        }
 
         for (String uid : conf.getSections()) {
             if (StringUtils.isBlank(uid)) {
@@ -310,7 +317,7 @@ public final class ModuleConf {
             } else {
                 throw new ConfigurationRuntimeException(String.format(
                         "Unsupported value '%s' of '%s' for module (%s), skipping...",
-                        m, key, section.getSubnodeKey()));
+                        m, key, section.getRootElementName()));
             }
         }
 
@@ -322,7 +329,7 @@ public final class ModuleConf {
             return section.getBoolean(key, defaultValue);
         } catch (ConversionException e) {
             throw new ConversionException(String.format("Invalid value of '%s' for module (%s), skipping...",
-                    key, section.getSubnodeKey()), e);
+                    key, section.getRootElementName()), e);
         }
     }
 
@@ -331,7 +338,7 @@ public final class ModuleConf {
             return section.getStringArray(key);
         } catch (ConversionException e) {
             throw new ConversionException(String.format("Invalid value of '%s' for module (%s), skipping...",
-                    key, section.getSubnodeKey()), e);
+                    key, section.getRootElementName()), e);
         }
     }
 }

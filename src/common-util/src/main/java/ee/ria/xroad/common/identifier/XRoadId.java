@@ -26,9 +26,9 @@
 package ee.ria.xroad.common.identifier;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
