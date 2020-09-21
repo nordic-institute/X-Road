@@ -43,7 +43,7 @@
     "@vue/eslint-config-prettier": "~6.0.0",
     "@vue/eslint-config-typescript": "~5.0.2",
     "@vue/test-utils": "~1.0.3",
-    "chromedriver": "80.0.1",
+    "chromedriver": "~85.0.1",
     "deepmerge": "~4.2.2",
     "dtsgenerator": "2.5.1",
     "eslint": "~6.8.0",
