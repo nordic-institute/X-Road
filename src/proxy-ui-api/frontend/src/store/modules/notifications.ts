@@ -28,75 +28,78 @@ import { RootState } from '../types';
 import { Notification } from '@/ui-types';
 
 export interface NotificationsState {
-  successMessageCode: string;
-  successMessageRaw: string;
-  showSuccessCode: boolean;
-  showSuccessRaw: boolean;
-  notifications: Notification[];
+  errorNotifications: Notification[];
+  successNotifications: Notification[];
 }
 
 const getDefaultState = () => {
   return {
-    successMessageCode: '',
-    successMessageRaw: '',
-    showSuccessCode: false,
-    showSuccessRaw: false,
-    notifications: [],
+    errorNotifications: [],
+    successNotifications: [],
   };
 };
 
-
-// Finds if an array of clients has a client with given member class, member code and subsystem code.
-export function containsClient(
-  notifications: Notification[],
+// Finds if an array of notifications contains a similar notification.
+function containsClient(
+  errorNotifications: Notification[],
   notification: Notification,
 ): number {
-
-  console.log("jeuu");
-  if (!notification || !notifications || notifications.length === 0) {
+  if (!notification || !errorNotifications || errorNotifications.length === 0) {
     return -1;
   }
-  const result = notifications.findIndex((e: Notification) => {
-    if (notification?.errorObject?.response?.config?.data !== e?.errorObject?.response?.config?.data) {
+  const result = errorNotifications.findIndex((e: Notification) => {
+    if (
+      notification?.errorObject?.response?.config?.data !==
+      e?.errorObject?.response?.config?.data
+    ) {
       return false;
     }
 
-    if (notification?.errorObject?.response?.config?.url !== e?.errorObject?.response?.config?.url) {
+    if (
+      notification?.errorObject?.response?.config?.url !==
+      e?.errorObject?.response?.config?.url
+    ) {
       return false;
     }
 
-    if (notification?.errorObject?.response?.data?.status !== e?.errorObject?.response?.data?.status) {
+    if (
+      notification?.errorObject?.response?.data?.status !==
+      e?.errorObject?.response?.data?.status
+    ) {
       return false;
     }
 
-    if (notification?.errorObject?.response?.data?.error?.code !== e?.errorObject?.response?.data?.error?.code) {
+    if (
+      notification?.errorObject?.response?.data?.error?.code !==
+      e?.errorObject?.response?.data?.error?.code
+    ) {
       return false;
     }
     return true;
   });
 
-
   return result;
+}
+
+function createEmptyNotification(timeout: number): Notification {
+// Returns a new "empty" notification 
+  return {
+    timeout: timeout,
+    timeAdded: Date.now(),
+    show: true,
+    count: 1,
+  };
 }
 
 // Initial state. The state can be reseted with this.
 const notificationsState: NotificationsState = getDefaultState();
 
 export const getters: GetterTree<NotificationsState, RootState> = {
-  showSuccessCode(state: NotificationsState): boolean {
-    return state.showSuccessCode;
+  successNotifications(state: NotificationsState): Notification[] {
+    return state.successNotifications;
   },
-  showSuccessRaw(state: NotificationsState): boolean {
-    return state.showSuccessRaw;
-  },
-  successMessageCode(state: NotificationsState): string {
-    return state.successMessageCode;
-  },
-  successMessageRaw(state: NotificationsState): string {
-    return state.successMessageRaw;
-  },
-  notifications(state: NotificationsState): Notification[] {
-    return state.notifications;
+  errorNotifications(state: NotificationsState): Notification[] {
+    return state.errorNotifications;
   },
 };
 
@@ -105,64 +108,53 @@ export const mutations: MutationTree<NotificationsState> = {
     Object.assign(state, getDefaultState());
   },
   setSuccessCode(state: NotificationsState, val: string): void {
-    state.successMessageCode = val;
-    state.showSuccessCode = true;
+    
+    const notification = createEmptyNotification(2000);
+    notification.successMessageCode = val;
+    state.successNotifications.push(notification);
   },
   setSuccessRaw(state: NotificationsState, val: string): void {
-    state.successMessageRaw = val;
-    state.showSuccessRaw = true;
+
+    const notification = createEmptyNotification(2000);
+    notification.successMessageRaw = val;
+    state.successNotifications.push(notification);
   },
   setErrorMessageCode(state: NotificationsState, val: string): void {
-    const temp: Notification = {
-      timeout: -1,
-      errorMessageCode: val,
-      timeAdded: Date.now(),
-      show: true,
-      count: 1
-    };
 
-    state.notifications.push(temp);
+    const notification = createEmptyNotification(-1);
+    notification.errorMessageCode = val;
+    state.errorNotifications.push(notification);
   },
   setErrorMessageRaw(state: NotificationsState, val: string): void {
-    const temp: Notification = {
-      timeout: 2000,
-      errorMessageRaw: val,
-      timeAdded: Date.now(),
-      show: true,
-      count: 1
-    };
 
-    state.notifications.push(temp);
+    const notification = createEmptyNotification(-1);
+    notification.errorMessageRaw = val;
+    state.errorNotifications.push(notification);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setErrorObject(state: NotificationsState, errorObject: any): void {
 
-    const temp: Notification = {
-      timeout: -1,
-      errorObject: errorObject,
-      timeAdded: Date.now(), // Simple id solution
-      show: true,
-      count: 1
-    };
+    const notification = createEmptyNotification(-1);
+    notification.errorObject = errorObject;
 
-    const index = containsClient(state.notifications, temp);
+    const index = containsClient(state.errorNotifications, notification);
 
     if (index > -1) {
-      const currentCount = state.notifications[index].count;
-      temp.count = currentCount + 1;
-      state.notifications.splice(index, 1);
+      notification.count = state.errorNotifications[index].count + 1;
+      state.errorNotifications.splice(index, 1);
     }
 
-    state.notifications.push(temp);
+    state.errorNotifications.push(notification);
   },
-  setSuccessRawVisible(state: NotificationsState, val: boolean): void {
-    state.showSuccessRaw = val;
+
+  deleteSuccessNotification(state: NotificationsState, id: number): void {
+    state.successNotifications = state.successNotifications.filter(
+      (item: Notification) => item.timeAdded !== id,
+    );
   },
-  setSuccessCodeVisible(state: NotificationsState, val: boolean): void {
-    state.showSuccessCode = val;
-  },
+
   deleteNotification(state: NotificationsState, id: number): void {
-    state.notifications = state.notifications.filter(
+    state.errorNotifications = state.errorNotifications.filter(
       (item: Notification) => item.timeAdded !== id,
     );
   },

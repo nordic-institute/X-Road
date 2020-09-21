@@ -25,53 +25,41 @@
  -->
 <template>
   <div>
-    <!-- Success: localization code -->
+    <!-- Success -->
     <v-snackbar
       data-test="success-snackbar"
-      v-model="showSuccessCode"
+      v-for="notification in successNotifications"
+      :key="notification.timeAdded"
+      :timeout="notification.timeout"
+      v-model="notification.show"
       color="success"
-      :timeout="-1"
+      multi-line
+      @input="closeSuccess(notification.timeAdded)"
     >
       <div class="row-wrapper-top scrollable">
         <div class="row-wrapper">
-          <div>
-            {{ $t(successMessageCode) }}
+          <div v-if="notification.successMessageCode">
+            {{ $t(notification.successMessageCode) }}
+          </div>
+          <div v-if="notification.successMessageRaw">
+            {{ successMessageRaw }}
           </div>
         </div>
-
         <v-btn
           icon
           color="white"
           data-test="close-snackbar"
-          @click="closeSuccess()"
+          @click="closeSuccess(notification.timeAdded)"
         >
           <v-icon dark>mdi-close-circle</v-icon>
         </v-btn>
       </div>
     </v-snackbar>
 
-    <!-- Success: raw text -->
-    <v-snackbar
-      data-test="success-snackbar"
-      v-model="showSuccessRaw"
-      color="success"
-      :timeout="-1"
-    >kk
-      {{ successMessageRaw }}
-      <v-btn
-        icon
-        color="white"
-        data-test="close-snackbar"
-        @click="closeSuccess()"
-      >
-        <v-icon dark>mdi-close-circle</v-icon>
-      </v-btn>
-    </v-snackbar>
-
     <!-- Error -->
     <v-snackbar
       data-test="indefinite-snackbar"
-      v-for="notification in notifications"
+      v-for="notification in errorNotifications"
       :key="notification.timeAdded"
       :timeout="notification.timeout"
       v-model="notification.show"
@@ -134,33 +122,35 @@
             {{ $t('id') }}:
             {{ errorId(notification) }}
           </div>
+
+          <!-- count -->
+          <div v-if="notification.count > 1">
+            {{ $t('count') }}
+            {{ notification.count }}
+          </div>
         </div>
 
-        <template v-if="errorId(notification)">
+        <div class="buttons">
+          <template v-if="errorId(notification)">
+            <v-btn
+              outlined
+              class="id-button"
+              color="white"
+              data-test="copy-id-button"
+              @click.prevent="copyId(notification)"
+              >{{ $t('action.copyId') }}
+            </v-btn>
+          </template>
+
           <v-btn
-            outlined
-            class="id-button"
+            icon
             color="white"
-            data-test="copy-id-button"
-            @click.prevent="copyId(notification)"
-            >{{ $t('action.copyId') }}
+            data-test="close-snackbar"
+            @click="closeError(notification.timeAdded)"
+          >
+            <v-icon dark>mdi-close-circle</v-icon>
           </v-btn>
-        </template>
-
-        <!-- count -->
-        <div v-if="notification.count > 1">
-          {{ $t('count') }}
-          {{ notification.count }}
         </div>
-
-        <v-btn
-          icon
-          color="white"
-          data-test="close-snackbar"
-          @click="closeError(notification.timeAdded)"
-        >
-          <v-icon dark>mdi-close-circle</v-icon>
-        </v-btn>
       </div>
     </v-snackbar>
   </div>
@@ -180,30 +170,12 @@ type ValidationError = {
 export default Vue.extend({
   // Component for snackbar notifications
   computed: {
-    ...mapGetters(['successMessageCode', 'successMessageRaw', 'notifications']),
-
-    showSuccessCode: {
-      get(): string {
-        return this.$store.getters.showSuccessCode;
-      },
-      set(value: string) {
-        this.$store.commit('setSuccessCodeVisible', value);
-      },
-    },
-    showSuccessRaw: {
-      get(): string {
-        return this.$store.getters.showSuccessRaw;
-      },
-      set(value: string) {
-        this.$store.commit('setSuccessRawVisible', value);
-      },
-    },
-  },
-
-  data() {
-    return {
-      timeout: 2000,
-    };
+    ...mapGetters([
+      'successMessageCode',
+      'successMessageRaw',
+      'errorNotifications',
+      'successNotifications',
+    ]),
   },
   methods: {
     errorCode(notification: Notification): string | undefined {
@@ -253,9 +225,8 @@ export default Vue.extend({
       );
     },
 
-    closeSuccess(): void {
-      this.$store.commit('setSuccessRawVisible', false);
-      this.$store.commit('setSuccessCodeVisible', false);
+    closeSuccess(id: number): void {
+      this.$store.commit('deleteSuccessNotification', id);
     },
     closeError(id: number): void {
       this.$store.commit('deleteNotification', id);
@@ -275,6 +246,7 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
 }
 .row-wrapper {
   display: flex;
@@ -287,6 +259,10 @@ export default Vue.extend({
 
 .id-button {
   margin-right: 10px;
+}
+
+.buttons {
+  height: 100%;
 }
 
 .scrollable {
