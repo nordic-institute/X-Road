@@ -42,7 +42,7 @@
             {{ $t(notification.successMessageCode) }}
           </div>
           <div v-if="notification.successMessageRaw">
-            {{ successMessageRaw }}
+            {{ notification.successMessageRaw }}
           </div>
         </div>
         <v-btn
