@@ -40,7 +40,7 @@ const getDefaultState = () => {
 };
 
 // Finds if an array of notifications contains a similar notification.
-function containsClient(
+function containsNotification(
   errorNotifications: Notification[],
   notification: Notification,
 ): number {
@@ -75,14 +75,40 @@ function containsClient(
     ) {
       return false;
     }
+
+    if (notification?.errorMessageRaw !== e?.errorMessageRaw) {
+      return false;
+    }
+
+    if (notification?.errorMessageCode !== e?.errorMessageCode) {
+      return false;
+    }
+
     return true;
   });
 
   return result;
 }
 
+// Add error notification to the store
+function addErrorNotification(
+  state: NotificationsState,
+  notification: Notification,
+): void {
+  // Check for duplicate
+  const index = containsNotification(state.errorNotifications, notification);
+
+  if (index > -1) {
+    // If there is a duplicate, remove it and increase the count
+    notification.count = state.errorNotifications[index].count + 1;
+    state.errorNotifications.splice(index, 1);
+  }
+
+  state.errorNotifications.push(notification);
+}
+
 function createEmptyNotification(timeout: number): Notification {
-// Returns a new "empty" notification 
+  // Returns a new "empty" notification
   return {
     timeout: timeout,
     timeAdded: Date.now(),
@@ -108,43 +134,30 @@ export const mutations: MutationTree<NotificationsState> = {
     Object.assign(state, getDefaultState());
   },
   setSuccessCode(state: NotificationsState, val: string): void {
-    
     const notification = createEmptyNotification(2000);
     notification.successMessageCode = val;
     state.successNotifications.push(notification);
   },
   setSuccessRaw(state: NotificationsState, val: string): void {
-
     const notification = createEmptyNotification(2000);
     notification.successMessageRaw = val;
     state.successNotifications.push(notification);
   },
   setErrorMessageCode(state: NotificationsState, val: string): void {
-
     const notification = createEmptyNotification(-1);
     notification.errorMessageCode = val;
-    state.errorNotifications.push(notification);
+    addErrorNotification(state, notification);
   },
   setErrorMessageRaw(state: NotificationsState, val: string): void {
-
     const notification = createEmptyNotification(-1);
     notification.errorMessageRaw = val;
-    state.errorNotifications.push(notification);
+    addErrorNotification(state, notification);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setErrorObject(state: NotificationsState, errorObject: any): void {
-
     const notification = createEmptyNotification(-1);
     notification.errorObject = errorObject;
-
-    const index = containsClient(state.errorNotifications, notification);
-
-    if (index > -1) {
-      notification.count = state.errorNotifications[index].count + 1;
-      state.errorNotifications.splice(index, 1);
-    }
-
-    state.errorNotifications.push(notification);
+    addErrorNotification(state, notification);
   },
 
   deleteSuccessNotification(state: NotificationsState, id: number): void {
