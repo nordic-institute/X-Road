@@ -93,8 +93,8 @@ paths:
         - backups
       summary: add new backup for the security server
       operationId: addBackup
-      description: >
-        Adds security server backup to the system
+      description: Adds security server backup to the system. This endpoint can also return metadata in the error response.
+        The metadata array can contain e.g. the output of a failed backup generation script
       responses:
         '201':
           description: item created
@@ -221,7 +221,8 @@ paths:
         - backups
       summary: restore security server configuration from backup
       operationId: restoreBackup
-      description: Administrator restores the security server configuration from backup.
+      description: Administrator restores the security server configuration from backup. This endpoint can also return metadata in the error response.
+        The metadata array can contain e.g. the output of a failed backup restore script
       parameters:
         - in: path
           name: filename
@@ -642,6 +643,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /token-certificates/{hash}/mark-for-deletion:
     put: # ok
       tags:
@@ -683,6 +691,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /clients:
     get: # ok
       tags:
@@ -793,7 +808,7 @@ paths:
       summary: Add new client for the security server.
       operationId: addClient
       description: >
-        Adds new client to the system.
+        Adds new client to the system. The client id will be validated and if the validation fails a validation error is returned.
         Note that with this endpoint it is possible to add an unregistered member as a client.
         Attempt to add an unregistered member with ClientAdd.ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
         Attempt to add an unregistered member with ClientAdd.ignore_warnings = true succeeds.
@@ -819,11 +834,9 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
-                error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/WarningsExample'
-                validation_warnings_response:
+                validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
@@ -1140,6 +1153,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /clients/{id}/service-clients:
     get: # ok
       tags:
@@ -1627,6 +1647,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /clients/{id}/service-descriptions:
     get: # ok
       tags:
@@ -1665,6 +1692,15 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
     post: # ok
@@ -1713,7 +1749,7 @@ paths:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/WarningsExample'
-                validation_warnings_response:
+                validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
 
         '401':
@@ -1865,6 +1901,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /diagnostics/globalconf:
     get: # ok
       tags:
@@ -1988,7 +2031,7 @@ paths:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/WarningsExample'
-                validation_warnings_response:
+                validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
@@ -2337,6 +2380,13 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /keys/{id}/csrs:
     post: # ok
       tags:
@@ -2966,6 +3016,13 @@ paths:
           description: request specified an invalid format
         '409':
           description: an existing item already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
   /services/{id}/service-clients:
@@ -3052,6 +3109,13 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '409':
@@ -3094,6 +3158,13 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
   /endpoints/{id}:
@@ -3128,6 +3199,13 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '500':
@@ -3177,10 +3255,24 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '409':
           description: an existing item already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
     delete:
@@ -3219,6 +3311,13 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '500':
@@ -3267,6 +3366,13 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '500':
@@ -3457,7 +3563,7 @@ paths:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/WarningsExample'
-                validation_warnings_response:
+                validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
@@ -3467,6 +3573,15 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
     delete: # ok
@@ -3619,6 +3734,15 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
   /service-descriptions/{id}/services:
@@ -5065,7 +5189,8 @@ components:
         id:
           type: string
           format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional).
+            Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI:GOV:123:ABC
           minLength: 1
           maxLength: 1023
@@ -5073,7 +5198,7 @@ components:
         instance_id:
           type: string
           format: text
-          description: xroad instance id
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
           minLength: 1
           maxLength: 255
@@ -5081,7 +5206,7 @@ components:
         member_name:
           type: string
           format: text
-          description: member name
+          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
           readOnly: true
           minLength: 1
@@ -5089,21 +5214,21 @@ components:
         member_class:
           type: string
           format: text
-          description: member class
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: GOV
           minLength: 1
           maxLength: 255
         member_code:
           type: string
           format: text
-          description: member code
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: 123
           minLength: 1
           maxLength: 255
         subsystem_code:
           type: string
           format: text
-          description: subsystem code
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: ABC
           minLength: 1
           maxLength: 255
@@ -5123,7 +5248,7 @@ components:
           $ref: '#/components/schemas/ClientStatus'
     ClientAdd: # ok
       type: object
-      description: request to add client. Carries a Client and ignore warnings parameter
+      description: Request to add client. Carries a Client and ignore warnings parameter
       required:
         - client
       properties:
