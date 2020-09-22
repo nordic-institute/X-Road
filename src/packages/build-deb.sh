@@ -48,6 +48,11 @@ case "$1" in
         builddeb build/xroad/ubuntu bionic ubuntu18.04 "$2"
         builddeb build/xroad-jetty9/ubuntu bionic ubuntu18.04 "$2"
         ;;
+    focal)
+        prepare ubuntu20.04
+        builddeb build/xroad/ubuntu focal ubuntu20.04 "$2"
+        builddeb build/xroad-jetty9/ubuntu focal ubuntu20.04 "$2"
+        ;;
     *)
         echo "Unsupported distribution $dist"
         exit 1;
