@@ -58,6 +58,7 @@ Doc. ID: IG-SS
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -114,9 +115,11 @@ The intended audience of this Installation Guide are X-Road Security server syst
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
+
 ### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
 
 ### 1.3 References
 
@@ -129,6 +132,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 4. <a name="Ref_IG-XLB" class="anchor"></a>\[IG-XLB\] X-Road: External Load Balancer Installation Guide. Document ID:
 [IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md).
+
 
 ## 2 Installation
 
@@ -180,6 +184,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
 
+
 #### 2.2.1 Network Diagram
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
@@ -200,6 +205,7 @@ In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
 In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
 In | Admin | Security Server | 4000 | tcp | Source in the internal network |
+
 
 ### 2.3 Requirements for the Security Server
 
@@ -238,9 +244,11 @@ Requirements to software and settings:
 
         sudo locale-gen en_US.UTF-8
 
+
 ### 2.5 Prepare for Installation
 
 The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
+
 
 ### 2.5.1 Customize the Database Properties
 
@@ -350,6 +358,7 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 
 **N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 
+
 ### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
@@ -414,6 +423,7 @@ Parameter   | Type    | Default Value | Explanation
 ### 2.11 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+
 
 ### 2.12 Remote Database Post-Installation Tasks
 
@@ -572,6 +582,7 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
 
+
 ## Annex A Security Server Default Database Properties
 
 `/etc/xroad/db.properties`
@@ -593,17 +604,21 @@ messagelog.hibernate.connection.password = <randomly generated password stored i
 serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
 ```
 
+
 ## Annex B Deployment Options
+
 
 ### B.1 General
 
 X-Road security server has multiple deployment options. The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
+
 
 ### B.2 Local Database
 
 The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security server with local database](img/ig-ss_local_db.svg)
+
 
 ### B.3 Remote Database
 
@@ -613,17 +628,20 @@ Security server supports a variety of cloud databases including AWS RDS and Azur
 
 ![Security server with remote database](img/ig-ss_remote_db.svg)
 
+
 ### B.4 High Availability Setup
 
 In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security server high-availability setup](img/ig-ss_high_availability.svg)
 
+
 ### B.5 Load Balancing Setup
 
 Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
 ![Security server load balancing setup](img/ig-ss_load_balancing.svg)
+
 
 ### B.6 Summary
 
