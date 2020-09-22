@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTimeZone;
 import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
@@ -40,9 +39,6 @@ import org.niis.xroad.restapi.wsdl.WsdlParser;
 import java.net.IDN;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
@@ -84,46 +80,6 @@ public final class FormatUtils {
         } else {
             return Date.from(offsetDateTime.toInstant());
         }
-    }
-
-    /**
-     * Converts LocalTime to OffsetDateTime with ZoneOffset.UTC
-     * @param localTime
-     * @return OffsetDateTime with offset ZoneOffset.UTC
-     * @see ZoneOffset#UTC
-     */
-    public static OffsetDateTime fromLocalTimeToOffsetDateTime(LocalTime localTime) {
-        // Use joda "LocalDate.now()" to enable better testability. Joda allows setting current system
-        // time using "DateTimeUtils.setCurrentMillisFixed" method.
-        return LocalDateTime.of(LocalDate.parse(org.joda.time.LocalDate.now(DateTimeZone.getDefault()).toString()),
-                localTime).toInstant(OffsetDateTime.now().getOffset()).atOffset(ZoneOffset.UTC);
-    }
-
-    /**
-     * Converts LocalTime to OffsetDateTime with ZoneOffset.UTC and adjusts the date according to the current
-     * date. If "isInPast" is true and the hour of "localTime" is bigger than current hour, the day is decreased
-     * by one. If "isInPast" is false and the hour of "localTime" is smaller than current hour, the day is increased
-     * by one.
-     * @param localTime
-     * @param isInPast
-     * @return OffsetDateTime with offset ZoneOffset.UTC
-     * @see ZoneOffset#UTC
-     */
-    public static OffsetDateTime fromLocalTimeToOffsetDateTime(LocalTime localTime, boolean isInPast) {
-        OffsetDateTime offsetDateTime = fromLocalTimeToOffsetDateTime(localTime);
-        // Use joda "LocalTime.now()" to enable better testability.
-        org.joda.time.LocalTime now = org.joda.time.LocalTime.now(DateTimeZone.getDefault());
-        LocalTime localTimeNow = LocalTime.of(now.getHourOfDay(), now.getMinuteOfHour(), now.getSecondOfMinute());
-        int currentHour = fromLocalTimeToOffsetDateTime(localTimeNow).getHour();
-
-        if (isInPast && currentHour < offsetDateTime.getHour()) {
-            // Minus one day if localTime was yesterday
-            return offsetDateTime.minusDays(1);
-        } else if (!isInPast && currentHour > offsetDateTime.getHour()) {
-            // Add one day if localTime is tomorrow
-            return offsetDateTime.plusDays(1);
-        }
-        return offsetDateTime;
     }
 
     /**

@@ -33,7 +33,6 @@ import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.OcspResponder;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspStatus;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -72,11 +71,9 @@ public class OcspResponderDiagnosticConverter {
                 diagnosticsStatus.getReturnCode());
         ocspResponder.setStatusClass(statusClass.orElse(null));
         if (diagnosticsStatus.getPrevUpdate() != null) {
-            ocspResponder.setPrevUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
-                    diagnosticsStatus.getPrevUpdate(), true));
+            ocspResponder.setPrevUpdateAt(diagnosticsStatus.getPrevUpdate());
         }
-        ocspResponder.setNextUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
-                diagnosticsStatus.getNextUpdate(), false));
+        ocspResponder.setNextUpdateAt(diagnosticsStatus.getNextUpdate());
         return ocspResponder;
     }
 
