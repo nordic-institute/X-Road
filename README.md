@@ -252,8 +252,9 @@ Then, if the configuration is successfully downloaded, the system asks for the f
 
 ## 4 Kubernetes jobs readiness probes
 
-The readiness probes will perform a healch check periodically in a specific time, if the healthcheck fails the pod will remain in not ready state until the healthck is succeed. This pod in a not ready state will be accessible through his private IP but it will not be accessible from the balancer and the balancer will not redirect any message to this pod.
-We use readiness probes instead of liveliness probes beacuse with readiness probes we still can connect to the pod for configure it (adding certificates...) instead of the livelines probes that will restart the pod until the healthcheck succeed.
+The liveness are used to know when restart a container. The liveness probes will perform a health check each period of time and restart the container if it fails.
+The liveness probes are useful  when the pod it's not in a live state and can not be access through the UI maybe because the pod it's catch a deadlock or one of the services is stopped...
+The parameter for the liveness probes are the same than the rediness probes but instead of doing the health check to the 5588 that checks if the Sidecar pod it's ready to serve the traffic, we are going to use the port 80 to check if nginx is serving the application and increase the failureThreshold.
 We will use the following parameters:
  - initialDelaySeconds:  Number of seconds after the container has started before readiness probes are initiated. For this example we will use 200 seconds to have enough time for the image be downloaded and the services are ready.
  - periodSeconds:  How often (in seconds) to perform the probe. 
@@ -273,5 +274,23 @@ containers:
     periodSeconds: 30
     successThreshold: 1
     failureThreshold: 1
+  [...]
+  ```
+
+The liveness are used to know when restart a container. The liveness probes will perform a health check each period of time and restart the container if it fails.
+The liveness probes are useful  when the pod it's not in a live state and can not be access through the UI maybe because the pod it's catch a deadlock or one of the services is stopped...
+The parameter for the liveness probes are the same than the rediness probes but instead of doing the health check to the 5588 that checks if the Sidecar pod it's ready to serve the traffic, we are going to use the port 80 to check if nginx is serving the application and increase the failureThreshold.
+
+  ```bash
+  [...]
+containers:
+livenessProbe:
+  httpGet:
+   path: /
+   port: 80
+  initialDelaySeconds: 100
+  periodSeconds: 30
+  successThreshold: 1
+  failureThreshold: 5
   [...]
   ```
