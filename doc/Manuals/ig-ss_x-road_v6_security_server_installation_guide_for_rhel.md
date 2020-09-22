@@ -52,12 +52,12 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Prepare for Installation](#25-prepare-for-installation)
-  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
+    - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
   - [2.6 Remote Database Installation](#26-remote-database-installation)
   - [2.7 Setup Package Repository](#27-setup-package-repository)
   - [2.8 Package Installation](#28-package-installation)
-  - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
-  - [2.8.2 Start Security Server](#282-start-security-server)
+    - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
+    - [2.8.2 Start Security Server](#282-start-security-server)
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
@@ -205,7 +205,7 @@ Requirements to software and settings:
 The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
 
-### 2.5.1 Customize the Database Properties
+#### 2.5.1 Customize the Database Properties
 
 **This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the `xroad` user, directory and the file as follows:
 
@@ -296,7 +296,7 @@ Add system user (**reference data: 1.3**) whom all roles in the user interface a
 User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 
-### 2.8.1 Configure Proxy Ports
+#### 2.8.1 Configure Proxy Ports
 
 **This is an optional step.** Change `xroad-proxy` to use ports 80 and 443.
 
@@ -311,7 +311,7 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
   ```
 
 
-### 2.8.2 Start Security Server
+#### 2.8.2 Start Security Server
 
 Once the installation is completed, start the security server
 

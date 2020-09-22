@@ -76,7 +76,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Prepare for Installation](#25-prepare-for-installation)
-  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
+    - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
   - [2.6 Remote Database Installation](#26-remote-database-installation)
   - [2.7 Setup Package Repository](#27-setup-package-repository)
   - [2.8 Package Installation](#28-package-installation)
@@ -250,7 +250,7 @@ Requirements to software and settings:
 The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
 
-### 2.5.1 Customize the Database Properties
+#### 2.5.1 Customize the Database Properties
 
 **This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
