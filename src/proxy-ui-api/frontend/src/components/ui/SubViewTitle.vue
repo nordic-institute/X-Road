@@ -26,7 +26,7 @@
 <template>
   <div class="new-content">
     <div class="cert-dialog-header">
-      <span class="cert-headline">{{ title }}</span>
+      <span class="identifier-wrap">{{ title }}</span>
       <v-spacer></v-spacer>
       <i v-if="showClose" @click="close()" id="close-x"></i>
     </div>
