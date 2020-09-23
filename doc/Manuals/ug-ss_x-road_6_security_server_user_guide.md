@@ -95,10 +95,9 @@ Doc. ID: UG-SS
   - [2.2 Managing the Users](#22-managing-the-users)
 - [3 Security Server Registration](#3-security-server-registration)
   - [3.1 Configuring the Signing Key and Certificate for the Security Server Owner](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
-    - [3.1.1 Generating a Signing Key](#311-generating-a-signing-key)
-    - [3.1.2 Generating a Certificate Signing Request for a Signing Key](#312-generating-a-certificate-signing-request-for-a-signing-key)
-    - [3.1.3 Importing a Certificate from the Local File System](#313-importing-a-certificate-from-the-local-file-system)
-    - [3.1.4 Importing a Certificate from a Security Token](#314-importing-a-certificate-from-a-security-token)
+    - [3.1.1 Generating a Signing Key and Certificate Signing Request](#311-generating-a-signing-key-and-certificate-signing-request)
+    - [3.1.2 Importing a Certificate from the Local File System](#312-importing-a-certificate-from-the-local-file-system)
+    - [3.1.3 Importing a Certificate from a Security Token](#313-importing-a-certificate-from-a-security-token)
   - [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
     - [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
     - [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
@@ -215,7 +214,7 @@ This document describes the management and maintenance of an X-Road version 6 se
 
 The main function of a security server is to mediate requests in a way that preserves their evidential value.
 
-The security server is connected to the public Internet from one side and to the information system within the organization's internal network from the other side. In a sense, the security server can be seen as a specialized application-level firewall that supports the SOAP protocol; hence, it should be set up in parallel with the organization's firewall, which mediates other protocols.
+The security server is connected to the public Internet from one side and to the information system within the organization's internal network from the other side. In a sense, the security server can be seen as a specialized application-level firewall that supports the SOAP and REST protocols; hence, it should be set up in parallel with the organization's firewall, which mediates other protocols.
 
 The security server is equipped with the functionality needed to secure the message exchange between a client and a service provider.
 
@@ -359,7 +358,7 @@ Depending on the certification policy, the signing keys are generated either in 
 The **background colors** of the devices, keys and certificate are explained in Section [5.1](#51-availability-states-of-security-tokens-keys-and-certificates).
 
 
-#### 3.1.1 Generating a Signing Key
+#### 3.1.1 Generating a Signing Key and Certificate Signing Request
 
 **Access rights:**
 
@@ -369,7 +368,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 -   Logging in to the key device: [System Administrator](#xroad-system-administrator)
 
-To generate a signing key, follow these steps.
+To generate a Signing key and a Certificate Signing Request, follow these steps.
 
 1.  On the **Management** menu, select **Keys and Certificates**.
 
@@ -377,39 +376,36 @@ To generate a signing key, follow these steps.
 
 3.  To log in to the token, click **Enter PIN** on the token’s row in the table and enter the PIN code. Once the correct PIN is entered, the **Enter PIN** button changes to **Logout**.
 
-4.  To generate a signing key, select the token from the table by clicking the respective row, and click **Generate key**. Enter the label value for the key and click **OK**. The generated key appears under the token’s row in the table. The label value is displayed as the name of the key.
-
-
-#### 3.1.2 Generating a Certificate Signing Request for a Signing Key
-
-**Access rights:** [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
-
-To generate a certificate signing request (CSR) for the signing key, follow these steps.
-
-1.  On the **Management** menu, select **Keys and Certificates**.
-
-2.  Select a key from the table and click **Generate CSR**. In the dialog that opens
-
-    2.1  Select the certificate usage policy from the **Usage** drop down list (SIGN for signing certificates);
-
-    2.2  select the X-Road member the certificate will be issued for from the **Client** drop-down list;
-
-    2.3  select the issuer of the certificate from the **Certification Service** drop-down list;
-
-    2.4  select the format of the certificate signing request (PEM or DER), according to the certification service provider’s requirements
-
-    2.5  click **OK**;
-
-3.  In the form that opens, review the certificate owner’s information that will be included in the CSR and fill in the empty fields, if needed.
-
-4.  Click **OK** to complete the generation of the CSR and save the prompted file to the local file system.
+4.  To generate a signing key and CSR for it, expand the tokens information from the arrow button next to it and click **Add key**. In the wizard that opens 
+    
+    1. Define a label for the newly created signing key (not mandatory) and click **Next**. 
+    
+    2. In the dialog page that opens
+    
+       1. Select the certificate usage policy from the Usage drop down list (SIGN for signing certificates)
+    
+       2. Select the X-Road member the certificate will be issued for from the **Client** drop-down list
+    
+       3. Select the issuer of the certificate from the **Certification Service** drop-down list
+    
+       4. Select the format of the certificate signing request (PEM or DER), according to the certification service provider’s requirements
+    
+       5. Click **Continue**
+    
+    3. In the dialog that opens 
+    
+       1. Review the certificate owner’s information that will be included in the CSR and fill in the empty fields, if needed
+    
+       2. Click **Generate CSR**
+    
+       3. Click **Done**
 
 After the generation of the CSR, a “Request” record is added under the key’s row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
 
 **To certify the signing key, transmit the certificate signing request to the approved certification service provider and accept the signing certificate created from the certificate signing request.**
 
 
-#### 3.1.3 Importing a Certificate from the Local File System
+#### 3.1.2 Importing a Certificate from the Local File System
 
 **Access rights:** [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
@@ -422,7 +418,7 @@ To import the signing certificate to the security server, follow these steps.
 3.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the signing key's row is replaced with the information from the imported certificate. By default, the signing certificate is imported in the "Registered" state.
 
 
-#### 3.1.4 Importing a Certificate from a Security Token
+#### 3.1.3 Importing a Certificate from a Security Token
 
 **Access rights:** [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
