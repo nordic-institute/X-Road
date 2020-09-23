@@ -67,7 +67,7 @@
             v-bind:key="certificate.hash"
           >
             <td class="cert-icon">
-              <certificateIcon />
+              <i class="icon-xrd_certificate icon"></i>
             </td>
             <td>
               <span
@@ -90,7 +90,7 @@
         <template v-if="ssCertificate">
           <tr>
             <td class="cert-icon">
-              <certificateIcon />
+              <i class="icon-xrd_certificate icon"></i>
             </td>
             <td>
               <span>{{ ssCertificate.hash | colonize }}</span>
@@ -120,7 +120,6 @@ import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
-import CertificateIcon from './CertificateIcon.vue';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { FileUploadResult } from '@/ui-types';
 import { CertificateDetails } from '@/openapi-types';
@@ -130,7 +129,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    CertificateIcon,
     FileUpload,
   },
   props: {
@@ -199,12 +197,12 @@ export default Vue.extend({
     },
     canViewSSCert(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.VIEW_INTERNAL_SSL_CERT,
+        Permissions.VIEW_INTERNAL_TLS_CERT,
       );
     },
     canExportSSCert(): boolean {
       return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_SSL_CERT,
+        Permissions.EXPORT_INTERNAL_TLS_CERT,
       );
     },
   },

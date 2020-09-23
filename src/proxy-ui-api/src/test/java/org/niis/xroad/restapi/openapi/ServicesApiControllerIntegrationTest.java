@@ -182,7 +182,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
                 serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
-        assertTrue(updatedService.getSslAuth());
+        assertEquals(false, updatedService.getSslAuth());
         assertEquals(TestUtils.URL_HTTP, updatedService.getUrl());
     }
 

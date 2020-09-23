@@ -36,12 +36,14 @@
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
         <large-button
+          v-if="canEdit"
           @click="removeAll()"
           outlined
           data-test="remove-all-access-rights"
           >{{ $t('action.removeAll') }}
         </large-button>
         <large-button
+          v-if="canEdit"
           @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
@@ -67,6 +69,7 @@
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td class="wrap-right-tight">
               <v-btn
+                v-if="canEdit"
                 small
                 outlined
                 rounded
@@ -121,6 +124,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 import { encodePathParameter } from '@/util/api';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   name: 'EndpointAccessRights',
@@ -150,6 +154,11 @@ export default Vue.extend({
       addSubjectsDialogVisible: false as boolean,
       serviceClientsToAdd: [] as ServiceClient[],
     };
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.EDIT_ENDPOINT_ACL);
+    },
   },
   methods: {
     close(): void {

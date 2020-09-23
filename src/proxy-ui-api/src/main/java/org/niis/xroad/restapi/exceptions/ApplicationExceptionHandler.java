@@ -46,7 +46,9 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNSPECIFIED_AUTHENTICATION;
 
 /**
- * exception handler
+ * Application exception handler.
+ * Some exception occurrences do not get processed by this class, but by
+ * {@link SpringInternalExceptionHandler instead}
  */
 @ControllerAdvice
 @Slf4j

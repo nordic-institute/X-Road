@@ -1,5 +1,25 @@
 # Change Log
 
+## 6.24.1 - 2020-09-18
+- XRDDEV-1306: Fix security server docker image build
+- XRDDEV-1305: Fix central server schema rename when BDR 1.0 is in use.
+- XRDDEV-1303: Fix security server UI permission handling in "keys and certificates" view
+- XRDDEV-1304: Fix security server UI routing in "security server tls certificate" view
+- XRDDEV-1308: Fix UI bug in security server settings view child tab active state
+- XRDDEV-1316: Update XROAD_SYSTEM_ADMINISTRATOR permissions
+- XRDDEV-1317: Fix duplicate routing console log warning messages in security server UI.
+- XRDDEV-1320: Verify TLS certificate field is checked for services using http
+- XRDDEV-1321: Key details read only value is missing
+- XRDDEV-1339: Fix not after -value in certificate details
+- XRDDEV-1337: Update Keys and Certificates submenu items' names
+- XRDDEV-1231: Remove unused dependency libraries
+- XRDDEV-1319: Fix several permissions related bugs in the UI
+- XRDDEV-1309: Minor fix to front-end login process
+- XRDDEV-1352: Fix queryparameter name for filtering service client candidates
+- XRDDEV-1335: Update icon for certificates
+- XRDDEV-1350: Fix member code input validation in add client flow
+- XRDDEV-1245: Fix security server REST API permission handling for security server TLS certificate related operations
+
 ## 6.24.0 - 2020-08-28
 - New Security Server API based UI, see details in [JIRA](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20fixVersion%20%3D%206.24.0%20AND%20labels%20%3D%20api-based-ui%20ORDER%20BY%20key%20ASC)
 - XRDDEV-437 - Add SonarQube analysis for Github pull requests

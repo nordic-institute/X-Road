@@ -42,13 +42,16 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
- * Handle Spring internal exceptions
+ * Handle Spring internal exceptions, which are not caught by {@link ApplicationExceptionHandler}.
+ * For example some JSON body validation exceptions (org.springframework.web.bind.MethodArgumentNotValidException)
+ * are handled by this class instead of ApplicationExceptionHandler.
  */
 @ControllerAdvice
-@Order(SpringInternalExceptionHandler.TEN)
+@Order(SpringInternalExceptionHandler.BEFORE_APPLICATION_EXCEPTION_HANDLER)
 @Slf4j
 public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
-    public static final int TEN = 10;
+    // ApplicationExceptionHandler has default order, LOWEST_PRECEDENCE
+    public static final int BEFORE_APPLICATION_EXCEPTION_HANDLER = 10;
 
     private final ValidationErrorHelper validationErrorHelper;
 
