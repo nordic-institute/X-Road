@@ -26,7 +26,6 @@
 <template>
   <div>
     {{ $t('wizard.token.info') }}
-
     <v-text-field
       v-model="search"
       :label="$t('wizard.token.tokenName')"
@@ -138,7 +137,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      search: undefined,
+      search: undefined as string | undefined,
       disableDone: true,
       tokenGroup: undefined as Token | undefined,
       loginDialog: false,
@@ -152,7 +151,7 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
-      if (!this.tokenGroup || !this.tokenGroup.id) {
+      if (!this.tokenGroup?.id) {
         return;
       }
       this.$store.dispatch('setCsrTokenId', this.tokenGroup.id);
