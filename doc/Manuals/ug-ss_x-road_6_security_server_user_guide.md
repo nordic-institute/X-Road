@@ -428,11 +428,13 @@ To import a certificate from a security token, follow these steps.
 
 1.  On the **Management** menu, select **Keys and Certificates**.
 
-2.  Make sure that a key device containing the signing key and the signing certificate is connected to the security server. The device and the keys and certificates stored on the device must be displayed in the **Keys and Certificates** view.
+2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  To log in to the security token, click **Enter PIN** on the token’s row in the table and enter the PIN. Once the correct PIN is entered, the **Enter PIN** button changes to **Logout**.
+3.  Make sure that a key device containing the signing key and the signing certificate is connected to the security server. The device and the keys and certificates stored on the device must be displayed in the **Keys and Certificates** view.
 
-4.  Click the **Import** button on the row of the certificate. By default, the certificate is imported in the "Registered" state.
+4.  To log in to the security token, click **Enter PIN** on the token’s row in the table and enter the PIN. Once the correct PIN is entered, the **Enter PIN** button changes to **Logout**.
+
+5.  Click the **Import** button on the row of the certificate. By default, the certificate is imported in the "Registered" state.
 
 
 ### 3.2 Configuring the Authentication Key and Certificate for the Security Server
