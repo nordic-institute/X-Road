@@ -80,8 +80,8 @@ module.exports = {
     mainPage.closeSnackbar();
     operationDetails.close();
 
+    browser.click('//div[contains(@class, "server-type")]');
     browser.pause(1000);
-
     // Verify SOAP service client when it has access permissions
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
