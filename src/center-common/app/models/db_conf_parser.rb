@@ -45,6 +45,7 @@ class DbConfParser
         "host" => ini_conf.getString("host", "localhost"),
         "port" => ini_conf.getInt("port", 5432),
         "reconnect" => ini_conf.getBoolean("reconnect", true),
+        :min_messages => ini_conf.getString("min_messages","error"),
         :properties => {}
     }
 
