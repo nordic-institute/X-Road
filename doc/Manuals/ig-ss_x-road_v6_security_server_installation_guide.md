@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.27  
+Version: 2.28  
 Doc. ID: IG-SS
 
 ---
@@ -52,10 +52,12 @@ Doc. ID: IG-SS
  09.08.2020 | 2.25    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram) | Petteri Kivimäki
  17.08.2020 | 2.26    | Update for RHEL 8. | Jarkko Hyöty
  08.09.2020 | 2.27    | Fix minimum RAM requirement. | Ilkka Seppälä
+ 16.09.2020 | 2.28    | Describe deployment options and database customization options. | Ilkka Seppälä
 
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -68,16 +70,20 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
   - [1.3 References](#13-references)
 - [2 Installation](#2-installation)
-  - [2.1 Supported Platforms](#21-supported-platforms)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Installation](#25-installation)
-  - [2.6 Post-Installation Checks](#26-post-installation-checks)
-  - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
-  - [2.9 Remote Database Post-Installation Tasks](#29-remote-database-post-installation-tasks)
+  - [2.5 Prepare for Installation](#25-prepare-for-installation)
+    - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
+  - [2.6 Remote Database Installation](#26-remote-database-installation)
+  - [2.7 Setup Package Repository](#27-setup-package-repository)
+  - [2.8 Package Installation](#28-package-installation)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
+  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+  - [2.12 Remote Database Post-Installation Tasks](#212-remote-database-post-installation-tasks)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
@@ -88,6 +94,14 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
   - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
   - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+- [Annex B Deployment Options](#annex-b-deployment-options)
+  - [B.1 General](#b1-general)
+  - [B.2 Local Database](#b2-local-database)
+  - [B.3 Remote Database](#b3-remote-database)
+  - [B.4 High Availability Setup](#b4-high-availability-setup)
+  - [B.5 Load Balancing Setup](#b5-load-balancing-setup)
+  - [B.6 Summary](#b6-summary)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -101,9 +115,11 @@ The intended audience of this Installation Guide are X-Road Security server syst
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
+
 ### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
 
 ### 1.3 References
 
@@ -114,10 +130,16 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID:
 [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
 
+4. <a name="Ref_IG-XLB" class="anchor"></a>\[IG-XLB\] X-Road: External Load Balancer Installation Guide. Document ID:
+[IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md).
+
+
 ## 2 Installation
 
 
-### 2.1 Supported Platforms
+### 2.1 Prerequisites to Installation
+
+There are multiple alternatives how the security server can be deployed. The options are described in [Annex B Deployment Options](#annex-b-deployment-options).
 
 The security server runs on the following platforms:
 
@@ -162,6 +184,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
 
+
 #### 2.2.1 Network Diagram
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
@@ -182,6 +205,7 @@ In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
 In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
 In | Admin | Security Server | 4000 | tcp | Source in the internal network |
+
 
 ### 2.3 Requirements for the Security Server
 
@@ -221,36 +245,88 @@ Requirements to software and settings:
         sudo locale-gen en_US.UTF-8
 
 
-### 2.5 Installation
+### 2.5 Prepare for Installation
 
-To install the X-Road security server software on *Ubuntu* operating system, follow these steps.
+The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
-1. Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-    ```
-    curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-    ```
-2. Add X-Road package repository (**reference data: 1.1**)
-    ```
-    sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-    ```
-3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. This can be done by performing the following steps:
-    ```
-    sudo touch /etc/xroad.properties
-    sudo chown root:root /etc/xroad.properties
-    sudo chmod 600 /etc/xroad.properties
-    ```
-    Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
-    ```
-    postgres.connection.password = {database superuser password}
-    postgres.connection.user = {database superuser name, postgres by default}
-    ```
-    * If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
-    * One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
-4. Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
+#### 2.5.1 Customize the Database Properties
 
-        sudo apt-get update
-        sudo apt-get install xroad-securityserver
+**This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
+
+  ```
+  sudo mkdir /etc/xroad
+  sudo chown xroad:xroad /etc/xroad
+  sudo chmod 751 /etc/xroad
+  sudo touch /etc/xroad/db.properties
+  sudo chown xroad:xroad /etc/xroad/db.properties
+  sudo chmod 640 /etc/xroad/db.properties
+  ```
+
+Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
+
+  ```
+  serverconf.hibernate.jdbc.use_streams_for_binary = true
+  serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+  serverconf.hibernate.connection.driver_class = org.postgresql.Driver
+  serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
+  serverconf.hibernate.connection.username = <serverconf username>
+  serverconf.hibernate.connection.password = <serverconf password>
+  messagelog.hibernate.jdbc.use_streams_for_binary = true
+  messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+  messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+  messagelog.hibernate.jdbc.batch_size = 50
+  messagelog.hibernate.connection.url = jdbc:postgresql://<host:port>/messagelog
+  messagelog.hibernate.connection.username = <messagelog username>
+  messagelog.hibernate.connection.password = <messagelog password>
+  serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+  ```
+
+
+### 2.6 Remote Database Installation
+
+**This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. Create the file by performing the following steps:
+
+  ```
+  sudo touch /etc/xroad.properties
+  sudo chown root:root /etc/xroad.properties
+  sudo chmod 600 /etc/xroad.properties
+  ```
+
+  Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
+
+  ```
+  postgres.connection.password = <database superuser password>
+  postgres.connection.user = <database superuser name, postgres by default>
+  ```
+
+* If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
+* One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+
+### 2.7 Setup Package Repository
+
+Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+
+  ```
+  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+  ```
+
+Add X-Road package repository (**reference data: 1.1**)
+
+  ```
+  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+  ```
+
+
+### 2.8 Package Installation
+
+Issue the following commands to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+
+  ```
+  sudo apt-get update
+  sudo apt-get install xroad-securityserver
+  ```
 
 Upon the first installation of the packages, the system asks for the following information.
 
@@ -282,7 +358,8 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 
 **N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 
-### 2.6 Post-Installation Checks
+
+### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
@@ -300,7 +377,7 @@ The installation is successful if system services are started and the user inter
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
 
-### 2.7 Installing the Support for Hardware Tokens
+### 2.10 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -343,11 +420,12 @@ Parameter   | Type    | Default Value | Explanation
 **Note 2:** The item separator of the type STRING LIST is ",".
 
 
-### 2.8 Installing the Support for Environmental Monitoring
+### 2.11 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
-### 2.9 Remote Database Post-Installation Tasks
+
+### 2.12 Remote Database Post-Installation Tasks
 
 Local PostgreSQL is always installed with Security Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
 
@@ -504,3 +582,74 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
 
+
+## Annex A Security Server Default Database Properties
+
+`/etc/xroad/db.properties`
+
+```
+serverconf.hibernate.jdbc.use_streams_for_binary = true
+serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+serverconf.hibernate.connection.driver_class = org.postgresql.Driver
+serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
+serverconf.hibernate.connection.username = serverconf
+serverconf.hibernate.connection.password = <randomly generated password stored is stored here>
+messagelog.hibernate.jdbc.use_streams_for_binary = true
+messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+messagelog.hibernate.jdbc.batch_size = 50
+messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
+messagelog.hibernate.connection.username = messagelog
+messagelog.hibernate.connection.password = <randomly generated password stored is stored here>
+serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+```
+
+
+## Annex B Deployment Options
+
+
+### B.1 General
+
+X-Road security server has multiple deployment options. The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
+
+
+### B.2 Local Database
+
+The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
+
+![Security server with local database](img/ig-ss_local_db.svg)
+
+
+### B.3 Remote Database
+
+It is possible to use a remote database with security server. This option is sometimes used in development and testing when there's need to externalize the database state.
+
+Security server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
+
+![Security server with remote database](img/ig-ss_remote_db.svg)
+
+
+### B.4 High Availability Setup
+
+In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+
+![Security server high-availability setup](img/ig-ss_high_availability.svg)
+
+
+### B.5 Load Balancing Setup
+
+Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
+
+![Security server load balancing setup](img/ig-ss_load_balancing.svg)
+
+
+### B.6 Summary
+
+The following table lists a summary of the security server deployment options and indicates whether they are aimed for development or production use.
+
+| Deployment               | Dev  | Prod  |
+|--------------------------|------|-------|
+| Local database           | x    |       |
+| Remote database          | x    |       |
+| High-availability Setup  |      | x     |
+| Load Balancing Setup     |      | x     |
