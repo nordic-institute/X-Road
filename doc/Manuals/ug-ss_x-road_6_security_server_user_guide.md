@@ -413,9 +413,11 @@ To import the signing certificate to the security server, follow these steps.
 
 1.  On the **Management** menu, select **Keys and Certificates**.
 
-2.  Click **Import certificate**.
+2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the signing key's row is replaced with the information from the imported certificate. By default, the signing certificate is imported in the "Registered" state.
+3.  Click **Import certificate**.
+
+4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the signing key's row is replaced with the information from the imported certificate. By default, the signing certificate is imported in the "Registered" state.
 
 
 #### 3.1.3 Importing a Certificate from a Security Token
