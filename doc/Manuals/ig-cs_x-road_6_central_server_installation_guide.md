@@ -74,12 +74,12 @@ Doc. ID: IG-CS
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
-  - [B.1 General](#b1-general)
-  - [B.2 Local Database](#b2-local-database)
-  - [B.3 Remote Database](#b3-remote-database)
-  - [B.4 Remote Database Cluster](#b4-remote-database-cluster)
-  - [B.5 Cloud Database Cluster](#b5-cloud-database-cluster)
-  - [B.6 Summary](#b6-summary)
+  - [C.1 General](#c1-general)
+  - [C.2 Local Database](#c2-local-database)
+  - [C.3 Remote Database](#c3-remote-database)
+  - [C.4 Remote Database Cluster](#c4-remote-database-cluster)
+  - [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
+  - [C.6 Summary](#c6-summary)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -478,7 +478,7 @@ port = 5432
 
 ## Annex B Database Users
 
-| User          | Database            | Rights                   |
+| User          | Database            | Privileges               |
 | ------------- | ------------------- | ------------------------ |
 | centerui      | centerui_production | CREATE,TEMPORARY,CONNECT |
 | postgres      | ALL                 | ALL                      |
@@ -486,17 +486,17 @@ port = 5432
 
 ## Annex C Deployment Options
 
-### B.1 General
+### C.1 General
 
 X-Road central server can be deployed in multiple ways. The simplest option is to have a single central server with local database. This is usually fine for development purposes, but there are multiple reasons to tailor the deployment.
 
-### B.2 Local Database
+### C.2 Local Database
 
 The simplest deployment option is to use a single central server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
 
 ![Central server with local database](img/ig-cs_local_db.svg)
 
-### B.3 Remote Database
+### C.3 Remote Database
 
 It is possible to use a remote database with central server. This option is sometimes used in development when there's need to externalize the database state.
 
@@ -508,19 +508,19 @@ Central server itself can also be clustered. In clustered mode high-availability
 
 ![Central server cluster with remote database](img/ig-cs_cluster_remote_db.svg)
 
-### B.4 Remote Database Cluster
+### C.4 Remote Database Cluster
 
 When aiming for production it's recommended to use redundant front-end nodes (clustered central server) and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
 
 ![Central server with remote database cluster](img/ig-cs_remote_db_cluster.svg)
 
-### B.5 Cloud Database Cluster
+### C.5 Cloud Database Cluster
 
 When central server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes (clustered central server) in separate availability zones.
 
 ![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster.svg)
 
-### B.6 Summary
+### C.6 Summary
 
 The following table lists a summary of the central server deployment options and indicates whether they are aimed for development or production use.
 
