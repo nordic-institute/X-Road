@@ -55,7 +55,9 @@
             labelText="wizard.memberName"
             helpText="wizard.client.memberNameTooltip"
           />
-          <div data-test="selected-member-name" class="identifier-wrap">{{ memberName }}</div>
+          <div data-test="selected-member-name" class="identifier-wrap">
+            {{ memberName }}
+          </div>
         </div>
 
         <div class="row-wrap">
@@ -63,14 +65,18 @@
             labelText="wizard.memberClass"
             helpText="wizard.client.memberClassTooltip"
           />
-          <div data-test="selected-member-class" class="identifier-wrap">{{ memberClass }}</div>
+          <div data-test="selected-member-class" class="identifier-wrap">
+            {{ memberClass }}
+          </div>
         </div>
         <div class="row-wrap">
           <FormLabel
             labelText="wizard.memberCode"
             helpText="wizard.client.memberCodeTooltip"
           />
-          <div data-test="selected-member-code" class="identifier-wrap">{{ memberCode }}</div>
+          <div data-test="selected-member-code" class="identifier-wrap">
+            {{ memberCode }}
+          </div>
         </div>
 
         <div class="row-wrap">

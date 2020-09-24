@@ -138,7 +138,7 @@
       </template>
 
       <template v-slot:item.id="{ item }">
-       <span class="identifier-wrap">{{item.id}}</span>
+        <span class="identifier-wrap">{{ item.id }}</span>
       </template>
 
       <template v-slot:item.status="{ item }">
