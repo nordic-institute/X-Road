@@ -175,6 +175,7 @@ The database users required by central server are listed in [Annex B Database Us
 **This is an optional step.** Central server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
   ```
+  sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
   sudo mkdir /etc/xroad
   sudo chown xroad:xroad /etc/xroad
   sudo chmod 751 /etc/xroad
