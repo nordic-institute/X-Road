@@ -82,12 +82,12 @@
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name clickable"
+            class="font-weight-bold name identifier-wrap clickable"
             @click="openClient(item)"
             >{{ item.visibleName }} ({{ $t('client.owner') }})</span
           >
 
-          <span v-else class="font-weight-bold name"
+          <span v-else class="font-weight-bold name identifier-wrap"
             >{{ item.visibleName }} ({{ $t('client.owner') }})</span
           >
         </template>
@@ -98,11 +98,11 @@
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name clickable"
+            class="font-weight-bold name identifier-wrap clickable"
             @click="openClient(item)"
             >{{ item.visibleName }}</span
           >
-          <span v-else class="font-weight-bold name">{{
+          <span v-else class="font-weight-bold name identifier-wrap">{{
             item.visibleName
           }}</span>
         </template>
@@ -116,7 +116,7 @@
           <v-icon color="grey darken-2" class="icon-member icon-size"
             >mdi-folder-open-outline</v-icon
           >
-          <span class="font-weight-bold name-member">{{
+          <span class="font-weight-bold identifier-wrap name-member">{{
             item.visibleName
           }}</span>
         </template>
@@ -127,7 +127,7 @@
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name clickable"
+            class="font-weight-bold name identifier-wrap clickable"
             @click="openSubsystem(item)"
             >{{ item.visibleName }}</span
           >
@@ -135,6 +135,10 @@
             item.visibleName
           }}</span>
         </template>
+      </template>
+
+      <template v-slot:item.id="{ item }">
+        <span class="identifier-wrap">{{ item.id }}</span>
       </template>
 
       <template v-slot:item.status="{ item }">
