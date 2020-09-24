@@ -80,14 +80,15 @@ module.exports = {
     mainPage.closeSnackbar();
     operationDetails.close();
 
+    browser.waitForElementVisible(clientServices);
     browser.click('//div[contains(@class, "v-responsive__content")]');
 
     // Verify SOAP service client when it has access permissions
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
-    browser.waitForElementVisible(clientInfo);
-    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
+    // mainPage.openClientsTab();
+    // browser.waitForElementVisible(clientsTab);
+    // clientsTab.openTestService();
+    // browser.waitForElementVisible(clientInfo);
+    // browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -155,6 +156,10 @@ module.exports = {
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights added successfully');
     mainPage.closeSnackbar();
     restOperationDetails.close();
+
+
+    browser.waitForElementVisible(clientServices);
+    browser.click('//div[contains(@class, "v-responsive__content")]');
 
     // Verify REST service client when it has access permissions
     clientInfo.openServiceClientsTab();
@@ -287,6 +292,9 @@ module.exports = {
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights added successfully');
     mainPage.closeSnackbar();
     restOperationDetails.close();
+
+    browser.waitForElementVisible(clientServices);
+    browser.click('//div[contains(@class, "v-responsive__content")]');
 
     // Verify REST service client when it has access permissions
     clientInfo.openServiceClientsTab();
