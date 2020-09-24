@@ -258,6 +258,17 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 * If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
 * One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
+**This is an optional step.** If you want to customize the names and/or passwords of the database admin users created by the installer, follow these steps. By default the installer generates these users with format `<database-name>_admin` and autogenerates the password. Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
+
+  ```
+  serverconf.database.admin_user = <serverconf-admin-username>
+  serverconf.database.admin_password = <serverconf-admin-password>
+  op-monitor.database.admin_user = <op-monitor-admin-username>
+  op-monitor.database.admin_password = <op-monitor-admin-password>
+  messagelog.database.admin_user = <messagelog-admin-username>
+  messagelog.database.admin_password = <messagelog-admin-password>
+  ```
+
 
 ### 2.7 Setup Package Repository
 
@@ -442,13 +453,15 @@ op-monitor.hibernate.connection.password = <randomly generated password>
 
 ## Annex B Database Users
 
-| User            | Database   | Privileges               |
-| --------------- | ---------- | ------------------------ |
-| serverconf      | serverconf | TEMPORARY,CONNECT        |
-| messagelog      | messagelog | TEMPORARY,CONNECT        |
-| opmonitor       | op-monitor | TEMPORARY,CONNECT        |
-| opmonitor_admin | op-monitor | CREATE,TEMPORARY,CONNECT |
-| postgres        | ALL        | ALL                      |
+| User             | Database   | Privileges               | Description                                                                              |
+| ---------------- | ---------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| serverconf       | serverconf | TEMPORARY,CONNECT        | The database user used to read/write the serverconf database during application runtime. |
+| serverconf_admin | serverconf | CREATE,TEMPORARY,CONNECT | The database user used to create the serverconf schema.                                  |
+| messagelog       | messagelog | TEMPORARY,CONNECT        | The database user used to read/write the messagelog database during application runtime. |
+| messagelog_admin | messagelog | CREATE,TEMPORARY,CONNECT | The database user used to create the messagelog schema.                                  |
+| opmonitor        | op-monitor | TEMPORARY,CONNECT        | The database user used to read/write the op-monitor database during application runtime. |
+| opmonitor_admin  | op-monitor | CREATE,TEMPORARY,CONNECT | The database user used to create the op-monitor schema.                                  |
+| postgres         | ALL        | ALL                      | PostgreSQL database default superuser.                                                   |
 
 
 ## Annex C Deployment Options
