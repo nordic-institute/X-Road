@@ -84,11 +84,11 @@ module.exports = {
     browser.click('//div[contains(@class, "v-responsive__content")]');
 
     // Verify SOAP service client when it has access permissions
-    // mainPage.openClientsTab();
-    // browser.waitForElementVisible(clientsTab);
-    // clientsTab.openTestService();
-    // browser.waitForElementVisible(clientInfo);
-    // browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -162,6 +162,11 @@ module.exports = {
     browser.click('//div[contains(@class, "v-responsive__content")]');
 
     // Verify REST service client when it has access permissions
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
