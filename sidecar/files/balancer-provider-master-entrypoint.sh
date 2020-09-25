@@ -16,8 +16,6 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/services/local.conf
     cp -a /tmp/*logback* /etc/xroad/conf.d/
     chown xroad:xroad /etc/xroad/conf.d/
-    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
-    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 fi
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -92,6 +90,7 @@ then
         dpkg-reconfigure -fnoninteractive xroad-proxy
         dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
         dpkg-reconfigure -fnoninteractive xroad-opmonitor
+        nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
@@ -102,7 +101,8 @@ then
     fi
 fi
 
-#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+# Start services
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
 
 #Configure master pod for balanacer
 sudo adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
