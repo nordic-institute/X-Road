@@ -9,6 +9,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
+
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
@@ -16,8 +17,6 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/services/local.conf
     cp -a /tmp/*logback* /etc/xroad/conf.d/
     chown xroad:xroad /etc/xroad/conf.d/
-    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
-    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 fi
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -72,7 +71,7 @@ fi
 
 if [ ! -f /etc/xroad/ssl/nginx.crt ];
 then
-    echo "Generating new SSL key and certificate for the admin UI"
+    echo "Generating new SSL key and certificates for the admin UI"
     ARGS="-n nginx -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
@@ -99,7 +98,11 @@ then
     fi
 fi
 
-#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+
+if [ ! -f ${XROAD_LOG_LEVEL} ];
+    then
+    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties 
+fi
 
 #Configure node pod for balanacer
 crudini --set /etc/xroad/conf.d/node.ini node type 'slave' && 
