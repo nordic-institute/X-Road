@@ -9,7 +9,6 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
-
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
@@ -100,11 +99,7 @@ then
     fi
 fi
 
-
-if [ ! -f ${XROAD_LOG_LEVEL} ];
-    then
-    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties 
-fi
+#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
 #Configure master pod for balanacer
 sudo adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
@@ -112,7 +107,7 @@ sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh
 crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
 chown xroad:xroad /etc/xroad/conf.d/node.ini &&
 crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface '0.0.0.0' &&
-crudini --set /etc/xroad/conf initialDelaySeconds: 100 .d/local.ini proxy health-check-port '5588' &&
+crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port '5588' &&
 crudini --set /etc/xroad/conf.d/local.ini proxy server-support-clients-pooled-connections 'false' &&
 cat /etc/.ssh/id_rsa.pub >> /home/xroad-slave/.ssh/authorized_keys &&
 sudo /etc/init.d/ssh restart

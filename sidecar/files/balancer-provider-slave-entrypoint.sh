@@ -103,8 +103,7 @@ then
     fi
 fi
 
-# Start services
-exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
+#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
 #Configure node pod for balanacer
 crudini --set /etc/xroad/conf.d/node.ini node type 'slave' && 

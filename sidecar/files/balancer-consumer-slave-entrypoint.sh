@@ -9,7 +9,6 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
-
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
@@ -73,7 +72,7 @@ fi
 
 if [ ! -f /etc/xroad/ssl/nginx.crt ];
 then
-    echo "Generating new SSL key and certificates for the admin UI"
+    echo "Generating new SSL key and certificate for the admin UI"
     ARGS="-n nginx -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
@@ -100,11 +99,7 @@ then
     fi
 fi
 
-
-if [ ! -f ${XROAD_LOG_LEVEL} ];
-    then
-    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties 
-fi
+#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
 #Configure node pod for balanacer
 crudini --set /etc/xroad/conf.d/node.ini node type 'slave' && 
@@ -117,4 +112,5 @@ sudo groupdel xroad-registration-officer  &&
 sudo groupdel xroad-service-administrator  &&
 sudo groupdel xroad-system-administrator   
 
-# Start services
+# Start services 
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
