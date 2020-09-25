@@ -92,6 +92,7 @@ then
         dpkg-reconfigure -fnoninteractive xroad-proxy
         dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
         dpkg-reconfigure -fnoninteractive xroad-opmonitor
+        nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
@@ -105,6 +106,8 @@ fi
 #cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
 #Configure master pod for balanacer
+echo 'Configure master pod'
+
 sudo adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
 sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys &&
 crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
