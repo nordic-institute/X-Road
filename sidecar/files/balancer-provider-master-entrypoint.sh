@@ -73,7 +73,7 @@ fi
 if [ ! -f /etc/xroad/ssl/nginx.crt ];
 then
     echo "Generating new SSL key and certificate for the admin UI"
-    ARGS="-n nginx -f -Sproxy -p"
+    ARGS="-n nginx -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 

@@ -73,7 +73,7 @@ fi
 if [ ! -f /etc/xroad/ssl/nginx.crt ];
 then
     echo "Generating new SSL key and certificate for the admin UI"
-    ARGS="-n nginx -f -Sproxy -p"
+    ARGS="-n nginx -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
@@ -107,7 +107,7 @@ sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh
 crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
 chown xroad:xroad /etc/xroad/conf.d/node.ini &&
 crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface '0.0.0.0' &&
-crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port '5588' &&
+crudini --set /etc/xroad/conf initialDelaySeconds: 100 .d/local.ini proxy health-check-port '5588' &&
 crudini --set /etc/xroad/conf.d/local.ini proxy server-support-clients-pooled-connections 'false' &&
 cat /etc/.ssh/id_rsa.pub >> /home/xroad-slave/.ssh/authorized_keys &&
 sudo /etc/init.d/ssh restart
