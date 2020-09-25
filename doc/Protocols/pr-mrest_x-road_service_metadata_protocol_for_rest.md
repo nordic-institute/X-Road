@@ -265,38 +265,33 @@ components:
     methodList:
       type: object
       properties:
-        member:
+        service:
           type: array
           items:
             $ref: "#/components/schemas/serviceId"
     serviceId:
       type: object
       properties:
-        type:
-          type: object
-          properties:
-            object_type:
-              type: string
-              enum:
-                - MEMBER
-                - SUBSYSTEM
-                - SERVER
-                - GLOBALGROUP
-                - SECURITYCATEGORY
-                - SERVICE
-                - CENTRALSERVICE
-                - LOCALGROUP
-        xRoadInstance:
+        object_type:
           type: string
-        memberClass:
+          enum:
+            - MEMBER
+            - SUBSYSTEM
+            - SERVER
+            - GLOBALGROUP
+            - SECURITYCATEGORY
+            - SERVICE
+            - CENTRALSERVICE
+            - LOCALGROUP
+        xroad_instance:
           type: string
-        memberCode:
+        member_class:
           type: string
-        serviceVersion:
+        member_code:
           type: string
-        subsystemCode:
+        subsystem_code:
           type: string
-        serviceCode:
+        service_code:
           type: string
 ```
 
