@@ -62,5 +62,5 @@
        ]]></notes>
        <gav regex="true">^commons-io:commons-io:.*$</gav>
        <cve>CVE-2014-9653</cve>
-    </suppress>
+     </suppress>
 </suppressions>

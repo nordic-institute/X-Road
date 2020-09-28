@@ -2,7 +2,7 @@
 ../../../../src/xroad/common/base/usr/*  usr/
 ../../../../src/xroad/default-configuration/common.ini etc/xroad/conf.d/
 ../../../../../common-db/build/libs/common-db-1.0.jar usr/share/xroad/jlib/
-../../../../../proxy-ui/build/libs/postgresql-42.2.7.jar usr/share/xroad/jlib/
+../../../../../proxy-ui/build/libs/postgresql-42.2.16.jar usr/share/xroad/jlib/
 ../../../../../securityserver-LICENSE.info usr/share/doc/xroad-common/
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-common/
 ../../../../../LICENSE.txt usr/share/doc/xroad-common/

@@ -18,7 +18,7 @@ dependencies {
     compile project(':monitor-common')
     compile project(':monitoring-conf')
     compile project(':addons:proxymonitor:common')
-    compile 'com.google.guava:guava:28.0-jre'
+    compile 'com.google.guava:guava:29.0-jre'
 
     testCompile project (path: ":proxy", configuration: 'testArtifacts')
     testCompile project(':common-test')

@@ -27,7 +27,7 @@ dependencies {
     compile project(':serverconf')
 
     // The production code uses the SLF4J logging API at compile time
-    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
     compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
     testCompile 'junit:junit:4.12'
     testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"

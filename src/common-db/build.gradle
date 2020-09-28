@@ -2,9 +2,9 @@ dependencies {
     compile project(':common-util')
     compile "org.hibernate:hibernate-core:$hibernateVersion"
     compile "org.hibernate:hibernate-hikaricp:$hibernateVersion"
-    compile 'org.postgresql:postgresql:42.2.7'
+    compile "org.postgresql:postgresql:$postgresqlVersion"
 
     // DB layer tests use HSQLDB with in-memory tables
-    testCompile 'org.hsqldb:hsqldb:2.5.0'
+    testCompile 'org.hsqldb:hsqldb:2.5.1'
     testCompile project(':common-test')
 }
