@@ -269,7 +269,12 @@ The security server configuration is held in a PostgreSQL\[[1](#Ref_1)\] databas
 \[1\] See <http://www.postgresql.org/> for details.
 
 
-### 2.8 User Interface
+### 2.8 User Interface frontend
+
+The security server user interface allows a user to manage the security server configuration. 
+The user interface is a single page application that makes requests to the Management REST APIs.
+
+### 2.8 Management REST API
 
 The security server user interface allows a user to manage the security server configuration. The user interface is web-based and is packaged as a *war* archive that is deployed on the servlet engine.
 
