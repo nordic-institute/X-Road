@@ -614,7 +614,7 @@ Once the owner change request, the new member will be automatically shown as the
 
 **Important: to use or provide X-Road services, a security server client needs to be certified by a certification service provider approved by the X-Road governing authority, and the association between the client and the security server used by the client must be registered at the X-Road governing authority.**
 
-**This section does not address managing the owner to a security server.** The owner's information has been already added to the security server upon the installation, and registered upon the security server's registration. The owner's registration status can be looked up by selecting **Security Server Clients** on the **Configuration** menu. The security server's owner is displayed in bold. Before the registration of the security server, the owner is in the "Saved" state and after the completion of the registration process, in the "Registered" state.
+**This section does not address managing the owner to a security server.** The owner's information has been already added to the security server upon the installation, and registered upon the security server's registration. The owner's registration status can be looked up by selecting **Clients** on the main menu. In the list the item with text "(Owner)" after the name is security server's owner. Before the registration of the security server, the owner is in the "Saved" state and after the completion of the registration process, in the "Registered" state.
 
 The registration of the security server's owner does not extend to the owner's subsystems. The subsystems must be registered as individual clients.
 
@@ -641,13 +641,13 @@ The security server distinguishes between the following client states.
 
 -   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.5.1](#451-unregistering-a-client)).
 
-![](img/ug-ss_global_error.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
+![](img/ug-ss_deletion_in_progress.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
 
 -   "Registered", if the association between the client and the security server has been restored in the central server (e.g., the association between the client and the security server was lost due to an error);
 
 -   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
 
-![](img/ug-ss_deletion_in_progress.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
+![](img/ug-ss_global_error.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
 
 -   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
 
@@ -660,11 +660,21 @@ The security server distinguishes between the following client states.
 
 Follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**.
+1.  In the **Clients** view, click **Add client**.
 
-2.  Click **Add Client**. In the window that opens, either enter the client's information manually or click **Select Client from Global List** and locate the client's information from within all X-Road members and their subsystems.
-
-3.  Click **OK** once the client’s information has been entered.
+2.  In the wizard that opens
+    
+    1. Client details page: Select an existing client from the Global list by pressing **Select client** or specify the details of the Client to be added manually and click **Next**
+    
+    2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **Next**
+    
+    3. Sign key page: Define a label (optional) for the newly created SIGN key and click **Next**
+    
+    4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **Next**.
+    
+    5. Generate CSR page: Define **Organization Name (O)** and click **Next**
+    
+    6. Finish page: click **Submit** and the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.
 
 The new client is added to the list of security server clients in the "Saved" state.
 
@@ -699,13 +709,11 @@ To register a security server client in the X-Road governing authority, the foll
 
 To submit a client registration request follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**.
+1.  In the **Clients** view.
 
-2.  Select the client in the "Saved" state from the list of security server clients.
+2.  Click **Register** button on the row that contains the client you wish to register. 
 
-3.  Click the **Details** icon and in the window that opens, click **Register**.
-
-4.  Click **Confirm** to submit the request.
+3.  Click **Yes** to submit the request.
 
 On submitting the request, the message "Request sent" is displayed, and the client’s state is set to "Registration in process".
 
@@ -727,19 +735,11 @@ A client registered or submitted for registration in the X-Road governing author
 
 To unregister a client, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**.
+1.  In the **Clients** view click the name of client that you wish to remove from the server
 
-2.  Select the client that you wish to remove from the server and click the **Details** icon on the client’s row.
+2.  In the window that opens, click **Unregister** and then click **Yes**. The security server automatically sends a client deletion request to the X-Road central server, upon the receipt of which the association between the security server and the client is revoked.
 
-3.  In the window that opens, click **Unregister** and then click **Confirm**. The security server automatically sends a client deletion request to the X-Road central server, upon the receipt of which the association between the security server and the client is revoked.
-
-4.  Next, a notification is displayed about sending a deletion request to the central server, and a confirmation is presented about deleting the client's information (except its certificates).
-
-  -   If you wish to delete the client's information immediately, click **Confirm**. Next, an option is presented to delete the client's certificates. To delete the certificates, click **Confirm** again.
-
-  -   If you wish to retain the client's information, click **Cancel**. In that case, the client is moved to the "Deletion in progress" state, wherein the client cannot mediate messages and cannot be registered again in the X-Road governing authority.
-
-5.  To delete the information of a client in the "Deletion in progress" state, select the client by clicking the **Details** icon on its row, click **Delete** in the window that opens, and then click **Confirm**.
+3.  Next, a notification is displayed about unregistering client. Now the client is moved to the "Deletion in progress" state, wherein the client cannot mediate messages and cannot be registered again in the X-Road governing authority.
 
 *Note:* It is possible to unregister a registered client from the central server without sending a deletion request through the security server. In this case, the security server's administrator responsible for the client must transmit a request containing information about the client to be unregistered to the central server's administrator. If the client has been deleted from the central server without a prior deletion request from the security server, the client is shown in the "Global error" state in the security server.
 
@@ -752,11 +752,9 @@ A security server client can be deleted if its state is "Saved", "Global error" 
 
 To delete a client, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**.
+1.  In the **Clients** view click the name of the client you wish to remove from the security server.
 
-2.  Select from the table a client that you wish to remove from the security server and click the **Details** icon on that row.
-
-3.  In the window that opens, click **Delete**. Confirm the deletion by clicking **Confirm**.
+2.  In the window that opens, click **Delete** and then click **Yes**. If there are no users for the signature key nor for the certificate associated then an option is presented to delete the client's certificates. To delete the certificates, click **Yes** again.
 
 
 ## 5 Security Tokens, Keys, and Certificates
