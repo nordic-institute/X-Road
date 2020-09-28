@@ -411,7 +411,7 @@ After the generation of the CSR, a “Request” record is added under the key�
 
 To import the signing certificate to the security server, follow these steps.
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -426,7 +426,7 @@ To import the signing certificate to the security server, follow these steps.
 
 To import a certificate from a security token, follow these steps.
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -452,11 +452,33 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 **The security server's authentication keys can only be generated on software security tokens.**
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
-2.  To log in to the software token, click **Enter PIN** on the token’s row in the table and enter the token’s PIN code. Once the correct PIN is entered, the **Enter PIN** button changes to **Logout**.
+2.  To log in to the software token, click **LOG IN** on the token’s row in the table and enter the token’s PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
-3.  To generate an authentication key, select the software token from the table by clicking the respective row, and click **Generate key**. Enter the label value for the key and click **OK**. The generated key appears under the token’s row in the table. The label value is displayed as the name of the key.
+3.  Show more details about the token by clicking the caret next to the token name.
+
+4.  To generate an authentication key and CSR for it, click the **ADD KEY** button below the token row. In the wizard that opens 
+    
+    1. Define a label for the newly created authentication key (not mandatory) and click **NEXT**. 
+    
+    2. In the dialog page that opens
+    
+       1. Select the certificate usage policy from the Usage drop down list (AUTHENTICATION for authentication certificates)
+    
+       2. Select the issuer of the certificate from the **Certification Service** drop-down list
+    
+       3. Select the format of the certificate signing request (PEM or DER), according to the certification service provider’s requirements
+    
+       4. Click **CONTINUE**
+    
+    3. In the dialog that opens 
+    
+       1. Review the certificate owner’s information that will be included in the CSR and fill in the empty fields, if needed
+    
+       2. Click **GENERATE CSR**
+    
+       3. Click **DONE**
 
 
 #### 3.2.2 Generating a Certificate Signing Request for an Authentication Key
