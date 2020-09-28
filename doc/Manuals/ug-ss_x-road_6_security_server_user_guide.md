@@ -546,13 +546,15 @@ The security server's registration request is signed in the security server with
 
 To submit an authentication certificate registration request, follow these steps.
 
-1.  On the Management menu, select Keys and Certificates.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
-2.  Select an authentication certificate to be registered (it must be in the "saved" state) and click **Register**.
+2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  In the dialog that opens, enter the security server's public DNS name or its external IP address and click **OK**.
+3.  Click **Register** at the end of the desired certificate row. Note that the certificate must be in "Saved" state.
 
-On submitting the request, the message "Request sent" is displayed, and the authentication certificate’s state is set to "Registration in process".
+4.  In the dialog that opens, enter the security server's public DNS name or its external IP address and click **ADD**.
+
+On submitting the request, the message "Certificate registration request successful" is displayed, and the authentication certificate’s state is set to "Registration in process".
 
 After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to “Registered” and the registration process is completed.
 
