@@ -956,30 +956,29 @@ When a new WSDL file is added, the security server reads service information fro
 
 **To add a WSDL**, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client for which you wish to add WSDL to and click the **Services** tab. 
 
-2.  Click **ADD WSDL**, enter the WSDL address in the window that opens and click **OK**. Once the window is closed, the WSDL and the information about the services it contains are added to the table. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
+3.  Click **ADD WSDL**, enter the WSDL address in the dialog that opens and click **ADD**. Once the window is closed, the WSDL and the information about the services it contains are added to the client. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see a list of services contained in the WSDL**
 
--   click the “**+**” symbol in front of the WSDL row to expand the list.
+-   click the arrow symbol in front of the WSDL service url to expand the list.
 
 #### 6.1.2 REST
 
-When a new REST service is added, the security server displays url and service code provided.
+After a new REST service is added, the security server displays text 'REST' and url for that service.
 
 **To add a REST service**, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client for which you wish to add REST service to and click the **Services** tab. 
 
-2.  Click **ADD REST**. Select whether the URL type is REST API base path or OpenAPI 3 description. Enter the url and service code in the window that opens and click **OK**.
+3.  Click **ADD REST**. Select whether the URL type is REST API base path or OpenAPI 3 description. Enter the url and service code in the window that opens and click **ADD**.
 
-3.  Once the window is closed, the url and the service code are added to the table. If the added URL type was OpenAPI 3 description, the service description is parsed and endpoints are added under the service. By default, the REST service is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
+4.  Once the window is closed, the url and the service code are added to the service list. If the added URL type was OpenAPI 3 description, the service description is parsed and endpoints are added under the service. By default, the REST service is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see the service details under the REST service**
 
--   click the "**+**" symbol in front of the REST row to expand the service details.
-
+-   Click the arrow symbol in front of the REST row to expand the service details.
 
 ### 6.2 Refreshing a service description
 
@@ -989,9 +988,9 @@ Upon refreshing, the security server reloads the service description file from t
 
 To refresh the service description, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to refresh and click the **Services** tab. 
 
-2.  Select from the table a WSDL or REST to be refreshed and click **Refresh**.
+2.  Click the arrow symbol in front of the WSDL or REST to be refreshed and click the **Refresh** button.
 
 3.  If the new service description contains changes compared to the current service description in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
 
@@ -1002,23 +1001,23 @@ When the service description is refreshed, the existing services’ settings are
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-A disabled service description is displayed in the services’ table in red with a "Disabled" note.
+A disabled service description is displayed in the services’ list with a disabled switch icon on the same row.
 
 Services described by a disabled service description cannot be accessed by the service clients – if an attempt is made to access the service, an error message is returned, containing the information entered by the security server's administrator when the service description was disabled.
 
 If a service description is enabled, the services described there become accessible to users. Therefore it is necessary to ensure that before enabling the service description, the parameters of all its services are correctly configured (see [6.6](#66-changing-the-parameters-of-a-service)).
 
-To **enable** a service description, follow these steps.
+To **enable** or **disable** a service description, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  Select a disabled service description from the table and click **Enable**.
+2. Click the switch icon on the same row with service WSDL or REST service you wish to enable
 
 To **disable** a service description, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  To enable a service description, select an enabled service description from the table and click **Disable**.
+2. Click the switch icon on the same row with service WSDL or REST service you wish to disable
 
 3.  In the window that opens, enter an error message, which is shown to clients who try to access any of the services in the service description, and click **OK**.
 
@@ -1029,11 +1028,11 @@ To **disable** a service description, follow these steps.
 
 To change the service description address, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  Select from the table a service description whose information you wish to change and click **Edit**.
+2. Click the link text containing the type of the service and its url in paranthesis
 
-3.  In the window that opens, edit the WSDL address for WSDL, URL and/or service code for REST, and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
+3.  In the dialog that opens you can edit the URL for all types of services and for REST services the service code can also be changed. Click **SAVE**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
 
 
 ### 6.5 Deleting a service description
@@ -1044,12 +1043,11 @@ When a service description is deleted, all information related to the services d
 
 To delete a service description, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  Select from the table a service description to be deleted and click **Delete**.
+2. Click the link text containing the type of the service and its url in paranthesis. 
 
-3.  Confirm the deletion by clicking **Confirm** in the window that opens.
-
+3. Click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens. 
 
 ### 6.6 Changing the Parameters of a Service
 
@@ -1067,11 +1065,11 @@ Service parameters are
 
 To change service parameters, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  Select a service from the table and click **Edit**.
+2.  Click the arrow symbol in front of a REST or WSDL service and in the list that is displayed click the service code which you wish to edit.
 
-3.  In the window that opens, configure the service parameters. To apply the selected parameter to all services described in the same service description, select the checkbox adjacent to this parameter in the **Apply to All in WSDL** column. To apply the configured parameters, click **OK**.
+3.  In the view that opens, configure the service parameters. To apply the selected parameter to all services described in the same service description, select the checkbox adjacent to this parameter in the **Apply to All in WSDL** column. To apply the configured parameters, click **SAVE**.
 
 
 ### 6.7 Managing REST Endpoints
@@ -1084,13 +1082,13 @@ When URL type of the REST service is an OpenAPI 3 description, endpoints are par
 
 To create API endpoint manually, follow these steps
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  Select from the table a REST service description where the endpoint is going to be added and click "**+**" to see the service details.
+2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
-3.  Select the service code item immediately under the service description level and click **Add Endpoint**.
+3. Click the **ENDPOINTS** tab and in the following view click **ADD ENDPOINTS**.
 
-4.  Select HTTP request method and Path for the endpoint and click **OK**.
+4. In the dialog that opens fill in the HTTP Request method and path for the endpoint and click **ADD**
 
 
 ## 7 Access Rights
