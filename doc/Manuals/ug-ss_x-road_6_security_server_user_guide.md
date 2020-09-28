@@ -487,7 +487,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 To generate a certificate signing request (CSR) for the authentication key, follow these steps.
 
-1.  On the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -518,11 +518,13 @@ After the generation of the CSR, a “Request” record is added under the key�
 
 To import the authentication certificate to the security server, follow these steps.
 
-1.  On the Management menu, select Keys and Certificates.
+1.  In the **Navigation** tabs, select Keys and Certificates.
 
-2.  Click Import certificate.
+2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  Locate the certificate file from the local file system and click OK. After importing the certificate, the "Request" record under the authentication key's row is replaced with the information from the imported certificate. By default, the certificate is imported in the “Saved” (see Section [5.2.2](#522-registration-states-of-the-authentication-certificate)) and “Disabled” states (see Section [5.3](#53-validity-states-of-certificates)).
+3.  Click **Import certificate**.
+
+4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the authentication key's row is replaced with the information from the imported certificate. By default, the certificate is imported in the “Saved” (see Section [5.2.2](#522-registration-states-of-the-authentication-certificate)) and “Disabled” states (see Section [5.3](#53-validity-states-of-certificates)).
 
 
 ### 3.3 Registering the Security Server in the X-Road Governing Authority
