@@ -1294,19 +1294,25 @@ A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to co
 
 To set the connection method for internal network servers in the **service consumer role**, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a security server owner or a client from the table and click the **Internal Servers** icon on that row.
+1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
 
-2.  On the **Connection Type** drop-down, select the connection method and click **Save**.
+2.  In the view that opens, select the **Internal Servers** tab
+ 
+3.  On the **Connection type** drop-down, select the connection method. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
 
 Depending on the configured connection method, the request URL for information system is **`http://SECURITYSERVER/`** or **`https://SECURITYSERVER/`**. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
 
 The connection method for internal network servers in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
 
-2.  Select a service from the table and click **Edit**.
+2.  In the view that opens, select the **Services** tab
+    
+3.  Click the caret next to the desired service description to show all services related to it
 
-3.  Change the protocol in the service URL to HTTP or HTTPS.
+4.  Click on a service code in the table.
+    
+5.  In the view that opens, change the protocol in the service URL to HTTP or HTTPS.
     If the HTTPS protocol was selected, select the **Verify TLS certificate** checkbox if needed (see section [6.6](#66-changing-the-parameters-of-a-service)). According to the service parameters, the connection with the internal network server is created using one the following protocols:
 
 -   HTTP – the service/adapter URL begins with “**http:**//...”.
@@ -1317,29 +1323,37 @@ The connection method for internal network servers in the **service provider rol
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a security server owner or a client from the table and click the **Internal Servers** icon on that row.
+1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
 
-2.  To add a certificate, click **Add** in the **Internal TLS Certificates** section, select a certificate file from the local file system and click **OK**. The certificate fingerprint appears in the “Internal TLS Certificates” table.
+2.  In the view that opens, select the **Internal Servers** tab
+
+3.  To add a certificate, click **Add** in the **Information System TLS certificate** section, select a certificate file from the local file system and click **OK**. The certificate fingerprint appears in the “Information System TLS certificate” table.
 
 To display the detailed information of an internal TLS certificate, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a security server owner or a client from the table and click the **Internal Servers** icon on that row.
+1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
 
-2.  Select a certificate from the “Internal TLS Certificates” table and click **Details**.
+2.  In the view that opens, select the **Internal Servers** tab
+
+3.  Click on a certificate in the “Information System TLS certificate”.
 
 To delete an internal TLS certificate, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a security server owner or a client from the table and click the **Internal Servers** icon on that row.
+1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
 
-2.  Select a certificate from the “Internal TLS Certificates” table and click **Delete**.
+2.  In the view that opens, select the **Internal Servers** tab
 
-3.  Confirm the deletion by clicking **Confirm** in the window that opens.
+3.  Click on a certificate in the “Information System TLS certificate”.
+
+4. In the **Certificate** view that opens, click **Delete**. Confirm deletion by clicking **YES**.
 
 To export the security server's internal TLS certificate, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a security server owner or a client from the table and click the **Internal Servers** icon on that row.
+1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
 
-2.  Click **Export** and save the prompted file to the local file system.
+2.  In the view that opens, select the **Internal Servers** tab
+
+2.  Click **Export** at the end of a certificate row in the "Security Server certificate" table and save the prompted file to the local file system.
 
 
 ## 10 System Parameters
