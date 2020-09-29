@@ -411,7 +411,7 @@ After the generation of the CSR, a “Request” record is added under the key�
 
 To import the signing certificate to the security server, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -426,7 +426,7 @@ To import the signing certificate to the security server, follow these steps.
 
 To import a certificate from a security token, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -452,7 +452,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 **The security server's authentication keys can only be generated on software security tokens.**
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  To log in to the software token, click **LOG IN** on the token’s row in the table and enter the token’s PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
@@ -487,7 +487,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 To generate a certificate signing request (CSR) for the authentication key, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -518,7 +518,7 @@ After the generation of the CSR, a “Request” record is added under the key�
 
 To import the authentication certificate to the security server, follow these steps.
 
-1.  In the **Navigation** tabs, select Keys and Certificates.
+1.  In the **Navigation tabs**, select Keys and Certificates.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -546,7 +546,7 @@ The security server's registration request is signed in the security server with
 
 To submit an authentication certificate registration request, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -857,7 +857,7 @@ Disabled certificates are not used for signing messages or for establishing secu
 
 To activate or disable a certificate, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -886,7 +886,7 @@ An authentication certificate registered or submitted for registration in the X-
 
 To unregister an authentication certificate, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -917,7 +917,7 @@ An authentication certificate saved in the system configuration can be deleted i
 
 **To delete a certificate, follow these steps.**
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -927,7 +927,7 @@ An authentication certificate saved in the system configuration can be deleted i
 
 **To delete a signing request notice (CSR), follow these steps.**
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -953,7 +953,7 @@ An authentication certificate saved in the system configuration can be deleted i
 
 To delete a key, follow these steps.
 
-1.  In the **Navigation** tabs, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -1292,7 +1292,7 @@ A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to co
 
 To set the connection method for internal network servers in the **service consumer role**, follow these steps.
 
-1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
 
 2.  In the view that opens, select the **Internal Servers** tab
  
@@ -1302,7 +1302,7 @@ Depending on the configured connection method, the request URL for information s
 
 The connection method for internal network servers in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
 
-1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
 
 2.  In the view that opens, select the **Services** tab
     
@@ -1321,7 +1321,7 @@ The connection method for internal network servers in the **service provider rol
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
-1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
 
 2.  In the view that opens, select the **Internal Servers** tab
 
@@ -1329,7 +1329,7 @@ To add an internal TLS certificate for a security server owner or security serve
 
 To display the detailed information of an internal TLS certificate, follow these steps.
 
-1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
 
 2.  In the view that opens, select the **Internal Servers** tab
 
@@ -1337,7 +1337,7 @@ To display the detailed information of an internal TLS certificate, follow these
 
 To delete an internal TLS certificate, follow these steps.
 
-1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
 
 2.  In the view that opens, select the **Internal Servers** tab
 
@@ -1347,7 +1347,7 @@ To delete an internal TLS certificate, follow these steps.
 
 To export the security server's internal TLS certificate, follow these steps.
 
-1.  In the **Navigation** tabs, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
 
 2.  In the view that opens, select the **Internal Servers** tab
 
@@ -1377,19 +1377,23 @@ The security server system parameters are:
 
 To upload the configuration anchor, follow these steps.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+1.  In the **Navigation tabs**, select **Settings**.
 
-2.  In the **Configuration Anchor** section, click **Upload**.
+2.  In the opening view select **System Parameters** tab.
 
-3.  Find the anchor file from the local file system and click **Upload**.
+3.  In the **Configuration Anchor** section, click **UPLOAD**.
 
-4.  Ensure that the anchor file you are uploading is valid by comparing the hash value of the uploaded file with the hash value of the currently valid anchor published by the X-Road governing authority. If the hash values match, confirm the upload by clicking **Confirm**.
+4.  Find the anchor file from the local file system and click **Upload**.
+
+5.  Ensure that the anchor file you are uploading is valid by comparing the hash value of the uploaded file with the hash value of the currently valid anchor published by the X-Road governing authority. If the hash values match, confirm the upload by clicking **CONFIRM**.
 
 To download the configuration anchor, follow these steps.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+1.  In the **Navigation tabs**, select **Settings**.
 
-2.  On the **Configuration Anchor** section, click **Download** and save the prompted file.
+2.  In the opening view select **System Parameters** tab.
+
+3.  On the **Configuration Anchor** section, click **DOWNLOAD** and save the prompted file.
 
 
 ### 10.2 Managing the Timestamping Services
@@ -1398,17 +1402,21 @@ To download the configuration anchor, follow these steps.
 
 To add a timestamping service, follow these steps.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+1.  In the **Navigation tabs**, select **Settings**.
 
-2.  In the **Timestamping Services** section, click **Add**.
+2.  In the opening view select **System Parameters** tab.
 
-3.  In the window that opens, select a service and click **OK**.
+3.  In the **Timestamping Services** section, click **ADD**.
+
+4.  In the dialog that opens, select a service and click **ADD**.
 
 To delete a timestamping service, follow these steps.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+1.  In the **Navigation tabs**, select **Settings**.
 
-2.  In the **Timestamping Services** section, select the service to be deleted and click **Delete**.
+2.  In the opening view select **System Parameters** tab.
+
+3.  In the **Timestamping Services** section, click **DELETE** at the end of the row of the service you wish to delete.
 
 *Note*: If more than one timestamping service is configured, the security server will try to get a timestamp from the topmost service in the table, moving down to the next service if the try was unsuccessful. The failover covers both connection and timestamp response verification issues. For example, security server is not able to establish a connection to a timestamping service because of a misconfigured firewall, or verification of a timestamp response fails because of the sign certificate of the timestamping service is changed.
 
@@ -1419,22 +1427,33 @@ To delete a timestamping service, follow these steps.
 
 _To change the security server’s internal TLS key and certificate_, follow these steps.
 
-1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
-2. In the **Internal TLS Certificate** section, click **Generate New TLS Key** and in the window that opens, click **Confirm**.
+1. On the **Navigation tabs**, select **Keys and Certificates
+
+2. In the opening view, select **Security Server TLS Key** tab
+
+3. In the opening view, click **GENERATE KEY** and in the dialog that opens, click **CONFIRM**.
 
    The security server generates a key used for communication with the client information systems, and the corresponding self-signed certificate. The security server's certificate fingerprint will also change. The security server's domain name is saved to the certificate's *Common Name* field, and the internal IP address to the *subjectAltName* extension field.
 
 _To generate a new certificate request_, follow these steps.
 
-1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
-2. In the “Internal TLS Certificate” section, click **Generate Certificate Request**, input the **Distinguished Name** and save the certificate request file to the local file system.  
+1. On the **Navigation tabs**, select **Keys and Certificates
+
+2. In the opening view, select **Security Server TLS Key** tab
+
+3. In the “TLS Key and Certificate” section, at the end of the key row, click **Generate CSR**
+
+4. In the opening view, input the **Distinguished Name** and click "GENERATE CSR". Save the certificate request file to the local file system and click **DONE**.
 
    The security server generates a certificate request using the current key and the provided **Distinguished Name**.
 
 _To import a new TLS certificate_, follow these steps.
 
-1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
-2. In the “Internal TLS Certificate” section, click **Import Certificate** and point to the file to be imported.
+1. On the **Navigation tabs**, select **Keys and Certificates
+
+2. In the opening view, select **Security Server TLS Key** tab
+
+3. In the opening view, click **IMPORT CERT.** and point to the file to be imported.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
@@ -1442,17 +1461,29 @@ _To import a new TLS certificate_, follow these steps.
 
 _To export the security server’s internal TLS certificate_, follow these steps.
 
-1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
-2. In the **Internal TLS Certificate** section, click **Export** and save the prompted file to the local file system.
+1. On the **Navigation tabs**, select **Keys and Certificates
+
+2. In the opening view, select **Security Server TLS Key** tab
+
+3. In the opening view, click **EXPORT CERT.** and save the prompted file to the local file system.
 
    Note that only the internal server certificate is exported, not the possible intermediate certificates.
 
 _To view the detailed information of the security server’s internal TLS certificate_, follow these steps.
 
-1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
-2. In the **Internal TLS Certificate** section, click **Certificate Details**.
+1. On the **Navigation tabs**, select **Keys and Certificates
+
+2. In the opening view, select **Security Server TLS Key** tab
+
+3. In the “TLS Key and Certificate” section, click on the certificate hash.
 
 ### 10.4 Approved Certificate Authorities
+
+_To list the approved certificate authorities_, follow these steps.
+
+1.  In the **Navigation tabs**, select **Settings**.
+
+2.  In the opening view select **System Parameters** tab. Approved certificate authorities are listed in the "Approved Certificate Authorities" section.
 
 Lists approved certificate authorities. The listing contains the following information:
 
