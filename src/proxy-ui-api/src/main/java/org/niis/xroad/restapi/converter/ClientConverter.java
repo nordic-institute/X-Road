@@ -30,7 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;

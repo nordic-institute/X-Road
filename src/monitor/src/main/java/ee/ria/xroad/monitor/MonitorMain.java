@@ -34,7 +34,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UnhandledMessage;
-import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.jmx.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

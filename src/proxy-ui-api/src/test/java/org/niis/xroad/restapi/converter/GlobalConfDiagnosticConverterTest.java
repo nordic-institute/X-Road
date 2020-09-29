@@ -28,16 +28,13 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
-import org.joda.time.DateTimeUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
-import org.niis.xroad.restapi.util.TestUtils;
 
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,35 +44,22 @@ import static org.junit.Assert.assertEquals;
 public class GlobalConfDiagnosticConverterTest {
 
     private GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
-    private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
-    private static final String PREVIOUS_UPDATE_STR = "2020-03-16T10:15:40.703";
-    private static final String NEXT_UPDATE_STR = "2020-03-16T10:16:40.703";
-    private static final LocalTime PREVIOUS_UPDATE = LocalTime.of(10, 15, 40, 703000000);
-    private static final LocalTime NEXT_UPDATE = LocalTime.of(10, 16, 40, 703000000);
+    private static final OffsetDateTime PREVIOUS_UPDATE = OffsetDateTime.parse("2020-03-16T10:15:40.703Z");
+    private static final OffsetDateTime NEXT_UPDATE = OffsetDateTime.parse("2020-03-16T10:16:40.703Z");
 
     @Before
     public void setup() {
         globalConfDiagnosticConverter = new GlobalConfDiagnosticConverter();
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
-    }
-
-    @After
-    public final void tearDown() {
-        DateTimeUtils.setCurrentMillisSystem();
     }
 
     @Test
     public void convertSingleGlobalConfDiagnostics() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils
-                .fromDateTimeToMilliseconds(CURRENT_TIME));
         GlobalConfDiagnostics globalConfDiagnostics = globalConfDiagnosticConverter.convert(new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE, NEXT_UPDATE));
 
         assertEquals(ConfigurationStatus.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, globalConfDiagnostics.getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR),
-                (Long)globalConfDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR),
-                (Long)globalConfDiagnostics.getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(PREVIOUS_UPDATE, globalConfDiagnostics.getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE, globalConfDiagnostics.getNextUpdateAt());
     }
 }

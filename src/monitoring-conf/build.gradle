@@ -63,8 +63,3 @@ xjc.mustRunAfter processResources
 
 compileJava.dependsOn xjc
 compileJava.dependsOn processResources
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}

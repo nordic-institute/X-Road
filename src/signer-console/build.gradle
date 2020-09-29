@@ -22,6 +22,7 @@ jar {
 
 shadowJar {
     classifier = ''
+    exclude('**/module-info.class')
     exclude 'asg/cliche/example/**'
     append('reference.conf')
     from rootProject.file("LICENSE.txt")

@@ -48,7 +48,7 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;

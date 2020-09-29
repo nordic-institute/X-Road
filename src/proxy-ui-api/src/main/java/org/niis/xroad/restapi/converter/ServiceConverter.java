@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
-import org.apache.commons.lang.ObjectUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.EndpointHelper;
@@ -44,6 +43,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 
 /**
@@ -99,7 +99,7 @@ public class ServiceConverter {
         if (serviceType.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
             service.setSslAuth(false);
         } else {
-            service.setSslAuth((boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true));
+            service.setSslAuth(defaultIfNull(serviceType.getSslAuthentication(), true));
         }
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());

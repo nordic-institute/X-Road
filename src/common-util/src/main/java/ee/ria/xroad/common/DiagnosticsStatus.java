@@ -30,8 +30,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.time.OffsetDateTime;
 
 /**
  * Holds configuration client status information
@@ -39,10 +38,9 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @ToString
 public class DiagnosticsStatus implements Serializable {
-    public static final DateTimeFormatter DIAGNOSTICS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private int returnCode;
-    private LocalTime prevUpdate;
-    private LocalTime nextUpdate;
+    private OffsetDateTime prevUpdate;
+    private OffsetDateTime nextUpdate;
     @Setter
     private String description;
 
@@ -51,7 +49,7 @@ public class DiagnosticsStatus implements Serializable {
      * @param returnCode return code
      * @param prevUpdate previous update
      */
-    public DiagnosticsStatus(int returnCode, LocalTime prevUpdate) {
+    public DiagnosticsStatus(int returnCode, OffsetDateTime prevUpdate) {
         this.returnCode = returnCode;
         this.prevUpdate = prevUpdate;
     }
@@ -63,7 +61,7 @@ public class DiagnosticsStatus implements Serializable {
      * @param prevUpdate previous update
      * @param description status description
      */
-    public DiagnosticsStatus(int returnCode, LocalTime prevUpdate, String description) {
+    public DiagnosticsStatus(int returnCode, OffsetDateTime prevUpdate, String description) {
         this.returnCode = returnCode;
         this.prevUpdate = prevUpdate;
         this.description = description;
@@ -75,7 +73,7 @@ public class DiagnosticsStatus implements Serializable {
      * @param prevUpdate previous update
      * @param nextUpdate next update
      */
-    public DiagnosticsStatus(int returnCode, LocalTime prevUpdate, LocalTime nextUpdate) {
+    public DiagnosticsStatus(int returnCode, OffsetDateTime prevUpdate, OffsetDateTime nextUpdate) {
         this.returnCode = returnCode;
         this.prevUpdate = prevUpdate;
         this.nextUpdate = nextUpdate;
@@ -87,30 +85,6 @@ public class DiagnosticsStatus implements Serializable {
      */
     public void setReturnCodeNow(int newReturnCode) {
         this.returnCode = newReturnCode;
-        this.prevUpdate = LocalTime.now();
-    }
-
-    /**
-     * Get formatted previous update value
-     * @return previous update
-     */
-    public String getFormattedPrevUpdate() {
-        return getFormattedLocalTime(prevUpdate);
-    }
-
-    /**
-     * Get formatted next update value
-     * @return next update
-     */
-    public String getFormattedNextUpdate() {
-        return getFormattedLocalTime(nextUpdate);
-    }
-
-    private String getFormattedLocalTime(LocalTime time) {
-        if (time == null) {
-            return "";
-        } else {
-            return time.format(DIAGNOSTICS_FORMATTER);
-        }
+        this.prevUpdate = OffsetDateTime.now();
     }
 }

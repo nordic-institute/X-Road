@@ -42,7 +42,6 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,6 +61,8 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -108,7 +109,7 @@ public class OcspClientTest {
 
         GlobalConf.reload(getTestGlobalConf());
 
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
 
         responseData = OcspTestUtils.createOCSPResponse(subject, GlobalConf.getCaCert("EE", subject), ocspResponderCert,
                 getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
@@ -136,7 +137,7 @@ public class OcspClientTest {
                 Arrays.asList("http://127.0.0.1:1234", RESPONDER_URI));
         GlobalConf.reload(conf);
 
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
 
         responseData = OcspTestUtils.createOCSPResponse(subject, GlobalConf.getCaCert("EE", subject), ocspResponderCert,
                 getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();

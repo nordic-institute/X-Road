@@ -28,7 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.CodedException;
 
 import lombok.Data;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 
 import java.util.HashMap;
