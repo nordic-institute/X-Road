@@ -792,7 +792,7 @@ A security server signing certificate can be in one of the following registratio
 
 -   **Registered** – the certificate has been imported to the security server and saved to its configuration. A signing certificate in a “Registered” state can be used for signing X-Road messages.
 
--   **Deleted** – the certificate has been deleted from the server configuration. If the certificate is in the “Deleted” state and stored on a hardware key device connected to the security server, the certificate is displayed on a yellow background.
+-   **Deleted** – the certificate has been deleted from the server configuration. If the certificate is in the "Deleted" state and stored on a soft token key, the certificate will not be displayed in the table. If the certificate is in the "Deleted" state and stored on a hardware key device connected to the security server, the certificate status will be displayed with a **red circle** and a hyphen **-**.
 
 
 #### 5.2.2 Registration States of the Authentication Certificate
@@ -803,7 +803,7 @@ A security server authentication certificate can be in one of the following regi
 
 -   "Registration in progress", if the authentication certificate registration request is sent from the security server to the central server (see [3.3.1](#331-registering-an-authentication-certificate));
 
--   "Deleted", if the authentication certificate's information is deleted from the security server configuration (see Section [5.6](#56-deleting-a-certificate)).
+-   "Deleted", if the authentication certificate's information is deleted from the security server configuration (see Section [5.6](#56-deleting-a-certificate)). Notice that after the certificate is deleted, it will not be displayed in the table anymore.
 
 **Registration in progress** – an authentication certificate registration request has been created and sent to the central server, but the association between the certificate and the security server has not yet been approved. From this state, the certificate can move to the following states:
 
@@ -821,18 +821,14 @@ A security server authentication certificate can be in one of the following regi
 
 -   "Registered", if the association between the authentication certificate and the security server has been restored in the central server (e.g., the association between the client and the security server was lost due to an error);
 
--   "Deleted", if the authentication certificate's information is deleted from the security server configuration (see [5.6](#56-deleting-a-certificate)).
+-   "Deleted", if the authentication certificate's information is deleted from the security server configuration (see [5.6](#56-deleting-a-certificate)). Notice that after the certificate is deleted, it will not be displayed in the table anymore.
 
-**Deletion in progress** – an authentication certificate registration request has been created for the certificate and sent to the central server. From this state, the certificate can move to the following state:
-
--   "Deleted", if the authentication certificate's information is deleted from the security server configuration (see [5.6](#56-deleting-a-certificate)).
-
-**Deleted** – the certificate has been deleted from the security server configuration.
+**Deletion in progress** – an authentication certificate registration request has been created for the certificate and sent to the central server. From this state, the certificate can be deleted. If the certificate has been deleted from the security server configuration, it will not be displayed in the table anymore.
 
 
 ### 5.3 Validity States of Certificates
 
-Validity states indicate if and how a certificate can be used independent of the X-Road system. In the "Keys and Certificates" view, the certificate's validity states are displayed in the "OCSP response" column. Validity states (except "Disabled") are displayed for certificates that are in the "Registered" registration state.
+Validity states indicate if and how a certificate can be used independent of the X-Road system. In the "Keys and Certificates" view, the certificate's validity states are displayed in the "OCSP" column. Validity states (except "Disabled") are displayed for certificates that are in the "Registered" registration state.
 
 A security server certificate can be in one of the following validity states.
 
@@ -857,13 +853,17 @@ A security server certificate can be in one of the following validity states.
 
 -   For signing certificates: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
-Disabled certificates are not used for signing messages or for establishing secure channels between security servers (authentication). If a certificate is disabled, its status in the “OCSP response” column in the “Keys and Certificates” table is “Disabled”.
+Disabled certificates are not used for signing messages or for establishing secure channels between security servers (authentication). If a certificate is disabled, its status in the “OCSP” column in the “Keys and Certificates” table is “Disabled”.
 
 To activate or disable a certificate, follow these steps.
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
-2.  To activate a certificate, select an inactive certificate from the table and click **Activate**. To deactivate a certificate, select an active certificate from the table and click **Disable**.
+2.  Show more details about a token by clicking the caret next to the token name.
+
+3.  To activate a certificate, click on the desired certificate's name.
+
+    3.1 In the opening **Certificate** dialog, click **Activate**. To deactivate a certificate, click **Disable** in the **Certificate** dialog. 
 
 
 ### 5.5 Configuring and Registering an Authentication key and Certificate
@@ -886,11 +886,15 @@ An authentication certificate registered or submitted for registration in the X-
 
 To unregister an authentication certificate, follow these steps.
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
-2.  Select an authentication certificate in the state "Registered" or "Registration in progress" and click **Unregister**.
+2.  Show more details about a token by clicking the caret next to the token name.
 
-    Next, an authentication certificate deletion request is automatically sent to the X-Road central server, upon the receipt of which the associated authentication certificate is deleted from the central server. If the request was successfully sent, the message "Request sent" is displayed and the authentication certificate is moved to the "Deletion in progress" state.
+3.  Click on an authentication certificate that is in the state "Registered" or "Registration in progress".
+
+    3.1 In the opening **Certificate** dialog, click **Unregister**.
+
+    Next, an authentication certificate deletion request is automatically sent to the X-Road central server, upon the receipt of which the associated authentication certificate is deleted from the central server. If the request was successfully sent, the message "Certificate unregistration request sent successfully" is displayed and the authentication certificate is moved to the "Deletion in progress" state.
 
 A registered authentication certificate can be deleted from the central server without sending a deletion request through the security server. In this case, the security server's administrator must transmit a request containing information about the authentication certificate to be deleted to the central server's administrator. If the authentication certificate has been deleted from the central server without a deletion request from the security server, the certificate is shown in the "Global error" state in the security server.
 
@@ -913,9 +917,11 @@ An authentication certificate saved in the system configuration can be deleted i
 
 **To delete a certificate or a signing request notice, follow these steps.**
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
-2.  Select from the table a certificate or a certificate signing request notice and click **Delete**. Confirm the deletion by clicking **Confirm**.
+2.  Show more details about a token by clicking the caret next to the token name.
+
+3.  Select from the table a certificate or a certificate signing request notice and click **Delete**. Confirm the deletion by clicking **Confirm**.
 
 
 ### 5.7 Deleting a Key
