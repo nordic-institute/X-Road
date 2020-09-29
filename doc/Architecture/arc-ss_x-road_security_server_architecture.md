@@ -53,8 +53,8 @@ Doc. ID: ARC-SS
   - [2.5 Operational Monitoring Buffer](#25-operational-monitoring-buffer)
   - [2.6 Signer](#26-signer)
   - [2.7 Database](#27-database)
-  - [2.8 User Interface](#28-user-interface)
-  - [2.9 Servlet Engine](#29-servlet-engine)
+  - [2.8 User Interface Frontend](#28-user-interface-frontend)
+  - [2.9 Management REST API](#29-management-rest-api)
   - [2.10 Configuration Client](#210-configuration-client)
   - [2.11 Password Store](#211-password-store)
   - [2.12 SSCD](#212-sscd)
@@ -269,27 +269,32 @@ The security server configuration is held in a PostgreSQL\[[1](#Ref_1)\] databas
 \[1\] See <http://www.postgresql.org/> for details.
 
 
-### 2.8 User Interface frontend
+### 2.8 User Interface Frontend
 
 The security server user interface allows a user to manage the security server configuration. 
-The user interface is a single page application that makes requests to the Management REST APIs.
 
-### 2.8 Management REST API
+The user interface is a single page web application that makes requests to the management REST APIs to read and modify configuration.
 
-The security server user interface allows a user to manage the security server configuration. The user interface is web-based and is packaged as a *war* archive that is deployed on the servlet engine.
+The user interface fetches it's resources (images, stylesheets, javascript files) from the web application which
+hosts the management REST APIs.
 
-Certain operations attempt to modify the X-Road global configuration and require management requests to be sent to the X-Road central server. These requests need to be approved by the central server administrator before they are reflected in the global configuration.
+### 2.9 Management REST API
+
+The management REST API offers endpoints that can be used to read and modify the security server configuration.
+These endpoints are used by the user interface frontend, and can be used by standalone API clients.
+The management REST API is packaged in an executable Spring Boot\[[2](#Ref_2)\] *jar* archive.
+This Spring Boot application starts an embedded Tomcat\[[3](#Ref_3)\] servlet engine, which also serves the resources for the user interface frontend.
+Embedded Tomcat listens on a fixed port that is configured in internal configuration files.
+
+Certain API operations attempt to modify the X-Road global configuration and require management requests to be sent to the X-Road central server. These requests need to be approved by the central server administrator before they are reflected in the global configuration.
 
 User action events that change the system state or configuration are logged into the audit log. The actions are logged regardless of whether the outcome was a success or a failure. The complete list of the audit log events is described in \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-
-### 2.9 Servlet Engine
-
-Embedded Tomcat\[[2](#Ref_2)\] servlet engine inside xroad-proxy-ui-api hosts the user interface, listening on a fixed port that is configured in internal configuration files.
-
-
 <a id="Ref_2" class="anchor"></a>
-\[2\] See <http://tomcat.apache.org/> for details.
+\[2\] See <https://spring.io/projects/spring-boot> for details.
+
+<a id="Ref_3" class="anchor"></a>
+\[3\] See <http://tomcat.apache.org/> for details.
 
 
 ### 2.10 Configuration Client
