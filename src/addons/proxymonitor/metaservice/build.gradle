@@ -18,7 +18,7 @@ dependencies {
     compile project(':monitor-common')
     compile project(':monitoring-conf')
     compile project(':addons:proxymonitor:common')
-    compile 'com.google.guava:guava:28.0-jre'
+    compile 'com.google.guava:guava:29.0-jre'
 
     testCompile project (path: ":proxy", configuration: 'testArtifacts')
     testCompile project(':common-test')
@@ -55,6 +55,7 @@ jar {
 shadowJar {
     baseName = "proxymonitor-metaservice"
     classifier = ''
+    exclude('**/module-info.class')
     dependencies {
         include(project(':addons:proxymonitor:common'))
         include(project(':monitor-common'))
@@ -66,12 +67,6 @@ build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
 compileJava.dependsOn processResources
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}
-
 
 task runProxymonitorMetaserviceTest(type: JavaExec) {
 

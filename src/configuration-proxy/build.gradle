@@ -23,6 +23,7 @@ jar {
 
 shadowJar {
     classifier = ''
+    exclude('**/module-info.class')
     append('reference.conf')
     from rootProject.file("LICENSE.txt")
 }

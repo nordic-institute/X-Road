@@ -57,6 +57,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 .label {
   width: 230px;
+  min-width: 230px;
   display: flex;
   flex-direction: row;
   align-items: baseline;

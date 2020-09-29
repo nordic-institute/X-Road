@@ -88,13 +88,12 @@ subprojects {
     version = '1.0'
 
     jacoco {
-        toolVersion = "0.8.4"
+        toolVersion = "0.8.6"
     }
 
     repositories {
         mavenCentral()
         mavenLocal()
-
         // XXX In case mavenCentral is unreachable, use this mirror instead
         // maven {
         //     url "http://mirrors.ibiblio.org/pub/mirrors/maven2"
@@ -104,15 +103,9 @@ subprojects {
         //maven {
         //    url "http://ground.zero.ee/maven2"
         //}
-
-        // repository containing an up-to-date xerces fork
-        maven {
-            url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/"
-        }
     }
 
     configurations {
-        provided
         testArtifacts.extendsFrom testRuntime
     }
 
@@ -121,8 +114,11 @@ subprojects {
         testCompile 'org.hamcrest:hamcrest-library:2.2'
         testCompile 'junit:junit:4.13'
 
-        provided 'org.projectlombok:lombok:1.18.8'
+        compileOnly 'org.projectlombok:lombok:1.18.12'
+        annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
+        testCompileOnly 'org.projectlombok:lombok:1.18.12'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     }
 
     task testJar(type: Jar) {
@@ -150,21 +146,6 @@ subprojects {
 
     artifacts {
         testArtifacts testJar
-    }
-
-    sourceSets.main.compileClasspath += configurations.provided
-    sourceSets.test.compileClasspath += configurations.provided
-
-    eclipse {
-        classpath {
-            plusConfigurations += [configurations.provided]
-        }
-    }
-
-    idea {
-        module {
-            scopes.PROVIDED.plus += [configurations.provided]
-        }
     }
 
     checkstyle {
@@ -233,8 +214,4 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 
 task clean(type: Delete) {
     delete "${rootDir}/packages/build"
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.1'
 }

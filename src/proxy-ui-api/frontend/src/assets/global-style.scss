@@ -114,3 +114,8 @@
 .wrap-right * {
   margin-left: auto;
 }
+
+// Break long identifiers
+.identifier-wrap {
+  word-break: break-word;
+}

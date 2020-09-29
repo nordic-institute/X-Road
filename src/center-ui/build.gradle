@@ -1,6 +1,7 @@
 dependencies {
     compile project(':common-ui')
-    compile 'org.postgresql:postgresql:42.2.14'
+    compile 'org.postgresql:postgresql:42.2.16'
+    compile 'commons-configuration:commons-configuration:1.10'
 }
 
 clean {

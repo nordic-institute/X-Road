@@ -54,7 +54,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -117,7 +117,7 @@ public class OcspClientWorker extends AbstractSignerActor {
             handleDiagnostics();
         } else {
             if (message instanceof Exception) {
-                log.error("received Exception message", ((Exception) message));
+                log.error("received Exception message", ((Exception)message));
             }
 
             unhandled(message);
@@ -303,35 +303,33 @@ public class OcspClientWorker extends AbstractSignerActor {
         OCSPResp response = null;
 
         for (String responderURI : responderURIs) {
+            final OffsetDateTime prevUpdate = OffsetDateTime.now();
+            final OffsetDateTime nextUpdate =
+                    prevUpdate.plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval());
+
             try {
                 log.debug("Fetching response from: {}", responderURI);
-
                 response = OcspClient.fetchResponse(responderURI, subject, issuer, signerKey, signer, signAlgoId);
 
                 if (response != null) {
-                    reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
-                            LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
-
+                    reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate,
+                            nextUpdate);
                     break;
                 }
             } catch (OCSPException e) {
                 log.error("Parsing OCSP response from " + responderURI + " failed", e);
 
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID,
-                        LocalTime.now(),
-                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        prevUpdate, nextUpdate);
             } catch (IOException e) {
                 log.error("Unable to connect to responder at " + responderURI, e);
-
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
-                        LocalTime.now(),
-                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        prevUpdate, nextUpdate);
             } catch (Exception e) {
                 log.error("Unable to fetch response from responder at " + responderURI, e);
 
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
-                        LocalTime.now(),
-                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        prevUpdate, nextUpdate);
             }
         }
         try {
@@ -352,7 +350,7 @@ public class OcspClientWorker extends AbstractSignerActor {
     }
 
     private void reportOcspDiagnostics(X509Certificate issuer, String responderURI, int statusCode,
-            LocalTime prevUpdate, LocalTime nextUpdate) {
+            OffsetDateTime prevUpdate, OffsetDateTime nextUpdate) {
 
         OcspResponderStatus responderStatus = new OcspResponderStatus(statusCode, responderURI, prevUpdate, nextUpdate);
 
@@ -432,14 +430,14 @@ public class OcspClientWorker extends AbstractSignerActor {
                 new IsCachedOcspResponse(certHash, atDate));
 
         if (isCachedOcspResponseObject instanceof Exception) {
-            Exception e = (Exception) isCachedOcspResponseObject;
+            Exception e = (Exception)isCachedOcspResponseObject;
 
             log.debug("cannot figure out if IsCachedOcspResponse");
 
             throw e;
         }
 
-        Boolean isCachedOcspResponse = (Boolean) isCachedOcspResponseObject;
+        Boolean isCachedOcspResponse = (Boolean)isCachedOcspResponseObject;
 
         log.trace("isCachedOcspResponse(certHash: {}, atDate: {}) = {}", certHash, atDate, isCachedOcspResponse);
 
@@ -481,7 +479,7 @@ public class OcspClientWorker extends AbstractSignerActor {
                         .forEach(responderURI -> {
                             OcspResponderStatus responderStatus = new OcspResponderStatus(
                                     DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, responderURI, null,
-                                    LocalTime.now().plusSeconds(
+                                    OffsetDateTime.now().plusSeconds(
                                             GlobalConfExtensions.getInstance().getOcspFetchInterval()));
                             serviceStatus.getOcspResponderStatusMap().put(responderURI, responderStatus);
                         });

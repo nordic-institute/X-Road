@@ -34,7 +34,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 
 /**
  * Quartz job implementation for the configuration client.
@@ -48,15 +48,18 @@ public class ConfigurationClientJob implements Job {
 
         if (client != null && client instanceof ConfigurationClient) {
             try {
-                ((ConfigurationClient) client).execute();
+                ((ConfigurationClient)client).execute();
 
-                DiagnosticsStatus status = new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
-                        LocalTime.now().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                DiagnosticsStatus status =
+                        new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now(),
+                                OffsetDateTime.now()
+                                        .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
                 context.setResult(status);
             } catch (Exception e) {
                 DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
-                        LocalTime.now(),
-                        LocalTime.now().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                        OffsetDateTime.now(),
+                        OffsetDateTime.now()
+                                .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
                 context.setResult(status);
 
                 throw new JobExecutionException(e);

@@ -27,7 +27,7 @@
   <tr>
     <td class="name-wrap-top no-border">
       <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
-      <div class="clickable-link" @click="keyClick">
+      <div class="clickable-link identifier-wrap" @click="keyClick">
         {{ tokenKey.name }}
       </div>
     </td>

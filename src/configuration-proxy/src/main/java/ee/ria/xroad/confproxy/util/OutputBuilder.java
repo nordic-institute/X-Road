@@ -42,8 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -53,6 +51,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
@@ -78,6 +80,8 @@ import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
 public class OutputBuilder {
 
     public static final String SIGNED_DIRECTORY_NAME = "conf";
+    private static final DateTimeFormatter DATETIME_FORMAT =
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"));
 
     private final ConfigurationDirectory confDir;
     private final ConfProxyProperties conf;
@@ -183,9 +187,9 @@ public class OutputBuilder {
      */
     private void build(final ByteArrayOutputStream mimeContent) throws Exception {
         try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, dataBoundary)) {
-            DateTime expireDate = new DateTime().plusSeconds(conf.getValidityIntervalSeconds());
+            OffsetDateTime expireDate = OffsetDateTime.now().plusSeconds(conf.getValidityIntervalSeconds());
             encoder.startPart(null, new String[] {
-                    HEADER_EXPIRE_DATE + ": " + expireDate.toDateTime(DateTimeZone.UTC),
+                    HEADER_EXPIRE_DATE + ": " + DATETIME_FORMAT.format(expireDate.truncatedTo(ChronoUnit.MILLIS)),
                     HEADER_VERSION + ": " + String.format("%d", version)
             });
 
@@ -203,9 +207,9 @@ public class OutputBuilder {
     /**
      * Signs the global configuration directory content.
      * @param contentBytes configuration directory content bytes
-     * @param mimeContent output stream to write to
+     * @param mimeContent  output stream to write to
      * @throws Exception if errors are encountered while writing
-     * the signed directory content to a temporary location
+     *                   the signed directory content to a temporary location
      */
     private void sign(final byte[] contentBytes, final ByteArrayOutputStream mimeContent) throws Exception {
         String keyId = conf.getActiveSigningKey();
@@ -258,7 +262,7 @@ public class OutputBuilder {
     /**
      * Opens a stream for writing the configuration file describes by the metadata to the target location.
      * @param targetPath location to write the file to
-     * @param metadata describes the configuration file
+     * @param metadata   describes the configuration file
      * @return output stream for writing the file
      * @throws Exception if errors during file operations occur
      */
@@ -275,9 +279,9 @@ public class OutputBuilder {
 
     /**
      * Appends the metadata and hash of a configuration file to the content inside the encoder.
-     * @param encoder generates the configuration directory mime from the given file content
-     * @param instance configuration proxy instance name
-     * @param metadata describes the configuration file
+     * @param encoder     generates the configuration directory mime from the given file content
+     * @param instance    configuration proxy instance name
+     * @param metadata    describes the configuration file
      * @param inputStream contents of the configuration file to compute the hash
      * @throws Exception if the configuration file content could not be appended
      */
@@ -289,13 +293,13 @@ public class OutputBuilder {
 
             encoder.startPart(MimeTypes.BINARY,
                     new String[] {
-                        HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
-                        HEADER_CONTENT_IDENTIFIER + ": "
-                                + metadata.getContentIdentifier()
-                                + "; instance=\""
-                                + metadata.getInstanceIdentifier()  + "\"",
-                        HEADER_CONTENT_LOCATION + ": /" + contentLocation,
-                        HEADER_HASH_ALGORITHM_ID + ": " + hashCalculator.getAlgoURI()
+                            HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
+                            HEADER_CONTENT_IDENTIFIER + ": "
+                                    + metadata.getContentIdentifier()
+                                    + "; instance=\""
+                                    + metadata.getInstanceIdentifier() + "\"",
+                            HEADER_CONTENT_LOCATION + ": /" + contentLocation,
+                            HEADER_HASH_ALGORITHM_ID + ": " + hashCalculator.getAlgoURI()
                     });
 
             encoder.write(hashCalculator.calculateFromStream(inputStream).getBytes());
@@ -314,9 +318,9 @@ public class OutputBuilder {
 
     /**
      * Generates the signature of the configuration directory data.
-     * @param keyId id of the key used for signing
+     * @param keyId                id of the key used for signing
      * @param signatureAlgorithmId if of the algorithm used for signing
-     * @param digest digest bytes of the directory content
+     * @param digest               digest bytes of the directory content
      * @return the configuration directory signature string (base64)
      * @throws Exception if cryptographic operations fail
      */
