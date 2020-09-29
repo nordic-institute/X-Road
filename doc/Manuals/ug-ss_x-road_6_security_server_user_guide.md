@@ -1711,23 +1711,25 @@ The backup and restore view can be accessed from the **Management** menu by sele
 
 To **back up configuration**, follow these steps.
 
-1.  Click **Back Up Configuration**.
+1.  Navigate to **Settings** tab and in the view that opens click **Backup and restore** tab.
 
-2.  A window opens displaying the output of the backup script; click **OK** to close it. The configuration backup file appears in the list of configuration backup files.
+2.  Click **Back Up Config.**
 
-3.  To save the configuration backup file to the local file system, click **Download** on the configuration file’s row and save the prompted file.
+3.  The configuration backup file appears in the list of configuration backup files.
+
+4.  To save the configuration backup file to the local file system, click **Download** on the configuration file’s row.
 
 To **restore configuration**, follow these steps.
 
-1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **Confirm**.
+1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **Yes**.
 
-2.  A window opens displaying the output of the restore script; click **OK** to close it.
+2.  A popup notification shows after the restore whether the restoring was successfull or not.
 
 If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
-To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **Confirm**.
+To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **Yes**.
 
-To **upload a configuration backup file** from the local file system to the security server, click **Upload Backup File**, select a file and click **OK**. The uploaded configuration file appears in the list of configuration files.
+To **upload a configuration backup file** from the local file system to the security server, click **Upload Backup**, select a file and click **Yes**. The uploaded configuration file appears in the list of configuration files.
 
 
 ### 13.2 Restore from the Command Line
