@@ -1768,7 +1768,7 @@ By default the Security Server backs up its configuration automatically once eve
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
-Open the **Management** menu and select **Diagnostics**.
+Click on **Diagnostics** in the **Navigation tabs**.
 
 On this page you can examine the statuses of the following services:
 
@@ -1778,7 +1778,7 @@ On this page you can examine the statuses of the following services:
  Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                   
  OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh
 
-To refresh the service statuses click the **Diagnostics** item on the **Management** menu.
+To refresh the service statuses, refresh the page.
 
 The status colors indicate the following:
 - **Red indicator** – service cannot be contacted or is not operational
