@@ -913,16 +913,25 @@ An authentication certificate saved in the system configuration can be deleted i
 
 -   if the certificate is saved in the server configuration, then the deletion **deletes the certificate from server configuration**, but not from the security token;
 
--   if the certificate is not saved in the server configuration (the background of the certificate is yellow), then the deletion deletes the certificate from the security token (assuming the token supports this operation).
+-   if the certificate is not saved in the server configuration (certificate's status has a red circle and status "-" (a hyphen)), then the deletion deletes the certificate from the security token (assuming the token supports this operation).
 
-**To delete a certificate or a signing request notice, follow these steps.**
+**To delete a certificate, follow these steps.**
 
 1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  Select from the table a certificate or a certificate signing request notice and click **Delete**. Confirm the deletion by clicking **Confirm**.
+3.  Click on the certificate that you want to delete.
 
+    3.1 In the opening **Certificate** dialog, click **Delete**. Confirm the deletion by clicking **YES**.
+
+**To delete a signing request notice (CSR), follow these steps.**
+
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
+
+2.  Show more details about a token by clicking the caret next to the token name.
+
+3.  At the end of the desired CSR row click **Delete CSR**. Confirm the deletion by clicking **YES**.
 
 ### 5.7 Deleting a Key
 
@@ -940,13 +949,17 @@ An authentication certificate saved in the system configuration can be deleted i
 
 -   if the key is saved in the server configuration, then the deletion **deletes the key** (and associated certificates) **from server configuration**, but not from the security token;
 
--   if the key is not saved in the server configuration (the background of the key is yellow), then the deletion **deletes the key from the security token** (assuming the token supports this operation).
+-   if the key is not saved in the server configuration (certificate's status has a red circle and status "-" (a hyphen)), then the deletion **deletes the key from the security token** (assuming the token supports this operation).
 
 To delete a key, follow these steps.
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation** tabs, select **Keys and Certificates**.
 
-2.  Select a key and click **Delete**. Confirm the deletion of the key (and its associated certificates) by clicking **Confirm**.
+2.  Show more details about a token by clicking the caret next to the token name.
+
+3.  Click on the desired Key.
+
+    3.1 In the opening **Key** dialog, click **Delete**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
 
 
 ## 6 X-Road Services
