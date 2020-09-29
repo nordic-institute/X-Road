@@ -1098,9 +1098,9 @@ To create API endpoint manually, follow these steps
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
-3. Click the **ENDPOINTS** tab and in the following view click **ADD ENDPOINTS**.
+3.  Click the **ENDPOINTS** tab and in the following view click **ADD ENDPOINTS**.
 
-4. In the dialog that opens fill in the HTTP Request method and path for the endpoint and click **ADD**
+4.  In the dialog that opens fill in the HTTP Request method and path for the endpoint and click **ADD**
 
 
 ## 7 Access Rights
@@ -1131,37 +1131,48 @@ In general, a REST service usually has multiple endpoints. When access rights ar
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-To change the access rights to a service, follow these steps.
+To change the access rights to a **service**, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2.  Select a service or endpoint from the table and click **Access Rights**.
+2.  Click the arrow symbol in front of a service and click the service code that is displayed.
 
 3.  In the window that opens, the access rights table displays information about all X-Road subsystems and groups that have access to the selected service.
 
-4.  To add one or more access right subjects to the service, click **Add Subjects**. The subject search window appears. You can search among all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups.
-    Select one or more subjects from the table and click **Add Selected to ACL**. To grant the access right to all subjects in the search results, click **Add All to ACL**.
+4.  To add one or more access right subjects to the service, click **Add Subjects**. The subject search window appears. You can search among    all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups. Fill in optional filters for subjects and click **SEARCH**. Select one or more subjects from the list and click **Add Selected**.
 
-5.  To remove service access rights subjects, select the respective rows in the access rights table and click **Remove Selected**. To clear the access rights list (that is, remove all subjects), click **Remove All**.
+5.  To remove service access rights subjects, click **Remove** button on the respective row in the access rights table. To clear the access rights list (that is, remove all subjects), click **Remove All**.
+
+To change access rights to an **endpoint**, follow there steps.
+
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+
+2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
+
+3.  Click the **ENDPOINTS** tab and in the following views endpoints list click **Access Rights** on the respective row of an endpoint.
+
+4.  To add one or more access right subjects to the endpoint, click **Add Subjects**. The subject search window appears. You can search among all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups. Fill in optional filters for subjects and click **SEARCH**. Select one or more subjects from the list and click **Add Selected**.
+
+5. To remove endpoint access rights subjects, click **Remove** button on the respective row in the access rights table and click **YES** in the confirmation dialog. To clear the access rights list (that is, remove all subjects), click **Remove All** and click **YES** in the confirmation dialog.
 
 
 ### 7.2 Adding a Service Client
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-The service client view (**Configuration** -&gt; **Security Server Clients** -&gt; **Service Clients**) displays all the service level access rights subjects of the services mediated by this security server client. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
+The service client view (**Clients** -&gt; **Service Clients**) displays all the service level access rights subjects of the services mediated by this security server client. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
 
 To add a service client, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Service Clients** tab. 
 
-2.  Select a client from the table and click the **Service Clients** icon, then click **Add**.
+2.  Click **ADD SUBJECTS** and in the wizard that opens
+    
+    1. Select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **Next**
+    
+    2.  Select service(s) whose access rights you want to grant to the selected subject. Click **Add Selected** to grant access rights to the selected services to this subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
-3.  In the window that opens, locate and select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **Next**.
-
-4.  Locate the service(s) whose access rights you want to grant to the selected subject. Click **Add Selected to ACL** to grant access rights to the selected services to this subject. Click **Add All to ACL** to grant access rights to all services in the filter to the subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
-
-The subject is added to the list of service clients, after which the service client's access rights view is displayed where the access rights can be changed.
+The subject is added to the list of service clients, after which the service clients view is displayed.
 
 
 ### 7.3 Changing the Access Rights of a Service Client
@@ -1170,21 +1181,19 @@ The subject is added to the list of service clients, after which the service cli
 
 To change the service client's access rights, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Service Clients** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Service Clients** tab. 
 
-2.  In the window that opens, locate and select a subject (a subsystem, or a local or global group) whose access rights you want to change and click **Access Rights**.
+2.  In the view that opens click the name of a subject (a subsystem, or a local or global group) whose access rights you want to change
 
 3.  In the window that opens, a list of services opened in the security server to the selected subject is displayed.
 
--   To remove access rights to a service from the service client, select one or more services from the table and click **Remove Selected**, then click **Confirm**.
+    - To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject and click **Add**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
--   To remove all access rights from the service client, click **Remove All** and then click **Confirm**.
-
--   Removing service level access rights from the service client also removes all REST API endpoint level access rights to the endpoints of the service. In other words, removing access rights from the service client removes all access rights to a service and its endpoints.
-
--   To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject (already granted services are displayed in gray) and click **Add Selected to ACL**. To add all services found by the search, click **Add All to ACL**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
-
-**Caution:** If you refresh the page, all service clients that do not have access rights to any services are removed from the service clients’ view.
+    - To remove a single access right to a service from the service client click **Remove** button on the corresponding row and click **Yes** in the confirmation dialog. 
+    
+    - To remove all access rights to a service from the service client click **Remove all** and click **Yes** in the confirmation dialog. 
+    
+    - Removing service level access rights from the service client also removes all REST API endpoint level access rights to the endpoints of the service. In other words, removing access rights from the service client removes all access rights to a service and its endpoints.
 
 
 ## 8 Local Access Right Groups
