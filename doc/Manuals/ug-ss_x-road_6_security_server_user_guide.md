@@ -762,15 +762,21 @@ To delete a client, follow these steps.
 ## 5 Security Tokens, Keys, and Certificates
 
 
-### 5.1 Availability States of Security Tokens, Keys, and Certificates
+### 5.1 Availability States of Security Tokens
 
-To display the availability of objects (that is, tokens, keys or certificates), the following background colors are used in the "Keys and Certificates" view.
+**Notice that the colors are a new feature introduced in the upcoming version 6.25.0**
 
--   **Yellow** background – the object is available to the security server, but the object's information has not been saved to the security server configuration. For example, a smartcard could be connected to the server, but the certificates on the smartcard may not have been imported to the server. Certificates on the yellow background cannot be used for mediating messages.
+To display the availability of tokens, the following colors and labels are used in the "Keys and Certificates" view.
 
--   **White** background – the object is available to the security server and the object's information has been saved to the security server's configuration. **Certificates on the white background can be used for mediating messages.**
+-   **Red** text and a label **Not saved** – the token is available to the security server, but it's information has not been saved to the security server configuration. For example, a smartcard could be connected to the server, but the certificates on the smartcard may not have been imported to the server. The user cannot interact with the token or it's content.
 
--   **Gray** background – the object is not available for the security server. Certificates on the gray background cannot be used for mediating messages.
+-   **Red** text and a label **Blocked** – the token is available to the security server and it's information has been saved to the security server's configuration but the token is unavailable. The user cannot interact with the token or it's content.
+
+-   **Gray** text and a label **Inactive** – the token is not available for the security server. The user cannot interact with the token or it's content.
+
+-   **Black** text and a **LOG IN** button – the token is logged out. The user must log in the token before interacting the content.
+
+-   **Black** text and a **LOG OUT** button – the token is logged in. The user can interact with the token and it's content.
 
 **Caution:** The key device's and key's information is automatically saved to the configuration when a certificate associated with either of them is imported to the security server, or when a certificate signing request is generated for the key. Similarly, the key device's and key's information is deleted from the security server configuration automatically upon the deletion of the last associated certificate and/or certificate signing request.
 
