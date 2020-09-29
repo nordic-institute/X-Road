@@ -115,7 +115,7 @@ Doc. ID: UG-SS
     - [4.5.1 Unregistering a Client](#451-unregistering-a-client)
     - [4.5.2 Deleting a Client](#452-deleting-a-client)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
-  - [5.1 Availability States of Security Tokens, Keys, and Certificates](#51-availability-states-of-security-tokens-keys-and-certificates)
+  - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
     - [5.2.1 Registration States of the Signing Certificate](#521-registration-states-of-the-signing-certificate)
     - [5.2.2 Registration States of the Authentication Certificate](#522-registration-states-of-the-authentication-certificate)
@@ -1220,9 +1220,9 @@ A local access rights group can be created for a security server client in order
 
 To create a local group for a security server client, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client and click the **Local Groups** icon on that row. In the window that opens, a list of the client's local groups is displayed.
+1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab. In the view that opens, a list of the client's local groups is displayed.
 
-2.  To create a new group, click **Add Group**. In the window that opens, enter the code and description for the new group and click **OK**.
+2.  To create a new group, click **Add Group**. In the view that opens, enter the code and description for the new group and click **Add**.
 
 
 ### 8.2 Displaying and Changing the Members of a Local Group
@@ -1231,17 +1231,17 @@ To create a local group for a security server client, follow these steps.
 
 To **view the members** of a local group, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client and click the **Local Groups** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab.
 
-2.  In the window that opens, select a group whose members you want to view or change, and click **Details** to open the detail view.
+2.  In the view that opens click the code of the group you wish to edit.
 
 To **add one or more members** to a local group, follow these steps in the group’s detail view.
 
 1.  Click **Add Members**.
 
-2.  In the window that opens, locate and select the subsystems that you wish to add to the group and click **Add Selected to Group**. To add all subsystems found by the search function to the group, click **Add All to Group**.
+2.  In the window that opens add optional filters to your members search and click **Search**. Select the subsystems that you wish to add to the group and click **Add Selected**.
 
-To **remove members** from a local group, select the members to be deleted in the group’s detail view and click **Remove Selected Members**. To remove all group members from the group, click **Remove All Members**.
+To **remove members** from a local group, click **Remove** on the corresponding row on group you wish to be deleted in the group’s detail view and then click **Yes** in the confirmation dialog. To remove all group members from the group, click **Remove All** and then click **Yes** in the confirmation dialog.
 
 
 ### 8.3 Changing the description of a Local Group
@@ -1250,13 +1250,11 @@ To **remove members** from a local group, select the members to be deleted in th
 
 To change the description of a local group, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Local Groups** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab.
 
-2.  Select a group from the local groups table and click **Details**.
+2.  In the view that opens click the code of the group you wish to edit.
 
-3.  In the group detail view, click **Edit** to change the description.
-
-4.  Enter the group description and click **OK**.
+3.  In the group´s detail view change the description. The description is saved when the input field loses focus. 
 
 
 ### 8.4 Deleting a Local Group
@@ -1267,11 +1265,11 @@ To change the description of a local group, follow these steps.
 
 To delete a local group, follow these steps.
 
-1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Local Groups** icon on that row.
+1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab.
 
-2.  Select a group from the local groups table and click **Details**.
+2.  In the view that opens click the code of the group you wish to delete.
 
-3.  In the group detail view, click **Delete Group** and confirm the deletion by clicking **Confirm** in the window that opens.
+3.  In the group detail view, click **Delete** and confirm the deletion by clicking **Yes** in the dialog that opens.
 
 
 ## 9 Communication with the Client Information Systems
