@@ -1,9 +1,11 @@
 dependencies {
-    compile project(':common-op-monitoring')
-    compile project(':proxy')
+    implementation project(':common-util')
+    implementation project(':serverconf')
+    implementation project(':common-op-monitoring')
+    implementation(project(path: ':proxy', configuration: 'shadow'))
 
-    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testCompile 'commons-cli:commons-cli:1.4'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation 'commons-cli:commons-cli:1.4'
 }
 
 task runOpMonitoringBufferMemoryUsage(type: JavaExec) {

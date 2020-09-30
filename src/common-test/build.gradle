@@ -1,10 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
 dependencies {
-    compile project(':common-verifier')
-    compile 'org.antlr:ST4:4.0.7'
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation 'org.antlr:ST4:4.0.7'
     // JUnit is needed for ExpectedCodedException
-    compile 'junit:junit:4.13'
-    compile 'com.google.code.gson:gson:2.8.6'
-    compile 'org.mockito:mockito-core:3.4.6'
+    implementation 'junit:junit:4.13'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    api 'org.mockito:mockito-core:3.4.6'
 }
 
 sourceSets {

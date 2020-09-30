@@ -2,8 +2,8 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 
 buildscript {
     ext {
-        openapiGeneratorVersion = '4.2.0'
-        nodePluginVersion = '1.3.1'
+        openapiGeneratorVersion = '4.2.1'
+        nodePluginVersion = '2.2.4'
         nodeVersion = '12.16.3'
         swaggerParserVersion = '2.0.21'
     }
@@ -11,20 +11,17 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        classpath "org.openapitools:openapi-generator-gradle-plugin:${openapiGeneratorVersion}"
-        classpath "com.moowork.gradle:gradle-node-plugin:${nodePluginVersion}"
-    }
-
 }
 
 plugins {
-    id "io.spring.dependency-management"
+    id 'io.spring.dependency-management'
     id 'org.springframework.boot'
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+    id 'org.openapi.generator' version "$openapiGeneratorVersion"
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR4")
+    set('springCloudVersion', "Hoxton.SR8")
 }
 
 sourceSets {
@@ -33,8 +30,6 @@ sourceSets {
     }
 }
 
-apply plugin: "com.moowork.node"
-apply plugin: 'org.openapi.generator'
 apply plugin: 'com.github.hierynomus.license'
 apply plugin: Oas3ValidatorGradlePlugin
 
@@ -68,7 +63,7 @@ task buildFront(type: NpmTask) {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
-    inputs.dir("frontend")
+    inputs.files fileTree("frontend/") { exclude("dist/") }
     outputs.dir("frontend/dist")
     args = ['run', 'build']
     execOverrides {
@@ -82,8 +77,8 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
-    inputs.dir("frontend")
-    outputs.dir("frontend/dist")
+    inputs.files("frontend/package.json", "frontend/audit-resolve.json")
+    outputs.upToDateWhen { true }
     args = ['run', 'check-audit']
     execOverrides {
         it.workingDir = 'frontend'
@@ -95,8 +90,8 @@ task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
-    inputs.dir("frontend")
-    outputs.dir("frontend/dist")
+    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
+    outputs.upToDateWhen { true }
     args = ['run', 'license-check']
     execOverrides {
         it.workingDir = 'frontend'
@@ -123,8 +118,8 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
         }
     }
 
-    inputs.dir("frontend")
-    outputs.dir("frontend")
+    inputs.files fileTree("frontend/") { exclude("dist/") }
+    outputs.dir("frontend/dist")
 
     args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl]
 
@@ -163,8 +158,8 @@ openApiGenerate {
 
 // Fix up to date check
 tasks.openApiGenerate {
-    inputs.files file(openApiGenerate.inputSpec)
-    outputs.files fileTree(openApiGenerate.outputDir)
+    inputs.files(openApiGenerate.inputSpec)
+    outputs.dir(openApiGenerate.outputDir)
 }
 
 compileJava.dependsOn tasks.openApiGenerate
@@ -187,13 +182,7 @@ licenseTest.dependsOn licenseTestJava
 
 jar {
     enabled = true
-    classifier = 'plainDependency'
-}
-
-configurations {
-    compile {
-        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
-    }
+    archiveClassifier = 'plainDependency'
 }
 
 apiValidationParameters.apiDefinitionPaths = [
@@ -201,9 +190,23 @@ apiValidationParameters.apiDefinitionPaths = [
     "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
 ]
 
+validateApiDefinitions {
+    inputs.files("src/main/resources/openapi-definition.yaml", "src/main/resources/openapi-authentication.yaml")
+    outputs.upToDateWhen { true }
+}
+
 tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
 
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
 dependencies {
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':signer-protocol')
     implementation project(':serverconf')
     implementation project(':common-ui')
 
@@ -217,7 +220,7 @@ dependencies {
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation 'io.swagger:swagger-annotations:1.6.2'
+    implementation('io.swagger:swagger-annotations:1.6.2')
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -230,15 +233,6 @@ dependencies {
     // /openapi-generator related
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-        dependencies {
-            dependency 'com.google.guava:guava:29.0-jre'
-        }
-    }
-}
-
 task copyDeps(type: Copy) {
     into "$buildDir/unpacked-libs"
     from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
@@ -247,6 +241,5 @@ task copyDeps(type: Copy) {
 build.dependsOn copyDeps
 
 test {
-    // Needed for the tests in DiagnosticsApiControllerTest class
-    systemProperty "user.timezone", "UTC"
+    maxHeapSize = "1g"
 }

@@ -1,6 +1,8 @@
 dependencies {
-    compile project(':signer')
+    implementation(project(':signer-protocol'))
+    implementation(project(':common-util'))
+    implementation(project(path: ':signer', configuration: 'shadow'))
 
     // Necessary since there are jars with no adequate Maven dependencies
-    compile fileTree(dir: '../libs', include: '*.jar')
+    implementation fileTree(dir: '../../libs', include: '*.jar')
 }
