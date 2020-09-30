@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.46
+Version: 2.48
 Doc. ID: UG-SS
 
 ---
@@ -79,6 +79,8 @@ Doc. ID: UG-SS
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
  30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
+ 29.09.2020 | 2.47    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
+ 30.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1988,11 +1990,9 @@ The most important system services of a security server are as follows.
  **Service**        | **Purpose**                                   | **Log**
 ------------------- | --------------------------------------------- | -----------------------------------------
  `xroad-confclient` | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-jetty `     | Application server running the user interface | `/var/log/xroad/jetty/`
  `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
  `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
  `xroad-proxy-ui-api`  | Management UI and REST API                 | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
- `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`
 
 System services are managed through the *systemd* facility.
 
