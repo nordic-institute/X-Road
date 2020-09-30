@@ -25,22 +25,17 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import lombok.Setter;
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 
 /**
  * Represents meta data information for a configuration part.
@@ -61,53 +56,39 @@ public class ConfigurationPartMetadata {
 
     private String instanceIdentifier;
 
-    @JsonSerialize(using = JodaDateSerializer.class)
-    @JsonDeserialize(using = JodaDateDeserializer.class)
-    private DateTime expirationDate;
+    private OffsetDateTime expirationDate;
 
     private String contentFileName;
 
     private String contentLocation;
 
+    private static final ObjectMapper MAPPER;
+
+    static {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        MAPPER = mapper;
+    }
+
     // ------------------------------------------------------------------------
 
     /**
      * @return the metadata as byte array
-     * @throws Exception if an error occurs while serializing the data
+     * @throws JsonProcessingException if an error occurs while serializing the data
      */
-    public byte[] toByteArray() throws Exception {
-        return new ObjectMapper().writeValueAsBytes(this);
+    public byte[] toByteArray() throws JsonProcessingException {
+        return MAPPER.writeValueAsBytes(this);
     }
 
     /**
      * Reads the meta data from input stream.
      * @param in the input stream
      * @return the meta data
-     * @throws Exception if an error occurs while deserializing the data
+     * @throws IOException if an error occurs while deserializing the data
      */
-    public static ConfigurationPartMetadata read(InputStream in)
-            throws Exception {
-        return new ObjectMapper().readValue(in,
-                ConfigurationPartMetadata.class);
-    }
-
-    static class JodaDateSerializer extends JsonSerializer<DateTime> {
-
-        @Override
-        public void serialize(DateTime value, JsonGenerator gen,
-                SerializerProvider serializerProvider) throws IOException {
-            gen.writeString(value.toString());
-        }
-    }
-
-    static class JodaDateDeserializer extends JsonDeserializer<DateTime> {
-
-        @Override
-        public DateTime deserialize(JsonParser parser,
-                DeserializationContext deserializationContext)
-                        throws IOException {
-            return ISODateTimeFormat.dateTimeParser().parseDateTime(
-                    parser.getText());
-        }
+    public static ConfigurationPartMetadata read(InputStream in) throws IOException {
+        return MAPPER.readValue(in, ConfigurationPartMetadata.class);
     }
 }

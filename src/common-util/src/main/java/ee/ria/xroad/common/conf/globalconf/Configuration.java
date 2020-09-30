@@ -29,8 +29,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.joda.time.DateTime;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -47,7 +48,7 @@ public class Configuration {
     private final List<ConfigurationFile> files = new ArrayList<>();
 
     @Setter(AccessLevel.PACKAGE)
-    private DateTime expirationDate;
+    private OffsetDateTime expirationDate;
 
     /**
      * For each file, calls a function taking the ConfigurationLocation
@@ -63,7 +64,6 @@ public class Configuration {
      * @return true, if the configuration is expired at the current date
      */
     public boolean isExpired() {
-        return expirationDate != null
-                && new DateTime().isAfter(expirationDate);
+        return expirationDate != null && Instant.now().isAfter(expirationDate.toInstant());
     }
 }

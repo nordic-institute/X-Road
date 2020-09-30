@@ -46,7 +46,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,6 +61,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -328,8 +328,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         assertTaskQueueSize(3);
 
-        DateTime atTime = new DateTime().minusMinutes(1);
-        logManager.setTimestampFailed(atTime);
+        logManager.setTimestampFailed(Instant.now().minusSeconds(60));
 
         startTimestamping();
         waitForMessageInTaskQueue();

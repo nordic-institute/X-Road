@@ -69,7 +69,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -273,10 +273,10 @@ public final class ProxyMain {
 
                 Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>)Await.result(
-                            Patterns.ask(
-                                    logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
-                            timeout.duration());
+                    Map<String, DiagnosticsStatus> statusFromLogManager =
+                            (Map<String, DiagnosticsStatus>)Await.result(
+                                    Patterns.ask(logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
+                                    timeout.duration());
 
                     log.info("statusFromLogManager {}", statusFromLogManager.toString());
 
@@ -370,17 +370,20 @@ public final class ProxyMain {
                 if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     log.warn("Timestamp check received HTTP error: {} - {}. Might still be ok", con.getResponseCode(),
                             con.getResponseMessage());
-                    statuses.put(tspUrl, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
-                            tspUrl));
+                    statuses.put(tspUrl,
+                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now(),
+                                    tspUrl));
                 } else {
-                    statuses.put(tspUrl, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
-                            tspUrl));
+                    statuses.put(tspUrl,
+                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now(),
+                                    tspUrl));
                 }
 
             } catch (Exception e) {
                 log.warn("Timestamp status check failed {}", e);
 
-                statuses.put(tspUrl, new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), LocalTime.now(), tspUrl));
+                statuses.put(tspUrl,
+                        new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), OffsetDateTime.now(), tspUrl));
             }
         }
         return statuses;

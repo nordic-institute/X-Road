@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

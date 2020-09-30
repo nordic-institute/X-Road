@@ -28,7 +28,7 @@ package ee.ria.xroad.common;
 import lombok.Value;
 
 import java.io.Serializable;
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 
 /**
  * Diagnostics status for single OCSP responder
@@ -37,6 +37,6 @@ import java.time.LocalTime;
 public class OcspResponderStatus implements Serializable {
     private int status;
     private String url;
-    private LocalTime prevUpdate;
-    private LocalTime nextUpdate;
+    private OffsetDateTime prevUpdate;
+    private OffsetDateTime nextUpdate;
 }

@@ -39,7 +39,6 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +46,9 @@ import org.junit.Test;
 import java.lang.reflect.Field;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -55,6 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
 /**
  * Tests the OCSP verifier.
  */
@@ -78,7 +80,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void errorCertMismatch() throws Exception {
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
@@ -147,7 +149,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void errorThisUpdateAfterNow() throws Exception {
-        Date thisUpdate = new DateTime().plus(12345L).toDate();
+        Date thisUpdate = Date.from(Instant.now().plusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, new Date());
@@ -164,7 +166,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void errorNextUpdateBeforeNow() throws Exception {
-        Date nextUpdate = new DateTime().minus(12345L).toDate();
+        Date nextUpdate = Date.from(Instant.now().minusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
@@ -182,7 +184,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void nextUpdateBeforeNow() throws Exception {
-        Date nextUpdate = new DateTime().minus(12345L).toDate();
+        Date nextUpdate = Date.from(Instant.now().minusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
@@ -197,7 +199,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void certStatusGood() throws Exception {
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, null);
@@ -213,7 +215,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void certStatusRevoked() throws Exception {
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey,
                 new RevokedStatus(new Date(), CRLReason.unspecified),
@@ -231,7 +233,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void certStatusUnknown() throws Exception {
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, new UnknownStatus(),
                 thisUpdate, null);
@@ -244,17 +246,17 @@ public class OcspVerifierTest {
 
     @Test
     public void responseValidityCache() throws Exception {
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
-                    signer, signerKey, CertificateStatus.GOOD,
-                    thisUpdate, null);
+                signer, signerKey, CertificateStatus.GOOD,
+                thisUpdate, null);
 
         OcspVerifier verifier =
-                    new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
         verifier.verifyValidity(ocsp, subject, issuer);
         Field field = OcspVerifier.class.getDeclaredField("RESPONSE_VALIDITY_CACHE");
         field.setAccessible(true);
-        Cache<String, SingleResp> cache = (Cache<String, SingleResp>) field.get(verifier);
+        Cache<String, SingleResp> cache = (Cache<String, SingleResp>)field.get(verifier);
         assertTrue("Cache should be filled", cache != null && cache.size() > 0);
 
     }
@@ -264,7 +266,7 @@ public class OcspVerifierTest {
      * @throws Exception if an error occurs
      */
     @Before
-    public void loadCerts() throws Exception {
+    public void loadCerts() {
         GlobalConf.reload(new TestGlobalConf());
 
         if (issuer == null) {
@@ -285,12 +287,11 @@ public class OcspVerifierTest {
     private class TestGlobalConf extends EmptyGlobalConf {
         @Override
         public List<X509Certificate> getOcspResponderCertificates() {
-            return Arrays.asList(signer);
+            return Collections.singletonList(signer);
         }
 
         @Override
-        public X509Certificate getCaCert(String instanceIdentifier,
-                                         X509Certificate orgCert) {
+        public X509Certificate getCaCert(String instanceIdentifier, X509Certificate orgCert) {
             return TestCertUtil.getCaCert();
         }
     }

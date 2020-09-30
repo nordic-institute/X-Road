@@ -95,13 +95,14 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
   - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-- [Annex B Deployment Options](#annex-b-deployment-options)
-  - [B.1 General](#b1-general)
-  - [B.2 Local Database](#b2-local-database)
-  - [B.3 Remote Database](#b3-remote-database)
-  - [B.4 High Availability Setup](#b4-high-availability-setup)
-  - [B.5 Load Balancing Setup](#b5-load-balancing-setup)
-  - [B.6 Summary](#b6-summary)
+- [Annex B Database Users](#annex-b-database-users)
+- [Annex C Deployment Options](#annex-c-deployment-options)
+  - [C.1 General](#c1-general)
+  - [C.2 Local Database](#c2-local-database)
+  - [C.3 Remote Database](#c3-remote-database)
+  - [C.4 High Availability Setup](#c4-high-availability-setup)
+  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  - [C.6 Summary](#c6-summary)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -139,7 +140,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Prerequisites to Installation
 
-There are multiple alternatives how the security server can be deployed. The options are described in [Annex B Deployment Options](#annex-b-deployment-options).
+There are multiple alternatives how the security server can be deployed. The options are described in [Annex C Deployment Options](#annex-c-deployment-options).
 
 The security server runs on the following platforms:
 
@@ -247,7 +248,7 @@ Requirements to software and settings:
 
 ### 2.5 Prepare for Installation
 
-The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
+The database users required by security server are listed in [Annex B Database Users](#annex-b-database-users). The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
 
 
 #### 2.5.1 Customize the Database Properties
@@ -255,6 +256,7 @@ The database properties created by the default installation can be found at [Ann
 **This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
   ```
+  sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
   sudo mkdir /etc/xroad
   sudo chown xroad:xroad /etc/xroad
   sudo chmod 751 /etc/xroad
@@ -263,23 +265,21 @@ The database properties created by the default installation can be found at [Ann
   sudo chmod 640 /etc/xroad/db.properties
   ```
 
-Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
+Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply. The database names can be changed by modifying the `<database>.hibernate.connection.url` property e.g. `serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/custom`.
 
   ```
-  serverconf.hibernate.jdbc.use_streams_for_binary = true
-  serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-  serverconf.hibernate.connection.driver_class = org.postgresql.Driver
   serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
+  serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
   serverconf.hibernate.connection.username = <serverconf username>
   serverconf.hibernate.connection.password = <serverconf password>
-  messagelog.hibernate.jdbc.use_streams_for_binary = true
-  messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-  messagelog.hibernate.connection.driver_class = org.postgresql.Driver
-  messagelog.hibernate.jdbc.batch_size = 50
   messagelog.hibernate.connection.url = jdbc:postgresql://<host:port>/messagelog
+  messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
   messagelog.hibernate.connection.username = <messagelog username>
   messagelog.hibernate.connection.password = <messagelog password>
-  serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+  op-monitor.hibernate.connection.url = jdbc:postgresql://<host:port>/op-monitor
+  op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
+  op-monitor.hibernate.connection.username = <opmonitor username>
+  op-monitor.hibernate.connection.password = <opmonitor password>
   ```
 
 
@@ -302,6 +302,17 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 * If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
 * One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+**This is an optional step.** If you want to customize the names and/or passwords of the database admin users created by the installer, follow these steps. By default the installer generates these users with format `<database-name>_admin` and autogenerates the password. Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
+
+  ```
+  serverconf.database.admin_user = <serverconf-admin-username>
+  serverconf.database.admin_password = <serverconf-admin-password>
+  op-monitor.database.admin_user = <op-monitor-admin-username>
+  op-monitor.database.admin_password = <op-monitor-admin-password>
+  messagelog.database.admin_user = <messagelog-admin-username>
+  messagelog.database.admin_password = <messagelog-admin-password>
+  ```
 
 
 ### 2.7 Setup Package Repository
@@ -592,35 +603,53 @@ serverconf.hibernate.jdbc.use_streams_for_binary = true
 serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
 serverconf.hibernate.connection.driver_class = org.postgresql.Driver
 serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
-serverconf.hibernate.connection.username = serverconf
-serverconf.hibernate.connection.password = <randomly generated password stored is stored here>
-messagelog.hibernate.jdbc.use_streams_for_binary = true
-messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-messagelog.hibernate.connection.driver_class = org.postgresql.Driver
-messagelog.hibernate.jdbc.batch_size = 50
-messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
-messagelog.hibernate.connection.username = messagelog
-messagelog.hibernate.connection.password = <randomly generated password stored is stored here>
 serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+serverconf.hibernate.connection.username = serverconf
+serverconf.hibernate.connection.password = <randomly generated password>
+messagelog.hibernate.jdbc.use_streams_for_binary = true
+messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
+messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
+messagelog.hibernate.connection.username = messagelog
+messagelog.hibernate.connection.password = <randomly generated password>
+op-monitor.hibernate.jdbc.use_streams_for_binary = true
+op-monitor.hibernate.connection.driver_class = org.postgresql.Driver
+op-monitor.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/op-monitor
+op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
+op-monitor.hibernate.connection.username = opmonitor
+op-monitor.hibernate.connection.password = <randomly generated password>
 ```
 
 
-## Annex B Deployment Options
+## Annex B Database Users
+
+| User             | Database   | Privileges               | Description                                                                              |
+| ---------------- | ---------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| serverconf       | serverconf | TEMPORARY,CONNECT        | The database user used to read/write the serverconf database during application runtime. |
+| serverconf_admin | serverconf | CREATE,TEMPORARY,CONNECT | The database user used to create/update the serverconf schema.                           |
+| messagelog       | messagelog | TEMPORARY,CONNECT        | The database user used to read/write the messagelog database during application runtime. |
+| messagelog_admin | messagelog | CREATE,TEMPORARY,CONNECT | The database user used to create/update the messagelog schema.                           |
+| opmonitor        | op-monitor | TEMPORARY,CONNECT        | The database user used to read/write the op-monitor database during application runtime. |
+| opmonitor_admin  | op-monitor | CREATE,TEMPORARY,CONNECT | The database user used to create/update the op-monitor schema.                           |
+| postgres         | ALL        | ALL                      | PostgreSQL database default superuser.                                                   |
 
 
-### B.1 General
+## Annex C Deployment Options
+
+
+### C.1 General
 
 X-Road security server has multiple deployment options. The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
 
 
-### B.2 Local Database
+### C.2 Local Database
 
 The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security server with local database](img/ig-ss_local_db.svg)
 
 
-### B.3 Remote Database
+### C.3 Remote Database
 
 It is possible to use a remote database with security server. This option is sometimes used in development and testing when there's need to externalize the database state.
 
@@ -629,21 +658,21 @@ Security server supports a variety of cloud databases including AWS RDS and Azur
 ![Security server with remote database](img/ig-ss_remote_db.svg)
 
 
-### B.4 High Availability Setup
+### C.4 High Availability Setup
 
 In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security server high-availability setup](img/ig-ss_high_availability.svg)
 
 
-### B.5 Load Balancing Setup
+### C.5 Load Balancing Setup
 
 Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
 ![Security server load balancing setup](img/ig-ss_load_balancing.svg)
 
 
-### B.6 Summary
+### C.6 Summary
 
 The following table lists a summary of the security server deployment options and indicates whether they are aimed for development or production use.
 

@@ -1,3 +1,7 @@
+dependencies {
+    compile 'commons-configuration:commons-configuration:1.10'
+}
+
 task checkRubySource(type: Exec) {
     inputs.files fileTree('app') + fileTree('lib')
     outputs.files file('build/rubocop-result.json')

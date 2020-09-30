@@ -28,8 +28,8 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.JsonUtils;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -89,7 +89,7 @@ public class DiagnosticService {
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
             JsonObject json = sendGetRequest(diagnosticsGlobalconfUrl);
-            return new Gson().fromJson(json, DiagnosticsStatus.class);
+            return JsonUtils.getSerializer().fromJson(json, DiagnosticsStatus.class);
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -140,7 +140,7 @@ public class DiagnosticService {
                 .setSocketTimeout(HTTP_CLIENT_TIMEOUT_MS).build();
 
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
-                CloseableHttpResponse response = httpClient.execute(request)) {
+             CloseableHttpResponse response = httpClient.execute(request)) {
             HttpEntity resEntity = response.getEntity();
             if (response.getStatusLine().getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
                     || resEntity == null) {
@@ -161,7 +161,8 @@ public class DiagnosticService {
      * @return
      */
     private DiagnosticsStatus parseTimestampingStatus(Map.Entry<String, JsonElement> entry) {
-        DiagnosticsStatus diagnosticsStatus = new Gson().fromJson(entry.getValue(), DiagnosticsStatus.class);
+        DiagnosticsStatus diagnosticsStatus =
+                JsonUtils.getSerializer().fromJson(entry.getValue(), DiagnosticsStatus.class);
         diagnosticsStatus.setDescription(entry.getKey());
         return diagnosticsStatus;
     }
@@ -189,7 +190,7 @@ public class DiagnosticService {
     private DiagnosticsStatus parseOcspResponderStatus(Map.Entry<String, JsonElement> entry) {
         JsonObject json = entry.getValue().getAsJsonObject();
         // Parse "prevUpdate" and "nextUpdate" properties
-        DiagnosticsStatus temp = new Gson().fromJson(json, DiagnosticsStatus.class);
+        DiagnosticsStatus temp = JsonUtils.getSerializer().fromJson(json, DiagnosticsStatus.class);
         // Create a new update using parsed values and return it as a result
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(json.get("status").getAsInt(),
                 temp.getPrevUpdate(), temp.getNextUpdate());
