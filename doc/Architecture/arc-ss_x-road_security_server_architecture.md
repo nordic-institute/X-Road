@@ -208,7 +208,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 
 <a id="Ref_Security_server_component_diagram" class="anchor"></a>
-![](img/arc-ss_security_server_component_diagram.png)
+![](img/arc-ss_security_server_component_diagram.svg)
 
 Figure 1. Security server component diagram
 
@@ -273,10 +273,10 @@ The security server configuration is held in a PostgreSQL\[[1](#Ref_1)\] databas
 
 The security server user interface allows a user to manage the security server configuration. 
 
-The user interface is a single page web application that makes requests to the management REST APIs to read and modify configuration.
+The user interface is a single page web application that makes requests to the management REST API to read and modify configuration.
 
 The user interface fetches it's resources (images, stylesheets, javascript files) from the web application which
-hosts the management REST APIs.
+hosts the management REST API.
 
 ### 2.9 Management REST API
 
