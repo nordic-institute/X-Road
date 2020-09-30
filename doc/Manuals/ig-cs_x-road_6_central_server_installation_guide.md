@@ -206,7 +206,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 When using a remote database server with the central server, you should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
-To use a remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. If storing the database administrator password on the security server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
+To use a remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. If storing the database administrator password on the central server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
 
   ```
   sudo touch /etc/xroad.properties
@@ -554,7 +554,7 @@ Run the following commands to create the necessary database structures and roles
   create database <database name> encoding 'UTF8';
   REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
   CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
-  GRANT <database user> to postgres;
+  GRANT <database user> to <superuser>;
   GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
   \c <database name>
   CREATE EXTENSION hstore;
