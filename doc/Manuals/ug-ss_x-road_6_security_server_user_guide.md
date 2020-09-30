@@ -1657,7 +1657,7 @@ An audit log record also contains
 
 For example, registering a new client in the security server produces the following log record:
 
-  `2020-06-03T11:00:51+00:00 my-security-server-host correlation-id: [24b47d04dc6e1c49] INFO  [X-Road Proxy Admin REST API] 2020-06-03T11:00:51.944Z - {"event":"Register client","user":"admin1","auth":"Session","url":"/api/clients/LXD:GOV:M1:audit-test/register","data":{"clientIdentifier":{"xRoadInstance":"LXD","memberClass":"GOV","memberCode":"M1","subsystemCode":"audit-test","clientStatus":"registration in progress"}}}`
+  `2020-06-03T11:00:51+00:00 my-security-server-host correlation-id: [24b47d04dc6e1c49] INFO  [X-Road Proxy Admin REST API] 2020-06-03T11:00:51.944Z - {"event":"Register client","user":"admin1","auth":"Session","url":"/api/v1/clients/LXD:GOV:M1:audit-test/register","data":{"clientIdentifier":{"xRoadInstance":"LXD","memberClass":"GOV","memberCode":"M1","subsystemCode":"audit-test","clientStatus":"registration in progress"}}}`
 
 The event is present in JSON \[[JSON](#Ref_JSON)\] format, in order to ensure machine processability.
 The field event represents the description of the event, the field user represents the user name of the performer, and the field data represents data related with the event.
@@ -1665,7 +1665,7 @@ Field auth represents the authentication type, and url represents the API url.
 The failed action event record contains additional fields reason for the error message, and boolean warning to document whether failure was due to an unhandled warning.
 For example:
 
-  `2020-06-03T10:57:46+00:00 my-security-server-host correlation-id: [49458d51a0bbe9ed] INFO  [X-Road Proxy Admin REST API] 2020-06-03T10:57:46.417Z - {"event":"Log in to token failed","user":"admin1","reason":"org.niis.xroad.restapi.service.TokenService$PinIncorrectException: Signer.PinIncorrect: PIN incorrect","warning":false,"auth":"Session","url":"/api/tokens/0/login","data":{"tokenId":"0","tokenSerialNumber":null,"tokenFriendlyName":"softToken-0"}}`
+  `2020-06-03T10:57:46+00:00 my-security-server-host correlation-id: [49458d51a0bbe9ed] INFO  [X-Road Proxy Admin REST API] 2020-06-03T10:57:46.417Z - {"event":"Log in to token failed","user":"admin1","reason":"org.niis.xroad.restapi.service.TokenService$PinIncorrectException: Signer.PinIncorrect: PIN incorrect","warning":false,"auth":"Session","url":"/api/v1/tokens/0/login","data":{"tokenId":"0","tokenSerialNumber":null,"tokenFriendlyName":"softToken-0"}}`
 
 By default, audit log is located in the file
 
@@ -2126,12 +2126,12 @@ be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 #### 19.1.1 Creating new API keys
 
-A new API key is created with a `POST` request to `/api/api-keys`. Message body must contain the roles to be
+A new API key is created with a `POST` request to `/api/v1/api-keys`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the actual API key. After this point the key
 cannot be retrieved, as it is not stored in plaintext.
 
 ```
-curl -X POST -u <user>:<password> https://localhost:4000/api/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+curl -X POST -u <user>:<password> https://localhost:4000/api/v1/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
@@ -2147,10 +2147,10 @@ In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
 
 #### 19.1.2 Listing API keys
 
-Existing API keys can be listed with a `GET` request to `/api/api-keys`. This lists all keys, regardless of who has created them.
+Existing API keys can be listed with a `GET` request to `/api/v1/api-keys`. This lists all keys, regardless of who has created them.
 
 ```
-curl -X GET -u <user>:<password> https://localhost:4000/api/api-keys -k
+curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
 [
   {
     "id": 59,
@@ -2168,11 +2168,11 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/api-keys -k
 
 #### 19.1.3 Updating API keys
 
-An existing API key is updated with a `PUT` request to `/api/api-key/{id}`. Message body must contain the roles to be
+An existing API key is updated with a `PUT` request to `/api/v1/api-key/{id}`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the key id and roles associated with the key.
 
 ```
-curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-key/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "id": 60,
   "roles": [
@@ -2185,11 +2185,11 @@ curl -X PUT -u <user>:<password> https://localhost:4000/api/api-key/60 --data '[
 
 #### 19.1.4 Revoking API keys
 
-An API key can be revoked with a `DELETE` request to `/api/api-keys/{id}`. Server responds with `HTTP 200` if
+An API key can be revoked with a `DELETE` request to `/api/v1/api-keys/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
 
 ```
-curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-keys/60  -k
+curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -k
 
 ```
 
@@ -2215,7 +2215,7 @@ Once a valid API key has been created, it is used by providing an `Authorization
 header in the REST calls. For example
 
 ```
-curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/clients" -k
+curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/v1/clients" -k
 [
   {
     "id": "XRD2:GOV:999:foobar",
