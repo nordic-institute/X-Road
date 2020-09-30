@@ -208,7 +208,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 
 <a id="Ref_Security_server_component_diagram" class="anchor"></a>
-![](img/arc-ss_security_server_component_diagram.svg)
+![](img/arc-ss_security_server_component_diagram.svg?2)
 
 Figure 1. Security server component diagram
 
