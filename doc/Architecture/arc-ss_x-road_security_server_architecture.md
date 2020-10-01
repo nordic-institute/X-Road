@@ -241,7 +241,7 @@ The component is a proxy addon.
 
 ### 2.4 Operational Monitoring Services
 
-Provides methods that can be used by X-Road participants to get operational monitoring information of the security server as a SOAP XML responses.
+Provides methods that can be used by X-Road participants to get operational monitoring information of the security server as SOAP XML responses.
 
 The component is a proxy addon.
 
