@@ -241,7 +241,8 @@ The component is a proxy addon.
 
 ### 2.4 Operational Monitoring Services
 
-Provides methods that can be used by X-Road participants to get operational monitoring information of the security server as SOAP XML responses.
+Provides methods that can be used by X-Road participants to get operational monitoring information of the security server.
+It requests the data from the local opmonitor service via an SOAP XML request and mediates the SOAP XML response to the caller.
 
 The component is a proxy addon.
 
@@ -249,7 +250,7 @@ The component is a proxy addon.
 ### 2.5 Opmonitor
 
 Opmonitor component collects operational monitoring information such as which services have been called, how many times, what was the size of the response, etc. 
-The monitoring data is published via an (optional) JMX interface.
+The monitoring data is published via SOAP XML and (optional) JMX interfaces.
 
 The component is a separate daemon process.
 
