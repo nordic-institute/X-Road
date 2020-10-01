@@ -287,7 +287,10 @@ export default Vue.extend({
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
 
       // Needs to be done here, because the watcher runs before the setter
-      validate(this.memberCode, 'required|xrdIdentifier').then((result) => {
+      validate(this.memberCode, 'required|xrdIdentifier', {
+        // name is not used, but if it's undefined there is a warning in browser console
+        name: 'addClient.memberCode',
+      }).then((result) => {
         if (result.valid) {
           this.isMemberCodeValid = true;
 
