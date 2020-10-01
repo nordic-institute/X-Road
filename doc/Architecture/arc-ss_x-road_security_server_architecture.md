@@ -50,7 +50,7 @@ Doc. ID: ARC-SS
   - [2.2 Message Log](#22-message-log)
   - [2.3 Metadata Services](#23-metadata-services)
   - [2.4 Operational Monitoring Services](#24-operational-monitoring-services)
-  - [2.5 Operational Monitoring Buffer](#25-operational-monitoring-buffer)
+  - [2.5 Opmonitor](#25-opmonitor)
   - [2.6 Signer](#26-signer)
   - [2.7 Database](#27-database)
   - [2.8 User Interface Frontend](#28-user-interface-frontend)
@@ -67,42 +67,42 @@ Doc. ID: ARC-SS
     - [3.1.3 Messaging](#313-messaging)
     - [3.1.4 Input/output ports](#314-inputoutput-ports)
     - [3.1.5 Persistent data](#315-persistent-data)
-  - [3.2 xroad-signer](#33-xroad-signer)
-    - [3.2.1 Role and responsibilities](#331-role-and-responsibilities)
-    - [3.2.2 Encapsulated data](#332-encapsulated-data)
-    - [3.2.3 Messaging](#333-messaging)
-    - [3.2.4 Input/output ports](#334-inputoutput-ports)
-    - [3.2.5 Persistent data](#335-persistent-data)
-  - [3.3 xroad-confclient](#34-xroad-confclient)
-    - [3.3.1 Role and responsibilities](#341-role-and-responsibilities)
-    - [3.3.2 Encapsulated data](#342-encapsulated-data)
-    - [3.3.3 Messaging](#343-messaging)
-    - [3.3.4 Input/output ports](#344-inputoutput-ports)
-    - [3.3.5 Persistent data](#345-persistent-data)
-  - [3.4 xroad-proxy](#35-xroad-proxy)
-    - [3.4.1 Role and responsibilities](#351-role-and-responsibilities)
-    - [3.4.2 Encapsulated data](#352-encapsulated-data)
-    - [3.4.3 Messaging](#353-messaging)
-    - [3.4.4 Input/output ports](#354-inputoutput-ports)
-    - [3.4.5 Persistent data](#355-persistent-data)
-  - [3.5 postgresql](#36-postgresql)
-    - [3.5.1 Role and responsibilities](#361-role-and-responsibilities)
-    - [3.5.2 Encapsulated data](#362-encapsulated-data)
-    - [3.5.3 Messaging](#363-messaging)
-    - [3.5.4 Input/output ports](#364-inputoutput-ports)
-    - [3.5.5 Persistent data](#365-persistent-data)
-  - [3.6 xroad-monitor](#37-xroad-monitor)
-    - [3.6.1 Role and responsibilities](#371-role-and-responsibilities)
-    - [3.6.2 Encapsulated data](#372-encapsulated-data)
-    - [3.6.3 Messaging](#373-messaging)
-    - [3.6.4 Input/output ports](#374-inputoutput-ports)
-    - [3.6.5 Persistent data](#375-persistent-data)
-  - [3.7 xroad-opmonitor](#38-xroad-opmonitor)
-    - [3.7.1 Role and responsibilities](#381-role-and-responsibilities)
-    - [3.7.2 Encapsulated data](#382-encapsulated-data)
-    - [3.7.3 Messaging](#383-messaging)
-    - [3.7.4 Input/output ports](#384-inputoutput-ports)
-    - [3.7.5 Persistent data](#385-persistent-data)
+  - [3.2 xroad-signer](#32-xroad-signer)
+    - [3.2.1 Role and responsibilities](#321-role-and-responsibilities)
+    - [3.2.2 Encapsulated data](#322-encapsulated-data)
+    - [3.2.3 Messaging](#323-messaging)
+    - [3.2.4 Input/output ports](#324-inputoutput-ports)
+    - [3.2.5 Persistent data](#325-persistent-data)
+  - [3.3 xroad-confclient](#33-xroad-confclient)
+    - [3.3.1 Role and responsibilities](#331-role-and-responsibilities)
+    - [3.3.2 Encapsulated data](#332-encapsulated-data)
+    - [3.3.3 Messaging](#333-messaging)
+    - [3.3.4 Input/output ports](#334-inputoutput-ports)
+    - [3.3.5 Persistent data](#335-persistent-data)
+  - [3.4 xroad-proxy](#34-xroad-proxy)
+    - [3.4.1 Role and responsibilities](#341-role-and-responsibilities)
+    - [3.4.2 Encapsulated data](#342-encapsulated-data)
+    - [3.4.3 Messaging](#343-messaging)
+    - [3.4.4 Input/output ports](#344-inputoutput-ports)
+    - [3.4.5 Persistent data](#345-persistent-data)
+  - [3.5 postgresql](#35-postgresql)
+    - [3.5.1 Role and responsibilities](#351-role-and-responsibilities)
+    - [3.5.2 Encapsulated data](#352-encapsulated-data)
+    - [3.5.3 Messaging](#353-messaging)
+    - [3.5.4 Input/output ports](#354-inputoutput-ports)
+    - [3.5.5 Persistent data](#355-persistent-data)
+  - [3.6 xroad-monitor](#36-xroad-monitor)
+    - [3.6.1 Role and responsibilities](#361-role-and-responsibilities)
+    - [3.6.2 Encapsulated data](#362-encapsulated-data)
+    - [3.6.3 Messaging](#363-messaging)
+    - [3.6.4 Input/output ports](#364-inputoutput-ports)
+    - [3.6.5 Persistent data](#365-persistent-data)
+  - [3.7 xroad-opmonitor](#37-xroad-opmonitor)
+    - [3.7.1 Role and responsibilities](#371-role-and-responsibilities)
+    - [3.7.2 Encapsulated data](#372-encapsulated-data)
+    - [3.7.3 Messaging](#373-messaging)
+    - [3.7.4 Input/output ports](#374-inputoutput-ports)
+    - [3.7.5 Persistent data](#375-persistent-data)
 - [4 Interfaces](#4-interfaces)
   - [4.1 Management Services](#41-management-services)
   - [4.2 Download Configuration](#42-download-configuration)
@@ -246,12 +246,12 @@ Provides methods that can be used by X-Road participants to get operational moni
 The component is a proxy addon.
 
 
-### 2.5 Operational Monitoring Buffer
+### 2.5 Opmonitor
 
-The operational monitoring buffer is an in memory circular buffer that mediates operational monitoring data of the proxy to the operational monitoring daemon.
+Opmonitor component collects operational monitoring information such as which services have been called, how many times, what was the size of the response, etc. 
+The monitoring data is published via SOAP and (optional) JMX interfaces.
 
-The component is a proxy addon.
-
+The component is a separate daemon process.
 
 ### 2.6 Signer
 
@@ -322,10 +322,11 @@ Provides method that can be used by X-Road participants to get environmental dat
 
 The component is a proxy addon.
 
-
 ### 2.14 Monitor
 
-Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via Akka and JMX interfaces.
+Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via Akka and (optional) JMX interfaces.
+
+The component is a separate daemon process.
 
 ## 3 Process View
 
