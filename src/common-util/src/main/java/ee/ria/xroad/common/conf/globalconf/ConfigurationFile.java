@@ -29,10 +29,10 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.Data;
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
-import org.joda.time.DateTime;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,13 +50,13 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     private final ContentIdentifier contentIdentifier;
 
     @Getter
-    private final DateTime expirationDate;
+    private final OffsetDateTime expirationDate;
 
     @Getter
     private final String hash;
 
     private ConfigurationFile(Map<String, String> parameters,
-            ContentIdentifier contentIdentifier, DateTime expirationDate,
+            ContentIdentifier contentIdentifier, OffsetDateTime expirationDate,
             String hash) {
         super(parameters);
 
@@ -102,7 +102,7 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     }
 
     static ConfigurationFile of(Map<String, String> headers,
-            DateTime expirationDate, String hash) {
+            OffsetDateTime expirationDate, String hash) {
         if (headers == null) {
             throw new IllegalArgumentException("headers must not be null");
         }

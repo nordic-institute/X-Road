@@ -30,7 +30,9 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
-import org.joda.time.DateTime;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
@@ -67,7 +69,8 @@ public class LogCleaner extends UntypedAbstractActor {
 
     protected long handleClean() throws Exception {
 
-        final Long time = new DateTime().minusDays(MessageLogProperties.getKeepRecordsForDays()).getMillis();
+        final Long time =
+                Instant.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {

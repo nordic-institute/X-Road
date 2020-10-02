@@ -3,7 +3,7 @@ dependencies {
     compile 'org.antlr:ST4:4.0.7'
     // JUnit is needed for ExpectedCodedException
     compile 'junit:junit:4.13'
-    compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.google.code.gson:gson:2.8.6'
     compile 'org.mockito:mockito-core:3.4.6'
 }
 

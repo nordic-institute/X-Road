@@ -29,17 +29,14 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
-import org.joda.time.DateTimeUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspStatus;
-import org.niis.xroad.restapi.util.TestUtils;
 
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,31 +49,19 @@ public class OcspResponderDiagnosticConverterTest {
     private OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
     private static final String CA_NAME_1 = "CN=Xroad Test CA CN, OU=Xroad Test CA OU, O=Xroad Test, C=FI";
     private static final String CA_NAME_2 = "CN=Xroad Test, C=EE";
-    private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
     private static final String URL_1 = "https://ocsp1.example.com";
-    private static final String PREVIOUS_UPDATE_STR_1 = "2020-03-16T10:15:40.703";
-    private static final LocalTime PREVIOUS_UPDATE_1 = LocalTime.of(10, 15, 40, 703000000);
-    private static final String NEXT_UPDATE_STR_1 = "2020-03-16T10:16:40.703";
-    private static final LocalTime NEXT_UPDATE_1 = LocalTime.of(10, 16, 40, 703000000);
+    private static final OffsetDateTime PREVIOUS_UPDATE_1 = OffsetDateTime.parse("2020-03-16T10:16:40.703Z");
+    private static final OffsetDateTime NEXT_UPDATE_1 = OffsetDateTime.parse("2020-03-16T10:35:42.123Z");
     private static final String URL_2 = "https://ocsp2.example.com";
-    private static final String NEXT_UPDATE_STR_2 = "2020-03-16T10:35:42.123";
-    private static final LocalTime NEXT_UPDATE_2 = LocalTime.of(10, 35, 42, 123000000);
+    private static final OffsetDateTime NEXT_UPDATE_2 = OffsetDateTime.parse("2020-03-16T10:35:42.123Z");
 
     @Before
     public void setup() {
         ocspResponderDiagnosticConverter = new OcspResponderDiagnosticConverter();
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
-    }
-
-    @After
-    public final void tearDown() {
-        DateTimeUtils.setCurrentMillisSystem();
     }
 
     @Test
     public void convertSingleCertificateAuthorityDiagnostics() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
-
         OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(CA_NAME_1);
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE_1, NEXT_UPDATE_1);
@@ -90,17 +75,13 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(CA_NAME_1, caDiagnostics.getDistinguishedName());
         assertEquals(OcspStatus.SUCCESS, caDiagnostics.getOcspResponders().get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, caDiagnostics.getOcspResponders().get(0).getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
-                (Long)caDiagnostics.getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR_1),
-                (Long)caDiagnostics.getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(PREVIOUS_UPDATE_1, caDiagnostics.getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_1, caDiagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_1, caDiagnostics.getOcspResponders().get(0).getUrl());
     }
 
     @Test
     public void convertMultipleCertificateAuthorityDiagnostics() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
-
         OcspResponderDiagnosticsStatus status1 = new OcspResponderDiagnosticsStatus(CA_NAME_1);
         DiagnosticsStatus diagnosticsStatus1 = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, PREVIOUS_UPDATE_1, NEXT_UPDATE_1);
@@ -128,10 +109,8 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, diagnostics.get(0).getOcspResponders().get(0)
                 .getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, diagnostics.get(0).getOcspResponders().get(0).getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
-                (Long)diagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR_1),
-                (Long)diagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(PREVIOUS_UPDATE_1, diagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_1, diagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_1, diagnostics.get(0).getOcspResponders().get(0).getUrl());
 
         assertEquals(CA_NAME_2, diagnostics.get(1).getDistinguishedName());
@@ -140,17 +119,14 @@ public class OcspResponderDiagnosticConverterTest {
                 .getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, diagnostics.get(1).getOcspResponders().get(0).getStatusClass());
         assertEquals(null, diagnostics.get(1).getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR_2),
-                (Long)diagnostics.get(1).getOcspResponders().get(0).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(NEXT_UPDATE_2, diagnostics.get(1).getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_2, diagnostics.get(1).getOcspResponders().get(0).getUrl());
 
         assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, diagnostics.get(1).getOcspResponders()
                 .get(1).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, diagnostics.get(1).getOcspResponders().get(1).getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
-                (Long)diagnostics.get(1).getOcspResponders().get(1).getPrevUpdateAt().toInstant().toEpochMilli());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(NEXT_UPDATE_STR_1),
-                (Long)diagnostics.get(1).getOcspResponders().get(1).getNextUpdateAt().toInstant().toEpochMilli());
+        assertEquals(PREVIOUS_UPDATE_1, diagnostics.get(1).getOcspResponders().get(1).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_1, diagnostics.get(1).getOcspResponders().get(1).getNextUpdateAt());
         assertEquals(URL_1, diagnostics.get(1).getOcspResponders().get(1).getUrl());
     }
 }

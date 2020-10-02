@@ -43,7 +43,6 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
-import org.joda.time.DateTime;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -55,6 +54,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -124,8 +125,7 @@ public final class BatchSignerIntegrationTest {
         }
 
         latch = new CountDownLatch(messages.size());
-
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         final OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subjectCert, issuerCert, signerCert, signerKey,
                 CertificateStatus.GOOD, thisUpdate, null);
 

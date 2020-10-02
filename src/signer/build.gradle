@@ -32,8 +32,6 @@ dependencies {
     testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
 
     testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
-    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
-    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -54,6 +52,7 @@ jar {
 
 shadowJar {
     classifier = ''
+    exclude('**/module-info.class')
     append('reference.conf')
     from rootProject.file("LICENSE.txt")
 }
@@ -132,8 +131,3 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}

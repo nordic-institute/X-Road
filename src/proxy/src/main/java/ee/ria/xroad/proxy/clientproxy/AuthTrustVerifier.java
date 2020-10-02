@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 

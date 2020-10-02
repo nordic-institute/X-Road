@@ -27,8 +27,9 @@ dependencies {
     compile project(':serverconf')
 
     // The production code uses the SLF4J logging API at compile time
-    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'org.slf4j:slf4j-api:1.7.30'
     compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
+    compile "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
     testCompile 'junit:junit:4.13'
     testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
     testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
@@ -41,6 +42,7 @@ jar {
 
 shadowJar {
     append('reference.conf')
+    exclude('**/module-info.class')
     baseName = "monitor"
     classifier = ''
 }
