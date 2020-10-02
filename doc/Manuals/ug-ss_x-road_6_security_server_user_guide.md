@@ -645,13 +645,13 @@ The security server distinguishes between the following client states.
 
 -   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.5.1](#451-unregistering-a-client)).
 
-![](img/ug-ss_deletion_in_progress.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
+![](img/ug-ss_global_error.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
 
 -   "Registered", if the association between the client and the security server has been restored in the central server (e.g., the association between the client and the security server was lost due to an error);
 
 -   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
 
-![](img/ug-ss_global_error.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
+![](img/ug-ss_deletion_in_progress.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
 
 -   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
 
