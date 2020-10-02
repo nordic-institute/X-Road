@@ -815,7 +815,7 @@ public class AccessRightService {
             if (xRoadId instanceof LocalGroupId) {
                 return true;
             } else {
-                return instance.equalsIgnoreCase((dto.getSubjectId().getXRoadInstance()));
+                return instance.equalsIgnoreCase(dto.getSubjectId().getXRoadInstance());
             }
         };
     }
