@@ -435,6 +435,8 @@ configuration.
 
 4.  System logs the event “Back up configuration” to the audit log.
 
+5.  System displays on the top of the list of the configuration backup files the new configuration file.
+
 **Extensions**:
 
 - 3a. Backing up the central server configuration failed.
@@ -605,10 +607,12 @@ configuration to a previously backed up state.
 
 3.  CS administrator confirms.
 
-4.  System deletes the backup file and displays the message “Selected
+4.  System deletes the backup file displays the message “Selected
     backup deleted successfully”.
 
 5.  System logs the event “Delete backup file” to the audit log.
+
+6.  System deletes the backup file from the the list of configuration backup files. 
 
 **Extensions**:
 
@@ -659,6 +663,8 @@ central server.
     displays the message “New backup file uploaded successfully”.
 
 8.  System logs the event “Upload backup file” to the audit log.
+
+9.  System displays the backup file in the the list of configuration backup files.
 
 **Extensions**:
 
