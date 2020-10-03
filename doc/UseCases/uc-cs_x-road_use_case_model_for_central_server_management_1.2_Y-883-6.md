@@ -661,7 +661,7 @@ central server.
 
 8.  System logs the event “Upload backup file” to the audit log.
 
-9.  System displays the backup file in the the list of configuration backup files.XRDDEV
+9.  System displays the backup file in the the list of configuration backup files.
 
 **Extensions**:
 
