@@ -79,7 +79,7 @@
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
-                      label="Member group code"
+                      :label="$t('serviceClients.memberGroupCodeLabel')"
                       single-line
                       hide-details
                       data-test="memberCode"
