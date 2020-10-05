@@ -261,7 +261,7 @@ We will use the following parameters in the Kubernetes configuration file to set
  - periodSeconds:  How often (in seconds) to perform the probe. 
  - successThreshold: Minimum consecutive successes for the probe to be considered successful after having failed.
  - failureThreshold:  When a probe fails, Kubernetes will try failureThreshold times before giving up and mark the container as not ready.
- - port: Healthcheck port.
+ - port: Healthcheck port
  - path: Healthcheck path
 
   ```bash
