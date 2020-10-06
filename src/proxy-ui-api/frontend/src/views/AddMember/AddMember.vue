@@ -150,11 +150,11 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberDetailsPage from './MemberDetailsPage.vue';
-import TokenPage from './TokenPage.vue';
-import SignKeyPage from './SignKeyPage.vue';
+import TokenPage from '@/components/wizard/TokenPage.vue';
+import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
-import GenerateCsrPage from './GenerateCsrPage.vue';
+import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { RouteName, AddMemberWizardModes } from '@/global';
 
 const NO_SELECTION = 999;
