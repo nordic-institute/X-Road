@@ -338,7 +338,7 @@ To remove a user permission, remove the user from the corresponding system group
 
     deluser username xroad-security-officer
 
-User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#171-system-services)).
+Modified user permissions are applied only after user does a new log in.
 
 To remove a user, enter:
 
@@ -1880,14 +1880,12 @@ It is possibility to limit what allowed non-owners can request via environmental
 
 The most important system services of a security server are as follows.
 
- **Service**        | **Purpose**                                   | **Log**
-------------------- | --------------------------------------------- | -----------------------------------------
- `xroad-confclient` | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-jetty `     | Application server running the user interface | `/var/log/xroad/jetty/`
- `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
- `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
- `xroad-proxy-ui-api`  | Management UI and REST API                 | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
- `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`
+ **Service**           | **Purpose**                                             | **Log**
+-------------------    | ------------------------------------------------------  | -----------------------------------------
+ `xroad-confclient`    | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
+ `xroad-proxy`         | Message exchanger                                       | `/var/log/xroad/proxy.log`
+ `xroad-signer`        | Manager process for key settings                        | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`  | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
 
 System services are managed through the *systemd* facility.
 

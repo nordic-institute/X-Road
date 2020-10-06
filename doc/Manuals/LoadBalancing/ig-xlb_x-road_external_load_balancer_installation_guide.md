@@ -269,8 +269,8 @@ In order to properly set up the data replication, the slave nodes must be able t
 
 
 ### 3.3 Slave installation
-1. Install security server packages using the normal installation procedure. `nginx` or `xroad-jetty` packages  are not
-   required for slave nodes, but the admin graphical user interface (which requires these packages) can be handy for
+1. Install security server packages using the normal installation procedure. `xroad-proxy-ui-api` package is not
+   required for slave nodes, but the admin graphical user interface (which is provided by this package) can be handy for
    diagnostics. It should be noted that changing a slave's configuration via the admin gui is not possible.
 2. Stop the xroad services.
 3. Create a separate PostgreSQL instance for the serverconf database (see section
@@ -844,7 +844,7 @@ disrupt message delivery while the online option should allow upgrades with mini
 
 ### 7.1 Offline upgrade
 If the X-Road security server cluster can be shut down for an offline upgrade, the procedure remains fairly simple:
-1. Stop the X-Road services (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-jetty` and `xroad-monitor`) on all
+1. Stop the X-Road services (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-proxy-ui-api` and `xroad-monitor`) on all
    the nodes. You can read more about the services in the Security Server User Guide
 \[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 2. Upgrade the packages on the master node to the new software version.
@@ -907,7 +907,7 @@ The steps are in more detail below, but in short, the procedure is:
    ```
 
 2. <a name="master-upgrade-step-2">Check</a> that the master is no longer processing requests and stop the X-Road services
-   (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-jetty`, `xroad-monitor`) on the master node. You can read
+   (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-proxy-ui-api`, `xroad-monitor`) on the master node. You can read
    more about the services in the Security Server User Guide
    \[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 
