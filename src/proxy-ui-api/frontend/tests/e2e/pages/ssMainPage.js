@@ -761,7 +761,7 @@ module.exports = {
       }
     },
     certificatePopup: {
-      selector: '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "cert-headline") and contains(text(),"Certificate")]]',
+      selector: '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "identifier-wrap") and contains(text(),"Certificate")]]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
@@ -775,6 +775,9 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [localGroupPopupCommands],
       elements: {
+        groupIdentifier: {
+          selector: '//span[contains(@class, "identifier-wrap")]',
+          locateStrategy: 'xpath' },
         localGroupAddMembersButton: {
           selector: '//button[.//*[contains(text(), "Add Members")]]',
           locateStrategy: 'xpath' },
@@ -842,7 +845,7 @@ module.exports = {
       }
     },
     serviceDetails: {
-      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "cert-headline") and contains(text(),"WSDL details")]]',
+      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "identifier-wrap") and contains(text(),"WSDL details")]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
