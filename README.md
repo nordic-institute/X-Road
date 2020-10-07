@@ -300,7 +300,7 @@ livenessProbe:
   ```
 
   ### 4.3 Startup probes
-Indicates whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.  
+The startup probes Indicate whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.
 
 Startup probes are useful for Pods that have containers that take a long time to come into service. This is not really useful in the Sidecar pod because it takes to short to start.
  Within a different scenario, if the Sidecar could take a long time to start, this probe can be used combine with the liveness probe, for waiting until the startup probe has succeeded before starts the liveness probe.  The trick is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
