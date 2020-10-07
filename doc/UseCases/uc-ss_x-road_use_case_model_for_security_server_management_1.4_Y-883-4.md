@@ -807,11 +807,9 @@ configuration.
         contents of the security server database;
 
     b.  creates the backup file containing the database dump file and
-        the following directories:
+        the following directory:
 
     -   /etc/xroad/
-    
-    -   /etc/nginx/sites-enabled/
     
     and includes the following information as a label in the created .tar file:
     
@@ -898,17 +896,14 @@ configuration to a previously backed up state.
         3.15) to /var/lib/xroad/conf\_prerestore\_backup.tar (the
         pre-restore backup file is overwritten on each restore);
     
-    f.  deletes the content of the following directories:
+    f.  deletes the content of the following directory:
     
         -   /etc/xroad/
         
-        -   /etc/nginx/sites-enabled/
-
     g.  writes the database dump from the backup file to
         /var/lib/xroad/dbdump.dat;
 
-    h.  restores the content of the directories /etc/xroad/ and
-        /etc/nginx/sites-enabled/ from the backup file;
+    h.  restores the content of the directory /etc/xroad/ from the backup file;
 
     i.  restores the database data (including the schema) from the dump
         file /var/lib/xroad/dbdump.dat;

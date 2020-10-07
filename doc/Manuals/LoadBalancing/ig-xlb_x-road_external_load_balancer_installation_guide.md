@@ -707,7 +707,7 @@ After=network.target
 Before=xroad-proxy.service
 Before=xroad-signer.service
 Before=xroad-confclient.service
-Before=xroad-jetty.service
+Before=xroad-proxy-ui-api.service
 [Service]
 User=xroad
 Group=xroad
