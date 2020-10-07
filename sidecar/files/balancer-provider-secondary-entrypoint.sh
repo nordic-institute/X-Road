@@ -115,7 +115,14 @@ sudo groupdel xroad-security-officer  &&
 sudo groupdel xroad-registration-officer  &&
 sudo groupdel xroad-service-administrator  &&
 sudo groupdel xroad-system-administrator &&
-sudo sed -i -e "s/{{MASTER_HOST}}/$XROAD_MASTER_IP/g" /etc/init/xroad-sync.conf
+sudo sed -i -e "s/{{MASTER_HOST}}/$XROAD_MASTER_IP/g" /etc/init/xroad-sync.conf &&
+sudo chown xroad:xroad /etc/init/xroad-sync.conf && chmod 644 /etc/init/xroad-sync.conf &&
+sudo chown xroad:xroad /etc/init/xroad-sync-wait.conf && chmod 644 /etc/init/xroad-sync-wait.conf &&
+sudo rm -f /etc/cron.d/xroad-state-sync &&
+echo "* * * * * root /sbin/initctl --quiet start xroad-sync" > /etc/cron.d/xroad-state-sync &&
+sudo chown xroad:xroad /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync &&
+sudo service cron stop &&
+sudo service cron start
 
 
 # Start services
