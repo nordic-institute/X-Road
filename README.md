@@ -127,10 +127,10 @@ The following configuration is needed on the remote database server to allow ext
   host    all             all             0.0.0.0/0            md5
   [...]
   ```
-  
+
 - If the database is in your local machine you have to use the interface ip that uses the host to connect to the docker containers. You can check this ip by running "docker inspect container_name" and checking the gateway property.
 
-- The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database. 
+- The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database.
 
 #### 1.6.1 Reconfigure external database address after initialization
 
@@ -140,9 +140,9 @@ It is possible to change the external database after the initialization while th
 docker exec -it <sidecar_container_name> bash
   ```
 - Inside the container open in a text editor (we can install any of the command line text editors like nano, vi ...) the `etc/xroad/db.properties` file:
- ```bash 
+ ```bash
 nano etc/xroad/db.properties
-  ``` 
+  ```
 - Replace the connection host, the username and password with the properties of the new database:
 ```bash
   [...]
@@ -157,7 +157,7 @@ serverconf.hibernate.connection.password = <new_password>
 - After the properties are changed, save and close the  `etc/xroad/db.properties` file  and restart the services by running:
 ```bash
  supervisorctl restart all
-  ``` 
+  ```
 
 ### 1.7 Volume support
 
@@ -199,7 +199,7 @@ For setting the environment variable we can either edit the /etc/environment fil
 
  ```bash
   export XROAD_LOG_LEVEL=<logging level value>
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> 
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
   ```
 
 ## 2 Security Server Sidecar Initial Configuration
@@ -258,7 +258,7 @@ The readiness probes are useful when the pod it's not ready to serve traffic but
 
 We will use the following parameters in the Kubernetes configuration file to set up the readiness probe:
  - initialDelaySeconds:  Number of seconds after the container has started before readiness probes are initiated. For this example we will use 200 seconds to have enough time for the image be downloaded and the services are ready.
- - periodSeconds:  How often (in seconds) to perform the probe. 
+ - periodSeconds:  How often (in seconds) to perform the probe.
  - successThreshold: Minimum consecutive successes for the probe to be considered successful after having failed.
  - failureThreshold:  When a probe fails, Kubernetes will try failureThreshold times before giving up and mark the container as not ready.
  - port: Healthcheck port
@@ -293,8 +293,27 @@ livenessProbe:
    path: /
    port: 80
   initialDelaySeconds: 100
-  periodSeconds: 30
+  periodSeconds: 10
   successThreshold: 1
   failureThreshold: 5
   [...]
   ```
+
+  ### 4.3 Startup probes
+Indicates whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.  
+
+Startup probes are useful for Pods that have containers that take a long time to come into service. This is not really useful in the Sidecar pod because it takes to short to start.
+ Within a different scenario, if the Sidecar could take a long time to start, this probe can be used combine with the liveness probe, for waiting until the startup probe has succeeded before starts the liveness probe.  The trick is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
+
+ ```bash
+ [...]
+containers:
+livenessProbe:
+ httpGet:
+  path: /
+  port: 80
+ periodSeconds: 10
+ successThreshold: 1
+ failureThreshold: 50
+ [...]
+ ```
