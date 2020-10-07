@@ -104,14 +104,31 @@ fi
 #Configure node pod for balanacer
 crudini --set /etc/xroad/conf.d/node.ini node type 'slave' &&
 chown xroad:xroad /etc/xroad/conf.d/node.ini  &&
-sudo /etc/init.d/ssh restart  &&
-rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete  --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/  &&
+sudo /etc/init.d/ssh restart &&
 crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' &&
 sudo groupdel xroad-security-officer  &&
 sudo groupdel xroad-registration-officer  &&
 sudo groupdel xroad-service-administrator  &&
-sudo groupdel xroad-system-administrator &&
-sudo rm -f /etc/cron.d/xroad-proxy
+sudo groupdel xroad-system-administrator
+
+#Try rsync until success
+RC=1
+while [[ $RC -ne 0 ]]
+do
+ sleep 5
+ rsync -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log  xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/
+ RC=$?
+done
+
+#Create cron job for rsync every minute
+sudo rm -f /etc/cron.d/xroad-state-sync &&
+sudo rm -f /etc/cron.d/xroad-proxy &&
+sudo rm -f /etc/cron.d/sysstat &&
+echo "* * * * * rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_MASTER_IP:/etc/xroad/ /etc/xroad/ 2>&1" > /etc/cron.d/xroad-state-sync &&
+sudo chown xroad:xroad /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync &&
+sudo crontab /etc/cron.d/xroad-state-sync &&
+sudo service cron stop &&
+sudo service cron start
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
