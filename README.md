@@ -342,3 +342,43 @@ livenessProbe:
  failureThreshold: 50
  [...]
  ```
+
+## 5 Kubernetes secrets
+### 5.1 Create secret
+In this example we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
+Create a manifest file called for example "secret-env-variables.yaml" and fill it with the desired values of the environment variables.
+- replace <namespace_name> with the name of the namespace if it's different from `default`. If we want to use `default` namespace, we can delete the line.
+```bash
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-sidecar-variables
+  namespace: <namespace_name>
+type: Opaque
+stringData:
+  XROAD_TOKEN_PIN: "1234"
+  XROAD_ADMIN_USER: "xrd"
+  XROAD_ADMIN_PASSWORD: "secret"
+  XROAD_DB_HOST: "<db_host>"
+  XROAD_DB_PWD: "<db_password>"
+  XROAD_DB_PORT: "5432"
+  XROAD_LOG_LEVEL: "INFO"
+```
+Apply the manifest:
+```bash
+$ kubectl apply -f secret-env-variables.yaml
+```
+
+### 5.2 Consume secret
+Modify your deployment pod definition in each container that you wish to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
+```bash
+[...]
+containers:
+ - name: security-server-sidecar
+   image: niis/xroad-security-server-sidecar:latest
+   imagePullPolicy: "Always"
+   envFrom:
+   - secretRef:
+     name: secret-sidecar-variables
+[...]
+```
