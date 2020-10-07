@@ -349,7 +349,7 @@ Kubernetes Secrets are objects that let you store and manage sensitive informati
 ### 5.1 Create secret
 In this example we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
 Create a manifest call "secret-env-variables.yaml" and fill it with the desired values of the environment variables.
-- replace <namespace_name> with the name of the namespace, if we want to use default namespace, delete this line.
+- replace <namespace_name> with the name of the namespace if it's different from `default`. If we want to use `default` namespace, we can delete the line.
 ```bash
 apiVersion: v1
 kind: Secret
