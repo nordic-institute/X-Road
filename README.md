@@ -351,7 +351,6 @@ In this example we are going to create a secret for the X-Road Security Server S
 Create a manifest call "secret-env-variables.yaml" and fill it with the desired values of the environment variables.
 - replace <namespace_name> with the name of the namespace, if we want to use default namespace, delete this line.
 ```bash
-[...]
 apiVersion: v1
 kind: Secret
 metadata:
@@ -366,20 +365,16 @@ stringData:
   XROAD_DB_PWD: "<db_password>"
   XROAD_DB_PORT: "5432"
   XROAD_LOG_LEVEL: "INFO"
-[...]
 ```
 Apply the manifest:
 ```bash
-[...]
 $ kubectl apply -f secret-env-variables.yaml
-[...]
 ```
 
 ### 5.1 Consume secret
 Modify your deployment pod definition in each container that you wish to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 ```bash
 [...]
-...
 containers:
  - name: security-server-sidecar
    image: niis/xroad-security-server-sidecar:latest
@@ -387,6 +382,5 @@ containers:
    envFrom:
    - secretRef:
      name: secret-sidecar-variables
-...
 [...]
 ```
