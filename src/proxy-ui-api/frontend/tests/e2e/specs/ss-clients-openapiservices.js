@@ -143,9 +143,11 @@ module.exports = {
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
     // Verify cancel
-    operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
+    //operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
+    operationDetails.enterUrl('https://niis.org/nosuch.yaml')
     operationDetails.enterTimeout('40');
-    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected; //check ssl disable due to new url
+    operationDetails.toggleCertVerification();
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 
     // Verify that options were not changed
@@ -155,7 +157,7 @@ module.exports = {
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata.slice(0,browser.globals.testdata.indexOf('/', 8)));
     browser.assert.valueContains(operationDetails.elements.timeout, '60');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected;
 
 
     // Verify change operation
@@ -173,7 +175,7 @@ module.exports = {
     clientServices.openOperation('s3c1');
     browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata + '/' + browser.globals.openapi_url_2);
     browser.assert.valueContains(operationDetails.elements.timeout, '40');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected;
     operationDetails.close();
 
     browser.end();

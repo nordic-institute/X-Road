@@ -876,7 +876,7 @@ module.exports = {
       }
     },
     restServiceDetails: {
-      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "cert-headline") and contains(text(),"REST details")]]',
+      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "identifier-wrap") and contains(text(),"REST details")]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -916,7 +916,7 @@ module.exports = {
       }
     },
     openApiServiceDetails: {
-      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "cert-headline") and contains(text(),"OpenAPI 3 details")]]',
+      selector: '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "identifier-wrap") and contains(text(),"OpenAPI 3 details")]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1136,7 +1136,7 @@ module.exports = {
       }
     },
     editEndpointPopup: {
-      selector: '//*[contains(@class, "xrd-tab-max-width") and .//*[contains(@class, "cert-headline") and contains(text(),"Endpoint details")]]',
+      selector: '//*[contains(@class, "xrd-tab-max-width") and .//*[contains(@class, "identifier-wrap") and contains(text(),"Endpoint details")]]',
       locateStrategy: 'xpath',
       commands: [addEndpointCommands],
       elements: {
