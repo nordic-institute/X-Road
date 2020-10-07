@@ -344,8 +344,6 @@ livenessProbe:
  ```
 
 ## 5 Kubernetes secrets
-Kubernetes Secrets are objects that let you store and manage sensitive information, such as passwords, OAuth tokens, and ssh keys. Storing confidential information in a Secret is safer and more flexible than putting it verbatim in a Pod  definition or in a container image.
-
 ### 5.1 Create secret
 In this example we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
 Create a manifest call "secret-env-variables.yaml" and fill it with the desired values of the environment variables.
