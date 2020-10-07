@@ -371,7 +371,7 @@ Apply the manifest:
 $ kubectl apply -f secret-env-variables.yaml
 ```
 
-### 5.1 Consume secret
+### 5.2 Consume secret
 Modify your deployment pod definition in each container that you wish to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 ```bash
 [...]
