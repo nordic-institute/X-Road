@@ -46,7 +46,7 @@ fi
 user_exists=$(id -u ${XROAD_ADMIN_USER} > /dev/null 2>&1)
 if [ $? != 0 ]
 then
-    echo "Creating admin user with user-supplied credentials"
+    echo "Creating admin user with user-supplied credentials"sed -i -e 's/few/asd/g' hello.txt
     useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
     echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
     echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
@@ -106,15 +106,17 @@ fi
 #cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
 #Configure node pod for balanacer
-crudini --set /etc/xroad/conf.d/node.ini node type 'slave' && 
+crudini --set /etc/xroad/conf.d/node.ini node type 'slave' &&
 chown xroad:xroad /etc/xroad/conf.d/node.ini  &&
 sudo /etc/init.d/ssh restart  &&
-rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/  &&
-crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' && 
+rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete  --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/  &&
+crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' &&
 sudo groupdel xroad-security-officer  &&
 sudo groupdel xroad-registration-officer  &&
 sudo groupdel xroad-service-administrator  &&
-sudo groupdel xroad-system-administrator   
+sudo groupdel xroad-system-administrator &&
+sudo sed -i -e "s/{{MASTER_HOST}}/$XROAD_MASTER_IP/g" /etc/init/xroad-sync.conf
+
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

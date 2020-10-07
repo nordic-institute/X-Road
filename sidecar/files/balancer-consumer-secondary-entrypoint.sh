@@ -37,7 +37,7 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
-    fi
+    fi172.31.36.45
 else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
@@ -102,15 +102,16 @@ fi
 #cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
 
 #Configure node pod for balanacer
-crudini --set /etc/xroad/conf.d/node.ini node type 'slave' && 
+crudini --set /etc/xroad/conf.d/node.ini node type 'slave' &&
 chown xroad:xroad /etc/xroad/conf.d/node.ini  &&
 sudo /etc/init.d/ssh restart  &&
-rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/  &&
-crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' && 
+rsync -e "ssh -o StrictHostKeyChecking=no" -avz --delete  --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@${XROAD_MASTER_IP}:/etc/xroad/ /etc/xroad/  &&
+crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' &&
 sudo groupdel xroad-security-officer  &&
 sudo groupdel xroad-registration-officer  &&
 sudo groupdel xroad-service-administrator  &&
-sudo groupdel xroad-system-administrator   
+sudo groupdel xroad-system-administrator &&
+sudo rm -f /etc/cron.d/xroad-proxy
 
-# Start services 
+# Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
