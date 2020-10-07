@@ -62,8 +62,8 @@
               />
             </div>
           </td>
-          <td>{{ accessRight.service_code }}</td>
-          <td>{{ accessRight.title }}</td>
+          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+          <td class="identifier-wrap">{{ accessRight.title }}</td>
         </tr>
       </tbody>
     </table>

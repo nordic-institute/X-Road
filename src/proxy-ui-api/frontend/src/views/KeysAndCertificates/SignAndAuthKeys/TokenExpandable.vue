@@ -51,7 +51,7 @@
 
     <template v-slot:link>
       <div
-        class="clickable-link"
+        class="clickable-link identifier-wrap"
         @click="tokenClick(token)"
         data-test="token-name"
       >

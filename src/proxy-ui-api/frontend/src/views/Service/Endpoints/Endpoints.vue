@@ -58,7 +58,7 @@
             }}</span>
             <span v-else>{{ endpoint.method }}</span>
           </td>
-          <td>{{ endpoint.path }}</td>
+          <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
             <v-btn
               v-if="!endpoint.generated && canEdit"

@@ -63,8 +63,8 @@
             @click="showAccessRights(sc.id)"
             data-test="open-access-rights"
           >
-            <td>{{ sc.name }}</td>
-            <td>{{ sc.id }}</td>
+            <td class="identifier-wrap">{{ sc.name }}</td>
+            <td class="identifier-wrap">{{ sc.id }}</td>
           </tr>
         </tbody>
       </template>
