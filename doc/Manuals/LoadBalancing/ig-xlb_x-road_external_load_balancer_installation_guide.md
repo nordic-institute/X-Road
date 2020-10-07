@@ -269,9 +269,10 @@ In order to properly set up the data replication, the slave nodes must be able t
 
 
 ### 3.3 Slave installation
-1. Install security server packages using the normal installation procedure. `xroad-proxy-ui-api` package is not
-   required for slave nodes, but the admin graphical user interface (which is provided by this package) can be handy for
-   diagnostics. It should be noted that changing a slave's configuration via the admin gui is not possible.
+1. Install security server packages using the normal installation procedure. Alternatively you can also install only the packages
+   required for slave nodes. `xroad-proxy-ui-api` package can be omitted, but the admin graphical user interface
+   (which is provided by this package) can be handy for diagnostics. It should be noted that changing a slave's
+   configuration via the admin gui is not possible.
 2. Stop the xroad services.
 3. Create a separate PostgreSQL instance for the serverconf database (see section
    [4. Database replication setup](#4-database-replication-setup) for details)

@@ -892,7 +892,7 @@ configuration to a previously backed up state.
     
     c.  clears shared memory;
     
-    d.  stops all system services, except for xroad-jetty;
+    d.  stops all system services, except for xroad-proxy-ui-api;
     
     e.  creates a pre-restore backup of the system configuration (step 2 of
         3.15) to /var/lib/xroad/conf\_prerestore\_backup.tar (the
