@@ -290,7 +290,7 @@ export default Vue.extend({
     this.fetchCertificateAuthorities();
 
     // this.$store.dispatch('fetchXroadInstances');
-    this.$store.dispatch('fetchMemberClasses');
+    this.$store.dispatch('fetchMemberClassesForCurrentInstance');
 
     // Store the reserved member info to vuex
     this.$store.commit('storeReservedMember', {
