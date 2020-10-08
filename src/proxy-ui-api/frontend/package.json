@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "rm -f src/openapi-types.ts && npm run generate-types && vue-cli-service serve",
+    "serve": "rm -f src/openapi-types.ts && npm run generate-types && vue-cli-service serve --skip-plugins @vue/cli-plugin-eslint",
     "build": "rm -f src/openapi-types.ts && npm run generate-types && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "build:report": "vue-cli-service build --report",
@@ -19,6 +19,7 @@
   "dependencies": {
     "axios": "~0.20.0",
     "core-js": "~3.6.5",
+    "my-library": "file:../../my-library",
     "roboto-fontface": "*",
     "vee-validate": "3.3.9",
     "vue": "~2.6.12",

@@ -6,7 +6,13 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "make:component": "vue-cli-service make:component",
+    "make:directive": "vue-cli-service make:directive",
+    "make:layout": "vue-cli-service make:layout",
+    "make:mixin": "vue-cli-service make:mixin",
+    "make:view": "vue-cli-service make:view",
+    "serve:storybook": "start-storybook -p 6006"
   },
   "dependencies": {
     "core-js": "^3.6.5",
@@ -14,6 +20,15 @@
     "vuetify": "^2.2.11"
   },
   "devDependencies": {
+    "@babel/preset-react": "^7.6.3",
+    "@mdi/font": "^4.5.95",
+    "@storybook/addon-a11y": "^5.2",
+    "@storybook/addon-actions": "^5.2",
+    "@storybook/addon-knobs": "^5.2",
+    "@storybook/addon-notes": "^5.2",
+    "@storybook/addon-viewport": "^5.2",
+    "@storybook/addons": "^5.2",
+    "@storybook/vue": "^5.2",
     "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
@@ -25,15 +40,22 @@
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^5.0.2",
     "@vue/test-utils": "^1.0.3",
+    "babel-preset-vue": "^2.0.2",
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-vue": "^6.2.2",
     "node-sass": "^4.12.0",
+    "pluralize": "^8.0.0",
     "prettier": "^1.19.1",
+    "prism-react-renderer": "^0.1.7",
+    "prismjs": "^1.17.1",
     "sass": "^1.19.0",
     "sass-loader": "^8.0.2",
     "typescript": "~3.9.3",
     "vue-cli-plugin-vuetify": "^2.0.7",
+    "vue-cli-plugin-vuetify-cli": "~0.2.2",
+    "vue-cli-plugin-vuetify-storybook": "^0.2.0",
+    "vue-storybook": "^1.1.0",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.3.0"
   }

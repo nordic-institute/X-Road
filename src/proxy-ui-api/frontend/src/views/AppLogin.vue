@@ -83,6 +83,9 @@
               :loading="loading"
               >{{ $t('login.logIn') }}
             </v-btn>
+
+            <dummy-button />
+            <vuetify-button />
           </v-card-actions>
         </v-card>
       </v-flex>
