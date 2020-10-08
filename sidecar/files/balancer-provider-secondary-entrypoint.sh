@@ -113,7 +113,7 @@ crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? 
 sudo groupdel xroad-security-officer  &&
 sudo groupdel xroad-registration-officer  &&
 sudo groupdel xroad-service-administrator  &&
-sudo groupdel xroad-system-administrator 
+sudo groupdel xroad-system-administrator
 
 #Try rsync until success
 RC=1
@@ -132,7 +132,17 @@ echo "* * * * * rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -
 sudo chown xroad:xroad /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync &&
 sudo crontab /etc/cron.d/xroad-state-sync &&
 sudo service cron stop &&
-sudo service cron start
+sudo service cron start &&
+echo "
+/var/log/xroad/slave-sync.log {
+        daily
+        rotate 7
+        missingok
+        compress
+        su xroad xroad
+        nocreate
+}
+" >> /etc/logrotate.d/xroad-slave-sync
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
