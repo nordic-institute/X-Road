@@ -312,7 +312,7 @@ In order to properly set up the data replication, the slave nodes must be able t
 
    Note that API keys configured to master will be replicated to the slave, and there is no automated way of limiting those to `xroad-securityserver-observer` privilege group. See next item for more details.
 10. Note about API keys and caching.
-   If API keys have been created for master node, those keys are replicated to slaves, like everything else from `serverconf` database.
+   If API keys have been created for master node, those keys are replicated to slaves, like everything else from `serverconf` database is.
    If these keys are not limited to `xroad-securityserver-observer` privilege group, they can be used to try and change server configuration.
    These API calls will fail, since slave database is in read-only mode. To avoid this, slave REST API should only be used for operations that read configuration, not updates. <p>
    Furthermore, API keys are accessed through a cache that assumes that all updates to keys (e.g. revoking keys, or changing permissions) are done using the same node.
