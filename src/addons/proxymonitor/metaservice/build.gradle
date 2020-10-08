@@ -34,7 +34,7 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation 'org.mockito:mockito-core:3.4.6'
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
 task createDirs() {

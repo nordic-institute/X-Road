@@ -4,10 +4,8 @@ plugins {
 }
 
 ext {
-	set('springCloudVersion', "Greenwich.SR5")
+    set('springCloudVersion', "Hoxton.SR8")
 }
-
-ext['tomcat.version'] = '9.0.37'
 
 bootJar {
     excludeDevtools = false
