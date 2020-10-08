@@ -51,8 +51,6 @@ processResources {
     }
 }
 
-ext['tomcat.version'] = '9.0.37'
-
 node {
     download = true
     version = nodeVersion
@@ -63,7 +61,7 @@ task buildFront(type: NpmTask) {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
-    inputs.files fileTree("frontend/") { exclude("dist/") }
+    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
     args = ['run', 'build']
     execOverrides {
@@ -77,8 +75,8 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
-    inputs.files("frontend/package.json", "frontend/audit-resolve.json")
-    outputs.upToDateWhen { true }
+    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
+    outputs.dir("frontend/dist")
     args = ['run', 'check-audit']
     execOverrides {
         it.workingDir = 'frontend'
@@ -118,7 +116,7 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
         }
     }
 
-    inputs.files fileTree("frontend/") { exclude("dist/") }
+    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
 
     args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl]
@@ -209,6 +207,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
     implementation project(':common-ui')
+
 
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')

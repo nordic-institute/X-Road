@@ -1,7 +1,11 @@
 dependencies {
+    //"shadow" includes also transitive dependencies
+    implementation(project(path: ':proxy', configuration: 'shadow'))
+
+    //workaround for Idea (does not seem to understand the shadow configuration)
     implementation project(':common-util')
     implementation project(':serverconf')
-    implementation(project(path: ':proxy', configuration: 'shadow'))
+    ///workaround
 
     testImplementation project(':common-test')
     testImplementation project (path: ":proxy", configuration: 'testArtifacts')

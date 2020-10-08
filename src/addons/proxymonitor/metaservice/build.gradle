@@ -13,10 +13,15 @@ sourceSets {
 }
 
 dependencies {
+    //"shadow" includes also transitive dependencies
+    implementation project(path: ':proxy', configuration: 'shadow')
+
+    //workaround for Idea
     implementation project(':common-util')
     implementation project(":serverconf")
     implementation project(":common-op-monitoring")
-    implementation project(path: ':proxy', configuration: 'shadow')
+    //workaround
+
     implementation project(':monitor-common')
     implementation project(':monitoring-conf')
     implementation project(':addons:proxymonitor:common')
