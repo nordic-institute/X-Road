@@ -30,10 +30,10 @@ Date       | Version | Description                                              
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
-27.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
+27.03.2019 | 1.8     | Added use cases related to management REST API | Janne Mattila
 24.10.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
 28.03.2020 | 1.10    | Added edit API key use case | Petteri Kivimäki
-01.04.2020 | 1.11    | Added notes about IP whitelists for APIs | Janne Mattila
+01.04.2020 | 1.11    | Added notes about IP whitelists for REST API | Janne Mattila
 
 <!-- tocstop -->
 
@@ -2810,13 +2810,13 @@ for authentication when executing REST API calls to update server configuration.
 2.  SS administrator sends HTTP POST request to create a new API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden (by default)
       - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
-    - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
+    - 2.2 Send request to URL `https://localhost:4000/api/v1/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
     - 2.5 Provide roles to link to API key, with message body containing the role names in a JSON array of strings
     - 2.6 Define correct content type with HTTP header `Content-Type: application/json`
-    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-keys --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
+    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/v1/api-keys --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
 
 3.  System creates a new API key and responds with a JSON message containing details of the key:
     - 3.1 API key id with name `id`
@@ -2870,11 +2870,11 @@ for authentication when executing REST API calls to update server configuration.
 1.  SS administrator sends HTTP GET request to list all API keys. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden (by default)
       - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
-    - 2.2 Send request to URL `https://localhost:4000/api/api-keys`
+    - 2.2 Send request to URL `https://localhost:4000/api/v1/api-keys`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-keys -k`
+    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/v1/api-keys -k`
 
 2.  System returns list of API keys in an JSON array containing items with details of the keys:
     - 3.1 API key id with name `id`
@@ -2941,14 +2941,14 @@ for authentication when executing REST API calls to update server configuration.
 
 2.  SS administrator sends HTTP PUT request to update an API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden
-    - 2.2 Send request to URL `https://localhost:4000/api/api-key/{id}`,
+    - 2.2 Send request to URL `https://localhost:4000/api/v1/api-keys/{id}`,
     where `{id}` is the id of the key to be updated.
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
     - 2.5 Provide roles to link to API key, with message body containing the role names in a JSON array of strings
     - 2.6 Define correct content type with HTTP header `Content-Type: application/json`
-    - Example using "curl" command: `curl -X PUT -u <username>:<password> https://localhost:4000/api/api-key/63 --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
+    - Example using "curl" command: `curl -X PUT -u <username>:<password> https://localhost:4000/api/v1/api-keys/63 --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
 
 3.  System updates the API key and responds with a JSON message containing details of the key:
     - 3.1 API key id with name `id`
@@ -3000,12 +3000,12 @@ for authentication when executing REST API calls to update server configuration.
 1.  SS administrator sends HTTP DELETE request to delete one API key. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden (by default)
       - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
-    - 2.2 Send request to URL `https://localhost:4000/api/api-keys/{id}`,
+    - 2.2 Send request to URL `https://localhost:4000/api/v1/api-keys/{id}`,
     where `{id}` is the id of the key to be deleted.
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-keys/63 -k`
+    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/v1/api-keys/63 -k`
 
 2.  System deletes the key and it cannot be used for authentication anymore. System responds with HTTP 200.
 
@@ -3045,7 +3045,7 @@ for authentication when executing REST API calls to update server configuration.
     - 2.1 Send request from anywhere, remote access is not forbidden (by default)
       - see UG-SYSPAR for how to override this \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
     - 2.2 Send request to URL corresponding to the desired action,
-     for example `https://<security-server-address>:4000/api/clients` to list clients.
+     for example `https://<security-server-address>:4000/api/v1/clients` to list clients.
     - 2.3 Use HTTP method corresponding to the desired action,
      for example HTTP GET to list clients.
     - 2.4 Accept REST API's self-signed SSL certificate
@@ -3053,7 +3053,7 @@ for authentication when executing REST API calls to update server configuration.
     `Authorization: X-Road-ApiKey token=<api key>`
     - 2.6 Provide required message, if any, in HTTP body
     - 2.7 Specify correct content type for the body, if any, with HTTP header such as `Content-Type: application/json`
-    - Example using "curl" command: `curl --header "Authorization: X-Road-apikey token=<api key>" "https://<security-server-address>:4000/api/clients" -k`
+    - Example using "curl" command: `curl --header "Authorization: X-Road-apikey token=<api key>" "https://<security-server-address>:4000/api/v1/clients" -k`
 
 2.  System performs the desired action. System responds with HTTP 200. System returns the results of the operation,
     if any, in HTTP body
@@ -3069,5 +3069,5 @@ for authentication when executing REST API calls to update server configuration.
 
 **Related information:**
 
-The available REST APIs, and the details of them, are specified in more details in OpenAPI specification and
-REST API guidelines (TBD). Access rights for different REST APIs follow the same rules as the corresponding UI operations.
+The available endpoints, and the details of them, are specified in more detail in OpenAPI specification and
+REST API guidelines (TBD). Access rights for different REST API endpoints follow the same rules as the corresponding UI operations.

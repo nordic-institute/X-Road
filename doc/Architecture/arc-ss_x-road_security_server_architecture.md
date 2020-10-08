@@ -340,7 +340,7 @@ Figure 2. Security server process diagram
 
 #### 3.1.1 Role and responsibilities
 
-Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST APIs that can be used for management operations.
+Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST API that can be used for management operations.
 
 #### 3.1.2 Encapsulated data
 
