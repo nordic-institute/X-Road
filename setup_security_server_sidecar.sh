@@ -38,8 +38,7 @@ then
   fi
   rm -f xroad.properties
   echo "postgres.connection.password = ${XROAD_DB_PASSWORD}" >> xroad.properties
-  external_db_args="--mount type=bind,source="$(pwd)"/xroad.properties,target=/etc/xroad.properties,readonly"
-
+  external_db_args="--mount type=bind,source="$(pwd)"/xroad.properties,target=/etc/xroad.properties"
 fi
 
 httpport=$(($2 + 1))

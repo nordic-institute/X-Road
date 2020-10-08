@@ -87,19 +87,17 @@ then
         echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
         pg_ctlcluster 10 main stop
-        nginx -s stop
     fi
 fi
 
 
 if [ ! -f ${XROAD_LOG_LEVEL} ];
     then
-    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties 
+    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties
 fi
 
 # Start services
