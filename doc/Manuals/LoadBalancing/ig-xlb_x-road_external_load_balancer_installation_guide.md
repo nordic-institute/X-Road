@@ -315,13 +315,12 @@ In order to properly set up the data replication, the slave nodes must be able t
    If API keys have been created for master node, those keys are replicated to slaves, like everything else from `serverconf` database.
    If these keys are not limited to `xroad-securityserver-observer` privilege group, they can be used to try and change server configuration.
    These API calls will fail, since slave database is in read-only mode. To avoid this, slave REST API should only be used for operations that read configuration, not updates.
-   
+
    Furthermore, API keys are accessed through a cache that assumes that all updates to keys (e.g. revoking keys, or changing permissions) are done using the same node.
    If API keys are changed on master, the changes are not reflected on the slave caches until the next time `xroad-proxy-ui-api` process is restarted.
    To address this issue, you should restart slave nodes' `xroad-proxy-ui-api` processes after API keys are modified (and database has been replicated to slaves), to ensure correct operation.
-   
+
    Improvements to API key handling in clustered setups will be included in later releases.
-   
 11. It is possible to use the autologin-package with slave nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
