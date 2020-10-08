@@ -24,80 +24,13 @@
  * THE SOFTWARE.
  */
 
-@import './colors';
-@import './functions';
-
-.exp-title {
-  text-align: right;
-  padding-right: 20px;
-}
-
-.input-row {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  padding-right: 10px;
-}
-
-.flex-wrap {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-
-.flex-input {
-  margin: 4px;
-  max-width: 310px;
-}
-
-.search-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.button-margin {
-  margin-right: 14px;
-}
-
-.empty-row {
-  padding: 10px;
-  width: 100%;
-  border-bottom: $XRoad-Grey10 solid 1px;
-  height: 48px;
-  text-align: center;
-}
-
-.fixed_header {
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.table-checkbox {
-  height: 38px;
-  padding: 0;
-  margin-top: 12px;
-}
-
-#close-x {
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 21px;
-
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: $XRoad-Grey40;
-}
-
-#close-x:before {
-  content: unicode('00d7');
-}
-
-// Override vuetify default box-shadow
-.v-expansion-panel::before {
-  box-shadow: none;
+/*
+ * Use this function to display Unicode escape sequences (e.g. \007d) as a value in css properties.
+ * For example: `#close-x:before { content: unicode('00d7') }`, to display a 'close' symbol (x) in dialogs.
+ * If done in regular way: `#close-x:before { content: '\00d7' }`, SASS will compile the escape sequence into
+ * the real Unicode value which might be displayed wrongly in some browsers depending on the character
+ * encoding of the system.
+ */
+@function unicode($str) {
+  @return unquote('"') + unquote(str-insert($str, '\\', 1)) + unquote('"');
 }
