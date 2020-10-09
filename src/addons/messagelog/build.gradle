@@ -1,6 +1,18 @@
 dependencies {
-    compile project(':proxy')
-    testCompile project(':common-test')
-    testCompile 'org.hsqldb:hsqldb:2.5.1'
-    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
+
+    //shadow includes also transitive dependencies
+    implementation(project(path: ':proxy', configuration: 'shadow'))
+
+    //workaround for Idea
+    implementation(project(':common-util'))
+    implementation(project(':common-messagelog'))
+    implementation(project(':common-verifier'))
+    implementation(project(':serverconf'))
+    implementation(project(':common-op-monitoring'))
+    implementation(project(':asic-util'))
+    ///workaround
+
+    testImplementation project(':common-test')
+    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
 }

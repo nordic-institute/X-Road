@@ -3,9 +3,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-      classpath ('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
-        exclude group: 'org.springframework', module: 'spring-core'
-      }
+        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
+            exclude group: 'org.springframework', module: 'spring-core'
+        }
     }
 }
 
@@ -14,7 +14,7 @@ plugins {
     id 'org.owasp.dependencycheck' version '5.3.2'
     id 'jacoco'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.9.RELEASE" apply false
+    id "io.spring.dependency-management" version "1.0.10.RELEASE" apply false
     id 'org.springframework.boot' version '2.2.9.RELEASE' apply false
 }
 
@@ -110,9 +110,9 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'org.hamcrest:hamcrest:2.2'
-        testCompile 'org.hamcrest:hamcrest-library:2.2'
-        testCompile 'junit:junit:4.13'
+        testImplementation 'org.hamcrest:hamcrest:2.2'
+        testImplementation 'org.hamcrest:hamcrest-library:2.2'
+        testImplementation 'junit:junit:4.13'
 
         compileOnly 'org.projectlombok:lombok:1.18.12'
         annotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -150,10 +150,14 @@ subprojects {
 
     checkstyle {
         toolVersion = "8.29"
-        configDir = file("${project.rootDir}/config/checkstyle")
-        configFile = file("${configDir}/checkstyle.xml")
+        configDirectory = file("${project.rootDir}/config/checkstyle")
+        configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
         showViolations = false
+    }
+
+    checkstyleMain {
+        source = fileTree('src/main/java')
     }
 
     jacocoTestReport {
@@ -176,7 +180,7 @@ subprojects {
     }
 }
 
-configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common') }) {
+configure(subprojects.findAll { it.name.contains('center-') or it.name.contains('common-ui') }) {
 
     apply plugin: 'com.github.hierynomus.license'
 

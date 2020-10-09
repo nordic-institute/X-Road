@@ -25,9 +25,12 @@
  */
 package org.niis.xroad.oasvalidatorplugin;
 
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,32 +48,36 @@ public class Oas3ValidatorGradlePlugin implements Plugin<Project> {
                 .create(PARAMETERS_NAME, Oas3ValidatorExtension.class);
 
         project.task(TASK_NAME)
-                .doLast(task -> {
-                    if (extension.getApiDefinitionPaths() == null || extension.getApiDefinitionPaths().isEmpty()) {
-                        throw new GradleException("No API definition file paths provided");
-                    }
-                    System.out.println(System.lineSeparator() + "--- API VALIDATION START ---");
-                    boolean isCompleteValidationSuccess = true;
-                    List<ApiValidationResults> allValidationResults = new ArrayList<>();
-                    extension.getApiDefinitionPaths().forEach(path -> {
-                        try {
-                            ApiValidationResults validationResults = Oas3Validator.validate(path);
-                            allValidationResults.add(validationResults);
-                        } catch (Exception e) {
-                            throw new GradleException("API definition malformed or not found", e);
+                .doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        final Logger logger = task.getLogger();
+                        if (extension.getApiDefinitionPaths() == null || extension.getApiDefinitionPaths().isEmpty()) {
+                            throw new GradleException("No API definition file paths provided");
                         }
-                    });
-                    for (ApiValidationResults apiValidationResults : allValidationResults) {
-                        ApiValidationResult apiSpecValidationResult = apiValidationResults
-                                .getSpecificationValidationResult();
-                        ApiValidationResult styleValidationResult = apiValidationResults.getStyleValidationResult();
-                        isCompleteValidationSuccess = isCompleteValidationSuccess
-                                && apiSpecValidationResult.isSuccess()
-                                && styleValidationResult.isSuccess();
-                    }
-                    System.out.println(System.lineSeparator() + "--- API VALIDATION END ---");
-                    if (!isCompleteValidationSuccess) {
-                        throw new GradleException("API definition validation failed");
+                        task.getLogger().info("--- API VALIDATION START ---");
+                        boolean isCompleteValidationSuccess = true;
+                        List<ApiValidationResults> allValidationResults = new ArrayList<>();
+                        extension.getApiDefinitionPaths().forEach(path -> {
+                            try {
+                                ApiValidationResults validationResults = Oas3Validator.validate(path);
+                                allValidationResults.add(validationResults);
+                            } catch (Exception e) {
+                                throw new GradleException("API definition malformed or not found", e);
+                            }
+                        });
+                        for (ApiValidationResults apiValidationResults : allValidationResults) {
+                            ApiValidationResult apiSpecValidationResult = apiValidationResults
+                                    .getSpecificationValidationResult();
+                            ApiValidationResult styleValidationResult = apiValidationResults.getStyleValidationResult();
+                            isCompleteValidationSuccess = isCompleteValidationSuccess
+                                    && apiSpecValidationResult.isSuccess()
+                                    && styleValidationResult.isSuccess();
+                        }
+                        task.getLogger().info("--- API VALIDATION END ---");
+                        if (!isCompleteValidationSuccess) {
+                            throw new GradleException("API definition validation failed");
+                        }
                     }
                 });
     }
