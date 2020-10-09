@@ -54,7 +54,7 @@ task createDirs () {
     }
 }
 
-task xjc () {
+task xjc(dependsOn:[':common-util:xjc',':common-verifier:xjc']) {
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 

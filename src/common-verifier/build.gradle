@@ -25,7 +25,7 @@ task createDirs() {
     }
 }
 
-task xjc {
+task xjc(dependsOn: ':common-util:xjc') {
     inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
