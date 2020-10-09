@@ -1,16 +1,16 @@
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: security-server-sidecar-{{IMAGE_TAG}}
+  name: security-server-sidecar-provider
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    run: security-server-sidecar-{{IMAGE_TAG}}
+    run: security-server-sidecar-provider
 spec:
+  clusterIP: 10.100.144.76
   type: LoadBalancer
   selector:
-    run: security-server-sidecar-{{IMAGE_TAG}}
+    run: security-server-sidecar-provider
   ports:
   - port: 5500
     targetPort: 5500
@@ -24,35 +24,28 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: security-server-sidecar-{{IMAGE_TAG}}
+  name: security-server-sidecar-provider
 spec:
   selector:
     matchLabels:
-      run: security-server-sidecar-{{IMAGE_TAG}}
+      run: security-server-sidecar-provider
   replicas: 1
   template:
     metadata:
       labels:
-        run: security-server-sidecar-{{IMAGE_TAG}}
+        run: security-server-sidecar-provider
     spec:
       volumes:
       - name: sidecar-config-volume
         persistentVolumeClaim:
           claimName: "{{VOLUME_CLAIM}}"
       containers:
-      - name: security-server-sidecar-{{IMAGE_TAG}}
-        image: niis/xroad-security-server-sidecar:{{IMAGE_TAG}}
+      - name: security-server-sidecar
+        image: niis/xroad-security-server-sidecar:latest-provider
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
-        resources:
-          requests:
-            cpu: 500m
-            ephemeral-storage: "1Gi"
-          limits:
-            cpu: "1"
-            ephemeral-storage: "1Gi"
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"
