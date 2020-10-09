@@ -74,7 +74,7 @@ Table 1. Technology matrix of the X-Road
  C                                  | X                   | X                  |                         |
  Logback                            | X                   | X                  | X                       | X
  Akka 2.X                           | X                   | X                  | X                       | X
- Jetty 9                            |                     | X                  |                         |
+ Jetty 9                            | X\[[1](#Ref_3)\]    | X                  |                         |
  JRuby 9.X                          |                     | X                  |                         |
  Ubuntu 18.04                       | X                   | X                  | X                       | X
  Red Hat Enterprise Linux 7 (RHEL7) | X                   |                    |                         | X
@@ -100,6 +100,8 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
+<a id="Ref_3" class="anchor"></a>
+\[3\] Security Server uses embedded Jetty for clientproxy, serverproxy and OCSP responder
 
 ## 3 Central server technologies
 
@@ -161,6 +163,7 @@ Table 4. Technology matrix of the security server
  C                              |            |           | X                  |                  |                       |              |                          |                             |              |             |                                      |                                   |
  Logback                        | X          | X         |                    | X                | X                     |              | X                        |                             | X            |             | X                                    | X                                 | X
  Akka 2.X                       | X          | X         |                    | X                |                       |              |                          |                             | X            | X           | X                                    | X                                 |
+ Embedded Jetty 9               |            | X         |                    |                  |                       |              |                          |                             |              |             |                                      |                                   |
  Javascript                     |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
  PostgreSQL 10                  |            |           |                    |                  |                       | X            |                          |                             | X            |             |                                      |                                   |
  PAM                            |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
