@@ -74,7 +74,7 @@ Table 1. Technology matrix of the X-Road
  C                                  | X                   | X                  |                         |
  Logback                            | X                   | X                  | X                       | X
  Akka 2.X                           | X                   | X                  | X                       | X
- Jetty 9                            | X\[[1](#Ref_3)\]    | X                  |                         |
+ Jetty 9                            | X\[[3](#Ref_3)\]    | X                  |                         |
  JRuby 9.X                          |                     | X                  |                         |
  Ubuntu 18.04                       | X                   | X                  | X                       | X
  Red Hat Enterprise Linux 7 (RHEL7) | X                   |                    |                         | X
