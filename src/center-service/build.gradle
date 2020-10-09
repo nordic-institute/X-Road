@@ -55,7 +55,7 @@ task copyCenterCommon {
 
 task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
     into "$buildDir/libs"
-    from configurations.compile
+    from configurations.runtimeClasspath
 }
 
 // Runs the migration steps on the database.

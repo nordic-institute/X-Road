@@ -51,7 +51,7 @@ task copyCenterCommon {
 
 task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
     into "$buildDir/libs"
-    from configurations.compile
+    from configurations.runtimeClasspath
 }
 
 task generateJsTranslations(type: Exec) {
