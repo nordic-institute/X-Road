@@ -172,7 +172,7 @@ paths:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/UploadExistingBackupWarningExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -840,7 +840,7 @@ paths:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/AddUnregisteredMemberWarningExample'
                 validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
@@ -1765,7 +1765,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/AddServiceDescriptionWarningExample'
                 validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
 
@@ -2049,7 +2049,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/InitializationWarningExample'
                 validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
@@ -2391,7 +2391,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2974,7 +2974,7 @@ paths:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/UpdateServiceWarningExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3555,8 +3555,9 @@ paths:
         The metadata array can contain error messages about why the update did not succeed.
         This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionUpdate.ignore_warnings` = true.
         If `ServiceDescriptionUpdate.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
-          - WSDL validation fails and validation warnings are returned
-          - OpenAPI3 document has non-fatal errors that are returned as warnings
+          - WSDL or OpenAPI3 validation fails and validation warnings are returned
+          - existing services will be removed
+          - new services will be added
       parameters:
         - in: path
           name: id
@@ -3590,7 +3591,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/UpdateServiceDescriptionWarningExample'
                 validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
@@ -3719,8 +3720,9 @@ paths:
         The metadata array can contain error messages about why the refresh did not succeed.
         This endpoint can return a warnings response which can be ignored by setting `IgnoreWarnings.ignore_warnings` = true.
         If `IgnoreWarnings.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
-          - WSDL validation fails and validation warnings are returned
-          - OpenAPI3 document has non-fatal errors that are returned as warnings
+          - WSDL or OpenAPI3 validation fails and validation warnings are returned
+          - existing services will be removed
+          - new services will be added
       parameters:
         - in: path
           name: id
@@ -3754,7 +3756,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
-                  $ref: '#/components/examples/WarningsExample'
+                  $ref: '#/components/examples/RefreshServiceDescriptionWarningExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4774,7 +4776,7 @@ components:
           "clientAdd.client.subsystemCode":
             - NoPercent
             - NoBackslashes
-    WarningsExample:
+    RefreshServiceDescriptionWarningExample:
       summary: Warnings response body example
       value:
         status: 400
@@ -4787,6 +4789,47 @@ components:
           - code: deleting_services
             metadata:
               - "someOldService.v1"
+    UploadExistingBackupWarningExample:
+      summary: Backup upload warning example
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: warning_file_already_exists
+            metadata:
+              - conf_backup_20201006-094932.tar
+    AddUnregisteredMemberWarningExample:
+      summary: Adding unregistered member warning example
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: unregistered_member
+            metadata:
+              - CS/ORG/NON_EXISTING_CODE
+    AddServiceDescriptionWarningExample:
+      summary: Add service description warning example. The warnings metadata contains the output from the validator's
+        error stream.
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: wsdl_validation_warnings
+            metadata:
+              - Validation failed because of...
+    InitializationWarningExample:
+      summary: Initialization warning example.
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: init_server_id_exists
+            metadata:
+              - CS/ORG/123/SS1
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
