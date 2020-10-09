@@ -15,4 +15,8 @@ VOLUME_CLAIM=$5
 template=`cat "sidecar/kubernetes/security-server-sidecar-consumer.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" `
 
 # Applies the YAML configuration to create the Sidecar deployment
+<<<<<<< HEAD
 echo "$template" | kubectl apply -f -
+=======
+echo "$template" | kubectl apply -f -
+>>>>>>> master
