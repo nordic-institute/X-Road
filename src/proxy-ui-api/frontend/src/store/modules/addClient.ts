@@ -30,6 +30,7 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { AddMemberWizardModes, UsageTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
+import { encodePathParameter } from '@/util/api';
 import {
   Token,
   Client,
@@ -186,9 +187,9 @@ export const actions: ActionTree<AddClientState, RootState> = {
     commit('resetAddClientState');
   },
 
-  fetchSelectableClients({ commit }) {
+  fetchSelectableClients({ commit }, instanceId: string) {
     const globalClientsPromise = api.get<Client[]>(
-      '/clients?exclude_local=true&internal_search=false&show_members=false',
+      `/clients?exclude_local=true&internal_search=false&show_members=false&instance=${encodePathParameter(instanceId)}`,
     );
     const localClientsPromise = api.get<Client[]>('/clients');
     // Fetch list of local clients and filter out global clients
@@ -210,10 +211,10 @@ export const actions: ActionTree<AddClientState, RootState> = {
       });
   },
 
-  fetchSelectableMembers({ commit }) {
+  fetchSelectableMembers({ commit }, instanceId: string) {
     // Fetch clients from backend that can be selected
     return api
-      .get<Client[]>('/clients?internal_search=false&show_members=true')
+      .get<Client[]>(`/clients?internal_search=false&show_members=true&instance=${encodePathParameter(instanceId)}`)
       .then((res) => {
         // Filter out subsystems
         const filtered = res.data.filter((client: Client) => {

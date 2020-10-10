@@ -144,7 +144,12 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedMember', 'memberClassesCurrentInstance', 'selectedMemberName']),
+    ...mapGetters([
+      'reservedMember',
+      'memberClassesCurrentInstance',
+      'selectedMemberName',
+      'currentSecurityServer',
+    ]),
 
     memberClass: {
       get(): string {
@@ -253,7 +258,7 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableMembers');
+    this.$store.dispatch('fetchSelectableMembers', that.currentSecurityServer.instance_id);
   },
 
   watch: {
