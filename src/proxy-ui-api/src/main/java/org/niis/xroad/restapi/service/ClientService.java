@@ -84,6 +84,8 @@ import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 public class ClientService {
 
     public static final String WARNING_UNREGISTERED_MEMBER = "unregistered_member";
+    public static final String INVALID_INSTANCE_IDENTIFIER = "instance identifier is invalid: ";
+    public static final String INVALID_MEMBER_CLASS = "member class is invalid: ";
 
     private final ClientRepository clientRepository;
     private final GlobalConfService globalConfService;
@@ -506,12 +508,12 @@ public class ClientService {
 
         String instanceIdentifier = client.getIdentifier().getXRoadInstance();
         if (!instanceIdentifier.equals(globalConfFacade.getInstanceIdentifier())) {
-            throw new InvalidInstanceIdentifierException("instance identifier " + instanceIdentifier + " is invalid");
+            throw new InvalidInstanceIdentifierException(INVALID_INSTANCE_IDENTIFIER + instanceIdentifier);
         }
 
         String memberClass = client.getIdentifier().getMemberClass();
         if (!isValidMemberClass(memberClass)) {
-            throw new InvalidMemberClassException("member class " + memberClass + " is invalid");
+            throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
@@ -698,7 +700,7 @@ public class ClientService {
             AdditionalMemberAlreadyExistsException, UnhandledWarningsException, InvalidMemberClassException {
 
         if (!isValidMemberClass(memberClass)) {
-            throw new InvalidMemberClassException("member class " + memberClass + " is invalid");
+            throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
         ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(),
