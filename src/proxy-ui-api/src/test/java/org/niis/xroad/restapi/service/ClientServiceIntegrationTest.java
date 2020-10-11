@@ -423,7 +423,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test
     public void addLocalClientWithInvalidMemberClass() throws Exception {
-        // try member, FI:GOV:M1
+        // try member, FI:INVALID:M1
         try {
             ClientId id = TestUtils.getClientId("FI:INVALID:M1");
             clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
@@ -432,7 +432,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         } catch (ClientService.InvalidMemberClassException expected) {
         }
 
-        // and subsystem, FI:GOV:M1:SS1
+        // and subsystem, FI:INVALID:M1:SS1
         try {
             ClientId id = TestUtils.getClientId("FI:INVALID:M1:SS1");
             clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
@@ -745,7 +745,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findLocalClientsByInstanceIncludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, true, false);
-        assertEquals(5, clients.size());
+        assertEquals(6, clients.size());
     }
 
     @Test
@@ -782,7 +782,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findLocalClientsByInstanceExcludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, false, false);
-        assertEquals(4, clients.size());
+        assertEquals(5, clients.size());
     }
 
     @Test
@@ -906,6 +906,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
         expected.add(ClientId.create(TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
+        expected.add(ClientId.create("DUMMY", "PRO", "M2"));
+        expected.add(ClientId.create("FI", "DUMMY", "M2"));
         Set<ClientId> result = clientService.getLocalClientMemberIds();
         assertEquals(expected, result);
     }
@@ -922,6 +924,16 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test(expected = ClientNotFoundException.class)
     public void registerNonExistingClient() throws Exception {
         clientService.registerClient(ClientId.create("non", "existing", "client", null));
+    }
+
+    @Test(expected = ClientService.InvalidInstanceIdentifierException.class)
+    public void registerClientWithInvalidInstanceIdentifier() throws Exception {
+        clientService.registerClient(ClientId.create("DUMMY", "PRO", "M2", "SS6"));
+    }
+
+    @Test(expected = ClientService.InvalidMemberClassException.class)
+    public void registerClientWithInvalidMemberClass() throws Exception {
+        clientService.registerClient(ClientId.create("FI", "DUMMY", "M2", "SS6"));
     }
 
     @Test(expected = CodedException.class)
