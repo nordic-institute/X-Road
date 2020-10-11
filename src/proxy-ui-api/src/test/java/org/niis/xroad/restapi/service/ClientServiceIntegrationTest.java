@@ -88,6 +88,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
     private ClientId newOwnerClientId = ClientId.create("FI", "GOV", "M2", null);
 
+    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
+            TestUtils.MEMBER_CLASS_PRO);
+
     @Before
     public void setup() throws Exception {
         List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
@@ -130,6 +133,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
         when(globalConfFacade.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
             // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
             ClientId clientId = (ClientId) invocation.getArguments()[0];
@@ -262,7 +266,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private void addAndDeleteLocalClient(ClientId clientId, String status) throws ActionNotPossibleException,
             ClientService.CannotDeleteOwnerException, ClientNotFoundException,
             ClientService.AdditionalMemberAlreadyExistsException, UnhandledWarningsException,
-            ClientService.ClientAlreadyExistsException {
+            ClientService.ClientAlreadyExistsException, ClientService.InvalidMemberClassException {
         ClientType addedClient = clientService.addLocalClient(clientId.getMemberClass(),
                 clientId.getMemberCode(), clientId.getSubsystemCode(),
                 IsAuthentication.SSLAUTH, true);
@@ -414,6 +418,27 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                     IsAuthentication.SSLAUTH, false);
             fail("should have thrown ClientService.ClientAlreadyExistsException");
         } catch (ClientService.ClientAlreadyExistsException expected) {
+        }
+    }
+
+    @Test
+    public void addLocalClientWithInvalidMemberClass() throws Exception {
+        // try member, FI:GOV:M1
+        try {
+            ClientId id = TestUtils.getClientId("FI:INVALID:M1");
+            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+                    IsAuthentication.SSLAUTH, false);
+            fail("should have thrown ClientService.InvalidMemberClassException");
+        } catch (ClientService.InvalidMemberClassException expected) {
+        }
+
+        // and subsystem, FI:GOV:M1:SS1
+        try {
+            ClientId id = TestUtils.getClientId("FI:INVALID:M1:SS1");
+            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(),
+                    IsAuthentication.SSLAUTH, false);
+            fail("should have thrown ClientService.InvalidMemberClassException");
+        } catch (ClientService.InvalidMemberClassException expected) {
         }
     }
 

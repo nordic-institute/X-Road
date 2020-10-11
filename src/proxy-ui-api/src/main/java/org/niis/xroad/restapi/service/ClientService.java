@@ -493,13 +493,27 @@ public class ClientService {
      * @throws ClientNotFoundException
      * @throws CannotRegisterOwnerException
      * @throws ActionNotPossibleException
+     * @throws InvalidMemberClassException
+     * @throws InvalidInstanceIdentifierException
      */
     public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
-            CannotRegisterOwnerException, ActionNotPossibleException {
+            CannotRegisterOwnerException, ActionNotPossibleException, InvalidMemberClassException,
+            InvalidInstanceIdentifierException {
 
         auditDataHelper.put(clientId);
 
         ClientType client = getLocalClientOrThrowNotFound(clientId);
+
+        String instanceIdentifier = client.getIdentifier().getXRoadInstance();
+        if (!instanceIdentifier.equals(globalConfFacade.getInstanceIdentifier())) {
+            throw new InvalidInstanceIdentifierException("instance identifier " + instanceIdentifier + " is invalid");
+        }
+
+        String memberClass = client.getIdentifier().getMemberClass();
+        if (!isValidMemberClass(memberClass)) {
+            throw new InvalidMemberClassException("member class " + memberClass + " is invalid");
+        }
+
         ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
             throw new CannotRegisterOwnerException();
@@ -673,13 +687,19 @@ public class ClientService {
      * security server already has owner member + one additional member
      * @throws UnhandledWarningsException if tried to add client associated with a member which
      * does not exist in global conf yet, and ignoreWarnings was false
+     * @throws InvalidMemberClassException if client has an invalid member class, meaning that the
+     * member class that is not defined in this instance's configuration
      */
     public ClientType addLocalClient(String memberClass,
             String memberCode,
             String subsystemCode,
             IsAuthentication isAuthentication,
             boolean ignoreWarnings) throws ClientAlreadyExistsException,
-            AdditionalMemberAlreadyExistsException, UnhandledWarningsException {
+            AdditionalMemberAlreadyExistsException, UnhandledWarningsException, InvalidMemberClassException {
+
+        if (!isValidMemberClass(memberClass)) {
+            throw new InvalidMemberClassException("member class " + memberClass + " is invalid");
+        }
 
         ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(),
                 memberClass,
@@ -734,6 +754,17 @@ public class ClientService {
 
         clientRepository.saveOrUpdate(client);
         return client;
+    }
+
+    /**
+     * Checks that the given member class is present in the list of this instance's member classes.
+     * @param memberClass
+     * @return
+     */
+    private boolean isValidMemberClass(String memberClass) {
+        Optional<String> match = globalConfService.getMemberClassesForThisInstance().stream()
+                .filter(mc -> mc.equals(memberClass)).findFirst();
+        return match.isPresent();
     }
 
     /**
@@ -844,6 +875,29 @@ public class ClientService {
 
         public MemberAlreadyOwnerException() {
             super(new ErrorDeviation(ERROR_CANNOT_MAKE_OWNER));
+        }
+    }
+
+    /**
+     * Thrown when client has an invalid member class, meaning that the member class that is not defined
+     * in this instance's configuration
+     */
+    public static class InvalidMemberClassException extends ServiceException {
+        public static final String ERROR_INVALID_MEMBER_CLASS = "invalid_member_class";
+
+        public InvalidMemberClassException(String s) {
+            super(s, new ErrorDeviation(ERROR_INVALID_MEMBER_CLASS));
+        }
+    }
+
+    /**
+     * Thrown when client's instance identifier does not match with the current instance identifier'
+     */
+    public static class InvalidInstanceIdentifierException extends ServiceException {
+        public static final String ERROR_INVALID_INSTANCE_IDENTIFIER = "invalid_instance_identifier";
+
+        public InvalidInstanceIdentifierException(String s) {
+            super(s, new ErrorDeviation(ERROR_INVALID_INSTANCE_IDENTIFIER));
         }
     }
 }
