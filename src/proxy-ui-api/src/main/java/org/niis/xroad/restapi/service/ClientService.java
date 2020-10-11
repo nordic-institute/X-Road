@@ -84,8 +84,8 @@ import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 public class ClientService {
 
     public static final String WARNING_UNREGISTERED_MEMBER = "unregistered_member";
-    public static final String INVALID_INSTANCE_IDENTIFIER = "instance identifier is invalid: ";
-    public static final String INVALID_MEMBER_CLASS = "member class is invalid: ";
+    private static final String INVALID_INSTANCE_IDENTIFIER = "instance identifier is invalid: ";
+    private static final String INVALID_MEMBER_CLASS = "member class is invalid: ";
 
     private final ClientRepository clientRepository;
     private final GlobalConfService globalConfService;
