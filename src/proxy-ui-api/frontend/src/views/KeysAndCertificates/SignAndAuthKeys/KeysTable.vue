@@ -43,15 +43,15 @@
           <KeyRow
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
-            @generateCsr="generateCsr(key)"
-            @keyClick="keyClick(key)"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
           />
 
           <CertificateRow
             v-for="cert in key.certificates"
             v-bind:key="cert.id"
             :cert="cert"
-            @certificateClick="certificateClick(cert, key)"
+            @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
               <SmallButton
@@ -72,15 +72,15 @@
           <KeyRow
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
-            @generateCsr="generateCsr(key)"
-            @keyClick="keyClick(key)"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
           />
 
           <CertificateRow
             v-for="cert in key.certificates"
             v-bind:key="cert.id"
             :cert="cert"
-            @certificateClick="certificateClick(cert, key)"
+            @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
               <template v-if="canImportFromToken">
@@ -225,16 +225,16 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_CERT);
     },
     keyClick(key: Key): void {
-      this.$emit('keyClick', key);
+      this.$emit('key-click', key);
     },
     certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificateClick', { cert, key });
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(key: Key): void {
-      this.$emit('generateCsr', key);
+      this.$emit('generate-csr', key);
     },
     importCert(hash: string): void {
-      this.$emit('importCertByHash', hash);
+      this.$emit('import-cert-by-hash', hash);
     },
     showRegisterCertDialog(cert: TokenCertificate): void {
       this.registerDialog = true;
@@ -253,7 +253,7 @@ export default Vue.extend({
         )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.certificateRegistered');
-          this.$emit('refreshList');
+          this.$emit('refresh-list');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -279,7 +279,7 @@ export default Vue.extend({
         )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.csrDeleted');
-          this.$emit('refreshList');
+          this.$emit('refresh-list');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

@@ -318,7 +318,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('serviceClientsAdded', this.selectedIds);
+      this.$emit('service-clients-added', this.selectedIds);
       this.clearForm();
     },
 

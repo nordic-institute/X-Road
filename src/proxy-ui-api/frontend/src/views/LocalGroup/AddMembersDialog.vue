@@ -249,7 +249,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('membersAdded', this.selectedIds);
+      this.$emit('members-added', this.selectedIds);
       this.clearForm();
     },
 

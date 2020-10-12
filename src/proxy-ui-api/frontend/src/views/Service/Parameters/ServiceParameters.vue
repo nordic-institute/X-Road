@@ -29,7 +29,7 @@
       <div class="apply-to-all-text">{{ $t('services.applyToAll') }}</div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div class="edit-title">
           {{ $t('services.serviceUrl') }}
@@ -229,7 +229,7 @@
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="closeAccessRightsDialog"
-      @serviceClientsAdded="doAddServiceClient"
+      @service-clients-added="doAddServiceClient"
     />
 
     <!-- Warning dialog when service parameters are saved -->
@@ -456,7 +456,7 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         })
         .finally(() => {
-          this.$emit('updateService', this.service.id);
+          this.$emit('update-service', this.service.id);
         });
     },
     close() {

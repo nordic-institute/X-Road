@@ -110,7 +110,7 @@
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
-      @serviceClientsAdded="doAddServiceClients"
+      @service-clients-added="doAddServiceClients"
     />
   </div>
 </template>

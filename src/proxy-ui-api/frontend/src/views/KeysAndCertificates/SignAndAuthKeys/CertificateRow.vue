@@ -71,7 +71,7 @@ export default Vue.extend({
 
   methods: {
     certificateClick(): void {
-      this.$emit('certificateClick');
+      this.$emit('certificate-click');
     },
   },
 });

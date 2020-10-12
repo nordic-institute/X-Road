@@ -28,7 +28,7 @@
     <template v-slot:activator="{}">
       <file-upload
         accepts=".xml"
-        @fileChanged="onUploadFileChanged"
+        @file-changed="onUploadFileChanged"
         v-slot="{ upload }"
       >
         <large-button
