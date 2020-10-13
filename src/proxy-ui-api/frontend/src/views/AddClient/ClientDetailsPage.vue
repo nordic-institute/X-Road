@@ -277,7 +277,7 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableClients');
+    this.$store.dispatch('fetchSelectableClients', that.currentSecurityServer.instance_id);
     this.$store.dispatch('fetchMemberClassesForCurrentInstance');
   },
 
