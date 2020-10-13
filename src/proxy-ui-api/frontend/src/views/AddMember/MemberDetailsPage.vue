@@ -148,6 +148,7 @@ export default Vue.extend({
       'reservedMember',
       'memberClassesCurrentInstance',
       'selectedMemberName',
+      'currentSecurityServer',
     ]),
 
     memberClass: {
@@ -257,7 +258,10 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableMembers');
+    this.$store.dispatch(
+      'fetchSelectableMembers',
+      that.currentSecurityServer.instance_id,
+    );
   },
 
   watch: {
