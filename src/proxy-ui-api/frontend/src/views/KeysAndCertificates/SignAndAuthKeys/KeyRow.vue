@@ -100,13 +100,13 @@ export default Vue.extend({
   },
   methods: {
     keyClick(): void {
-      this.$emit('keyClick');
+      this.$emit('key-click');
     },
     certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificateClick', { cert, key });
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(): void {
-      this.$emit('generateCsr');
+      this.$emit('generate-csr');
     },
   },
 });

@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
           labelText="wizard.memberName"
@@ -277,7 +277,10 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableClients', that.currentSecurityServer.instance_id);
+    this.$store.dispatch(
+      'fetchSelectableClients',
+      that.currentSecurityServer.instance_id,
+    );
     this.$store.dispatch('fetchMemberClassesForCurrentInstance');
   },
 

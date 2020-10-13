@@ -49,7 +49,9 @@ export const sortServicesAscendingByFullServiceCode = (
 /**
  * Sort services in ServiceDescription
  */
-export const sortServiceDescriptionServices = (sd: ServiceDescription) => {
+export const sortServiceDescriptionServices = (
+  sd: ServiceDescription,
+): ServiceDescription => {
   sd.services = sortServicesAscendingByFullServiceCode(sd.services);
   return sd;
 };

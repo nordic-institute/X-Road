@@ -29,7 +29,7 @@ import { Endpoint, Service, ServiceClient } from '@/openapi-types';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
-  service: Service | {};
+  service: Service | Record<string, unknown>;
   serviceClients: ServiceClient[];
 }
 
@@ -55,7 +55,7 @@ export const getters: GetterTree<ServicesState, RootState> = {
     return state.serviceClients;
   },
 
-  service: (state: ServicesState): Service | {} => {
+  service: (state: ServicesState): Service | Record<string, unknown> => {
     return state.service;
   },
 };

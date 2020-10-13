@@ -149,7 +149,7 @@ export default Vue.extend({
         })
         .finally(() => {
           this.isAddEndpointDialogVisible = false;
-          this.$emit('updateService', this.service.id);
+          this.$emit('update-service', this.service.id);
         });
     },
     isBaseEndpoint(endpoint: Endpoint): boolean {

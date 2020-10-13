@@ -47,7 +47,7 @@
         </large-button>
         <file-upload
           accepts=".tar"
-          @fileChanged="onFileUploaded"
+          @file-changed="onFileUploaded"
           v-slot="{ upload }"
         >
           <large-button

@@ -76,10 +76,7 @@ Vue.filter('formatDate', (value: string): string => {
     '-' +
     (date.getMonth() + 1).toString().padStart(2, '0') +
     '-' +
-    date
-      .getDate()
-      .toString()
-      .padStart(2, '0')
+    date.getDate().toString().padStart(2, '0')
   );
 });
 
@@ -98,20 +95,11 @@ export const formatDateTime = (value: string): string => {
     '-' +
     (date.getMonth() + 1).toString().padStart(2, '0') +
     '-' +
-    date
-      .getDate()
-      .toString()
-      .padStart(2, '0') +
+    date.getDate().toString().padStart(2, '0') +
     ' ' +
-    date
-      .getHours()
-      .toString()
-      .padStart(2, '0') +
+    date.getHours().toString().padStart(2, '0') +
     ':' +
-    date
-      .getMinutes()
-      .toString()
-      .padStart(2, '0')
+    date.getMinutes().toString().padStart(2, '0')
   );
 };
 
@@ -127,15 +115,9 @@ Vue.filter('formatHoursMins', (value: string): string => {
 
   const date = new Date(value);
   return (
-    date
-      .getHours()
-      .toString()
-      .padStart(2, '0') +
+    date.getHours().toString().padStart(2, '0') +
     ':' +
-    date
-      .getMinutes()
-      .toString()
-      .padStart(2, '0')
+    date.getMinutes().toString().padStart(2, '0')
   );
 });
 

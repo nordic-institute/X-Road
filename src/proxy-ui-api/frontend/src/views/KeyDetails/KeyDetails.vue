@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div>{{ $t('fields.keys.friendlyName') }}</div>
         <ValidationProvider
@@ -291,7 +291,7 @@ export default Vue.extend({
         })
         .finally(() => (this.deleting = false));
     },
-    setKeyName() : void {
+    setKeyName(): void {
       if (this.key.name === '') {
         this.key.name = this.key.id;
       }

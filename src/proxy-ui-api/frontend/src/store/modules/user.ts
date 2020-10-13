@@ -42,8 +42,8 @@ export interface UserState {
   authenticated: boolean;
   permissions: string[];
   username: string;
-  currentSecurityServer: SecurityServer | {};
-  securityServerVersion: Version | {};
+  currentSecurityServer: SecurityServer | Record<string, unknown>;
+  securityServerVersion: Version | Record<string, unknown>;
   initializationStatus: InitializationStatus | undefined;
 }
 
