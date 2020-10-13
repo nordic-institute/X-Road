@@ -219,6 +219,6 @@ fi
 
 %posttrans
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
-%{_bindir}/systemctl try-restart nginx.service
+%{_bindir}/systemctl --quiet try-restart nginx.service >/dev/null 2>&1 || true
 
 %changelog
