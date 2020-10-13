@@ -2056,7 +2056,16 @@ paths:
       operationId: initSecurityServer
       description:
         <h3>Administrator initializes a new Security Server with the provided initial configuration.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.</p>
+        <p>
+          This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
+          If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
+          <ul>
+            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+            <li>x = the minimum length of the pin code</li>
+            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+          </ul>
+          See the examples
+        </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
           If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
@@ -2086,8 +2095,10 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
-                error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                error_invalid_init_params:
+                  $ref: '#/components/examples/ErrorInvalidInitParamsMetadataExample'
+                error_weak_pin:
+                  $ref: '#/components/examples/ErrorWeakPinMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/InitializationWarningExample'
                 validation_errors_response:
@@ -4829,6 +4840,28 @@ components:
           code: invalid_service_url
           metadata:
             - "sftp://some.sftp.server"
+    ErrorInvalidInitParamsMetadataExample:
+      summary: Initialization error with metadata
+      value:
+        status: 400
+        error:
+          code: invalid_init_params
+          metadata:
+            - "server_code_not_provided"
+            - "member_class_not_provided"
+            - "member_code_not_provided"
+            - "pin_code_not_provided"
+    ErrorWeakPinMetadataExample:
+      summary: Initialization error with metadata when the provided pin is too weak
+      value:
+        status: 400
+        error:
+          code: weak_pin
+          metadata:
+            - "pin_min_length"
+            - "8"
+            - "pin_min_char_classes_count"
+            - "3"
     ServiceDescriptionErrorWithMetadataExample:
       summary: Error when adding a service description and some duplicate services already exist
       value:
