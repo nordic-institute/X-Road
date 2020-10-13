@@ -2974,7 +2974,7 @@ paths:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
                 warnings_response:
-                  $ref: '#/components/examples/UpdateServiceWarningExample'
+                  $ref: '#/components/examples/UpdateServiceSslHandshakeWarningExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4777,7 +4777,7 @@ components:
             - NoPercent
             - NoBackslashes
     RefreshServiceDescriptionWarningExample:
-      summary: Warnings response body example
+      summary: Warning response when refreshing a service description adds or removes services
       value:
         status: 400
         code: warnings_detected
@@ -4790,7 +4790,7 @@ components:
             metadata:
               - "someOldService.v1"
     UploadExistingBackupWarningExample:
-      summary: Backup upload warning example
+      summary: Warning response when uploading a new backup configuration file with an existing name
       value:
         status: 400
         error:
@@ -4800,7 +4800,7 @@ components:
             metadata:
               - conf_backup_20201006-094932.tar
     AddUnregisteredMemberWarningExample:
-      summary: Adding unregistered member warning example
+      summary: Warning response when adding a new member that has not been registered in central server
       value:
         status: 400
         error:
@@ -4821,7 +4821,7 @@ components:
             metadata:
               - Validation failed because of...
     InitializationWarningExample:
-      summary: Initialization warning example.
+      summary: All initialization warnings example.
       value:
         status: 400
         error:
@@ -4830,6 +4830,43 @@ components:
           - code: init_server_id_exists
             metadata:
               - CS/ORG/123/SS1
+          - code: init_unregistered_member
+            metadata:
+              - CS/ORG/123
+          - code: init_serverconf_exists
+          - code: init_server_owner_exists
+          - code: init_software_token_initialized
+    DeleteKeyWarningExample:
+      summary: Warning response when trying to delete an authentication key with a registered authentication certificate
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: auth_key_with_registered_cert_warning
+            metadata:
+              - 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+    UpdateServiceSslHandshakeWarningExample:
+      summary: Warning response when trying to update a service with HTTPS set to `true` but the SSL handshake fails.
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: internal_server_ssl_handshake_error
+    UpdateServiceDescriptionWarningExample:
+      summary: Warning response when updating a service description adds or removes services
+      value:
+        status: 400
+        code: warnings_detected
+        warnings:
+          - code: adding_services
+            metadata:
+              - "newService.v1"
+              - "anotherNewService.v1"
+          - code: deleting_services
+            metadata:
+              - "someOldService.v1"
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
