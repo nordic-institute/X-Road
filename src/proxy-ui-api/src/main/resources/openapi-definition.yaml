@@ -64,7 +64,7 @@ paths:
         - backups
       summary: get security server backups
       operationId: getBackups
-      description: Administrator views the backups for the security server.
+      description: <h3>Administrator views the backups for the security server.</h3>
       responses:
         '200':
           description: list of security server backups
@@ -93,8 +93,9 @@ paths:
         - backups
       summary: add new backup for the security server
       operationId: addBackup
-      description: Adds security server backup to the system. This endpoint can also return metadata in the error response.
-        The metadata array can contain e.g. the output of a failed backup generation script
+      description:
+        <h3>Adds security server backup to the system.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain e.g. the output of a failed backup generation script.</p>
       responses:
         '201':
           description: item created
@@ -133,16 +134,19 @@ paths:
         - backups
       summary: upload new backup for the security server
       operationId: uploadBackup
-      description: >
-        Uploads new security server backup to the system
-        Note that it is possible to overwrite an existing backup file with the same name.
-        Attempt to upload a new backup file having the same name with an existing backup and with query parameter ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
-        Attempt to upload a new backup file having the same name with an existing backup and with query parameter ignore_warnings = true will overwrite the existing backup.
+      description:
+        <h3>Uploads new security server backup to the system.</h3>
+        <p>Note that it is possible to overwrite an existing backup file with the same name.
+          <ul>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = true will overwrite the existing backup.</li>
+          </ul>
+        </p>
       parameters:
         - in: query
           name: ignore_warnings
-          description: if true, any ignorable warnings are ignored. if false (or missing),
-                    any warnings cause request to fail
+          description: If true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail.
           required: false
           schema:
             type: boolean
@@ -191,7 +195,7 @@ paths:
         - backups
       summary: delete security server backup
       operationId: deleteBackup
-      description: Administrator deletes the backup of the security server.
+      description: <h3>Administrator deletes the backup of the security server.</h3>
       parameters:
         - in: path
           name: filename
@@ -221,8 +225,9 @@ paths:
         - backups
       summary: restore security server configuration from backup
       operationId: restoreBackup
-      description: Administrator restores the security server configuration from backup. This endpoint can also return metadata in the error response.
-        The metadata array can contain e.g. the output of a failed backup restore script
+      description:
+        <h3>Administrator restores the security server configuration from backup.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain e.g. the output of a failed backup restore script.</p>
       parameters:
         - in: path
           name: filename
@@ -267,7 +272,7 @@ paths:
         - backups
       summary: download security server backup
       operationId: downloadBackup
-      description: Administrator downloads the backup of the security server.
+      description: <h3>Administrator downloads the backup of the security server.</h3>
       parameters:
         - in: path
           name: filename
@@ -305,8 +310,9 @@ paths:
         - token-certificates
       summary: import new certificate
       operationId: importCertificate
-      description: Imports certificate to the system. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the certificate could not be imported.
+      description:
+        <h3>Imports certificate to the system.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported.</p>
       requestBody:
         description: certificate to import
         content:
@@ -351,7 +357,7 @@ paths:
         - token-certificates
       summary: get certificate information
       operationId: getCertificate
-      description: Administrator views certificate details.
+      description: <h3>Administrator views certificate details.</h3>
       parameters:
         - in: path
           name: hash
@@ -386,8 +392,9 @@ paths:
         - token-certificates
       summary: delete certificate
       operationId: deleteCertificate
-      description: Administrator deletes the certificate. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the delete did not succeed.
+      description:
+        <h3>Administrator deletes the certificate.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the delete did not succeed.</p>
       parameters:
         - in: path
           name: hash
@@ -426,7 +433,7 @@ paths:
         - token-certificates
       summary: activate certificate
       operationId: activateCertificate
-      description: Administrator activates selected certificate.
+      description: <h3>Administrator activates selected certificate.</h3>
       parameters:
         - in: path
           name: hash
@@ -458,7 +465,7 @@ paths:
         - token-certificates
       summary: deactivate certificate
       operationId: disableCertificate
-      description: Administrator deactivates selected certificate.
+      description: <h3>Administrator deactivates selected certificate.</h3>
       parameters:
         - in: path
           name: hash
@@ -490,8 +497,9 @@ paths:
         - token-certificates
       summary: import an existing certificate from a token by cert hash
       operationId: importCertificateFromToken
-      description: Imports certificate from a token to the system. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the certificate could not be imported.
+      description:
+        <h3>Imports certificate from a token to the system.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported.</p>
       parameters:
         - in: path
           name: hash
@@ -538,7 +546,7 @@ paths:
         - token-certificates
       summary: get possible actions for one certificate
       operationId: getPossibleActionsForCertificate
-      description: UI needs to know which actions can be done on one certificate
+      description: <h3>UI needs to know which actions can be done on one certificate.</h3>
       parameters:
         - in: path
           name: hash
@@ -574,7 +582,7 @@ paths:
         - token-certificates
       summary: register certificate
       operationId: registerCertificate
-      description: Administrator registers selected certificate.
+      description: <h3>Administrator registers selected certificate.</h3>
       parameters:
         - in: path
           name: hash
@@ -611,8 +619,9 @@ paths:
         - token-certificates
       summary: unregister authentication certificate
       operationId: unregisterAuthCertificate
-      description: Administrator unregisters selected authentication certificate. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the unregister did not succeed.
+      description:
+        <h3>Administrator unregisters selected authentication certificate.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the unregister did not succeed.</p>
       parameters:
         - in: path
           name: hash
@@ -660,8 +669,9 @@ paths:
         - token-certificates
       summary: marks an auth certificate for deletion
       operationId: markAuthCertForDeletion
-      description: Administrator marks an auth certificate for deletion. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the cert could not be marked for deletion.
+      description:
+        <h3>Administrator marks an auth certificate for deletion.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the cert could not be marked for deletion.</p>
       parameters:
         - in: path
           name: hash
@@ -709,7 +719,7 @@ paths:
         - clients
       summary: find security server clients
       operationId: findClients
-      description: Administrator views the clients of the security server.
+      description: <h3>Administrator views the clients of the security server.</h3>
       parameters:
         - in: query
           name: name
@@ -812,11 +822,14 @@ paths:
         - clients
       summary: Add new client for the security server.
       operationId: addClient
-      description: >
-        Adds new client to the system. The client id will be validated and if the validation fails a validation error is returned.
-        Note that with this endpoint it is possible to add an unregistered member as a client.
-        Attempt to add an unregistered member with ClientAdd.ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
-        Attempt to add an unregistered member with ClientAdd.ignore_warnings = true succeeds.
+      description:
+        <h3>Adds new client to the system.</h3>
+        <p>The client id will be validated and if the validation fails a validation error is returned. Note that with this endpoint it is possible to add an unregistered member as a client.
+          <ul>
+            <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+            <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = true succeeds.</li>
+          </ul>
+        </p>
       requestBody:
         description: client to add
         content:
@@ -861,7 +874,7 @@ paths:
         - clients
       summary: get security server client information
       operationId: getClient
-      description: Administrator views the client details of the security server.
+      description: <h3>Administrator views the client details of the security server.</h3>
       parameters:
         - in: path
           name: id
@@ -896,7 +909,7 @@ paths:
         - clients
       summary: update security server client information
       operationId: updateClient
-      description: Administrator updates the client information.
+      description: <h3>Administrator updates the client information.</h3>
       parameters:
         - in: path
           name: id
@@ -936,7 +949,7 @@ paths:
         - clients
       summary: delete security server client
       operationId: deleteClient
-      description: Administrator deletes the client of the security server.
+      description: <h3>Administrator deletes the client of the security server.</h3>
       parameters:
         - in: path
           name: id
@@ -966,7 +979,7 @@ paths:
         - clients
       summary: get local groups for the selected client
       operationId: getClientLocalGroups
-      description: Administrator views the local groups for the client.
+      description: <h3>Administrator views the local groups for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1005,7 +1018,7 @@ paths:
         - clients
       summary: add new local group for the security server client
       operationId: addClientLocalGroup
-      description: Administrator adds a new local group for the client.
+      description: <h3>Administrator adds a new local group for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1049,9 +1062,9 @@ paths:
         - clients
       summary: get information about orphaned sign keys, certificates and csrs left behind a delete client
       operationId: getClientOrphans
-      description: Administrator has deleted a client and wants to know if some orphaned sign keys, certificates or csrs exist.
-        This endpoint can also return metadata in the error response. The metadata array can contain an error message about
-        why the orphan removal did not succeed.
+      description:
+        <h3>Administrator has deleted a client and wants to know if some orphaned sign keys, certificates or csrs exist.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the orphan removal did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -1064,7 +1077,7 @@ paths:
             maxLength: 1023
       responses:
         '200':
-          description: information telling that orphans exist. If they don't exist, 404 is returned instead.
+          description: Information telling that orphans exist. If they don't exist, 404 is returned instead.
           content:
             application/json:
               schema:
@@ -1093,7 +1106,7 @@ paths:
         - clients
       summary: delete orphaned sign keys, certificates and csrs left behind a delete client
       operationId: deleteOrphans
-      description: Administrator deletes the orphaned sign keys, certificates and csrs left behind a delete client.
+      description: <h3>Administrator deletes the orphaned sign keys, certificates and csrs left behind a delete client.</h3>
       parameters:
         - in: path
           name: id
@@ -1132,8 +1145,9 @@ paths:
         - clients
       summary: register security server client
       operationId: registerClient
-      description: Administrator registers client. This endpoint can also return metadata in the error response.
-        The metadata array can contain an error message about why the registration did not succeed.
+      description:
+        <h3>Administrator registers client.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the registration did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -1181,7 +1195,7 @@ paths:
         - clients
       summary: get service clients for the selected client's services
       operationId: getClientServiceClients
-      description: Administrator views the service clients for the client.
+      description: <h3>Administrator views the service clients for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1221,7 +1235,7 @@ paths:
         - clients
       summary: get single service client by client id and service client id
       operationId: getServiceClient
-      description: Administrator views the information for a single service client
+      description: <h3>Administrator views the information for a single service client.<h3>
       parameters:
         - in: path
           name: id
@@ -1266,7 +1280,7 @@ paths:
         - clients
       summary: get access rights for the selected service client.
       operationId: getServiceClientAccessRights
-      description: Administrator views service client's access rights.
+      description: <h3>Administrator views service client's access rights.</h3>
       parameters:
         - in: path
           name: id
@@ -1312,9 +1326,9 @@ paths:
     post: # ok
       tags:
         - clients
-      summary: add new access rights for selected service client. If service client did not exist yet, one is created.
+      summary: Add new access rights for selected service client. If service client did not exist yet, one is created.
       operationId: addServiceClientAccessRights
-      description: Adds access rights to the service client.
+      description: <h3>Adds access rights to the service client.</h3>
       parameters:
         - in: path
           name: id
@@ -1370,7 +1384,7 @@ paths:
         - clients
       summary: remove access rights
       operationId: deleteServiceClientAccessRights
-      description: Administrator removes access rights from selected service client.
+      description: <h3>Administrator removes access rights from selected service client.</h3>
       parameters:
         - in: path
           name: id
@@ -1419,7 +1433,7 @@ paths:
         - clients
       summary: get security server client certificates information
       operationId: getClientSignCertificates
-      description: Administrator views the certificates for the client.
+      description: <h3>Administrator views the certificates for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1459,7 +1473,7 @@ paths:
         - clients
       summary: get security server client TLS certificates information
       operationId: getClientTlsCertificates
-      description: Administrator views the TLS certificates for the client.
+      description: <h3>Administrator views the TLS certificates for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1498,7 +1512,7 @@ paths:
         - clients
       summary: add new certificate for the security server client
       operationId: addClientTlsCertificate
-      description: Administrator adds a new certificate for the client.
+      description: <h3>Administrator adds a new certificate for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1544,7 +1558,7 @@ paths:
         - clients
       summary: get TLS certificate
       operationId: getClientTlsCertificate
-      description: Administrator gets the TLS certificate for the selected client.
+      description: <h3>Administrator gets the TLS certificate for the selected client.</h3>
       parameters:
         - in: path
           name: id
@@ -1588,7 +1602,7 @@ paths:
         - clients
       summary: delete certificate
       operationId: deleteClientTlsCertificate
-      description: Administrator deletes the certificate from selected client.
+      description: <h3>Administrator deletes the certificate from selected client.</h3>
       parameters:
         - in: path
           name: id
@@ -1627,8 +1641,9 @@ paths:
         - clients
       summary: unregister security server client
       operationId: unregisterClient
-      description: Administrator unregisters client. This endpoint can also return metadata in the error response.
-        The metadata array can contain an error message about why the unregistration did not succeed.
+      description:
+        <h3>Administrator unregisters client.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the unregistration did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -1676,7 +1691,7 @@ paths:
         - clients
       summary: get security server client service descriptions
       operationId: getClientServiceDescriptions
-      description: Administrator views the service descriptions for the client.
+      description: <h3>Administrator views the service descriptions for the client.</h3>
       parameters:
         - in: path
           name: id
@@ -1724,13 +1739,13 @@ paths:
         - clients
       summary: add new service description for the security server client
       operationId: addClientServiceDescription
-      description: >
-        Administrator adds a new service description for the client. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why adding the service description did not succeed.
-        This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionAdd.ignore_warnings` = true.
-        If ServiceDescriptionAdd.ignore_warnings = false, a warnings response will be returned if any one of the following conditions is true:
-          - WSDL validation fails and validation warnings are returned
-          - OpenAPI3 document has non-fatal errors that are returned as warnings
+      description:
+        <h3>Administrator adds a new service description for the client.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding the service description did not succeed.</p>
+        <p>
+          This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionAdd.ignore_warnings` = true.
+          If <code>ServiceDescriptionAdd.ignore_warnings</code> = false, a warnings response will be returned if WSDL or OpenAPI3 validation fails and validation warnings are returned.
+        </p>
       parameters:
         - in: path
           name: id
@@ -1787,7 +1802,8 @@ paths:
         - clients
       summary: find ServiceClient candidates for a specific client
       operationId: findServiceClientCandidates
-      description: Administrator views the clients, globalgroups and localgroups, that could be added as ServiceClients for given Client's services
+      description:
+        <h3>Administrator views the clients, globalgroups and localgroups, that could be added as ServiceClients for given Client's services.</h3>
       parameters:
         - in: path
           name: id
@@ -1882,8 +1898,9 @@ paths:
         - clients
       summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
       operationId: changeOwner
-      description: Administrator changes Security Server's owner. This endpoint can also return metadata in the error response.
-        The metadata array can contain an error message about why the owner change did not succeed.
+      description:
+        <h3>Administrator changes Security Server's owner.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the owner change did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -1932,7 +1949,7 @@ paths:
         - diagnostics
       summary: view global configuration diagnostics information
       operationId: getGlobalConfDiagnostics
-      description: Administrator views the global configuration diagnostics information.
+      description: <h3>Administrator views the global configuration diagnostics information.</h3>
       responses:
         '200':
           description: global configuration diagnostics information
@@ -1958,7 +1975,7 @@ paths:
         - diagnostics
       summary: view ocsp responders diagnostics information
       operationId: getOcspRespondersDiagnostics
-      description: Administrator views the ocsp responders diagnostics information.
+      description: <h3>Administrator views the ocsp responders diagnostics information.</h3>
       responses:
         '200':
           description: ocsp responders diagnostics information
@@ -1988,7 +2005,7 @@ paths:
         - diagnostics
       summary: view timestamping services diagnostics information
       operationId: getTimestampingServicesDiagnostics
-      description: Administrator views the timestamping services diagnostics information.
+      description: <h3>Administrator views the timestamping services diagnostics information.</h3>
       responses:
         '200':
           description: timestamping services diagnostics information
@@ -2018,16 +2035,20 @@ paths:
         - initialization
       summary: Initialize a new security server with the provided initial configuration
       operationId: initSecurityServer
-      description: >
-        Administrator initializes a new Security Server with the provided initial configuration. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the init did not succeed.
-        This endpoint can return a warnings response which can be ignored by setting `InitialServerConf.ignore_warnings` = true.
-        If `InitialServerConf.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
-          - server code has already been set for this Security Server
-          - server owner has already been set for this Security Server
-          - software token has already been initialized in this Security Server
-          - the provided owner member is unregistered
-          - the provided server id is already in use by another Security Server
+      description:
+        <h3>Administrator initializes a new Security Server with the provided initial configuration.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.</p>
+        <p>
+          This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
+          If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+          <ul>
+            <li>server code has already been set for this Security Server</li>
+            <li>server owner has already been set for this Security Server</li>
+            <li>software token has already been initialized in this Security Server</li>
+            <li>the provided owner member is unregistered</li>
+            <li>the provided server id is already in use by another Security Server</li>
+          </ul>
+        </p>
       requestBody:
         description: initial security server configuration
         content:
@@ -2070,7 +2091,7 @@ paths:
         - initialization
       summary: Check the initialization status of the Security Server
       operationId: getInitializationStatus
-      description: Administrator checks the initialization status of the Security Server
+      description: <h3>Administrator checks the initialization status of the Security Server.</h3>
       responses:
         '200':
           description: initialization status of the Security Server
@@ -2098,7 +2119,7 @@ paths:
         - local-groups
       summary: get local group information
       operationId: getLocalGroup
-      description: Administrator views local group details.
+      description: <h3>Administrator views local group details.</h3>
       parameters:
         - in: path
           name: group_id
@@ -2132,7 +2153,7 @@ paths:
         - local-groups
       summary: update local group information
       operationId: updateLocalGroup
-      description: Administrator updates the local group information.
+      description: <h3>Administrator updates the local group information.</h3>
       parameters:
         - in: path
           name: group_id
@@ -2171,7 +2192,7 @@ paths:
         - local-groups
       summary: delete local group
       operationId: deleteLocalGroup
-      description: Administrator deletes the local group.
+      description: <h3>Administrator deletes the local group.</h3>
       parameters:
         - in: path
           name: group_id
@@ -2200,7 +2221,9 @@ paths:
         - local-groups
       summary: add new member for the local group
       operationId: addLocalGroupMember
-      description: Administrator adds a new member for the local group. The new member can be an X-Road member or a subsystem
+      description:
+        <h3>Administrator adds a new member for the local group.</h3>
+        <p>The new member can be an X-Road member or a subsystem.</p>
       parameters:
         - in: path
           name: group_id
@@ -2242,7 +2265,7 @@ paths:
         - local-groups
       summary: delete member from local group
       operationId: deleteLocalGroupMember
-      description: Administrator deletes the member from local group.
+      description: <h3>Administrator deletes the member from local group.</h3>
       parameters:
         - in: path
           name: group_id
@@ -2280,7 +2303,7 @@ paths:
         - keys
       summary: get information for the selected key in selected token
       operationId: getKey
-      description: Administrator views key details.
+      description: <h3>Administrator views key details.</h3>
       parameters:
         - in: path
           name: id
@@ -2314,7 +2337,7 @@ paths:
         - keys
       summary: update key information
       operationId: updateKey
-      description: Administrator updates the key information.
+      description: <h3>Administrator updates the key information.</h3>
       parameters:
         - in: path
           name: id
@@ -2353,12 +2376,15 @@ paths:
         - keys
       summary: delete key
       operationId: deleteKey
-      description: >
-        Administrator deletes the key. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the delete did not succeed.
-        Note that with this endpoint it's possible to delete an authentication key with a registered authentication certificate.
-        Attempt to delete an authentication key with a registered authentication certificate and with ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
-        Attempt to delete an authentication key with a registered authentication certificate and with ignore_warnings = true succeeds. The authentication certificate is first unregistered, and the key and certificate are deleted after that.
+      description:
+        <h3>Administrator deletes the key.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the delete did not succeed.</p>
+        <p>
+          Note that with this endpoint it's possible to delete an authentication key with a registered authentication certificate.
+          <ul>
+            <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+            <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = true succeeds. The authentication certificate is first unregistered, and the key and certificate are deleted after that.</li>
+        </p>
       parameters:
         - in: path
           name: id
@@ -2413,7 +2439,7 @@ paths:
         - keys
       summary: generate csr for the selected key
       operationId: generateCsr
-      description: Administrator generates csr for the key.
+      description: <h3>Administrator generates csr for the key.</h3>
       parameters:
         - in: path
           name: id
@@ -2461,7 +2487,7 @@ paths:
         - keys
       summary: download a CSR binary
       operationId: downloadCsr
-      description: Administrator downloads a csr that has been created earlier
+      description: <h3>Administrator downloads a csr that has been created earlier.</h3>
       parameters:
         - in: path
           name: id
@@ -2512,7 +2538,7 @@ paths:
         - keys
       summary: delete csr from the selected key
       operationId: deleteCsr
-      description: Administrator deletes csr from the key.
+      description: <h3>Administrator deletes csr from the key.</h3>
       parameters:
         - in: path
           name: id
@@ -2552,7 +2578,7 @@ paths:
         - keys
       summary: get possible actions for one csr
       operationId: getPossibleActionsForCsr
-      description: UI needs to know which actions can be done on one csr
+      description: <h3>UI needs to know which actions can be done on one csr.</h3>
       parameters:
         - in: path
           name: id
@@ -2596,7 +2622,7 @@ paths:
         - keys
       summary: get possible actions for one key
       operationId: getPossibleActionsForKey
-      description: UI needs to know which actions can be done on one key
+      description: <h3>UI needs to know which actions can be done on one key.</h3>
       parameters:
         - in: path
           name: id
@@ -2631,7 +2657,7 @@ paths:
         - member-classes
       summary: get list of known member classes
       operationId: getMemberClasses
-      description: Administrator lists member classes.
+      description: <h3>Administrator lists member classes.</h3>
       parameters:
         - in: query
           name: current_instance
@@ -2673,7 +2699,7 @@ paths:
         - member-classes
       summary: get list of known member classes for a given instance
       operationId: getMemberClassesForInstance
-      description: Administrator lists member classes for a given instance.
+      description: <h3>Administrator lists member classes for a given instance.</h3>
       parameters:
         - in: path
           name: id
@@ -2716,7 +2742,7 @@ paths:
         - member-names
       summary: find member name by member class and member code
       operationId: findMemberName
-      description: Administrator looks up member's name
+      description: <h3>Administrator looks up member's name.</h3>
       parameters:
         - in: query
           name: member_class
@@ -2761,7 +2787,7 @@ paths:
         - language
       summary: change language
       operationId: language
-      description: Administrator changes the language for the UI.
+      description: <h3>Administrator changes the language for the UI.</h3>
       parameters:
         - in: path
           name: code
@@ -2797,7 +2823,7 @@ paths:
         - user
       summary: get user data for the logged user
       operationId: getUser
-      description: Administrator gets user data from backend.
+      description: <h3>Administrator gets user data from backend.</h3>
       responses:
         '200':
           description: user details
@@ -2823,7 +2849,7 @@ paths:
         - security-servers
       summary: get all security servers
       operationId: getSecurityServers
-      description: SS administrator views the details of all security servers
+      description: <h3>Administrator views the details of all security servers.</h3>
       parameters:
         - in: query
           name: current_server
@@ -2861,7 +2887,7 @@ paths:
         - security-servers
       summary: get security server information
       operationId: getSecurityServer
-      description: SS administrator views the details of a security server.
+      description: <h3>Administrator views the details of a security server.</h3>
       parameters:
         - in: path
           name: id
@@ -2899,7 +2925,7 @@ paths:
         - services
       summary: get service
       operationId: getService
-      description: Administrator views selected service.
+      description: <h3>Administrator views selected service.</h3>
       parameters:
         - in: path
           name: id
@@ -2935,12 +2961,16 @@ paths:
         - services
       summary: update service
       operationId: updateService
-      description: >
-        Administrator updates the service.
-        This endpoint can return a warnings response which can be ignored by setting `ServiceUpdate.ignore_warnings` = true.
-        If `ServiceUpdate.ignore_warnings` = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true:
-          - SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails
-          - SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)
+      description:
+        <h3>Administrator updates the service.</h3>
+        <p>
+          This endpoint can return a warnings response which can be ignored by setting `ServiceUpdate.ignore_warnings` = true.
+          If `ServiceUpdate.ignore_warnings` = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true
+          <ul>
+            <li>SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails</li>
+            <li>SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)</li>
+          </ul>
+        </p>
       parameters:
         - in: path
           name: id
@@ -2991,8 +3021,9 @@ paths:
         - services
       summary: create endpoint
       operationId: addEndpoint
-      description: Administrator creates a new endpoint. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the endpoint could not be created.
+      description:
+        <h3>Administrator creates a new endpoint.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the endpoint could not be created.</p>
       parameters:
         - in: path
           name: id
@@ -3052,7 +3083,7 @@ paths:
         - services
       summary: get service clients who have access rights for the selected service
       operationId: getServiceServiceClients
-      description: Administrator views service clients who have access to the given service
+      description: <h3>Administrator views service clients who have access to the given service.</h3>
       parameters:
         - in: path
           name: id
@@ -3092,7 +3123,7 @@ paths:
         - services
       summary: add access rights to selected service for new ServiceClients
       operationId: addServiceServiceClients
-      description: Adds access rights to selected service for new ServiceClients
+      description: <h3>Adds access rights to selected service for new ServiceClients.</h3>
       parameters:
         - in: path
           name: id
@@ -3149,7 +3180,7 @@ paths:
         - services
       summary: remove access to selected service from given ServiceClients
       operationId: deleteServiceServiceClients
-      description: Administrator removes access to selected service from given ServiceClients
+      description: <h3>Administrator removes access to selected service from given ServiceClients.</h3>
       parameters:
         - in: path
           name: id
@@ -3194,8 +3225,9 @@ paths:
         - endpoints
       summary: Get an endpoint by its id
       operationId: getEndpoint
-      description: Administrator fetches an endpoint. This endpoint can also return metadata in the error response.
-        The metadata array can contain an error message about why the endpoint could not be fetched.
+      description:
+        <h3>Administrator fetches an endpoint.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the endpoint could not be fetched.</p>
       parameters:
         - in: path
           name: id
@@ -3237,8 +3269,9 @@ paths:
         - endpoints
       summary: Update an endpoint
       operationId: updateEndpoint
-      description: Administrator updates an endpoint. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the update did not succeed.
+      description:
+        <h3>Administrator updates an endpoint.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the update did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -3303,8 +3336,9 @@ paths:
         - endpoints
       summary: delete endpoint
       operationId: deleteEndpoint
-      description: Administrator removes an endpoint. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the delete did not succeed.
+      description:
+        <h3>Administrator removes an endpoint.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the delete did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -3352,8 +3386,9 @@ paths:
         - endpoints
       summary: get service clients who have access rights for the selected endpoint
       operationId: getEndpointServiceClients
-      description: Administrator views endpoints access rights. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the access rights could not be fetched.
+      description:
+        <h3>Administrator views endpoints access rights.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the access rights could not be fetched.</p>
       parameters:
         - in: path
           name: id
@@ -3407,8 +3442,9 @@ paths:
         - endpoints
       summary: add access rights for given service clients to the selected endpoint
       operationId: addEndpointServiceClients
-      description: Administrator add access rights for a service clients to the selected endpoint. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the endpoint did not succeed.
+      description:
+        <h3>Administrator add access rights for a service clients to the selected endpoint.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the endpoint did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -3466,8 +3502,9 @@ paths:
         - endpoints
       summary: remove access rights from specified service clients to the selected endpoint
       operationId: deleteEndpointServiceClients
-      description: Administrator removes access rights from a service clients to an endpoint. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the endpoint could not be deleted.
+      description:
+        <h3>Administrator removes access rights from a service clients to an endpoint.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the endpoint could not be deleted.</p>
       parameters:
         - in: path
           name: id
@@ -3516,7 +3553,7 @@ paths:
         - service-descriptions
       summary: get service description with provided id
       operationId: getServiceDescription
-      description: Administrator views a service description with a certain id.
+      description: <h3>Administrator views a service description with a certain id.</h3>
       parameters:
         - in: path
           name: id
@@ -3550,14 +3587,18 @@ paths:
         - service-descriptions
       summary: update url or service code for the selected service description
       operationId: updateServiceDescription
-      description: >
-        Administrator updates the selected service description. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the update did not succeed.
-        This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionUpdate.ignore_warnings` = true.
-        If `ServiceDescriptionUpdate.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
-          - WSDL or OpenAPI3 validation fails and validation warnings are returned
-          - existing services will be removed
-          - new services will be added
+      description:
+        <h3>Administrator updates the selected service description.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the update did not succeed.</p>
+        <p>
+          This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionUpdate.ignore_warnings</code> = true.
+          If <code>ServiceDescriptionUpdate.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+          <ul>
+            <li>WSDL or OpenAPI3 validation fails and validation warnings are returned</li>
+            <li>existing services will be removed</li>
+            <li>new services will be added</li>
+          </ul>
+        </p>
       parameters:
         - in: path
           name: id
@@ -3618,7 +3659,7 @@ paths:
         - service-descriptions
       summary: delete service description
       operationId: deleteServiceDescription
-      description: Administrator deletes the service description.
+      description: <h3>Administrator deletes the service description.</h3>
       parameters:
         - in: path
           name: id
@@ -3647,7 +3688,7 @@ paths:
         - service-descriptions
       summary: disable selected service description
       operationId: disableServiceDescription
-      description: Administrator disables service description.
+      description: <h3>Administrator disables service description.</h3>
       parameters:
         - in: path
           name: id
@@ -3684,7 +3725,7 @@ paths:
         - service-descriptions
       summary: enable selected service description
       operationId: enableServiceDescription
-      description: Administrator enables service description.
+      description: <h3>Administrator enables service description.</h3>
       parameters:
         - in: path
           name: id
@@ -3715,14 +3756,18 @@ paths:
         - service-descriptions
       summary: refresh selected service description
       operationId: refreshServiceDescription
-      description: >
-        Administrator refreshes service description. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why the refresh did not succeed.
-        This endpoint can return a warnings response which can be ignored by setting `IgnoreWarnings.ignore_warnings` = true.
-        If `IgnoreWarnings.ignore_warnings` = false, a warnings response will be returned if any one of the following conditions is true:
-          - WSDL or OpenAPI3 validation fails and validation warnings are returned
-          - existing services will be removed
-          - new services will be added
+      description:
+        <h3>Administrator refreshes service description.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the refresh did not succeed.</p>
+        <p>
+          This endpoint can return a warnings response which can be ignored by setting <code>IgnoreWarnings.ignore_warnings</code> = true.
+          If <code>IgnoreWarnings.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+          <ul>
+            <li>WSDL or OpenAPI3 validation fails and validation warnings are returned</li>
+            <li>existing services will be removed</li>
+            <li>new services will be added</li>
+          </ul>
+        </p>
       parameters:
         - in: path
           name: id
@@ -3782,7 +3827,7 @@ paths:
         - service-descriptions
       summary: get services for the selected service description
       operationId: getServiceDescriptionServices
-      description: Administrator views the services for the selected service description.
+      description: <h3>Administrator views the services for the selected service description.</h3>
       parameters:
         - in: path
           name: id
@@ -3821,7 +3866,7 @@ paths:
         - system
       summary: view the configuration anchor information
       operationId: getAnchor
-      description: Administrator views the configuration anchor information.
+      description: <h3>Administrator views the configuration anchor information.</h3>
       responses:
         '200':
           description: anchor information
@@ -3845,10 +3890,13 @@ paths:
       tags:
         - system
       summary: Upload a new configuration anchor file when initializing a new security server.
-        Calls to this endpoint only succeed if a configuration anchor is not already found – meaning that this endpoint can only be used when initializing a new security server.
-        For updating the anchor for an already initialized security server use the PUT /system/anchor endpoint instead
       operationId: uploadInitialAnchor
-      description: Administrator uploads a new configuration anchor file in the security server's initialization phase
+      description:
+        <h3>Administrator uploads a new configuration anchor file in the security server's initialization phase.</h3>
+        <p>
+          Calls to this endpoint only succeed if a configuration anchor is not already found – meaning that <b>this endpoint can only be used when initializing a new security server</b>.
+          For updating the anchor for an already initialized security server use the <code>PUT /system/anchor</code> endpoint instead.
+        </p>
       requestBody:
         description: configuration anchor
         content:
@@ -3877,10 +3925,14 @@ paths:
     put: # ok
       tags:
         - system
-      summary: Upload a configuration anchor file to replace an existing one. Note that this only works if there already exists an anchor that can be replaced.
-        When initalizing a new Security Server use endpoint POST /system/anchor instead
+      summary: Upload a configuration anchor file to replace an existing one.
       operationId: replaceAnchor
-      description: Administrator uploads a configuration anchor file anytime after the Security Server has been initialized
+      description:
+        <h3>Administrator uploads a configuration anchor file anytime after the Security Server has been initialized.</h3>
+        <p>
+          <b>Note that this only works if there already exists an anchor that can be replaced.</b>
+          When initalizing a new Security Server, use the endpoint <code>POST /system/anchor</code> instead.
+        </p>
       requestBody:
         description: configuration anchor
         content:
@@ -3911,10 +3963,10 @@ paths:
       tags:
         - system
       summary: Read and the configuration anchor file and return the hash for a preview.
-        The instance of the anchor is also validated unless the validate_instance query parameter is explicitly set to false.
-        The anchor will not be saved
       operationId: previewAnchor
-      description: Administrator wants to preview a configuration anchor file hash
+      description:
+        <h3>Administrator wants to preview a configuration anchor file hash.</h3>
+        <p>The instance of the anchor is also validated unless the <code>validate_instance</code> query parameter is explicitly set to false. The anchor will not be saved.</p>
       parameters:
         - in: query
           name: validate_instance
@@ -3960,7 +4012,7 @@ paths:
         - system
       summary: download configuration anchor information
       operationId: downloadAnchor
-      description: Administrator downloads the configuration anchor information.
+      description: <h3>Administrator downloads the configuration anchor information.</h3>
       responses:
         '200':
           description: configuration anchor
@@ -3988,7 +4040,7 @@ paths:
         - system
       summary: view the security server certificate information
       operationId: getSystemCertificate
-      description: Administrator views the security server TLS certificate information.
+      description: <h3>Administrator views the security server TLS certificate information.</h3>
       responses:
         '200':
           description: certificate information
@@ -4013,8 +4065,9 @@ paths:
         - system
       summary: generate a new internal TLS key and cert
       operationId: generateSystemTlsKeyAndCertificate
-      description: Administrator generates new internal TLS key and certificate. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why generating a TLS key failed.
+      description:
+        <h3>Administrator generates new internal TLS key and certificate.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why generating a TLS key failed.</p>
       responses:
         '204':
           description: tls key generated
@@ -4045,7 +4098,7 @@ paths:
         - system
       summary: download the security server certificate as gzip compressed tar archive
       operationId: downloadSystemCertificate
-      description: Administrator downloads the security server TLS certificate.
+      description: <h3>Administrator downloads the security server TLS certificate.</h3>
       responses:
         '200':
           description: information fetched successfully
@@ -4073,7 +4126,7 @@ paths:
         - system
       summary: generate new certificate request
       operationId: generateSystemCertificateRequest
-      description: Administrator generates new certificate request.
+      description: <h3>Administrator generates a new certificate request.</h3>
       requestBody:
         content:
           application/json:
@@ -4106,7 +4159,7 @@ paths:
         - system
       summary: import new internal TLS certificate.
       operationId: importSystemCertificate
-      description: Administrator imports new internal TLS certificate
+      description: <h3>Administrator imports a new internal TLS certificate</h3>
       requestBody:
         description: certificate to add
         content:
@@ -4142,7 +4195,7 @@ paths:
         - certificate-authorities
       summary: view the approved certificate authorities
       operationId: getApprovedCertificateAuthorities
-      description: Administrator views the approved certificate authorities.
+      description: <h3>Administrator views the approved certificate authorities.</h3>
       parameters:
         - in: query
           name: key_usage_type
@@ -4184,7 +4237,7 @@ paths:
         - certificate-authorities
       summary: get description of subject DN fields for CSR
       operationId: getSubjectFieldDescriptions
-      description: list DN field descriptions to collect CSR parameters
+      description: <h3>List DN field descriptions to collect CSR parameters</h3>
       parameters:
         - in: path
           name: ca_name
@@ -4256,7 +4309,7 @@ paths:
         - system
       summary: view the configured timestamping services
       operationId: getConfiguredTimestampingServices
-      description: Administrator views the configured timestamping services.
+      description: <h3>Administrator views the configured timestamping services.</h3>
       responses:
         '200':
           description: list of configured timestamping services
@@ -4285,7 +4338,7 @@ paths:
         - system
       summary: add a configured timestamping service
       operationId: addConfiguredTimestampingService
-      description: Administrator selects new timestamping service
+      description: <h3>Administrator selects a new timestamping service.</h3>
       requestBody:
         description: Timestamping service to add
         content:
@@ -4319,7 +4372,7 @@ paths:
         - system
       summary: delete configured timestamping service
       operationId: deleteConfiguredTimestampingService
-      description: Administrator removes configured timestamping service.
+      description: <h3>Administrator removes a configured timestamping service.</h3>
       requestBody:
         description: Timestamping service to delete
         content:
@@ -4345,7 +4398,7 @@ paths:
         - system
       summary: get information for the system version
       operationId: systemVersion
-      description: Administrator views key details.
+      description: <h3>Administrator views key details.</h3>
       responses:
         '200':
           description: system version information
@@ -4371,7 +4424,7 @@ paths:
         - timestamping-services
       summary: view the approved timestamping services
       operationId: getApprovedTimestampingServices
-      description: Administrator views the approved timestamping services.
+      description: <h3>Administrator views the approved timestamping services.</h3>
       responses:
         '200':
           description: list of approved timestamping services
@@ -4402,7 +4455,7 @@ paths:
         - tokens
       summary: get security server tokens
       operationId: getTokens
-      description: Administrator views tokens of the security server.
+      description: <h3>Administrator views tokens of the security server.</h3>
       responses:
         '200':
           description: list of tokens
@@ -4432,7 +4485,7 @@ paths:
         - tokens
       summary: get security server token information
       operationId: getToken
-      description: Administrator views the token details of the security server.
+      description: <h3>Administrator views the token details of the security server.</h3>
       parameters:
         - in: path
           name: id
@@ -4466,7 +4519,7 @@ paths:
         - tokens
       summary: update security server token information
       operationId: updateToken
-      description: Administrator updates the token information.
+      description: <h3>Administrator updates the token information.</h3>
       parameters:
         - in: path
           name: id
@@ -4506,8 +4559,9 @@ paths:
         - tokens
       summary: add a new key and generate a csr for it
       operationId: addKeyAndCsr
-      description: Administrator adds a new key and generates a csr for it. This endpoint can also return metadata in the error response.
-        The metadata array can contain error messages about why adding a key with csr did not succeed.
+      description:
+        <h3>Administrator adds a new key and generates a csr for it.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding a key with csr did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -4561,7 +4615,7 @@ paths:
         - tokens
       summary: add new key
       operationId: addKey
-      description: Adds key for selected token.
+      description: <h3>Adds key for selected token.</h3>
       parameters:
         - in: path
           name: id
@@ -4603,7 +4657,7 @@ paths:
         - tokens
       summary: login to token
       operationId: loginToken
-      description: Login to token
+      description: <h3>Administrator logs in to a token</h3>
       parameters:
         - in: path
           name: id
@@ -4643,7 +4697,7 @@ paths:
         - tokens
       summary: logout from token
       operationId: logoutToken
-      description: Administrator logs out from token.
+      description: <h3>Administrator logs out from token.</h3>
       parameters:
         - in: path
           name: id
@@ -4678,7 +4732,7 @@ paths:
         - xroad-instances
       summary: get list of known xroad instance identifiers
       operationId: getXroadInstances
-      description: Administrator lists xroad instance identifiers
+      description: <h3>Administrator lists xroad instance identifiers</h3>
       responses:
         '200':
           description: xroad instance identifiers

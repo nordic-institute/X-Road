@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.48
+Version: 2.48  
 Doc. ID: UG-SS
 
 ---
