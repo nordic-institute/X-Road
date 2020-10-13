@@ -23,9 +23,9 @@
 
 - name: Install X-Road apt repo key
   apt_key:
-    url: "{{ubuntu_18_apt_key}}"
+    url: "{{ubuntu_apt_key}}"
     state: present
-  when: package_source == "remote" and ansible_distribution_release == "bionic"
+  when: package_source == "remote" and (ansible_distribution_release == "bionic" or ansible_distribution_release == "focal")
 
 - name: Remove old repo config
   file:
@@ -34,11 +34,11 @@
 
 - name: xroad bionic apt repository
   apt_repository:
-    repo: "{{ubuntu_18_apt_repo}}"
+    repo: "{{ubuntu_apt_repo}}"
     state: present
     filename: xroad
     update_cache: yes
-  when: ansible_distribution_release == "bionic"
+  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
 
 - name: enable UTF-8 locales
   locale_gen:
