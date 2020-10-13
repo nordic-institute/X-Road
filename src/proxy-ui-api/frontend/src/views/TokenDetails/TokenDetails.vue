@@ -29,7 +29,7 @@
       <subViewTitle :title="$t('keys.tokenDetails')" @close="close" />
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div>{{ $t('keys.friendlyName') }}</div>
         <ValidationProvider

@@ -67,7 +67,7 @@
       <div class="code-input" v-else>{{ $t('services.wsdlDescription') }}</div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div>{{ $t('services.editUrl') }}</div>
 
@@ -93,7 +93,7 @@
         <template
           v-if="
             serviceDesc.type === serviceTypeEnum.REST ||
-              serviceDesc.type === serviceTypeEnum.OPENAPI3
+            serviceDesc.type === serviceTypeEnum.OPENAPI3
           "
         >
           <div>{{ $t('services.serviceCode') }}</div>

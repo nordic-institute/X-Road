@@ -128,6 +128,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/colors';
+@import '../../assets/functions';
 
 .content-wrapper {
   margin-top: 18px;
@@ -150,6 +151,6 @@ export default Vue.extend({
 }
 
 #dlg-close-x:before {
-  content: '\00d7';
+  content: unicode('00d7');
 }
 </style>

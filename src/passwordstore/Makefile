@@ -1,5 +1,7 @@
 XROADTOP = $(shell cd ../ ; pwd)
 
+JAVA_HOME ?= $(shell dirname $$(dirname $$(readlink -f $$(which javac))))
+
 LIBSRC = xmem.c passwordstore.ci ee_ria_xroad_common_util_PasswordStore.c
 
 OBJECTS = xmem.o passwordstore.o ee_ria_xroad_common_util_PasswordStore.o

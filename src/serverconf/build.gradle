@@ -1,3 +1,7 @@
+plugins {
+    id 'java-library'
+}
+
 configurations {
     schema
 }
@@ -10,14 +14,16 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':common-db')
-    compile project(':common-verifier')
+    api project(':common-db')
+
+    implementation project(':common-util')
+    implementation project(':common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
-    testCompile 'org.hsqldb:hsqldb:2.5.1'
-    testCompile project(':common-db')
-    testCompile project(':common-test')
-    testCompile "org.hibernate:hibernate-hikaricp:$hibernateVersion"
+    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation project(':common-db')
+    testImplementation project(':common-test')
+    testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
     schema project(':common-util')
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"

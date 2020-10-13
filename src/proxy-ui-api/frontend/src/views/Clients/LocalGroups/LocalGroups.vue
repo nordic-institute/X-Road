@@ -73,7 +73,7 @@
       :dialog="addGroupDialog"
       :id="id"
       @cancel="closeDialog()"
-      @groupAdded="groupAdded()"
+      @group-added="groupAdded()"
     />
   </div>
 </template>

@@ -142,7 +142,7 @@ export default Vue.extend({
       confirmUnregisterCertificate: false,
       confirmUnregisterError: false,
       unregisterLoading: false,
-      unregisterErrorResponse: undefined as undefined | object,
+      unregisterErrorResponse: undefined as undefined | Record<string, unknown>,
     };
   },
   computed: {
@@ -324,7 +324,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.certMarkedForDeletion');
           this.confirmUnregisterError = false;
-          this.$emit('refreshList');
+          this.$emit('refresh-list');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

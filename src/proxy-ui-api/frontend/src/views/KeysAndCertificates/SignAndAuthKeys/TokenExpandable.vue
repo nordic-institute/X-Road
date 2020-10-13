@@ -73,7 +73,7 @@
           <file-upload
             v-if="canImportCertificate"
             accepts=".pem, .cer, .der"
-            @fileChanged="importCert"
+            @file-changed="importCert"
             v-slot="{ upload }"
           >
             <large-button
@@ -94,11 +94,11 @@
           title="keys.authKeyCert"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @certificateClick="certificateClick"
-          @importCertByHash="importCertByHash"
-          @refreshList="fetchData"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @certificate-click="certificateClick"
+          @import-cert-by-hash="importCertByHash"
+          @refresh-list="fetchData"
         />
 
         <!-- SIGN keys table -->
@@ -108,11 +108,11 @@
           title="keys.signKeyCert"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @certificateClick="certificateClick"
-          @importCertByHash="importCertByHash"
-          @refreshList="fetchData"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @certificate-click="certificateClick"
+          @import-cert-by-hash="importCertByHash"
+          @refresh-list="fetchData"
         />
 
         <!-- Keys with unknown type -->
@@ -122,9 +122,9 @@
           title="keys.unknown"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @importCertByHash="importCertByHash"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @import-cert-by-hash="importCertByHash"
         />
       </div>
     </template>
@@ -178,16 +178,16 @@ export default Vue.extend({
   methods: {
     confirmLogout(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('tokenLogout');
+      this.$emit('token-logout');
     },
     confirmLogin(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('tokenLogin');
+      this.$emit('token-login');
     },
 
     addKey(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('addKey');
+      this.$emit('add-key');
     },
 
     tokenClick(token: Token): void {
@@ -300,7 +300,7 @@ export default Vue.extend({
     },
     fetchData(): void {
       // Fetch tokens from backend
-      this.$emit('refreshList');
+      this.$emit('refresh-list');
     },
   },
 });

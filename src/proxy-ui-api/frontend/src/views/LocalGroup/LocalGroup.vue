@@ -145,7 +145,7 @@
       :dialog="addMembersDialogVisible"
       :filtered="group.members"
       @cancel="closeMembersDialog"
-      @membersAdded="doAddMembers"
+      @members-added="doAddMembers"
     />
   </div>
 </template>

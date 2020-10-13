@@ -42,8 +42,8 @@ export interface UserState {
   authenticated: boolean;
   permissions: string[];
   username: string;
-  currentSecurityServer: SecurityServer | {};
-  securityServerVersion: Version | {};
+  currentSecurityServer: SecurityServer | Record<string, unknown>;
+  securityServerVersion: Version | Record<string, unknown>;
   initializationStatus: InitializationStatus | undefined;
 }
 
@@ -234,7 +234,7 @@ export const actions: ActionTree<UserState, RootState> = {
       .finally(() => {
         if (reload) {
           // Reload the browser page to clean up the memory
-          location.reload(true);
+          location.reload();
         }
       });
   },

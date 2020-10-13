@@ -1,25 +1,24 @@
 plugins {
-
     id "it.tellnet.sass" version "1.2"
 }
 
 dependencies {
-    compile project(':common-util')
-    compile project(':common-verifier')
-    compile project(':signer-protocol')
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':signer-protocol')
 
     compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
-    compile 'org.owasp.encoder:encoder:1.2.2'
-    compile 'org.kohsuke:libpam4j:1.11'
-    compile 'net.java.dev.jna:jna:4.5.2'
+    implementation 'org.owasp.encoder:encoder:1.2.2'
+    implementation 'org.kohsuke:libpam4j:1.11'
+    implementation 'net.java.dev.jna:jna:4.5.2'
 
-    testCompile project(':common-test')
-    testCompile project(':common-util').sourceSets.test.output
+    testImplementation project(':common-test')
+    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
 }
 
 task copyDeps(type: Copy) {
     into "$buildDir/libs"
-    from configurations.compile
+    from configurations.runtimeClasspath
 }
 
 task checkRubySource(type: Exec) {

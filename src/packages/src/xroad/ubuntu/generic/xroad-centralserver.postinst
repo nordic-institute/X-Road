@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # disable confclient start
-if [ "$(lsb_release -sc)" = "bionic" ]; then
-  systemctl stop xroad-confclient
-  systemctl disable xroad-confclient
+if [ "$1" = "configure" ]; then
+  deb-systemd-invoke stop xroad-confclient
+  deb-systemd-invoke disable xroad-confclient
 fi
+
+#DEBHELPER#
 
 exit 0
