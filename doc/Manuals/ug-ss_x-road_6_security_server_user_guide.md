@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.46
+Version: 2.48
 Doc. ID: UG-SS
 
 ---
@@ -80,6 +80,7 @@ Doc. ID: UG-SS
  30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
  21.09.2020 | 2.47    | Added a validation error example to [19.4 Validation errors](#194-validation-errors) | Caro Hautamäki
+ 13.10.2020 | 2.48    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -198,6 +199,7 @@ Doc. ID: UG-SS
   - [19.2 Executing REST calls](#192-executing-rest-calls)
   - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
   - [19.4 Validation errors](#194-validation-errors)
+  - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
@@ -2186,6 +2188,39 @@ NoSemicolons
 NoForwardslashes
 NoBackslashes
 NoPercents
+```
+
+### 19.5 Warning responses
+
+Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.* 
+
+An example case:
+1. Client executes a REST request, without `ignore_warnings` parameter, to backend
+2. Backend notices warnings and responds with error message that contains the warnings. Nothing is updated at this point
+3. Client determines if warnings can be ignored. If the request was sent via the admin UI, a popup with `CONTINUE` button is shown
+4. If the warnings can be ignored, client resends the REST request, but with `ignore_warnings` parameter set to `true`. If the request was sent via the admin UI and a warning popup with the `CONTINUE` button is shown, clicking the button will ignore warnings and proceed to executing the operation
+5. Backend ignores the warnings and executes the operation
+
+Error response with warnings always contains the error code `warnings_detected`.
+
+Like errors, warnings contain an identifier (code) and possibly some metadata.
+
+Warning example when trying to register a WSDL that produces non-fatal validation warnings: 
+```
+{
+  "status": 400,
+  "error": {
+    "code": "warnings_detected"
+  },
+  "warnings": [
+    {
+      "code": "wsdl_validation_warnings",
+      "metadata": [
+        "WSDLValidator Error : Summary: Failures: 0, Warnings: 1 <<< WARNING! Operation 'someService' in PortType: {http://test.x-road.global/some-service}someService.servicePortType has no output message"
+      ]
+    }
+  ]
+}
 ```
 
 ## 20 Migrating to Remote Database Host
