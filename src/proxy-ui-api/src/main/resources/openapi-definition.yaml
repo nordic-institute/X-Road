@@ -312,7 +312,7 @@ paths:
       operationId: importCertificate
       description:
         <h3>Imports certificate to the system.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported.</p>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported. For example if a client was missing, the metadata would contain the identifier of that client.</p>
       requestBody:
         description: certificate to import
         content:
@@ -499,7 +499,7 @@ paths:
       operationId: importCertificateFromToken
       description:
         <h3>Imports certificate from a token to the system.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported.</p>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported. For example if a client was missing, the metadata would contain the identifier of that client.</p>
       parameters:
         - in: path
           name: hash
@@ -1129,8 +1129,6 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
-                error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1741,9 +1739,10 @@ paths:
       operationId: addClientServiceDescription
       description:
         <h3>Administrator adds a new service description for the client.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding the service description did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding the service description did not succeed (for example invalid URL's).</p>
+        <p></p>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting `ServiceDescriptionAdd.ignore_warnings` = true.
+          This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionAdd.ignore_warnings</code> = true.
           If <code>ServiceDescriptionAdd.ignore_warnings</code> = false, a warnings response will be returned if WSDL or OpenAPI3 validation fails and validation warnings are returned.
         </p>
       parameters:
@@ -1793,7 +1792,27 @@ paths:
         '406':
           description: request specified an invalid format
         '409':
-          description: an existing item already exists
+          description:
+            <h3>An existing item already exists</h3>
+            <p>
+              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL.
+            </p>
+            <p>
+              In this case the error code <code>service_already_exists</code> is used and the entries in the metadata array are ordered in following way
+              <ul>
+                <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
+                <li>C1 = duplicate service full code</li>
+                <li>U1 = URL of the existing WSDL that has the duplicate</li>
+              </ul>
+              <p>See the example</p>
+            </p>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
         '500':
           description: internal server error
   /clients/{id}/service-client-candidates:
@@ -2964,8 +2983,8 @@ paths:
       description:
         <h3>Administrator updates the service.</h3>
         <p>
-          This endpoint can return a warnings response which can be ignored by setting `ServiceUpdate.ignore_warnings` = true.
-          If `ServiceUpdate.ignore_warnings` = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true
+          This endpoint can return a warnings response which can be ignored by setting <code>ServiceUpdate.ignore_warnings</code> = true.
+          If <code>ServiceUpdate.ignore_warnings</code> = false, it is possible to receive a warnings response from this endpoint if any one of the following conditions is true
           <ul>
             <li>SSL authentication is set to true, but https connection to the service URL fails because SSL handshake fails</li>
             <li>SSL authentication is set to true, but https connection to the service URL fails because of other errors (e.g. host unreachable)</li>
@@ -3021,9 +3040,7 @@ paths:
         - services
       summary: create endpoint
       operationId: addEndpoint
-      description:
-        <h3>Administrator creates a new endpoint.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the endpoint could not be created.</p>
+      description: <h3>Administrator creates a new endpoint.</h3>
       parameters:
         - in: path
           name: id
@@ -3056,8 +3073,6 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
-                error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3072,9 +3087,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInfo'
-              examples:
-                error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
   /services/{id}/service-clients:
@@ -3269,9 +3281,7 @@ paths:
         - endpoints
       summary: Update an endpoint
       operationId: updateEndpoint
-      description:
-        <h3>Administrator updates an endpoint.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the update did not succeed.</p>
+      description: <h3>Administrator updates an endpoint.</h3>
       parameters:
         - in: path
           name: id
@@ -3303,8 +3313,6 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
-                error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4811,30 +4819,47 @@ components:
       summary: Error response body example
       value:
         status: 400
-        code: invalid_filename
+        error:
+          code: invalid_filename
     ErrorWithMetadataExample:
       summary: Error with metadata response body example
       value:
         status: 400
-        code: invalid_service_url
-        metadata:
-          - "sftp://some.sftp.server"
+        error:
+          code: invalid_service_url
+          metadata:
+            - "sftp://some.sftp.server"
+    ServiceDescriptionErrorWithMetadataExample:
+      summary: Error when adding a service description and some duplicate services already exist
+      value:
+        status: 409
+        error:
+          code: service_already_exists
+          metadata:
+            - duplicateService.v1
+            - http://xroad-lxd-cs.lxd/duplicate1.wsdl
+            - anotherDuplicateService.v1
+            - http://xroad-lxd-cs.lxd/duplicate1.wsdl
+            - yetAnotherDuplicateService.v1
+            - http://xroad-lxd-cs.lxd/someOtherWsdl.wsdl
     ValidationErrorsExample:
       summary: Validation errors response body example
       value:
         status: 400
-        code: validation_failure
-        validation_errors:
-          "clientAdd.client.memberCode":
-            - NoPercent
-          "clientAdd.client.subsystemCode":
-            - NoPercent
-            - NoBackslashes
+        error:
+          code: validation_failure
+          validation_errors:
+            "clientAdd.client.memberCode":
+              - NoPercent
+            "clientAdd.client.subsystemCode":
+              - NoPercent
+              - NoBackslashes
     RefreshServiceDescriptionWarningExample:
       summary: Warning response when refreshing a service description adds or removes services
       value:
         status: 400
-        code: warnings_detected
+        error:
+          code: warnings_detected
         warnings:
           - code: adding_services
             metadata:
@@ -4901,7 +4926,7 @@ components:
             metadata:
               - 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     UpdateServiceSslHandshakeWarningExample:
-      summary: Warning response when trying to update a service with HTTPS set to `true` but the SSL handshake fails.
+      summary: Warning response when trying to update a service with HTTPS set to "true" but the SSL handshake fails.
       value:
         status: 400
         error:
@@ -4912,7 +4937,8 @@ components:
       summary: Warning response when updating a service description adds or removes services
       value:
         status: 400
-        code: warnings_detected
+        error:
+          code: warnings_detected
         warnings:
           - code: adding_services
             metadata:

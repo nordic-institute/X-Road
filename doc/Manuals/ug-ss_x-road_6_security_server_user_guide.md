@@ -2180,9 +2180,9 @@ Response body:
 }
 ```
 
-In addition to the validation messages declared in Java Validation API, the following validation errors are possible:
+In addition to the validation messages declared in [Java Validation API](https://javaee.github.io/javaee-spec/javadocs/javax/validation/constraints/package-summary.html), the following validation errors are possible:
 ```
-Normalized
+NoControlChars
 NoColons
 NoSemicolons
 NoForwardslashes
