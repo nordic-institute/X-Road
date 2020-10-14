@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow'
 }
 
 ext {
@@ -17,22 +17,22 @@ repositories {
     jcenter()
 }
 
-// In this section you declare the dependencies for your production and test code
 dependencies {
 
-    compile project(':common-util')
+    implementation project(':common-util')
+    implementation project(':monitor-common')
+    implementation project(':signer-protocol')
+    implementation project(':serverconf')
 
-    compile project(':monitor-common')
-    compile project(':signer-protocol')
-    compile project(':serverconf')
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
+    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-    // The production code uses the SLF4J logging API at compile time
-    compile 'org.slf4j:slf4j-api:1.7.12'
-    compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
-    testCompile 'junit:junit:4.13'
-    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
-    testCompile project(':common-test')
+    testImplementation project(':common-test')
+    testImplementation 'junit:junit:4.13'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
 jar {
@@ -41,8 +41,9 @@ jar {
 
 shadowJar {
     append('reference.conf')
-    baseName = "monitor"
-    classifier = ''
+    exclude('**/module-info.class')
+    archiveBaseName = "monitor"
+    archiveClassifier = ''
 }
 
 build.dependsOn shadowJar

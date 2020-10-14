@@ -37,7 +37,7 @@
       <file-upload
         v-if="importCertificateVisible"
         accepts=".pem, .cer, .der"
-        @fileChanged="onImportFileChanged"
+        @file-changed="onImportFileChanged"
         v-slot="{ upload }"
       >
         <large-button

@@ -137,7 +137,7 @@
                   v-bind:key="service.id"
                 >
                   <td
-                    class="service-code"
+                    class="service-code identifier-wrap"
                     @click="serviceClick(serviceDesc, service)"
                     data-test="service-link"
                   >

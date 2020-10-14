@@ -27,8 +27,9 @@
   <tr>
     <td class="name-wrap-top no-border">
       <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
-      <div class="clickable-link" @click="keyClick">
-        {{ tokenKey.name }}
+      <div class="clickable-link identifier-wrap" @click="keyClick">
+        <span v-if="tokenKey.name === ''">{{ tokenKey.id }}</span>
+        <span v-else>{{ tokenKey.name }}</span>
       </div>
     </td>
     <td class="no-border" colspan="4"></td>
@@ -99,13 +100,13 @@ export default Vue.extend({
   },
   methods: {
     keyClick(): void {
-      this.$emit('keyClick');
+      this.$emit('key-click');
     },
     certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificateClick', { cert, key });
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(): void {
-      this.$emit('generateCsr');
+      this.$emit('generate-csr');
     },
   },
 });

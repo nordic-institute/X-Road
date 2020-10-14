@@ -116,10 +116,10 @@ export default Vue.extend({
       return true;
     },
     keyClick(key: Key): void {
-      this.$emit('keyClick', key);
+      this.$emit('key-click', key);
     },
     generateCsr(key: Key): void {
-      this.$emit('generateCsr', key);
+      this.$emit('generate-csr', key);
     },
   },
 });

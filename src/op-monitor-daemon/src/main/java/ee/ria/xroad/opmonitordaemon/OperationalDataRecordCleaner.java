@@ -34,10 +34,11 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
@@ -57,7 +58,7 @@ final class OperationalDataRecordCleaner extends UntypedAbstractActor {
      * Initializes the operational data recorder cleaner creating an operational
      * data records cleaner actor in the given actor system and scheduling a
      * periodic cleanup with the provided job manager.
-     * @param jobManager the job manager
+     * @param jobManager  the job manager
      * @param actorSystem the actor system
      */
     public static void init(JobManager jobManager, ActorSystem actorSystem) {
@@ -85,17 +86,17 @@ final class OperationalDataRecordCleaner extends UntypedAbstractActor {
     }
 
     private static void handleCleanup() throws Exception {
-        cleanRecords(new DateTime().minusDays(
-                OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays()));
+        cleanRecords(
+                Instant.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
     }
 
-    static int cleanRecords(DateTime before) throws Exception {
+    static int cleanRecords(Instant before) throws Exception {
         log.trace("cleanRecords({})", before);
 
         return doInTransaction(session -> {
             String hql =
                     "delete OperationalDataRecord r where r.monitoringDataTs < "
-                    + TimeUnit.MILLISECONDS.toSeconds(before.getMillis());
+                            + TimeUnit.MILLISECONDS.toSeconds(before.toEpochMilli());
 
             int removed = session.createQuery(hql).executeUpdate();
 

@@ -70,4 +70,5 @@ export interface Notification {
   successMessageCode?: string;
   successMessageRaw?: string;
   show: boolean;
+  count: number;
 }

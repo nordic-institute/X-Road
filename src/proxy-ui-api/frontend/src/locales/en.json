@@ -184,7 +184,8 @@
     "servicesStep": "Services",
     "addServiceClientTitle": "Add a subject",
     "addSelected": "Add Selected",
-    "serviceSelectionStep": "Servicecode"
+    "serviceSelectionStep": "Servicecode",
+    "memberGroupCodeLabel": "Member/Group code"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -711,6 +712,7 @@
   "type": "Type",
   "warning": "Warning",
   "id": "ID",
+  "count": "Amount of same errors:",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."

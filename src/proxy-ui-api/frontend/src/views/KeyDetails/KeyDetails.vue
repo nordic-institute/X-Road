@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div>{{ $t('fields.keys.friendlyName') }}</div>
         <ValidationProvider
@@ -234,6 +234,8 @@ export default Vue.extend({
         .then((res) => {
           this.key = res.data;
           this.fetchPossibleActions(id);
+          // If the key has no name, use key id instead
+          this.setKeyName();
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -288,6 +290,11 @@ export default Vue.extend({
           }
         })
         .finally(() => (this.deleting = false));
+    },
+    setKeyName(): void {
+      if (this.key.name === '') {
+        this.key.name = this.key.id;
+      }
     },
   },
   created() {

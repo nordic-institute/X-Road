@@ -110,7 +110,7 @@
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
-      @serviceClientsAdded="doAddServiceClients"
+      @service-clients-added="doAddServiceClients"
     />
   </div>
 </template>
@@ -146,7 +146,7 @@ export default Vue.extend({
   },
   data: () => {
     return {
-      endpoint: {} as Endpoint | {},
+      endpoint: {} as Endpoint | Record<string, unknown>,
       serviceClients: [] as ServiceClient[],
       confirmDeleteAll: false as boolean,
       confirmDeleteOne: false as boolean,
