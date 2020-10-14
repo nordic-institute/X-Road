@@ -161,10 +161,11 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import {
   Key,
+  KeyUsageType,
   TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
-import { Permissions, UsageTypes } from '@/global';
+import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
@@ -197,7 +198,7 @@ export default Vue.extend({
     return {
       registerDialog: false,
       confirmDeleteCsr: false,
-      usageTypes: UsageTypes,
+      usageTypes: KeyUsageType,
       selectedCert: undefined as TokenCertificate | undefined,
       selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
       selectedKey: undefined as Key | undefined,
