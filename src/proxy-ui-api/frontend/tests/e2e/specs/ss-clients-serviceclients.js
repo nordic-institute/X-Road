@@ -97,7 +97,7 @@ module.exports = {
     mainPage.closeSnackbar();
 
     browser.end();
-  }/*,
+  },
   'Security server service clients list shows rest service with service level access right': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -310,5 +310,5 @@ module.exports = {
     mainPage.closeSnackbar();
 
     browser.end();
-  }*/
+  }
 };
