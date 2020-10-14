@@ -15,7 +15,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Generated type definitions
-src/openapi-types.ts
+src/openapi-types
 
 # Editor directories and files
 .idea
@@ -25,4 +25,3 @@ src/openapi-types.ts
 *.njsproj
 *.sln
 *.sw*
-scripts/dtsgen-wrapper.js
