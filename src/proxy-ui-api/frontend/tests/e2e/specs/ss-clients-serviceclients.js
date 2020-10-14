@@ -81,7 +81,12 @@ module.exports = {
     operationDetails.close();
 
     // Verify SOAP service client when it has access permissions
-    browser.keys(browser.Keys.PAGEUP);
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
