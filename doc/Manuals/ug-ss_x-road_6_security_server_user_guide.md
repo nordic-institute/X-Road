@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.48
+Version: 2.48  
 Doc. ID: UG-SS
 
 ---
@@ -25,7 +25,7 @@ Doc. ID: UG-SS
  1.12.2014  | 1.0     | Minor corrections done
  19.01.2015 | 1.1     | License information added
  27.01.2015 | 1.2     | Minor corrections done
- 30.04.2015 | 1.3     | “sdsb” changed to “xroad”
+ 30.04.2015 | 1.3     | "sdsb" changed to "xroad"
  29.05.2015 | 1.4     | Message Log chapter added (Chapter [11](#11-message-log))
  30.06.2015 | 1.5     | Minor corrections done
  3.07.2015  | 1.6     | Audit Log chapter added (Chapter [12](#12-audit-log))
@@ -372,37 +372,37 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 To generate a Signing key and a Certificate Signing Request, follow these steps.
 
-1.  On the **Management** menu, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
 2.  If you are using a hardware security token, ensure that the device is connected to the security server. The device information must be displayed in the **Keys and Certificates** table.
 
-3.  To log in to the token, click **Enter PIN** on the token’s row in the table and enter the PIN code. Once the correct PIN is entered, the **Enter PIN** button changes to **Logout**.
+3.  To log in to the token, click **LOG IN** on the token's row in the table and enter the PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
-4.  To generate a signing key and CSR for it, expand the tokens information from the arrow button next to it and click **Add key**. In the wizard that opens 
+4.  To generate a signing key and CSR for it, expand the token's information by clicking the caret next to the token name and click **ADD KEY**. In the wizard that opens 
     
-    1. Define a label for the newly created signing key (not mandatory) and click **Next**. 
+    1. Define a label for the newly created signing key (not mandatory) and click **NEXT**. 
     
     2. In the dialog page that opens
     
-       1. Select the certificate usage policy from the Usage drop down list (SIGN for signing certificates)
+       1. Select the certificate usage policy from the **Usage** drop down list (SIGNING for signing certificates)
     
        2. Select the X-Road member the certificate will be issued for from the **Client** drop-down list
     
        3. Select the issuer of the certificate from the **Certification Service** drop-down list
     
-       4. Select the format of the certificate signing request (PEM or DER), according to the certification service provider’s requirements
+       4. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
     
-       5. Click **Continue**
+       5. Click **CONTINUE**
     
     3. In the dialog that opens 
     
-       1. Review the certificate owner’s information that will be included in the CSR and fill in the empty fields, if needed
+       1. Review the certificate owner's information that will be included in the CSR and fill in the empty fields, if needed
     
-       2. Click **Generate CSR**
+       2. Click **GENERATE CSR**
     
-       3. Click **Done**
+       3. Click **DONE**
 
-After the generation of the CSR, a “Request” record is added under the key’s row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
+After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
 
 **To certify the signing key, transmit the certificate signing request to the approved certification service provider and accept the signing certificate created from the certificate signing request.**
 
@@ -417,7 +417,7 @@ To import the signing certificate to the security server, follow these steps.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  Click **Import certificate**.
+3.  Click **IMPORT CERT.**.
 
 4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the signing key's row is replaced with the information from the imported certificate. By default, the signing certificate is imported in the "Registered" state.
 
@@ -434,7 +434,7 @@ To import a certificate from a security token, follow these steps.
 
 3.  Make sure that a key device containing the signing key and the signing certificate is connected to the security server. The device and the keys and certificates stored on the device must be displayed in the **Keys and Certificates** view.
 
-4.  To log in to the security token, click **Enter PIN** on the token’s row in the table and enter the PIN. Once the correct PIN is entered, the **Enter PIN** button changes to **Logout**.
+4.  To log in to the security token, click **LOG IN** on the token's row in the table and enter the PIN. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
 5.  Click the **Import** button on the row of the certificate. By default, the certificate is imported in the "Registered" state.
 
@@ -456,7 +456,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 1.  In the **Navigation tabs**, select **Keys and Certificates**.
 
-2.  To log in to the software token, click **LOG IN** on the token’s row in the table and enter the token’s PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
+2.  To log in to the software token, click **LOG IN** on the token's row in the table and enter the token's PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
 3.  Show more details about the token by clicking the caret next to the token name.
 
@@ -466,17 +466,17 @@ The **background colors** of the devices, keys and certificate are explained in 
     
     2. In the dialog page that opens
     
-       1. Select the certificate usage policy from the Usage drop down list (AUTHENTICATION for authentication certificates)
+       1. Select the certificate usage policy from the **Usage** drop down list (AUTHENTICATION for authentication certificates)
     
        2. Select the issuer of the certificate from the **Certification Service** drop-down list
     
-       3. Select the format of the certificate signing request (PEM or DER), according to the certification service provider’s requirements
+       3. Select the format of the certificate signing request (PEM or DER) from the **CSR Format** drop-down list, according to the certification service provider's requirements
     
        4. Click **CONTINUE**
     
     3. In the dialog that opens 
     
-       1. Review the certificate owner’s information that will be included in the CSR and fill in the empty fields, if needed
+       1. Review the certificate owner's information that will be included in the CSR and fill in the empty fields, if needed
     
        2. Click **GENERATE CSR**
     
@@ -499,7 +499,7 @@ To generate a certificate signing request (CSR) for the authentication key, foll
 
     2.2  select the issuer of the certificate from the **Certification Service** drop-down list;
 
-    2.3  select the format of the certificate signing request (PEM or DER), according to the certification service provider’s requirements
+    2.3  select the format of the certificate signing request (PEM or DER), according to the certification service provider's requirements
 
     2.4  click **CONTINUE**;
 
@@ -509,7 +509,7 @@ To generate a certificate signing request (CSR) for the authentication key, foll
 
 5. Click **DONE**
 
-After the generation of the CSR, a “Request” record is added under the key’s row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
+After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
 
 **To certify the authentication key, transmit the certificate signing request to the approved certification service provider and accept the authentication certificate created from the certificate signing request.**
 
@@ -526,7 +526,7 @@ To import the authentication certificate to the security server, follow these st
 
 3.  Click **Import certificate**.
 
-4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the authentication key's row is replaced with the information from the imported certificate. By default, the certificate is imported in the “Saved” (see Section [5.2.2](#522-registration-states-of-the-authentication-certificate)) and “Disabled” states (see Section [5.3](#53-validity-states-of-certificates)).
+4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the authentication key's row is replaced with the information from the imported certificate. By default, the certificate is imported in the "Saved" (see Section [5.2.2](#522-registration-states-of-the-authentication-certificate)) and "Disabled" states (see Section [5.3](#53-validity-states-of-certificates)).
 
 
 ### 3.3 Registering the Security Server in the X-Road Governing Authority
@@ -544,7 +544,7 @@ To register the security server in the X-Road governing authority, the following
 
 **Access rights:** [Security Officer](#xroad-security-officer)
 
-The security server's registration request is signed in the security server with the server owner's signing key and the server's authentication key. Therefore, ensure that the corresponding certificates are imported to the security server and are in a usable state (the tokens holding the keys are in logged in state and the OCSP status of the certificates is “good”).
+The security server's registration request is signed in the security server with the server owner's signing key and the server's authentication key. Therefore, ensure that the corresponding certificates are imported to the security server and are in a usable state (the tokens holding the keys are in logged in state and the OCSP status of the certificates is "good").
 
 To submit an authentication certificate registration request, follow these steps.
 
@@ -556,9 +556,9 @@ To submit an authentication certificate registration request, follow these steps
 
 4.  In the dialog that opens, enter the security server's public DNS name or its external IP address and click **ADD**.
 
-On submitting the request, the message "Certificate registration request successful" is displayed, and the authentication certificate’s state is set to "Registration in process".
+On submitting the request, the message "Certificate registration request successful" is displayed, and the authentication certificate's state is set to "Registration in process".
 
-After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to “Registered” and the registration process is completed.
+After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to "Registered" and the registration process is completed.
 
 ### 3.4 Changing the Security Server Owner
 
@@ -629,9 +629,9 @@ The security server distinguishes between the following client states.
 
 ![](img/ug-ss_saved.png) **Saved** – the client's information has been entered and saved into the security server's configuration (see [4.2](#42-adding-a-security-server-client)), but the association between the client and the security server is not registered in the X-Road governing authority. (If the association is registered in the central server prior to the entry of data, the client will move to the "Registered" state upon data entry.) From this state, the client can move to the following states:
 
--   “Registration in progress”, if a registration request for the client is submitted from the security server (see [4.4.1](#441-registering-a-security-server-client));
+-   "Registration in progress", if a registration request for the client is submitted from the security server (see [4.4.1](#441-registering-a-security-server-client));
 
--   “Deleted”, if the client's information is deleted from the security server configuration (see [4.5.2](#452-deleting-a-client)).
+-   "Deleted", if the client's information is deleted from the security server configuration (see [4.5.2](#452-deleting-a-client)).
 
 ![](img/ug-ss_registration_in_progress.png) **Registration in progress** – a registration request for the client is submitted from the security server to the central server, but the association between the client and the security server is not yet approved by the X-Road governing authority. From this state, the client can move to the following states:
 
@@ -664,7 +664,7 @@ The security server distinguishes between the following client states.
 
 Follow these steps.
 
-1.  In the **Clients** view, click **Add client**.
+1.  In the **CLIENTS** view, click **ADD CLIENT**.
 
 2.  In the wizard that opens
     
@@ -687,9 +687,9 @@ The new client is added to the list of security server clients in the "Saved" st
 
 A signing key and certificate must be configured for the security server client to sign messages exchanged over the X-Road. In addition, a signing key and certificate are required for registering a security server client.
 
-Certificates are not issued to subsystems; therefore, the certificate of the subsystem’s owner (that is, an X-Road member) is used for the subsystem.
+Certificates are not issued to subsystems; therefore, the certificate of the subsystem's owner (that is, an X-Road member) is used for the subsystem.
 
-All particular X-Road member’s subsystems that are registered in the same security server use the same signing certificate for signing messages. Hence, if the security server already contains the member's signing certificate, it is not necessary to configure a new signing key and/or certificate when adding a subsystem of that member.
+All particular X-Road member's subsystems that are registered in the same security server use the same signing certificate for signing messages. Hence, if the security server already contains the member's signing certificate, it is not necessary to configure a new signing key and/or certificate when adding a subsystem of that member.
 
 The process of configuring the signing key and certificate for a security server client is the same as for the security server owner. The process is described in Section [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner).
 
@@ -719,9 +719,9 @@ To submit a client registration request follow these steps.
 
 3.  Click **Yes** to submit the request.
 
-On submitting the request, the message "Request sent" is displayed, and the client’s state is set to "Registration in process".
+On submitting the request, the message "Request sent" is displayed, and the client's state is set to "Registration in process".
 
-After the X-Road governing authority has accepted the registration, the state of the client is set to “Registered” and the registration process is completed.
+After the X-Road governing authority has accepted the registration, the state of the client is set to "Registered" and the registration process is completed.
 
 
 ### 4.5 Deleting a Client from the Security Server
@@ -792,7 +792,7 @@ Registration states indicate if and how a certificate can be used in the X-Road 
 
 A security server signing certificate can be in one of the following registration states.
 
--   **Registered** – the certificate has been imported to the security server and saved to its configuration. A signing certificate in a “Registered” state can be used for signing X-Road messages.
+-   **Registered** – the certificate has been imported to the security server and saved to its configuration. A signing certificate in a "Registered" state can be used for signing X-Road messages.
 
 -   **Deleted** – the certificate has been deleted from the server configuration. If the certificate is in the "Deleted" state and stored on a soft token key, the certificate will not be displayed in the table. If the certificate is in the "Deleted" state and stored on a hardware key device connected to the security server, the certificate status will be displayed with a **red circle** and a hyphen **-**.
 
@@ -834,7 +834,7 @@ Validity states indicate if and how a certificate can be used independent of the
 
 A security server certificate can be in one of the following validity states.
 
--   **Unknown** (validity information missing) – the certificate does not have a valid OCSP response (the OCSP response validity period is set by the X-Road governing authority) or the last OCSP response was either “unknown” (the responder doesn't know about the certificate being requested) or an error.
+-   **Unknown** (validity information missing) – the certificate does not have a valid OCSP response (the OCSP response validity period is set by the X-Road governing authority) or the last OCSP response was either "unknown" (the responder doesn't know about the certificate being requested) or an error.
 
 -   **Suspended** – the last OCSP response about the certificate was "suspended".
 
@@ -855,7 +855,7 @@ A security server certificate can be in one of the following validity states.
 
 -   For signing certificates: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
-Disabled certificates are not used for signing messages or for establishing secure channels between security servers (authentication). If a certificate is disabled, its status in the “OCSP” column in the “Keys and Certificates” table is “Disabled”.
+Disabled certificates are not used for signing messages or for establishing secure channels between security servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled".
 
 To activate or disable a certificate, follow these steps.
 
@@ -989,23 +989,23 @@ When a new WSDL file is added, the security server reads service information fro
 
 **To see a list of services contained in the WSDL**
 
--   click the arrow symbol in front of the WSDL service url to expand the list.
+-   click the caret next to the WSDL service url to expand the list.
 
 #### 6.1.2 REST
 
-After a new REST service is added, the security server displays text 'REST' and url for that service.
+After a new REST service is added, the security server displays text "REST" and url for that service.
 
 **To add a REST service**, follow these steps.
 
 1.  Navigate to **Clients** tab, click the name of the client for which you wish to add REST service to and click the **Services** tab. 
 
-3.  Click **ADD REST**. Select whether the URL type is REST API base path or OpenAPI 3 description. Enter the url and service code in the window that opens and click **ADD**.
+3.  Click **ADD REST**. Select whether the URL type is "REST API Base Path" or "OpenAPI 3 Description". Enter the url and service code in the window that opens and click **ADD**.
 
 4.  Once the window is closed, the url and the service code are added to the service list. If the added URL type was OpenAPI 3 description, the service description is parsed and endpoints are added under the service. By default, the REST service is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see the service details under the REST service**
 
--   Click the arrow symbol in front of the REST row to expand the service details.
+-   click the caret on the REST service description row to expand the service details.
 
 ### 6.2 Refreshing a service description
 
@@ -1021,14 +1021,14 @@ To refresh the service description, follow these steps.
 
 3.  If the new service description contains changes compared to the current service description in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
 
-When the service description is refreshed, the existing services’ settings are not overwritten.
+When the service description is refreshed, the existing services' settings are not overwritten.
 
 
 ### 6.3 Enabling and Disabling a service description
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-A disabled service description is displayed in the services’ list with a disabled switch icon on the same row.
+A disabled service description is displayed in the services' list with a disabled switch icon on the same row.
 
 Services described by a disabled service description cannot be accessed by the service clients – if an attempt is made to access the service, an error message is returned, containing the information entered by the security server's administrator when the service description was disabled.
 
@@ -1038,15 +1038,9 @@ To **enable** or **disable** a service description, follow these steps.
 
 1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
 
-2. Click the switch icon on the same row with service WSDL or REST service you wish to enable
+2. Click the switch icon on the same row with service WSDL or REST service you wish to enable or disable
 
-To **disable** a service description, follow these steps.
-
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
-
-2. Click the switch icon on the same row with service WSDL or REST service you wish to disable
-
-3.  In the window that opens, enter an error message, which is shown to clients who try to access any of the services in the service description, and click **OK**.
+(3.) If the service was disabled a popup will appear. In the popup, enter a Disable notice which is shown to clients who try to access any of the services in the service description, and click **OK**.
 
 
 ### 6.4 Changing the Address of a service description
@@ -1181,11 +1175,11 @@ To add a service client, follow these steps.
 
 1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Service Clients** tab. 
 
-2.  Click **ADD SUBJECTS** and in the wizard that opens
+2.  Click **ADD SUBJECT**. In the following wizard that opens
     
-    1. Select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **Next**
+    1. Select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **NEXT**
     
-    2.  Select service(s) whose access rights you want to grant to the selected subject. Click **Add Selected** to grant access rights to the selected services to this subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
+    2. Select service(s) whose access rights you want to grant to the selected subject. Click **ADD SELECTED** to grant access rights to the selected services to this subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 The subject is added to the list of service clients, after which the service clients view is displayed.
 
@@ -1237,13 +1231,13 @@ To **view the members** of a local group, follow these steps.
 
 2.  In the view that opens click the code of the group you wish to edit.
 
-To **add one or more members** to a local group, follow these steps in the group’s detail view.
+To **add one or more members** to a local group, follow these steps in the group's detail view.
 
 1.  Click **Add Members**.
 
 2.  In the window that opens add optional filters to your members search and click **Search**. Select the subsystems that you wish to add to the group and click **Add Selected**.
 
-To **remove members** from a local group, click **Remove** on the corresponding row on group you wish to be deleted in the group’s detail view and then click **Yes** in the confirmation dialog. To remove all group members from the group, click **Remove All** and then click **Yes** in the confirmation dialog.
+To **remove members** from a local group, click **Remove** on the corresponding row on group you wish to be deleted in the group's detail view and then click **Yes** in the confirmation dialog. To remove all group members from the group, click **Remove All** and then click **Yes** in the confirmation dialog.
 
 
 ### 8.3 Changing the description of a Local Group
@@ -1286,7 +1280,7 @@ A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to co
 
 -   The HTTPS NOAUTH protocol should be used if you want the security server to skip the verification of the information system TLS certificate.
 
-   *Note:* If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client’s internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
+   *Note:* If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client's internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
 
 **By default the connection type for all the security server clients is set to HTTPS to prevent unauthorised use of the clients.**
 
@@ -1312,14 +1306,14 @@ The connection method for internal network servers in the **service provider rol
 
 4.  Click on a service code in the table.
     
-5.  In the view that opens, change the protocol in the service URL to HTTP or HTTPS.
+5.  In the view that opens, change the protocol in the service URL to HTTP, HTTPS or HTTPS NO AUTH.
     If the HTTPS protocol was selected, select the **Verify TLS certificate** checkbox if needed (see section [6.6](#66-changing-the-parameters-of-a-service)). According to the service parameters, the connection with the internal network server is created using one the following protocols:
 
--   HTTP – the service/adapter URL begins with “**http:**//...”.
+-   HTTP – the service/adapter URL begins with "**http:**//...".
 
--   HTTPS – the service/adapter URL begins with “**https**://” and the **Verify TLS certificate** checkbox is selected.
+-   HTTPS – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is selected.
 
--   HTTPS NOAUTH – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is not selected.
+-   HTTPS NO AUTH – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is not selected.
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
@@ -1327,7 +1321,7 @@ To add an internal TLS certificate for a security server owner or security serve
 
 2.  In the view that opens, select the **Internal Servers** tab
 
-3.  To add a certificate, click **Add** in the **Information System TLS certificate** section, select a certificate file from the local file system and click **OK**. The certificate fingerprint appears in the “Information System TLS certificate” table.
+3.  To add a certificate, click **Add** in the **Information System TLS certificate** section, select a certificate file from the local file system and click **OK**. The certificate fingerprint appears in the "Information System TLS certificate" table.
 
 To display the detailed information of an internal TLS certificate, follow these steps.
 
@@ -1335,7 +1329,7 @@ To display the detailed information of an internal TLS certificate, follow these
 
 2.  In the view that opens, select the **Internal Servers** tab
 
-3.  Click on a certificate in the “Information System TLS certificate”.
+3.  Click on a certificate in the "Information System TLS certificate".
 
 To delete an internal TLS certificate, follow these steps.
 
@@ -1343,7 +1337,7 @@ To delete an internal TLS certificate, follow these steps.
 
 2.  In the view that opens, select the **Internal Servers** tab
 
-3.  Click on a certificate in the “Information System TLS certificate”.
+3.  Click on a certificate in the "Information System TLS certificate".
 
 4. In the **Certificate** view that opens, click **Delete**. Confirm deletion by clicking **YES**.
 
@@ -1385,7 +1379,7 @@ To upload the configuration anchor, follow these steps.
 
 3.  In the **Configuration Anchor** section, click **UPLOAD**.
 
-4.  Find the anchor file from the local file system and click **Upload**.
+4.  Find the anchor file from the local file system and click **Open**.
 
 5.  Ensure that the anchor file you are uploading is valid by comparing the hash value of the uploaded file with the hash value of the currently valid anchor published by the X-Road governing authority. If the hash values match, confirm the upload by clicking **CONFIRM**.
 
@@ -1427,7 +1421,7 @@ To delete a timestamping service, follow these steps.
 
 **Access rights:** [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
 
-_To change the security server’s internal TLS key and certificate_, follow these steps.
+_To change the security server's internal TLS key and certificate_, follow these steps.
 
 1. On the **Navigation tabs**, select **Keys and Certificates
 
@@ -1435,23 +1429,23 @@ _To change the security server’s internal TLS key and certificate_, follow the
 
 3. In the opening view, click **GENERATE KEY** and in the dialog that opens, click **CONFIRM**.
 
-   The security server generates a key used for communication with the client information systems, and the corresponding self-signed certificate. The security server's certificate fingerprint will also change. The security server's domain name is saved to the certificate's *Common Name* field, and the internal IP address to the *subjectAltName* extension field.
+   The security server generates a key used for communication with the client information systems, and the corresponding self-signed certificate. The security server's certificate fingerprint will also change. The security server's domain name is saved to the certificate's **Common Name** field, and the internal IP address to the **subjectAltName** extension field.
 
 _To generate a new certificate request_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates
+1. On the **Navigation tabs**, select **Keys and Certificates**
 
 2. In the opening view, select **Security Server TLS Key** tab
 
-3. In the “TLS Key and Certificate” section, at the end of the key row, click **Generate CSR**
+3. In the "TLS Key and Certificate" section, at the end of the key row, click **Generate CSR**
 
-4. In the opening view, input the **Distinguished Name** and click "GENERATE CSR". Save the certificate request file to the local file system and click **DONE**.
+4. In the opening view, input the **Distinguished Name** and click **GENERATE CSR**. Save the certificate request file to the local file system and click **DONE**.
 
    The security server generates a certificate request using the current key and the provided **Distinguished Name**.
 
 _To import a new TLS certificate_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates
+1. On the **Navigation tabs**, select **Keys and Certificates**
 
 2. In the opening view, select **Security Server TLS Key** tab
 
@@ -1461,9 +1455,9 @@ _To import a new TLS certificate_, follow these steps.
 
    Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
 
-_To export the security server’s internal TLS certificate_, follow these steps.
+_To export the security server's internal TLS certificate_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates
+1. On the **Navigation tabs**, select **Keys and Certificates**
 
 2. In the opening view, select **Security Server TLS Key** tab
 
@@ -1471,13 +1465,13 @@ _To export the security server’s internal TLS certificate_, follow these steps
 
    Note that only the internal server certificate is exported, not the possible intermediate certificates.
 
-_To view the detailed information of the security server’s internal TLS certificate_, follow these steps.
+_To view the detailed information of the security server's internal TLS certificate_, follow these steps.
 
 1. On the **Navigation tabs**, select **Keys and Certificates
 
 2. In the opening view, select **Security Server TLS Key** tab
 
-3. In the “TLS Key and Certificate” section, click on the certificate hash.
+3. In the "TLS Key and Certificate" section, click on the certificate hash.
 
 ### 10.4 Approved Certificate Authorities
 
@@ -1632,7 +1626,7 @@ The message log database can be located outside of the security server. The foll
 
 ## 12 Audit Log
 
-The security server keeps an audit log. The audit log events are generated by the user interface when the user changes the system’s state or configuration. The user actions are logged regardless of whether the outcome was a success or a failure. The complete list of the audit log events is described in \[[SPEC-AL](#Ref_SPEC-AL)\].
+The security server keeps an audit log. The audit log events are generated by the user interface when the user changes the system's state or configuration. The user actions are logged regardless of whether the outcome was a success or a failure. The complete list of the audit log events is described in \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 Actions that change the system state or configuration but are not carried out using the user interface are not logged (for example, X-Road software installation and upgrade, user creation and permission granting, and changing the configuration files).
 
@@ -1709,7 +1703,7 @@ The X-Road software does not offer special tools for archiving the audit log. Th
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
-The backup and restore view can be accessed from the **Management** menu by selecting **Back Up and Restore**.
+The backup and restore view can be accessed from the **Navigation tabs** by selecting **Back Up and Restore**.
 
 To **back up configuration**, follow these steps.
 
@@ -1719,13 +1713,13 @@ To **back up configuration**, follow these steps.
 
 3.  The configuration backup file appears in the list of configuration backup files.
 
-4.  To save the configuration backup file to the local file system, click **Download** on the configuration file’s row.
+4.  To save the configuration backup file to the local file system, click **Download** on the configuration file's row.
 
 To **restore configuration**, follow these steps.
 
 1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **Yes**.
 
-2.  A popup notification shows after the restore whether the restoring was successfull or not.
+2.  A popup notification shows after the restore whether the restoring was successful or not.
 
 If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
@@ -1776,7 +1770,7 @@ On this page you can examine the statuses of the following services:
 
  Service              | Status           | Message        | Previous Update          | Next Update
 --------------------- | ---------------- | -------------- | ------------------------ | ------------------------
- Global configuration | Green/yellow/red | Status message | The time of the global configuration client’s last run | The estimated time of the global configuration client’s next run
+ Global configuration | Green/yellow/red | Status message | The time of the global configuration client's last run | The estimated time of the global configuration client's next run
  Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                   
  OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh
 
@@ -1904,7 +1898,7 @@ To make a security server communicate with an external operational monitoring da
 
 By default, the operational monitoring daemon listens on localhost. To make the daemon available to security servers on other hosts, the listening address must be set to the IP address that is relevant in the particular network, as described in the previous section.
 
-As advised, the scheme parameter should be set to “https”. For communication over HTTPS, the security server and the operational monitoring daemon must know each other’s TLS certificates to enable the security server to authenticate to the monitoring daemon successfully.
+As advised, the scheme parameter should be set to "https". For communication over HTTPS, the security server and the operational monitoring daemon must know each other's TLS certificates to enable the security server to authenticate to the monitoring daemon successfully.
 
 **NOTE:** If an external operational monitoring daemon is used, the host, scheme (and optionally, port) parameters must be changed at both hosts.
 

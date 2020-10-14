@@ -904,7 +904,7 @@ The steps are in more detail below, but in short, the procedure is:
    ```
 
 2. <a name="master-upgrade-step-2">Check</a> that the master is no longer processing requests and stop the X-Road services
-   (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-monitor`) on the master node. You can read
+   (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-monitor`, `xroad-proxy-ui-api`) on the master node. You can read
    more about the services in the Security Server User Guide
    \[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 
