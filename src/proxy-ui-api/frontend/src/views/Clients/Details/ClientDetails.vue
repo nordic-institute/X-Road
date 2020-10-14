@@ -80,8 +80,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { RouteName, UsageTypes } from '@/global';
-import { TokenCertificate } from '@/openapi-types';
+import { RouteName } from '@/global';
+import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
@@ -102,7 +102,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: cert.certificate_details.hash,
-          usage: UsageTypes.SIGNING,
+          usage: KeyUsageType.SIGNING,
         },
       });
     },

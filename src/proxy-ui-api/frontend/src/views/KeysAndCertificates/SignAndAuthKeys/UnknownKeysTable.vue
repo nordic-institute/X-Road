@@ -68,8 +68,8 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key } from '@/openapi-types';
-import { Permissions, PossibleActions } from '@/global';
+import { Key, PossibleAction } from '@/openapi-types';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -107,8 +107,8 @@ export default Vue.extend({
       }
 
       if (
-        key.possible_actions?.includes(PossibleActions.GENERATE_AUTH_CSR) ||
-        key.possible_actions?.includes(PossibleActions.GENERATE_SIGN_CSR)
+        key.possible_actions?.includes(PossibleAction.GENERATE_AUTH_CSR) ||
+        key.possible_actions?.includes(PossibleAction.GENERATE_SIGN_CSR)
       ) {
         return false;
       }
