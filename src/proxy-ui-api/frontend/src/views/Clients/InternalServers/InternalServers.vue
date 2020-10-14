@@ -46,7 +46,7 @@
         <file-upload
           v-if="canAddTlsCert"
           accepts=".pem, .cer, .der"
-          @fileChanged="onFileChange"
+          @file-changed="onFileChange"
           v-slot="{ upload }"
         >
           <v-btn

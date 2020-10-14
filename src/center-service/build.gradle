@@ -1,13 +1,14 @@
 dependencies {
-    compile project(':common-ui')
+    implementation  project(':common-util')
+    implementation  project(':common-ui')
 
-    compile project(':common-verifier')
-    compile project(':signer-protocol')
+    implementation  project(':common-verifier')
+    implementation  project(':signer-protocol')
 
-    compile 'org.postgresql:postgresql:42.2.16'
-    compile 'commons-configuration:commons-configuration:1.10'
+    implementation  'org.postgresql:postgresql:42.2.16'
+    implementation  'commons-configuration:commons-configuration:1.10'
 
-    testCompile project(':common-util').sourceSets.test.output
+    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
 }
 
 clean {
@@ -54,7 +55,7 @@ task copyCenterCommon {
 
 task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
     into "$buildDir/libs"
-    from configurations.compile
+    from configurations.runtimeClasspath
 }
 
 // Runs the migration steps on the database.

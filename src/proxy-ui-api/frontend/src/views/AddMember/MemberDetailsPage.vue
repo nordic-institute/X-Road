@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
           labelText="wizard.memberName"
@@ -63,7 +63,7 @@
           v-slot="{}"
         >
           <v-select
-            :items="memberClasses"
+            :items="memberClassesCurrentInstance"
             class="form-input"
             v-model="memberClass"
             data-test="member-class-input"
@@ -144,7 +144,12 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedMember', 'memberClasses', 'selectedMemberName']),
+    ...mapGetters([
+      'reservedMember',
+      'memberClassesCurrentInstance',
+      'selectedMemberName',
+      'currentSecurityServer',
+    ]),
 
     memberClass: {
       get(): string {
@@ -253,7 +258,10 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableMembers');
+    this.$store.dispatch(
+      'fetchSelectableMembers',
+      that.currentSecurityServer.instance_id,
+    );
   },
 
   watch: {
@@ -286,7 +294,7 @@ export default Vue.extend({
       this.checkClient();
     },
 
-    memberClasses(val): void {
+    memberClassesCurrentInstance(val): void {
       // Set first member class selected as default when the list is updated
       if (val?.length === 1) {
         this.memberClass = val[0];

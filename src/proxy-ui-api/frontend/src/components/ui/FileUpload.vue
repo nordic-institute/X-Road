@@ -83,7 +83,7 @@ export default Vue.extend({
         if (!e?.target?.result || !files) {
           return;
         }
-        this.$emit('fileChanged', {
+        this.$emit('file-changed', {
           buffer: e.target.result as ArrayBuffer,
           file: file,
         } as FileUploadResult);

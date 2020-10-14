@@ -23,46 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { AccessRight, Service, ServiceDescription } from '@/openapi-types';
 
-/**
- * Sorting function for comparing Services by (full) service codes
+/*
+ * Use this function to display Unicode escape sequences (e.g. \007d) as a value in css properties.
+ * For example: `#close-x:before { content: unicode('00d7') }`, to display a 'close' symbol (x) in dialogs.
+ * If done in regular way: `#close-x:before { content: '\00d7' }`, SASS will compile the escape sequence into
+ * the real Unicode value which might be displayed wrongly in some browsers depending on the character
+ * encoding of the system.
  */
-export const compareByServiceCode = (a: Service, b: Service): number => {
-  if (a.full_service_code && b.full_service_code) {
-    return a.full_service_code.localeCompare(b.full_service_code);
-  }
-
-  // fallback to comparing with service code - shouldn't come to this
-  return a.service_code.localeCompare(b.service_code);
-};
-
-/**
- * Sort services ascending by full service code
- */
-export const sortServicesAscendingByFullServiceCode = (
-  services: Service[],
-): Service[] => {
-  return services.sort(compareByServiceCode);
-};
-
-/**
- * Sort services in ServiceDescription
- */
-export const sortServiceDescriptionServices = (
-  sd: ServiceDescription,
-): ServiceDescription => {
-  sd.services = sortServicesAscendingByFullServiceCode(sd.services);
-  return sd;
-};
-
-/**
- * Sort access rights by service code
- */
-export const sortAccessRightsByServiceCode = (
-  acls: AccessRight[],
-): AccessRight[] => {
-  return acls.sort((a: AccessRight, b: AccessRight) => {
-    return a.service_code.localeCompare(b.service_code);
-  });
-};
+@function unicode($str) {
+  @return unquote('"') + unquote(str-insert($str, '\\', 1)) + unquote('"');
+}
