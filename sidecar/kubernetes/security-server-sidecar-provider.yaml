@@ -61,7 +61,7 @@ spec:
           value: "{{XROAD_DB_PWD}}"
         - name: XROAD_LOG_LEVEL
           value: "{{XROAD_LOG_LEVEL}}"
-       
+
         ports:
         - containerPort: 80
         - containerPort: 443

@@ -16,6 +16,8 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/services/local.conf
     cp -a /tmp/*logback* /etc/xroad/conf.d/
     chown xroad:xroad /etc/xroad/conf.d/
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 fi
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -88,18 +90,27 @@ then
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
-        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
-        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         pg_ctlcluster 10 main stop
         nginx -s stop
     fi
 fi
+
+#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+
+#Configure master pod for balanacer
+sudo adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
+sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys &&
+crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
+chown xroad:xroad /etc/xroad/conf.d/node.ini &&
+crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface '0.0.0.0' &&
+crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port '5588' &&
+crudini --set /etc/xroad/conf.d/local.ini proxy server-support-clients-pooled-connections 'false' &&
+cat /etc/.ssh/id_rsa.pub >> /home/xroad-slave/.ssh/authorized_keys &&
+sudo /etc/init.d/ssh restart
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

@@ -16,6 +16,8 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/services/local.conf
     cp -a /tmp/*logback* /etc/xroad/conf.d/
     chown xroad:xroad /etc/xroad/conf.d/
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 fi
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -100,6 +102,21 @@ then
         nginx -s stop
     fi
 fi
+
+#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+
+#Configure master pod for balanacer
+echo 'Configure master pod'
+
+sudo adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
+sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys &&
+crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
+chown xroad:xroad /etc/xroad/conf.d/node.ini &&
+crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface '0.0.0.0' &&
+crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port '5588' &&
+crudini --set /etc/xroad/conf.d/local.ini proxy server-support-clients-pooled-connections 'false' &&
+cat /etc/.ssh/id_rsa.pub >> /home/xroad-slave/.ssh/authorized_keys &&
+sudo /etc/init.d/ssh restart
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

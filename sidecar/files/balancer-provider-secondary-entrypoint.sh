@@ -16,6 +16,8 @@ if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     chown xroad:xroad /etc/xroad/services/local.conf
     cp -a /tmp/*logback* /etc/xroad/conf.d/
     chown xroad:xroad /etc/xroad/conf.d/
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0
+    crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
 fi
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -44,7 +46,7 @@ fi
 user_exists=$(id -u ${XROAD_ADMIN_USER} > /dev/null 2>&1)
 if [ $? != 0 ]
 then
-    echo "Creating admin user with user-supplied credentials"
+    echo "Creating admin user with user-supplied credentials"sed -i -e 's/few/asd/g' hello.txt
     useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
     echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
     echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
@@ -100,6 +102,44 @@ then
         nginx -s stop
     fi
 fi
+
+#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+
+#Configure node pod for balanacer
+crudini --set /etc/xroad/conf.d/node.ini node type 'slave' &&
+chown xroad:xroad /etc/xroad/conf.d/node.ini  &&
+/etc/init.d/ssh restart &&
+crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' &&
+groupdel xroad-security-officer  &&
+groupdel xroad-registration-officer  &&
+groupdel xroad-service-administrator  &&
+groupdel xroad-system-administrator
+
+#Try rsync until success
+RC=1
+while [[ $RC -ne 0 ]]
+do
+ sleep 5
+ rsync -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log  xroad-slave@${XROAD_PRIMARY_DNS}:/etc/xroad/ /etc/xroad/
+ RC=$?
+done
+
+#Create cron job for rsync every minute
+rm -f /etc/cron.d/xroad-state-sync &&
+rm -f /etc/cron.d/xroad-proxy &&
+rm -f /etc/cron.d/sysstat &&
+echo "* * * * * root rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_PRIMARY_DNS:/etc/xroad/ /etc/xroad/ 2>&1" > /etc/cron.d/xroad-state-sync &&
+chown root:root /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync &&
+echo "
+/var/log/xroad/slave-sync.log {
+        daily
+        rotate 7
+        missingok
+        compress
+        su xroad xroad
+        nocreate
+}
+" >> /etc/logrotate.d/xroad-slave-sync
 
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
