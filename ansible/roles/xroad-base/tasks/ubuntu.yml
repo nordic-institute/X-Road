@@ -32,7 +32,7 @@
     path: /etc/apt/sources.list.d/xroad.list
     state: absent
 
-- name: xroad bionic apt repository
+- name: xroad apt repository
   apt_repository:
     repo: "{{ubuntu_apt_repo}}"
     state: present
