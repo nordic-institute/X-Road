@@ -58,7 +58,7 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
             log.warn("db.properties file not found", ioe);
         }
 
-        for (String propertyName: dbProperties.stringPropertyNames()) {
+        for (String propertyName : dbProperties.stringPropertyNames()) {
             // currently we have just one datasource, and convert
             // e.g. serverconf.hibernate.jdbc.use_streams_for_binary
             // into hibernate.jdbc.use_streams_for_binary
@@ -72,7 +72,7 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
         // go through system properties, and apply relevant hibernate properties from there
         // (as in old implementation)
         Properties systemProperties = System.getProperties();
-        for (String systemProperty: systemProperties.stringPropertyNames()) {
+        for (String systemProperty : systemProperties.stringPropertyNames()) {
             if (isServerConfProperty(systemProperty) && canBeCustomized(systemProperty)) {
                 hibernateProperties.put(removeServerConfPartFromName(systemProperty),
                         systemProperties.getProperty(systemProperty));
@@ -81,14 +81,14 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
     }
 
     private boolean canBeCustomized(String propertyName) {
-        if (propertyName.contains("hibernate.connection")) {
-            log.info("property {} cant be configured with HibernatePropertiesCustomizer, "
+        if (propertyName.contains("hibernate.connection") || propertyName.contains("hibernate.hikari")) {
+            log.debug("property {} can't be configured with HibernatePropertiesCustomizer, "
                     + "it is handled in datasource configuration instead", propertyName);
             return false;
         }
         if (propertyName.contains("hibernate.dialect")) {
-            log.info("property {} cant be configured with HibernatePropertiesCustomizer, "
-                    + "Hibernate dialect is fixed");
+            log.debug("property {} can't be configured with HibernatePropertiesCustomizer, "
+                    + "Hibernate dialect is fixed", propertyName);
             return false;
         }
         return true;
@@ -99,6 +99,7 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
     }
 
     private static final String SERVER_CONF_PROPERTY_PREFIX = "serverconf.";
+
     private boolean isServerConfProperty(String propertyName) {
         return propertyName.startsWith(SERVER_CONF_PROPERTY_PREFIX);
     }
