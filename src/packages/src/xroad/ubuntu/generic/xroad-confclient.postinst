@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 umask 027
 
 if [ "$1" = configure ]; then

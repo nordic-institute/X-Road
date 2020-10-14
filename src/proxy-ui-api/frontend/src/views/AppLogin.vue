@@ -190,23 +190,33 @@ export default (Vue as VueConstructor<
     },
 
     fetchInitializationData() {
+      const redirectToLogin = () => {
+        // Logout without page refresh
+        this.$store.dispatch('logout', false);
+        // Clear inputs
+        this.username = '';
+        this.password = '';
+        this.$refs.form.reset();
+      };
+
       this.$store
         .dispatch('fetchInitializationStatus')
         .then(
           () => {
-            if (this.$store.getters.needsInitialization) {
+            if (!this.$store.getters.hasInitState) {
+              this.$store.dispatch(
+                'showErrorMessageCode',
+                'initialConfiguration.noInitializationStatus',
+              );
+              redirectToLogin();
+            } else if (this.$store.getters.needsInitialization) {
               // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                 this.$store.dispatch(
                   'showErrorMessageCode',
                   'initialConfiguration.noPermission',
                 );
-                // Logout without page refresh
-                this.$store.dispatch('logout', false);
-                // Clear inputs
-                this.username = '';
-                this.password = '';
-                this.$refs.form.reset();
+                redirectToLogin();
 
                 return;
               }

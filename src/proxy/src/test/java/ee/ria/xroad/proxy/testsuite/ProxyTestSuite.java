@@ -257,6 +257,10 @@ public final class ProxyTestSuite {
                 t.setFailed(true);
 
                 log.info("TESTCASE FAILED: " + t.getId(), e);
+            } catch (Error e) {
+                t.setFailed(true);
+                log.error("TESTCASE FAILED: " + t.getId(), e);
+                throw e;
             } finally {
                 // We close all idle connections after each testcase to provide
                 // clean connection pool for the next testcase. This comes

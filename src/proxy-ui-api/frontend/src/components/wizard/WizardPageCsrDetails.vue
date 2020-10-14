@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="row-wrap">
         <div class="label">
           {{ $t('csr.usage') }}

@@ -1,4 +1,5 @@
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+testJar.enabled = true
 
 sourceSets {
     main {
@@ -12,8 +13,8 @@ configurations {
 }
 
 dependencies {
-    compile project(':common-util')
-    testCompile project(':common-test').sourceSets.main.output
+    implementation project(':common-util')
+    testImplementation project(':common-test')
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }
@@ -24,7 +25,7 @@ task createDirs() {
     }
 }
 
-task xjc {
+task xjc(dependsOn: ':common-util:xjc') {
     inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
@@ -66,8 +67,3 @@ xjc.mustRunAfter processResources
 
 compileJava.dependsOn xjc
 compileJava.dependsOn processResources
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}

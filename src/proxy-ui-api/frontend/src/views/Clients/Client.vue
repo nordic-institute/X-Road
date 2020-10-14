@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
-    <v-flex mb-4 class="title-action">
+    <v-flex mb-4 class="title-action identifier-wrap">
       <h1 v-if="client && client.owner" class="display-1 mb-3">
         {{ client.member_name }} ({{ $t('client.owner') }})
       </h1>

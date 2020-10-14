@@ -1,6 +1,12 @@
 dependencies {
-    compile project(':signer')
+    //"shadow" includes also transitive deps
+    implementation(project(path: ':signer', configuration: 'shadow'))
+
+    //workaround for Idea
+    implementation(project(':signer-protocol'))
+    implementation(project(':common-util'))
+    ///workaround
 
     // Necessary since there are jars with no adequate Maven dependencies
-    compile fileTree(dir: '../libs', include: '*.jar')
+    implementation fileTree(dir: '../../libs', include: '*.jar')
 }

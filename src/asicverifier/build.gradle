@@ -1,28 +1,28 @@
-dependencies {
-    compile project(':common-verifier'),
-            project(':asic-util')
-
-    testCompile project(':common-test')
+plugins {
+    id 'com.github.johnrengelman.shadow'
 }
 
-jar {
-    version = ''
-    // Build 'fat jar'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }} {
-        // remove all signature files (necessary to make it run)
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
+dependencies {
+    implementation  project(':common-verifier'),
+                    project(':asic-util')
+
+    implementation(project(':common-util')) {
+        exclude group: 'com.typesafe.akka'
     }
+
+    testImplementation project(':common-test')
+}
+
+jar.enabled = false
+
+shadowJar {
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.asicverifier.AsicVerifierMain'
     }
+    archiveClassifier = ''
+    archiveVersion = ''
+    exclude('**/module-info.class')
 }
 
-task runAsicVerifier(type: JavaExec) {
-    main = 'ee.ria.xroad.asicverifier.AsicVerifierMain'
-    classpath = sourceSets.main.runtimeClasspath
-    standardInput = System.in;
+build.finalizedBy shadowJar
 
-    description = "Starts ASiC container verifier main program.";
-}

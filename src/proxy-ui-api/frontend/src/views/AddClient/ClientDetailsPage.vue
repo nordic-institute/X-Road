@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
           labelText="wizard.memberName"
@@ -63,7 +63,7 @@
           v-slot="{ errors }"
         >
           <v-select
-            :items="memberClasses"
+            :items="memberClassesCurrentInstance"
             :error-messages="errors"
             class="form-input"
             v-model="memberClass"
@@ -81,7 +81,6 @@
           name="addClient.memberCode"
           rules="required|xrdIdentifier"
           v-slot="{ errors }"
-          ref="memberCodeVP"
         >
           <v-text-field
             class="form-input"
@@ -141,7 +140,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
+import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -150,18 +149,13 @@ import { debounce, isEmpty, containsClient } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
+import { validate } from 'vee-validate';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default (Vue as VueConstructor<
-  Vue & {
-    $refs: {
-      memberCodeVP: InstanceType<typeof ValidationProvider>;
-    };
-  }
->).extend({
+export default Vue.extend({
   components: {
     FormLabel,
     LargeButton,
@@ -173,7 +167,7 @@ export default (Vue as VueConstructor<
     ...mapGetters([
       'reservedClients',
       'selectableClients',
-      'memberClasses',
+      'memberClassesCurrentInstance',
       'selectedMemberName',
       'currentSecurityServer',
     ]),
@@ -240,7 +234,7 @@ export default (Vue as VueConstructor<
       this.showSelectClient = false;
     },
     checkClient(): void {
-      // don't continue is the identifier is invalid
+      // don't continue if the identifier is invalid
       if (!this.isMemberCodeValid) {
         return;
       }
@@ -283,8 +277,11 @@ export default (Vue as VueConstructor<
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableClients');
-    this.$store.dispatch('fetchMemberClasses');
+    this.$store.dispatch(
+      'fetchSelectableClients',
+      that.currentSecurityServer.instance_id,
+    );
+    this.$store.dispatch('fetchMemberClassesForCurrentInstance');
   },
 
   watch: {
@@ -293,11 +290,21 @@ export default (Vue as VueConstructor<
       this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
 
       // Needs to be done here, because the watcher runs before the setter
-      this.isMemberCodeValid = (await this.$refs.memberCodeVP.validate()).valid;
-      if (isEmpty(val) || isEmpty(this.memberClass)) {
-        return;
-      }
-      this.checkClient();
+      validate(this.memberCode, 'required|xrdIdentifier', {
+        // name is not used, but if it's undefined there is a warning in browser console
+        name: 'addClient.memberCode',
+      }).then((result) => {
+        if (result.valid) {
+          this.isMemberCodeValid = true;
+
+          if (isEmpty(val) || isEmpty(this.memberClass)) {
+            return;
+          }
+          this.checkClient();
+        } else {
+          this.isMemberCodeValid = false;
+        }
+      });
     },
     memberClass(val): void {
       // Set wizard mode to default (full)
@@ -308,7 +315,7 @@ export default (Vue as VueConstructor<
       this.checkClient();
     },
 
-    memberClasses(val): void {
+    memberClassesCurrentInstance(val): void {
       // Set first member class selected as default when the list is updated
       if (val?.length === 1) {
         this.memberClass = val[0];

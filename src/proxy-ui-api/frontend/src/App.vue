@@ -26,12 +26,12 @@
 <template>
   <v-app class="xrd-app">
     <app-toolbar />
-    <v-content app>
+    <v-main app>
       <alerts-container />
       <transition name="fade" mode="out-in">
         <router-view />
       </transition>
-    </v-content>
+    </v-main>
     <snackbar />
     <app-footer />
   </v-app>

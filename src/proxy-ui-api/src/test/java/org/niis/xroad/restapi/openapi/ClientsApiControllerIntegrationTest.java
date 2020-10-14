@@ -858,7 +858,15 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 null, null, TestUtils.INSTANCE_EE, null, null, null);
         List<ServiceClient> serviceClients = serviceClientResponse.getBody();
         assertEquals(6, serviceClients.size()); // includes localgroups
+
+        ResponseEntity<List<ServiceClient>> partialInstanceMatchResponse =
+                clientsApiController.findServiceClientCandidates(
+                TestUtils.CLIENT_ID_SS1,
+                null, ServiceClientType.SUBSYSTEM, "E", null, null, null);
+        List<ServiceClient> partialInstanceMatch = partialInstanceMatchResponse.getBody();
+        assertEquals(0, partialInstanceMatch.size());
     }
+
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
@@ -868,6 +876,13 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 null, null, null, TestUtils.MEMBER_CLASS_GOV, null, null);
         List<ServiceClient> serviceClients = serviceClientResponse.getBody();
         assertEquals(3, serviceClients.size());
+
+        ResponseEntity<List<ServiceClient>> partialMemberClassMatchResponse =
+                clientsApiController.findServiceClientCandidates(
+                TestUtils.CLIENT_ID_SS1,
+                null, ServiceClientType.SUBSYSTEM, null, "GO", null, null);
+        List<ServiceClient> partialMemberClassMatch = partialMemberClassMatchResponse.getBody();
+        assertEquals(0, partialMemberClassMatch.size());
     }
 
     @Test

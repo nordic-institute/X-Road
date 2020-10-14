@@ -32,14 +32,16 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,7 +69,8 @@ public class ConfProxyProperties {
 
     private static final String CERT_EXTENSION = ".pem";
 
-    private HierarchicalINIConfiguration config;
+    private INIConfiguration config;
+    private Path configFile;
 
     @Getter
     String instance;
@@ -78,20 +81,23 @@ public class ConfProxyProperties {
      * @param name the if of the configuration proxy instance
      * @throws ConfigurationException if the configuration could not be loaded
      */
-    public ConfProxyProperties(final String name)
-            throws ConfigurationException {
+    public ConfProxyProperties(final String name) throws ConfigurationException {
         this.instance = name;
         String confDir = SystemProperties.getConfigurationProxyConfPath();
-        File configFile = Paths.get(confDir, instance, CONF_INI).toFile();
-        if (!configFile.exists()) {
+        this.configFile = Paths.get(confDir, instance, CONF_INI);
+        if (!Files.exists(configFile)) {
             throw new ConfigurationException("'" + CONF_INI
                     + "' does not exist.");
         }
-        try {
-            config = new HierarchicalINIConfiguration(configFile);
+        try (Reader reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)) {
+            config = new INIConfiguration();
+            config.read(reader);
         } catch (ConfigurationException e) {
             log.error("Failed to load '{}': {}", configFile, e.getMessage());
             throw e;
+        } catch (IOException e) {
+            log.error("Failed to load '{}': {}", configFile, e.getMessage());
+            throw new ConfigurationException(e);
         }
     }
 
@@ -150,7 +156,7 @@ public class ConfProxyProperties {
      * 'configuration-proxy.address' needs to be defined in 'local.ini'.
      * @return the URL where global configurations are made available
      * @throws Exception if the configured configuration proxy
-     * address is invalid
+     *                   address is invalid
      */
     public final String getConfigurationProxyURL() throws Exception {
         String address = SystemProperties.getConfigurationProxyAddress();
@@ -172,13 +178,12 @@ public class ConfProxyProperties {
     /**
      * Configures the active signing key id.
      * @param keyId new active signing key id
-     * @throws ConfigurationException
-     * if an error occurs when saving the configuration
+     * @throws ConfigurationException if an error occurs when saving the configuration
      */
     public final void setActiveSigningKey(final String keyId)
             throws ConfigurationException {
         config.setProperty(ACTIVE_SIGNING_KEY_ID, keyId);
-        config.save();
+        saveConfig();
     }
 
     /**
@@ -200,13 +205,12 @@ public class ConfProxyProperties {
     /**
      * Configures the validity interval of the generated configurations.
      * @param value number of seconds the configurations should be valid
-     * @throws ConfigurationException
-     * if an error occurs when saving the configuration
+     * @throws ConfigurationException if an error occurs when saving the configuration
      */
     public final void setValidityIntervalSeconds(final int value)
             throws ConfigurationException {
         config.setProperty(VALIDITY_INTERVAL_SECONDS, value);
-        config.save();
+        saveConfig();
     }
 
     /**
@@ -251,7 +255,7 @@ public class ConfProxyProperties {
 
     /**
      * Saves the given certificate to the appropriate location.
-     * @param keyId the key id the certificate corresponds to
+     * @param keyId     the key id the certificate corresponds to
      * @param certBytes the byte contents of the certificate
      * @throws Exception if an error occurs when saving the certificate to disk
      */
@@ -265,22 +269,20 @@ public class ConfProxyProperties {
     /**
      * Adds the given key id to the configuration.
      * @param keyId the id to be added
-     * @throws ConfigurationException
-     * if an error occurs when saving the configuration
+     * @throws ConfigurationException if an error occurs when saving the configuration
      */
     public final void addKeyId(final String keyId)
             throws ConfigurationException {
         int nextKeyNumber = getNextKeyNumber();
         config.addProperty(SIGNING_KEY_ID_PREFIX + nextKeyNumber, keyId);
-        config.save();
+        saveConfig();
     }
 
     /**
      * Removes the given key id from the configuration.
      * @param keyId the id to be removed
      * @return true if the given key id was found and removed
-     * @throws ConfigurationException
-     * if an error occurs when saving the configuration
+     * @throws ConfigurationException if an error occurs when saving the configuration
      */
     public final boolean removeKeyId(final String keyId)
             throws ConfigurationException {
@@ -295,7 +297,7 @@ public class ConfProxyProperties {
         }
         if (keyIdProperty != null) {
             config.clearProperty(keyIdProperty);
-            config.save();
+            saveConfig();
             return true;
         } else {
             return false;
@@ -336,7 +338,7 @@ public class ConfProxyProperties {
     private int activeSigningKeyCount() {
         Object activeKeyProperty = config.getProperty(ACTIVE_SIGNING_KEY_ID);
         if (activeKeyProperty instanceof ArrayList) {
-            return ((ArrayList<?>) activeKeyProperty).size();
+            return ((ArrayList<?>)activeKeyProperty).size();
         }
         return activeKeyProperty != null ? 1 : 0;
     }
@@ -360,7 +362,7 @@ public class ConfProxyProperties {
      */
     private X509Certificate readCert(final String keyId) {
         try (InputStream is =
-                new FileInputStream(getCertPath(keyId).toFile())) {
+                     new FileInputStream(getCertPath(keyId).toFile())) {
             return CryptoUtils.readCertificate(is);
         } catch (Exception e) {
             log.error("Failed to read cert for key ID '{}'", keyId, e);
@@ -377,5 +379,15 @@ public class ConfProxyProperties {
     @SneakyThrows
     private static byte[] certBytes(final X509Certificate cert) {
         return cert.getEncoded();
+    }
+
+
+    private synchronized void saveConfig() throws ConfigurationException {
+        try (Writer writer = Files.newBufferedWriter(configFile, StandardCharsets.UTF_8)) {
+            config.write(writer);
+        } catch (IOException e) {
+            throw new ConfigurationException(e);
+        }
+
     }
 }

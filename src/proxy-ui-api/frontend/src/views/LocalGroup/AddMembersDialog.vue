@@ -32,7 +32,7 @@
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px;" class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0">
         <v-expansion-panels class="elevation-0" v-model="expandPanel" multiple>
           <v-expansion-panel class="elevation-0">
             <v-expansion-panel-header></v-expansion-panel-header>
@@ -249,7 +249,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('membersAdded', this.selectedIds);
+      this.$emit('members-added', this.selectedIds);
       this.clearForm();
     },
 

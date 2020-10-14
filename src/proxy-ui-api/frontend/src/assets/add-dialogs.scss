@@ -25,6 +25,7 @@
  */
 
 @import './colors';
+@import './functions';
 
 .exp-title {
   text-align: right;
@@ -93,7 +94,7 @@
 }
 
 #close-x:before {
-  content: '\00d7';
+  content: unicode('00d7');
 }
 
 // Override vuetify default box-shadow

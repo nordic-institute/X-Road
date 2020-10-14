@@ -25,11 +25,9 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.time.OffsetDateTime;
 
 /**
  * Utility methods for configuration directory.
@@ -43,8 +41,8 @@ public final class ConfigurationUtils {
      * @param expireDateStr the ISO date as string
      * @return DateTime object
      */
-    public static DateTime parseISODateTime(String expireDateStr) {
-        return ISODateTimeFormat.dateTimeParser().parseDateTime(expireDateStr);
+    public static OffsetDateTime parseISODateTime(String expireDateStr) {
+        return OffsetDateTime.parse(expireDateStr);
     }
 
     /**
