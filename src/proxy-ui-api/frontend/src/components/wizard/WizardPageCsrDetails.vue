@@ -127,8 +127,7 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Permissions } from '@/global';
-import { CsrFormat, KeyUsageType } from '@/openapi-types';
+import { UsageTypes, CsrFormatTypes, Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -149,9 +148,9 @@ export default Vue.extend({
   },
   data() {
     return {
-      usageTypes: KeyUsageType,
-      usageList: Object.values(KeyUsageType),
-      csrFormatList: Object.values(CsrFormat),
+      usageTypes: UsageTypes,
+      usageList: Object.values(UsageTypes),
+      csrFormatList: Object.values(CsrFormatTypes),
       permissionForUsage: true,
     };
   },
@@ -217,13 +216,13 @@ export default Vue.extend({
 
     if (signPermission && !authPermission) {
       // lock usage type to sign
-      this.usage = KeyUsageType.SIGNING;
+      this.usage = UsageTypes.SIGNING;
       this.permissionForUsage = false;
     }
 
     if (!signPermission && authPermission) {
       // lock usage type to auth
-      this.usage = KeyUsageType.AUTHENTICATION;
+      this.usage = UsageTypes.AUTHENTICATION;
       this.permissionForUsage = false;
     }
   },

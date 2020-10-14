@@ -25,7 +25,7 @@
  */
 
 import * as Helpers from '@/util/helpers';
-import {Client, ClientStatus, ConnectionType} from '@/openapi-types';
+import { Client } from '@/openapi-types';
 
 const arr: Client[] = [
   {
@@ -36,8 +36,8 @@ const arr: Client[] = [
     member_code: '8000',
     subsystem_code: 'Rek',
     owner: false,
-    connection_type: ConnectionType.HTTPS,
-    status: ClientStatus.SAVED,
+    connection_type: 'HTTPS',
+    status: 'SAVED',
   },
   {
     id: 'CS:ORG:8000:jest',
@@ -47,8 +47,8 @@ const arr: Client[] = [
     member_code: '8000',
     subsystem_code: 'jest',
     owner: false,
-    connection_type: ConnectionType.HTTPS,
-    status: ClientStatus.SAVED,
+    connection_type: 'HTTPS',
+    status: 'SAVED',
   },
   {
     id: 'CS:ORG:8000:kraa',
@@ -58,8 +58,8 @@ const arr: Client[] = [
     member_code: '8000',
     subsystem_code: 'kraa',
     owner: false,
-    connection_type: ConnectionType.HTTPS,
-    status: ClientStatus.SAVED,
+    connection_type: 'HTTPS',
+    status: 'SAVED',
   },
 ];
 

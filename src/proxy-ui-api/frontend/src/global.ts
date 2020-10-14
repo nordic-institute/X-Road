@@ -152,6 +152,40 @@ export enum UsageTypes {
   AUTHENTICATION = 'AUTHENTICATION',
 }
 
+export enum CsrFormatTypes {
+  PEM = 'PEM',
+  DER = 'DER',
+}
+
+export enum PossibleActions {
+  DELETE = 'DELETE',
+  ACTIVATE = 'ACTIVATE',
+  DISABLE = 'DISABLE',
+  LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
+  REGISTER = 'REGISTER',
+  UNREGISTER = 'UNREGISTER',
+  IMPORT_FROM_TOKEN = 'IMPORT_FROM_TOKEN',
+  GENERATE_KEY = 'GENERATE_KEY',
+  EDIT_FRIENDLY_NAME = 'EDIT_FRIENDLY_NAME',
+  GENERATE_AUTH_CSR = 'GENERATE_AUTH_CSR',
+  GENERATE_SIGN_CSR = 'GENERATE_SIGN_CSR',
+}
+
+export enum CertificateStatus {
+  SAVED = 'SAVED',
+  REGISTRATION_IN_PROGRESS = 'REGISTRATION_IN_PROGRESS',
+  REGISTERED = 'REGISTERED',
+  DELETION_IN_PROGRESS = 'DELETION_IN_PROGRESS',
+  GLOBAL_ERROR = 'GLOBAL_ERROR',
+}
+
+export enum TokenInitStatusEnum {
+  INITIALIZED = 'INITIALIZED',
+  NOT_INITIALIZED = 'NOT_INITIALIZED',
+  UNKNOWN = 'UNKNOWN',
+}
+
 export const mainTabs: Tab[] = [
   {
     to: { name: RouteName.Clients },

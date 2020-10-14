@@ -102,12 +102,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { Permissions } from '@/global';
+import { UsageTypes, Permissions, PossibleActions } from '@/global';
 import {
   TokenCertificate,
   PossibleActions as PossibleActionsList,
-  KeyUsageType,
-  PossibleAction,
 } from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
@@ -116,7 +114,6 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
-import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 
 export default Vue.extend({
   components: {
@@ -141,7 +138,7 @@ export default Vue.extend({
     return {
       confirm: false,
       certificate: undefined as TokenCertificate | undefined,
-      possibleActions: [] as PossibleActions,
+      possibleActions: [] as string[],
       confirmUnregisterCertificate: false,
       confirmUnregisterError: false,
       unregisterLoading: false,
@@ -150,8 +147,8 @@ export default Vue.extend({
   },
   computed: {
     showDelete(): boolean {
-      if (this.possibleActions.includes(PossibleAction.DELETE)) {
-        if (this.usage === KeyUsageType.SIGNING) {
+      if (this.possibleActions.includes(PossibleActions.DELETE)) {
+        if (this.usage === UsageTypes.SIGNING) {
           return this.$store.getters.hasPermission(
             Permissions.DELETE_SIGN_CERT,
           );
@@ -167,7 +164,7 @@ export default Vue.extend({
 
     showUnregister(): boolean {
       if (
-        this.possibleActions.includes(PossibleAction.UNREGISTER) &&
+        this.possibleActions.includes(PossibleActions.UNREGISTER) &&
         this.$store.getters.hasPermission(Permissions.SEND_AUTH_CERT_DEL_REQ)
       ) {
         return true;
@@ -181,8 +178,8 @@ export default Vue.extend({
         return false;
       }
 
-      if (this.possibleActions.includes(PossibleAction.ACTIVATE)) {
-        if (this.usage === KeyUsageType.SIGNING) {
+      if (this.possibleActions.includes(PossibleActions.ACTIVATE)) {
+        if (this.usage === UsageTypes.SIGNING) {
           return this.$store.getters.hasPermission(
             Permissions.ACTIVATE_DISABLE_SIGN_CERT,
           );
@@ -201,8 +198,8 @@ export default Vue.extend({
         return false;
       }
 
-      if (this.possibleActions.includes(PossibleAction.DISABLE)) {
-        if (this.usage === KeyUsageType.SIGNING) {
+      if (this.possibleActions.includes(PossibleActions.DISABLE)) {
+        if (this.usage === UsageTypes.SIGNING) {
           return this.$store.getters.hasPermission(
             Permissions.ACTIVATE_DISABLE_SIGN_CERT,
           );

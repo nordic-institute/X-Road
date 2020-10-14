@@ -30,7 +30,8 @@ import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import { clientsModule } from '@/store/modules/clients';
 import { user as userModule } from '@/store/modules/user';
-import {InitializationStatus, TokenInitStatus} from '@/openapi-types';
+import { TokenInitStatusEnum } from '@/global';
+import { InitializationStatus } from '@/openapi-types';
 
 Vue.use(Vuex);
 
@@ -84,7 +85,7 @@ describe('initialize store', () => {
       is_anchor_imported: true,
       is_server_code_initialized: false,
       is_server_owner_initialized: false,
-      software_token_init_status: TokenInitStatus.UNKNOWN
+      software_token_init_status: TokenInitStatusEnum.UNKNOWN
     }
     store.commit('storeInitStatus', mockInitStatus);
     expect(store.getters.needsInitialization).toBe(true);
@@ -94,7 +95,7 @@ describe('initialize store', () => {
       is_anchor_imported: false,
       is_server_code_initialized: false,
       is_server_owner_initialized: false,
-      software_token_init_status: TokenInitStatus.NOT_INITIALIZED
+      software_token_init_status: TokenInitStatusEnum.NOT_INITIALIZED
     }
 
     store.commit('storeInitStatus', mockInitStatus);
@@ -105,7 +106,7 @@ describe('initialize store', () => {
       is_anchor_imported: true,
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
-      software_token_init_status: TokenInitStatus.INITIALIZED
+      software_token_init_status: TokenInitStatusEnum.INITIALIZED
     }
 
     store.commit('storeInitStatus', mockInitStatus);

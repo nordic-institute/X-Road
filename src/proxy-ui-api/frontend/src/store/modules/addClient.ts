@@ -28,18 +28,17 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { AddMemberWizardModes } from '@/global';
+import { AddMemberWizardModes, UsageTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import {
-  Client,
-  Key,
-  KeyUsageType,
   Token,
-  TokenCertificate,
+  Client,
   TokenCertificateSigningRequest,
+  TokenCertificate,
+  Key,
 } from '@/openapi-types';
+import * as api from '@/util/api';
 
 interface ReservedMemberData {
   instanceId: string;
@@ -344,7 +343,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
     // Find if a token has a sign key with a certificate that has matching client data
     tokenResponse.data.some((token: Token) => {
       return token.keys.some((key: Key) => {
-        if (key.usage === KeyUsageType.SIGNING) {
+        if (key.usage === UsageTypes.SIGNING) {
           // Go through the keys certificates
           const foundCert: boolean = key.certificates.some(
             (certificate: TokenCertificate) => {

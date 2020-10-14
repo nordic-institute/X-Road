@@ -108,7 +108,7 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { CsrFormat } from '@/openapi-types';
+import { CsrFormatTypes } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -129,7 +129,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      csrFormatList: Object.values(CsrFormat) as string[],
+      csrFormatList: Object.values(CsrFormatTypes) as string[],
     };
   },
   computed: {

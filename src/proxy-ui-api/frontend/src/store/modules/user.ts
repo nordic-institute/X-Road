@@ -35,7 +35,7 @@ import {
   Version,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
+import { mainTabs, TokenInitStatusEnum } from '@/global';
 import i18n from '@/i18n';
 
 export interface UserState {
@@ -131,9 +131,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
       state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized &&
       (state.initializationStatus.software_token_init_status ===
-        TokenInitStatus.INITIALIZED ||
+        TokenInitStatusEnum.INITIALIZED ||
         state.initializationStatus.software_token_init_status ===
-          TokenInitStatus.UNKNOWN)
+          TokenInitStatusEnum.UNKNOWN)
     );
   },
 };
@@ -256,7 +256,7 @@ export const actions: ActionTree<UserState, RootState> = {
       is_anchor_imported: true,
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
-      software_token_init_status: TokenInitStatus.INITIALIZED,
+      software_token_init_status: TokenInitStatusEnum.INITIALIZED,
     };
 
     commit('storeInitStatus', initStatus);
