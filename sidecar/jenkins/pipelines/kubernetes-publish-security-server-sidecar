@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'dev-test' } 
+    agent { label 'dev-test' }
     parameters {
         string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
         string(description: "External database host", name: "XROAD_DB_HOST", defaultValue: "${params?.XROAD_DB_HOST}")
@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Deploy pods') {
             steps {
-                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {                 
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
                     sh '${DEPLOYMENT_PATH} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL} ${VOLUME_CLAIM}'
                 }
