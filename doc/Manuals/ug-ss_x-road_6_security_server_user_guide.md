@@ -1537,7 +1537,7 @@ _To export the security server's internal TLS certificate_, follow these steps.
 
 _To view the detailed information of the security server's internal TLS certificate_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates
+1. On the **Navigation tabs**, select **Keys and Certificates**
 
 2. In the opening view, select **SECURITY SERVER TLS KEY** tab
 
