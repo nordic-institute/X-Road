@@ -81,6 +81,12 @@ module.exports = {
     operationDetails.close();
 
     // Verify SOAP service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -150,6 +156,12 @@ module.exports = {
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -157,6 +169,7 @@ module.exports = {
     // Add endpoint for the rest service
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
+    clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(restOperationDetails);
     restOperationDetails.openEndpointsTab();
@@ -215,6 +228,12 @@ module.exports = {
 
     // Verify service client doesn't exist when REST service has only endpoint level access rights
     restOperationDetails.close();
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.expect.elements('//tr[contains(@data-test, "open-access-rights")]').count.to.equal(0);
@@ -282,6 +301,12 @@ module.exports = {
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
