@@ -448,7 +448,7 @@ module.exports = {
 
     browser.end();
 
-  },
+  }/*,
   'Security server client delete wsdl service': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -493,5 +493,5 @@ module.exports = {
 
     browser.end();
 
-  }
+  }*/
 };

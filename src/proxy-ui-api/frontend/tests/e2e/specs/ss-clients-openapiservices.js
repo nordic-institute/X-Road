@@ -143,7 +143,6 @@ module.exports = {
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
     // Verify cancel
-    //operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.openapi_url_2);
     operationDetails.enterUrl('https://niis.org/nosuch.yaml')
     operationDetails.enterTimeout('40');
     operationDetails.toggleCertVerification();

@@ -190,7 +190,6 @@ module.exports = {
     // security server observer should see local group members but not be able to edit them
     clientLocalGroups.openBacDetails();
 
-    //browser.waitForElementVisible('//span[contains(@class, "cert-headline") and contains(text(), "abb")]');
     browser.assert.containsText(localGroupPopup.elements.groupIdentifier, 'bac');
     browser.waitForElementVisible('//tr[.//*[contains(text(), "TestCom")]]');
     browser.waitForElementNotPresent(localGroupPopup.elements.localGroupAddMembersButton);
