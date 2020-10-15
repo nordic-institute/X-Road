@@ -301,6 +301,12 @@ module.exports = {
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
