@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.48  
+Version: 2.49  
 Doc. ID: UG-SS
 
 ---
@@ -81,6 +81,7 @@ Doc. ID: UG-SS
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
  29.09.2020 | 2.47    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
  30.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
+ 15.10.2020 | 2.49    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -95,6 +96,10 @@ Doc. ID: UG-SS
 - [2 User Management](#2-user-management)
   - [2.1 User Roles](#21-user-roles)
   - [2.2 Managing the Users](#22-managing-the-users)
+  - [2.3 Managing API Keys](#23-managing-api-keys)
+    - [2.3.1 Creating a new API key](#231-creating-a-new-api-key)
+    - [2.3.2 Editing the roles of an API key](#232-editing-the-roles-of-an-api-key)
+    - [2.3.3 Revoking an API key](#233-revoking-an-api-key)
 - [3 Security Server Registration](#3-security-server-registration)
   - [3.1 Configuring the Signing Key and Certificate for the Security Server Owner](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
     - [3.1.1 Generating a Signing Key and Certificate Signing Request](#311-generating-a-signing-key-and-certificate-signing-request)
@@ -345,6 +350,54 @@ To remove a user, enter:
 
     deluser username
 
+### 2.3 Managing API Keys
+
+API keys are used to authenticate API calls to Security Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If the API key is lost, it can be revoked.
+
+#### 2.3.1 Creating a new API key
+
+**Access rights**
+
+-   All activities: [System Administrator](#xroad-system-administrator)
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  In the opening view, select **API KEYS** tab.
+
+3.  In the opening view, click **CREATE API KEY**. In the wizard that opens
+
+    1. Select the roles you want to be associated with the API key. Click **NEXT**.
+    
+    2. Click **CREATE KEY**. The API key, API key id and assigned roles will be displayed in the view. **The API key will only be displayed this once so save it in a secure location**.
+    
+    3. Click **FINISH**.
+
+#### 2.3.2 Editing the roles of an API key
+
+**Access rights**
+
+-   All activities: [System Administrator](#xroad-system-administrator)
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  In the opening view, select **API KEYS** tab.
+
+3.  In the opening view, in the API key list, locate the API key you want to edit and click **Edit** at the end of the API key row. In the popup that opens
+
+    1. Select the roles you want to be associated with the API key. Click **SAVE**.
+    
+#### 2.3.3 Revoking an API key
+
+**Access rights**
+
+-   All activities: [System Administrator](#xroad-system-administrator)
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  In the opening view, select **API KEYS** tab.
+
+3.  In the opening view, in the API key list, locate the API key you want to revoke and click **Revoke Key** at the end of the API key row. In the dialog that opens click **YES**.
+
 
 ## 3 Security Server Registration
 
@@ -372,9 +425,9 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 To generate a Signing key and a Certificate Signing Request, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
-2.  If you are using a hardware security token, ensure that the device is connected to the security server. The device information must be displayed in the **Keys and Certificates** table.
+2.  If you are using a hardware security token, ensure that the device is connected to the security server. The device information must be displayed in the **SIGN AND AUTH KEYS** table.
 
 3.  To log in to the token, click **LOG IN** on the token's row in the table and enter the PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
@@ -413,7 +466,7 @@ After the generation of the CSR, a "Request" record is added under the key's row
 
 To import the signing certificate to the security server, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -428,11 +481,11 @@ To import the signing certificate to the security server, follow these steps.
 
 To import a certificate from a security token, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
-3.  Make sure that a key device containing the signing key and the signing certificate is connected to the security server. The device and the keys and certificates stored on the device must be displayed in the **Keys and Certificates** view.
+3.  Make sure that a key device containing the signing key and the signing certificate is connected to the security server. The device and the keys and certificates stored on the device must be displayed in the **SIGN AND AUTH KEYS** view.
 
 4.  To log in to the security token, click **LOG IN** on the token's row in the table and enter the PIN. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
@@ -454,7 +507,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 **The security server's authentication keys can only be generated on software security tokens.**
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  To log in to the software token, click **LOG IN** on the token's row in the table and enter the token's PIN code. Once the correct PIN is entered, the **LOG IN** button changes to **LOG OUT**.
 
@@ -489,7 +542,7 @@ The **background colors** of the devices, keys and certificate are explained in 
 
 To generate a certificate signing request (CSR) for the authentication key, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -548,7 +601,7 @@ The security server's registration request is signed in the security server with
 
 To submit an authentication certificate registration request, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -570,7 +623,7 @@ To add a new member and change it to Owner member, the following actions must be
 
 1.  Add a new Owner member to the security server
 
-    1.1 On the **Clients** view, select **ADD MEMBER**.
+    1.1 On the **CLIENTS** view, select **ADD MEMBER**.
     
     1.2 In the opening wizard, Select the new Owner member from the list of security server clients
     
@@ -580,7 +633,7 @@ To add a new member and change it to Owner member, the following actions must be
     
 2.  Register the new member
 
-    2.1 On the **Clients** view, locate the new member in the Clients list and click **Register** in the corresponding row
+    2.1 On the **CLIENTS** view, locate the new member in the Clients list and click **Register** in the corresponding row
     
     2.2 In the opening dialog, click **Register**. A registeration request is sent to the X-Road Governing Authority
     
@@ -588,7 +641,7 @@ To add a new member and change it to Owner member, the following actions must be
 
 3.  Request a change of the security server owner
 
-    3.1 On the **Clients** view, locate the new member and click its name to open the member's detail view
+    3.1 On the **CLIENTS** view, locate the new member and click its name to open the member's detail view
     
     3.2 In the detail view, click **MAKE OWNER**
     
@@ -618,7 +671,7 @@ Once the owner change request is approved, the new member will be automatically 
 
 **Important: to use or provide X-Road services, a security server client needs to be certified by a certification service provider approved by the X-Road governing authority, and the association between the client and the security server used by the client must be registered at the X-Road governing authority.**
 
-**This section does not address managing the owner to a security server.** The owner's information has been already added to the security server upon the installation, and registered upon the security server's registration. The owner's registration status can be looked up by selecting **Clients** on the main menu. In the list the item with text "(Owner)" after the name is security server's owner. Before the registration of the security server, the owner is in the "Saved" state and after the completion of the registration process, in the "Registered" state.
+**This section does not address managing the owner to a security server.** The owner's information has been already added to the security server upon the installation, and registered upon the security server's registration. The owner's registration status can be looked up by selecting **CLIENTS** on the main menu. In the list the item with text "(Owner)" after the name is security server's owner. Before the registration of the security server, the owner is in the "Saved" state and after the completion of the registration process, in the "Registered" state.
 
 The registration of the security server's owner does not extend to the owner's subsystems. The subsystems must be registered as individual clients.
 
@@ -668,22 +721,39 @@ Follow these steps.
 
 2.  In the wizard that opens
     
-    1. Client details page: Select an existing client from the Global list by pressing **Select client** or specify the details of the Client to be added manually and click **Next**
+    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually and click **NEXT**
     
-    2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **Next**
+    2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **NEXT**
     
-    3. Sign key page: Define a label (optional) for the newly created SIGN key and click **Next**
+    3. Sign key page: Define a label (optional) for the newly created SIGN key and click **NEXT**
     
-    4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **Next**.
+    4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **NEXT**.
     
-    5. Generate CSR page: Define **Organization Name (O)** and click **Next**
+    5. Generate CSR page: Define **Organization Name (O)** and click **NEXT**
     
-    6. Finish page: click **Submit** and the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.
+    6. Finish page: click **SUBMIT** and the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.
 
 The new client is added to the list of security server clients in the "Saved" state.
 
+### 4.3 Adding a Security Server Member Subsystem
 
-### 4.3 Configuring a Signing Key and Certificate for a Security Server Client
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+Follow these steps.
+
+1.  In the **CLIENTS** view in the client list, locate the X-Road member you want to add a subsystem to and click **Add Subsystem** at the end of the row.
+
+2.  In the wizard that opens
+    
+    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually
+    
+    2.2. If you wish to register the new subsystem immediately, check the **Register subsystem** checkbox and then click **ADD SUBSYSTEM**.
+    
+    (2.3.) If you checked the **Register subsystem** checkbox, a popup will appear asking whether you wish to register the subsystem immediately. In the popup, click **YES**.
+    
+The new subsystem is added to the list of security server clients in the "Saved" state.
+
+### 4.4 Configuring a Signing Key and Certificate for a Security Server Client
 
 A signing key and certificate must be configured for the security server client to sign messages exchanged over the X-Road. In addition, a signing key and certificate are required for registering a security server client.
 
@@ -694,7 +764,7 @@ All particular X-Road member's subsystems that are registered in the same securi
 The process of configuring the signing key and certificate for a security server client is the same as for the security server owner. The process is described in Section [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner).
 
 
-### 4.4 Registering a Security Server Client in the X-Road Governing Authority
+### 4.5 Registering a Security Server Client in the X-Road Governing Authority
 
 To register a security server client in the X-Road governing authority, the following actions must be completed.
 
@@ -707,24 +777,24 @@ To register a security server client in the X-Road governing authority, the foll
 -   The registration request must be approved by the X-Road governing authority.
 
 
-#### 4.4.1 Registering a Security Server Client
+#### 4.5.1 Registering a Security Server Client
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
 To submit a client registration request follow these steps.
 
-1.  In the **Clients** view.
+1.  In the **CLIENTS** view.
 
 2.  Click **Register** button on the row that contains the client you wish to register. 
 
-3.  Click **Yes** to submit the request.
+3.  Click **YES** to submit the request.
 
 On submitting the request, the message "Request sent" is displayed, and the client's state is set to "Registration in process".
 
 After the X-Road governing authority has accepted the registration, the state of the client is set to "Registered" and the registration process is completed.
 
 
-### 4.5 Deleting a Client from the Security Server
+### 4.6 Deleting a Client from the Security Server
 
 If a client is deleted from the security server, all the information related to the client is deleted from the server as well – that is, the WSDLs, services, access rights, and, if necessary, the certificates.
 
@@ -733,22 +803,22 @@ When one of the clients is deleted, it is not advisable to delete the signing ce
 A client registered or submitted for registration in the X-Road governing authority (indicated by the "Registered" or "Registration in progress" state) must be unregistered before it can be deleted. The unregistering event sends a security server client deletion request from the security server to the central server.
 
 
-#### 4.5.1 Unregistering a Client
+#### 4.6.1 Unregistering a Client
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
 To unregister a client, follow these steps.
 
-1.  In the **Clients** view click the name of client that you wish to remove from the server
+1.  In the **CLIENTS** view click the name of client that you wish to remove from the server
 
-2.  In the window that opens, click **Unregister** and then click **Yes**. The security server automatically sends a client deletion request to the X-Road central server, upon the receipt of which the association between the security server and the client is revoked.
+2.  In the window that opens, click **UNREGISTER** and then click **YES**. The security server automatically sends a client deletion request to the X-Road central server, upon the receipt of which the association between the security server and the client is revoked.
 
 3.  Next, a notification is displayed about unregistering client. Now the client is moved to the "Deletion in progress" state, wherein the client cannot mediate messages and cannot be registered again in the X-Road governing authority.
 
 *Note:* It is possible to unregister a registered client from the central server without sending a deletion request through the security server. In this case, the security server's administrator responsible for the client must transmit a request containing information about the client to be unregistered to the central server's administrator. If the client has been deleted from the central server without a prior deletion request from the security server, the client is shown in the "Global error" state in the security server.
 
 
-#### 4.5.2 Deleting a Client
+#### 4.6.2 Deleting a Client
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
@@ -756,9 +826,9 @@ A security server client can be deleted if its state is "Saved", "Global error" 
 
 To delete a client, follow these steps.
 
-1.  In the **Clients** view click the name of the client you wish to remove from the security server.
+1.  In the **CLIENTS** view click the name of the client you wish to remove from the security server.
 
-2.  In the window that opens, click **Delete** and then click **Yes**. If there are no users for the signature key nor for the certificate associated then an option is presented to delete the client's certificates. To delete the certificates, click **Yes** again.
+2.  In the window that opens, click **DELETE** and then click **YES**. If there are no users for the signature key nor for the certificate associated then an option is presented to delete the client's certificates. To delete the certificates, click **YES** again.
 
 
 ## 5 Security Tokens, Keys, and Certificates
@@ -859,13 +929,13 @@ Disabled certificates are not used for signing messages or for establishing secu
 
 To activate or disable a certificate, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
 3.  To activate a certificate, click on the desired certificate's name.
 
-    3.1 In the opening **Certificate** dialog, click **Activate**. To deactivate a certificate, click **Disable** in the **Certificate** dialog. 
+    3.1 In the opening **Certificate** dialog, click **Activate**. To deactivate a certificate, click **DISABLE** in the **Certificate** dialog. 
 
 
 ### 5.5 Configuring and Registering an Authentication key and Certificate
@@ -888,13 +958,13 @@ An authentication certificate registered or submitted for registration in the X-
 
 To unregister an authentication certificate, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
 3.  Click on an authentication certificate that is in the state "Registered" or "Registration in progress".
 
-    3.1 In the opening **Certificate** dialog, click **Unregister**.
+    3.1 In the opening **Certificate** dialog, click **UNREGISTER**.
 
     Next, an authentication certificate deletion request is automatically sent to the X-Road central server, upon the receipt of which the associated authentication certificate is deleted from the central server. If the request was successfully sent, the message "Certificate unregistration request sent successfully" is displayed and the authentication certificate is moved to the "Deletion in progress" state.
 
@@ -919,17 +989,17 @@ An authentication certificate saved in the system configuration can be deleted i
 
 **To delete a certificate, follow these steps.**
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
 3.  Click on the certificate that you want to delete.
 
-    3.1 In the opening **Certificate** dialog, click **Delete**. Confirm the deletion by clicking **YES**.
+    3.1 In the opening **Certificate** dialog, click **DELETE**. Confirm the deletion by clicking **YES**.
 
-**To delete a signing request notice (CSR), follow these steps.**
+**To delete a certificate signing request notice (CSR), follow these steps.**
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
@@ -955,13 +1025,13 @@ An authentication certificate saved in the system configuration can be deleted i
 
 To delete a key, follow these steps.
 
-1.  In the **Navigation tabs**, select **Keys and Certificates**.
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
 
 2.  Show more details about a token by clicking the caret next to the token name.
 
 3.  Click on the desired Key.
 
-    3.1 In the opening **Key** dialog, click **Delete**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
+    3.1 In the opening **Key** dialog, click **DELETE**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
 
 
 ## 6 X-Road Services
@@ -983,7 +1053,7 @@ When a new WSDL file is added, the security server reads service information fro
 
 **To add a WSDL**, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client for which you wish to add WSDL to and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add WSDL to and click the **SERVICES** tab. 
 
 3.  Click **ADD WSDL**, enter the WSDL address in the dialog that opens and click **ADD**. Once the window is closed, the WSDL and the information about the services it contains are added to the client. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
@@ -997,7 +1067,7 @@ After a new REST service is added, the security server displays text "REST" and 
 
 **To add a REST service**, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client for which you wish to add REST service to and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add REST service to and click the **SERVICES** tab. 
 
 3.  Click **ADD REST**. Select whether the URL type is "REST API Base Path" or "OpenAPI 3 Description". Enter the url and service code in the window that opens and click **ADD**.
 
@@ -1015,11 +1085,11 @@ Upon refreshing, the security server reloads the service description file from t
 
 To refresh the service description, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to refresh and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to refresh and click the **SERVICES** tab. 
 
 2.  Click the arrow symbol in front of the WSDL or REST to be refreshed and click the **Refresh** button.
 
-3.  If the new service description contains changes compared to the current service description in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
+3.  If the new service description contains changes compared to the current service description in the security server, a warning is displayed. To proceed with the refresh, click **CONTINUE**.
 
 When the service description is refreshed, the existing services' settings are not overwritten.
 
@@ -1036,7 +1106,7 @@ If a service description is enabled, the services described there become accessi
 
 To **enable** or **disable** a service description, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2. Click the switch icon on the same row with service WSDL or REST service you wish to enable or disable
 
@@ -1049,7 +1119,7 @@ To **enable** or **disable** a service description, follow these steps.
 
 To change the service description address, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2. Click the link text containing the type of the service and its url in paranthesis
 
@@ -1064,7 +1134,7 @@ When a service description is deleted, all information related to the services d
 
 To delete a service description, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2. Click the link text containing the type of the service and its url in paranthesis. 
 
@@ -1086,7 +1156,7 @@ Service parameters are
 
 To change service parameters, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2.  Click the arrow symbol in front of a REST or WSDL service and in the list that is displayed click the service code which you wish to edit.
 
@@ -1103,7 +1173,7 @@ When URL type of the REST service is an OpenAPI 3 description, endpoints are par
 
 To create API endpoint manually, follow these steps
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
@@ -1142,44 +1212,44 @@ In general, a REST service usually has multiple endpoints. When access rights ar
 
 To change the access rights to a **service**, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2.  Click the arrow symbol in front of a service and click the service code that is displayed.
 
 3.  In the window that opens, the access rights table displays information about all X-Road subsystems and groups that have access to the selected service.
 
-4.  To add one or more access right subjects to the service, click **Add Subjects**. The subject search window appears. You can search among    all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups. Fill in optional filters for subjects and click **SEARCH**. Select one or more subjects from the list and click **Add Selected**.
+4.  To add one or more access right subjects to the service, click **ADD SUBJECTS**. The subject search window appears. You can search among    all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups. Fill in optional filters for subjects and click **SEARCH**. Select one or more subjects from the list and click **ADD SELECTED**.
 
-5.  To remove service access rights subjects, click **Remove** button on the respective row in the access rights table. To clear the access rights list (that is, remove all subjects), click **Remove All**.
+5.  To remove service access rights subjects, click **Remove** button on the respective row in the access rights table. To clear the access rights list (that is, remove all subjects), click **REMOVE ALL**.
 
 To change access rights to an **endpoint**, follow there steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Services** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab. 
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
 3.  Click the **ENDPOINTS** tab and in the following views endpoints list click **Access Rights** on the respective row of an endpoint.
 
-4.  To add one or more access right subjects to the endpoint, click **Add Subjects**. The subject search window appears. You can search among all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups. Fill in optional filters for subjects and click **SEARCH**. Select one or more subjects from the list and click **Add Selected**.
+4.  To add one or more access right subjects to the endpoint, click **ADD SUBJECTS**. The subject search window appears. You can search among all subsystems and global groups registered in the X-Road governing authority and among the security server client's local groups. Fill in optional filters for subjects and click **SEARCH**. Select one or more subjects from the list and click **ADD SELECTED**.
 
-5. To remove endpoint access rights subjects, click **Remove** button on the respective row in the access rights table and click **YES** in the confirmation dialog. To clear the access rights list (that is, remove all subjects), click **Remove All** and click **YES** in the confirmation dialog.
+5. To remove endpoint access rights subjects, click **Remove** button on the respective row in the access rights table and click **YES** in the confirmation dialog. To clear the access rights list (that is, remove all subjects), click **REMOVE ALL** and click **YES** in the confirmation dialog.
 
 
 ### 7.2 Adding a Service Client
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-The service client view (**Clients** -&gt; **Service Clients**) displays all the service level access rights subjects of the services mediated by this security server client. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
+The service client view (**CLIENTS** -&gt; **SERVICE CLIENTS**) displays all the service level access rights subjects of the services mediated by this security server client. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
 
 To add a service client, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Service Clients** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab. 
 
 2.  Click **ADD SUBJECT**. In the following wizard that opens
     
     1. Select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **NEXT**
     
-    2. Select service(s) whose access rights you want to grant to the selected subject. Click **ADD SELECTED** to grant access rights to the selected services to this subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
+    2. Select service(s) whose access rights you want to grant to the selected subject. Click **ADD SELECTED** to grant access rights to the selected services to this subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **SERVICES** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 The subject is added to the list of service clients, after which the service clients view is displayed.
 
@@ -1190,17 +1260,17 @@ The subject is added to the list of service clients, after which the service cli
 
 To change the service client's access rights, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client containing service you wish to view and click the **Service Clients** tab. 
+1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab. 
 
 2.  In the view that opens click the name of a subject (a subsystem, or a local or global group) whose access rights you want to change
 
 3.  In the window that opens, a list of services opened in the security server to the selected subject is displayed.
 
-    - To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject and click **Add**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
+    - To add access rights to a service client, start by clicking **ADD SERVICE**. In the window that opens, select the service(s) that you wish to grant to the subject and click **ADD**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **SERVICES** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
-    - To remove a single access right to a service from the service client click **Remove** button on the corresponding row and click **Yes** in the confirmation dialog. 
+    - To remove a single access right to a service from the service client click **Remove** button on the corresponding row and click **YES** in the confirmation dialog. 
     
-    - To remove all access rights to a service from the service client click **Remove all** and click **Yes** in the confirmation dialog. 
+    - To remove all access rights to a service from the service client click **REMOVE ALL** and click **YES** in the confirmation dialog. 
     
     - Removing service level access rights from the service client also removes all REST API endpoint level access rights to the endpoints of the service. In other words, removing access rights from the service client removes all access rights to a service and its endpoints.
 
@@ -1216,9 +1286,9 @@ A local access rights group can be created for a security server client in order
 
 To create a local group for a security server client, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab. In the view that opens, a list of the client's local groups is displayed.
+1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab. In the view that opens, a list of the client's local groups is displayed.
 
-2.  To create a new group, click **Add Group**. In the view that opens, enter the code and description for the new group and click **Add**.
+2.  To create a new group, click **ADD GROUP**. In the view that opens, enter the code and description for the new group and click **ADD**.
 
 
 ### 8.2 Displaying and Changing the Members of a Local Group
@@ -1227,17 +1297,17 @@ To create a local group for a security server client, follow these steps.
 
 To **view the members** of a local group, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab.
 
 2.  In the view that opens click the code of the group you wish to edit.
 
 To **add one or more members** to a local group, follow these steps in the group's detail view.
 
-1.  Click **Add Members**.
+1.  Click **ADD MEMBERS**.
 
-2.  In the window that opens add optional filters to your members search and click **Search**. Select the subsystems that you wish to add to the group and click **Add Selected**.
+2.  In the window that opens add optional filters to your members search and click **SEARCH**. Select the subsystems that you wish to add to the group and click **ADD SELECTED**.
 
-To **remove members** from a local group, click **Remove** on the corresponding row on group you wish to be deleted in the group's detail view and then click **Yes** in the confirmation dialog. To remove all group members from the group, click **Remove All** and then click **Yes** in the confirmation dialog.
+To **remove members** from a local group, click **Remove** on the corresponding row on group you wish to be deleted in the group's detail view and then click **YES** in the confirmation dialog. To remove all group members from the group, click **REMOVE ALL** and then click **YES** in the confirmation dialog.
 
 
 ### 8.3 Changing the description of a Local Group
@@ -1246,7 +1316,7 @@ To **remove members** from a local group, click **Remove** on the corresponding 
 
 To change the description of a local group, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab.
 
 2.  In the view that opens click the code of the group you wish to edit.
 
@@ -1261,11 +1331,11 @@ To change the description of a local group, follow these steps.
 
 To delete a local group, follow these steps.
 
-1.  Navigate to **Clients** tab, click the name of the client and click the **Local Groups** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab.
 
 2.  In the view that opens click the code of the group you wish to delete.
 
-3.  In the group detail view, click **Delete** and confirm the deletion by clicking **Yes** in the dialog that opens.
+3.  In the group detail view, click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens.
 
 
 ## 9 Communication with the Client Information Systems
@@ -1288,9 +1358,9 @@ A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to co
 
 To set the connection method for internal network servers in the **service consumer role**, follow these steps.
 
-1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **Internal Servers** tab
+2.  In the view that opens, select the **INTERNAL SERVERS** tab
  
 3.  On the **Connection type** drop-down, select the connection method. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
 
@@ -1298,9 +1368,9 @@ Depending on the configured connection method, the request URL for information s
 
 The connection method for internal network servers in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
 
-1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **Services** tab
+2.  In the view that opens, select the **SERVICES** tab
     
 3.  Click the caret next to the desired service description to show all services related to it
 
@@ -1317,35 +1387,35 @@ The connection method for internal network servers in the **service provider rol
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
-1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **Internal Servers** tab
+2.  In the view that opens, select the **INTERNAL SERVERS** tab
 
-3.  To add a certificate, click **Add** in the **Information System TLS certificate** section, select a certificate file from the local file system and click **OK**. The certificate fingerprint appears in the "Information System TLS certificate" table.
+3.  To add a certificate, click **ADD** in the **Information System TLS certificate** section, select a certificate file from the local file system and click **OK**. The certificate fingerprint appears in the "Information System TLS certificate" table.
 
 To display the detailed information of an internal TLS certificate, follow these steps.
 
-1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **Internal Servers** tab
+2.  In the view that opens, select the **INTERNAL SERVERS** tab
 
 3.  Click on a certificate in the "Information System TLS certificate".
 
 To delete an internal TLS certificate, follow these steps.
 
-1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **Internal Servers** tab
+2.  In the view that opens, select the **INTERNAL SERVERS** tab
 
 3.  Click on a certificate in the "Information System TLS certificate".
 
-4. In the **Certificate** view that opens, click **Delete**. Confirm deletion by clicking **YES**.
+4. In the **Certificate** view that opens, click **DELETE**. Confirm deletion by clicking **YES**.
 
 To export the security server's internal TLS certificate, follow these steps.
 
-1.  In the **Navigation tabs**, select **Clients**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **Internal Servers** tab
+2.  In the view that opens, select the **INTERNAL SERVERS** tab
 
 2.  Click **Export** at the end of a certificate row in the "Security Server certificate" table and save the prompted file to the local file system.
 
@@ -1373,9 +1443,9 @@ The security server system parameters are:
 
 To upload the configuration anchor, follow these steps.
 
-1.  In the **Navigation tabs**, select **Settings**.
+1.  In the **Navigation tabs**, select **SETTINGS**.
 
-2.  In the opening view select **System Parameters** tab.
+2.  In the opening view select **SYSTEM PARAMETERS** tab.
 
 3.  In the **Configuration Anchor** section, click **UPLOAD**.
 
@@ -1385,9 +1455,9 @@ To upload the configuration anchor, follow these steps.
 
 To download the configuration anchor, follow these steps.
 
-1.  In the **Navigation tabs**, select **Settings**.
+1.  In the **Navigation tabs**, select **SETTINGS**.
 
-2.  In the opening view select **System Parameters** tab.
+2.  In the opening view select **SYSTEM PARAMETERS** tab.
 
 3.  On the **Configuration Anchor** section, click **DOWNLOAD** and save the prompted file.
 
@@ -1398,9 +1468,9 @@ To download the configuration anchor, follow these steps.
 
 To add a timestamping service, follow these steps.
 
-1.  In the **Navigation tabs**, select **Settings**.
+1.  In the **Navigation tabs**, select **SETTINGS**.
 
-2.  In the opening view select **System Parameters** tab.
+2.  In the opening view select **SYSTEM PARAMETERS** tab.
 
 3.  In the **Timestamping Services** section, click **ADD**.
 
@@ -1408,9 +1478,9 @@ To add a timestamping service, follow these steps.
 
 To delete a timestamping service, follow these steps.
 
-1.  In the **Navigation tabs**, select **Settings**.
+1.  In the **Navigation tabs**, select **SETTINGS**.
 
-2.  In the opening view select **System Parameters** tab.
+2.  In the opening view select **SYSTEM PARAMETERS** tab.
 
 3.  In the **Timestamping Services** section, click **DELETE** at the end of the row of the service you wish to delete.
 
@@ -1423,9 +1493,9 @@ To delete a timestamping service, follow these steps.
 
 _To change the security server's internal TLS key and certificate_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates
+1. On the **Navigation tabs**, select **Keys and Certificates**
 
-2. In the opening view, select **Security Server TLS Key** tab
+2. In the opening view, select **SECURITY SERVER TLS KEY** tab
 
 3. In the opening view, click **GENERATE KEY** and in the dialog that opens, click **CONFIRM**.
 
@@ -1433,9 +1503,9 @@ _To change the security server's internal TLS key and certificate_, follow these
 
 _To generate a new certificate request_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates**
+1. On the **Navigation tabs**, select **KEYS AND CERTIFICATES**
 
-2. In the opening view, select **Security Server TLS Key** tab
+2. In the opening view, select **SECURITY SERVER TLS KEY** tab
 
 3. In the "TLS Key and Certificate" section, at the end of the key row, click **Generate CSR**
 
@@ -1445,9 +1515,9 @@ _To generate a new certificate request_, follow these steps.
 
 _To import a new TLS certificate_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates**
+1. On the **Navigation tabs**, select **KEYS AND CERTIFICATES**
 
-2. In the opening view, select **Security Server TLS Key** tab
+2. In the opening view, select **SECURITY SERVER TLS KEY** tab
 
 3. In the opening view, click **IMPORT CERT.** and point to the file to be imported.
 
@@ -1457,9 +1527,9 @@ _To import a new TLS certificate_, follow these steps.
 
 _To export the security server's internal TLS certificate_, follow these steps.
 
-1. On the **Navigation tabs**, select **Keys and Certificates**
+1. On the **Navigation tabs**, select **KEYS AND CERTIFICATES**
 
-2. In the opening view, select **Security Server TLS Key** tab
+2. In the opening view, select **SECURITY SERVER TLS KEY** tab
 
 3. In the opening view, click **EXPORT CERT.** and save the prompted file to the local file system.
 
@@ -1469,7 +1539,7 @@ _To view the detailed information of the security server's internal TLS certific
 
 1. On the **Navigation tabs**, select **Keys and Certificates
 
-2. In the opening view, select **Security Server TLS Key** tab
+2. In the opening view, select **SECURITY SERVER TLS KEY** tab
 
 3. In the "TLS Key and Certificate" section, click on the certificate hash.
 
@@ -1477,9 +1547,9 @@ _To view the detailed information of the security server's internal TLS certific
 
 _To list the approved certificate authorities_, follow these steps.
 
-1.  In the **Navigation tabs**, select **Settings**.
+1.  In the **Navigation tabs**, select **SETTINGS**.
 
-2.  In the opening view select **System Parameters** tab. Approved certificate authorities are listed in the "Approved Certificate Authorities" section.
+2.  In the opening view select **SYSTEM PARAMETERS** tab. Approved certificate authorities are listed in the "Approved Certificate Authorities" section.
 
 Lists approved certificate authorities. The listing contains the following information:
 
@@ -1707,25 +1777,25 @@ The backup and restore view can be accessed from the **Navigation tabs** by sele
 
 To **back up configuration**, follow these steps.
 
-1.  Navigate to **Settings** tab and in the view that opens click **Backup and restore** tab.
+1.  Navigate to **SETTINGS** tab and in the view that opens click **BACKUP AND RESTORE** tab.
 
-2.  Click **Back Up Config.**
+2.  Click **BACK UP CONFIG.**
 
 3.  The configuration backup file appears in the list of configuration backup files.
 
-4.  To save the configuration backup file to the local file system, click **Download** on the configuration file's row.
+4.  To save the configuration backup file to the local file system, click **DOWNLOAD** on the configuration file's row.
 
 To **restore configuration**, follow these steps.
 
-1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **Yes**.
+1.  Click **Restore** on the appropriate row in the list of configuration backup files and click **YES**.
 
 2.  A popup notification shows after the restore whether the restoring was successful or not.
 
 If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
-To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **Yes**.
+To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **YES**.
 
-To **upload a configuration backup file** from the local file system to the security server, click **Upload Backup**, select a file and click **Yes**. The uploaded configuration file appears in the list of configuration files.
+To **upload a configuration backup file** from the local file system to the security server, click **UPLOAD BACKUP**, select a file and click **YES**. The uploaded configuration file appears in the list of configuration files.
 
 
 ### 13.2 Restore from the Command Line
@@ -1764,7 +1834,7 @@ By default the Security Server backs up its configuration automatically once eve
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
-Click on **Diagnostics** in the **Navigation tabs**.
+Click on **DIAGNOSTICS** in the **Navigation tabs**.
 
 On this page you can examine the statuses of the following services:
 
