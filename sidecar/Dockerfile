@@ -40,7 +40,8 @@ RUN pg_ctlcluster 10 main start \
 && pg_ctlcluster 10 main stop \
 && userdel -r xrd \
 && rm -f /etc/xroad/db.properties \
-&& rm -f /etc/xroad.properties
+&& rm -f /etc/xroad.properties \
+&& rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/proxy-ui-api.crt $CERTS_PATH/proxy-ui-api.key
 
 RUN crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0 \
 && crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
