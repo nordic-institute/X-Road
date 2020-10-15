@@ -169,6 +169,7 @@ module.exports = {
     // Add endpoint for the rest service
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
+    clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(restOperationDetails);
     restOperationDetails.openEndpointsTab();
