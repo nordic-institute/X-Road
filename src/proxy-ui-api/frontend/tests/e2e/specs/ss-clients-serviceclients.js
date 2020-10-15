@@ -228,6 +228,12 @@ module.exports = {
 
     // Verify service client doesn't exist when REST service has only endpoint level access rights
     restOperationDetails.close();
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.expect.elements('//tr[contains(@data-test, "open-access-rights")]').count.to.equal(0);
