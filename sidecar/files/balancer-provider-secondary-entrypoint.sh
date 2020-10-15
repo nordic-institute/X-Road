@@ -9,6 +9,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
+
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
@@ -34,7 +35,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         pg_isready -t 10
         dpkg-reconfigure xroad-proxy
         pg_ctlcluster 10 main stop
-        nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
     fi
@@ -46,7 +46,7 @@ fi
 user_exists=$(id -u ${XROAD_ADMIN_USER} > /dev/null 2>&1)
 if [ $? != 0 ]
 then
-    echo "Creating admin user with user-supplied credentials"sed -i -e 's/few/asd/g' hello.txt
+    echo "Creating admin user with user-supplied credentials"
     useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin
     echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
     echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
@@ -70,17 +70,16 @@ then
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
-if [ ! -f /etc/xroad/ssl/nginx.crt ];
+if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ];
 then
     echo "Generating new SSL key and certificate for the admin UI"
-    ARGS="-n nginx -f -S -p"
+    ARGS="-n proxy-ui-api -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
 # Recreate serverconf database and properties file with serverconf username and random password on the first run
 if [ ! -f ${DB_PROPERTIES} ]
 then
-    echo "Creating serverconf database and properties file"
     if [[ ! -z "${XROAD_DB_PWD}" && "${XROAD_DB_HOST}" != "127.0.0.1" ]];
     then
         echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
@@ -88,22 +87,29 @@ then
         chown root:root /etc/xroad.properties
         chmod 600 /etc/xroad.properties
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
+        if [ ! -z "${XROAD_CONF_DATABASE_NAME}" ]
+        then
+          echo "serverconf.database.admin_user = ${XROAD_CONF_DATABASE_NAME}_admin" >> ${ROOT_PROPERTIES}
+          echo "postgres.connection.user= ${XROAD_CONF_DATABASE_NAME}_user"
+          echo "serverconf.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_CONF_DATABASE_NAME}" >> /etc/xroad/db.properties
+        fi
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
         dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
         dpkg-reconfigure -fnoninteractive xroad-opmonitor
-        nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
         dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
         dpkg-reconfigure -fnoninteractive xroad-opmonitor
         pg_ctlcluster 10 main stop
-        nginx -s stop
     fi
 fi
 
-#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+if [ ! -f ${XROAD_LOG_LEVEL} ];
+    then
+    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties
+fi
 
 #Configure node pod for balanacer
 crudini --set /etc/xroad/conf.d/node.ini node type 'slave' &&
@@ -114,7 +120,6 @@ groupdel xroad-security-officer  &&
 groupdel xroad-registration-officer  &&
 groupdel xroad-service-administrator  &&
 groupdel xroad-system-administrator
-
 #Try rsync until success
 RC=1
 while [[ $RC -ne 0 ]]
@@ -123,7 +128,6 @@ do
  rsync -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log  xroad-slave@${XROAD_PRIMARY_DNS}:/etc/xroad/ /etc/xroad/
  RC=$?
 done
-
 #Create cron job for rsync every minute
 rm -f /etc/cron.d/xroad-state-sync &&
 rm -f /etc/cron.d/xroad-proxy &&
@@ -140,6 +144,5 @@ echo "
         nocreate
 }
 " >> /etc/logrotate.d/xroad-slave-sync
-
 # Start services
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

@@ -9,6 +9,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
+
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
@@ -34,7 +35,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         pg_isready -t 10
         dpkg-reconfigure xroad-proxy
         pg_ctlcluster 10 main stop
-        nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
     fi
@@ -70,17 +70,16 @@ then
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
-if [ ! -f /etc/xroad/ssl/nginx.crt ];
+if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ];
 then
     echo "Generating new SSL key and certificate for the admin UI"
-    ARGS="-n nginx -f -S -p"
+    ARGS="-n proxy-ui-api -f -S -p"
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
 # Recreate serverconf database and properties file with serverconf username and random password on the first run
 if [ ! -f ${DB_PROPERTIES} ]
 then
-    echo "Creating serverconf database and properties file"
     if [[ ! -z "${XROAD_DB_PWD}" && "${XROAD_DB_HOST}" != "127.0.0.1" ]];
     then
         echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
@@ -88,23 +87,30 @@ then
         chown root:root /etc/xroad.properties
         chmod 600 /etc/xroad.properties
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
+        if [ ! -z "${XROAD_CONF_DATABASE_NAME}" ]
+        then
+          echo "serverconf.database.admin_user = ${XROAD_CONF_DATABASE_NAME}_admin" >> ${ROOT_PROPERTIES}
+          echo "postgres.connection.user= ${XROAD_CONF_DATABASE_NAME}_user"
+          echo "serverconf.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_CONF_DATABASE_NAME}" >> /etc/xroad/db.properties
+        fi
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        nginx -s stop
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
         pg_ctlcluster 10 main stop
-        nginx -s stop
     fi
 fi
 
-#cp -rp /etc/xroad/db.properties /etc/xroad/db.properties.back
+if [ ! -f ${XROAD_LOG_LEVEL} ];
+    then
+    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties
+fi
 
 #Configure master pod for balanacer
 sudo adduser --system --shell /bin/bash --ingroup xroad xroad-slave &&
 sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys &&
-crudini --set /etc/xroad/conf.d/node.ini node type 'master' && 
+crudini --set /etc/xroad/conf.d/node.ini node type 'master' &&
 chown xroad:xroad /etc/xroad/conf.d/node.ini &&
 crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface '0.0.0.0' &&
 crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port '5588' &&

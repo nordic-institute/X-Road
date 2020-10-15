@@ -33,7 +33,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         pg_isready -t 10
         dpkg-reconfigure xroad-proxy
         pg_ctlcluster 10 main stop
-        nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
     fi
@@ -69,7 +68,7 @@ then
     $XROAD_SCRIPT_LOCATION/generate_certificate.sh $ARGS
 fi
 
-if [ ! -f /etc/xroad/ssl/nginx.crt ];
+if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ];
 then
     echo "Generating new SSL key and certificate for the admin UI"
     ARGS="-n proxy-ui-api -f -S -p"
