@@ -33,6 +33,7 @@
               $t('login.logIn')
             }}</v-toolbar-title>
           </v-toolbar>
+
           <v-card-text>
             <v-form>
               <ValidationObserver ref="form">
@@ -49,6 +50,7 @@
                     type="text"
                     v-model="username"
                     @keyup.enter="submit"
+                    autofocus
                   ></v-text-field>
                 </ValidationProvider>
 
@@ -94,6 +96,7 @@
 import Vue, { VueConstructor } from 'vue';
 import { RouteName, Permissions } from '@/global';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+
 
 export default (Vue as VueConstructor<
   Vue & {
