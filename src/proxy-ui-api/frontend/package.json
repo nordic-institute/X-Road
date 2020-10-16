@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "rm -f src/openapi-types.ts && npm run generate-types && vue-cli-service serve",
-    "build": "rm -f src/openapi-types.ts && npm run generate-types && vue-cli-service build",
+    "serve": "rm -f src/openapi-types && npm run generate-types && vue-cli-service serve",
+    "build": "rm -f src/openapi-types && npm run generate-types && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "build:report": "vue-cli-service build --report",
     "test:unit": "vue-cli-service test:unit",
@@ -12,7 +12,7 @@
     "test:coverage": "vue-cli-service test:unit --coverage",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit",
-    "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types",
+    "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },
