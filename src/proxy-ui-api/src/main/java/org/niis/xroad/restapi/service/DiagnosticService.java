@@ -141,7 +141,7 @@ public class DiagnosticService {
 
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
              CloseableHttpResponse response = httpClient.execute(request)) {
-            HttpEntity resEntity = response.getEntity();
+               HttpEntity resEntity = response.getEntity();
             if (response.getStatusLine().getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
                     || resEntity == null) {
                 log.error("unable to get a response");
