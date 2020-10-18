@@ -309,7 +309,7 @@ In order to properly set up the data replication, the slave nodes must be able t
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
-   The slave security server's management REST API can be used to read the slave's configuration. However, modifying the slave's configuration using the management REST API is restricted. API keys are replicated from the master to the slaves, and the keys that have the `xroad-securityserver-observer` role have read-only access to the slave. The keys that don't have the `xroad-securityserver-observer` role, don't have any access to the slave.
+   Also, the slave security server's management REST API can be used to read the slave's configuration. However, modifying the slave's configuration using the management REST API is blocked. API keys are replicated from the master to the slaves, and the keys that are associated with the `xroad-securityserver-observer` role have read-only access to the slave. The keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the slave.
 
    For more information on the management REST API, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
