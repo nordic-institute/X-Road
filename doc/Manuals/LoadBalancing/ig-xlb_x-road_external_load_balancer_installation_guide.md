@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: IG-XLB
 
 
@@ -14,6 +14,7 @@ Doc. ID: IG-XLB
 | 15.11.2018  | 1.5         | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
 | 20.12.2018  | 1.6         | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
 | 11.09.2019  | 1.7         | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
+| 18.10.2020  | 1.8         | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
 
 ## Table of Contents
 
@@ -307,6 +308,11 @@ In order to properly set up the data replication, the slave nodes must be able t
    After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the slave security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
+
+   The slave security server's management REST API can be used to read the slave's configuration. However, modifying the slave's configuration using the management REST API is restricted. API keys are replicated from the master to the slaves, and the keys that have the `xroad-securityserver-observer` role have read-only access to the slave. The keys that don't have the `xroad-securityserver-observer` role, don't have any access to the slave.
+
+   For more information on the management REST API, see the  Security Server User Guide \[[UG-SS](#13-references)\].
+
 10. It is possible to use the autologin-package with slave nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
