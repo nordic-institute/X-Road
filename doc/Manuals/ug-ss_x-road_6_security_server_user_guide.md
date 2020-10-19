@@ -2353,7 +2353,7 @@ In addition to the validation messages declared in [Java Validation API](https:/
 
 Error             | Explanation
 ------------------|-----------
-`NoControlChars`    | The provided string contains ISO control characters or zero-width spaces
+`NoControlChars`    | The provided string contains [ISO control characters](https://en.wikipedia.org/wiki/Control_character) or zero-width spaces
 `NoColons`          | The provided string contains colons `:`
 `NoSemicolons`      | The provided string contains semicolons `;`
 `NoForwardslashes`  | The provided string contains slashes `/`
