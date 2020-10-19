@@ -2365,11 +2365,11 @@ Error             | Explanation
 Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.* 
 
 An example case:
-1. Client executes a REST request, without `ignore_warnings` parameter, to backend
-2. Backend notices warnings and responds with error message that contains the warnings. Nothing is updated at this point
-3. Client determines if warnings can be ignored. If the request was sent via the admin UI, a popup with `CONTINUE` button is shown
-4. If the warnings can be ignored, client resends the REST request, but with `ignore_warnings` parameter set to `true`. If the request was sent via the admin UI and a warning popup with the `CONTINUE` button is shown, clicking the button will ignore warnings and proceed to executing the operation
-5. Backend ignores the warnings and executes the operation
+1. Client executes a REST request, without `ignore_warnings` parameter, to backend.
+2. Backend notices warnings and responds with error message that contains the warnings. Nothing is updated at this point.
+3. Client determines if warnings can be ignored.
+4. If the warnings can be ignored, client resends the REST request, but with `ignore_warnings` parameter set to `true`.
+5. Backend ignores the warnings and executes the operation.
 
 Error response with warnings always contains the error code `warnings_detected`.
 
@@ -2392,6 +2392,8 @@ Warning example when trying to register a WSDL that produces non-fatal validatio
   ]
 }
 ```
+
+Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
 ## 20 Migrating to Remote Database Host
 
