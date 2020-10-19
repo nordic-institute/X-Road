@@ -13,8 +13,9 @@ usage="
 
     #6 Hostname to connect to the external postgresql database (default 127.0.0.1)
     #7 Port number to connect to the external postgresql database (default 5432)
+    #8 Database name in case we want to reuse a host with an existing database (default empty)
 
-    If you provide the two parameters above, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
+    If you provide the three parameters above, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
 "
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
