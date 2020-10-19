@@ -97,7 +97,6 @@ import Vue, { VueConstructor } from 'vue';
 import { RouteName, Permissions } from '@/global';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
-
 export default (Vue as VueConstructor<
   Vue & {
     $refs: {
