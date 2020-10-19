@@ -133,9 +133,11 @@ module.exports = {
     browser.expect.element(operationDetails.elements.activeTooltip).to.be.visible.and.text.to.equal("Verify TLS certificate when a secure connection is established");
 
     // Verify cancel
-    operationDetails.enterUrl(browser.globals.testdata + '/' + browser.globals.rest_url_2);
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected; 
+    operationDetails.enterUrl('https://niis.org/nosuch/api/')
     operationDetails.enterTimeout('40');
-    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected; //check ssl clear due to new url
+    operationDetails.toggleCertVerification();
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 
     // Verify that options were not changed
@@ -145,7 +147,7 @@ module.exports = {
     browser.waitForElementVisible(operationDetails);
     browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata + '/' + browser.globals.rest_url_1);
     browser.assert.valueContains(operationDetails.elements.timeout, '60');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected;
 
     // verify SSL states
     operationDetails.enterUrl('https://nosuchresttestservice.exists');
@@ -188,7 +190,7 @@ module.exports = {
     clientServices.openOperation('s1c1');
     browser.assert.valueContains(operationDetails.elements.serviceURL, browser.globals.testdata + '/' + browser.globals.rest_url_2);
     browser.assert.valueContains(operationDetails.elements.timeout, '40');
-    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected;
     operationDetails.close();
 
     browser.end();

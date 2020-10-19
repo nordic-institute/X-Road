@@ -27,17 +27,17 @@
   <div class="xrd-tab-max-width">
     <div>
       <subViewTitle
-        v-if="serviceDesc.type === serviceTypeEnum.WSDL"
+        v-if="serviceDesc.type === serviceType.WSDL"
         :title="$t('services.wsdlDetails')"
         @close="close"
       />
       <subViewTitle
-        v-else-if="serviceDesc.type === serviceTypeEnum.REST"
+        v-else-if="serviceDesc.type === serviceType.REST"
         :title="$t('services.restDetails')"
         @close="close"
       />
       <subViewTitle
-        v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3"
+        v-else-if="serviceDesc.type === serviceType.OPENAPI3"
         :title="$t('services.openapiDetails')"
         @close="close"
       />
@@ -55,12 +55,12 @@
     <div class="edit-row">
       <div>{{ $t('services.serviceType') }}</div>
 
-      <div class="code-input" v-if="serviceDesc.type === serviceTypeEnum.REST">
+      <div class="code-input" v-if="serviceDesc.type === serviceType.REST">
         {{ $t('services.restApiBasePath') }}
       </div>
       <div
         class="code-input"
-        v-else-if="serviceDesc.type === serviceTypeEnum.OPENAPI3"
+        v-else-if="serviceDesc.type === serviceType.OPENAPI3"
       >
         {{ $t('services.OpenApi3Description') }}
       </div>
@@ -92,8 +92,8 @@
       <div class="edit-row">
         <template
           v-if="
-            serviceDesc.type === serviceTypeEnum.REST ||
-            serviceDesc.type === serviceTypeEnum.OPENAPI3
+            serviceDesc.type === serviceType.REST ||
+            serviceDesc.type === serviceType.OPENAPI3
           "
         >
           <div>{{ $t('services.serviceCode') }}</div>
@@ -175,8 +175,11 @@ import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { ServiceTypeEnum } from '@/domain';
-import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
+import {
+  ServiceDescription,
+  ServiceDescriptionUpdate,
+  ServiceType,
+} from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
@@ -205,7 +208,7 @@ export default Vue.extend({
       currentServiceCode: undefined as string | undefined,
       initialServiceCode: '',
       saveBusy: false,
-      serviceTypeEnum: ServiceTypeEnum,
+      serviceType: ServiceType,
       editLoading: false as boolean,
       serviceDescriptionUpdate: null as ServiceDescriptionUpdate | null,
     };
@@ -230,8 +233,8 @@ export default Vue.extend({
       };
 
       if (
-        this.serviceDescriptionUpdate.type === this.serviceTypeEnum.REST ||
-        this.serviceDescriptionUpdate.type === this.serviceTypeEnum.OPENAPI3
+        this.serviceDescriptionUpdate.type === this.serviceType.REST ||
+        this.serviceDescriptionUpdate.type === this.serviceType.OPENAPI3
       ) {
         this.serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
         this.serviceDescriptionUpdate.new_rest_service_code =
@@ -282,7 +285,7 @@ export default Vue.extend({
     },
 
     showDeletePopup(serviceType: string): void {
-      if (serviceType === this.serviceTypeEnum.WSDL) {
+      if (serviceType === this.serviceType.WSDL) {
         this.confirmWSDLDelete = true;
       } else {
         this.confirmRESTDelete = true;
