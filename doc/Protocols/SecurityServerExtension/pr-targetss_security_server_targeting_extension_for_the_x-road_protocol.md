@@ -68,7 +68,7 @@ It should be possible to validate the messages using a validator that accepts mu
 In addition, this extension is a candidate for inclusion in the next version of the X-Road message protocol and would then
 be part of the actual [`http://x-road.eu/xsd/xroad.xsd`](http://x-road.eu/xsd/xroad.xsd) schema as well as the namespace.
 
-The XML Schema for this extension is listed in the section [XML Schema for the extension](#xml-schema-for-the-extension).
+The XML Schema for this extension is listed in the section [XML Schema for the extension](#3-xml-schema-for-the-extension).
 
 
 ### 2.1 Schema header

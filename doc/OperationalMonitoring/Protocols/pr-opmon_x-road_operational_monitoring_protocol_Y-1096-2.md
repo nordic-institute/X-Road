@@ -280,7 +280,7 @@ The XML schema fragment of the health data response body is shown below. For cla
 </xs:complexType>
 ```
 
-The example response message is presented in \[[Annex C.4](#AnnexC.4)\].
+The example response message is presented in \[[Annex C.4](#c4-getsecurityserverhealthdata-response)\].
 
 <a name="AnnexA"/></a>
 # Annex A WSDL for Operational Monitoring Messages

@@ -83,7 +83,7 @@ Doc. ID: UG-SYSPAR
     - [2.2 Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)
     - [2.3 Changing the Global Configuration Generation Interval in the Central Server](#23-changing-the-global-configuration-generation-interval-in-the-central-server)
   - [3 Security Server System Parameters](#3-security-server-system-parameters)
-    - [3.1 Common parameters : `[common]`](#31-common-parameters--common)
+    - [3.1 Common parameters : `[common]`](#31-common-parameters-common)
     - [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
     - [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
     - [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
@@ -188,7 +188,7 @@ To restore the default value of a system parameter, delete the parameter from th
 
 	DELETE FROM system_parameters WHERE key = 'parameter_name';
 
-**NB! Modifying or deleting system parameters other than the ones listed in section** [System Parameters in the Database](#system-parameters-in-the-database) **will cause the system to crash.**
+**NB! Modifying or deleting system parameters other than the ones listed in section** [System Parameters in the Database](#42-system-parameters-in-the-database) **will cause the system to crash.**
 
 
 ### 2.3 Changing the Global Configuration Generation Interval in the Central Server
@@ -208,7 +208,7 @@ The configuration generation interval must be shorter than the value of global c
 
 ## 3 Security Server System Parameters
 
-This chapter describes the system parameters used by the components of the X-Road security server. For instructions on how to change the parameter values, see section [Changing the System Parameter Values in Configuration Files](#changing-the-system-parameter-values-in-configuration-files).
+This chapter describes the system parameters used by the components of the X-Road security server. For instructions on how to change the parameter values, see section [Changing the System Parameter Values in Configuration Files](#21-changing-the-system-parameter-values-in-configuration-files).
 
 ### 3.1 Common parameters : `[common]`
 
@@ -321,7 +321,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
-| message-body-logging                             | true                                       | false  |   | Whether message body should be logged or not.<br/><br/>If *true*, the messages are logged in their original form. If *false*, the message body is cleared of its contents (SOAP body will have an empty child element inside it; REST message body, service path and query parameters will be omitted). In addition, the SOAP header and REST HTTP headers will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of message body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
+| message-body-logging                             | true                                       | false  |   | Whether message body should be logged or not.<br/><br/>If *true*, the messages are logged in their original form. If *false*, the message body is cleared of its contents (SOAP body will have an empty child element inside it; REST message body, service path and query parameters will be omitted). In addition, the SOAP header and REST HTTP headers will only have specific set of elements logged, see [Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of message body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
 | soap-body-logging                                | true                                       | false  |   | (deprecated, see message-body-logging) | 
 | enabled-body-logging-local-producer-subsystems   |                                            |   |   | Subsystem-specific overrides for message body logging when message-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which message body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure message body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
 | enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when message-body-logging = false. |
@@ -413,7 +413,7 @@ The values of *ocspFreshnessSeconds* and *timeStampingIntervalSeconds* are distr
 
 ### 4.1 System Parameters in the Configuration File
 
-For instructions on how to change the parameter values, see section [Changing the System Parameter Values in Configuration Files](#changing-the-system-parameter-values-in-configuration-files).
+For instructions on how to change the parameter values, see section [Changing the System Parameter Values in Configuration Files](#21-changing-the-system-parameter-values-in-configuration-files).
 
 #### 4.1.1 Common parameters: `[common]`
 
@@ -447,7 +447,7 @@ For instructions on how to change the parameter values, see section [Changing th
 
 ### 4.2 System Parameters in the Database
 
-This section describes the system parameters used by the X-Road central server. For instructions on how to change the parameter values, see section [Changing the System Parameter Values in the Central Server Database](#changing-the-system-parameter-values-in-the-central-server-database).
+This section describes the system parameters used by the X-Road central server. For instructions on how to change the parameter values, see section [Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database).
 
 | **Name**                    | **Value type** | **Vanilla value**                        | **Description**         |
 |-----------------------------|----------------|------------------------------------------|-------------------------|

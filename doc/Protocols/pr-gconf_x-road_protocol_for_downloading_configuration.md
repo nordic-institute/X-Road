@@ -44,9 +44,8 @@ Doc. ID: PR-GCONF
     * [A.2 Example of Signed Directory](#a2-example-of-signed-directory)
 * [Annex B. shared-parameters.xsd](#annex-b-shared-parametersxsd)
     * [Version 2](#version-2)
-    * [Version 1](#version-1)
 * [Annex C. private-parameters.xsd](#annex-c-private-parametersxsd)
-    * [Version 1 and 2](#version-1-and-2)
+    * [Version 2](#version-2-2)
 * [Annex D. monitoring-conf.xsd](#annex-d-monitoring-confxsd)
 * [Annex E. configuration-anchor.xsd](#annex-e-configuration-anchorxsd)
 * [Annex F. ocsp-nextupdate-conf.xsd](#annex-f-ocsp-nextupdate-confxsd)
@@ -118,7 +117,7 @@ Annex  A.2 contains an example configuration anchor file.
 
 Configuration client can download the configuration by making HTTP GET request to the configuration source. The content type of the response is *multipart/related* [MPREL]. The response is a MIME multipart that MUST consist of two parts:
 
-1. Directory of configuration files. The directory is a nested MIME multipart. The format of this directory is specified in [2.4](#2-4-format-of-directory)
+1. Directory of configuration files. The directory is a nested MIME multipart. The format of this directory is specified in [2.4](#24-format-of-directory)
 2. Signature of the directory, created using private key of the configuration source. The signature is calculated over the body of the first MIME part.
 
 The signature part MUST have the following MIME headers:

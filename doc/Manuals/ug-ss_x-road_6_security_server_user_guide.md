@@ -36,7 +36,7 @@ Doc. ID: UG-SS
  07.10.2015 | 2.1     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400
  14.10.2015 | 2.2     | Instructions for using an external database for the message log corrected
  05.11.2015 | 2.3     | Updates related to backup and restore (Chapter [13](#13-back-up-and-restore))
- 30.11.2015 | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made.
+ 30.11.2015 | 2.4     | X-Road concepts updated (Section 1.2). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made.
  09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made.
  14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))
  14.01.2016 | 2.7     | Logs updated (Chapter [16](#17-logs-and-system-services))

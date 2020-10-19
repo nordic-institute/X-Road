@@ -60,7 +60,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 1. <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 
-## 1 Overview matrix of the X-Road technology
+## 2 Overview matrix of the X-Road technology
 
 [Table 1](#Ref_Technology_matrix_of_the_X_Road) presents the list of technologies used in the X-Road and mapping between the technologies and X-Road components.
 
@@ -95,7 +95,7 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 
-## 2 Central server technologies
+## 3 Central server technologies
 
 [Table 2](#Ref_Technology_matrix_of_the_central_server) presents the list of technologies used in the security server and the mapping between technologies and central server components.
 
@@ -121,7 +121,7 @@ Table 2. Technology matrix of the central server
 
 See [[ARC-CS]](#ARC-CS) for the central server details.
 
-## 3 Configuration proxy technologies
+## 4 Configuration proxy technologies
 
 [Table 3](#Ref_Technology_matrix_of_the_configuration) presents the list of technologies used in the configuration proxy and the mapping between technologies and configuration proxy components.
 
@@ -142,7 +142,7 @@ Table 3. Technology matrix of the configuration proxy
 
 See [[ARC-CP]](#ARC-CP) for the configuration proxy details.
 
-## 4 Security server technologies
+## 5 Security server technologies
 
 [Table 4](#Ref_Technology_matrix_of_the_security_server) presents the list of technologies used in the security server and the mapping between technologies and security server components.
 
@@ -168,7 +168,7 @@ Table 4. Technology matrix of the security server
 See [[ARC-SS]](#ARC-SS) for the security server details.
 
 
-## 5 Operational monitoring daemon technologies
+## 6 Operational monitoring daemon technologies
 
 [Table 5](#Ref_Technology_matrix_of_the_operational_monitoring_daemon) presents the list of the technologies used in the operational monitoring daemon and the mapping between technologies and monitoring daemon components. 
 Note: OP-monitoring daemon is an additional component of the X-Road.

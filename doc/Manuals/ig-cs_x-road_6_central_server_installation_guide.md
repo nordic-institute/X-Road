@@ -24,7 +24,7 @@ Doc. ID: IG-CS
 | 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio |
 | 25.08.2017 | 2.5     | Update installation instructions concerning the support for environmental monitoring  | Ilkka Seppälä |
 | 05.03.2018 | 2.6     | Added terms and abbreviations reference, links to references and actual documents | Tatu Repo | 
-| 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
+| 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
 | 14.10.2018 | 2.8     | Update package repository address | Petteri Kivimäki |
 | 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
 | 05.02.2019 | 2.10    | Update ports | Jarkko Hyöty |

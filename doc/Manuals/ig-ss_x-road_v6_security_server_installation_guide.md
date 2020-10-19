@@ -26,9 +26,9 @@ Doc. ID: IG-SS
  18.09.2015 | 1.7     | Reference data in [3.2](#32-reference-data) updated                                   |
  18.09.2015 | 2.0     | Editorial changes made                                          |
  13.10.2015 | 2.1     | Editorial changes made                                          |
- 10.12.2015 | 2.2     | Updated the installing of the support for hardware tokens ([2.7](#27-installing-the-support-for-hardware-tokens)) |
+ 10.12.2015 | 2.2     | Updated the installing of the support for hardware tokens (2.7) |
  17.12.2015 | 2.3     | Added *xroad-addon-wsdlvalidator* package                       |
- 19.05.2016 | 2.4     | Merged changes from xtee6-doc repo. Updated table [2.2](#22-reference-data) with p 1.12, added chapter [2.8](#28-installing-support-for-monitoring) and updated [3.2](#32-reference-data). |
+ 19.05.2016 | 2.4     | Merged changes from xtee6-doc repo. Updated table [2.2](#22-reference-data) with p 1.12, added chapter 2.8 and updated [3.2](#32-reference-data). |
  30.09.2016 | 2.5     | Added chapter „[Different versions of xroad-\* package after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)“. |
  07.12.2016 | 2.6     | Added operational data monitoring packages. 2 GB RAM -&gt; 3 GB RAM |
  23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
@@ -36,7 +36,7 @@ Doc. ID: IG-SS
  25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
  15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
  05.03.2018 | 2.11    | Added terms and abbreviations reference and document links | Tatu Repo
- 10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
+ 10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
  14.10.2018 | 2.13    | Update package repository address | Petteri Kivimäki
  25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
  15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
