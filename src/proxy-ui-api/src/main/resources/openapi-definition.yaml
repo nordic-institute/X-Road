@@ -142,6 +142,7 @@ paths:
             <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = true will overwrite the existing backup.</li>
           </ul>
         </p>
+        <p>The warning response has a warning code <code>warning_file_already_exists</code> and the metadata field contains the name of the existing backup</p>
       parameters:
         - in: query
           name: ignore_warnings
@@ -830,6 +831,7 @@ paths:
             <li>Attempt to add an unregistered member with <code>ClientAdd.ignore_warnings</code> = true succeeds.</li>
           </ul>
         </p>
+        <p>When trying to add an unregister client, the error response has an error code <code>unregistered_member</code> and the metadata field contains the identifier of the unregistered client</p>
       requestBody:
         description: client to add
         content:
@@ -1739,10 +1741,14 @@ paths:
       operationId: addClientServiceDescription
       description:
         <h3>Administrator adds a new service description for the client.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding the service description did not succeed (for example invalid URL's or existing duplicate service codes).</p>
+        <p>
+          This endpoint can also return metadata in the error response. The metadata array contains error messages about why adding the service description did not succeed.
+          If adding the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+        </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionAdd.ignore_warnings</code> = true.
           If <code>ServiceDescriptionAdd.ignore_warnings</code> = false, a warnings response will be returned if WSDL or OpenAPI3 validation fails and validation warnings are returned.
+          The warnings will have the warning code <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code> depending on which type the service description is. The metadata of the warning contains the output of the validator itself.
         </p>
       parameters:
         - in: path
@@ -2063,19 +2069,30 @@ paths:
             <li>x = the minimum length of the pin code</li>
             <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
           </ul>
-          See the examples
+          Other possible error code is <code>invalid_init_params</code> which can have any one or more of the following strings in the metadata field
+          <ul>
+            <li>server_code_not_provided</li>
+            <li>member_class_not_provided</li>
+            <li>member_code_not_provided</li>
+            <li>pin_code_not_provided</li>
+            <li>server_code_exists</li>
+            <li>member_class_exists</li>
+            <li>member_code_exists</li>
+            <li>pin_code_exists</li>
+          </ul>
         </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
           If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
           <ul>
-            <li>server code has already been set for this Security Server</li>
-            <li>server owner has already been set for this Security Server</li>
-            <li>software token has already been initialized in this Security Server</li>
-            <li>the provided owner member is unregistered</li>
-            <li>the provided server id is already in use by another Security Server</li>
+            <li>server code has already been set for this Security Server (warning code <code>init_serverconf_exists</code>)</li>
+            <li>server owner has already been set for this Security Server(warning code <code>init_server_owner_exists</code>)</li>
+            <li>software token has already been initialized in this Security Server(warning code <code>init_software_token_initialized</code>)</li>
+            <li>the provided owner member is unregistered(warning code <code>init_unregistered_member</code>)</li>
+            <li>the provided server id is already in use by another Security Server(warning code <code>init_server_id_exists</code>)</li>
           </ul>
         </p>
+        <strong>See the examples</strong>
       requestBody:
         description: initial security server configuration
         content:
@@ -2413,6 +2430,8 @@ paths:
           <ul>
             <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
             <li>Attempt to delete an authentication key with a registered authentication certificate and with <code>ignore_warnings</code> = true succeeds. The authentication certificate is first unregistered, and the key and certificate are deleted after that.</li>
+          </ul>
+        <p>When trying to delete an authentication key with a registered authentication certificate, the warning response has a warning code <code>auth_key_with_registered_cert_warning</code> and the metadata field contains the key id of the key</p>
         </p>
       parameters:
         - in: path
@@ -3607,14 +3626,17 @@ paths:
       operationId: updateServiceDescription
       description:
         <h3>Administrator updates the selected service description.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the update did not succeed.</p>
+        <p>
+          This endpoint can also return metadata in the error response. The metadata array contains error messages about why updating the service description did not succeed.
+          If updating the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+        </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionUpdate.ignore_warnings</code> = true.
           If <code>ServiceDescriptionUpdate.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
           <ul>
-            <li>WSDL or OpenAPI3 validation fails and validation warnings are returned</li>
-            <li>existing services will be removed</li>
-            <li>new services will be added</li>
+            <li>WSDL or OpenAPI3 validation fails and validation warnings are returned (warning code will be either <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code>)</li>
+            <li>existing services will be removed (warning code <code>deleting_services</code> and the warning metadata contains a list of service codes that will be removed)</li>
+            <li>new services will be added (warning code <code>adding_services</code> and the warning metadata contains a list of service codes that will be added)</li>
           </ul>
         </p>
       parameters:
@@ -3776,14 +3798,17 @@ paths:
       operationId: refreshServiceDescription
       description:
         <h3>Administrator refreshes service description.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the refresh did not succeed.</p>
+        <p>
+          This endpoint can also return metadata in the error response. The metadata array contains error messages about why refreshing the service description did not succeed.
+          If refreshing the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+        </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>IgnoreWarnings.ignore_warnings</code> = true.
           If <code>IgnoreWarnings.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
-          <ul>
-            <li>WSDL or OpenAPI3 validation fails and validation warnings are returned</li>
-            <li>existing services will be removed</li>
-            <li>new services will be added</li>
+        <ul>
+          <li>WSDL or OpenAPI3 validation fails and validation warnings are returned (warning code will be either <code>wsdl_validation_warnings</code> or <code>openapi_validation_warnings</code>)</li>
+          <li>existing services will be removed (warning code <code>deleting_services</code> and the warning metadata contains a list of service codes that will be removed)</li>
+          <li>new services will be added (warning code <code>adding_services</code> and the warning metadata contains a list of service codes that will be added)</li>
           </ul>
         </p>
       parameters:
