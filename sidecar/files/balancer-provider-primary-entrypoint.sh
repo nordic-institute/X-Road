@@ -87,20 +87,20 @@ then
         chown root:root /etc/xroad.properties
         chmod 600 /etc/xroad.properties
         echo "postgres.connection.password = ${XROAD_DB_PWD}" >> ${ROOT_PROPERTIES}
-        if [ ! -z "${XROAD_CONF_DATABASE_NAME}" ]
+        if [ ! -z "${XROAD_DATABASE_NAME}" ]
         then
           touch /etc/xroad/db.properties
           chown xroad:xroad /etc/xroad/db.properties
           chmod 640 /etc/xroad/db.properties
-          echo "serverconf.database.admin_user = ${XROAD_CONF_DATABASE_NAME}_admin" >> ${ROOT_PROPERTIES}
-          echo "serverconf.hibernate.connection.username= ${XROAD_CONF_DATABASE_NAME}_serverconf" >> ${DB_PROPERTIES}
-          echo "serverconf.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_CONF_DATABASE_NAME}_serverconf" >> ${DB_PROPERTIES}
-          echo "op-monitor.database.admin_user = ${XROAD_CONF_DATABASE_NAME}_op_monitor_admin" >> ${ROOT_PROPERTIES}
-          echo "op-monitor.hibernate.connection.username= ${XROAD_CONF_DATABASE_NAME}_op-monitor" >> ${DB_PROPERTIES}
-          echo "op-monitor.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_CONF_DATABASE_NAME}_op-monitor" >> ${DB_PROPERTIES}
-          echo "messagelog.database.admin_user = ${XROAD_CONF_DATABASE_NAME}_messagelog_admin" >> ${ROOT_PROPERTIES}
-          echo "messagelog.hibernate.connection.username= ${XROAD_CONF_DATABASE_NAME}_messagelog" >> ${DB_PROPERTIES}
-          echo "messagelog.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_CONF_DATABASE_NAME}_messagelog" >> ${DB_PROPERTIES}
+          echo "serverconf.database.admin_user = ${XROAD_DATABASE_NAME}_admin" >> ${ROOT_PROPERTIES}
+          echo "serverconf.hibernate.connection.username= ${XROAD_DATABASE_NAME}_serverconf" >> ${DB_PROPERTIES}
+          echo "serverconf.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_serverconf" >> ${DB_PROPERTIES}
+          echo "op-monitor.database.admin_user = ${XROAD_DATABASE_NAME}_op_monitor_admin" >> ${ROOT_PROPERTIES}
+          echo "op-monitor.hibernate.connection.username= ${XROAD_DATABASE_NAME}_op-monitor" >> ${DB_PROPERTIES}
+          echo "op-monitor.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_op-monitor" >> ${DB_PROPERTIES}
+          echo "messagelog.database.admin_user = ${XROAD_DATABASE_NAME}_messagelog_admin" >> ${ROOT_PROPERTIES}
+          echo "messagelog.hibernate.connection.username= ${XROAD_DATABASE_NAME}_messagelog" >> ${DB_PROPERTIES}
+          echo "messagelog.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_messagelog" >> ${DB_PROPERTIES}
         fi
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
