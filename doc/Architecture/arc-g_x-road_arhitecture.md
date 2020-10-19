@@ -99,7 +99,7 @@ The following list contains main design goals and design decisions of the X-Road
 
 -   All the messages processed by the X-Road are usable as **digital evidence**. The technical solution must comply with requirements for digital seals according to eIDAS \[[EIDAS](#Ref_EIDAS)\]. This implies support for secure signature creation devices (SSCDs).
 
--   All the communication is implemented as \[[SOAP](#Ref_SOAP)\] or REST **service calls**. SOAP services are described using the \[[WSDL](#Ref_WSDL)\] language and REST services are described using the \[[OPENAPI](#Ref_OpenAPI)\] Specification v3.
+-   All the communication is implemented as \[[SOAP](#Ref_SOAP)\] or REST **service calls**. SOAP services are described using the \[[WSDL](#Ref_WSDL)\] language and REST services are described using the \[[OPENAPI](#Ref_OPENAPI)\] Specification v3.
 
 -   **Cross-border services** – it is possible for an organization to invoke services provided by an organization belonging to a different instance of X-Road.
 

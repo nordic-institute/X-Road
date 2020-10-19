@@ -40,7 +40,7 @@ The X-Road message protocol version 4.0 \[[PR-MESS](#Ref_PR-MESS)\] already supp
 extension just provides a common, defined way to deliver security tokens with the X-Road protocol using the `securityToken` element. 
 
 The motivation for the extension was the need to provide a common way to transfer JSON Web Tokens \[[JWT-RFC](#Ref_JWT-RFC)\] over X-Road.
-Examples using JWT as payload in the security token can be found in the [Examples](#examples) section. 
+Examples using JWT as payload in the security token can be found in the [Examples](#5-examples) section. 
 
 ### 1.1 Terms and abbreviations
 
@@ -61,7 +61,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 This section describes the XML format for expressing the security token. The data
 structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/security-token.xsd`. The
 schema file can be found at [`http://x-road.eu/xsd/security-token.xsd`](http://x-road.eu/xsd/security-token.xsd).
-The XML Schema for this extension is also listed in the section [XML Schema for the extension](#xml-schema-for-the-extension).
+The XML Schema for this extension is also listed in the section [XML Schema for the extension](#4-xml-schema-for-the-extension).
 
 Note that at the moment, there is no unifying schema that would combine the message protocol and this extension under
 the same namespace. That means there is no single schema that would validate an X-Road message with this extension in use.

@@ -27,9 +27,9 @@ Doc. ID: UC-OPMON
 - [2 Overview](#2-overview)
 - [3 Use Case Model](#3-use-case-model)
   - [3.1 Actors](#31-actors)
-  - [3.2 UC OPMON_01: Store the Operational Data in the Operational Monitoring Database](#32-uc-opmon01-store-the-operational-data-in-the-operational-monitoring-database)
-  - [3.3 UC OPMON_02: Query Operational Data](#33-uc-opmon02-query-operational-data)
-  - [3.5 UC OPMON_03: Query Security Server Health Data](#35-uc-opmon03-query-security-server-health-data)
+  - [3.2 UC OPMON_01: Store the Operational Data in the Operational Monitoring Database](#32-uc-opmon_01-store-the-operational-data-in-the-operational-monitoring-database)
+  - [3.3 UC OPMON_02: Query Operational Data](#33-uc-opmon_02-query-operational-data)
+  - [3.5 UC OPMON_03: Query Security Server Health Data](#35-uc-opmon_03-query-security-server-health-data)
 
 <!-- tocstop -->
 

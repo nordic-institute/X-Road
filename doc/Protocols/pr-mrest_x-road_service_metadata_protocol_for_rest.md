@@ -95,7 +95,7 @@ The body of the response message MUST contain a list of services provided by the
 
 Annex [A](#annex-a-service-descriptions-for-rest-metadata-services) contains the OpenAPI description of the REST metadata services.
 
-Annexes [B.1](#c1-listmethods-response) and [B.2](#c2-allowedmethods-response) contain example response messages for services, respectively.
+Annexes [B.1](#b1-listmethods-response) and [B.2](#b2-allowedmethods-response) contain example response messages for services, respectively.
 
 ## 5 Retrieving the OpenAPI description of a Service
 
