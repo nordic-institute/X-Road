@@ -1739,8 +1739,7 @@ paths:
       operationId: addClientServiceDescription
       description:
         <h3>Administrator adds a new service description for the client.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding the service description did not succeed (for example invalid URL's).</p>
-        <p></p>
+        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding the service description did not succeed (for example invalid URL's or existing duplicate service codes).</p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionAdd.ignore_warnings</code> = true.
           If <code>ServiceDescriptionAdd.ignore_warnings</code> = false, a warnings response will be returned if WSDL or OpenAPI3 validation fails and validation warnings are returned.

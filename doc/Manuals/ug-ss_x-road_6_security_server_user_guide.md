@@ -2350,14 +2350,15 @@ Response body:
 ```
 
 In addition to the validation messages declared in [Java Validation API](https://javaee.github.io/javaee-spec/javadocs/javax/validation/constraints/package-summary.html), the following validation errors are possible:
-```
-NoControlChars
-NoColons
-NoSemicolons
-NoForwardslashes
-NoBackslashes
-NoPercents
-```
+
+Error             | Explanation
+------------------|-----------
+`NoControlChars`    | The provided string contains ISO control characters or zero-width spaces
+`NoColons`          | The provided string contains colons `:`
+`NoSemicolons`      | The provided string contains semicolons `;`
+`NoForwardslashes`  | The provided string contains slashes `/`
+`NoBackslashes`     | The provided string contains backslashes `\`
+`NoPercents`        | The provided string contains percent symbol `%`
 
 ### 19.5 Warning responses
 
