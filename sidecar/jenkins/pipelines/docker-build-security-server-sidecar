@@ -38,7 +38,6 @@ pipeline {
                     anchore-cli image add niis/xroad-security-server-sidecar:6.23.0
                     anchore-cli image vuln niis/xroad-security-server-sidecar:6.23.0 all
                     anchore-cli evaluate check niis/xroad-security-server-sidecar:6.23.0 --detail
-                    rm clair-scanner
                 '''
                 }
             }
@@ -79,7 +78,10 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rm -f sss-${IMAGE_TAG} clair-db clair || true'
+            sh '''
+                docker rm -f sss-${IMAGE_TAG} clair-db clair || true
+                rm clair-scanner
+            '''
         }
     }
 }
