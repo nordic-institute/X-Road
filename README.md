@@ -179,7 +179,7 @@ For example:
   [...]
   ```
 #### 1.7.1 Store sensitive information in volumes
-The file "/etc/xroad.properties" may contain sensitive information about the database password. For security reasons is recommended to store this information outside the containers using volumes.
+The file `/etc/xroad.properties` contains sensitive information to access the external database. For security reasons, it is strongly recommended to store this file outside the Security Server sidecar container by configuring a volume:
 ```bash
 [...]
   docker run -v sidecar-properties:/etc/xroad.properties -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
