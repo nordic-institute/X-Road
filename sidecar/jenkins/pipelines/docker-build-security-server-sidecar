@@ -24,9 +24,9 @@ pipeline {
         stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
             steps {
                 sh '''
-                    sudo docker run -d --name clair-db arminc/clair-db
+                    docker run -d --name clair-db arminc/clair-db
                     sleep 15 # wait for db to come up
-                    sudo docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
+                    docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
                     curl -O -L https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 && mv clair-scanner_linux_amd64 clair-scanner && chmod +x clair-scanner
                     ./clair-scanner --ip=host.docker.internal niis/xroad-security-server-sidecar:6.23.0 || exit 0
                 '''
@@ -34,7 +34,7 @@ pipeline {
             }
         stage('Build X-Road Security Server Sidecar image') {
             steps {
-                sh 'sudo docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
+                sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
             }
         }
         stage('Optionally add latest tag to X-Road Security Server Sidecar image') {
@@ -42,12 +42,12 @@ pipeline {
                 expression { params.IS_LATEST == true }
             }
             steps {
-                sh 'sudo docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:${LATEST_TAG}'
+                sh 'docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:${LATEST_TAG}'
             }
         }
         stage('Run container') {
             steps {
-                sh 'sudo docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
+                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
             }
         }
         stage('Test') {
@@ -55,7 +55,7 @@ pipeline {
                 retry (5) {
                     sleep(time: 20, unit: 'SECONDS')
                     script {
-                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://host.docker.internal:4100', returnStdout: true)
+                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://localhost:4100', returnStdout: true)
                         if(response == '302') {
                             echo '========> X-Road Security Server Sidecar is successfully running'
                             currentBuild.result = 'SUCCESS'
@@ -69,7 +69,7 @@ pipeline {
     }
     post {
         always {
-            sh 'sudo docker rm -f sss-${IMAGE_TAG} clair-db clair || true'
+            sh 'docker rm -f sss-${IMAGE_TAG} clair-db clair || true'
         }
     }
 }
