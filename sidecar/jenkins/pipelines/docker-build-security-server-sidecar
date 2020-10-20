@@ -24,7 +24,7 @@ pipeline {
         stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
             steps {
                 sh '''
-                    sudo docker run -d --name db arminc/clair-db
+                    sudo docker run -d --name clair-db arminc/clair-db
                     sleep 15 # wait for db to come up
                     sudo docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
                     curl https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 && mv clair-scanner_linux_amd64 clair-scanner && chmod +x clair-scanner
@@ -69,7 +69,7 @@ pipeline {
     }
     post {
         always {
-            sh 'sudo docker rm -f sss-${IMAGE_TAG} || true'
+            sh 'sudo docker rm -f sss-${IMAGE_TAG} clair-db clair || true'
         }
     }
 }
