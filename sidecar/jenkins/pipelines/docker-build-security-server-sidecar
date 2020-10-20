@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Build X-Road Security Server Sidecar image') {
             steps {
-                sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
+                sh 'sudo docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
             }
         }
         stage('Optionally add latest tag to X-Road Security Server Sidecar image') {
@@ -31,12 +31,12 @@ pipeline {
                 expression { params.IS_LATEST == true }
             }
             steps {
-                sh 'docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:${LATEST_TAG}'
+                sh 'sudo docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:${LATEST_TAG}'
             }
         }
         stage('Run container') {
             steps {
-                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
+                sh 'sudo docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
             }
         }
         stage('Test') {
@@ -58,7 +58,7 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rm -f sss-${IMAGE_TAG} || true'
+            sh 'sudo docker rm -f sss-${IMAGE_TAG} || true'
         }
     }
 }
