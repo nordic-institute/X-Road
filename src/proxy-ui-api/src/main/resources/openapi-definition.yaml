@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.0
 info:
-  description: X-Road Security Server Admin API
+  description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
   version: "1.0.30"
   title: X-Road Security Server Admin API
   contact:
