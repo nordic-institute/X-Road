@@ -95,7 +95,7 @@ paths:
       operationId: addBackup
       description:
         <h3>Adds security server backup to the system.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain e.g. the output of a failed backup generation script.</p>
+        <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup generation script.</p>
       responses:
         '201':
           description: item created
@@ -228,7 +228,7 @@ paths:
       operationId: restoreBackup
       description:
         <h3>Administrator restores the security server configuration from backup.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain e.g. the output of a failed backup restore script.</p>
+        <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup restore script.</p>
       parameters:
         - in: path
           name: filename
@@ -313,7 +313,7 @@ paths:
       operationId: importCertificate
       description:
         <h3>Imports certificate to the system.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported. For example if a client was missing, the metadata would contain the identifier of that client.</p>
+        <p>This endpoint can also return metadata in the error response if the client for the certificate is not found. The metadata array contains the identifier of that client.</p>
       requestBody:
         description: certificate to import
         content:
@@ -395,7 +395,7 @@ paths:
       operationId: deleteCertificate
       description:
         <h3>Administrator deletes the certificate.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the delete did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response if the certificate is not found. The metadata array contains the id of that certificate.</p>
       parameters:
         - in: path
           name: hash
@@ -500,7 +500,7 @@ paths:
       operationId: importCertificateFromToken
       description:
         <h3>Imports certificate from a token to the system.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the certificate could not be imported. For example if a client was missing, the metadata would contain the identifier of that client.</p>
+        <p>This endpoint can also return metadata in the error response if the client for this certificate is not found. The metadata contains the identifier of that client.</p>
       parameters:
         - in: path
           name: hash
@@ -622,7 +622,7 @@ paths:
       operationId: unregisterAuthCertificate
       description:
         <h3>Administrator unregisters selected authentication certificate.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the unregister did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
       parameters:
         - in: path
           name: hash
@@ -672,7 +672,7 @@ paths:
       operationId: markAuthCertForDeletion
       description:
         <h3>Administrator marks an auth certificate for deletion.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the cert could not be marked for deletion.</p>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
       parameters:
         - in: path
           name: hash
@@ -1066,7 +1066,6 @@ paths:
       operationId: getClientOrphans
       description:
         <h3>Administrator has deleted a client and wants to know if some orphaned sign keys, certificates or csrs exist.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the orphan removal did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -1147,7 +1146,7 @@ paths:
       operationId: registerClient
       description:
         <h3>Administrator registers client.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the registration did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
       parameters:
         - in: path
           name: id
@@ -1643,7 +1642,7 @@ paths:
       operationId: unregisterClient
       description:
         <h3>Administrator unregisters client.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the unregistration did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
       parameters:
         - in: path
           name: id
@@ -1742,8 +1741,10 @@ paths:
       description:
         <h3>Administrator adds a new service description for the client.</h3>
         <p>
-          This endpoint can also return metadata in the error response. The metadata array contains error messages about why adding the service description did not succeed.
+          This endpoint can also return metadata in the error response if adding the service description fails due to invalid URLs, already existing service description or already existing services.
           If adding the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+          If adding the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
+          If adding the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
         </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionAdd.ignore_warnings</code> = true.
@@ -1800,17 +1801,17 @@ paths:
           description:
             <h3>An existing item already exists</h3>
             <p>
-              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL.
+              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
             </p>
             <p>
-              In this case the error code <code>service_already_exists</code> is used and the entries in the metadata array are ordered in following way
+              In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
               <ul>
                 <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
                 <li>C1 = duplicate service full code</li>
                 <li>U1 = URL of the existing WSDL that has the duplicate</li>
               </ul>
-              <p>See the example</p>
             </p>
+            <strong>See the example</strong>
           content:
             application/json:
               schema:
@@ -1924,7 +1925,7 @@ paths:
       operationId: changeOwner
       description:
         <h3>Administrator changes Security Server's owner.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the owner change did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
       parameters:
         - in: path
           name: id
@@ -2092,7 +2093,7 @@ paths:
             <li>the provided server id is already in use by another Security Server(warning code <code>init_server_id_exists</code>)</li>
           </ul>
         </p>
-        <strong>See the examples</strong>
+        <strong>See the '400' response examples</strong>
       requestBody:
         description: initial security server configuration
         content:
@@ -2424,7 +2425,7 @@ paths:
       operationId: deleteKey
       description:
         <h3>Administrator deletes the key.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the delete did not succeed.</p>
+        <p>This endpoint can also return metadata in the error response if sending an auth cert deletion management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
         <p>
           Note that with this endpoint it's possible to delete an authentication key with a registered authentication certificate.
           <ul>
@@ -3268,7 +3269,6 @@ paths:
       operationId: getEndpoint
       description:
         <h3>Administrator fetches an endpoint.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain an error message about why the endpoint could not be fetched.</p>
       parameters:
         - in: path
           name: id
@@ -3375,7 +3375,6 @@ paths:
       operationId: deleteEndpoint
       description:
         <h3>Administrator removes an endpoint.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the delete did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -3425,7 +3424,6 @@ paths:
       operationId: getEndpointServiceClients
       description:
         <h3>Administrator views endpoints access rights.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the access rights could not be fetched.</p>
       parameters:
         - in: path
           name: id
@@ -3481,7 +3479,6 @@ paths:
       operationId: addEndpointServiceClients
       description:
         <h3>Administrator add access rights for a service clients to the selected endpoint.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the endpoint did not succeed.</p>
       parameters:
         - in: path
           name: id
@@ -3541,7 +3538,6 @@ paths:
       operationId: deleteEndpointServiceClients
       description:
         <h3>Administrator removes access rights from a service clients to an endpoint.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the endpoint could not be deleted.</p>
       parameters:
         - in: path
           name: id
@@ -3627,8 +3623,10 @@ paths:
       description:
         <h3>Administrator updates the selected service description.</h3>
         <p>
-          This endpoint can also return metadata in the error response. The metadata array contains error messages about why updating the service description did not succeed.
+          This endpoint can also return metadata in the error response if updating the service description fails due to invalid URLs, already existing service description or already existing services.
           If updating the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+          If updating the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
+          If updating the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
         </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>ServiceDescriptionUpdate.ignore_warnings</code> = true.
@@ -3684,7 +3682,20 @@ paths:
         '406':
           description: request specified an invalid format
         '409':
-          description: an existing item already exists
+          description:
+            <h3>An existing item already exists</h3>
+            <p>
+              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
+            </p>
+            <p>
+              In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
+              <ul>
+                <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
+                <li>C1 = duplicate service full code</li>
+                <li>U1 = URL of the existing WSDL that has the duplicate</li>
+              </ul>
+            </p>
+            <strong>See the example</strong>
           content:
             application/json:
               schema:
@@ -3799,8 +3810,10 @@ paths:
       description:
         <h3>Administrator refreshes service description.</h3>
         <p>
-          This endpoint can also return metadata in the error response. The metadata array contains error messages about why refreshing the service description did not succeed.
+          This endpoint can also return metadata in the error response if refreshing the service description fails due to invalid URLs, already existing service description or already existing services.
           If refreshing the service description fails due to an invalid service URL, the error response will have the error code <code>invalid_service_url</code> and the metadata will contain a list of invalid URLs.
+          If refreshing the service description fails due to an already existing service description, the error response will have the error code <code>url_already_exists</code> and the metadata will contain the existing URL.
+          If refreshing the service description fails due to already existing services, the metadata array will have a more complex format. See the description of the '409' response in this endpoint.
         </p>
         <p>
           This endpoint can return a warnings response which can be ignored by setting <code>IgnoreWarnings.ignore_warnings</code> = true.
@@ -3854,7 +3867,20 @@ paths:
         '406':
           description: request specified an invalid format
         '409':
-          description: an existing item already exists
+          description:
+            <h3>An existing item already exists</h3>
+            <p>
+              If there are existing WSDL services with the same name, the error response will include the existing services' names and the containing WSDL's URL in the metadata array.
+            </p>
+            <p>
+              In this case the error code <code>service_already_exists</code> (WSDL) or <code>service_code_already_exists</code> (OPENAPI3) is used and the entries in the metadata array are ordered in following way
+              <ul>
+                <li>metadata has a list of strings [C1,U1,C2,U2....Cn,Un] where</li>
+                <li>C1 = duplicate service full code</li>
+                <li>U1 = URL of the existing WSDL that has the duplicate</li>
+              </ul>
+            </p>
+            <strong>See the example</strong>
           content:
             application/json:
               schema:
@@ -4110,7 +4136,6 @@ paths:
       operationId: generateSystemTlsKeyAndCertificate
       description:
         <h3>Administrator generates new internal TLS key and certificate.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why generating a TLS key failed.</p>
       responses:
         '204':
           description: tls key generated
@@ -4604,7 +4629,6 @@ paths:
       operationId: addKeyAndCsr
       description:
         <h3>Administrator adds a new key and generates a csr for it.</h3>
-        <p>This endpoint can also return metadata in the error response. The metadata array can contain error messages about why adding a key with csr did not succeed.</p>
       parameters:
         - in: path
           name: id
