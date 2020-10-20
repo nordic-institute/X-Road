@@ -21,14 +21,16 @@ pipeline {
                 ])
             }
         }
-        stage("Scan X-Road Security Server Sidecar image for vulnerabilities"){
-            sh '''
-                docker run -d --name db arminc/clair-db
-                sleep 15 # wait for db to come up
-                docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
-                curl https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 && mv clair-scanner_linux_amd64 clair-scanner && chmod +x clair-scanner
-                ./clair-scanner --ip=host.docker.internal niis/xroad-security-server-sidecar:6.23.0 || exit 0
-            '''
+        stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
+            steps {
+                sh '''
+                    docker run -d --name db arminc/clair-db
+                    sleep 15 # wait for db to come up
+                    docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
+                    curl https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 && mv clair-scanner_linux_amd64 clair-scanner && chmod +x clair-scanner
+                    ./clair-scanner --ip=host.docker.internal niis/xroad-security-server-sidecar:6.23.0 || exit 0
+                '''
+                }
             }
         stage('Build X-Road Security Server Sidecar image') {
             steps {
