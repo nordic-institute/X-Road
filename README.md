@@ -132,7 +132,7 @@ The following configuration is needed on the remote database server to allow ext
 
 - The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database.
 
-- If the external database host already have an existing "serverconf" database and "serverconf" user, we need to change the name of the database adding an extra parameter:
+- If the external database host already has an existing "serverconf" database and "serverconf" user, we need to change the name of the database adding an extra parameter:
 ```bash
 export XROAD_DB_PASSWORD=<remote database administrator master password>
 ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port> <database name>
