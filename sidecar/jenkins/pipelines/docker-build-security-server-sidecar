@@ -38,6 +38,7 @@ pipeline {
                     anchore-cli image add niis/xroad-security-server-sidecar:6.23.0
                     anchore-cli image vuln niis/xroad-security-server-sidecar:6.23.0 all
                     anchore-cli evaluate check niis/xroad-security-server-sidecar:6.23.0 --detail
+                    rm clair-scanner
                 '''
                 }
             }
