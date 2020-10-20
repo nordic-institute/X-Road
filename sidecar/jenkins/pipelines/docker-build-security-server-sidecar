@@ -75,6 +75,7 @@ pipeline {
             sh '''
                 docker rm -f sss-${IMAGE_TAG} clair-db clair || true
                 rm clair-scanner
+                docker rmi arminc/clair-db:latest arminc/clair-local-scan:latest anchore/anchore-engine:v0.8.2
             '''
         }
     }
