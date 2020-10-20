@@ -4,7 +4,7 @@ import VuetifyButton from "./components/VuetifyButton.vue";
 // Import vee-validate so it's configured on the library build
 import "./plugins/vee-validate";
 
-const MyComponents = {
+const SharedComponents = {
   install(Vue: VueConstructor, options?: any) {
     /* 
     // In theory a shared vuex store could be used like this:
@@ -18,4 +18,4 @@ const MyComponents = {
   }
 };
 
-export default MyComponents;
+export default SharedComponents;
