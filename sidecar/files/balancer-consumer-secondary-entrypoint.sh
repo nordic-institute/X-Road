@@ -80,6 +80,7 @@ fi
 # Recreate serverconf database and properties file with serverconf username and random password on the first run
 if [ ! -f ${DB_PROPERTIES} ]
 then
+    echo "Creating serverconf database and properties file"
     if [[ ! -z "${XROAD_DB_PWD}" && "${XROAD_DB_HOST}" != "127.0.0.1" ]];
     then
         echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
