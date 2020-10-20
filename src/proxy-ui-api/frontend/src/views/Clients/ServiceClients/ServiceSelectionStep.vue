@@ -140,7 +140,9 @@ export default Vue.extend({
   computed: {
     searchResults(): ServiceCandidate[] {
       return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code.includes(this.search),
+        candidate.service_code
+          .toLowerCase()
+          .includes(this.search.toLowerCase()),
       );
     },
   },
