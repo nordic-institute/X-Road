@@ -4,7 +4,7 @@
       Vuetify component -
       <br />
       {{ hello }}
-  <!--   Localised: {{$t('locals_demo')}} -->
+      <!--   Localised: {{$t('locals_demo')}} -->
     </div>
     <v-btn
       @click="increment"
@@ -26,47 +26,42 @@
   </div>
 </template>
 <script lang="ts">
-import Vue from "vue";
-import { ValidationProvider } from "vee-validate";
+import Vue from 'vue';
+import { ValidationProvider } from 'vee-validate';
 export default Vue.extend({
   components: {
-    ValidationProvider
+    ValidationProvider,
   },
   props: {
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     hello: {
       type: String,
       required: false,
-      default: "wow!"
-    }
+      default: 'wow!',
+    },
   },
   data() {
     return {
       count: 0,
-      textf: ""
+      textf: '',
     };
   },
   computed: {
     times(): string {
-      return this.count > 1 ? "times" : "time";
+      return this.count > 1 ? 'times' : 'time';
     },
     text(): string {
       return `Clicked ${this.count} ${this.times}`;
-    }
+    },
   },
   methods: {
     increment(): void {
       this.count += 1;
-    }
+    },
   },
-  created() {
-    console.log("library $t: ");
-    console.log(this.$t);
-   // console.log(this.$t('locals_demo'));
-  }
 });
 </script>
 

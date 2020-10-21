@@ -1,11 +1,11 @@
-import Vue from "vue";
-import Vuetify from "vuetify";
+import Vue from 'vue';
+import Vuetify from 'vuetify';
 Vue.use(Vuetify);
 
 export default new Vuetify({
   theme: {
     options: {
-      customProperties: true
+      customProperties: true,
     },
     themes: {
       light: {
@@ -14,5 +14,5 @@ export default new Vuetify({
         accent: '#8c9eff',
       },
     },
-  }
+  },
 });
