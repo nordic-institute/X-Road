@@ -1,0 +1,9 @@
+{
+  "locals_demo": "This is localised in library",
+  "type": "Type",
+  "warning": "Warning",
+  "fields": {
+    "password": "Password",
+    "username": "LIBUsername"
+  }
+}

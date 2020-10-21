@@ -4,6 +4,7 @@
       Vuetify component -
       <br />
       {{ hello }}
+  <!--   Localised: {{$t('locals_demo')}} -->
     </div>
     <v-btn
       @click="increment"
@@ -13,10 +14,10 @@
       class="large-button"
       >{{ text }}</v-btn
     >
-   <!-- Localised: {{$t('warning')}} -->
-    <ValidationProvider name="moi" :rules="'required'" v-slot="{ errors }">
+    <!-- Localised: {{$t('warning')}} -->
+    <ValidationProvider name="username" :rules="'required'" v-slot="{ errors }">
       <v-text-field
-        name="moi"
+        name="username"
         type="text"
         v-model="textf"
         :error-messages="errors"
@@ -28,8 +29,8 @@
 import Vue from "vue";
 import { ValidationProvider } from "vee-validate";
 export default Vue.extend({
-    components: {
-    ValidationProvider,
+  components: {
+    ValidationProvider
   },
   props: {
     disabled: {
@@ -61,10 +62,11 @@ export default Vue.extend({
       this.count += 1;
     }
   },
-      created() {
-        console.log('lib');
-      console.log(this.$t);
-    },
+  created() {
+    console.log("library $t: ");
+    console.log(this.$t);
+   // console.log(this.$t('locals_demo'));
+  }
 });
 </script>
 

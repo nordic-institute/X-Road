@@ -29,7 +29,7 @@ storiesOf('VuetifyButton', module)
    updated_at: new Date(2019, 0, 1, 9, 0),
  };
  
- const taskTemplate = `<vuetify-button :disabled="false" :hello="moi"/>`;
+ const taskTemplate = `<vuetify-button :disabled="false" hello="moi"/>`;
 
  //const taskTemplate = `<task :task="task" @archiveTask="onArchiveTask" @pinTask="onPinTask"/>`;
  
