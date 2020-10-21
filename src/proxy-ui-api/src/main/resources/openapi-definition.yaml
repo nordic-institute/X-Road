@@ -3702,7 +3702,7 @@ paths:
                 $ref: '#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
         '500':
           description: internal server error
     delete: # ok
@@ -3887,7 +3887,7 @@ paths:
                 $ref: '#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
         '500':
           description: internal server error
   /service-descriptions/{id}/services:
