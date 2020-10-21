@@ -1,8 +1,6 @@
-
 import { extend, configure } from 'vee-validate';
 import { required, email, min, between } from 'vee-validate/dist/rules';
 import i18n from '../i18n';
-
 
 configure({
   // This should be ok, as it is the vee-validate contract

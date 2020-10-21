@@ -103,6 +103,10 @@ export default (Vue as VueConstructor<
   }
 >).extend({
   name: 'login',
+  components: {
+    ValidationProvider,
+    ValidationObserver,
+  },
   data() {
     return {
       loading: false as boolean,
