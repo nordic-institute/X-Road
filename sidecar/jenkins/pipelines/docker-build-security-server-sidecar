@@ -2,7 +2,6 @@ pipeline {
     agent any
     parameters {
         string(description: "Path to the Dockerfile to build", name: "DOCKERFILE_PATH", defaultValue: "${params?.DOCKERFILE_PATH}")
-        string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
     }
     stages {
         stage('Clone X-Road Security Server Sidecar repository') {
@@ -24,7 +23,13 @@ pipeline {
         stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
             steps {
                 sh '''
-                    curl https://docs.anchore.com/current/docs/engine/quickstart/docker-compose.yaml > anchore-docker-compose.yaml
+                    docker run -d --name clair-db arminc/clair-db
+                    sleep 15 # wait for db to come up
+                    docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
+                    DOCKER_GATEWAY=$(docker network inspect bridge --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}")
+                    curl -O -L https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 && mv clair-scanner_linux_amd64 clair-scanner && chmod +x clair-scanner
+                    ./clair-scanner --ip="$DOCKER_GATEWAY" niis/xroad-security-server-sidecar:6.23.0
+                    curl https://docs.anchore.com/current/docs/engine/quickstart/docker-compose.yaml > docker-compose.yaml
                     docker-compose up -d
                     export ANCHORE_CLI_URL=http://localhost:8228/v1
                     export ANCHORE_CLI_USER=admin
@@ -38,14 +43,6 @@ pipeline {
         stage('Build X-Road Security Server Sidecar image') {
             steps {
                 sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
-            }
-        }
-        stage('Optionally add latest tag to X-Road Security Server Sidecar image') {
-            when {
-                expression { params.IS_LATEST == true }
-            }
-            steps {
-                sh 'docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:${LATEST_TAG}'
             }
         }
         stage('Run container') {
