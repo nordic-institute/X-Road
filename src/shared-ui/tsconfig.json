@@ -9,6 +9,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true, // Needed to import json files in code
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
