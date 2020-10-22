@@ -318,7 +318,7 @@ If the content-type of the response is `text/xml` then an error occurred at the 
     a) For REST responses, response HTTP headers are copied from `application/x-road-rest-response`
 
 <a id="Messtransport_protocol_message_processing_client" class="anchor"></a>
-![](img/pr-messtransport-protocol-message-processing-client.png)
+![](img/pr-messtransport-protocol-message-processing-client.svg)
 
 Figure 5. Message processing on service client's side
 
