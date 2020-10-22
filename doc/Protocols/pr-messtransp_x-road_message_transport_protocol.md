@@ -70,7 +70,14 @@ This document describes the communications protocol that is used by service clie
 Figure 1. Protocols used in the X-Road system
 
 As can be seen from [Figure 1](#Messtransport_protocol_overview), three protocols are involved when exchanging messages between a service client and a service provider. These include:
-- X-Road message protocol – used for communication between an information system and a security server within an organization (see [PR-MESS](#Ref_PR-MESS) for details). X-Road message protocol is a profile of the SOAP protocol (<http://www.w3.org/TR/2000/NOTE-SOAP-20000508/>).
+- X-Road message protocol – used for communication between an information system and a security server within an organization
+  - There are two types of X-Road message protocol, one for SOAP and one for REST
+  - X-Road message protocol (for SOAP) is a profile of the SOAP protocol (<http://www.w3.org/TR/2000/NOTE-SOAP-20000508/>).
+  See [PR-MESS](#Ref_PR-MESS) for details.
+  - X-Road message protocol for REST is a protocol for consuming and producing REST services.
+  See [PR-REST](#Ref_PR-REST) for details.
+  - Same message protocol needs to be used in both ends. Using _message protocol for REST_ between service client's information system and
+  security server, and _message protocol for SOAP_ between service provider's security server and information system is not supported.
 
 - X-Road message transport protocol – a synchronous secure communication protocol that provides confidentiality and integrity when exchanging messages between two security servers over the public Internet. This protocol is described in the current document.
 
