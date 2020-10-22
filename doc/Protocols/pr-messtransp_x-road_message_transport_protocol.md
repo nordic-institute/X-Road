@@ -167,37 +167,63 @@ The X-Road message transport protocol is designed for streaming the message cont
 
 Figure 4. X-Road transport messages
 
-The X-Road transport messages are encoded as MIME multipart messages with content-type `multipart/related`. The content-type of the client request message is sent from the service client's security server to the service provider's security server and vice versa using the `x-original-content-type` HTTP header. The value of the original content type is used to forward the request or response message to the service provider's or service client's information system. All other HTTP headers sent by the service client's security server or service provider's security server are not preserved in the security server. MIME headers in the multipart message are preserved.
+The X-Road transport messages are encoded as MIME multipart messages with content-type `multipart/related`.
 
-The X-Road transport message encapsulates either the SOAP message package that arrives to the security server or a SOAP fault message (uses content-type `text/xml` instead of `multipart/related`). The latter is only sent from the service provider's security server to the service client's security server if an error occurred before processing the request message in the service provider's security server. The normal X-Road request message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message) The parts are mandatory unless stated otherwise):
+For SOAP messages, the content-type of the client request message is sent from the service client's security server
+to the service provider's security server and vice versa using the `x-original-content-type` HTTP header.
+The value of the original content type is used to forward the request or response message to the service provider's
+or service client's information system. All other HTTP headers sent by the service client's security server or service
+provider's security server are not preserved in the security server. MIME headers in the multipart message are preserved.
+
+For REST messages, the content-type of the client request message is sent from the service client's security server
+to the service provider's security server and vice versa using the `application/x-road-rest-request` and
+`application/x-road-rest-response` parts, which contain HTTP headers. Handling of other HTTP headers varies.
+Some new headers are added (replaced if one already exists) by the security server, for example `x-road-request-id`.
+Some headers will be removed, for example `User-Agent`.
+All other headers are passed through as-is, for example `X-Powered-By`.
+For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers".
+
+The X-Road transport message encapsulates either the SOAP/REST message package that arrives to the security server or a
+SOAP fault message (uses content-type `text/xml` instead of `multipart/related`). The latter is only sent from the
+service provider's security server to the service client's security server if an error occurred before processing the
+request message in the service provider's security server. The normal X-Road request message must consist of the
+following MIME message parts (see [Figure 4](#Messtransport_message) The parts are mandatory unless stated otherwise:
 
 1. byte contents of OCSP responses (content-type `application/ocsp-response`) of the service client's security server authentication certificate chain that was used to authenticate the TLS connection;
 
-2. the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
+2. (optional, either this or REST message must exist) the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
 
 3. (optional) a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. This part is only present if the original SOAP message package contains attachments;
 
-4. (optional) if the signature is a batch signature, then:
+4. (optional, either this or SOAP message must exist) the REST message (content-type `application/x-road-rest-request`)
+
+5. (optional) body of a REST request (content-type `application/x-road-rest-body`) This part is only present if the REST request contains a body.
+
+6. (optional) if the signature is a batch signature, then:
 
     a) the hash chain result XML (content-type `application/hash-chain-result`) and
 
     b)	the hash chain XML (content-type `application/hash-chain`) of the signature.
 
-5. the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP message and any attachments of the encapsulated message;
+7. the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP/REST message and any attachments of the encapsulated message;
 
-The normal X-Road response message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message) The parts are mandatory unless stated otherwise):
+The normal X-Road response message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message) The parts are mandatory unless stated otherwise:
 
-1. the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
+1. (optional, either this or REST message must exist) the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
 
 2. (optional) a nested MIME multipart (content-type `multipart/mixed) containing all attachments as parts. This part is only present if the original SOAP message package contains attachments;
 
-3. (optional) if the signature is a batch signature, then:
+3. (optional, either this or SOAP message must exist) the REST message (content-type `application/x-road-rest-response`)
+
+4. (optional) body of a REST response (content-type `application/x-road-rest-body`) This part is only present if the REST response contains a body.
+
+5. (optional) if the signature is a batch signature, then:
 
     a)	the hash chain result XML (content-type `application/hash-chain-result`) and
 
     b)	the hash chain XML (content-type `application/hash-chain`) of the signature.
 
-4. one of the following:
+6. one of the following:
 
     a)	the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP message and any attachments of the encapsulated message; or
 
@@ -239,7 +265,7 @@ The following describes the actions that the service client's security server mu
 
     f) For REST messages, write the part containing the body-less portion of the REST request (content-type `application/x-road-rest-request`). This part contains HTTP request line and HTTP headers. Calculate the hash of this part.
 
-    * Some headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
+    * Some new headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
 
     * Some headers must be removed, for example `User-Agent`
 
@@ -279,15 +305,7 @@ If the content-type of the response is `text/xml` then an error occurred at the 
 
 8. Send the service provider's REST response, encapsulated response SOAP message, or a SOAP message package in case the response has attachments to the service client.
 
-    a) For REST responses, response HTTP headers are formed based on data from `application/x-road-rest-response`
-
-    * Some headers must be added (replaced if one already exists) by the security server, for example `x-road-request-hash`
-
-    * Some headers must be removed, for example `User-Agent`
-
-    * All other headers must be copied from `application/x-road-rest-response` part as-is, for example `X-Powered-By`
-
-    * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
+    a) For REST responses, response HTTP headers are copied from `application/x-road-rest-response`
 
 <a id="Messtransport_protocol_message_processing_client" class="anchor"></a>
 ![](img/pr-messtransport-protocol-message-processing-client.png)
@@ -345,6 +363,14 @@ The following describes the actions that the service provider's security server 
     c) If the response from the service provider was a SOAP message package, write a nested MIME multipart (`multipart/mixed`) containing all attachments as parts. For each part, calculate the hash of the data to be used when creating the signature.
 
     d) For REST messages, write the part containing the body-less portion of service provider's REST response (content-type `application/x-road-rest-response`). This part contains HTTP status line and HTTP headers. Calculate the hash of the response message to be used when creating the signature.
+
+    * Some new headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
+
+    * Some headers must be removed, for example `User-Agent`
+
+    * All other headers must be copied from original request as-is, for example `X-Powered-By`
+
+    * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
 
     e) If the response from the service provider contained a REST message body, write the part containing this (content-type `application/x-road-rest-body`). Calculate the hash of the body to be used when creating the signature. 
 
