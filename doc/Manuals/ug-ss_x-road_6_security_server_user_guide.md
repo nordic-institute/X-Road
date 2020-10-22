@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.49  
+Version: 2.51  
 Doc. ID: UG-SS
 
 ---
@@ -79,9 +79,11 @@ Doc. ID: UG-SS
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
  30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
- 29.09.2020 | 2.47    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
- 30.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
- 15.10.2020 | 2.49    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
+ 21.09.2020 | 2.47    | Added a validation error example to [19.4 Validation errors](#194-validation-errors) | Caro Hautamäki
+ 29.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
+ 30.09.2020 | 2.49    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
+ 13.10.2020 | 2.50    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses) | Caro Hautamäki
+ 15.10.2020 | 2.51    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -203,6 +205,7 @@ Doc. ID: UG-SS
   - [19.2 Executing REST calls](#192-executing-rest-calls)
   - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
   - [19.4 Validation errors](#194-validation-errors)
+  - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
@@ -2312,17 +2315,85 @@ For example, these log messages are related to an API call with correlation ID `
 
 ### 19.4 Validation errors
 
-An error response from the REST API can include validation errors if an unsupported parameter was provided with the request. 
+An error response from the REST API can include validation errors if an unsupported parameter was provided with the request.
+When 
 
-In addition to the validation messages declared in Java Validation API, the following validation errors are possible:
+Example request and response of adding a new subsystem with illegal characters:
 ```
-Normalized
-NoColons
-NoSemicolons
-NoForwardslashes
-NoBackslashes
-NoPercents
+POST https://ss1:4100/api/v1/clients
+
+Request body:
+{
+  "client": {
+    "member_class": "ORG",
+    "member_code": "0/1234",
+    "subsystem_code": "Subsystem%Code"
+  },
+  "ignore_warnings": false
+}
+
+Response body:
+{
+  "error": {
+    "code": "validation_failure",
+    "validation_errors": {
+      "clientAdd.client.memberCode": [
+        "NoForwardslashes"
+      ],
+      "clientAdd.client.subsystemCode": [
+        "NoPercents"
+      ]
+    }
+  },
+  "status": 400
+}
 ```
+
+In addition to the validation messages declared in [Java Validation API](https://javaee.github.io/javaee-spec/javadocs/javax/validation/constraints/package-summary.html), the following validation errors are possible:
+
+Error             | Explanation
+------------------|-----------
+`NoControlChars`    | The provided string contains [ISO control characters](https://en.wikipedia.org/wiki/Control_character) or zero-width spaces
+`NoColons`          | The provided string contains colons `:`
+`NoSemicolons`      | The provided string contains semicolons `;`
+`NoForwardslashes`  | The provided string contains slashes `/`
+`NoBackslashes`     | The provided string contains backslashes `\`
+`NoPercents`        | The provided string contains percent symbol `%`
+
+### 19.5 Warning responses
+
+Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.* 
+
+An example case:
+1. Client executes a REST request, without `ignore_warnings` parameter, to backend.
+2. Backend notices warnings and responds with error message that contains the warnings. Nothing is updated at this point.
+3. Client determines if warnings can be ignored.
+4. If the warnings can be ignored, client resends the REST request, but with `ignore_warnings` parameter set to `true`.
+5. Backend ignores the warnings and executes the operation.
+
+Error response with warnings always contains the error code `warnings_detected`.
+
+Like errors, warnings contain an identifier (code) and possibly some metadata.
+
+Warning example when trying to register a WSDL that produces non-fatal validation warnings: 
+```
+{
+  "status": 400,
+  "error": {
+    "code": "warnings_detected"
+  },
+  "warnings": [
+    {
+      "code": "wsdl_validation_warnings",
+      "metadata": [
+        "WSDLValidator Error : Summary: Failures: 0, Warnings: 1 <<< WARNING! Operation 'someService' in PortType: {http://test.x-road.global/some-service}someService.servicePortType has no output message"
+      ]
+    }
+  ]
+}
+```
+
+Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
 ## 20 Migrating to Remote Database Host
 
