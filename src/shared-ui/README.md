@@ -15,6 +15,21 @@ npm run serve
 npm run build
 ```
 
+### Compiles and minifies library version for production
+```
+npm run build-lib
+```
+
+### Compiles and hot-reloads for storybook development
+```
+npm run storybook
+```
+
+### Build Storybook as a static web application
+```
+npm run build-storybook
+```
+
 ### Run your unit tests
 ```
 npm run test:unit
