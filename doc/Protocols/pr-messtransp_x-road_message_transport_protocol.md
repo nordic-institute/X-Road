@@ -5,8 +5,8 @@
 # X-Road: Message Transport Protocol
 **Technical Specification**
 
-Version: 2.4  
-04.03.2019  
+Version: 2.5
+22.10.2020
 Doc. ID: PR-MESSTRANSP
 
 ---
@@ -28,6 +28,7 @@ Date       | Version | Description                                              
 17.10.2015 | 2.2	 | Anchored the figures in place	                                                                | Margus Freudenthal
 01.03.2019 | 2.3	 | X-Request-Id header	                                                                            | Caro Hautamäki
 04.03.2019 | 2.4	 | Converted into Markdown	                                                                        | Caro Hautamäki
+22.10.2020 | 2.5	 | Added REST message protocol                                                                      | Janne Mattila
  
 ## Table of Contents
 
@@ -47,10 +48,12 @@ Date       | Version | Description                                              
   * [3.3 Message Handling in Service Provider's Security Server](#33-message-handling-in-service-providers-security-server)
 - [4 Annex: Example Messages](#4-annex-example-messages)
   * [4.1 Response to OCSP Downloading Request](#41-response-to-ocsp-downloading-request)
-  * [4.2 Simple Request](#42-simple-request)
-  * [4.3 Simple Response](#43-simple-response)
-  * [4.4 Request with Attachments](#44-request-with-attachments)
-  * [4.5 Response with Fault as Last Part](#45-response-with-fault-as-last-part)
+  * [4.2 Simple SOAP Request](#42-simple-soap-request)
+  * [4.3 Simple SOAP Response](#43-simple-soap-response)
+  * [4.4 SOAP Request with Attachments](#44-soap-request-with-attachments)
+  * [4.5 SOAP Response with Fault as Last Part](#45-soap-response-with-fault-as-last-part)
+  * [4.6 REST Request](#46-rest-request)
+  * [4.7 REST Response](#47-rest-response)
 
 <!-- tocstop -->
 
@@ -404,7 +407,7 @@ Content-Type: application/ocsp-response
 --jetty625909216ic7gfi1u--
 ```
 
-### 4.2 Simple Request
+### 4.2 Simple SOAP Request
 
 ```
 Content-Type: multipart/related; charset=UTF-8; boundary=xtop1357783211hcn1yiro 
@@ -424,7 +427,7 @@ Content-Type: signature/bdoc-1.0/ts
 --xtop1357783211hcn1yiro--
 ```
 
-### 4.3 Simple Response
+### 4.3 Simple SOAP Response
 
 ```
 Content-Type: multipart/related; charset=UTF-8; boundary=xatt569125687hcu8vfma
@@ -440,7 +443,7 @@ Content-Type: signature/bdoc-1.0/ts
 --xatt569125687hcu8vfma--
 ```
 
-### 4.4 Request with Attachments
+### 4.4 SOAP Request with Attachments
 
 ```
 Content-Type: multipart/related; charset=UTF-8; boundary=xtop1357783211hcn1yiro
@@ -484,7 +487,7 @@ Content-Type: signature/bdoc-1.0/ts
 --xtop1357783211hcn1yiro--
 ```
 
-### 4.5 Response with Fault as Last Part
+### 4.5 SOAP Response with Fault as Last Part
 
 ```
 Content-Type: multipart/related; charset=UTF-8; boundary=xatt569125687hcu8vfma
@@ -498,4 +501,64 @@ Content-Type: text/xml; charset=UTF-8
 
 ...SOAP fault...
 --xatt569125687hcu8vfma--
+```
+
+### 4.6 REST Request
+
+```
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/ocsp-response
+
+...ocsp response...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/x-road-rest-request
+
+...body-less portion of REST request...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/x-road-rest-body
+
+...body content of REST request...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/hash-chain-result
+
+...hash chain result XML...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/hash-chain
+
+...hash chain XML...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: signature/bdoc-1.0/ts
+
+...signature XML...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe--
+```
+
+### 4.7 REST Response
+
+```
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/x-road-rest-response
+
+...body-less portion of REST response...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/x-road-rest-body
+
+...body content of REST request...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/hash-chain-result
+
+...hash chain result XML...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/hash-chain
+
+...hash chain XML...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: signature/bdoc-1.0/ts
+
+...signature XML...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH--
 ```
