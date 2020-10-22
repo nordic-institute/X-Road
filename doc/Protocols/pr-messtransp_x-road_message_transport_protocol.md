@@ -197,7 +197,7 @@ The X-Road transport message encapsulates either the SOAP/REST message package t
 SOAP fault message (uses content-type `text/xml` instead of `multipart/related`). The latter is only sent from the
 service provider's security server to the service client's security server if an error occurred before processing the
 request message in the service provider's security server. The normal X-Road request message must consist of the
-following MIME message parts (see [Figure 4](#Messtransport_message)) The parts are mandatory unless stated otherwise:
+following MIME message parts (see [Figure 4](#Messtransport_message)). The parts are mandatory unless stated otherwise:
 
 1. byte contents of OCSP responses (content-type `application/ocsp-response`) of the service client's security server authentication certificate chain that was used to authenticate the TLS connection;
 
@@ -217,7 +217,7 @@ following MIME message parts (see [Figure 4](#Messtransport_message)) The parts 
 
 7. the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP/REST message and any attachments of the encapsulated message;
 
-The normal X-Road response message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message)) The parts are mandatory unless stated otherwise:
+The normal X-Road response message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message)). The parts are mandatory unless stated otherwise:
 
 1. (optional, either this or REST message must exist) the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
 
