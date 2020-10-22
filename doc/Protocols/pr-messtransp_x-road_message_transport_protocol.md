@@ -105,6 +105,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 4. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
+5. <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road: Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
+
 ## 2 Transport Layer
 
 ### 2.1 TLS Authentication
@@ -237,6 +239,14 @@ The following describes the actions that the service client's security server mu
 
     f) For REST messages, write the part containing the body-less portion of the REST request (content-type `application/x-road-rest-request`). This part contains HTTP request line and HTTP headers. Calculate the hash of this part.
 
+    * Some headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
+
+    * Some headers must be removed, for example `User-Agent`
+
+    * All other headers must be copied from original request as-is, for example `X-Powered-By`
+
+    * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
+
     g) For REST messages with a request body, write the part containing the body (content-type `application/x-road-rest-body`). Calculate the hash of the body.
 
     h) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
@@ -255,7 +265,7 @@ The following describes the actions that the service client's security server mu
     
     1. The part with content-type `application/x-road-rest-response` contains the body-less portion of REST response that will be sent to target server. This part contains the HTTP status line and HTTP headers.
 
-    2. If the content-type of the next part is `application/x-road-rest-body` then this part is the body of the REST response. For requests without a body, this part does not exist.
+    2. If the content-type of the next part is `application/x-road-rest-body` then this part is the body of the REST response. For responses without a body, this part does not exist.
     
     d) If the content-type of the next part is `application/hash-chain-result` then this message contains a batch signature. The hash chain result is stored for message verification.
 
@@ -267,7 +277,17 @@ If the content-type of the response is `text/xml` then an error occurred at the 
 
 7. Verify the response message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\].
 
-8. Send the service provider's encapsulated response SOAP message (or a SOAP message package in case the response has attachments) to the service client.
+8. Send the service provider's REST response, encapsulated response SOAP message, or a SOAP message package in case the response has attachments to the service client.
+
+    a) For REST responses, response HTTP headers are formed based on data from `application/x-road-rest-response`
+
+    * Some headers must be added (replaced if one already exists) by the security server, for example `x-road-request-hash`
+
+    * Some headers must be removed, for example `User-Agent`
+
+    * All other headers must be copied from `application/x-road-rest-response` part as-is, for example `X-Powered-By`
+
+    * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
 
 <a id="Messtransport_protocol_message_processing_client" class="anchor"></a>
 ![](img/pr-messtransport-protocol-message-processing-client.png)
