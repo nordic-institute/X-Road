@@ -387,7 +387,7 @@ The following describes the actions that the service provider's security server 
     f) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
     
 <a id="Messtransport_protocol_message_processing_service_provider" class="anchor"></a>
-![](img/pr-messtransport-protocol-message-processing-service-provider.png)
+![](img/pr-messtransport-protocol-message-processing-service-provider.svg)
 
 Figure 6. Message processing on service provider's side
 
