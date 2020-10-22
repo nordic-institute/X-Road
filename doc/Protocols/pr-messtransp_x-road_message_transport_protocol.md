@@ -5,8 +5,8 @@
 # X-Road: Message Transport Protocol
 **Technical Specification**
 
-Version: 2.5
-22.10.2020
+Version: 2.5  
+22.10.2020  
 Doc. ID: PR-MESSTRANSP
 
 ---
