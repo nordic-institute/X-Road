@@ -1,3 +1,5 @@
+
+import { VApp, VMain } from 'vuetify/lib';
 import vuetifyConfig from '../src/plugins/vuetify';
 import '../src/plugins/vee-validate';
 import 'roboto-fontface/css/roboto/roboto-fontface.css';
@@ -12,6 +14,7 @@ const appDecorator = () => {
   return {
     vuetify: vuetifyConfig,
     i18n,
+    components: { VApp, VMain },
     template: `
       <v-app>
           <v-main>
