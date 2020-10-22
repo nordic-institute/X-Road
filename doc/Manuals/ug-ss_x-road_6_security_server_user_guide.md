@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.51  
+Version: 2.52  
 Doc. ID: UG-SS
 
 ---
@@ -84,7 +84,8 @@ Doc. ID: UG-SS
  30.09.2020 | 2.49    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
  13.10.2020 | 2.50    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses) | Caro Hautamäki
  15.10.2020 | 2.51    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
-
+ 22.10.2020 | 2.52    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
+ 
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -300,6 +301,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 22. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
+23. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
 
 ## 2 User Management
 
@@ -2294,7 +2296,7 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
 ...
 ```
 
-The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
+The available APIs are documented in OpenAPI specification \[[REST_UI-API](#Ref_REST_UI-API)\]. Access rights for different APIs follow the same rules
 as the corresponding UI operations.
 Access to regular APIs is allowed from all IP addresses by default, but this can
 be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
