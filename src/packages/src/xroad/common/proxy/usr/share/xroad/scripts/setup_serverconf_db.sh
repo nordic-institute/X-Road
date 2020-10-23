@@ -107,9 +107,6 @@ setup_database() {
       chmod 600 ${root_properties}
     fi
 
-    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
-    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
-
     {
       cat <<EOF
 \set ON_ERROR_STOP on
@@ -142,7 +139,10 @@ GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
 GRANT USAGE ON SCHEMA public to "${db_user}";
 EOF
       fi
-    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed."
+    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
+
+    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
+    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
   fi
 
   touch ${db_properties}
@@ -157,15 +157,17 @@ EOF
   crudini --set ${db_properties} '' ${db_name}.hibernate.connection.username "${db_conn_user}"
   crudini --set ${db_properties} '' ${db_name}.hibernate.connection.password "${db_password}"
 
+  cd /usr/share/xroad/db/ || die "Running database migrations failed, please check that directory /usr/share/xroad/db exists"
+
   if [[ $(psql_adminuser -c "select 1 from pg_tables where schemaname = 'public' and tablename='databasechangelog'" 2>/dev/null) == 1 ]]; then
-    cd /usr/share/xroad/db/
     /usr/share/xroad/db/liquibase.sh \
       --classpath=/usr/share/xroad/jlib/proxy.jar \
       --url="jdbc:postgresql://$db_host/$db_database" \
       --changeLogFile=/usr/share/xroad/db/${db_name}-legacy-changelog.xml \
       --password="${db_admin_password}" \
       --username="${db_admin_conn_user}" \
-      update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+      update ||
+      die "Running legacy database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
     psql_master --single-transaction -d "$db_database" <<EOF || die "Renaming public schema to '$db_schema' failed."
 \set STOP_ON_ERROR on
@@ -183,7 +185,6 @@ ALTER EXTENSION hstore SET SCHEMA public;
 EOF
   fi
 
-  cd /usr/share/xroad/db/
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"
@@ -198,7 +199,7 @@ EOF
     --defaultSchemaName="${db_schema}" \
     $context \
     update ||
-    die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+    die "Running database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 }
 
 setup_database "$1"
