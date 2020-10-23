@@ -33,9 +33,10 @@ import {
   CsrSubjectFieldDescription,
   KeyWithCertificateSigningRequestId,
   KeyLabelWithCsrGenerate,
+  KeyUsageType,
+  CsrFormat,
 } from '@/openapi-types';
 import * as api from '@/util/api';
-import { UsageTypes, CsrFormatTypes } from '@/global';
 import { encodePathParameter } from '@/util/api';
 
 export interface CsrState {
@@ -59,7 +60,7 @@ const getDefaultState = () => {
     csrClient: null,
     usage: null,
     certificationService: '',
-    csrFormat: CsrFormatTypes.DER,
+    csrFormat: CsrFormat.DER,
     certificationServiceList: [],
     keyId: '',
     form: [],
@@ -110,7 +111,7 @@ export const csrGetters: GetterTree<CsrState, RootState> = {
   },
   filteredServiceList(state): CertificateAuthority[] {
     // Return the list of available auth services based on the current usage type
-    if (state.usage === UsageTypes.SIGNING) {
+    if (state.usage === KeyUsageType.SIGNING) {
       const filtered = state.certificationServiceList.filter(
         (service: CertificateAuthority) => {
           return !service.authentication_only;
@@ -211,7 +212,7 @@ export const actions: ActionTree<CsrState, RootState> = {
       key_usage_type: state.usage,
     } as { [key: string]: unknown };
 
-    if (state.usage === UsageTypes.SIGNING) {
+    if (state.usage === KeyUsageType.SIGNING) {
       params = {
         ...params,
         member_id: state.csrClient,
@@ -316,11 +317,11 @@ export const actions: ActionTree<CsrState, RootState> = {
       label: '',
       certificates: [],
       certificate_signing_requests: [],
-      usage: UsageTypes.SIGNING,
+      usage: KeyUsageType.SIGNING,
     };
 
     commit('storeCsrKey', templateKey);
-    commit('storeUsage', UsageTypes.SIGNING);
+    commit('storeUsage', KeyUsageType.SIGNING);
   },
 
   fetchAllMemberIds({ commit }) {

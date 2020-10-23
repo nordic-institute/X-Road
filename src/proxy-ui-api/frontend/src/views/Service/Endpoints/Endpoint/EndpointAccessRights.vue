@@ -64,10 +64,10 @@
       <tbody>
         <template>
           <tr v-for="sc in serviceClients" :key="sc.id">
-            <td>{{ sc.name }}</td>
-            <td>{{ sc.id }}</td>
+            <td class="identifier-wrap">{{ sc.name }}</td>
+            <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
-            <td class="wrap-right-tight">
+            <td class="button-wrap">
               <v-btn
                 v-if="canEdit"
                 small
@@ -271,12 +271,6 @@ export default Vue.extend({
   * {
     margin-left: 20px;
   }
-}
-
-.wrap-right-tight {
-  display: flex;
-  width: 100%;
-  justify-content: flex-end;
 }
 
 .row-title {

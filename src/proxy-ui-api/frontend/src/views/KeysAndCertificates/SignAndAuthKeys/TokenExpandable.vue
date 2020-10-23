@@ -51,7 +51,7 @@
 
     <template v-slot:link>
       <div
-        class="clickable-link"
+        class="clickable-link identifier-wrap"
         @click="tokenClick(token)"
         data-test="token-name"
       >
@@ -134,12 +134,12 @@
 <script lang="ts">
 // View for a token
 import Vue from 'vue';
-import { Permissions, RouteName, UsageTypes } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { FileUploadResult } from '@/ui-types';
@@ -216,7 +216,7 @@ export default Vue.extend({
 
     getAuthKeys(keys: Key[]): Key[] {
       const filtered = keys.filter((key: Key) => {
-        return key.usage === UsageTypes.AUTHENTICATION;
+        return key.usage === KeyUsageType.AUTHENTICATION;
       });
 
       return filtered;
@@ -226,14 +226,14 @@ export default Vue.extend({
       const filtered = keys.filter((key: Key) => {
         if (
           this.token.type === 'HARDWARE' &&
-          key.usage !== UsageTypes.SIGNING &&
-          key.usage !== UsageTypes.AUTHENTICATION
+          key.usage !== KeyUsageType.SIGNING &&
+          key.usage !== KeyUsageType.AUTHENTICATION
         ) {
           // Hardware keys are SIGNING type by definition
           // If a hardware token's key doesn't have a usage type make it a SIGNING key
           return true;
         }
-        return key.usage === UsageTypes.SIGNING;
+        return key.usage === KeyUsageType.SIGNING;
       });
 
       return filtered;
@@ -244,8 +244,8 @@ export default Vue.extend({
       const filtered = keys.filter((key: Key) => {
         return (
           this.token.type !== 'HARDWARE' &&
-          key.usage !== UsageTypes.SIGNING &&
-          key.usage !== UsageTypes.AUTHENTICATION
+          key.usage !== KeyUsageType.SIGNING &&
+          key.usage !== KeyUsageType.AUTHENTICATION
         );
       });
 

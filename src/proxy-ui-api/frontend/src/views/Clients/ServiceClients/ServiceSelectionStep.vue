@@ -63,8 +63,8 @@
               />
             </div>
           </td>
-          <td>{{ accessRight.service_code }}</td>
-          <td>{{ accessRight.title }}</td>
+          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+          <td class="identifier-wrap">{{ accessRight.title }}</td>
         </tr>
       </tbody>
     </table>
@@ -141,7 +141,9 @@ export default Vue.extend({
   computed: {
     searchResults(): ServiceCandidate[] {
       return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code.includes(this.search),
+        candidate.service_code
+          .toLowerCase()
+          .includes(this.search.toLowerCase()),
       );
     },
   },

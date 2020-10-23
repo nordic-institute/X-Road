@@ -9,6 +9,11 @@
   copy: src="../src/packages/build/ubuntu18.04/" dest="/xroad/"
   when: ubuntu_releasever == "bionic"
 
+- name: Copy focal DEB packages (Ubuntu)
+  become: yes
+  copy: src="../src/packages/build/ubuntu20.04/" dest="/xroad/"
+  when: ubuntu_releasever == "focal"
+
 - name: Ensure dpkg-dev
   become: yes
   apt: name=dpkg-dev state=present
@@ -18,4 +23,3 @@
   shell: "dpkg-scanpackages . >Packages"
   args:
     chdir: /xroad
-

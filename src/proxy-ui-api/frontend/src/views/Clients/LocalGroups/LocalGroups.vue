@@ -57,12 +57,12 @@
         </tr>
         <template v-if="groups && groups.length > 0">
           <tr v-for="group in filtered()" v-bind:key="group.code">
-            <td>
+            <td class="identifier-wrap">
               <span class="cert-name" @click="viewGroup(group)">{{
                 group.code
               }}</span>
             </td>
-            <td>{{ group.description }}</td>
+            <td class="identifier-wrap">{{ group.description }}</td>
             <td>{{ group.member_count }}</td>
             <td>{{ group.updated_at | formatDate }}</td>
           </tr>

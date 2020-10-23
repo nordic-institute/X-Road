@@ -64,14 +64,14 @@
                 />
               </div>
             </td>
-            <td>
+            <td class="identifier-wrap">
               {{
                 candidate.service_client_type === 'LOCALGROUP'
                   ? candidate.local_group_code
                   : candidate.name
               }}
             </td>
-            <td>{{ candidate.id }}</td>
+            <td class="identifier-wrap">{{ candidate.id }}</td>
           </tr>
         </tbody>
       </table>

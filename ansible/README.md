@@ -53,10 +53,10 @@ While it is possible to define different variants for different security servers
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
-* for Ubuntu 18 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb bionic-current main`
-* for RHEL-packages `https://artifactory.niis.org/xroad-release-rpm/rhel/7/current`.
+* for Ubuntu 20 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb focal-current main`
+* for RHEL 8 packages `https://artifactory.niis.org/xroad-release-rpm/rhel/8/current`.
 
-The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu 18.
+The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu.
 
 #### Remote database
 
@@ -66,7 +66,7 @@ It is possible to configure Central Server or Security Server to use remote data
 - `database_admin_password` - Password of the `postgres` user. When using remote database, this value needs to be set. Otherwise leave it empty.
 - `mask_local_postgresql` - When using remote database, it is usually feasible to mask the local PostgreSQL database so it won't run in vein. However, in some edge cases this is not necessary and this variable can be set to false.
 
-Other properties in `vars_files/ss_database` determine the usernames and passwords that X-Road uses in connections.
+Other properties in `vars_files/cs_database` and `vars_files/ss_database` determine the usernames and passwords that X-Road uses in connections.
 
 #### Additional variables
 
@@ -128,16 +128,16 @@ In short, to deploy made changes with package installation, **a git commit must 
 
 #### Partial compilation and deployment
 
-For fast development, you can compile and update modules separately using the ansible playbook `xroad_dev_partial.yml`. For example, if you make a change to a Java or Ruby file under the module `proxy-ui`, use the following command to compile the WAR and deploy it to the existing security server installations.
+For fast development, you can compile and update modules separately using the ansible playbook `xroad_dev_partial.yml`. For example, if you make a change to a Java or Javascript file under the module `proxy-ui-api`, use the following command to compile the WAR and deploy it to the existing security server installations.
 
 ```
-ansible-playbook  -i hosts/example_xroad_hosts.txt   xroad_dev_partial.yml   -e selected_modules=proxy-ui
+ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui-api
 ```
 
-It is also possible to compile and update several modules (JARs or WARs). The following command compiles and updates JAR-files for modules `common-util` and `signer` and the WAR-file for module `proxy-ui` to the defined existing server installations.
+It is also possible to compile and update several modules (JARs or WARs). The following command compiles and updates JAR-files for modules `common-util`, `signer` and `proxy-ui-api` to the defined existing server installations.
 
 ```
-ansible-playbook  -i hosts/example_xroad_hosts.txt   xroad_dev_partial.yml   -e selected_modules=common-util,proxy-ui,signer
+ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=common-util,proxy-ui-api,signer
 ```
 
 This updates the **selected modules (JARs or WARs)** to ones compiled locally.
@@ -180,15 +180,15 @@ Install locally built X-Road packages to LXD-containers with:
 ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev.yml
 ```
 
-Update module `proxy-ui` to an existing LXD-container X-Road installation with:
+Update module `proxy-ui-api` to an existing LXD-container X-Road installation with:
 
 ```
-ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui
+ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui-api
 ```
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 18 and CentOS 7 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and Ubuntu 18. Other versions may need additional tweaking of the Ansible scripts.
+By default `xroad_dev.yml` creates Ubuntu 20 and CentOS 8 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and newer, and Ubuntu 18 and newer. Other versions may need additional tweaking of the Ansible scripts.
 
 ## 5. Test CA, TSA, and OCSP
 
