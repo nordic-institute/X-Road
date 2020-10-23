@@ -177,7 +177,7 @@ The X-Road message transport protocol is designed for streaming the message cont
 
 Figure 4. X-Road transport messages
 
-The X-Road transport messages are encoded as MIME multipart messages with content-type `multipart/related`.
+The X-Road transport messages are encoded as MIME multipart messages with content-type `multipart/mixed`.
 
 For SOAP messages, the content-type of the client request message is sent from the service client's security server
 to the service provider's security server and vice versa using the `x-original-content-type` HTTP header.
@@ -194,7 +194,7 @@ All other headers are passed through as-is, for example `X-Powered-By`.
 For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers".
 
 The X-Road transport message encapsulates either the SOAP/REST message package that arrives to the security server or a
-SOAP fault message (uses content-type `text/xml` instead of `multipart/related`). The latter is only sent from the
+SOAP fault message (uses content-type `text/xml` instead of `multipart/mixed`). The latter is only sent from the
 service provider's security server to the service client's security server if an error occurred before processing the
 request message in the service provider's security server. The normal X-Road request message must consist of the
 following MIME message parts (see [Figure 4](#Messtransport_message)). The parts are mandatory unless stated otherwise:
@@ -289,7 +289,7 @@ The following describes the actions that the service client's security server mu
 
 5. Start reading a response from the target service provider's security server (message format described in [Section 3.1](#31-x-road-transport-message).
 
-6. If the content-type of the response is `multipart/related` then process the message parts as follows:
+6. If the content-type of the response is `multipart/mixed` then process the message parts as follows:
 
     a) The first part must be the encapsulated SOAP response message or REST response message. The message is not forwarded to the service client until it can be verified.
 
@@ -330,7 +330,7 @@ The following describes the actions that the service provider's security server 
 
 2. Start reading the X-Road transport message from the service client's security server (message format described in [Section 3.1](#31-x-road-transport-message)).
 
-3. The content-type of the request message must be `multipart/related`. The security server must process the message parts as follows:
+3. The content-type of the request message must be `multipart/mixed`. The security server must process the message parts as follows:
 
     a) Read all the parts with content-type `application/ocsp-response`. These parts contain OCSP responses that must be used in when verifying the authentication certificate chain of the service client's security server.
 
@@ -410,7 +410,7 @@ Content-Type: application/ocsp-response
 ### 4.2 Simple SOAP Request
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xtop1357783211hcn1yiro 
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtop1357783211hcn1yiro 
 
 --xtop1357783211hcn1yiro 
 Content-Type: application/ocsp-response 
@@ -430,7 +430,7 @@ Content-Type: signature/bdoc-1.0/ts
 ### 4.3 Simple SOAP Response
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xatt569125687hcu8vfma
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xatt569125687hcu8vfma
 
 --xatt569125687hcu8vfma
 Content-Type: text/xml ; charset=UTF-8
@@ -446,7 +446,7 @@ Content-Type: signature/bdoc-1.0/ts
 ### 4.4 SOAP Request with Attachments
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xtop1357783211hcn1yiro
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtop1357783211hcn1yiro
  
 --xtop1357783211hcn1yiro 
 Content-Type: application/ocsp-response 
@@ -490,7 +490,7 @@ Content-Type: signature/bdoc-1.0/ts
 ### 4.5 SOAP Response with Fault as Last Part
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xatt569125687hcu8vfma
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xatt569125687hcu8vfma
 
 --xatt569125687hcu8vfma
 Content-Type: text/xml; charset=UTF-8
