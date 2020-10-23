@@ -122,8 +122,7 @@ module.exports = {
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]')
-      .waitForElementVisible('//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]');
+      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]');
 
     browser.end();
   },
@@ -163,8 +162,7 @@ module.exports = {
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]')
-      .waitForElementVisible('//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]');
+      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]');
 
     browser.end();
   },
@@ -204,8 +202,8 @@ module.exports = {
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]')
-      .waitForElementVisible('//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]');
+      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]');
+
     browser.end();
   }
 };

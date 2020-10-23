@@ -1191,6 +1191,35 @@ module.exports = {
           selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath' }
       }
+    },
+    removeKeyPopup: {
+      selector: '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Delete key?")]]',
+      locateStrategy: 'xpath',
+      commands: [confirmationDialogCommands],
+      elements: {
+        yesButton: {
+          selector: '//button[@data-test="dialog-save-button"]',
+          locateStrategy: 'xpath' },
+        cancelButton: {
+          selector: '//button[@data-test="dialog-cancel-button"]',
+          locateStrategy: 'xpath' }
+      }
+    },
+    warningPopup: {
+      selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Warning")]]',
+      locateStrategy: 'xpath',
+      commands: [confirmationDialogCommands],
+      elements: {
+        yesButton: {
+          selector: '//button[@data-test="dialog-save-button"]',
+          locateStrategy: 'xpath' },
+        cancelButton: {
+          selector: '//button[@data-test="dialog-cancel-button"]',
+          locateStrategy: 'xpath' },
+        warningText: {
+          selector: '//div[contains(@class, "dlg-warning-header")]',
+          locateStrategy: 'xpath' }
+      }
     }
   }
 };

@@ -653,6 +653,101 @@ module.exports = {
     browser.end();
 
   },
+  'Security server client check rest internal certificate': browser => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientServices = clientInfo.section.services;
+    const keysTab = browser.page.ssKeysAndCertsTab();
+    const signAuthTab = keysTab.section.signAuthKeysTab;
+    const logoutTokenPopup = keysTab.section.logoutTokenPopup;
+    const loginTokenPopup = keysTab.section.loginTokenPopup;
+    const operationDetails = mainPage.section.restOperationDetails;
+    const sslWarningPopup = mainPage.section.warningPopup;
+ 
+
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+
+    // Navigate to keyspage and logout token
+    mainPage.openKeysTab();
+    browser.maximizeWindow();
+    keysTab.openSignAuthKeysTab();
+    browser.waitForElementVisible(signAuthTab);
+
+    signAuthTab.logoutToken();
+    browser.waitForElementVisible(logoutTokenPopup);
+    logoutTokenPopup.confirm();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Logged out of token');
+    mainPage.closeSnackbar();
+
+
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+    clientServices.expandServiceDetails();
+
+    // test cancel
+    clientServices.openOperation('s1c2');
+    browser.waitForElementVisible(operationDetails);
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected;
+    operationDetails.enterUrl('https://niis.org/nosuch/api/');
+    operationDetails.saveParameters();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
+    mainPage.closeSnackbar();
+    operationDetails.toggleCertVerification();
+    operationDetails.saveParameters();
+
+    browser.waitForElementVisible(sslWarningPopup);
+    browser.assert.containsText(sslWarningPopup.elements.warningText, 'TLS handshake with the upstream server failed, server certificate missing from configuration');
+    sslWarningPopup.cancel();
+
+    operationDetails.close();
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c2")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_off_style+'")]');
+
+    // test confirm
+    clientServices.openOperation('s1c2');
+    browser.waitForElementVisible(operationDetails);
+    browser.expect.element(operationDetails.elements.sslAuth).to.not.be.selected;
+    operationDetails.toggleCertVerification();
+    operationDetails.saveParameters();
+
+    browser.waitForElementVisible(sslWarningPopup);
+    browser.assert.containsText(sslWarningPopup.elements.warningText, 'TLS handshake with the upstream server failed, server certificate missing from configuration');
+    sslWarningPopup.confirm();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service saved');
+    mainPage.closeSnackbar();
+    operationDetails.close();
+    browser.waitForElementVisible('//tr[.//td[@data-test="service-link" and contains(text(), "s1c2")]]//*[contains(@class, "mdi-lock") and contains(@style, "'+browser.globals.service_ssl_auth_on_style+'")]');
+
+    clientServices.openOperation('s1c2');
+    browser.waitForElementVisible(operationDetails);
+    browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
+    operationDetails.close();
+
+    // reset token
+    mainPage.openKeysTab();
+    keysTab.openSignAuthKeysTab();
+    browser.waitForElementVisible(signAuthTab);
+    signAuthTab.loginToken();
+    browser.waitForElementVisible(loginTokenPopup);
+    loginTokenPopup.enterPin(browser.globals.token_pin);
+    loginTokenPopup.confirm();
+    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Logged in token');
+    mainPage.closeSnackbar();
+
+    browser.end();
+
+  },
   'Security server client delete rest service': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -683,7 +778,7 @@ module.exports = {
     restServiceDetails.cancelDelete();
 
     restServiceDetails.closeServiceDetails();
-    browser.assert.containsText(clientServices.elements.serviceDescription, 'REST (' + browser.globals.testdata + '/' + browser.globals.rest_url_1 + ')');
+    browser.assert.containsText(clientServices.elements.serviceDescription, 'REST (https://niis.org/nosuch/api/)');
 
     // Verify successful delete
     clientServices.openServiceDetails();
