@@ -54,6 +54,7 @@ mkdir -p %{buildroot}/etc/xroad/backup.d
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
 ln -s /usr/share/xroad/jlib/postgresql-42.2.16.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 
+cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/postgresql-42.2.16.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
@@ -81,6 +82,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/ssl/openssl.cnf
 
 %defattr(-,root,root,-)
+%attr(644,root,root) %{_unitdir}/xroad-base.service
 %dir /usr/share/xroad
 /usr/share/xroad/jlib/common-db.jar
 /usr/share/xroad/jlib/common-db-1.0.jar
@@ -92,6 +94,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
+/usr/share/xroad/scripts/xroad-base.sh
 /usr/share/xroad/db/liquibase-3.5.1.jar
 /usr/share/xroad/db/liquibase.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
@@ -134,9 +137,6 @@ chown xroad:adm /var/log/xroad
 mkdir -p /var/tmp/xroad
 chmod 1750 /var/tmp/xroad
 chown xroad:xroad /var/tmp/xroad
-
-# create socket directory
-[ -d /var/run/xroad ] || install -d -m 2770 -o xroad -g xroad /var/run/xroad
 
 #local overrides
 test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf

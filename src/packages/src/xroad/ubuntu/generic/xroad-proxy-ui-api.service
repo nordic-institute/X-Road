@@ -1,14 +1,12 @@
 [Unit]
 Description=X-Road Proxy UI REST API
-After=network.target
+After=network.target xroad-base.service
+Requires=xroad-base.service
 # configure longer StartLimitIntervalSec to prevent eternal restart loop with bad logback config
 StartLimitBurst=5
 StartLimitIntervalSec=40
 
 [Service]
-PermissionsStartOnly=true
-ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
-ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
 User=xroad
 Group=xroad
 ExecStart=/usr/share/xroad/bin/xroad-proxy-ui-api
