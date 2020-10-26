@@ -37,7 +37,7 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
-    fi172.31.36.45
+    fi
 else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
