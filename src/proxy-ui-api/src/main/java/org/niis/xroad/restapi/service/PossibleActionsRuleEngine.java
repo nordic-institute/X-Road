@@ -169,7 +169,7 @@ public class PossibleActionsRuleEngine {
             X509Certificate x509 = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
             return CertUtils.isSigningCert(x509);
         } catch (Exception e) {
-            log.error("Unable to determine if certificate is a sign cert -> interpret as false", e);
+            log.warn("Unable to determine if certificate is a sign cert -> interpret as false", e);
             return false;
         }
     }
