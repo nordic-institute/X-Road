@@ -32,6 +32,7 @@
         single-line
         hide-details
         class="search-input"
+        autofocus
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -45,10 +46,10 @@
       <token-expandable
         v-for="token in filtered"
         v-bind:key="token.id"
-        @refreshList="fetchData"
-        @tokenLogout="logoutDialog = true"
-        @tokenLogin="loginDialog = true"
-        @addKey="addKey"
+        @refresh-list="fetchData"
+        @token-logout="logoutDialog = true"
+        @token-login="loginDialog = true"
+        @add-key="addKey"
         :token="token"
       />
     </template>

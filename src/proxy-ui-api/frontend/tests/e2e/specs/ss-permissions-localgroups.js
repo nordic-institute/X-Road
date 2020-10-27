@@ -145,8 +145,8 @@ module.exports = {
     browser.waitForElementVisible(clientLocalGroups.elements.addGroupButton);
 
     //  Service administrator should see local groups members and edit buttons
-    clientLocalGroups.openAbbDetails();
-    browser.waitForElementVisible('//span[contains(@class, "cert-headline") and contains(text(), "abb")]');
+    clientLocalGroups.openBacDetails();
+    browser.assert.containsText(localGroupPopup.elements.groupIdentifier, 'bac');
 
     browser.waitForElementVisible(localGroupPopup.elements.localGroupAddMembersButton);
     browser.waitForElementVisible(localGroupPopup.elements.localGroupRemoveAllButton);
@@ -188,9 +188,9 @@ module.exports = {
     browser.waitForElementNotPresent(clientLocalGroups.elements.addGroupButton);
  
     // security server observer should see local group members but not be able to edit them
-    clientLocalGroups.openAbbDetails();
+    clientLocalGroups.openBacDetails();
 
-    browser.waitForElementVisible('//span[contains(@class, "cert-headline") and contains(text(), "abb")]');
+    browser.assert.containsText(localGroupPopup.elements.groupIdentifier, 'bac');
     browser.waitForElementVisible('//tr[.//*[contains(text(), "TestCom")]]');
     browser.waitForElementNotPresent(localGroupPopup.elements.localGroupAddMembersButton);
     browser.waitForElementNotPresent(localGroupPopup.elements.localGroupRemoveAllButton);

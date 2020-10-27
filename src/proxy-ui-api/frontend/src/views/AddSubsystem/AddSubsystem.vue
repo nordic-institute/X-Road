@@ -49,7 +49,7 @@
         </div>
       </div>
 
-      <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+      <ValidationObserver ref="form2" v-slot="{ invalid }">
         <div class="row-wrap">
           <FormLabel
             labelText="wizard.memberName"
@@ -95,6 +95,7 @@
               type="text"
               :error-messages="errors"
               v-model="subsystemCode"
+              autofocus
               data-test="subsystem-code-input"
             ></v-text-field>
           </ValidationProvider>

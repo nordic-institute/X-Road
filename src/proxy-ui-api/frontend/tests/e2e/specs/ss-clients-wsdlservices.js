@@ -387,11 +387,10 @@ module.exports = {
 
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
-    serviceDetails.enterServiceUrl("foobar")
-    browser.assert.containsText(serviceDetails.elements.URLMessage, 'URL is not valid');
     serviceDetails.enterServiceUrl('');
     browser.assert.containsText(serviceDetails.elements.URLMessage, 'The URL field is required');
-
+    serviceDetails.enterServiceUrl('foobar');
+    browser.assert.containsText(serviceDetails.elements.URLMessage, 'URL is not valid');
 
     // verify missing file
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');

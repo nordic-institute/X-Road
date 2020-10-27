@@ -31,6 +31,7 @@
         :label="$t('serviceClients.memberGroupStep')"
         single-line
         hide-details
+        autofocus
         data-test="search-service-client"
         class="search-input"
       >
@@ -63,14 +64,14 @@
                 />
               </div>
             </td>
-            <td>
+            <td class="identifier-wrap">
               {{
                 candidate.service_client_type === 'LOCALGROUP'
                   ? candidate.local_group_code
                   : candidate.name
               }}
             </td>
-            <td>{{ candidate.id }}</td>
+            <td class="identifier-wrap">{{ candidate.id }}</td>
           </tr>
         </tbody>
       </table>

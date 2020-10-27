@@ -43,22 +43,22 @@
           <KeyRow
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
-            @generateCsr="generateCsr(key)"
-            @keyClick="keyClick(key)"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
           />
 
           <CertificateRow
             v-for="cert in key.certificates"
             v-bind:key="cert.id"
             :cert="cert"
-            @certificateClick="certificateClick(cert, key)"
+            @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
               <SmallButton
                 class="table-button-fix test-register"
                 v-if="
                   showRegisterCertButton &&
-                    cert.possible_actions.includes('REGISTER')
+                  cert.possible_actions.includes('REGISTER')
                 "
                 @click="showRegisterCertDialog(cert)"
                 >{{ $t('action.register') }}</SmallButton
@@ -72,15 +72,15 @@
           <KeyRow
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
-            @generateCsr="generateCsr(key)"
-            @keyClick="keyClick(key)"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
           />
 
           <CertificateRow
             v-for="cert in key.certificates"
             v-bind:key="cert.id"
             :cert="cert"
-            @certificateClick="certificateClick(cert, key)"
+            @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
               <template v-if="canImportFromToken">
@@ -104,7 +104,7 @@
         <template
           v-if="
             key.certificate_signing_requests &&
-              key.certificate_signing_requests.length > 0
+            key.certificate_signing_requests.length > 0
           "
         >
           <tr
@@ -161,10 +161,11 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import {
   Key,
+  KeyUsageType,
   TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
-import { Permissions, UsageTypes } from '@/global';
+import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
@@ -197,7 +198,7 @@ export default Vue.extend({
     return {
       registerDialog: false,
       confirmDeleteCsr: false,
-      usageTypes: UsageTypes,
+      usageTypes: KeyUsageType,
       selectedCert: undefined as TokenCertificate | undefined,
       selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
       selectedKey: undefined as Key | undefined,
@@ -225,16 +226,16 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_CERT);
     },
     keyClick(key: Key): void {
-      this.$emit('keyClick', key);
+      this.$emit('key-click', key);
     },
     certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificateClick', { cert, key });
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(key: Key): void {
-      this.$emit('generateCsr', key);
+      this.$emit('generate-csr', key);
     },
     importCert(hash: string): void {
-      this.$emit('importCertByHash', hash);
+      this.$emit('import-cert-by-hash', hash);
     },
     showRegisterCertDialog(cert: TokenCertificate): void {
       this.registerDialog = true;
@@ -253,7 +254,7 @@ export default Vue.extend({
         )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.certificateRegistered');
-          this.$emit('refreshList');
+          this.$emit('refresh-list');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -279,7 +280,7 @@ export default Vue.extend({
         )
         .then(() => {
           this.$store.dispatch('showSuccess', 'keys.csrDeleted');
-          this.$emit('refreshList');
+          this.$emit('refresh-list');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

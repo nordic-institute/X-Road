@@ -52,8 +52,8 @@
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, TokenCertificate } from '@/openapi-types';
-import { PossibleActions, Permissions } from '@/global';
+import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -86,10 +86,10 @@ export default Vue.extend({
       // Check if the generate csr action should be disabled
       if (
         this.tokenKey.possible_actions?.includes(
-          PossibleActions.GENERATE_AUTH_CSR,
+          PossibleAction.GENERATE_AUTH_CSR,
         ) ||
         this.tokenKey.possible_actions?.includes(
-          PossibleActions.GENERATE_SIGN_CSR,
+          PossibleAction.GENERATE_SIGN_CSR,
         )
       ) {
         return false;
@@ -100,13 +100,13 @@ export default Vue.extend({
   },
   methods: {
     keyClick(): void {
-      this.$emit('keyClick');
+      this.$emit('key-click');
     },
     certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificateClick', { cert, key });
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(): void {
-      this.$emit('generateCsr');
+      this.$emit('generate-csr');
     },
   },
 });

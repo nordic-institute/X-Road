@@ -37,6 +37,7 @@
         <v-text-field
           v-model="code"
           single-line
+          autofocus
           class="dlg-row-input"
         ></v-text-field>
       </div>
@@ -101,7 +102,7 @@ export default Vue.extend({
         })
         .then(() => {
           this.$store.dispatch('showSuccess', 'localGroup.localGroupAdded');
-          this.$emit('groupAdded');
+          this.$emit('group-added');
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

@@ -37,7 +37,7 @@ const commands = [{
   },
   verifyAccessRightsPage: function(path) {
     this.api.waitForElementVisible(`//div[contains(@class, "group-members-row")]//div[contains(@class, "row-title") and contains(text(), "Access Rights")]`);
-    this.api.waitForElementVisible(`//div[contains(@class, "cert-dialog-header")]//span[contains(@class, "cert-headline") and contains(text(), ${path})]`);
+    this.api.waitForElementVisible(`//div[contains(@class, "cert-dialog-header")]//span[contains(@class, "identifier-wrap") and contains(text(), ${path})]`);
     return this;
   },
 }];

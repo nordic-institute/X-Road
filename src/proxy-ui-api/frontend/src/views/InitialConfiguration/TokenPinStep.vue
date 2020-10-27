@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form1" v-slot="{ invalid }">
       {{ $t('initialConfiguration.pin.info1') }}
       <div class="row-wrap">
         <div class="label">{{ $t('initialConfiguration.pin.pin') }}</div>
@@ -37,6 +37,7 @@
           <v-text-field
             class="form-input"
             name="pin"
+            autofocus
             type="password"
             v-model="pin"
             :error-messages="errors"
