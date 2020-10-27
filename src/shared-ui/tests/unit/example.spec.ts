@@ -1,7 +1,6 @@
 // test/CustomCard.spec.js
 
 // Libraries
-import Vue from 'vue';
 import Vuetify from 'vuetify';
 
 // Components
@@ -13,7 +12,7 @@ import { createLocalVue, mount } from '@vue/test-utils';
 
 describe('CustomCard.vue', () => {
   const localVue = createLocalVue();
-  let vuetify: any;
+  let vuetify: typeof Vuetify;
 
   beforeEach(() => {
     vuetify = new Vuetify();
@@ -79,17 +78,15 @@ describe('CustomCard.vue', () => {
 */
 });
 
-/* import { shallowMount } from "@vue/test-utils";
-import HelloWorld from "@/components/HelloWorld.vue";
+import { shallowMount } from '@vue/test-utils';
+import HelloWorld from '@/components/HelloWorld.vue';
 
-describe("HelloWorld.vue", () => {
-  it("renders props.msg when passed", () => {
-    const msg = "Welcome to Vuetify";
+describe('HelloWorld.vue', () => {
+  it('renders props.msg when passed', () => {
+    const msg = 'Welcome to Vuetify';
     const wrapper = shallowMount(HelloWorld, {
-      propsData: { msg }
+      propsData: { msg },
     });
     expect(wrapper.text()).toMatch(msg);
   });
 });
-
-*/

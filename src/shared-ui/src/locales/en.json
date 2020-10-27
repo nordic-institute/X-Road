@@ -4,6 +4,7 @@
   "warning": "Warning",
   "fields": {
     "password": "Password",
-    "username": "LIBUsername"
+    "username": "LIB-Username",
+    "shared": "sharedlib"
   }
 }

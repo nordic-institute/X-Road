@@ -1,28 +1,3 @@
-<!--
-<template>
-  <div class="wrapper">
-    <div>
-      Localisation test!
-      <br />
-      {{ hello }}
-
-    </div>
-
-  </div>
-</template>
--->
-
-<i18n>
-{
-  "en": {
-    "hello": "hello world!"
-  },
-  "ja": {
-    "hello": "こんにちは、世界！"
-  }
-}
-</i18n>
-
 <template>
   <div class="wrapper">
     <label for="locale">locale</label>
@@ -30,7 +5,7 @@
       <option>en</option>
       <option>ja</option>
     </select>
-    <p>message: {{ $t('hello') }}</p>
+    <p>Translated text: {{ $t('hello') }}</p>
     <slot></slot>
   </div>
 </template>
@@ -57,7 +32,7 @@ export default Vue.extend({
     messages: {
       en: {
         foo: 'bar',
-        hello: 'jeuy',
+        hello: 'text in english',
       },
       ja: {
         foo: 'japania',
