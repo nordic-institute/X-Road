@@ -49,6 +49,7 @@
             :loading="loading"
             :disabled="!canEdit"
             @input="touched = true"
+            autofocus
           ></v-text-field>
         </ValidationProvider>
       </div>

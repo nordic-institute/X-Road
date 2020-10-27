@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 set -e
 shopt -s nullglob
 XROAD_CONF_PATH="${XROAD_CONF_PATH:-/etc/xroad}"
