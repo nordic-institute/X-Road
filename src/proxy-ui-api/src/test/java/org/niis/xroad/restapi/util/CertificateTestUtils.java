@@ -222,8 +222,36 @@ public final class CertificateTestUtils {
                     + "QJ7JPOfD5lmD3/9MJL+gkA23dzg/oKJABLwqoe6vx9BQSKrJtwfOUSRokPcl4xYSlsnjuOQah6PHtgjuv1fPITf0FSuD"
                     + "O40kM5i6xwOPqR4+kSXwmwQ2Z4cfs1o1ryL5w==");
 
+    // certificate which does not have X509v3 Key Usage extension (and hence is not sign or auth cert,
+    // and CertUtils.isSigningCert & CertUtils.isAuthCert throw exceptions)
+    private static final byte[] MOCK_CERT_WITHOUT_EXTENSIONS =
+            CryptoUtils.decodeBase64("MIIC1DCCAbygAwIBAgIUYWRAIpLT0ke2PEhqKTzxDRzC2c0wDQYJKoZIhvcNAQEL"
+                    + "BQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTIwMTAyNjEyMzY1NloXDTMwMTAy"
+                    + "NDEyMzY1NlowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEF"
+                    + "AAOCAQ8AMIIBCgKCAQEA8j01lvwWQYHZM7uc2wpSPtDSgzDiEB14CtgFb9kft4u7"
+                    + "jdwmF145ZFc6y5gJMayeqho/6FAAgtIrCzF8mcH3+V3T+WLWa1Z2t38jKYRKGYCb"
+                    + "S4Ea5DW8fg9alZLHtxwq0w5nc6aN4zATw7C9leYrmxInazSOulqXUE2wHPadT5TZ"
+                    + "UIjiWpJfCcDGf+Yh82akkEKJk9GmCJIzLhHh8SBDASFobza5urzEjpNVgJfCXsWU"
+                    + "uyMm2ERcPgHvp472zM1yqs47GzX65emPzKPVmsffKHoZj8Kp9CdjLC2fwwPNoRn5"
+                    + "WZVq/IS7DoG6iqsBJFqu8mnXVQHbQTHFpECqzzJ1DwIDAQABox4wHDAaBgNVHREE"
+                    + "EzARhwR/AAABgglsb2NhbGhvc3QwDQYJKoZIhvcNAQELBQADggEBAKDQIlSD37MM"
+                    + "m//SNjEW1BcPBnRkLaFCkYnxWl/bhx0Enow/cYtU+ymFJoEqEqr1qyxzGqJjhrGa"
+                    + "SlCIKEibDANza/eIJGK4LijqZoYRRgnp8yK93auvw1clxDWix7VLdfLmH2OTK4N9"
+                    + "Mo/ejRUy8t+r+PCpp282EqWZ0c34fP5D/z5FSkSxwZQMhbL/eOlfH8CjHZxaEDy5"
+                    + "JTVlnbnZaLFELeBBNQ2h2B6+uF0YHnaDxYJsxaGL6zPEg/1B2qLydXEL1ByNJ9gd"
+                    + "NS73vuKm1JWrk3BSLpwJjvxBikr8uMF4F2TjHHYL4MGEmJ1WwV3pq8blddistK2Z"
+                    + "jnzoKNhWcmA=");
+
     private CertificateTestUtils() {
         // noop
+    }
+
+    /**
+     * Certificate which does not have X509v3 Key Usage extension (and hence is not a sign or auth cert,
+     *  and CertUtils.isSigningCert & CertUtils.isAuthCert throw exceptions)
+     */
+    public static X509Certificate getMockCertificateWithoutExtensions() {
+        return getCertificate(MOCK_CERT_WITHOUT_EXTENSIONS);
     }
 
     /**
