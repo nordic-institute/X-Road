@@ -70,6 +70,7 @@
             :error-messages="errors"
             :disabled="isServerOwnerInitialized"
             v-model="memberCode"
+            autofocus
             data-test="member-code-input"
           ></v-text-field>
         </ValidationProvider>

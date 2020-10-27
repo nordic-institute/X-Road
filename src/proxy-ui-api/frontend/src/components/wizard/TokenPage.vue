@@ -33,6 +33,7 @@
       hide-details
       class="search-input"
       data-test="token-search-input"
+      autofocus
     >
       <v-icon slot="append">mdi-magnify</v-icon>
     </v-text-field>

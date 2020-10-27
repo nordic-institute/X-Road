@@ -42,6 +42,7 @@
             class="ml-2"
             data-test="endpoint-method"
             v-model="method"
+            autofocus
             :items="methods"
           />
         </div>

@@ -37,6 +37,7 @@
           <v-text-field
             class="form-input"
             name="pin"
+            autofocus
             type="password"
             v-model="pin"
             :error-messages="errors"

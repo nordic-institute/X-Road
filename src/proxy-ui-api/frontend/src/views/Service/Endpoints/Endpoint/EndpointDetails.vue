@@ -48,6 +48,7 @@
           @input="touched = true"
           data-test="endpoint-method"
           v-model="endpoint.method"
+          autofocus
           :items="methods"
         />
       </div>

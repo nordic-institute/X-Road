@@ -47,6 +47,7 @@
             type="password"
             v-model="pin"
             single-line
+            autofocus
             class="dlg-row-input"
             name="tokenPin"
             :error-messages="errors"

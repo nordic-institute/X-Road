@@ -37,6 +37,7 @@
         <v-text-field
           v-model="code"
           single-line
+          autofocus
           class="dlg-row-input"
         ></v-text-field>
       </div>
