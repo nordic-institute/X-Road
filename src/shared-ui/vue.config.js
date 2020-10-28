@@ -3,9 +3,9 @@ const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   chainWebpack: (config) => {
-    // Remove these from the build package
-    // config.externals(["vue-i18n", "vee-validate", "vuetify"]);
-    // Removes all nore_modules from the built package
+    // Removes all node_modules from the built package
+    // If there is need to be specific then 
+    // another way to do this would be config.externals(["vue-i18n", "vee-validate", "vuetify"]);
     config.externals(nodeExternals());
 
     if (process.env.NODE_ENV === 'production') {
