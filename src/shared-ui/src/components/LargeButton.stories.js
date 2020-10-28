@@ -15,7 +15,7 @@ const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { LargeButton },
   template:
-    '<large-button @onClick="click" v-bind="$props">{{label}}</large-button>',
+    '<large-button @on-click="click" v-bind="$props">{{label}}</large-button>',
 });
 
 export const Primary = Template.bind({});
