@@ -56,6 +56,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -150,7 +151,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('VIEW_AUTH_CERT', 'VIEW_SIGN_CERT')")
+    @PreAuthorize("hasAnyAuthority('VIEW_AUTH_CERT', 'VIEW_SIGN_CERT', 'VIEW_UNKNOWN_CERT')")
     public ResponseEntity<TokenCertificate> getCertificate(String hash) {
         CertificateInfo certificateInfo;
         try {
@@ -159,15 +160,22 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new ResourceNotFoundException(e);
         }
 
+        // verify that correct permission exists, based on cert type
+        X509Certificate x509Certificate = null;
+        String requiredAuthority = null;
         try {
-            if (tokenCertificateService.isAuthCertBytes(certificateInfo.getCertificateBytes())) {
-                securityHelper.verifyAuthority("VIEW_AUTH_CERT");
-            } else {
-                securityHelper.verifyAuthority("VIEW_SIGN_CERT");
-            }
+            x509Certificate = tokenCertificateService.convertToX509Certificate(certificateInfo.getCertificateBytes());
         } catch (InvalidCertificateException e) {
             throw new InternalServerErrorException(e);
         }
+        if (tokenCertificateService.isValidAuthCert(x509Certificate)) {
+            requiredAuthority = "VIEW_AUTH_CERT";
+        } else if (tokenCertificateService.isValidSignCert(x509Certificate)) {
+            requiredAuthority = "VIEW_SIGN_CERT";
+        } else {
+            requiredAuthority = "VIEW_UNKNOWN_CERT";
+        }
+        securityHelper.verifyAuthority(requiredAuthority);
 
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificateInfo);
         return new ResponseEntity<>(tokenCertificate, HttpStatus.OK);

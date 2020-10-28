@@ -242,6 +242,33 @@ public final class CertificateTestUtils {
                     + "NS73vuKm1JWrk3BSLpwJjvxBikr8uMF4F2TjHHYL4MGEmJ1WwV3pq8blddistK2Z"
                     + "jnzoKNhWcmA=");
 
+    // an actual sign certificate with correct key usage extensions
+    // Subject: C = FI, O = Member4, CN = M4, serialNumber = LXD/ss4/GOV
+    private static final byte[] MOCK_SIGN_CERT =
+            CryptoUtils.decodeBase64("MIIENTCCAh2gAwIBAgIBFDANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEU"
+                    + "MBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9V"
+                    + "MRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMDA0MjcxMDIwMDBaFw00"
+                    + "MDA0MjIxMDIwMDBaMEIxCzAJBgNVBAYTAkZJMRAwDgYDVQQKDAdNZW1iZXI0MQsw"
+                    + "CQYDVQQDDAJNNDEUMBIGA1UEBRMLTFhEL3NzNC9HT1YwggEiMA0GCSqGSIb3DQEB"
+                    + "AQUAA4IBDwAwggEKAoIBAQCNeIB4OU2iigsQhGnTSroXpU2qr03sIJp7ZrTEtBVx"
+                    + "P7LmBWOrFxHF8NJYWeJY6scWdDCMmH1o10hJP516K9yVkRPEa/etOcGztyyuBZsH"
+                    + "coY367TBQCGkeN3CvGoKifUAXo8rZNdOTlW/X7Y23WJZnnVyza7M5EPJeR9DUtkT"
+                    + "1DtiPUXimczjCWCYYTGCafMtPC4l1xkeQVCoIz65QabRD+S84jQdJlVGqSrqE+Tb"
+                    + "iLIdyFIpX1Pd68hH0OENoeLDPT4hkkq4Esv3F5o7wpXWFKldjnhh51upaxAbeaGf"
+                    + "b53B7LzTWPzfu/VM0xEXAsE29B3b05LsErQ4Obf8bBsHAgMBAAGjHTAbMAkGA1Ud"
+                    + "EwQCMAAwDgYDVR0PAQH/BAQDAgZAMA0GCSqGSIb3DQEBCwUAA4ICAQA4PH9c3ZHs"
+                    + "J6TeDVn9x3lEhFMfasiJZuhyjv1jImnPsZAk9UNiIEAPSCKesb75CDV6ZfYCS2hq"
+                    + "EE/o4ZOiHtrGi0J2Mr+tr/U5xkGUSzc+mTF59IyP1qCZobQkjPvHxZNtHhacw0hv"
+                    + "OIFgAfON9146/pNK4SPkAdixXkM7sXcWMT0BMUDVinrkdMw+qGIIkE6Dg3njfk8o"
+                    + "p/2W4sBt5r7VeirrB7IbwyWq1KBPzxFfAwz+kc61U7Dw2NnCc3OGW6mr4snyQ2m9"
+                    + "stwWYrTqObVo3/0Al0ltQBdPAjwpFjbtBHnTQxkJ/Ju4nhkbWrDMcAbG+bMFcaIe"
+                    + "Qhf9GdxGi5TeNT8WRG4hautK7AUCXe4O0SpzdOTHMt2M8F7c7YgJcw4JYXeZb6UL"
+                    + "OTMkfAxhVgOPJpJpHH9BML3K8oKFl/aR8UvBm4zie4S5LpIcIDlCtc/WMuvs98CX"
+                    + "iwc/FKhzA0z+lNCvixig6KcCCM6t7451i60itWSKI5zHyumsJ3+dRKgMFW/guKIe"
+                    + "QP/a/7i63kfw8k5gy0VNJEcxMtTN7gUt35t6DDEPN4bhtU1uf/miml4BcSNEecUF"
+                    + "t74ogJvSf22HLx+oew/6fHoS/EgEsv9IaX6IwUY5yN8cMdJOh8KkpFSLwY8pA2dn"
+                    + "sUTKacwQnP/ti/60ufPvsR+OVxONBLGwVw==");
+
     private CertificateTestUtils() {
         // noop
     }
@@ -252,6 +279,21 @@ public final class CertificateTestUtils {
      */
     public static X509Certificate getMockCertificateWithoutExtensions() {
         return getCertificate(MOCK_CERT_WITHOUT_EXTENSIONS);
+    }
+
+    /**
+     * See {@link #getMockCertificateWithoutExtensions()}
+     */
+    public static byte[] getMockCertificateWithoutExtensionsBytes() {
+        return MOCK_CERT_WITHOUT_EXTENSIONS;
+    }
+
+    /**
+     * An actual sign certificate with correct key usage extensions
+     * Subject: C = FI, O = Member4, CN = M4, serialNumber = LXD/ss4/GOV
+     */
+    public static X509Certificate getMockSignCertificate() {
+        return getCertificate(MOCK_SIGN_CERT);
     }
 
     /**
