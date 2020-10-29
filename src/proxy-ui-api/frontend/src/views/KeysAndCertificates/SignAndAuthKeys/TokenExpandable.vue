@@ -296,8 +296,8 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.GenerateCertificateSignRequest,
         params: {
-            keyId: key.id,
-            tokenType: this.token.type
+          keyId: key.id,
+          tokenType: this.token.type,
         },
       });
     },
