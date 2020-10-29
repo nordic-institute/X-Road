@@ -41,7 +41,7 @@ import { alertsModule } from '@/store/modules/alerts';
 
 Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({
-  storage: window.localStorage,
+  storage: window.sessionStorage,
   modules: ['user'],
 });
 
