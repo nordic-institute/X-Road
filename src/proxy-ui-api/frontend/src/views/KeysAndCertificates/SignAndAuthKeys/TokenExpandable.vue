@@ -223,7 +223,7 @@ export default Vue.extend({
     },
 
     getSignKeys(keys: Key[]): Key[] {
-      return keys.filter( (key: Key) => key.usage === KeyUsageType.SIGNING);
+      return keys.filter((key: Key) => key.usage === KeyUsageType.SIGNING);
     },
 
     getOtherKeys(keys: Key[]): Key[] {

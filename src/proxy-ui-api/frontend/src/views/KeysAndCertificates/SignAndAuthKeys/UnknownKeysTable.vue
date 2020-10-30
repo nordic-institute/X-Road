@@ -104,8 +104,6 @@ import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
-import { FileUploadResult } from '@/ui-types';
-import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
