@@ -28,7 +28,9 @@
     <td class="name-wrap-top no-border">
       <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
       <div class="clickable-link identifier-wrap" @click="keyClick">
-        <span v-if="tokenKey.name === ''">{{ tokenKey.id }}</span>
+        <span v-if="!tokenKey.name || tokenKey.name === ''">{{
+          tokenKey.id
+        }}</span>
         <span v-else>{{ tokenKey.name }}</span>
       </div>
     </td>
