@@ -24,61 +24,83 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="minWidth"
-    :loading="loading"
-    rounded
-    color="primary"
-    class="large-button"
-    @click="click"
-  >
-    <slot></slot>
-  </v-btn>
+  <v-dialog :value="dialog" :width="width" persistent>
+    <v-card class="xrd-card">
+      <v-card-title>
+        <span class="headline">{{ $t(title) }}</span>
+      </v-card-title>
+      <v-card-text class="content-wrapper">
+        <v-img :src="require('./../assets/' + imageSrc)"></v-img>
+        <div class="title-wrap">
+          <h2>{{ $t(title) }}</h2>
+        </div>
+        <div class="text-wrap">{{ $t(text) }}</div>
+      </v-card-text>
+      <v-card-actions class="xrd-card-actions">
+        <v-spacer></v-spacer>
+        <large-button @click="cancel()">{{ $t('keys.gotIt') }}</large-button>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
+/** Component for help dialogs */
 
 import Vue from 'vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
+  components: {
+    LargeButton,
+  },
   props: {
-    outlined: {
-      type: Boolean,
-      default: false,
+    // Title of the dialog
+    title: {
+      type: String,
+      required: true,
     },
-    // Set button disabled state
-    disabled: {
+    // Dialog visible / hidden
+    dialog: {
       type: Boolean,
-      default: false,
+      required: true,
     },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    minWidth: {
+    width: {
       type: Number,
-      default: 120,
+      default: 850,
+    },
+    // Source for help image
+    imageSrc: {
+      type: String,
+    },
+    // Help text
+    text: {
+      type: String,
     },
   },
+
   methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    cancel(): void {
+      this.$emit('cancel');
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-$large-button-width: 140px;
+@import '../assets/dialogs';
 
-.large-button {
-  min-width: $large-button-width !important;
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
+.content-wrapper {
+  margin-top: 20px;
+}
+
+.title-wrap {
+  margin-bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.text-wrap {
+  margin: 10px;
 }
 </style>

@@ -24,61 +24,74 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="minWidth"
+  <simpleDialog
+    :dialog="dialog"
+    :title="title"
+    @save="accept"
+    @cancel="cancel"
+    :cancelButtonText="cancelButtonText"
+    :saveButtonText="acceptButtonText"
+    :showClose="false"
     :loading="loading"
-    rounded
-    color="primary"
-    class="large-button"
-    @click="click"
   >
-    <slot></slot>
-  </v-btn>
+    <div slot="content" data-test="dialog-content-text">
+      {{ $t(text, data) }}
+    </div>
+  </simpleDialog>
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
+/**
+ * A dialog for simple "accept or cancel" functions
+ */
 
 import Vue from 'vue';
+import SimpleDialog from '@/components/SimpleDialog.vue';
 
 export default Vue.extend({
+  components: {
+    SimpleDialog,
+  },
   props: {
-    outlined: {
+    dialog: {
       type: Boolean,
-      default: false,
+      required: true,
     },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
+    title: {
+      type: String,
+      required: true,
     },
-    // Show loading spinner
+    text: {
+      type: String,
+      required: true,
+    },
+    cancelButtonText: {
+      type: String,
+      default: 'action.cancel',
+    },
+    acceptButtonText: {
+      type: String,
+      default: 'action.yes',
+    },
+    // Set save button loading spinner
     loading: {
       type: Boolean,
       default: false,
     },
-    minWidth: {
-      type: Number,
-      default: 120,
+    // In case the confirmation text requires additional data
+    data: {
+      type: Object,
+      required: false,
     },
   },
+
   methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    cancel(): void {
+      this.$emit('cancel');
+    },
+    accept(): void {
+      this.$emit('accept');
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-$large-button-width: 140px;
-
-.large-button {
-  min-width: $large-button-width !important;
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
-}
-</style>

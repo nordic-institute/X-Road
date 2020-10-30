@@ -25,14 +25,15 @@
  -->
 <template>
   <v-btn
+    small
     :outlined="outlined"
     :disabled="disabled"
-    :min-width="minWidth"
+    :min-width="min_width"
     :loading="loading"
     rounded
     color="primary"
-    class="large-button"
-    @click="click"
+    class="xrd-small-button"
+    @click="click()"
   >
     <slot></slot>
   </v-btn>
@@ -47,7 +48,7 @@ export default Vue.extend({
   props: {
     outlined: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     // Set button disabled state
     disabled: {
@@ -59,7 +60,7 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
-    minWidth: {
+    min_width: {
       type: Number,
       default: 120,
     },
@@ -72,13 +73,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-$large-button-width: 140px;
-
-.large-button {
-  min-width: $large-button-width !important;
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
-}
-</style>
+<style lang="scss" scoped></style>

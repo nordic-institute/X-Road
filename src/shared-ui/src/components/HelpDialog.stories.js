@@ -1,31 +1,32 @@
-import LargeButton from './LargeButton.vue';
+import HelpDialog from './HelpDialog.vue';
 
 export default {
-  title: 'X-Road/Large button',
-  component: LargeButton,
+  title: 'X-Road/Help dialog',
+  component: HelpDialog,
   argTypes: {
     outlined: { control: 'boolean' },
-    disabled: { control: 'boolean' },
-    loading: { control: 'boolean' },
-    minWidth: { control: 'number' },
-    click: { action: 'click' }
+    width: { control: 'boolean' },
+    dialog: { control: 'boolean' },
+    title: { control: 'text' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { LargeButton },
+  components: { HelpDialog },
   template:
-    '<large-button @click="click" v-bind="$props">{{label}}</large-button>',
+    '<help-dialog @cancel="cancel" v-bind="$props" imageSrc="api_keys.png">{{label}}</help-dialog>',
 });
 
 export const Primary = Template.bind({});
-Primary.args = {
+Primary.args = { 
   primary: true,
   label: 'Hello world!',
+  dialog: true
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
   label: 'This is a very very long label for a button',
+  dialog: true
 };

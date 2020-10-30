@@ -24,61 +24,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="minWidth"
-    :loading="loading"
-    rounded
-    color="primary"
-    class="large-button"
-    @click="click"
-  >
-    <slot></slot>
-  </v-btn>
+  <div class="footer-content">
+    <div>
+      <LargeButton @click="close()">{{ $t('action.close') }}</LargeButton>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
-
 import Vue from 'vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
-  props: {
-    outlined: {
-      type: Boolean,
-      default: false,
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    minWidth: {
-      type: Number,
-      default: 120,
-    },
+  components: {
+    LargeButton,
   },
   methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    close() {
+      this.$emit('close');
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-$large-button-width: 140px;
+@import '../assets/colors';
 
-.large-button {
-  min-width: $large-button-width !important;
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
+.footer-content {
+  width: 100%;
+  display: flex;
+  margin-top: 20px;
+  padding-top: 30px;
+  justify-content: flex-end;
+  border-top: 1px solid $XRoad-Grey40;
 }
 </style>

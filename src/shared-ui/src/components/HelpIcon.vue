@@ -24,61 +24,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="minWidth"
-    :loading="loading"
-    rounded
-    color="primary"
-    class="large-button"
-    @click="click"
-  >
-    <slot></slot>
-  </v-btn>
+  <div class="help-wrapper">
+    <v-tooltip top>
+      <template v-slot:activator="{ on }">
+        <v-icon color="#202020" small dark v-on="on">mdi-help-circle</v-icon>
+      </template>
+      <span>{{ text }}</span>
+    </v-tooltip>
+  </div>
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
-
 import Vue from 'vue';
 
 export default Vue.extend({
   props: {
-    outlined: {
-      type: Boolean,
-      default: false,
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    minWidth: {
-      type: Number,
-      default: 120,
-    },
-  },
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    text: {
+      type: String,
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-$large-button-width: 140px;
-
-.large-button {
-  min-width: $large-button-width !important;
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
+.help-wrapper {
+  cursor: default;
+  margin-left: 14px;
 }
 </style>

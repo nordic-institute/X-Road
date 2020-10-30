@@ -24,61 +24,79 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="minWidth"
-    :loading="loading"
-    rounded
-    color="primary"
-    class="large-button"
-    @click="click"
-  >
-    <slot></slot>
-  </v-btn>
+  <div>
+    <div class="header">
+      <div>
+        <v-btn fab icon small @click="clicked" class="no-hover">
+          <v-icon v-if="isOpen" class="button-icon">mdi-chevron-down</v-icon>
+          <v-icon v-else class="button-icon">mdi-chevron-right</v-icon>
+        </v-btn>
+      </div>
+      <div class="header-link">
+        <slot name="link"></slot>
+      </div>
+
+      <v-spacer />
+      <div class="action-wrap">
+        <slot name="action"></slot>
+      </div>
+    </div>
+    <div v-if="isOpen" class="content-wrap">
+      <slot name="content"></slot>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
-
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'expandable',
   props: {
-    outlined: {
+    isOpen: {
       type: Boolean,
-      default: false,
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    minWidth: {
-      type: Number,
-      default: 120,
+      required: true,
     },
   },
   methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    clicked(): void {
+      if (this.isOpen) {
+        this.$emit('close');
+      } else {
+        this.$emit('open');
+      }
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-$large-button-width: 140px;
+@import '../assets/colors';
 
-.large-button {
-  min-width: $large-button-width !important;
+.no-hover:hover:before,
+.no-hover:focus:before {
+  background-color: transparent;
+}
+
+.no-hover {
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  height: 48px;
   border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
+  background-color: $XRoad-Grey10;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.action-wrap {
+  padding-right: 8px;
+}
+
+.content-wrap {
+  padding: 10px;
 }
 </style>
