@@ -77,6 +77,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/override-rhel-proxy.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
+%dir /etc/xroad/jetty
 %config /etc/xroad/jetty/clientproxy.xml
 %config /etc/xroad/jetty/serverproxy.xml
 %config /etc/xroad/jetty/ocsp-responder.xml
