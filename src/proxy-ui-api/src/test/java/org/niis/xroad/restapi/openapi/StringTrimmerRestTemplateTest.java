@@ -46,6 +46,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -75,6 +77,9 @@ public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestCont
     public static final String GROUP_DESC_WITH_SPACES = "  Description of a group  ";
     public static final String GROUP_DESC_WITHOUT_SPACES = "Description of a group";
 
+    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
+            TestUtils.MEMBER_CLASS_PRO);
+
     @Before
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);
@@ -89,6 +94,7 @@ public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestCont
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
+        when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
     }
 
     @Test
