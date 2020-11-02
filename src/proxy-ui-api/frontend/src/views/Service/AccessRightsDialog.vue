@@ -185,7 +185,6 @@
 import Vue, { PropType } from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceClient } from '@/openapi-types';
 
 enum ServiceClientTypes {
@@ -212,9 +211,6 @@ const initialState = () => {
 };
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     dialog: {
       type: Boolean,

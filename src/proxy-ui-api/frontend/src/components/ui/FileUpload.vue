@@ -40,7 +40,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from './LargeButton.vue';
 import { FileUploadResult } from '@/ui-types';
 
 type HTMLInputElementEvent = Event & {
@@ -56,9 +55,6 @@ const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
 
 export default Vue.extend({
   name: 'FileUpload',
-  components: {
-    LargeButton,
-  },
   props: {
     accepts: {
       type: String,

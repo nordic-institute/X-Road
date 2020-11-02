@@ -64,13 +64,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default Vue.extend({
   components: {
     FormLabel,
-    LargeButton,
   },
   computed: {
     keyLabel: {

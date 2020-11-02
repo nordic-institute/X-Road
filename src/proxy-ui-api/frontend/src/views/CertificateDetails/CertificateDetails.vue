@@ -112,7 +112,6 @@ import {
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
@@ -123,7 +122,6 @@ export default Vue.extend({
     CertificateInfo,
     ConfirmDialog,
     SubViewTitle,
-    LargeButton,
     CertificateHash,
     UnregisterErrorDialog,
   },

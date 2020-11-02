@@ -93,14 +93,12 @@ import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Token } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
-    LargeButton,
     ValidationProvider,
     ValidationObserver,
   },

@@ -90,7 +90,6 @@
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -114,7 +113,6 @@ const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
 export default Vue.extend({
   components: {
     BackupsDataTable,
-    LargeButton,
     ConfirmDialog,
     FileUpload,
   },

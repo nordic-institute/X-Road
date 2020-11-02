@@ -174,7 +174,6 @@ import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import {
   ServiceDescription,
   ServiceDescriptionUpdate,
@@ -187,7 +186,6 @@ export default Vue.extend({
     SubViewTitle,
     ConfirmDialog,
     WarningDialog,
-    LargeButton,
     ValidationProvider,
     ValidationObserver,
   },

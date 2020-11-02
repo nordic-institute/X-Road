@@ -93,7 +93,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { extend } from 'vee-validate';
 import i18n from '@/i18n';
 
@@ -112,7 +111,6 @@ extend('password', {
 
 export default Vue.extend({
   components: {
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
   },

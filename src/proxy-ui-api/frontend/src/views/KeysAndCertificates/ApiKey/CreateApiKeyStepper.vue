@@ -143,7 +143,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/global-types';
@@ -152,7 +151,6 @@ import * as api from '@/util/api';
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
   components: {
-    LargeButton,
     SubViewTitle,
   },
   data() {

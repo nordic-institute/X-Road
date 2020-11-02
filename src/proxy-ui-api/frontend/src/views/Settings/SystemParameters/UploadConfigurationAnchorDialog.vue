@@ -119,7 +119,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Anchor } from '@/openapi-types';
@@ -135,7 +134,6 @@ const EmptyAnchorPreview: Anchor = {
 export default Vue.extend({
   name: 'UploadConfigurationAnchorDialog',
   components: {
-    LargeButton,
     FileUpload,
   },
   props: {

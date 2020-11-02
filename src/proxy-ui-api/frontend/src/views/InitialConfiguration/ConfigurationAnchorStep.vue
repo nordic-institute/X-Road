@@ -70,14 +70,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     UploadConfigurationAnchorDialog,
   },
   props: {

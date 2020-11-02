@@ -67,14 +67,10 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, PossibleAction } from '@/openapi-types';
 import { Permissions } from '@/global';
 
 export default Vue.extend({
-  components: {
-    SmallButton,
-  },
   props: {
     keys: {
       type: Array,

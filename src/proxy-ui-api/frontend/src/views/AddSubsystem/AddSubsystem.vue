@@ -153,7 +153,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
@@ -168,7 +167,6 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     FormLabel,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,

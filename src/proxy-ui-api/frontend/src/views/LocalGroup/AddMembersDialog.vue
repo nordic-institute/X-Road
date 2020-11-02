@@ -151,7 +151,6 @@
 import Vue, { PropType } from 'vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/openapi-types';
 
 const initialState = () => {
@@ -170,9 +169,6 @@ const initialState = () => {
 };
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     dialog: {
       type: Boolean,

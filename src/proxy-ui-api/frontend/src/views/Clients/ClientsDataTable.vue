@@ -199,12 +199,10 @@
  */
 import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
@@ -213,8 +211,6 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     ClientStatus,
-    LargeButton,
-    SmallButton,
     ConfirmDialog,
   },
 

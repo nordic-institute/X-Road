@@ -249,7 +249,6 @@ import * as api from '@/util/api';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
@@ -265,7 +264,6 @@ export default Vue.extend({
     AccessRightsDialog,
     ConfirmDialog,
     HelpIcon,
-    LargeButton,
     WarningDialog,
     ValidationProvider,
     ValidationObserver,

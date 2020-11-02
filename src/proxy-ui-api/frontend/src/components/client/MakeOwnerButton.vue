@@ -57,13 +57,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     SimpleDialog,
   },
   props: {

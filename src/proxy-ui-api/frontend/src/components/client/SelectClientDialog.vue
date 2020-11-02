@@ -98,13 +98,9 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/openapi-types';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     dialog: {
       type: Boolean,

@@ -109,8 +109,6 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 import FileUpload from '@/components/ui/FileUpload.vue';
@@ -118,8 +116,6 @@ import { FileUploadResult } from '@/ui-types';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    SmallButton,
     GenerateTlsAndCertificateDialog,
     FileUpload,
   },

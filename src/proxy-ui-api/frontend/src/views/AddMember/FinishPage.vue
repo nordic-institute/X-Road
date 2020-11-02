@@ -89,7 +89,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
@@ -99,7 +98,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     FormLabel,
     WarningDialog,
   },

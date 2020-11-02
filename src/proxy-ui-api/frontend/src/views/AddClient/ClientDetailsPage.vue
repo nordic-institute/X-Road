@@ -144,7 +144,6 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import FormLabel from '@/components/ui/FormLabel.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { debounce, isEmpty, containsClient } from '@/util/helpers';
 import { Client } from '@/openapi-types';
@@ -159,7 +158,6 @@ let that: any;
 export default Vue.extend({
   components: {
     FormLabel,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,

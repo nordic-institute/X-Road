@@ -125,7 +125,6 @@
 import Vue, { VueConstructor } from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default (Vue as VueConstructor<
@@ -136,7 +135,6 @@ export default (Vue as VueConstructor<
   }
 >).extend({
   components: {
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     FormLabel,
