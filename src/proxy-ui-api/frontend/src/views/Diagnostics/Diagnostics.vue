@@ -188,12 +188,8 @@ import {
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
 } from '@/openapi-types';
-import ProgressLinear from '@/components/ui/ProgressLinear.vue';
 
 export default Vue.extend({
-  components: {
-    ProgressLinear,
-  },
   data: () => ({
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,
