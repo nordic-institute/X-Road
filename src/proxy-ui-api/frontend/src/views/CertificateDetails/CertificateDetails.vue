@@ -109,7 +109,6 @@ import {
   KeyUsageType,
   PossibleAction,
 } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
@@ -121,7 +120,6 @@ export default Vue.extend({
   components: {
     CertificateInfo,
     ConfirmDialog,
-    SubViewTitle,
     CertificateHash,
     UnregisterErrorDialog,
   },

@@ -138,7 +138,6 @@ import {
   PossibleActions as PossibleActionsList,
   Token,
 } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
@@ -147,7 +146,6 @@ import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     ConfirmDialog,
     ValidationProvider,
     ValidationObserver,

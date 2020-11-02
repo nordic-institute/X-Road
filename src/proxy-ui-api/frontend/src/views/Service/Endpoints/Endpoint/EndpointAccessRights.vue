@@ -118,7 +118,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Endpoint, ServiceClient } from '@/openapi-types';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
@@ -128,7 +127,6 @@ import { Permissions } from '@/global';
 export default Vue.extend({
   name: 'EndpointAccessRights',
   components: {
-    SubViewTitle,
     ConfirmDialog,
     AccessRightsDialog,
   },

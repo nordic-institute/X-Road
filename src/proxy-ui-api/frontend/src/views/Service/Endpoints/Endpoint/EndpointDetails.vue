@@ -115,7 +115,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Permissions } from '@/global';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
@@ -124,7 +123,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     ConfirmDialog,
     ValidationProvider,
     ValidationObserver,

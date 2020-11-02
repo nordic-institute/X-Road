@@ -153,7 +153,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import FormLabel from '@/components/ui/FormLabel.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -170,7 +169,6 @@ export default Vue.extend({
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
-    SubViewTitle,
     ConfirmDialog,
   },
   props: {

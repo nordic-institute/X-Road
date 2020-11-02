@@ -37,6 +37,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'SubViewTitle',
   props: {
     title: {
       type: String,

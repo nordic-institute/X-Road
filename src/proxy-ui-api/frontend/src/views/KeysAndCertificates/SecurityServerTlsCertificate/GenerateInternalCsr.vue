@@ -94,13 +94,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 
 export default Vue.extend({
-  components: {
-    SubViewTitle,
-  },
   data() {
     return {
       distinguishedName: '',

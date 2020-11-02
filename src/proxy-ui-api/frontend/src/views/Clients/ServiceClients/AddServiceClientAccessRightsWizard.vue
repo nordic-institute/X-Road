@@ -67,7 +67,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberOrGroupSelectionStep from '@/views/Clients/ServiceClients/MemberOrGroupSelectionStep.vue';
 import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectionStep.vue';
 import {
@@ -89,7 +88,6 @@ export default Vue.extend({
     },
   },
   components: {
-    SubViewTitle,
     MemberOrGroupSelectionStep,
     ServiceSelectionStep,
   },

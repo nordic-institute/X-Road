@@ -6,6 +6,7 @@ import LargeButton from './components/LargeButton.vue';
 import ProgressLinear from './components/ProgressLinear.vue';
 import SmallButton from './components/SmallButton.vue';
 import StatusIcon from './components/StatusIcon.vue';
+import SubViewTitle from './components/SubViewTitle.vue';
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
 import './i18n';
@@ -19,6 +20,7 @@ const SharedComponents = {
     Vue.component('ProgressLinear', ProgressLinear);
     Vue.component('SmallButton', SmallButton);
     Vue.component('StatusIcon', StatusIcon);
+    Vue.component('SubViewTitle', SubViewTitle);
   },
 };
 
