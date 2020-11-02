@@ -25,8 +25,8 @@
  -->
 <template>
   <div class="label">
-    {{ $t(labelText) }}
-    <helpIcon v-if="helpText" :text="$t(helpText)" />
+    {{ labelText }}
+    <helpIcon v-if="helpText" :text="helpText" />
   </div>
 </template>
 
@@ -38,6 +38,7 @@ import Vue from 'vue';
 import HelpIcon from '@/components/HelpIcon.vue';
 
 export default Vue.extend({
+  name: 'FormLabel',
   components: {
     HelpIcon,
   },

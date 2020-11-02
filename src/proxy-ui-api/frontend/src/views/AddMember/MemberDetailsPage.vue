@@ -45,16 +45,16 @@
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
-          labelText="wizard.memberName"
-          helpText="wizard.client.memberNameTooltip"
+          :labelText="$t('wizard.memberName')"
+          :helpText="$t('wizard.client.memberNameTooltip')"
         />
         <div data-test="selected-member-name">{{ selectedMemberName }}</div>
       </div>
 
       <div class="row-wrap">
         <FormLabel
-          labelText="wizard.memberClass"
-          helpText="wizard.client.memberClassTooltip"
+          :labelText="$t('wizard.memberClass')"
+          :helpText="$t('wizard.client.memberClassTooltip')"
         />
 
         <ValidationProvider
@@ -72,8 +72,8 @@
       </div>
       <div class="row-wrap">
         <FormLabel
-          labelText="wizard.memberCode"
-          helpText="wizard.client.memberCodeTooltip"
+          :labelText="$t('wizard.memberCode')"
+          :helpText="$t('wizard.client.memberCodeTooltip')"
         />
 
         <ValidationProvider
@@ -123,7 +123,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import FormLabel from '@/components/ui/FormLabel.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
 import { debounce, isEmpty } from '@/util/helpers';
@@ -137,7 +136,6 @@ let that: any;
 
 export default Vue.extend({
   components: {
-    FormLabel,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,

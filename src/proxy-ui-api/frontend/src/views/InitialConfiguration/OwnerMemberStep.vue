@@ -28,8 +28,8 @@
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
-          labelText="wizard.memberName"
-          helpText="wizard.client.memberNameTooltip"
+          :labelText="$t('wizard.memberName')"
+          :helpText="$t('wizard.client.memberNameTooltip')"
         />
         <div v-if="memberName" data-test="selected-member-name">
           {{ memberName }}
@@ -38,8 +38,8 @@
 
       <div class="row-wrap">
         <FormLabel
-          labelText="wizard.memberClass"
-          helpText="wizard.client.memberClassTooltip"
+          :labelText="$t('wizard.memberClass')"
+          :helpText="$t('wizard.client.memberClassTooltip')"
         />
 
         <ValidationProvider name="addClient.memberClass" rules="required">
@@ -54,8 +54,8 @@
       </div>
       <div class="row-wrap">
         <FormLabel
-          labelText="wizard.memberCode"
-          helpText="wizard.client.memberCodeTooltip"
+          :labelText="$t('wizard.memberCode')"
+          :helpText="$t('wizard.client.memberCodeTooltip')"
         />
 
         <ValidationProvider
@@ -78,8 +78,8 @@
 
       <div class="row-wrap">
         <FormLabel
-          labelText="fields.securityServerCode"
-          helpText="initialConfiguration.member.serverCodeHelp"
+          :labelText="$t('fields.securityServerCode')"
+          :helpText="$t('initialConfiguration.member.serverCodeHelp')"
         />
 
         <ValidationProvider
@@ -125,7 +125,6 @@
 import Vue, { VueConstructor } from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default (Vue as VueConstructor<
   Vue & {
@@ -137,7 +136,6 @@ export default (Vue as VueConstructor<
   components: {
     ValidationObserver,
     ValidationProvider,
-    FormLabel,
   },
   props: {
     saveButtonText: {

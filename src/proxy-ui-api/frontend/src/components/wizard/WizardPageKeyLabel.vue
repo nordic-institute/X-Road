@@ -27,7 +27,7 @@
   <div>
     {{ $t('wizard.signKey.info') }}
     <div class="row-wrap">
-      <FormLabel labelText="wizard.signKey.keyLabel" />
+      <FormLabel :labelText="$t('wizard.signKey.keyLabel')" />
       <v-text-field
         class="form-input"
         type="text"
@@ -56,12 +56,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default Vue.extend({
-  components: {
-    FormLabel,
-  },
   computed: {
     ...mapGetters(['csrForm']),
     keyLabel: {
