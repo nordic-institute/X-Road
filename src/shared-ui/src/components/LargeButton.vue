@@ -27,7 +27,7 @@
   <v-btn
     :outlined="outlined"
     :disabled="disabled"
-    :min-width="minWidth"
+    :min-width="min_width"
     :loading="loading"
     rounded
     color="primary"
@@ -44,6 +44,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'large-button',
   props: {
     outlined: {
       type: Boolean,
@@ -59,9 +60,9 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
-    minWidth: {
+    min_width: {
       type: Number,
-      default: 120,
+      default: 140,
     },
   },
   methods: {
@@ -73,10 +74,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-$large-button-width: 140px;
-
 .large-button {
-  min-width: $large-button-width !important;
   border-radius: 4px;
   text-transform: uppercase;
   background-color: white;

@@ -7,9 +7,8 @@ export default {
     outlined: { control: 'boolean' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
-    minWidth: { control: 'number' },
     label: { control: 'text' },
-    click: { action: 'click' }
+    click: { action: 'click' },
   },
 };
 
