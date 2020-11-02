@@ -31,6 +31,7 @@
         :label="$t('serviceClients.memberGroupStep')"
         single-line
         hide-details
+        autofocus
         data-test="search-service-client"
         class="search-input"
       >

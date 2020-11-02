@@ -51,6 +51,7 @@
                       v-model="name"
                       :label="$t('name')"
                       single-line
+                      autofocus
                       hide-details
                       class="flex-input"
                     ></v-text-field>

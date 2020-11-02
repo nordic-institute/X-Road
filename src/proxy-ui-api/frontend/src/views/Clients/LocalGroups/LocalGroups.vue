@@ -29,6 +29,7 @@
       <v-text-field
         v-model="search"
         label="Search"
+        autofocus
         single-line
         hide-details
         class="search-input"

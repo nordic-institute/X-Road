@@ -33,6 +33,7 @@
               $t('login.logIn')
             }}</v-toolbar-title>
           </v-toolbar>
+
           <v-card-text>
             <v-form>
               <ValidationObserver ref="form">
@@ -49,6 +50,7 @@
                     type="text"
                     v-model="username"
                     @keyup.enter="submit"
+                    autofocus
                   ></v-text-field>
                 </ValidationProvider>
 

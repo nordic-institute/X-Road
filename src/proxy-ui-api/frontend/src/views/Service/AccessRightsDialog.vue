@@ -54,6 +54,7 @@
                       :label="$t('name')"
                       single-line
                       hide-details
+                      autofocus
                       data-test="name"
                       class="flex-input"
                     ></v-text-field>
