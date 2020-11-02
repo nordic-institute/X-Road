@@ -34,6 +34,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'status-icon',
   props: {
     status: {
       type: String,

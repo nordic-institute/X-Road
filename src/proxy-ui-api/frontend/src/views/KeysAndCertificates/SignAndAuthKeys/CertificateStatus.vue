@@ -32,13 +32,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import StatusIcon from '@/components/ui/StatusIcon.vue';
 import { CertificateStatus } from '@/openapi-types';
 
 export default Vue.extend({
-  components: {
-    StatusIcon,
-  },
   props: {
     certificate: {
       type: Object,

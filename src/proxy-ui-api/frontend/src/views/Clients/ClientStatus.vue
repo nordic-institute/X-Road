@@ -32,12 +32,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
-  components: {
-    StatusIcon,
-  },
   props: {
     status: {
       type: String,

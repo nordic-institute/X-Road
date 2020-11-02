@@ -4,28 +4,26 @@ export default {
   title: 'X-Road/Status icon',
   component: StatusIcon,
   argTypes: {
-    status: {    control: {
-      type: 'select',
-      options: [
-        'green', 
-        'green-ring',
-        'orange',
-        'orange-ring',
-        'red',
-        'red-ring'
-      ],
-    }, },
+    status: {
+      control: {
+        type: 'select',
+        options: [
+          'green',
+          'green-ring',
+          'orange',
+          'orange-ring',
+          'red',
+          'red-ring',
+        ],
+      },
+    },
   },
 };
-
-
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { StatusIcon },
-  template:
-  
-    `
+  template: `
     <div>
     <status-icon v-bind="$props" /><br>
     <status-icon status="green" /><br>
@@ -34,10 +32,10 @@ const Template = (args, { argTypes }) => ({
     <status-icon status="orange-ring" /><br>
     <status-icon status="red" /><br>
     <status-icon status="red-ring" /><br>
-    </div>`
+    </div>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-  status: 'red'
+  status: 'red',
 };

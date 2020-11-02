@@ -3,6 +3,7 @@ import { VueConstructor } from 'vue';
 import HelpIcon from './components/HelpIcon.vue';
 import LargeButton from './components/LargeButton.vue';
 import SmallButton from './components/SmallButton.vue';
+import StatusIcon from './components/StatusIcon.vue';
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
 import './i18n';
@@ -12,6 +13,7 @@ const SharedComponents = {
     Vue.component('HelpIcon', HelpIcon);
     Vue.component('LargeButton', LargeButton);
     Vue.component('SmallButton', SmallButton);
+    Vue.component('StatusIcon', StatusIcon);
   },
 };
 
