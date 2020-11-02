@@ -135,7 +135,6 @@
 // View for a token
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import Expandable from '@/components/ui/Expandable.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
@@ -145,7 +144,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    Expandable,
     KeysTable,
     UnknownKeysTable,
   },

@@ -207,7 +207,6 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
-import Expandable from '@/components/ui/Expandable.vue';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
 import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
@@ -223,7 +222,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    Expandable,
     AddWsdlDialog,
     AddRestDialog,
     DisableServiceDescDialog,

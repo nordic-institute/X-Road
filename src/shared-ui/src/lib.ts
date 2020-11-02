@@ -1,5 +1,6 @@
 // This file is the entry point for the library build
 import { VueConstructor } from 'vue';
+import Expandable from './components/Expandable.vue';
 import FileUpload from './components/FileUpload.vue';
 import FormLabel from './components/FormLabel.vue';
 import HelpIcon from './components/HelpIcon.vue';
@@ -14,6 +15,7 @@ import './i18n';
 
 const SharedComponents = {
   install(Vue: VueConstructor): void {
+    Vue.component('Expandable', Expandable);
     Vue.component('FileUpload', FileUpload);
     Vue.component('FormLabel', FormLabel);
     Vue.component('HelpIcon', HelpIcon);
