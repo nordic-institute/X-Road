@@ -8,7 +8,7 @@ export default {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
     minWidth: { control: 'number' },
-    click: { action: 'click' }
+    click: { action: 'click' },
   },
 };
 

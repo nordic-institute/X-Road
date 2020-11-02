@@ -7,9 +7,9 @@ import LargeButton from '@/components/LargeButton.vue';
 // Utilities
 import { createLocalVue, mount } from '@vue/test-utils';
 
-describe('CustomCard.vue', () => {
+describe('LargeButton.vue', () => {
   const localVue = createLocalVue();
-  let vuetify: any;
+  let vuetify: Vuetify;
 
   beforeEach(() => {
     vuetify = new Vuetify();
