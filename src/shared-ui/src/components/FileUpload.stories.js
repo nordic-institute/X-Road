@@ -1,7 +1,6 @@
 import FileUpload from './FileUpload.vue';
 import LargeButton from './LargeButton.vue';
 
-
 export default {
   title: 'X-Road/File upload',
   component: FileUpload,
@@ -14,11 +13,10 @@ export default {
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { FileUpload, LargeButton },
-  template:
-    `
+  template: `
     <file-upload
     v-bind="$props"
-    @fileChanged="fileChanged"
+    @file-changed="fileChanged"
     v-slot="{ upload }"
     >
       <large-button @click="upload">
@@ -30,6 +28,5 @@ const Template = (args, { argTypes }) => ({
 
 export const Primary = Template.bind({});
 Primary.args = {
-  accepts: ".tar, .jpg, .png, .pem, .cer, .der, .txt",
+  accepts: '.tar, .jpg, .png, .pem, .cer, .der, .txt',
 };
-

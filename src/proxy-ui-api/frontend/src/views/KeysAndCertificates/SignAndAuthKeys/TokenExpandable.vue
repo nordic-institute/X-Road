@@ -140,8 +140,7 @@ import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
@@ -149,7 +148,6 @@ export default Vue.extend({
     Expandable,
     KeysTable,
     UnknownKeysTable,
-    FileUpload,
   },
   props: {
     token: {

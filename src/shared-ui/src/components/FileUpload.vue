@@ -33,14 +33,12 @@
       @change="onUploadFileChanged"
     />
     <slot :upload="upload">
-      <large-button @click="upload">{{ $t('action.upload') }}</large-button>
     </slot>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/LargeButton.vue';
 
 export type FileUploadResult = {
   buffer: ArrayBuffer;
@@ -60,9 +58,6 @@ const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
 
 export default Vue.extend({
   name: 'FileUpload',
-  components: {
-    LargeButton,
-  },
   props: {
     accepts: {
       type: String,
@@ -87,7 +82,7 @@ export default Vue.extend({
         if (!e?.target?.result || !files) {
           return;
         }
-        this.$emit('fileChanged', {
+        this.$emit('file-changed', {
           buffer: e.target.result as ArrayBuffer,
           file: file,
         } as FileUploadResult);

@@ -1,5 +1,6 @@
 // This file is the entry point for the library build
 import { VueConstructor } from 'vue';
+import FileUpload from './components/FileUpload.vue';
 import HelpIcon from './components/HelpIcon.vue';
 import LargeButton from './components/LargeButton.vue';
 import SmallButton from './components/SmallButton.vue';
@@ -10,6 +11,7 @@ import './i18n';
 
 const SharedComponents = {
   install(Vue: VueConstructor): void {
+    Vue.component('FileUpload', FileUpload);
     Vue.component('HelpIcon', HelpIcon);
     Vue.component('LargeButton', LargeButton);
     Vue.component('SmallButton', SmallButton);

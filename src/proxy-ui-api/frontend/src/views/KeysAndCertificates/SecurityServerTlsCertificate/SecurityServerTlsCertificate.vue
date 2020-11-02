@@ -111,13 +111,11 @@ import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 
 export default Vue.extend({
   components: {
     GenerateTlsAndCertificateDialog,
-    FileUpload,
   },
   data() {
     return {
