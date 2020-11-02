@@ -19,14 +19,14 @@ const Template = (args, { argTypes }) => ({
 });
 
 export const Primary = Template.bind({});
-Primary.args = { 
+Primary.args = {
   primary: true,
   label: 'Hello world!',
-  dialog: true
+  dialog: true,
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
   label: 'This is a very very long label for a button',
-  dialog: true
+  dialog: true,
 };

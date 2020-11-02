@@ -1,6 +1,5 @@
 import SubViewFooter from './SubViewFooter.vue';
 
-
 export default {
   title: 'X-Road/Sub view footer',
   component: SubViewFooter,
@@ -14,12 +13,10 @@ export default {
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { SubViewFooter },
-  template:
-    `<sub-view-footer @close="close" />`,
+  template: `<sub-view-footer @close="close" />`,
 });
 
 export const Primary = Template.bind({});
-Primary.args = { 
+Primary.args = {
   showClose: true,
 };
-

@@ -4,7 +4,6 @@ export default {
   title: 'X-Road/Confirm dialog',
   component: ConfirmDialog,
   argTypes: {
-    width: { control: 'boolean' },
     dialog: { control: 'boolean' },
     loading: { control: 'boolean' },
     disableSave: { control: 'boolean' },
@@ -13,7 +12,7 @@ export default {
     saveButtonText: { control: 'text' },
     cancelButtonText: { control: 'text' },
     showClose: { control: 'boolean' },
-    width: {control: 'number' },
+    width: { control: 'number' },
     accept: { action: 'accept' },
     cancel: { action: 'cancel' },
   },

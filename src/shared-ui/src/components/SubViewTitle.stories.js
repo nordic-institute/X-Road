@@ -1,6 +1,5 @@
 import SubViewTitle from './SubViewTitle.vue';
 
-
 export default {
   title: 'X-Road/Sub view title',
   component: SubViewTitle,
@@ -14,13 +13,11 @@ export default {
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { SubViewTitle },
-  template:
-    `<sub-view-title @close="close" v-bind="$props" />`,
+  template: `<sub-view-title @close="close" v-bind="$props" />`,
 });
 
 export const Primary = Template.bind({});
-Primary.args = { 
+Primary.args = {
   showClose: true,
   title: 'Title text',
 };
-

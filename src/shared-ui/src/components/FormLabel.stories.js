@@ -12,8 +12,7 @@ export default {
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { FormLabel },
-  template:
-    '<form-label v-bind="$props" />',
+  template: '<form-label v-bind="$props" />',
 });
 
 export const Primary = Template.bind({});
