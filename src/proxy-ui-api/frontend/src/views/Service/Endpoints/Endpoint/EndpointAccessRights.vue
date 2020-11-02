@@ -119,7 +119,6 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { Endpoint, ServiceClient } from '@/openapi-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
@@ -127,7 +126,6 @@ import { Permissions } from '@/global';
 export default Vue.extend({
   name: 'EndpointAccessRights',
   components: {
-    ConfirmDialog,
     AccessRightsDialog,
   },
   props: {

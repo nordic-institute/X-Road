@@ -116,14 +116,12 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Endpoint } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    ConfirmDialog,
     ValidationProvider,
     ValidationObserver,
   },

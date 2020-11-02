@@ -171,7 +171,6 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import {
   ServiceDescription,
@@ -182,7 +181,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    ConfirmDialog,
     WarningDialog,
     ValidationProvider,
     ValidationObserver,

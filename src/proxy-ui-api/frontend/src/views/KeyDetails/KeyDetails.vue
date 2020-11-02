@@ -138,7 +138,6 @@ import {
   PossibleActions as PossibleActionsList,
   Token,
 } from '@/openapi-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { mapGetters } from 'vuex';
@@ -146,7 +145,6 @@ import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 
 export default Vue.extend({
   components: {
-    ConfirmDialog,
     ValidationProvider,
     ValidationObserver,
     WarningDialog,

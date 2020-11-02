@@ -57,7 +57,6 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
@@ -66,7 +65,6 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     CertificateInfo,
-    ConfirmDialog,
     CertificateHash,
   },
   props: {

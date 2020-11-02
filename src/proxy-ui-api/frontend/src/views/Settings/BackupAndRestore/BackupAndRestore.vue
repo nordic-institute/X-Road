@@ -92,7 +92,6 @@ import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { FileUploadResult } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
@@ -112,7 +111,6 @@ const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
 export default Vue.extend({
   components: {
     BackupsDataTable,
-    ConfirmDialog,
   },
   data() {
     return {

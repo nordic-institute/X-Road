@@ -97,16 +97,10 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
 import { ApiKey } from '@/global-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { Roles, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   name: 'ApiKeyRow',
-  components: {
-    ConfirmDialog,
-    SimpleDialog,
-  },
   props: {
     apiKey: {
       type: Object as Prop<ApiKey>,

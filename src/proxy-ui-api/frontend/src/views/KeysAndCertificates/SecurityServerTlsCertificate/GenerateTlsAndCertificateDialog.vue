@@ -48,11 +48,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog },
   data() {
     return {
       loading: false,

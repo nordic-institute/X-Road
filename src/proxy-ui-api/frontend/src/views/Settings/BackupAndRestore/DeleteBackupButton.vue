@@ -48,13 +48,9 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { Backup } from '@/openapi-types';
 import * as api from '@/util/api';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   name: 'DeleteBackupButton',
-  components: {
-    ConfirmDialog,
-  },
   props: {
     canBackup: {
       type: Boolean,

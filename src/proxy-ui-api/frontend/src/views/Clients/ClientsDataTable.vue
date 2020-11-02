@@ -203,7 +203,7 @@ import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
@@ -211,7 +211,7 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     ClientStatus,
-    ConfirmDialog,
+
   },
 
   data: () => ({

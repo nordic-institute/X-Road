@@ -154,7 +154,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
@@ -167,7 +166,6 @@ export default Vue.extend({
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
-    ConfirmDialog,
   },
   props: {
     instanceId: {
