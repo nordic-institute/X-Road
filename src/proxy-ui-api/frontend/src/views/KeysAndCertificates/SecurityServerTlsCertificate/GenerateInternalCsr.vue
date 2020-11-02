@@ -95,13 +95,11 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
-    HelpIcon,
   },
   data() {
     return {

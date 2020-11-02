@@ -38,6 +38,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'help-icon',
   props: {
     text: {
       type: String,

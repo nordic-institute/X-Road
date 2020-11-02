@@ -125,13 +125,11 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import { Permissions } from '@/global';
 import { CsrFormat, KeyUsageType } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
     ValidationObserver,
     ValidationProvider,
   },

@@ -11,8 +11,7 @@ export default {
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { HelpIcon },
-  template:
-    '<help-icon v-bind="$props" />',
+  template: '<help-icon v-bind="$props" />',
 });
 
 export const Primary = Template.bind({});
