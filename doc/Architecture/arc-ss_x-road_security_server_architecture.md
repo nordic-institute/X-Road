@@ -6,7 +6,7 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.10
+Version: 1.10<br/>
 10.09.2020
 <!-- 15 pages -->
 Doc. ID: ARC-SS
@@ -201,6 +201,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 24. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters. Document ID: [UG-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md).
 
+25. <a id="Ref_OPENAPI" class="anchor"></a>\[OPENAPI\] OpenAPI Specification 3.0.0. 26th July 2017.
+
+26. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
 
 ## 2 Component View
 
@@ -286,6 +289,10 @@ These endpoints are used by the user interface frontend, and can be used by stan
 The management REST API is packaged in an executable Spring Boot\[[2](#Ref_2)\] *jar* archive.
 This Spring Boot application starts an embedded Tomcat\[[3](#Ref_3)\] servlet engine, which also serves the resources for the user interface frontend.
 Embedded Tomcat listens on a fixed port that is configured in internal configuration files.
+
+Management REST API endpoints are documented using an OpenAPI 3 definition: \[[REST_UI-API](#Ref_REST_UI)\]
+For more information on OpenAPI 3, see \[[OPENAPI](#Ref_OPENAPI)\].
+
 
 Certain API operations attempt to modify the X-Road global configuration and require management requests to be sent to the X-Road central server. These requests need to be approved by the central server administrator before they are reflected in the global configuration.
 
