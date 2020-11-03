@@ -290,7 +290,7 @@ The management REST API is packaged in an executable Spring Boot\[[2](#Ref_2)\] 
 This Spring Boot application starts an embedded Tomcat\[[3](#Ref_3)\] servlet engine, which also serves the resources for the user interface frontend.
 Embedded Tomcat listens on a fixed port that is configured in internal configuration files.
 
-Management REST API endpoints are documented using an OpenAPI 3 definition: \[[REST_UI-API](#Ref_REST_UI)\]
+Management REST API endpoints are documented using an OpenAPI 3 definition: \[[REST_UI-API](#Ref_REST_UI-API)\].
 For more information on OpenAPI 3, see \[[OPENAPI](#Ref_OPENAPI)\].
 
 
