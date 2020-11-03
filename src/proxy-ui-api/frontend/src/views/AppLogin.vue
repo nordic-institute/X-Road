@@ -74,17 +74,17 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn
+            <large-button
               id="submit-button"
               color="primary"
               class="rounded-button"
               @click="submit"
-              min-width="120"
+              :min_width="120"
               rounded
               :disabled="isDisabled"
               :loading="loading"
-              >{{ $t('login.logIn') }}
-            </v-btn>
+              >{{ $t('login.logIn') }}</large-button
+            >
           </v-card-actions>
         </v-card>
       </v-flex>
