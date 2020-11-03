@@ -1,45 +1,5 @@
 import SimpleDialog from './SimpleDialog.vue';
 
-/*
-    // Title of the dialog
-    title: {
-      type: String,
-      required: false,
-    },
-    // Dialog visible / hidden
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    // Disable save button
-    disableSave: {
-      type: Boolean,
-    },
-    cancelButtonText: {
-      type: String,
-      default: 'action.cancel',
-    },
-    // Text of the save button
-    saveButtonText: {
-      type: String,
-      default: 'action.add',
-    },
-    width: {
-      type: Number,
-      default: 550,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
-    // Set save button loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-
-*/
-
 export default {
   title: 'X-Road/Simple dialog',
   component: SimpleDialog,

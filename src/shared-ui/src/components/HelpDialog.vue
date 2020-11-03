@@ -51,6 +51,7 @@ import Vue from 'vue';
 import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
+  name: 'HelpDialog',
   components: {
     LargeButton,
   },
