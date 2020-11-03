@@ -42,7 +42,6 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
-import SubViewFooter from '@/components/ui/SubViewFooter.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 
@@ -50,7 +49,6 @@ export default Vue.extend({
   components: {
     CertificateInfo,
     CertificateHash,
-    SubViewFooter,
   },
   props: {},
   data() {
