@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div>{{ $t('fields.keys.friendlyName') }}</div>
         <ValidationProvider
@@ -130,9 +130,11 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { UsageTypes, Permissions, PossibleActions } from '@/global';
+import { Permissions } from '@/global';
 import {
   Key,
+  KeyUsageType,
+  PossibleAction,
   PossibleActions as PossibleActionsList,
   Token,
 } from '@/openapi-types';
@@ -142,6 +144,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { mapGetters } from 'vuex';
+import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 
 export default Vue.extend({
   components: {
@@ -164,7 +167,7 @@ export default Vue.extend({
       touched: false,
       saveBusy: false,
       key: {} as Key,
-      possibleActions: [] as string[],
+      possibleActions: [] as PossibleActions,
       deleting: false as boolean,
       warningInfo: [] as string[],
       warningDialog: false as boolean,
@@ -174,7 +177,7 @@ export default Vue.extend({
   computed: {
     ...mapGetters(['tokens']),
     canEdit(): boolean {
-      if (!this.possibleActions.includes(PossibleActions.EDIT_FRIENDLY_NAME)) {
+      if (!this.possibleActions.includes(PossibleAction.EDIT_FRIENDLY_NAME)) {
         return false;
       }
 
@@ -183,15 +186,15 @@ export default Vue.extend({
       );
     },
     canDelete(): boolean {
-      if (!this.possibleActions.includes(PossibleActions.DELETE)) {
+      if (!this.possibleActions.includes(PossibleAction.DELETE)) {
         return false;
       }
 
-      if (this.key.usage === UsageTypes.SIGNING) {
+      if (this.key.usage === KeyUsageType.SIGNING) {
         return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
       }
 
-      if (this.key.usage === UsageTypes.AUTHENTICATION) {
+      if (this.key.usage === KeyUsageType.AUTHENTICATION) {
         return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_KEY);
       }
 
@@ -234,6 +237,8 @@ export default Vue.extend({
         .then((res) => {
           this.key = res.data;
           this.fetchPossibleActions(id);
+          // If the key has no name, use key id instead
+          this.setKeyName();
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -288,6 +293,11 @@ export default Vue.extend({
           }
         })
         .finally(() => (this.deleting = false));
+    },
+    setKeyName(): void {
+      if (this.key.name === '') {
+        this.key.name = this.key.id;
+      }
     },
   },
   created() {

@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
           labelText="wizard.memberName"
@@ -86,6 +86,7 @@
             type="text"
             :error-messages="errors"
             v-model="memberCode"
+            autofocus
             data-test="member-code-input"
           ></v-text-field>
         </ValidationProvider>
@@ -144,7 +145,12 @@ export default Vue.extend({
     SelectClientDialog,
   },
   computed: {
-    ...mapGetters(['reservedMember', 'memberClassesCurrentInstance', 'selectedMemberName']),
+    ...mapGetters([
+      'reservedMember',
+      'memberClassesCurrentInstance',
+      'selectedMemberName',
+      'currentSecurityServer',
+    ]),
 
     memberClass: {
       get(): string {
@@ -253,7 +259,10 @@ export default Vue.extend({
   created() {
     that = this;
     this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch('fetchSelectableMembers');
+    this.$store.dispatch(
+      'fetchSelectableMembers',
+      that.currentSecurityServer.instance_id,
+    );
   },
 
   watch: {

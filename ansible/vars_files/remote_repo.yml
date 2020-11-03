@@ -4,9 +4,9 @@ package_source: "remote"
 xroad_repo_baseurl: "https://artifactory.niis.org"
 xroad_repo_key:  "https://artifactory.niis.org/api/gpg/key/public"
 
-ubuntu_18_apt_key:  "{{xroad_repo_key}}"
-ubuntu_18_repo_url: "{{xroad_repo_baseurl}}/xroad-release-deb"
-ubuntu_18_apt_repo: "deb {{ubuntu_18_repo_url}} bionic-current main"
+ubuntu_apt_key:  "{{xroad_repo_key}}"
+ubuntu_repo_url: "{{xroad_repo_baseurl}}/xroad-release-deb"
+ubuntu_apt_repo: "deb {{ubuntu_repo_url}} {{ansible_distribution_release}}-current main"
 
 rhel_repo_baseurl: "{{xroad_repo_baseurl}}/xroad-release-rpm/rhel/{{ansible_distribution_major_version}}/current"
 rhel_repo_gpgcheck: "yes"

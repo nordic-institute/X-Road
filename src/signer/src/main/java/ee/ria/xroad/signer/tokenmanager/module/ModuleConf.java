@@ -31,6 +31,7 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.apache.commons.lang3.StringUtils;
@@ -180,6 +181,7 @@ public final class ModuleConf {
         MODULES.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
 
         INIConfiguration conf = new INIConfiguration();
+        conf.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
         try (Reader reader = Files.newBufferedReader(Paths.get(fileName), StandardCharsets.UTF_8)) {
             conf.read(reader);
         }

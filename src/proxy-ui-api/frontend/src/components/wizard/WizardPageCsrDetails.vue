@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="row-wrap">
         <div class="label">
           {{ $t('csr.usage') }}
@@ -127,7 +127,8 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { UsageTypes, CsrFormatTypes, Permissions } from '@/global';
+import { Permissions } from '@/global';
+import { CsrFormat, KeyUsageType } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -148,9 +149,9 @@ export default Vue.extend({
   },
   data() {
     return {
-      usageTypes: UsageTypes,
-      usageList: Object.values(UsageTypes),
-      csrFormatList: Object.values(CsrFormatTypes),
+      usageTypes: KeyUsageType,
+      usageList: Object.values(KeyUsageType),
+      csrFormatList: Object.values(CsrFormat),
       permissionForUsage: true,
     };
   },
@@ -216,13 +217,13 @@ export default Vue.extend({
 
     if (signPermission && !authPermission) {
       // lock usage type to sign
-      this.usage = UsageTypes.SIGNING;
+      this.usage = KeyUsageType.SIGNING;
       this.permissionForUsage = false;
     }
 
     if (!signPermission && authPermission) {
       // lock usage type to auth
-      this.usage = UsageTypes.AUTHENTICATION;
+      this.usage = KeyUsageType.AUTHENTICATION;
       this.permissionForUsage = false;
     }
   },

@@ -51,7 +51,7 @@
 
     <template v-slot:link>
       <div
-        class="clickable-link"
+        class="clickable-link identifier-wrap"
         @click="tokenClick(token)"
         data-test="token-name"
       >
@@ -73,7 +73,7 @@
           <file-upload
             v-if="canImportCertificate"
             accepts=".pem, .cer, .der"
-            @fileChanged="importCert"
+            @file-changed="importCert"
             v-slot="{ upload }"
           >
             <large-button
@@ -94,11 +94,11 @@
           title="keys.authKeyCert"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @certificateClick="certificateClick"
-          @importCertByHash="importCertByHash"
-          @refreshList="fetchData"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @certificate-click="certificateClick"
+          @import-cert-by-hash="importCertByHash"
+          @refresh-list="fetchData"
         />
 
         <!-- SIGN keys table -->
@@ -108,11 +108,11 @@
           title="keys.signKeyCert"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @certificateClick="certificateClick"
-          @importCertByHash="importCertByHash"
-          @refreshList="fetchData"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @certificate-click="certificateClick"
+          @import-cert-by-hash="importCertByHash"
+          @refresh-list="fetchData"
         />
 
         <!-- Keys with unknown type -->
@@ -122,9 +122,9 @@
           title="keys.unknown"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @importCertByHash="importCertByHash"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @import-cert-by-hash="importCertByHash"
         />
       </div>
     </template>
@@ -134,16 +134,16 @@
 <script lang="ts">
 // View for a token
 import Vue from 'vue';
-import { Permissions, RouteName, UsageTypes } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { FileUploadResult } from '@/ui-types';
-import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -178,16 +178,16 @@ export default Vue.extend({
   methods: {
     confirmLogout(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('tokenLogout');
+      this.$emit('token-logout');
     },
     confirmLogin(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('tokenLogin');
+      this.$emit('token-login');
     },
 
     addKey(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('addKey');
+      this.$emit('add-key');
     },
 
     tokenClick(token: Token): void {
@@ -216,40 +216,23 @@ export default Vue.extend({
 
     getAuthKeys(keys: Key[]): Key[] {
       const filtered = keys.filter((key: Key) => {
-        return key.usage === UsageTypes.AUTHENTICATION;
+        return key.usage === KeyUsageType.AUTHENTICATION;
       });
 
       return filtered;
     },
 
     getSignKeys(keys: Key[]): Key[] {
-      const filtered = keys.filter((key: Key) => {
-        if (
-          this.token.type === 'HARDWARE' &&
-          key.usage !== UsageTypes.SIGNING &&
-          key.usage !== UsageTypes.AUTHENTICATION
-        ) {
-          // Hardware keys are SIGNING type by definition
-          // If a hardware token's key doesn't have a usage type make it a SIGNING key
-          return true;
-        }
-        return key.usage === UsageTypes.SIGNING;
-      });
-
-      return filtered;
+      return keys.filter((key: Key) => key.usage === KeyUsageType.SIGNING);
     },
 
     getOtherKeys(keys: Key[]): Key[] {
       // Keys that don't have assigned usage type
-      const filtered = keys.filter((key: Key) => {
-        return (
-          this.token.type !== 'HARDWARE' &&
-          key.usage !== UsageTypes.SIGNING &&
-          key.usage !== UsageTypes.AUTHENTICATION
-        );
-      });
-
-      return filtered;
+      return keys.filter(
+        (key: Key) =>
+          key.usage !== KeyUsageType.SIGNING &&
+          key.usage !== KeyUsageType.AUTHENTICATION,
+      );
     },
 
     descClose(tokenId: string) {
@@ -295,12 +278,15 @@ export default Vue.extend({
     generateCsr(key: Key) {
       this.$router.push({
         name: RouteName.GenerateCertificateSignRequest,
-        params: { keyId: key.id },
+        params: {
+          keyId: key.id,
+          tokenType: this.token.type,
+        },
       });
     },
     fetchData(): void {
       // Fetch tokens from backend
-      this.$emit('refreshList');
+      this.$emit('refresh-list');
     },
   },
 });

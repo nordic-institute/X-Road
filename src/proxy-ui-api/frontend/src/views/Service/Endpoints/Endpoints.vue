@@ -58,7 +58,7 @@
             }}</span>
             <span v-else>{{ endpoint.method }}</span>
           </td>
-          <td>{{ endpoint.path }}</td>
+          <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
             <v-btn
               v-if="!endpoint.generated && canEdit"
@@ -149,7 +149,7 @@ export default Vue.extend({
         })
         .finally(() => {
           this.isAddEndpointDialogVisible = false;
-          this.$emit('updateService', this.service.id);
+          this.$emit('update-service', this.service.id);
         });
     },
     isBaseEndpoint(endpoint: Endpoint): boolean {

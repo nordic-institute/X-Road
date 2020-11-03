@@ -1,3 +1,9 @@
+pluginManagement {
+  plugins {
+    id 'com.github.johnrengelman.shadow' version "$shadowJarVersion"
+  }
+}
+
 // Common projects
 include "common-util"
 include "common-verifier"

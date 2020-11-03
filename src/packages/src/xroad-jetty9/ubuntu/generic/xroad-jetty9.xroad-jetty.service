@@ -1,6 +1,7 @@
 [Unit]
 Description=X-Road Jetty server
-After=network.target
+After=network.target xroad-base.service
+Requires=xroad-base.service
 
 [Service]
 User=xroad

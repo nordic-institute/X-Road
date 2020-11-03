@@ -26,14 +26,42 @@
   tags: deb
   when: ubuntu_releasever == "bionic"
 
-- name: build docker image for building RPM packages
+- name: build docker image for building focal deb packages
+  docker_image:
+    name: xroad-deb-focal
+    path: ../src/packages/docker/deb-focal
+    force: yes
+  tags: deb
+  when: ubuntu_releasever == "focal"
+
+- name: build focal deb packages in docker
+  docker_container:
+    name: xroad-deb-focal
+    image: xroad-deb-focal
+    state: started
+    restart: true
+    detach: false
+    cleanup: yes
+    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+    env:
+        HOME: "/workspace/src/packages"
+    volumes:
+      - ..:/workspace
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    command: "/workspace/src/packages/build-deb.sh focal"
+  tags: deb
+  when: ubuntu_releasever == "focal"
+
+- name: build docker image for building RHEL 7 packages
   docker_image:
     name: xroad-rpm
     path: ../src/packages/docker/rpm
     force: yes
   tags: rpm
+  when: centos_releasever == 7
 
-- name: build RPM packages in docker
+- name: build RHEL 7 packages in docker
   docker_container:
     name: xroad-rpm
     image: xroad-rpm
@@ -50,3 +78,31 @@
       - /etc/group:/etc/group:ro
     command: "/workspace/src/packages/build-rpm.sh"
   tags: rpm
+  when: centos_releasever == 7
+
+- name: build docker image for building RHEL 8 packages
+  docker_image:
+    name: xroad-rpm-el8
+    path: ../src/packages/docker/rpm-el8
+    force: yes
+  tags: rpm
+  when: centos_releasever == 8
+
+- name: build RHEL 8 packages in docker
+  docker_container:
+    name: xroad-rpm-el8
+    image: xroad-rpm-el8
+    state: started
+    restart: true
+    detach: false
+    cleanup: yes
+    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+    env:
+        HOME: "/workspace/src/packages"
+    volumes:
+      - ..:/workspace
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    command: "/workspace/src/packages/build-rpm.sh"
+  tags: rpm
+  when: centos_releasever == 8

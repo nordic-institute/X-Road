@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="row-wrap">
         <div class="label">
           {{ $t('csr.usage') }}
@@ -108,7 +108,7 @@ import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { CsrFormatTypes } from '@/global';
+import { CsrFormat } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -129,7 +129,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      csrFormatList: Object.values(CsrFormatTypes) as string[],
+      csrFormatList: Object.values(CsrFormat) as string[],
     };
   },
   computed: {

@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.12  
+Version: 1.13  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -29,6 +29,8 @@ Doc. ID: IG-SS-RHEL
  09.08.2020 | 1.10    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram) | Petteri Kivimäki
  17.08.2020 | 1.11    | Update for RHEL 8. Document id and name changed.                | Jarkko Hyöty
  16.09.2020 | 1.12    | Describe deployment options and database customization options. | Ilkka Seppälä
+ 29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
+
 
 ## License
 
@@ -75,6 +77,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [C.4 High Availability Setup](#c4-high-availability-setup)
   - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
   - [C.6 Summary](#c6-summary)
+- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -240,7 +243,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 ### 2.6 Remote Database Installation
 
-**This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. Create the file by performing the following steps:
+**This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. If storing the database administrator password on the security server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
 
   ```
   sudo touch /etc/xroad.properties
@@ -512,3 +515,90 @@ The following table lists a summary of the security server deployment options an
 | Remote database          | x    |       |
 | High-availability Setup  |      | x     |
 | Load Balancing Setup     |      | x     |
+
+
+## Annex D Create Database Structure Manually
+
+First create the configuration file `/etc/xroad.properties`.
+
+  ```
+  sudo touch /etc/xroad.properties
+  sudo chown root:root /etc/xroad.properties
+  sudo chmod 600 /etc/xroad.properties
+  ```
+
+Edit `/etc/xroad.properties` contents.
+
+  ```
+  serverconf.database.admin_user = <serverconf admin username>
+  serverconf.database.admin_password = <serverconf admin password>
+  op-monitor.database.admin_user = <op-monitor admin username>
+  op-monitor.database.admin_password = <op-monitor admin password>
+  messagelog.database.admin_user = <messagelog admin username>
+  messagelog.database.admin_password = <messagelog admin password>
+  ```
+
+Next install PostgreSQL client.
+
+  ```
+  sudo apt install postgresql-client-10
+  ```
+
+Login to the database server as the superuser (`postgres` by default).
+
+  ```
+  psql -h <database host> -U <superuser> -d postgres
+  ```
+
+Run the following commands to create the necessary database structures and roles for `serverconf` and `messagelog` databases.
+
+  ```
+  CREATE DATABASE <serverconf database> ENCODING 'UTF8';
+  REVOKE ALL ON DATABASE <serverconf database> FROM PUBLIC;
+  CREATE ROLE <serverconf admin> LOGIN PASSWORD '<serverconf admin password>';
+  GRANT <serverconf admin> to <superuser>;
+  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <serverconf database> TO <serverconf admin>;
+  \c <serverconf database>
+  CREATE EXTENSION hstore;
+  CREATE SCHEMA <serverconf database schema> AUTHORIZATION <serverconf admin>;
+  REVOKE ALL ON SCHEMA public FROM PUBLIC;
+  GRANT USAGE ON SCHEMA public to <serverconf admin>;
+  CREATE ROLE <serverconf user> LOGIN PASSWORD '<serverconf user password>';
+  GRANT <serverconf user> to <superuser>;
+  GRANT TEMPORARY,CONNECT ON DATABASE <serverconf database> TO <serverconf user>;
+  GRANT USAGE ON SCHEMA public to <serverconf user>;
+  ```
+
+  ```
+  CREATE DATABASE <messagelog database> ENCODING 'UTF8';
+  REVOKE ALL ON DATABASE <messagelog database> FROM PUBLIC;
+  CREATE ROLE <messagelog admin> LOGIN PASSWORD '<messagelog admin password>';
+  GRANT <messagelog admin> to <superuser>;
+  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <messagelog database> TO <messagelog admin>;
+  \c <messagelog database>
+  CREATE SCHEMA <messagelog database schema> AUTHORIZATION <messagelog admin>;
+  REVOKE ALL ON SCHEMA public FROM PUBLIC;
+  GRANT USAGE ON SCHEMA public to <messagelog admin>;
+  CREATE ROLE <messagelog user> LOGIN PASSWORD '<messagelog user password>';
+  GRANT <messagelog user> to <superuser>;
+  GRANT TEMPORARY,CONNECT ON DATABASE <messagelog database> TO <messagelog user>;
+  GRANT USAGE ON SCHEMA public to <messagelog user>;
+  ```
+
+If operational monitoring is going to be installed, run additionally the following commands.
+
+  ```
+  CREATE DATABASE <op-monitor database> ENCODING 'UTF8';
+  REVOKE ALL ON DATABASE <op-monitor database> FROM PUBLIC;
+  CREATE ROLE <op-monitor admin> LOGIN PASSWORD '<op-monitor admin password>';
+  GRANT <op-monitor admin> to <superuser>;
+  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <op-monitor database> TO <op-monitor admin>;
+  \c <op-monitor database>
+  CREATE SCHEMA <op-monitor database schema> AUTHORIZATION <op-monitor admin>;
+  REVOKE ALL ON SCHEMA public FROM PUBLIC;
+  GRANT USAGE ON SCHEMA public to <op-monitor admin>;
+  CREATE ROLE <op-monitor user> LOGIN PASSWORD '<op-monitor user password>';
+  GRANT <op-monitor user> to <superuser>;
+  GRANT TEMPORARY,CONNECT ON DATABASE <op-monitor database> TO <op-monitor user>;
+  GRANT USAGE ON SCHEMA public to <op-monitor user>;
+  ```

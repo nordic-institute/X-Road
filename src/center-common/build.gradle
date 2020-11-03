@@ -1,5 +1,5 @@
 dependencies {
-    compile 'commons-configuration:commons-configuration:1.10'
+    implementation 'commons-configuration:commons-configuration:1.10'
 }
 
 task checkRubySource(type: Exec) {

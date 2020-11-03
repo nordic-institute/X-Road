@@ -1,5 +1,5 @@
 plugins {
-  id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow'
 }
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
@@ -11,55 +11,42 @@ sourceSets {
     main {
         java.srcDirs = ['src/main/java', 'build/generated-sources']
     }
-
-    //testsuite {
-    //    java {
-    //        compileClasspath += main.output
-    //        runtimeClasspath += main.output
-    //    }
-    //}
 }
 
 dependencies {
-    compile project(':common-verifier')
-    compile project(':signer-protocol')
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':signer-protocol')
 
     // Necessary since there are jars with no adequate Maven dependencies
-    compile fileTree(dir: '../libs', include: '*.jar')
+    implementation fileTree(dir: '../libs', include: '*.jar')
 
-    testCompile project(':common-test')
-    testCompile project(':common-verifier').sourceSets.test.output
-    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation project(':common-test')
+    testImplementation project(path: ':common-verifier', configuration: 'testArtifacts')
 
-    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
-    //testsuiteCompile project(':common-test')
 }
-
-//configurations {
-//    testsuiteCompile.extendsFrom testCompile
-//    testsuiteRuntime.extendsFrom testRuntime
-//}
-
 
 jar {
   manifest {
     attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
   }
+  enabled = false
 }
 
 shadowJar {
-    classifier = ''
+    archiveClassifier = ''
     exclude('**/module-info.class')
     append('reference.conf')
     from rootProject.file("LICENSE.txt")
 }
 
-jar.enabled = false
-build.dependsOn shadowJar
-buildall.dependsOn shadowJar
+build.finalizedBy shadowJar
 
 task createDirs () {
     doLast {
@@ -67,8 +54,8 @@ task createDirs () {
     }
 }
 
-task xjc () {
-    inputs.file file('src/main/resources/*.xsd')
+task xjc(dependsOn:[':common-util:xjc',':common-verifier:xjc']) {
+    inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
     doLast {
@@ -106,13 +93,6 @@ task runSignerMain(type: JavaExec) {
        "OS). Otherwise use\nnext property to detemine your library path:\n" +
        "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
 }
-
-//task runSignerTestsuite(type: Test){
-//    include '**/SignerTestSuite.class' // for doing only testsuite
-//    description = "Run Signer test suite."
-//    testClassesDir = project.sourceSets.testsuite.output.classesDir
-//    classpath = project.sourceSets.testsuite.runtimeClasspath
-//}
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc

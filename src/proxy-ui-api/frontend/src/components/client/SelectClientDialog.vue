@@ -32,7 +32,7 @@
         <i @click="cancel()" data-test="x-close-button"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px;" class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0">
         <v-text-field
           v-model="search"
           :label="$t('wizard.client.member')"
@@ -40,6 +40,7 @@
           hide-details
           class="search-input"
           data-test="client-search-input"
+          autofocus
         >
           <v-icon slot="append">mdi-magnify</v-icon>
         </v-text-field>
@@ -133,10 +134,7 @@ export default Vue.extend({
         return this.selectableClients;
       }
 
-      const tempSearch = this.search
-        .toString()
-        .toLowerCase()
-        .trim();
+      const tempSearch = this.search.toString().toLowerCase().trim();
       if (tempSearch === '') {
         return this.selectableClients;
       }

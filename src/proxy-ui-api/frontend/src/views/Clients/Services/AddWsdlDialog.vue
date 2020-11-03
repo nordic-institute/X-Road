@@ -44,6 +44,7 @@
           <v-text-field
             v-model="url"
             single-line
+            autofocus
             class="dlg-row-input"
             name="serviceUrl"
             :error-messages="errors"

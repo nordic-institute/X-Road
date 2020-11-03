@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.8
+Version: 1.9  
 Doc. ID: IG-XLB
 
 
@@ -15,6 +15,7 @@ Doc. ID: IG-XLB
 | 20.12.2018  | 1.6         | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
 | 11.09.2019  | 1.7         | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
 | 08.10.2020  | 1.8         | Added notes about API keys and caching                                                                                   | Janne Mattila                |
+| 19.10.2020  | 1.9         | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
 
 ## Table of Contents
 
@@ -286,9 +287,9 @@ In order to properly set up the data replication, the slave nodes must be able t
    (`/home/xroad-slave/.ssh/authorized_keys`)
 6. Set up state synchronization using rsync+ssh. See section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
-   * Make the inital synchronization between the master and the slave.
+   * Make the initial synchronization between the master and the slave.
    ```bash
-   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@<master>:/etc/xroad/ /etc/xroad/
+   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" xroad-slave@<master>:/etc/xroad/ /etc/xroad/
    ```
    Where `<master>` is the master server's DNS or IP address.
 7. Configure the node type as `slave` in `/etc/xroad/conf.d/node.ini`.
@@ -728,7 +729,7 @@ Environment=MASTER=<master_host>
 
 ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
 
-ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
+ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
 WantedBy=xroad-proxy.service
@@ -919,7 +920,7 @@ The steps are in more detail below, but in short, the procedure is:
    ```
 
 2. <a name="master-upgrade-step-2">Check</a> that the master is no longer processing requests and stop the X-Road services
-   (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-proxy-ui-api`, `xroad-monitor`) on the master node. You can read
+   (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-monitor`, `xroad-proxy-ui-api`) on the master node. You can read
    more about the services in the Security Server User Guide
    \[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 

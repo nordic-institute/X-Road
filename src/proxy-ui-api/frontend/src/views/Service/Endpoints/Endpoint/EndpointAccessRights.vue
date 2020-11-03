@@ -64,10 +64,10 @@
       <tbody>
         <template>
           <tr v-for="sc in serviceClients" :key="sc.id">
-            <td>{{ sc.name }}</td>
-            <td>{{ sc.id }}</td>
+            <td class="identifier-wrap">{{ sc.name }}</td>
+            <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
-            <td class="wrap-right-tight">
+            <td class="button-wrap">
               <v-btn
                 v-if="canEdit"
                 small
@@ -110,7 +110,7 @@
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
-      @serviceClientsAdded="doAddServiceClients"
+      @service-clients-added="doAddServiceClients"
     />
   </div>
 </template>
@@ -146,7 +146,7 @@ export default Vue.extend({
   },
   data: () => {
     return {
-      endpoint: {} as Endpoint | {},
+      endpoint: {} as Endpoint | Record<string, unknown>,
       serviceClients: [] as ServiceClient[],
       confirmDeleteAll: false as boolean,
       confirmDeleteOne: false as boolean,
@@ -271,12 +271,6 @@ export default Vue.extend({
   * {
     margin-left: 20px;
   }
-}
-
-.wrap-right-tight {
-  display: flex;
-  width: 100%;
-  justify-content: flex-end;
 }
 
 .row-title {

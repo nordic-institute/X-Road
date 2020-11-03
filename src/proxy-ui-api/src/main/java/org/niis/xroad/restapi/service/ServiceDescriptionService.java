@@ -92,6 +92,7 @@ public class ServiceDescriptionService {
     public static final String WARNING_ADDING_SERVICES = "adding_services";
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
     public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
+    public static final String WARNING_OPENAPI_VALIDATION_WARNINGS = "openapi_validation_warnings";
 
     public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
 
@@ -368,7 +369,7 @@ public class ServiceDescriptionService {
         OpenApiParser.Result result = openApiParser.parse(url);
 
         if (!ignoreWarnings && result.hasWarnings()) {
-            WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
+            WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,
                     result.getWarnings());
             throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
         }
@@ -393,7 +394,7 @@ public class ServiceDescriptionService {
 
         // Create endpoints
         EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
-        List endpoints = new ArrayList<EndpointType>();
+        List<EndpointType> endpoints = new ArrayList<>();
         endpoints.add(endpointType);
         endpoints.addAll(result.getOperations().stream()
                 .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
@@ -809,7 +810,7 @@ public class ServiceDescriptionService {
             OpenApiParser.ParsingException, UnhandledWarningsException {
         OpenApiParser.Result result = openApiParser.parse(url);
         if (!ignoreWarnings && result.hasWarnings()) {
-            WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
+            WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,
                     result.getWarnings());
             throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
         }
