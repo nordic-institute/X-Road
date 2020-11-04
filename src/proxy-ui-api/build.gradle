@@ -173,8 +173,8 @@ processResources.dependsOn 'buildFront'
 buildFront.dependsOn 'checkFrontAudit'
 checkFrontAudit.dependsOn 'checkFrontLicense'
 checkFrontLicense.dependsOn 'buildUILibrary'
-buildLibrary.dependsOn 'checkUILibrary'
-checkLibrary.dependsOn 'installUILibrary'
+buildUILibrary.dependsOn 'checkUILibrary'
+checkUILibrary.dependsOn 'installUILibrary'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
