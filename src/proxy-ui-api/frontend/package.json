@@ -15,7 +15,8 @@
     "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
-    "install-build-ui-lib": "cd ../../shared-ui && npm install && npm run build-lib",
+    "install-ui-lib": "cd ../../shared-ui && npm install",
+    "build-ui-lib": "cd ../../shared-ui && npm run build-lib",
     "check-ui-lib": "cd ../../shared-ui && npm run check-audit",
     "serve-only": "vue-cli-service serve",
     "build-all": "npm run install-build-ui-lib && npm run build"
