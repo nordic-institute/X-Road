@@ -187,7 +187,9 @@ provider's security server are not preserved in the security server. MIME header
 
 For REST messages, the content-type of the client request message is sent from the service client's security server
 to the service provider's security server and vice versa using the `application/x-road-rest-request` and
-`application/x-road-rest-response` parts, which contain HTTP headers. Handling of other HTTP headers varies.
+`application/x-road-rest-response` parts, which contain "REST header part" of the REST request or response.
+REST header part consists of HTTP request line (for requests), HTTP status line (for responses), and HTTP headers (for both).
+Besides `Content-Type` header, also other headers may be preserved by the security server, but the processing varies.
 Some new headers are added (replaced if one already exists) by the security server, for example `x-road-request-id`.
 Some headers will be removed, for example `User-Agent`.
 All other headers are passed through as-is, for example `X-Powered-By`.
@@ -205,9 +207,9 @@ following MIME message parts (see [Figure 4](#Messtransport_message)). The parts
 
 3. (optional) a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. This part is only present if the original SOAP message package contains attachments;
 
-4. (optional, either this or SOAP message must exist) the REST message (content-type `application/x-road-rest-request`)
+4. (optional, either this or SOAP message must exist) the REST message header (content-type `application/x-road-rest-request`)
 
-5. (optional) body of a REST request (content-type `application/x-road-rest-body`) This part is only present if the REST request contains a body.
+5. (optional) a REST request body (content-type `application/x-road-rest-body`) This part is only present if the REST request contains a body.
 
 6. (optional) if the signature is a batch signature, then:
 
@@ -223,9 +225,9 @@ The normal X-Road response message must consist of the following MIME message pa
 
 2. (optional) a nested MIME multipart (content-type `multipart/mixed) containing all attachments as parts. This part is only present if the original SOAP message package contains attachments;
 
-3. (optional, either this or SOAP message must exist) the REST message (content-type `application/x-road-rest-response`)
+3. (optional, either this or SOAP message must exist) the REST message header (content-type `application/x-road-rest-response`)
 
-4. (optional) body of a REST response (content-type `application/x-road-rest-body`) This part is only present if the REST response contains a body.
+4. (optional) a REST response body (content-type `application/x-road-rest-body`) This part is only present if the REST response contains a body.
 
 5. (optional) if the signature is a batch signature, then:
 
