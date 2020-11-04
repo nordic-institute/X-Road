@@ -273,7 +273,7 @@ The following describes the actions that the service client's security server mu
 
     e) If the original request was a SOAP message package, write a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. Copy the MIME headers of each attachment part and calculate the hash of the data. 
 
-    f) For REST messages, write the part containing the body-less portion of the REST request (content-type `application/x-road-rest-request`). This part contains HTTP request line and HTTP headers. Calculate the hash of this part.
+    f) For REST messages, write the REST request header part (content-type `application/x-road-rest-request`). This part contains HTTP request line and HTTP headers. Calculate the hash of this part.
 
     * Some new headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
 
@@ -283,7 +283,7 @@ The following describes the actions that the service client's security server mu
 
     * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
 
-    g) For REST messages with a request body, write the part containing the body (content-type `application/x-road-rest-body`). Calculate the hash of the body.
+    g) For REST messages with a request body, write the part containing the REST request body (content-type `application/x-road-rest-body`). Calculate the hash of the body.
 
     h) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
 
@@ -299,7 +299,7 @@ The following describes the actions that the service client's security server mu
 
     c) REST response is identified by content-type `application/x-road-rest-response`
     
-    1. The part with content-type `application/x-road-rest-response` contains the body-less portion of REST response that will be sent to target server. This part contains the HTTP status line and HTTP headers.
+    1. REST response header part has content-type `application/x-road-rest-response`. This part contains the HTTP status line and HTTP headers.
 
     2. If the content-type of the next part is `application/x-road-rest-body` then this part is the body of the REST response. For responses without a body, this part does not exist.
     
@@ -344,7 +344,7 @@ The following describes the actions that the service provider's security server 
 
     d) REST request is identified by content-type `application/x-road-rest-request`
 
-    1. The part with content-type `application/x-road-rest-request` contains the body-less portion of REST request that will be sent to target server. This part contains HTTP request line and HTTP headers.
+    1. REST request header part has content-type `application/x-road-rest-response`. This part contains the HTTP request line and HTTP headers.
 
     2. If the content-type of the next part is `application/x-road-rest-body` then this part is the body of the REST request. For requests without a body, this part does not exist.
 
@@ -372,7 +372,7 @@ The following describes the actions that the service provider's security server 
 
     c) If the response from the service provider was a SOAP message package, write a nested MIME multipart (`multipart/mixed`) containing all attachments as parts. For each part, calculate the hash of the data to be used when creating the signature.
 
-    d) For REST messages, write the part containing the body-less portion of service provider's REST response (content-type `application/x-road-rest-response`). This part contains HTTP status line and HTTP headers. Calculate the hash of the response message to be used when creating the signature.
+    d) For REST messages, write the REST response header part (content-type `application/x-road-rest-response`). This part contains HTTP status line and HTTP headers. Calculate the hash of the response message to be used when creating the signature.
 
     * Some new headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
 
@@ -515,11 +515,11 @@ content-type: application/ocsp-response
 --xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
 content-type: application/x-road-rest-request
 
-...body-less portion of REST request...
+...REST request header...
 --xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
 content-type: application/x-road-rest-body
 
-...body content of REST request...
+...REST request body...
 --xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
 content-type: application/hash-chain-result
 
@@ -543,11 +543,11 @@ Content-Type: multipart/mixed; charset=UTF-8; boundary=xtoptrgBinKkBvoijBRQYWabk
 --xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
 content-type: application/x-road-rest-response
 
-...body-less portion of REST response...
+...REST response header...
 --xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
 content-type: application/x-road-rest-body
 
-...body content of REST request...
+...REST response body...
 --xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
 content-type: application/hash-chain-result
 
