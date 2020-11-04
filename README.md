@@ -192,7 +192,7 @@ Operational monitoring for the Security Server Sidecar provider can be  used to 
 
 If we need to add environmental and operational monitoring in the consumer Sidecar, we can use for this the provider Sidecar that could be use as a consumer too.
 
-## 1.10 Estimated time for new Security Server Sidecar Installation
+### 1.10 Estimated time for new Security Server Sidecar Installation
 
 The installation process from scratch has been tested in the following environment:
 - Operating System: Ubuntu 18.04.4 LTS.
