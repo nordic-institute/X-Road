@@ -516,7 +516,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientService.ClientAlreadyExistsException
                 | ClientService.AdditionalMemberAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (UnhandledWarningsException e) {
+        } catch (UnhandledWarningsException | ClientService.InvalidMemberClassException e) {
             throw new BadRequestException(e);
         }
         Client result = clientConverter.convert(added);
@@ -576,7 +576,8 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.registerClient(clientId);
-        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException e) {
+        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException
+                | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);

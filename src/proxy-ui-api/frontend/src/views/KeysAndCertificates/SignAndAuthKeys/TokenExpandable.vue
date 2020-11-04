@@ -217,33 +217,16 @@ export default Vue.extend({
     },
 
     getSignKeys(keys: Key[]): Key[] {
-      const filtered = keys.filter((key: Key) => {
-        if (
-          this.token.type === 'HARDWARE' &&
-          key.usage !== KeyUsageType.SIGNING &&
-          key.usage !== KeyUsageType.AUTHENTICATION
-        ) {
-          // Hardware keys are SIGNING type by definition
-          // If a hardware token's key doesn't have a usage type make it a SIGNING key
-          return true;
-        }
-        return key.usage === KeyUsageType.SIGNING;
-      });
-
-      return filtered;
+      return keys.filter((key: Key) => key.usage === KeyUsageType.SIGNING);
     },
 
     getOtherKeys(keys: Key[]): Key[] {
       // Keys that don't have assigned usage type
-      const filtered = keys.filter((key: Key) => {
-        return (
-          this.token.type !== 'HARDWARE' &&
+      return keys.filter(
+        (key: Key) =>
           key.usage !== KeyUsageType.SIGNING &&
-          key.usage !== KeyUsageType.AUTHENTICATION
-        );
-      });
-
-      return filtered;
+          key.usage !== KeyUsageType.AUTHENTICATION,
+      );
     },
 
     descClose(tokenId: string) {
@@ -289,7 +272,10 @@ export default Vue.extend({
     generateCsr(key: Key) {
       this.$router.push({
         name: RouteName.GenerateCertificateSignRequest,
-        params: { keyId: key.id },
+        params: {
+          keyId: key.id,
+          tokenType: this.token.type,
+        },
       });
     },
     fetchData(): void {

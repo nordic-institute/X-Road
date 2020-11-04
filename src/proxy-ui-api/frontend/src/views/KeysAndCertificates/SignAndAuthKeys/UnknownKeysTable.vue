@@ -30,8 +30,13 @@
         <tr>
           <th>{{ $t(title) }}</th>
           <th>{{ $t('keys.id') }}</th>
+          <th>{{ $t('keys.ocsp') }}</th>
+          <th>{{ $t('keys.expires') }}</th>
+          <th>{{ $t('keys.status') }}</th>
+          <th></th>
         </tr>
       </thead>
+
       <tbody v-for="key in keys" v-bind:key="key.id">
         <tr>
           <td>
@@ -47,16 +52,44 @@
               <div class="clickable-link" @click="keyClick(key)">
                 {{ key.id }}
               </div>
-              <SmallButton
-                v-if="canCreateCsr"
-                class="table-button-fix"
-                :disabled="disableGenerateCsr(key)"
-                @click="generateCsr(key)"
-                >{{ $t('keys.generateCsr') }}</SmallButton
-              >
             </div>
           </td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="align-right">
+            <SmallButton
+              v-if="canCreateCsr"
+              class="table-button-fix"
+              :disabled="disableGenerateCsr(key)"
+              @click="generateCsr(key)"
+              >{{ $t('keys.generateCsr') }}</SmallButton
+            >
+          </td>
         </tr>
+
+        <CertificateRow
+          v-for="cert in key.certificates"
+          v-bind:key="cert.id"
+          :cert="cert"
+          @certificate-click="certificateClick(cert, key)"
+        >
+          <div slot="certificateAction">
+            <template v-if="canImportFromToken">
+              <SmallButton
+                v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
+                class="table-button-fix"
+                @click="importCert(cert.certificate_details.hash)"
+                >{{ $t('keys.importCert') }}</SmallButton
+              >
+
+              <!-- Special case where HW cert has auth usage -->
+              <div v-else-if="key.usage === 'AUTHENTICATION'">
+                {{ $t('keys.authNotSupported') }}
+              </div>
+            </template>
+          </div>
+        </CertificateRow>
       </tbody>
     </table>
   </div>
@@ -67,10 +100,14 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import { Key, PossibleAction } from '@/openapi-types';
-import { Permissions } from '@/global';
+import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
+import { Permissions, RouteName } from '@/global';
+import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
 
 export default Vue.extend({
+  components: {
+    CertificateRow,
+  },
   props: {
     keys: {
       type: Array,
@@ -95,6 +132,10 @@ export default Vue.extend({
         this.$store.getters.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
       );
     },
+    canImportFromToken(): boolean {
+      // Can the user import certificate from hardware token
+      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
+    },
   },
   methods: {
     disableGenerateCsr(key: Key): boolean {
@@ -111,11 +152,27 @@ export default Vue.extend({
 
       return true;
     },
+    importCert(hash: string): void {
+      this.$emit('import-cert-by-hash', hash);
+    },
+    certificateClick(payload: { cert: TokenCertificate; key: Key }): void {
+      this.$router.push({
+        name: RouteName.Certificate,
+        params: {
+          hash: payload.cert.certificate_details.hash,
+          usage: payload.key.usage,
+        },
+      });
+    },
     keyClick(key: Key): void {
       this.$emit('key-click', key);
     },
     generateCsr(key: Key): void {
       this.$emit('generate-csr', key);
+    },
+    fetchData(): void {
+      // Fetch tokens from backend
+      this.$emit('refresh-list');
     },
   },
 });
@@ -159,5 +216,9 @@ export default Vue.extend({
   align-items: baseline;
   align-items: center;
   width: 100%;
+}
+
+.align-right {
+  text-align: right;
 }
 </style>
